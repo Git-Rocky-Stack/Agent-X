@@ -12,7 +12,9 @@ public class ExportOptions
     public ExportFormat Format { get; set; } = ExportFormat.Markdown;
 
     /// <summary>
-    /// When true, citation references and footnotes are included in the export.
+    /// When true, citation references and footnotes are included in the export. Only messages
+    /// that carry stored citations (<c>MessageEntity.CitationsJson</c>) have any; chat does not
+    /// store them yet, so the export dialog does not offer this option.
     /// </summary>
     public bool IncludeCitations { get; set; } = true;
 
@@ -27,7 +29,8 @@ public class ExportOptions
     public bool IncludeTimestamps { get; set; } = true;
 
     /// <summary>
-    /// When true, the AI model identifier is shown for assistant messages.
+    /// When true, the AI model identifier is shown for assistant messages that carry one
+    /// (<c>MessageEntity.ModelId</c>, which chat does not store yet).
     /// </summary>
     public bool IncludeModelInfo { get; set; } = false;
 
@@ -44,14 +47,17 @@ public class ExportOptions
     public string? Title { get; set; }
 
     /// <summary>
-    /// When set, the export is structured according to the specified template
-    /// (e.g., Research Report, Executive Summary, Annotated Bibliography).
-    /// Templates are only applicable to Markdown, HTML, and DOCX formats.
+    /// When set, a single-conversation export is structured according to the specified
+    /// template (Research Report, Executive Summary, Annotated Bibliography). Templates
+    /// produce Markdown, so they apply to Markdown exports only; any other format, or a
+    /// multi-conversation export, fails with a message instead of silently ignoring it.
     /// </summary>
     public ExportTemplateId? TemplateId { get; set; }
 
     /// <summary>
-    /// When true, conversation branch data is included in the export.
+    /// Not applied: no exporter includes branch conversations yet, so the export dialog does
+    /// not offer the option. Kept for API compatibility.
     /// </summary>
     public bool IncludeBranches { get; set; } = true;
+
 }

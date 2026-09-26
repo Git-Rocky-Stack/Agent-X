@@ -95,6 +95,21 @@ public sealed partial class CollectionManagerPage : Page
 
         Log.Information("Collection {CollectionId} export finished: {Status}",
             collectionId, exportViewModel.StatusMessage);
+
+        // The outcome used to reach only the log: tell the user where the file went, or why
+        // there is none.
+        var notifications = App.GetService<AgentX.App.Services.INotificationService>();
+        if (exportViewModel.LastExportSucceeded)
+        {
+            notifications.ShowSuccess(
+                "Export complete",
+                $"{exportViewModel.StatusMessage}. Saved to {exportViewModel.LastExportPath}",
+                durationMs: 8000);
+        }
+        else
+        {
+            notifications.ShowError("Export failed", exportViewModel.StatusMessage);
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════

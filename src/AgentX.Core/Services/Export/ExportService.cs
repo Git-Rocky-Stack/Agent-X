@@ -1,4 +1,5 @@
 using System.Text;
+using AgentX.Core.Data;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Documents;
 using AgentX.Core.Services.Chat;
@@ -6,6 +7,7 @@ using AgentX.Core.Services.Collections;
 using AgentX.Core.Services.Export.Formatters;
 using AgentX.Core.Services.Export.Models;
 using AgentX.Core.Services.Settings;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 namespace AgentX.Core.Services.Export;
@@ -25,18 +27,37 @@ public class ExportService : IExportService
     private readonly ISettingsService _settingsService;
     private readonly ILogger _log;
     private readonly IReadOnlyDictionary<ExportFormat, IExportFormatter> _formatters;
+    private readonly AgentXDbContext? _db;
+    private readonly IExportTemplateService _templateService;
 
     private static readonly HashSet<ExportFormat> BinaryFormats =
         [ExportFormat.Pdf, ExportFormat.Docx, ExportFormat.Pptx];
 
+    /// <param name="conversationService">Conversation reads when no database context is supplied.</param>
+    /// <param name="documentService">Document service.</param>
+    /// <param name="collectionService">Collection reads.</param>
+    /// <param name="settingsService">Settings (default export directory).</param>
+    /// <param name="logger">Logger.</param>
+    /// <param name="formatters">One formatter per export format.</param>
+    /// <param name="db">
+    /// When supplied, conversations are read with no change tracking: an export only reads,
+    /// and tracked entities would stay in the shared context (an "export all" pins every
+    /// conversation and message), making every later SaveChanges scan them.
+    /// </param>
+    /// <param name="templateService">Built-in templates for <see cref="ExportOptions.TemplateId"/>.</param>
     public ExportService(
         IConversationService conversationService,
         IDocumentService documentService,
         ICollectionService collectionService,
         ISettingsService settingsService,
         ILogger logger,
-        IEnumerable<IExportFormatter> formatters)
+        IEnumerable<IExportFormatter> formatters,
+        AgentXDbContext? db = null,
+        IExportTemplateService? templateService = null)
     {
+        _db = db;
+        _templateService = templateService ?? new ExportTemplateService();
+
         _conversationService = conversationService
             ?? throw new ArgumentNullException(nameof(conversationService));
         _documentService = documentService
@@ -64,12 +85,15 @@ public class ExportService : IExportService
         {
             ct.ThrowIfCancellationRequested();
 
-            var conversation = await _conversationService.GetConversationAsync(conversationId);
+            var conversation = await LoadConversationAsync(conversationId, ct);
             if (conversation is null)
             {
                 _log.Warning("Export failed: conversation {ConversationId} not found", conversationId);
                 return ExportResult.Fail($"Conversation {conversationId} not found.");
             }
+
+            if (options.TemplateId is not null && options.Format != ExportFormat.Markdown)
+                return ExportResult.Fail("Export templates produce Markdown, so they apply to Markdown exports only.");
 
             var outputPath = await ExportPathUtility.ResolveOutputPathAsync(options, conversation.Title, options.Format, _settingsService);
             ExportPathUtility.EnsureDirectoryExists(outputPath);
@@ -77,7 +101,9 @@ public class ExportService : IExportService
             var formatter = ResolveFormatter(options.Format);
             var title = options.Title ?? conversation.Title;
             if (options.Title != title) options.Title = title;
-            var content = await formatter.ExportConversationAsync(conversation, options, ct);
+            var content = options.TemplateId is { } templateId
+                ? await ApplyTemplateAsync(conversation, templateId, title)
+                : await formatter.ExportConversationAsync(conversation, options, ct);
 
             var writeError = await WriteOutputAsync(outputPath, content, options.Format, ct);
             if (writeError is not null) return writeError;
@@ -115,6 +141,9 @@ public class ExportService : IExportService
 
             if (conversationIds is null || conversationIds.Count == 0)
                 return ExportResult.Fail("No conversation IDs provided.");
+
+            if (options.TemplateId is not null)
+                return ExportResult.Fail("Export templates structure a single conversation; export one conversation to use a template.");
 
             var conversations = await FetchConversationsAsync(conversationIds, ct);
             if (conversations.Count == 0)
@@ -342,7 +371,7 @@ public class ExportService : IExportService
     {
         try
         {
-            var conversation = await _conversationService.GetConversationAsync(conversationId);
+            var conversation = await LoadConversationAsync(conversationId, CancellationToken.None);
             if (conversation is null)
             {
                 _log.Warning("Cannot format as {Format}: conversation {ConversationId} not found",
@@ -363,10 +392,41 @@ public class ExportService : IExportService
         }
         catch (Exception ex)
         {
+            // Rethrown: an empty string here made "Copy as Markdown" report success after a
+            // failure, with nothing (or the previous text) on the clipboard.
             _log.Error(ex, "Failed to format conversation {ConversationId} as {Format}",
                 conversationId, formatLabel);
-            return string.Empty;
+            throw;
         }
+    }
+
+    /// <summary>
+    /// Renders <paramref name="conversation"/> through a built-in template (Markdown).
+    /// </summary>
+    private Task<string> ApplyTemplateAsync(ConversationEntity conversation, ExportTemplateId templateId, string title)
+    {
+        var messages = conversation.Messages
+            .Where(m => !m.Role.Equals("system", StringComparison.OrdinalIgnoreCase))
+            .OrderBy(m => m.SortOrder)
+            .Select(m => new TemplateMessage { Role = m.Role, Content = m.Content, Timestamp = m.Timestamp })
+            .ToList();
+
+        return _templateService.ApplyTemplateAsync(templateId, messages, title);
+    }
+
+    /// <summary>
+    /// Loads a conversation with its messages for export: untracked when a context is
+    /// available (see the constructor), through the conversation service otherwise.
+    /// </summary>
+    private async Task<ConversationEntity?> LoadConversationAsync(long conversationId, CancellationToken ct)
+    {
+        if (_db is null)
+            return await _conversationService.GetConversationAsync(conversationId);
+
+        return await _db.Conversations
+            .AsNoTracking()
+            .Include(c => c.Messages.OrderBy(m => m.SortOrder))
+            .FirstOrDefaultAsync(c => c.Id == conversationId, ct);
     }
 
     // Formatter resolution & output writing
@@ -413,8 +473,9 @@ public class ExportService : IExportService
         foreach (var id in ids)
         {
             ct.ThrowIfCancellationRequested();
-            var conversation = await _conversationService.GetConversationAsync(id);
+            var conversation = await LoadConversationAsync(id, ct);
             if (conversation is not null)
+
             {
                 conversations.Add(conversation);
             }

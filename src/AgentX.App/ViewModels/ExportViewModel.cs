@@ -24,6 +24,12 @@ public partial class ExportViewModel : ObservableObject
     [ObservableProperty] private bool _includeModelInfo;
     [ObservableProperty] private string? _lastExportPath;
 
+    /// <summary>
+    /// Whether the most recent export or copy succeeded, so a page can show the outcome
+    /// (and <see cref="LastExportPath"/>) without parsing <see cref="StatusMessage"/>.
+    /// </summary>
+    [ObservableProperty] private bool _lastExportSucceeded;
+
     public List<ExportFormat> AvailableFormats { get; } = new()
     {
         ExportFormat.Markdown,
@@ -45,6 +51,7 @@ public partial class ExportViewModel : ObservableObject
         if (request is null) return;
 
         IsExporting = true;
+        LastExportSucceeded = false;
         StatusMessage = "Exporting conversation...";
 
         try
@@ -56,6 +63,7 @@ public partial class ExportViewModel : ObservableObject
             if (result.Success)
             {
                 LastExportPath = result.FilePath;
+                LastExportSucceeded = true;
                 StatusMessage = $"Exported to {Path.GetFileName(result.FilePath)}";
             }
             else
@@ -80,6 +88,7 @@ public partial class ExportViewModel : ObservableObject
         if (request is null || request.ConversationIds.Count == 0) return;
 
         IsExporting = true;
+        LastExportSucceeded = false;
         StatusMessage = $"Exporting {request.ConversationIds.Count} conversations...";
 
         try
@@ -91,6 +100,7 @@ public partial class ExportViewModel : ObservableObject
             if (result.Success)
             {
                 LastExportPath = result.FilePath;
+                LastExportSucceeded = true;
                 StatusMessage = $"Exported {request.ConversationIds.Count} conversations";
             }
             else
@@ -115,6 +125,7 @@ public partial class ExportViewModel : ObservableObject
         if (request is null) return;
 
         IsExporting = true;
+        LastExportSucceeded = false;
         StatusMessage = "Exporting collection...";
 
         try
@@ -126,6 +137,7 @@ public partial class ExportViewModel : ObservableObject
             if (result.Success)
             {
                 LastExportPath = result.FilePath;
+                LastExportSucceeded = true;
                 StatusMessage = $"Collection exported to {Path.GetFileName(result.FilePath)}";
             }
             else
@@ -150,20 +162,32 @@ public partial class ExportViewModel : ObservableObject
     [RelayCommand]
     private async Task CopyConversationAsMarkdownAsync(long conversationId)
     {
+        LastExportSucceeded = false;
+
         try
         {
             var markdown = await _exportService.FormatConversationAsMarkdownAsync(conversationId, IncludeMetadata);
+            if (string.IsNullOrEmpty(markdown))
+            {
+                // Nothing was formatted (the conversation no longer exists): say so rather
+                // than report a copy and leave the clipboard as it was.
+                StatusMessage = "Copy failed: the conversation could not be found";
+                return;
+            }
+
             var dataPackage = new Windows.ApplicationModel.DataTransfer.DataPackage();
             dataPackage.SetText(markdown);
             Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
+            LastExportSucceeded = true;
             StatusMessage = "Conversation copied to clipboard as Markdown";
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to copy conversation as Markdown");
-            StatusMessage = "Copy failed";
+            StatusMessage = $"Copy failed: {ex.Message}";
         }
     }
+
 
     private ExportOptions BuildOptions(string? outputPath, string? title) => new()
     {

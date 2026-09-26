@@ -8,8 +8,12 @@ namespace AgentX.App.Views;
 
 /// <summary>
 /// ContentDialog for configuring and executing conversation exports.
-/// Supports all 8 export formats and 3 built-in templates.
+/// Supports all 8 export formats and, for Markdown, 3 built-in templates.
 /// </summary>
+/// <remarks>
+/// "Include citations" and "Include branches" are not offered: chat does not store message
+/// citations, and no exporter includes branch conversations, so both switches changed nothing.
+/// </remarks>
 public sealed partial class ExportDialog : ContentDialog
 {
     private readonly ExportViewModel _viewModel;
@@ -30,11 +34,12 @@ public sealed partial class ExportDialog : ContentDialog
         TemplateCombo.ItemsSource = templates;
         TemplateCombo.SelectedIndex = 0;
 
-        // Templates are only applicable to Markdown, Docx, and Html
+        // Templates produce Markdown, so they apply to Markdown exports only (the export
+        // service rejects a template with any other format rather than ignoring it).
         FormatCombo.SelectionChanged += (s, e) =>
         {
             var fmt = (ExportFormat)FormatCombo.SelectedItem!;
-            TemplateCombo.IsEnabled = fmt is ExportFormat.Markdown or ExportFormat.Docx or ExportFormat.Html;
+            TemplateCombo.IsEnabled = fmt is ExportFormat.Markdown;
             if (!TemplateCombo.IsEnabled)
             {
                 TemplateCombo.SelectedIndex = 0;
@@ -84,10 +89,8 @@ public sealed partial class ExportDialog : ContentDialog
             var options = new ExportOptions
             {
                 Format = format,
-                IncludeCitations = IncludeCitationsToggle.IsOn,
                 IncludeMetadata = IncludeMetadataToggle.IsOn,
                 IncludeTimestamps = IncludeTimestampsToggle.IsOn,
-                IncludeBranches = IncludeBranchesToggle.IsOn,
                 TemplateId = template
             };
 

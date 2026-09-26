@@ -1779,10 +1779,8 @@
   <data name="ExportDlg_ExportConversation.CloseButtonText" xml:space="preserve"><value>Annuler</value></data>
   <data name="ExportDlg_Format.Header" xml:space="preserve"><value>Format</value></data>
   <data name="ExportDlg_TemplateOptional.Header" xml:space="preserve"><value>Modèle (facultatif)</value></data>
-  <data name="ExportDlg_IncludeCitations.Header" xml:space="preserve"><value>Inclure les citations</value></data>
   <data name="ExportDlg_IncludeMetadata.Header" xml:space="preserve"><value>Inclure les métadonnées</value></data>
   <data name="ExportDlg_IncludeTimestamps.Header" xml:space="preserve"><value>Inclure les horodatages</value></data>
-  <data name="ExportDlg_IncludeBranches.Header" xml:space="preserve"><value>Inclure les branches</value></data>
   <data name="JumpTo_JumpToPageDocumentPh.PlaceholderText" xml:space="preserve"><value>Aller à une page, un document ou une conversation...</value></data>
   <data name="Privacy_PrivacyPolicy.Text" xml:space="preserve"><value>POLITIQUE DE CONFIDENTIALITÉ</value></data>
   <data name="Privacy_EffectiveDateFebruary26.Text" xml:space="preserve"><value>Date d'entrée en vigueur : 26 février 2026</value></data>

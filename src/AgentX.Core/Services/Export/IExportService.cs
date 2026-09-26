@@ -82,6 +82,7 @@ public interface IExportService
     /// <param name="conversationId">The ID of the conversation to format.</param>
     /// <param name="includeMeta">When true, metadata (model, tokens, timestamps) is included.</param>
     /// <returns>The formatted Markdown string, or an empty string if the conversation is not found.</returns>
+    /// <exception cref="Exception">Formatting failures propagate, so a caller never reports an empty result as a successful copy.</exception>
     Task<string> FormatConversationAsMarkdownAsync(long conversationId, bool includeMeta);
 
     /// <summary>
@@ -91,5 +92,7 @@ public interface IExportService
     /// <param name="conversationId">The ID of the conversation to format.</param>
     /// <param name="includeMeta">When true, metadata (model, tokens, timestamps) is included.</param>
     /// <returns>The formatted HTML string, or an empty string if the conversation is not found.</returns>
+    /// <exception cref="Exception">Formatting failures propagate, so a caller never reports an empty result as a successful copy.</exception>
     Task<string> FormatConversationAsHtmlAsync(long conversationId, bool includeMeta);
+
 }

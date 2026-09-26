@@ -521,6 +521,21 @@ public sealed partial class ChatPage : Page
             "Batch export of {Count} conversations finished: {Status}",
             conversationIds.Count,
             exportViewModel.StatusMessage);
+
+        // The outcome used to reach only the log: tell the user where the file went, or why
+        // there is none.
+        var notifications = App.GetService<AgentX.App.Services.INotificationService>();
+        if (exportViewModel.LastExportSucceeded)
+        {
+            notifications.ShowSuccess(
+                "Export complete",
+                $"{exportViewModel.StatusMessage}. Saved to {exportViewModel.LastExportPath}",
+                durationMs: 8000);
+        }
+        else
+        {
+            notifications.ShowError("Export failed", exportViewModel.StatusMessage);
+        }
     }
 
     private async void ExportButton_Click(object sender, RoutedEventArgs e)

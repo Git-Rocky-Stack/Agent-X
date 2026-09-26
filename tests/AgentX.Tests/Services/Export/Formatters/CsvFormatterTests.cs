@@ -1,4 +1,6 @@
+using System.Globalization;
 using AgentX.Core.Data.Entities;
+using AgentX.Core.Services.Export;
 using AgentX.Core.Services.Export.Formatters;
 using AgentX.Core.Services.Export.Models;
 using FluentAssertions;
@@ -369,4 +371,68 @@ public sealed class CsvFormatterTests
         // Assert
         await act.Should().ThrowAsync<OperationCanceledException>();
     }
+
+    // -- Spreadsheet formula injection and culture ------------------------------
+
+    [Theory]
+    [InlineData("=HYPERLINK(\"http://evil.example\",\"click\")")]
+    [InlineData("+1+1")]
+    [InlineData("-2+3")]
+    [InlineData("@SUM(A1:A9)")]
+    [InlineData("\tcmd")]
+    [InlineData("\r=1")]
+    public void CsvEscape_ACellAFormulaWouldRun_IsPrefixedWithAQuote(string cell)
+    {
+        var escaped = ExportContentBuilder.CsvEscape(cell);
+
+        // Strip the CSV quoting to see what the spreadsheet reads as the cell's text.
+        var text = escaped.StartsWith('"') ? escaped[1..^1].Replace("\"\"", "\"") : escaped;
+        text.Should().StartWith("'");
+        text[1..].Should().Be(cell);
+    }
+
+    [Theory]
+    [InlineData("plain text")]
+    [InlineData("2026-03-10T09:00:00.0000000Z")]
+    [InlineData("a=b")]
+    public void CsvEscape_OrdinaryCells_AreUnchanged(string cell)
+    {
+        ExportContentBuilder.CsvEscape(cell).Should().Be(cell);
+    }
+
+    [Fact]
+    public async Task ExportConversationAsync_MessageStartingWithAFormula_IsNeutralized()
+    {
+        var conversation = CreateConversation(messageCount: 1);
+        conversation.Messages.First().Content = "=cmd|' /C calc'!A0";
+
+        var csv = await _sut.ExportConversationAsync(conversation, new ExportOptions());
+
+        csv.Should().Contain("'=cmd|' /C calc'!A0");
+        csv.Split('\n').Should().NotContain(line => line.Contains(",=cmd"));
+    }
+
+    [Fact]
+    public void BuildSearchResultsCsv_WritesScoresWithAPeriod_WhateverTheUserCulture()
+    {
+        var previous = CultureInfo.CurrentCulture;
+        try
+        {
+            CultureInfo.CurrentCulture = new CultureInfo("de-DE");
+            var results = new List<SearchResultExportItem>
+            {
+                new() { DocumentName = "report.pdf", Content = "excerpt", RelevanceScore = 0.8123f },
+            };
+
+            var csv = ExportContentBuilder.BuildSearchResultsCsv("query", results);
+
+            csv.Should().Contain(",0.8123,");
+            csv.Should().NotContain("0,8123");
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = previous;
+        }
+    }
 }
+

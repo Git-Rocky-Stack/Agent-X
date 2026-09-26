@@ -1779,10 +1779,8 @@
   <data name="ExportDlg_ExportConversation.CloseButtonText" xml:space="preserve"><value>キャンセル</value></data>
   <data name="ExportDlg_Format.Header" xml:space="preserve"><value>形式</value></data>
   <data name="ExportDlg_TemplateOptional.Header" xml:space="preserve"><value>テンプレート (省略可)</value></data>
-  <data name="ExportDlg_IncludeCitations.Header" xml:space="preserve"><value>引用を含める</value></data>
   <data name="ExportDlg_IncludeMetadata.Header" xml:space="preserve"><value>メタデータを含める</value></data>
   <data name="ExportDlg_IncludeTimestamps.Header" xml:space="preserve"><value>タイムスタンプを含める</value></data>
-  <data name="ExportDlg_IncludeBranches.Header" xml:space="preserve"><value>ブランチを含める</value></data>
   <data name="JumpTo_JumpToPageDocumentPh.PlaceholderText" xml:space="preserve"><value>ページ、ドキュメント、会話にジャンプ...</value></data>
   <data name="Privacy_PrivacyPolicy.Text" xml:space="preserve"><value>プライバシー ポリシー</value></data>
   <data name="Privacy_EffectiveDateFebruary26.Text" xml:space="preserve"><value>発効日: 2026 年 2 月 26 日</value></data>

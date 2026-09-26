@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Services.Export.Models;
@@ -53,9 +54,9 @@ public sealed class CsvFormatter : IExportFormatter
                 sb.Append(CsvEscape(conv.Title)).Append(',');
                 sb.Append(CsvEscape(message.Role)).Append(',');
                 sb.Append(CsvEscape(message.Content)).Append(',');
-                sb.Append(CsvEscape(message.Timestamp.ToString("O"))).Append(',');
+                sb.Append(CsvEscape(message.Timestamp.ToString("O", CultureInfo.InvariantCulture))).Append(',');
                 sb.Append(CsvEscape(message.ModelId ?? "")).Append(',');
-                sb.AppendLine(message.TokenCount.ToString());
+                sb.AppendLine(message.TokenCount.ToString(CultureInfo.InvariantCulture));
             }
         }
 
@@ -86,9 +87,9 @@ public sealed class CsvFormatter : IExportFormatter
 
             sb.Append(CsvEscape(message.Role)).Append(',');
             sb.Append(CsvEscape(message.Content)).Append(',');
-            sb.Append(CsvEscape(message.Timestamp.ToString("O"))).Append(',');
+            sb.Append(CsvEscape(message.Timestamp.ToString("O", CultureInfo.InvariantCulture))).Append(',');
             sb.Append(CsvEscape(message.ModelId ?? "")).Append(',');
-            sb.AppendLine(message.TokenCount.ToString());
+            sb.AppendLine(message.TokenCount.ToString(CultureInfo.InvariantCulture));
         }
 
         return sb.ToString();
@@ -98,14 +99,10 @@ public sealed class CsvFormatter : IExportFormatter
     //  Helpers
     // ────────────────────────────────────────────────────────────────
 
-    private static string CsvEscape(string? value)
-    {
-        if (string.IsNullOrEmpty(value))
-            return "\"\"";
+    /// <summary>
+    /// The shared CSV cell escaping, which also neutralizes spreadsheet formulas in message
+    /// text (see <see cref="ExportContentBuilder.CsvEscape"/>).
+    /// </summary>
+    private static string CsvEscape(string? value) => ExportContentBuilder.CsvEscape(value);
 
-        if (value.Contains('"') || value.Contains(',') || value.Contains('\n') || value.Contains('\r'))
-            return $"\"{value.Replace("\"", "\"\"")}\"";
-
-        return value;
-    }
 }

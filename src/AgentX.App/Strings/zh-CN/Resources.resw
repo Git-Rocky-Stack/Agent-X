@@ -1779,10 +1779,8 @@
   <data name="ExportDlg_ExportConversation.CloseButtonText" xml:space="preserve"><value>取消</value></data>
   <data name="ExportDlg_Format.Header" xml:space="preserve"><value>格式</value></data>
   <data name="ExportDlg_TemplateOptional.Header" xml:space="preserve"><value>模板(可选)</value></data>
-  <data name="ExportDlg_IncludeCitations.Header" xml:space="preserve"><value>包含引用</value></data>
   <data name="ExportDlg_IncludeMetadata.Header" xml:space="preserve"><value>包含元数据</value></data>
   <data name="ExportDlg_IncludeTimestamps.Header" xml:space="preserve"><value>包含时间戳</value></data>
-  <data name="ExportDlg_IncludeBranches.Header" xml:space="preserve"><value>包含分支</value></data>
   <data name="JumpTo_JumpToPageDocumentPh.PlaceholderText" xml:space="preserve"><value>跳转到页面、文档或会话...</value></data>
   <data name="Privacy_PrivacyPolicy.Text" xml:space="preserve"><value>隐私政策</value></data>
   <data name="Privacy_EffectiveDateFebruary26.Text" xml:space="preserve"><value>生效日期:2026 年 2 月 26 日</value></data>
