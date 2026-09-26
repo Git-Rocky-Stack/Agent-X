@@ -26,7 +26,7 @@ public sealed partial class KnowledgeVaultPage : Page
 
     public KnowledgeVaultPage()
     {
-        ViewModel = App.GetService<KnowledgeVaultViewModel>();
+        ViewModel = PageViewModelFactory.Create<KnowledgeVaultViewModel>();
         ViewModel.NavigateRequested = NavigateToPage;
         _shortcutRegistry = App.GetService<IShortcutRegistry>();
         InitializeComponent();
