@@ -33,6 +33,9 @@ export interface ExtensionHealthResponse {
   provider: string;
 }
 
+/** Outcome of validating a token against the authenticated GET /api/auth/check route. */
+export type AuthCheckResult = 'valid' | 'rejected';
+
 /** Generic API envelope matching AgentX's ApiResponse<T> */
 interface ApiResponse<T> {
   success: boolean;
@@ -108,6 +111,26 @@ export class AgentXApi {
     return headers;
   }
 
+  /**
+   * Validates a token (the current one by default) against GET /api/auth/check, which, unlike the
+   * public health probe, rejects a missing or wrong token with 401. Throws when AgentX cannot be
+   * reached or answers with anything other than success or 401.
+   */
+  async checkAuth(token: string | null = this.token): Promise<AuthCheckResult> {
+    if (!token) return 'rejected';
+
+    const response = await fetch(`${this.baseUrl}/api/auth/check`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (response.status === 401) return 'rejected';
+    if (!response.ok) {
+      throw new Error(`Token check failed: ${response.status} ${response.statusText}`);
+    }
+
+    return 'valid';
+  }
+
   /** Check if AgentX is running and the inbox is available. */
   async checkHealth(): Promise<ExtensionHealthResponse> {
     const response = await fetch(`${this.baseUrl}/api/extension/health`);
@@ -137,8 +160,8 @@ export class AgentXApi {
 
     if (response.status === 401) {
       throw new Error(
-        'Not paired with AgentX. Open the extension popup and paste the API token from ' +
-        'AgentX → Settings → Connections.'
+        'Not paired with AgentX, or the token was regenerated. Open the extension popup and paste ' +
+        'the API token from AgentX > Settings > Connections.'
       );
     }
 

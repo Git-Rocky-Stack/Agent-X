@@ -66,20 +66,29 @@ async function loadApiToken(): Promise<void> {
   }
 }
 
+/**
+ * Pairs by asking the background worker to validate the token against AgentX's authenticated
+ * /api/auth/check route. "Paired" is only shown for a token AgentX accepted; the public health
+ * probe used before accepts any string.
+ */
 async function saveApiToken(): Promise<void> {
   const input = getTokenInput();
   if (!input) return;
 
-  const token = input.value.trim();
   try {
-    if (token.length === 0) {
-      await chrome.storage.local.remove(API_TOKEN_KEY);
-      showFeedback('Token cleared — extension unpaired.', 'info');
+    const response = await sendMessage({ action: 'pair', token: input.value });
+
+    if (!response?.success) {
+      showFeedback(response?.error ?? 'Could not save the token.', 'error');
+    } else if (response.data?.status === 'cleared') {
+      showFeedback('Token cleared. The extension is unpaired.', 'info');
+    } else if (response.data?.status === 'unverified') {
+      showFeedback('Token saved, but not verified: AgentX is not running. Start AgentX and check the status above.', 'info');
     } else {
-      await chrome.storage.local.set({ [API_TOKEN_KEY]: token });
       showFeedback('Paired with AgentX.', 'success');
     }
-    // Re-probe so the status dot reflects the new pairing immediately.
+
+    // Re-probe so the status reflects the new pairing immediately.
     await checkConnection();
   } catch {
     showFeedback('Could not save the token.', 'error');
@@ -93,23 +102,26 @@ async function checkConnection(): Promise<void> {
 
   try {
     const response = await sendMessage({ action: 'checkConnection' });
-    if (response?.success && response.data?.connected) {
+    if (response?.success && response.data?.connected && response.data.paired) {
       statusDot.classList.add('connected');
       statusDot.classList.remove('disconnected');
       statusText.textContent = `v${response.data.version ?? '\u2014'}`;
+    } else if (response?.success && response.data?.connected) {
+      // Reachable, but the stored token is missing, wrong, or was regenerated in AgentX.
+      setDisconnected('Not paired');
     } else {
-      setDisconnected();
+      setDisconnected('Offline');
     }
   } catch {
-    setDisconnected();
+    setDisconnected('Offline');
   }
 }
 
-function setDisconnected(): void {
+function setDisconnected(label: string): void {
   if (!statusDot || !statusText) return;
   statusDot.classList.add('disconnected');
   statusDot.classList.remove('connected');
-  statusText.textContent = 'Offline';
+  statusText.textContent = label;
 }
 
 // ── Clip Page ──────────────────────────────────────────────────────────────
@@ -137,18 +149,47 @@ async function clipPage(mode: string): Promise<void> {
 
 // ── Clip All Tabs ─────────────────────────────────────────────────────────
 
+/** Hosts "Clip All Tabs" needs to read tabs other than the one the toolbar button was clicked on. */
+const ALL_SITES = { origins: ['http://*/*', 'https://*/*'] };
+
+/**
+ * Asks for the optional all-sites host permission. It is the first await in the click handler so
+ * it still runs inside the user gesture the browser requires; a permission that is already granted
+ * resolves without a prompt. If the user declines, only tabs the extension may already read are
+ * clipped and the rest are reported as skipped.
+ */
+async function requestAllSitesAccess(): Promise<void> {
+  try {
+    await chrome.permissions.request(ALL_SITES);
+  } catch {
+    // Unavailable in this browser: carry on with whatever access the extension already has.
+  }
+}
+
 async function clipAllTabs(): Promise<void> {
   setButtonsEnabled(false);
-  showFeedback('Clipping all tabs...', 'info');
 
   try {
+    await requestAllSitesAccess();
+    showFeedback('Clipping all tabs...', 'info');
+
     const response = await sendMessage({ action: 'clipAllTabs' });
 
     if (response?.success && Array.isArray(response.data)) {
       const results = response.data as { status: string }[];
       const clipped = results.filter(r => r.status === 'clipped').length;
-      const total = results.length;
-      showFeedback(`Clipped ${clipped}/${total} tabs.`, clipped > 0 ? 'success' : 'error');
+      const skipped = results.filter(r => r.status === 'skipped').length;
+      const failed = results.filter(r => r.status === 'error').length;
+
+      const details: string[] = [];
+      if (skipped > 0) details.push(`${skipped} skipped (no access or no text)`);
+      if (failed > 0) details.push(`${failed} failed`);
+      const suffix = details.length > 0 ? ` ${details.join(', ')}.` : '';
+
+      showFeedback(
+        `Clipped ${clipped} of ${results.length} tabs.${suffix}`,
+        clipped > 0 && failed === 0 ? 'success' : clipped > 0 ? 'info' : 'error'
+      );
       await loadRecentClips();
     } else {
       showFeedback(response?.error ?? 'Batch clip failed.', 'error');
@@ -289,6 +330,7 @@ interface ExtensionResponse {
   success: boolean;
   data?: {
     connected?: boolean;
+    paired?: boolean;
     version?: string;
     inboxEnabled?: boolean;
     provider?: string;
@@ -300,7 +342,7 @@ interface ExtensionResponse {
   error?: string;
 }
 
-function sendMessage(message: { action: string; mode?: string }): Promise<ExtensionResponse | undefined> {
+function sendMessage(message: { action: string; mode?: string; token?: string }): Promise<ExtensionResponse | undefined> {
   return new Promise((resolve) => {
     chrome.runtime.sendMessage(message, (response: ExtensionResponse) => {
       resolve(response);
