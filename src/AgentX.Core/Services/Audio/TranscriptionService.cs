@@ -13,10 +13,15 @@ namespace AgentX.Core.Services.Audio;
 /// loads it through <c>WhisperFactory</c> and runs the audio through the processor.
 /// </para>
 /// <para>
-/// <see cref="TranscribeFileAsync"/> throws <see cref="NotSupportedException"/> only for an
-/// audio container this service does not accept (see <c>AudioFormats</c>), and
-/// <see cref="InvalidOperationException"/> when the requested model is missing or its file
-/// cannot be loaded.
+/// Whisper.net reads only 16 kHz integer-PCM WAV, so any other input (MP3, M4A, FLAC, a 44.1 or
+/// 48 kHz WAV, a float WAV) is first decoded, mixed to mono and resampled into a temporary WAV
+/// by <see cref="WhisperAudioConverter"/>, which is deleted afterwards.
+/// </para>
+/// <para>
+/// <see cref="TranscribeFileAsync"/> throws <see cref="NotSupportedException"/> for an audio
+/// container this service does not accept (see <c>AudioFormats</c>) or a file this machine cannot
+/// decode, and <see cref="InvalidOperationException"/> when the requested model is missing or its
+/// file cannot be loaded.
 /// </para>
 /// </summary>
 public sealed class TranscriptionService : ITranscriptionService
@@ -287,65 +292,70 @@ public sealed class TranscriptionService : ITranscriptionService
                 $"Call DownloadModelAsync(\"{options.ModelSize}\") first.");
         }
 
-        // ── Phase 2: Load model (10–30%) ──────────────────────────────────────
+        // Phase 2: Whisper.net reads only 16 kHz integer-PCM WAV. Decode and resample anything
+        // else into a temporary file first (10-20%).
 
-        ReportProgress(progress, 10.0, "Loading model...");
+        if (options.EnableSpeakerDiarization)
+        {
+            _log.Warning(
+                "Speaker diarization was requested for {FileName}, but the bundled Whisper.net runtime does not support it; segments will carry no speaker ids",
+                fileInfo.Name);
+        }
 
-        _log.Debug(
-            "Loading Whisper model from {ModelPath}", modelPath);
+        string? convertedPath = null;
+        try
+        {
+            var whisperInputPath = audioFilePath;
+            if (!WhisperAudioConverter.IsWhisperReadyWav(audioFilePath))
+            {
+                ReportProgress(progress, 10.0, "Preparing audio...");
+                convertedPath = Path.Combine(PathHelper.GetTempPath(), $"whisper-{Guid.NewGuid():N}.wav");
+                await ConvertForWhisperAsync(audioFilePath, convertedPath, ct).ConfigureAwait(false);
+                whisperInputPath = convertedPath;
+            }
 
-        ct.ThrowIfCancellationRequested();
+            // Phase 3: Load the model and transcribe (20-90%).
 
-        // Simulate model load phase for progress fidelity.
-        // In the integrated implementation this range is consumed by the factory call.
-        await SimulatePhaseAsync(progressStart: 10.0, progressEnd: 30.0, steps: 4,
-            label: "Loading model...", progress, ct).ConfigureAwait(false);
+            _log.Debug(
+                "Starting Whisper transcription - file: {FilePath}, timestamps: {Timestamps}",
+                audioFilePath, options.EnableTimestamps);
 
-        // ── Phase 3: Transcribe audio (30–90%) ────────────────────────────────
+            var result = await RunWhisperAsync(
+                whisperInputPath, modelPath, options, progress, ct).ConfigureAwait(false);
 
-        ReportProgress(progress, 30.0, "Transcribing...");
+            ReportProgress(progress, 100.0, "Complete");
 
-        _log.Debug(
-            "Starting Whisper transcription — file: {FilePath}, timestamps: {Timestamps}, diarization: {Diarization}",
-            audioFilePath, options.EnableTimestamps, options.EnableSpeakerDiarization);
+            _log.Information(
+                "Transcription complete - file: {FileName}, segments: {SegmentCount}, language: {Language}, durationMs: {DurationMs}",
+                fileInfo.Name, result.Segments.Count, result.Language, result.DurationMs);
 
-        ct.ThrowIfCancellationRequested();
-
-        var result = await RunWhisperAsync(
-            audioFilePath, modelPath, options, progress, ct).ConfigureAwait(false);
-
-        // ── Phase 4: Finalise (90–100%) ───────────────────────────────────────
-
-        ReportProgress(progress, 90.0, "Generating segments...");
-        ct.ThrowIfCancellationRequested();
-        await SimulatePhaseAsync(progressStart: 90.0, progressEnd: 100.0, steps: 2,
-            label: "Generating segments...", progress, ct).ConfigureAwait(false);
-
-        ReportProgress(progress, 100.0, "Complete");
-
-        _log.Information(
-            "Transcription complete — file: {FileName}, segments: {SegmentCount}, language: {Language}, durationMs: {DurationMs}",
-            fileInfo.Name, result.Segments.Count, result.Language, result.DurationMs);
-
-        return result;
+            return result;
+        }
+        finally
+        {
+            if (convertedPath is not null)
+            {
+                TryDeleteTemporaryFile(convertedPath);
+            }
+        }
     }
 
     // ── Private pipeline ─────────────────────────────────────────────────────
 
     /// <summary>
-    /// The core Whisper execution boundary. Runs the Whisper model on the given audio file
+    /// The core Whisper execution boundary. Runs the Whisper model on a Whisper-ready WAV file
     /// and produces a <see cref="TranscriptionResult"/> with text, segments, language, and duration.
+    /// Progress in the 30-90% range comes from Whisper's own progress callback.
     /// </summary>
     private async Task<TranscriptionResult> RunWhisperAsync(
-        string audioFilePath,
+        string wavFilePath,
         string modelPath,
         TranscriptionOptions options,
         IProgress<TranscriptionProgress>? progress,
         CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
-
-        // ── Whisper.net execution ──────────────────────────────────────────────
+        ReportProgress(progress, 20.0, "Loading model...");
 
         WhisperFactory whisperFactory;
         try
@@ -362,18 +372,30 @@ public sealed class TranscriptionService : ITranscriptionService
 
         using var factory = whisperFactory;
 
+        var forcedLanguage = string.IsNullOrWhiteSpace(options.Language)
+            || string.Equals(options.Language, "auto", StringComparison.OrdinalIgnoreCase)
+                ? null
+                : options.Language;
+
+        var percent = new TranscriptionPercent();
         var builder = whisperFactory.CreateBuilder()
-            .WithLanguage(options.Language ?? "auto");
+            .WithLanguage(forcedLanguage ?? "auto")
+            .WithProgressHandler(whisperPercent =>
+            {
+                percent.Value = 30.0 + (Math.Clamp(whisperPercent, 0, 100) * 0.6);
+                ReportProgress(progress, percent.Value, "Transcribing...");
+            });
 
         var segments = new List<TranscriptionSegment>();
+        string? detectedLanguage = null;
 
         await using var processor = builder.Build();
 
         ct.ThrowIfCancellationRequested();
+        ReportProgress(progress, 30.0, "Transcribing...");
 
-        // Process the audio file via FileStream and iterate over segments
         await using var fileStream = new FileStream(
-            audioFilePath,
+            wavFilePath,
             FileMode.Open,
             FileAccess.Read,
             FileShare.Read,
@@ -391,12 +413,15 @@ public sealed class TranscriptionService : ITranscriptionService
 
             segments.Add(transcriptSegment);
 
-            // Progress: 30–90% range during transcription
-            var pct = Math.Min(90.0, 30.0 + segments.Count * 2.0);
-            ReportProgress(progress, pct, "Transcribing...", transcriptSegment);
+            if (detectedLanguage is null && !string.IsNullOrWhiteSpace(segment.Language))
+            {
+                detectedLanguage = segment.Language;
+            }
+
+            ReportProgress(progress, percent.Value, "Transcribing...", transcriptSegment);
         }
 
-        // ── Assemble result ────────────────────────────────────────────────────
+        ReportProgress(progress, 90.0, "Finalizing...");
 
         var fullText = string.Join(" ", segments.Select(s => s.Text));
 
@@ -404,22 +429,66 @@ public sealed class TranscriptionService : ITranscriptionService
             ? segments[^1].EndMs
             : 0;
 
-        // Language: if user forced a specific language, report that; otherwise null (auto-detected)
-        string? detectedLanguage = options.Language;
+        var language = forcedLanguage ?? detectedLanguage;
 
         _log.Debug(
-            "Whisper transcription complete — file: {FilePath}, segments: {SegmentCount}, " +
+            "Whisper transcription complete - file: {FilePath}, segments: {SegmentCount}, " +
             "durationMs: {DurationMs}, language: {Language}",
-            audioFilePath, segments.Count, durationMs, detectedLanguage ?? "auto-detected");
+            wavFilePath, segments.Count, durationMs, language ?? "unknown");
 
         return new TranscriptionResult
         {
             FullText = fullText,
-            Segments = segments,
-            Language = detectedLanguage,
+            Segments = options.EnableTimestamps ? segments : [],
+            Language = language,
             DurationMs = durationMs,
             ModelUsed = options.ModelSize,
         };
+    }
+
+    /// <summary>
+    /// Decodes <paramref name="sourcePath"/> into a Whisper-ready WAV off the calling thread.
+    /// A file this machine cannot decode surfaces as <see cref="NotSupportedException"/>, the
+    /// same contract as an unsupported container.
+    /// </summary>
+    private static async Task ConvertForWhisperAsync(string sourcePath, string wavPath, CancellationToken ct)
+    {
+        try
+        {
+            await Task.Run(() => WhisperAudioConverter.ConvertToWhisperWav(sourcePath, wavPath, ct), ct)
+                .ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException and not NotSupportedException)
+        {
+            throw new NotSupportedException(
+                $"The audio in '{Path.GetFileName(sourcePath)}' could not be decoded. " +
+                "The file may be damaged, or no decoder for its codec is installed on this machine.",
+                ex);
+        }
+    }
+
+    private void TryDeleteTemporaryFile(string path)
+    {
+        try
+        {
+            File.Delete(path);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            _log.Warning(ex, "Could not delete temporary audio file {Path}", path);
+        }
+    }
+
+    /// <summary>Latest transcription percentage, written from Whisper's native callback thread.</summary>
+    private sealed class TranscriptionPercent
+    {
+        private double _value = 30.0;
+
+        public double Value
+        {
+            get => Volatile.Read(ref _value);
+            set => Volatile.Write(ref _value, value);
+        }
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────
@@ -463,33 +532,5 @@ public sealed class TranscriptionService : ITranscriptionService
             CurrentPhase = phase,
             Segment = segment,
         });
-    }
-
-    /// <summary>
-    /// Advances a progress range incrementally across a fixed number of steps to give
-    /// the UI smooth feedback during phases that don't emit natural checkpoints
-    /// (e.g., model loading). Each step awaits a <see cref="Task.Yield"/> so the caller's
-    /// UI thread remains responsive.
-    /// </summary>
-    private static async Task SimulatePhaseAsync(
-        double progressStart,
-        double progressEnd,
-        int steps,
-        string label,
-        IProgress<TranscriptionProgress>? progress,
-        CancellationToken ct)
-    {
-        if (progress is null || steps <= 0)
-            return;
-
-        var step = (progressEnd - progressStart) / steps;
-
-        for (var i = 1; i <= steps; i++)
-        {
-            ct.ThrowIfCancellationRequested();
-            var pct = Math.Min(progressEnd, progressStart + step * i);
-            ReportProgress(progress, pct, label);
-            await Task.Yield();
-        }
     }
 }

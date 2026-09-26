@@ -14,15 +14,15 @@ public sealed class TranscriptionResult
 
     /// <summary>
     /// Individual time-aligned transcript segments produced by the Whisper decoder.
-    /// May be empty when timestamp extraction is disabled via
-    /// <see cref="TranscriptionOptions.EnableTimestamps"/>.
+    /// Empty when <see cref="TranscriptionOptions.EnableTimestamps"/> is <see langword="false"/>;
+    /// <see cref="FullText"/> carries the transcript either way.
     /// </summary>
     public IReadOnlyList<TranscriptionSegment> Segments { get; init; } = [];
 
     /// <summary>
-    /// BCP-47 language tag detected by Whisper (e.g., "en", "fr", "de").
-    /// <see langword="null"/> when language detection was suppressed by setting
-    /// <see cref="TranscriptionOptions.Language"/> to a fixed value.
+    /// Language of the transcript as a Whisper language code (e.g., "en", "fr", "de"): the value of
+    /// <see cref="TranscriptionOptions.Language"/> when a language was forced, otherwise the language
+    /// Whisper detected. <see langword="null"/> when nothing was transcribed.
     /// </summary>
     public string? Language { get; init; }
 
@@ -61,9 +61,9 @@ public sealed class TranscriptionSegment
     public string Text { get; init; } = string.Empty;
 
     /// <summary>
-    /// Zero-based speaker index assigned by the diarization pass, or <see langword="null"/>
-    /// when <see cref="TranscriptionOptions.EnableSpeakerDiarization"/> is <see langword="false"/>
-    /// or diarization was unable to distinguish speakers.
+    /// Zero-based speaker index assigned by a diarization pass. Always <see langword="null"/> with
+    /// the bundled Whisper.net runtime, which has no diarization support
+    /// (see <see cref="TranscriptionOptions.EnableSpeakerDiarization"/>).
     /// </summary>
     public int? SpeakerId { get; init; }
 
@@ -109,11 +109,9 @@ public sealed class TranscriptionOptions
     public bool EnableTimestamps { get; init; } = true;
 
     /// <summary>
-    /// When <see langword="true"/>, a speaker diarization pass is run after transcription
-    /// and each <see cref="TranscriptionSegment.SpeakerId"/> is assigned.
-    /// Diarization incurs additional processing time and requires timestamp data, so
-    /// <see cref="EnableTimestamps"/> is implicitly treated as <see langword="true"/>
-    /// when this is enabled.
+    /// Requests speaker diarization. Not supported by the bundled Whisper.net runtime: setting it
+    /// logs a warning and <see cref="TranscriptionSegment.SpeakerId"/> stays
+    /// <see langword="null"/>. Kept so callers and settings compile against a stable shape.
     /// Defaults to <see langword="false"/>.
     /// </summary>
     public bool EnableSpeakerDiarization { get; init; } = false;

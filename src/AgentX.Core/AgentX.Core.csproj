@@ -55,6 +55,14 @@
     <!-- Audio Transcription (Whisper local speech-to-text) -->
     <PackageReference Include="Whisper.Net" Version="1.5.0" />
     <PackageReference Include="Whisper.Net.Runtime" Version="1.5.0" />
+    <!--
+      Whisper.net only reads 16 kHz integer-PCM WAV. NAudio.Core (managed WAV reading/writing and
+      resampling) and NAudio.Wasapi (Windows Media Foundation decoders for MP3/M4A/FLAC) convert
+      everything else first. Same 2.2.1 line the App references; deliberately not the NAudio
+      meta-package, which would pull NAudio.WinForms and the WindowsDesktop framework into Core.
+    -->
+    <PackageReference Include="NAudio.Core" Version="2.2.1" />
+    <PackageReference Include="NAudio.Wasapi" Version="2.2.1" />
 
     <!-- Vector Search (HNSW approximate nearest neighbor index) -->
     <PackageReference Include="HnswLite" Version="1.0.6" />
