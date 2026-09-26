@@ -9,8 +9,10 @@ public interface ILocalizationService
 {
     /// <summary>
     /// Asynchronously initializes the service: reads the persisted language override,
-    /// applies it to <see cref="Windows.Globalization.ApplicationLanguages"/>, and
-    /// constructs the underlying WinUI ResourceLoader. Must be awaited during app
+    /// applies it through the resource loader adapter (MRT Core
+    /// <c>Microsoft.Windows.Globalization.ApplicationLanguages</c> in the app), and
+    /// constructs the underlying MRT Core ResourceLoader. The loader is built even when
+    /// the language preference cannot be read or applied. Must be awaited during app
     /// startup before any <see cref="GetString(string)"/> or <see cref="FormatPlural"/>
     /// call to avoid racing against a null loader. Safe to call multiple times.
     /// </summary>

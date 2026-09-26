@@ -65,15 +65,24 @@ public sealed class LocalizationService : ILocalizationService
             {
                 _currentLanguage = _resourceLoader.GetActiveLanguage();
             }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to apply the language preference, defaulting to en-US");
+            _currentLanguage = "en-US";
+        }
 
+        // Build the loader whatever happened above. It used to sit inside the same try,
+        // so a settings read or override that threw skipped it and every code-side
+        // string (the command palette, for one) fell back to its raw resource key.
+        try
+        {
             _resourceLoader.Initialize();
-
             Log.Information("Localization initialized: {Language}", _currentLanguage);
         }
         catch (Exception ex)
         {
-            Log.Warning(ex, "Failed to initialize localization, defaulting to en-US");
-            _currentLanguage = "en-US";
+            Log.Warning(ex, "Resource loader initialization failed; strings fall back to their keys");
         }
     }
 

@@ -2,8 +2,10 @@ namespace AgentX.Core.Services.Localization;
 
 /// <summary>
 /// Thin seam around the platform resource-loading / language-override APIs
-/// (WinUI 3 <c>Windows.ApplicationModel.Resources.ResourceLoader</c> and
-/// <c>Windows.Globalization.ApplicationLanguages</c> in production). Exists so
+/// (in production the Windows App SDK MRT Core types
+/// <c>Microsoft.Windows.ApplicationModel.Resources.ResourceLoader</c> and
+/// <c>Microsoft.Windows.Globalization.ApplicationLanguages</c>, which work in the
+/// unpackaged app; the UWP equivalents need package identity). Exists so
 /// <see cref="ILocalizationService"/> can be unit-tested without a WinUI 3
 /// runtime: tests inject an in-memory fake; production DI injects the real
 /// WinUI-backed adapter in <c>AgentX.App</c>.
