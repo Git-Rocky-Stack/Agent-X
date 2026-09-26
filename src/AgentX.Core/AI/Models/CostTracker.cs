@@ -10,6 +10,12 @@ public class ModelCostInfo
     public string ProviderId { get; set; } = string.Empty;
     public double InputCostPer1KTokens { get; set; }
     public double OutputCostPer1KTokens { get; set; }
+
+    /// <summary>
+    /// Cost per 1,000 prompt-cache read tokens. When null, cache reads cost 10% of the input
+    /// price (the Anthropic default).
+    /// </summary>
+    public double? CacheReadCostPer1KTokens { get; set; }
 }
 
 /// <summary>
@@ -20,8 +26,16 @@ public class UsageRecord
 {
     public string ModelId { get; set; } = string.Empty;
     public string ProviderId { get; set; } = string.Empty;
+
+    /// <summary>All prompt tokens, including prompt-cache writes and reads.</summary>
     public int InputTokens { get; set; }
     public int OutputTokens { get; set; }
+
+    /// <summary>Prompt tokens written to the provider's prompt cache (part of <see cref="InputTokens"/>).</summary>
+    public int CacheCreationInputTokens { get; set; }
+
+    /// <summary>Prompt tokens read from the provider's prompt cache (part of <see cref="InputTokens"/>).</summary>
+    public int CacheReadInputTokens { get; set; }
     public double EstimatedCostUsd { get; set; }
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
 }
@@ -42,6 +56,19 @@ public interface ICostTracker
     /// <param name="inputTokens">Number of input/prompt tokens consumed.</param>
     /// <param name="outputTokens">Number of output/completion tokens generated.</param>
     void RecordUsage(string modelId, string providerId, int inputTokens, int outputTokens);
+
+    /// <summary>
+    /// Records a usage event that includes prompt-cache activity. <paramref name="inputTokens"/>
+    /// are the uncached prompt tokens; cache writes are billed at 1.25 times the input price and
+    /// cache reads at the model's cache-read price.
+    /// </summary>
+    void RecordUsage(
+        string modelId,
+        string providerId,
+        int inputTokens,
+        int outputTokens,
+        int cacheCreationInputTokens,
+        int cacheReadInputTokens);
 
     /// <summary>
     /// Gets the total estimated cost across all recorded usage.
@@ -76,107 +103,87 @@ public interface ICostTracker
 /// Thread-safe in-memory implementation of <see cref="ICostTracker"/>.
 /// Maintains a running log of usage records and provides cost calculations
 /// based on known per-model pricing data for OpenAI and Anthropic models.
-/// Local models (Ollama) are tracked as zero-cost.
+/// Local models (built-in and Ollama) are tracked as zero-cost.
 /// </summary>
 public class CostTracker : ICostTracker
 {
+    private const double CacheWriteMultiplier = 1.25;
+    private const double DefaultCacheReadMultiplier = 0.1;
+
     private readonly List<UsageRecord> _records = new();
     private readonly object _lock = new();
 
     /// <summary>
-    /// Known pricing for popular cloud models.
-    /// Costs are per 1,000 tokens as of early 2026.
-    /// Local Ollama models are not listed and default to zero cost.
+    /// Known pricing for cloud models, per 1,000 tokens (as of 2026-09). Model ids with a date
+    /// or version suffix match their base entry by longest prefix, so "gpt-4o-mini-2024-07-18"
+    /// is priced as gpt-4o-mini, never as gpt-4o. Local models are not listed and cost nothing.
     /// </summary>
     private static readonly Dictionary<string, ModelCostInfo> KnownCosts =
         new(StringComparer.OrdinalIgnoreCase)
         {
             // OpenAI models
-            ["gpt-4o"] = new()
-            {
-                ModelId = "gpt-4o",
-                ProviderId = "openai",
-                InputCostPer1KTokens = 0.0025,
-                OutputCostPer1KTokens = 0.01
-            },
-            ["gpt-4o-mini"] = new()
-            {
-                ModelId = "gpt-4o-mini",
-                ProviderId = "openai",
-                InputCostPer1KTokens = 0.00015,
-                OutputCostPer1KTokens = 0.0006
-            },
-            ["gpt-4-turbo"] = new()
-            {
-                ModelId = "gpt-4-turbo",
-                ProviderId = "openai",
-                InputCostPer1KTokens = 0.01,
-                OutputCostPer1KTokens = 0.03
-            },
-            ["o1"] = new()
-            {
-                ModelId = "o1",
-                ProviderId = "openai",
-                InputCostPer1KTokens = 0.015,
-                OutputCostPer1KTokens = 0.06
-            },
-            ["o1-mini"] = new()
-            {
-                ModelId = "o1-mini",
-                ProviderId = "openai",
-                InputCostPer1KTokens = 0.003,
-                OutputCostPer1KTokens = 0.012
-            },
-            ["o3-mini"] = new()
-            {
-                ModelId = "o3-mini",
-                ProviderId = "openai",
-                InputCostPer1KTokens = 0.0011,
-                OutputCostPer1KTokens = 0.0044
-            },
+            ["gpt-4o"] = OpenAi("gpt-4o", 0.0025, 0.01),
+            ["gpt-4o-mini"] = OpenAi("gpt-4o-mini", 0.00015, 0.0006),
+            ["gpt-4-turbo"] = OpenAi("gpt-4-turbo", 0.01, 0.03),
+            ["o1"] = OpenAi("o1", 0.015, 0.06),
+            ["o1-mini"] = OpenAi("o1-mini", 0.003, 0.012),
+            ["o3-mini"] = OpenAi("o3-mini", 0.0011, 0.0044),
 
-            // Anthropic models
-            ["claude-opus-4-20250514"] = new()
-            {
-                ModelId = "claude-opus-4-20250514",
-                ProviderId = "anthropic",
-                InputCostPer1KTokens = 0.015,
-                OutputCostPer1KTokens = 0.075
-            },
-            ["claude-sonnet-4-20250514"] = new()
-            {
-                ModelId = "claude-sonnet-4-20250514",
-                ProviderId = "anthropic",
-                InputCostPer1KTokens = 0.003,
-                OutputCostPer1KTokens = 0.015
-            },
-            ["claude-haiku-4-5-20251001"] = new()
-            {
-                ModelId = "claude-haiku-4-5-20251001",
-                ProviderId = "anthropic",
-                InputCostPer1KTokens = 0.0008,
-                OutputCostPer1KTokens = 0.004
-            },
-            ["claude-3-5-sonnet-20241022"] = new()
-            {
-                ModelId = "claude-3-5-sonnet-20241022",
-                ProviderId = "anthropic",
-                InputCostPer1KTokens = 0.003,
-                OutputCostPer1KTokens = 0.015
-            },
-            ["claude-3-5-haiku-20241022"] = new()
-            {
-                ModelId = "claude-3-5-haiku-20241022",
-                ProviderId = "anthropic",
-                InputCostPer1KTokens = 0.0008,
-                OutputCostPer1KTokens = 0.004
-            },
+            // Anthropic models (input / output per 1K tokens)
+            ["claude-fable-5-1"] = Anthropic("claude-fable-5-1", 0.010, 0.050, cacheRead: 0.00025),
+            ["claude-fable-5"] = Anthropic("claude-fable-5", 0.010, 0.050),
+            ["claude-opus-5-5"] = Anthropic("claude-opus-5-5", 0.004, 0.020, cacheRead: 0.0002),
+            ["claude-opus-5"] = Anthropic("claude-opus-5", 0.005, 0.025),
+            ["claude-opus-4-8"] = Anthropic("claude-opus-4-8", 0.005, 0.025),
+            ["claude-opus-4-7"] = Anthropic("claude-opus-4-7", 0.005, 0.025),
+            ["claude-opus-4-6"] = Anthropic("claude-opus-4-6", 0.005, 0.025),
+            ["claude-opus-4-5"] = Anthropic("claude-opus-4-5", 0.005, 0.025),
+            ["claude-opus-4-1"] = Anthropic("claude-opus-4-1", 0.015, 0.075),
+            ["claude-opus-4-0"] = Anthropic("claude-opus-4-0", 0.015, 0.075),
+            ["claude-opus-4-20250514"] = Anthropic("claude-opus-4-20250514", 0.015, 0.075),
+            ["claude-sonnet-5"] = Anthropic("claude-sonnet-5", 0.002, 0.010),
+            ["claude-sonnet-4-6"] = Anthropic("claude-sonnet-4-6", 0.003, 0.015),
+            ["claude-sonnet-4-5"] = Anthropic("claude-sonnet-4-5", 0.003, 0.015),
+            ["claude-sonnet-4-0"] = Anthropic("claude-sonnet-4-0", 0.003, 0.015),
+            ["claude-sonnet-4-20250514"] = Anthropic("claude-sonnet-4-20250514", 0.003, 0.015),
+            ["claude-haiku-4-5"] = Anthropic("claude-haiku-4-5", 0.001, 0.005),
+            ["claude-3-5-sonnet-20241022"] = Anthropic("claude-3-5-sonnet-20241022", 0.003, 0.015),
+            ["claude-3-5-haiku-20241022"] = Anthropic("claude-3-5-haiku-20241022", 0.0008, 0.004),
+        };
+
+    private static ModelCostInfo OpenAi(string id, double input, double output) =>
+        new() { ModelId = id, ProviderId = "openai", InputCostPer1KTokens = input, OutputCostPer1KTokens = output };
+
+    private static ModelCostInfo Anthropic(string id, double input, double output, double? cacheRead = null) =>
+        new()
+        {
+            ModelId = id,
+            ProviderId = "anthropic",
+            InputCostPer1KTokens = input,
+            OutputCostPer1KTokens = output,
+            CacheReadCostPer1KTokens = cacheRead
         };
 
     /// <inheritdoc />
-    public void RecordUsage(string modelId, string providerId, int inputTokens, int outputTokens)
+    public void RecordUsage(string modelId, string providerId, int inputTokens, int outputTokens) =>
+        RecordUsage(modelId, providerId, inputTokens, outputTokens, 0, 0);
+
+    /// <inheritdoc />
+    public void RecordUsage(
+        string modelId,
+        string providerId,
+        int inputTokens,
+        int outputTokens,
+        int cacheCreationInputTokens,
+        int cacheReadInputTokens)
     {
-        var cost = CalculateCost(modelId, inputTokens, outputTokens);
+        inputTokens = Math.Max(0, inputTokens);
+        outputTokens = Math.Max(0, outputTokens);
+        cacheCreationInputTokens = Math.Max(0, cacheCreationInputTokens);
+        cacheReadInputTokens = Math.Max(0, cacheReadInputTokens);
+
+        var cost = CalculateCost(
+            modelId, providerId, inputTokens, outputTokens, cacheCreationInputTokens, cacheReadInputTokens);
 
         lock (_lock)
         {
@@ -184,8 +191,10 @@ public class CostTracker : ICostTracker
             {
                 ModelId = modelId,
                 ProviderId = providerId,
-                InputTokens = inputTokens,
+                InputTokens = inputTokens + cacheCreationInputTokens + cacheReadInputTokens,
                 OutputTokens = outputTokens,
+                CacheCreationInputTokens = cacheCreationInputTokens,
+                CacheReadInputTokens = cacheReadInputTokens,
                 EstimatedCostUsd = cost,
                 Timestamp = DateTime.UtcNow
             });
@@ -244,31 +253,64 @@ public class CostTracker : ICostTracker
     }
 
     /// <summary>
-    /// Calculates the estimated cost for a request based on the model's known pricing.
-    /// Uses a prefix-match strategy so versioned model IDs (e.g. "gpt-4o-2024-08-06")
-    /// still match the base pricing entry ("gpt-4o").
-    /// Returns 0 for local/unknown models.
+    /// Finds the price entry for a model: an exact id, otherwise the longest known id the model
+    /// id starts with. Only entries of the same provider match, so a local model that happens to
+    /// share a cloud model's name is never billed. Returns null for local and unknown models.
     /// </summary>
-    private static double CalculateCost(string modelId, int inputTokens, int outputTokens)
+    internal static ModelCostInfo? FindPricing(string modelId, string? providerId)
     {
-        // Try exact match first
-        if (KnownCosts.TryGetValue(modelId, out var exactInfo))
-        {
-            return (inputTokens / 1000.0 * exactInfo.InputCostPer1KTokens) +
-                   (outputTokens / 1000.0 * exactInfo.OutputCostPer1KTokens);
-        }
+        if (string.IsNullOrWhiteSpace(modelId))
+            return null;
 
-        // Try prefix/contains match for versioned model IDs
-        foreach (var (key, info) in KnownCosts)
+        var id = modelId.Trim();
+        ModelCostInfo? best = null;
+
+        if (KnownCosts.TryGetValue(id, out var exact))
         {
-            if (modelId.Contains(key, StringComparison.OrdinalIgnoreCase))
+            best = exact;
+        }
+        else
+        {
+            foreach (var (key, info) in KnownCosts)
             {
-                return (inputTokens / 1000.0 * info.InputCostPer1KTokens) +
-                       (outputTokens / 1000.0 * info.OutputCostPer1KTokens);
+                if (id.StartsWith(key, StringComparison.OrdinalIgnoreCase) &&
+                    (best is null || key.Length > best.ModelId.Length))
+                {
+                    best = info;
+                }
             }
         }
 
-        // Unknown model or local model (Ollama) — free
-        return 0.0;
+        if (best is not null && !string.IsNullOrEmpty(providerId) &&
+            !string.Equals(best.ProviderId, providerId, StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        return best;
+    }
+
+    /// <summary>
+    /// Calculates the estimated cost for a request based on the model's known pricing.
+    /// Returns 0 for local/unknown models.
+    /// </summary>
+    private static double CalculateCost(
+        string modelId,
+        string providerId,
+        int inputTokens,
+        int outputTokens,
+        int cacheCreationInputTokens,
+        int cacheReadInputTokens)
+    {
+        var info = FindPricing(modelId, providerId);
+        if (info is null)
+            return 0.0;
+
+        var cacheReadPrice = info.CacheReadCostPer1KTokens ?? info.InputCostPer1KTokens * DefaultCacheReadMultiplier;
+
+        return (inputTokens / 1000.0 * info.InputCostPer1KTokens) +
+               (cacheCreationInputTokens / 1000.0 * info.InputCostPer1KTokens * CacheWriteMultiplier) +
+               (cacheReadInputTokens / 1000.0 * cacheReadPrice) +
+               (outputTokens / 1000.0 * info.OutputCostPer1KTokens);
     }
 }
