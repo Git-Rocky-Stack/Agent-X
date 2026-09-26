@@ -165,5 +165,8 @@
          caption-button theme tokens. -->
     <Compile Include="..\..\src\AgentX.App\Helpers\WindowPlacement.cs" Link="Helpers\WindowPlacement.cs" />
     <Compile Include="..\..\src\AgentX.App\Helpers\CaptionButtonPalette.cs" Link="Helpers\CaptionButtonPalette.cs" />
+    <!-- Untracked page view model creation; the App-bound overload in
+         PageViewModelFactory.App.cs reaches the real host and is not linked. -->
+    <Compile Include="..\..\src\AgentX.App\Helpers\PageViewModelFactory.cs" Link="Helpers\PageViewModelFactory.cs" />
   </ItemGroup>
 </Project>

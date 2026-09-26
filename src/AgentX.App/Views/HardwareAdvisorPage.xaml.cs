@@ -1,3 +1,4 @@
+using AgentX.App.Helpers;
 using AgentX.App.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -10,7 +11,7 @@ public sealed partial class HardwareAdvisorPage : Page
 
     public HardwareAdvisorPage()
     {
-        ViewModel = App.GetService<HardwareAdvisorViewModel>();
+        ViewModel = PageViewModelFactory.Create<HardwareAdvisorViewModel>();
         InitializeComponent();
         Loaded += async (_, _) => await ViewModel.InitializeAsync();
     }

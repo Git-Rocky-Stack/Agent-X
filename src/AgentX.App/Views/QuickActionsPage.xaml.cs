@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using AgentX.App.Helpers;
 using AgentX.App.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -11,7 +12,7 @@ public sealed partial class QuickActionsPage : Page
 
     public QuickActionsPage()
     {
-        ViewModel = App.GetService<QuickActionsViewModel>();
+        ViewModel = PageViewModelFactory.Create<QuickActionsViewModel>();
         ViewModel.NavigateRequested = NavigateToPage;
         InitializeComponent();
         ViewModel.PropertyChanged += ViewModelOnPropertyChanged;

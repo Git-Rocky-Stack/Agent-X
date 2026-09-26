@@ -1,3 +1,4 @@
+using AgentX.App.Helpers;
 using AgentX.App.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -18,7 +19,7 @@ public sealed partial class CollectionManagerPage : Page
 
     public CollectionManagerPage()
     {
-        ViewModel = App.GetService<CollectionManagerViewModel>();
+        ViewModel = PageViewModelFactory.Create<CollectionManagerViewModel>();
         InitializeComponent();
         Loaded += async (_, _) => await ViewModel.InitializeAsync();
     }

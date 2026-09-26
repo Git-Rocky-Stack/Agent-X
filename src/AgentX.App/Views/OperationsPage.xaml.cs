@@ -1,3 +1,4 @@
+using AgentX.App.Helpers;
 using AgentX.App.ViewModels;
 using Microsoft.UI.Xaml.Controls;
 
@@ -9,7 +10,7 @@ public sealed partial class OperationsPage : Page
 
     public OperationsPage()
     {
-        ViewModel = App.GetService<OperationsViewModel>();
+        ViewModel = PageViewModelFactory.Create<OperationsViewModel>();
         ViewModel.NavigateRequested = NavigateToPage;
         InitializeComponent();
         Loaded += async (_, _) => await ViewModel.LoadAsync();
