@@ -19,6 +19,11 @@ namespace AgentX.App.Views;
 /// </summary>
 public sealed partial class KnowledgeVaultPage : Page
 {
+    // The frame caches this page (NavigationCacheMode="Enabled") and only builds a new instance
+    // after it has evicted the previous one. The evicted page's view model is still subscribed
+    // to the singleton indexing service's events, so it is released here.
+    private static KnowledgeVaultViewModel? s_liveViewModel;
+
     private readonly IShortcutRegistry _shortcutRegistry;
     private IDisposable? _shortcutScope;
 
@@ -27,6 +32,7 @@ public sealed partial class KnowledgeVaultPage : Page
     public KnowledgeVaultPage()
     {
         ViewModel = PageViewModelFactory.Create<KnowledgeVaultViewModel>();
+        Interlocked.Exchange(ref s_liveViewModel, ViewModel)?.Dispose();
         ViewModel.NavigateRequested = NavigateToPage;
         _shortcutRegistry = App.GetService<IShortcutRegistry>();
         InitializeComponent();

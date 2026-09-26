@@ -93,6 +93,9 @@ public sealed class IndexingService : IIndexingService
     /// <inheritdoc />
     public event EventHandler<long>? DocumentIndexed;
 
+    /// <inheritdoc />
+    public event EventHandler<DocumentIndexingFailedEventArgs>? DocumentIndexingFailed;
+
     /// <summary>
     /// Idle time between sweeps for pending documents. Settable by tests so the sweep can be
     /// exercised without waiting for the production interval.
@@ -633,8 +636,8 @@ public sealed class IndexingService : IIndexingService
 
             // Raise events
             RaiseProgressChanged(QueueLength, _processedCount, null);
-            DocumentIndexed?.Invoke(this, documentId);
             indexed = true;
+            RaiseDocumentIndexed(documentId);
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
@@ -662,6 +665,7 @@ public sealed class IndexingService : IIndexingService
             await _db.SaveChangesAsync(CancellationToken.None);
 
             RaiseProgressChanged(QueueLength, _processedCount, null);
+            RaiseDocumentIndexingFailed(documentId, ex.Message);
         }
 
         if (!indexed)
@@ -994,12 +998,48 @@ public sealed class IndexingService : IIndexingService
     /// </summary>
     private void RaiseProgressChanged(int queueLength, int processed, string? currentDocument, double? percentComplete = null)
     {
-        ProgressChanged?.Invoke(this, new IndexingProgressEventArgs
+        var args = new IndexingProgressEventArgs
         {
             QueueLength = queueLength,
             Processed = processed,
             CurrentDocument = currentDocument,
             PercentComplete = percentComplete
-        });
+        };
+
+        InvokeHandlers(ProgressChanged, args, nameof(ProgressChanged));
+    }
+
+    private void RaiseDocumentIndexed(long documentId) =>
+        InvokeHandlers(DocumentIndexed, documentId, nameof(DocumentIndexed));
+
+    private void RaiseDocumentIndexingFailed(long documentId, string error) =>
+        InvokeHandlers(
+            DocumentIndexingFailed,
+            new DocumentIndexingFailedEventArgs(documentId, error),
+            nameof(DocumentIndexingFailed));
+
+    /// <summary>
+    /// Calls every subscriber, logging instead of propagating a subscriber's exception. The
+    /// events are raised from inside the pipeline, where an escaping exception would mark a
+    /// document that indexed correctly as failed, or stop the failure from being recorded.
+    /// </summary>
+    private void InvokeHandlers<TArgs>(EventHandler<TArgs>? handlers, TArgs args, string eventName)
+    {
+        if (handlers is null)
+        {
+            return;
+        }
+
+        foreach (var handler in handlers.GetInvocationList().Cast<EventHandler<TArgs>>())
+        {
+            try
+            {
+                handler(this, args);
+            }
+            catch (Exception ex)
+            {
+                _logger.Warning(ex, "{EventName} handler failed", eventName);
+            }
+        }
     }
 }

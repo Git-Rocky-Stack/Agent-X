@@ -38,6 +38,12 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     private readonly IOperationsDrillInService? _operationsDrillInService;
     private bool _suppressFilterRefresh;
 
+    // The indexing service raises its events on its background thread, while the rows are
+    // bound to the view: updates are posted to the context the view model was created on
+    // (the UI thread, since the page builds it).
+    private readonly SynchronizationContext? _uiContext;
+    private volatile bool _disposed;
+
     // Monotonic load token. Every document reload claims the next value; only the most
     // recent load is allowed to mutate the UI-bound Documents collection, so overlapping
     // reloads (e.g. a filter change landing while initialization is still in flight)
@@ -126,6 +132,13 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         _collectionService = collectionService;
         _workflowLaunchService = workflowLaunchService;
         _operationsDrillInService = operationsDrillInService;
+
+        // Rows showed the status they were loaded with until the next refresh, so a document
+        // imported as "pending" never turned "Indexed" (or "Failed") on screen.
+        _uiContext = SynchronizationContext.Current;
+        _indexingService.DocumentIndexed += OnDocumentIndexed;
+        _indexingService.DocumentIndexingFailed += OnDocumentIndexingFailed;
+
         Log.Debug("KnowledgeVaultViewModel created with services");
     }
 
@@ -376,6 +389,100 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         {
             Log.Warning(ex, "Failed to load collections");
         }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // LIVE INDEXING UPDATES
+    // ═══════════════════════════════════════════════════════════════
+
+    private void OnDocumentIndexed(object? sender, long documentId) =>
+        PostToUi(() => _ = RefreshDocumentAfterIndexingAsync(documentId, failure: null));
+
+    private void OnDocumentIndexingFailed(object? sender, DocumentIndexingFailedEventArgs e) =>
+        PostToUi(() => _ = RefreshDocumentAfterIndexingAsync(e.DocumentId, e.Error));
+
+    /// <summary>
+    /// Runs <paramref name="action"/> on the context the view model was created on: inline
+    /// when already there (or when there is none), posted otherwise.
+    /// </summary>
+    private void PostToUi(Action action)
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        if (_uiContext is null || ReferenceEquals(SynchronizationContext.Current, _uiContext))
+        {
+            action();
+            return;
+        }
+
+        _uiContext.Post(_ => action(), null);
+    }
+
+    /// <summary>
+    /// Brings the row of a document the indexing pipeline has just finished, or failed, up to
+    /// date with the stored document (status, error, chunk count), and refreshes the queue
+    /// indicators. Documents that are not on screen only refresh the indicators.
+    /// </summary>
+    private async Task RefreshDocumentAfterIndexingAsync(long documentId, string? failure)
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        try
+        {
+            var item = Documents.FirstOrDefault(d => d.Id == documentId);
+            if (item is not null)
+            {
+                DocumentEntity? entity = null;
+                try
+                {
+                    entity = await _documentService.GetDocumentAsync(documentId);
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, "Failed to reload document {DocumentId} after indexing", documentId);
+                }
+
+                if (_disposed)
+                {
+                    return;
+                }
+
+                if (entity is not null)
+                {
+                    ApplyIndexingState(item, entity);
+                }
+                else
+                {
+                    // Not readable now: show what the pipeline reported.
+                    item.IndexingStatus = failure is null ? "completed" : "failed";
+                    item.IndexingError = failure;
+                    item.StatusColor = GetStatusColor(item.IndexingStatus);
+                }
+            }
+
+            await CheckIndexingStatusAsync();
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to refresh document {DocumentId} after indexing", documentId);
+        }
+    }
+
+    private static void ApplyIndexingState(DocumentDisplayItem item, DocumentEntity entity)
+    {
+        item.IndexingStatus = entity.IndexingStatus;
+        item.IndexingError = entity.IndexingError;
+        item.StatusColor = GetStatusColor(entity.IndexingStatus);
+        item.ChunkCount = entity.ChunkCount;
+        item.WordCount = entity.WordCount;
+        item.PageCount = entity.PageCount;
+        item.ExtractedTitle = entity.ExtractedTitle;
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -1459,8 +1566,21 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     // DISPOSAL
     // ═══════════════════════════════════════════════════════════════
 
+    /// <summary>
+    /// Stops the live row updates. The indexing service is a singleton, so without this every
+    /// view model it ever notified would stay reachable from its events. Nothing else is
+    /// released or stopped: imports and indexing already under way carry on.
+    /// </summary>
     public void Dispose()
     {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+        _indexingService.DocumentIndexed -= OnDocumentIndexed;
+        _indexingService.DocumentIndexingFailed -= OnDocumentIndexingFailed;
         Log.Debug("KnowledgeVaultViewModel disposed");
     }
 }
@@ -1480,6 +1600,9 @@ public class DocumentDisplayItem : ObservableObject
     private string? _indexingError;
     private bool _isSelected;
     private string _focusedSourceLabel = string.Empty;
+    private int _chunkCount;
+    private long _wordCount;
+    private int _pageCount;
 
     public long Id { get; set; }
     public string FileName { get; set; } = string.Empty;
@@ -1487,9 +1610,31 @@ public class DocumentDisplayItem : ObservableObject
     public string FileType { get; set; } = string.Empty;
     public string FileSizeFormatted { get; set; } = string.Empty;
     public string ImportedAtFormatted { get; set; } = string.Empty;
-    public int ChunkCount { get; set; }
-    public long WordCount { get; set; }
-    public int PageCount { get; set; }
+
+    // Notifying, because indexing finishes after the row is shown and updates these in place.
+    public int ChunkCount
+    {
+        get => _chunkCount;
+        set => SetProperty(ref _chunkCount, value);
+    }
+
+    public long WordCount
+    {
+        get => _wordCount;
+        set
+        {
+            if (SetProperty(ref _wordCount, value))
+            {
+                OnPropertyChanged(nameof(WordCountFormatted));
+            }
+        }
+    }
+
+    public int PageCount
+    {
+        get => _pageCount;
+        set => SetProperty(ref _pageCount, value);
+    }
 
     public string IndexingStatus
     {

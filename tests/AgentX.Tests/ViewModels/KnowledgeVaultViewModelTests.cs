@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using AgentX.App.Services;
 using AgentX.App.ViewModels;
 using AgentX.Core.AI;
@@ -659,6 +660,114 @@ public sealed class KnowledgeVaultViewModelTests
         importedBefore!.Value.Should().BeAfter(LocalDayRange.StartUtc(new DateTime(2026, 3, 5)).AddHours(23));
     }
 
+    // Live indexing updates
+    // Rows kept the status they were loaded with: a document imported as "pending" stayed
+    // "Pending" with 0 chunks after the background pipeline had indexed it, or failed it.
+
+    [Fact]
+    public async Task DocumentIndexed_UpdatesTheRowOnTheContextTheViewModelWasCreatedOn()
+    {
+        var pending = CreateDocument(1, "alpha.md");
+        pending.IndexingStatus = "pending";
+        pending.ChunkCount = 0;
+        SetupVault(pending);
+        _indexingService.Setup(service => service.GetQueueLengthAsync()).ReturnsAsync(1);
+        var indexed = CreateDocument(1, "alpha.md");
+        indexed.ChunkCount = 7;
+        _documentService.Setup(service => service.GetDocumentAsync(1)).ReturnsAsync(indexed);
+
+        var ui = new QueuedSynchronizationContext();
+        var viewModel = CreateViewModelOn(ui);
+        await viewModel.InitializeAsync();
+        var row = viewModel.Documents.Single();
+        row.IndexingStatus.Should().Be("pending");
+        viewModel.IndexingQueueLength.Should().Be(1);
+
+        _indexingService.Setup(service => service.GetQueueLengthAsync()).ReturnsAsync(0);
+        await Task.Run(() => _indexingService.Raise(service => service.DocumentIndexed += null, _indexingService.Object, 1L));
+
+        row.IndexingStatus.Should().Be("pending", "the event arrives on the indexing thread and is posted to the UI context");
+        ui.PendingCount.Should().Be(1);
+
+        ui.RunPending();
+
+        row.IndexingStatus.Should().Be("completed");
+        row.IndexingStatusLabel.Should().Be("Indexed");
+        row.StatusColor.Should().Be("#41E25E");
+        row.ChunkCount.Should().Be(7);
+        viewModel.IndexingQueueLength.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task DocumentIndexingFailed_ShowsTheFailureAndItsReasonOnTheRow()
+    {
+        var pending = CreateDocument(2, "scan.pdf");
+        pending.IndexingStatus = "pending";
+        SetupVault(pending);
+        var failed = CreateDocument(2, "scan.pdf");
+        failed.IndexingStatus = "failed";
+        failed.IndexingError = "The vector store is not available (disk full).";
+        _documentService.Setup(service => service.GetDocumentAsync(2)).ReturnsAsync(failed);
+
+        var ui = new QueuedSynchronizationContext();
+        var viewModel = CreateViewModelOn(ui);
+        await viewModel.InitializeAsync();
+
+        await Task.Run(() => _indexingService.Raise(
+            service => service.DocumentIndexingFailed += null,
+            new DocumentIndexingFailedEventArgs(2, failed.IndexingError)));
+        ui.RunPending();
+
+        var row = viewModel.Documents.Single();
+        row.IndexingStatus.Should().Be("failed");
+        row.IndexingStatusLabel.Should().Be("Failed");
+        row.IndexingError.Should().Be("The vector store is not available (disk full).");
+        row.StatusColor.Should().Be("#C8453E");
+    }
+
+    [Fact]
+    public async Task Dispose_StopsTheLiveUpdates()
+    {
+        // The indexing service is a singleton: a view model still subscribed after its page
+        // was evicted would stay reachable, and keep updating rows nobody sees.
+        var pending = CreateDocument(3, "notes.txt");
+        pending.IndexingStatus = "pending";
+        SetupVault(pending);
+        _documentService.Setup(service => service.GetDocumentAsync(3)).ReturnsAsync(CreateDocument(3, "notes.txt"));
+        var viewModel = CreateViewModel();
+        await viewModel.InitializeAsync();
+
+        viewModel.Dispose();
+        _indexingService.Raise(service => service.DocumentIndexed += null, _indexingService.Object, 3L);
+
+        viewModel.Documents.Single().IndexingStatus.Should().Be("pending");
+        _indexingService.VerifyRemove(service => service.DocumentIndexed -= It.IsAny<EventHandler<long>>(), Times.Once());
+        _indexingService.VerifyRemove(
+            service => service.DocumentIndexingFailed -= It.IsAny<EventHandler<DocumentIndexingFailedEventArgs>>(),
+            Times.Once());
+    }
+
+    [Fact]
+    public void DocumentDisplayItem_CountChanges_NotifyTheBoundLabels()
+    {
+        var item = new DocumentDisplayItem();
+        var changed = new List<string?>();
+        item.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+
+        item.ChunkCount = 12;
+        item.PageCount = 3;
+        item.WordCount = 4_200;
+
+        changed.Should().Contain(new[]
+        {
+            nameof(DocumentDisplayItem.ChunkCount),
+            nameof(DocumentDisplayItem.PageCount),
+            nameof(DocumentDisplayItem.WordCount),
+            nameof(DocumentDisplayItem.WordCountFormatted),
+        });
+        item.WordCountFormatted.Should().Be(4.2.ToString("F1") + "K");
+    }
+
     private KnowledgeVaultViewModel CreateViewModel() =>
         new(
             _documentService.Object,
@@ -668,6 +777,50 @@ public sealed class KnowledgeVaultViewModelTests
             _collectionService.Object,
             _workflowLaunchService.Object,
             _operationsDrillInService.Object);
+
+    /// <summary>Creates the view model with <paramref name="context"/> as its UI context.</summary>
+    private KnowledgeVaultViewModel CreateViewModelOn(SynchronizationContext context)
+    {
+        var previous = SynchronizationContext.Current;
+        SynchronizationContext.SetSynchronizationContext(context);
+        try
+        {
+            return CreateViewModel();
+        }
+        finally
+        {
+            SynchronizationContext.SetSynchronizationContext(previous);
+        }
+    }
+
+    /// <summary>
+    /// A stand-in for the UI thread: posted work waits in a queue until the test runs it.
+    /// </summary>
+    private sealed class QueuedSynchronizationContext : SynchronizationContext
+    {
+        private readonly ConcurrentQueue<(SendOrPostCallback Callback, object? State)> _queue = new();
+
+        public int PendingCount => _queue.Count;
+
+        public override void Post(SendOrPostCallback d, object? state) => _queue.Enqueue((d, state));
+
+        public void RunPending()
+        {
+            var previous = Current;
+            SetSynchronizationContext(this);
+            try
+            {
+                while (_queue.TryDequeue(out var work))
+                {
+                    work.Callback(work.State);
+                }
+            }
+            finally
+            {
+                SetSynchronizationContext(previous);
+            }
+        }
+    }
 
     /// <summary>Configures the services a vault load touches, returning the given documents.</summary>
     private void SetupVault(params DocumentEntity[] documents)

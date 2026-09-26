@@ -724,9 +724,9 @@
 
                                     <!-- Row 1: Extracted title (if available) -->
                                     <TextBlock Grid.Row="1"
-                                               Text="{x:Bind ExtractedTitle}"
+                                               Text="{x:Bind ExtractedTitle, Mode=OneWay}"
                                                Style="{StaticResource BodySecondaryStyle}"
-                                               Visibility="{x:Bind ExtractedTitle, Converter={StaticResource StringToVis}}"
+                                               Visibility="{x:Bind ExtractedTitle, Mode=OneWay, Converter={StaticResource StringToVis}}"
                                                MaxLines="2"
                                                TextTrimming="CharacterEllipsis" />
 
@@ -736,7 +736,7 @@
                                             <FontIcon Glyph="&#xE8A1;" FontSize="10"
                                                       Foreground="{ThemeResource TextTertiaryBrush}" />
                                             <TextBlock Style="{StaticResource CaptionStyle}">
-                                                <Run Text="{x:Bind PageCount}" />
+                                                <Run Text="{x:Bind PageCount, Mode=OneWay}" />
                                                 <Run x:Uid="Vault_Pages" Text="pages" />
                                             </TextBlock>
                                         </StackPanel>
@@ -745,7 +745,7 @@
                                             <FontIcon Glyph="&#xE8C1;" FontSize="10"
                                                       Foreground="{ThemeResource TextTertiaryBrush}" />
                                             <TextBlock Style="{StaticResource CaptionStyle}">
-                                                <Run Text="{x:Bind WordCountFormatted}" />
+                                                <Run Text="{x:Bind WordCountFormatted, Mode=OneWay}" />
                                                 <Run x:Uid="Vault_Words" Text="words" />
                                             </TextBlock>
                                         </StackPanel>
@@ -754,7 +754,7 @@
                                             <FontIcon Glyph="&#xE943;" FontSize="10"
                                                       Foreground="{ThemeResource TextTertiaryBrush}" />
                                             <TextBlock Style="{StaticResource CaptionStyle}">
-                                                <Run Text="{x:Bind ChunkCount}" />
+                                                <Run Text="{x:Bind ChunkCount, Mode=OneWay}" />
                                                 <Run x:Uid="Vault_Chunks" Text="chunks" />
                                             </TextBlock>
                                         </StackPanel>

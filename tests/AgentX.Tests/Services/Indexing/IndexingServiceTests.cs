@@ -342,6 +342,50 @@ public sealed class IndexingServiceTests : IDisposable
         document.IndexingError.Should().Contain("vector store").And.Contain("disk full");
     }
 
+    [Fact]
+    public async Task FailedDocument_RaisesDocumentIndexingFailedWithTheSavedReason()
+    {
+        // Only success was announced, so a page showing the document could not tell that
+        // indexing had failed and kept showing it as pending.
+        var missing = Path.Combine(_tempDir, "gone.txt");
+        var id = SeedDocument("gone.txt", WriteFile("gone.txt", "soon deleted"), status: "pending");
+        File.Delete(missing);
+
+        var service = NewService();
+        var failed = new TaskCompletionSource<DocumentIndexingFailedEventArgs>(TaskCreationOptions.RunContinuationsAsynchronously);
+        service.DocumentIndexingFailed += (_, e) => failed.TrySetResult(e);
+        await service.InitializeAsync();
+
+        var args = await failed.Task.WaitAsync(WaitLimit);
+        await StopAsync(service);
+
+        args.DocumentId.Should().Be(id);
+        using var db = NewContext();
+        var document = await db.Documents.SingleAsync(d => d.Id == id);
+        document.IndexingStatus.Should().Be("failed");
+        args.Error.Should().Be(document.IndexingError).And.Contain("no longer exists");
+    }
+
+    [Fact]
+    public async Task ThrowingDocumentIndexedSubscriber_NeitherFailsTheDocumentNorSilencesOtherSubscribers()
+    {
+        // The event is raised inside the pipeline's try block: a subscriber's exception used
+        // to land in the failure handler and mark a correctly indexed document as failed.
+        var id = SeedDocument("fine.txt", WriteFile("fine.txt", "perfectly indexable text"), status: "pending");
+        var service = NewService();
+        service.DocumentIndexed += (_, _) => throw new InvalidOperationException("subscriber bug");
+        var indexed = WhenIndexed(service);
+        await service.InitializeAsync();
+
+        (await indexed.WaitAsync(WaitLimit)).Should().Be(id);
+        await StopAsync(service);
+
+        using var db = NewContext();
+        var document = await db.Documents.SingleAsync(d => d.Id == id);
+        document.IndexingStatus.Should().Be("completed");
+        document.IndexingError.Should().BeNull();
+    }
+
     // Helpers
 
     private AgentXDbContext NewContext()
