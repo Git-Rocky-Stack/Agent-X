@@ -85,10 +85,13 @@ public sealed partial class MainWindow : Window
 
         _navItemMap = BuildNavItemMap();
 
+        // A failed navigation leaves the previous page on screen and the app running, so
+        // it is an error, not a shutdown: never CloseAndFlush here. That call disposes the
+        // logger DI captured at startup and silences logging for the rest of the session.
+        // The logger is flushed once, at real shutdown (App.ShutdownCoreServicesAsync).
         ContentFrame.NavigationFailed += (_, args) =>
         {
-            Log.Fatal(args.Exception, "Navigation failed for source page {SourcePageType}", args.SourcePageType);
-            Log.CloseAndFlush();
+            Log.Error(args.Exception, "Navigation failed for source page {SourcePageType}", args.SourcePageType);
             args.Handled = true;
         };
 
@@ -266,8 +269,8 @@ public sealed partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            Log.Fatal(ex, "Startup navigation to {PageName} failed", pageName);
-            Log.CloseAndFlush();
+            // The window stays up, so keep the logger alive (see the NavigationFailed note).
+            Log.Error(ex, "Startup navigation to {PageName} failed", pageName);
         }
     }
 
