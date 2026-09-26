@@ -1,5 +1,6 @@
 using AgentX.Core.Data;
 using AgentX.Core.Data.Entities;
+using AgentX.Core.Documents;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -13,13 +14,82 @@ namespace AgentX.Core.Services.Collections;
 public class CollectionService : ICollectionService
 {
     private readonly AgentXDbContext _db;
+    private readonly IDocumentService? _documentService;
     private readonly ILogger _log;
 
-    public CollectionService(AgentXDbContext db, ILogger logger)
+    public CollectionService(AgentXDbContext db, ILogger logger, IDocumentService? documentService = null)
     {
         _db = db ?? throw new ArgumentNullException(nameof(db));
         _log = logger?.ForContext<CollectionService>()
                ?? throw new ArgumentNullException(nameof(logger));
+        _documentService = documentService;
+    }
+
+    /// <summary>
+    /// Corrects the denormalized <see cref="CollectionEntity.DocumentCount"/> of the given
+    /// collections (and their loaded children) from the document links. Links are added and
+    /// removed by imports, web imports, bulk operations and deletes that do not go through
+    /// this service, so the stored count drifts; any correction is persisted.
+    /// </summary>
+    private async Task SyncDocumentCountsAsync(IEnumerable<CollectionEntity> collections)
+    {
+        var byId = new Dictionary<long, CollectionEntity>();
+        var pending = new Stack<CollectionEntity>(collections);
+        while (pending.Count > 0)
+        {
+            var collection = pending.Pop();
+            if (!byId.TryAdd(collection.Id, collection))
+            {
+                continue;
+            }
+
+            foreach (var child in collection.ChildCollections)
+            {
+                pending.Push(child);
+            }
+        }
+
+        if (byId.Count == 0)
+        {
+            return;
+        }
+
+        var ids = byId.Keys.ToList();
+
+        // Links whose document no longer exists are not counted.
+        var counts = await _db.DocumentCollections
+            .AsNoTracking()
+            .Where(dc => ids.Contains(dc.CollectionId) && _db.Documents.Any(d => d.Id == dc.DocumentId))
+            .GroupBy(dc => dc.CollectionId)
+            .Select(g => new { CollectionId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.CollectionId, x => x.Count);
+
+        var corrected = 0;
+        foreach (var (id, collection) in byId)
+        {
+            var actual = counts.GetValueOrDefault(id);
+            if (collection.DocumentCount != actual)
+            {
+                collection.DocumentCount = actual;
+                corrected++;
+            }
+        }
+
+        if (corrected == 0)
+        {
+            return;
+        }
+
+        try
+        {
+            await _db.SaveChangesAsync();
+            _log.Information("Corrected the document count of {Count} collections", corrected);
+        }
+        catch (Exception ex)
+        {
+            // The corrected values are still returned to the caller.
+            _log.Warning(ex, "Could not persist corrected collection document counts");
+        }
     }
 
     /// <inheritdoc />
@@ -99,6 +169,8 @@ public class CollectionService : ICollectionService
                 .ThenBy(c => c.Name)
                 .ToListAsync();
 
+            await SyncDocumentCountsAsync(collections);
+
             _log.Debug("Retrieved {Count} collections", collections.Count);
 
             return collections;
@@ -122,6 +194,8 @@ public class CollectionService : ICollectionService
                 .ThenBy(c => c.Name)
                 .ToListAsync();
 
+            await SyncDocumentCountsAsync(collections);
+
             _log.Debug("Retrieved {Count} root collections", collections.Count);
 
             return collections;
@@ -144,6 +218,8 @@ public class CollectionService : ICollectionService
                 .OrderBy(c => c.SortOrder)
                 .ThenBy(c => c.Name)
                 .ToListAsync();
+
+            await SyncDocumentCountsAsync(collections);
 
             _log.Debug(
                 "Retrieved {Count} child collections for parent {ParentId}",
@@ -171,6 +247,10 @@ public class CollectionService : ICollectionService
             if (collection is null)
             {
                 _log.Warning("Collection {CollectionId} not found", collectionId);
+            }
+            else
+            {
+                await SyncDocumentCountsAsync(new[] { collection });
             }
 
             return collection;
@@ -263,7 +343,22 @@ public class CollectionService : ICollectionService
                     .Select(dc => dc.DocumentId)
                     .ToList();
 
-                if (documentIds.Count > 0)
+                if (documentIds.Count > 0 && _documentService is not null)
+                {
+                    // Through the document service, so each document's vectors, keyword
+                    // index rows and cached search results are removed as well, and the
+                    // counts of other collections it belonged to stay correct. Removing the
+                    // rows here directly left all of that behind.
+                    foreach (var documentId in documentIds)
+                    {
+                        await _documentService.DeleteDocumentAsync(documentId);
+                    }
+
+                    _log.Information(
+                        "Deleted {DocumentCount} documents with collection {CollectionId}",
+                        documentIds.Count, collectionId);
+                }
+                else if (documentIds.Count > 0)
                 {
                     var documents = await _db.Documents
                         .Where(d => documentIds.Contains(d.Id))

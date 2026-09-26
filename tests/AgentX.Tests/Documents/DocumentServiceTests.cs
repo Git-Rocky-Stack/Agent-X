@@ -1212,6 +1212,54 @@ public sealed class DocumentServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task DeleteDocumentAsync_DecrementsTheCountOfEveryCollectionItBelongedTo()
+    {
+        var h = NewHarness();
+        long id = 0, first = 0, second = 0;
+        h.Seed(ctx =>
+        {
+            var d = NewDoc();
+            var a = new CollectionEntity { Name = "A", DocumentCount = 3, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+            var b = new CollectionEntity { Name = "B", DocumentCount = 1, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+            ctx.Documents.Add(d);
+            ctx.Collections.AddRange(a, b);
+            ctx.SaveChanges();
+            id = d.Id;
+            first = a.Id;
+            second = b.Id;
+            ctx.DocumentCollections.Add(new DocumentCollectionEntity { DocumentId = id, CollectionId = first, AddedAt = DateTime.UtcNow });
+            ctx.DocumentCollections.Add(new DocumentCollectionEntity { DocumentId = id, CollectionId = second, AddedAt = DateTime.UtcNow });
+        });
+
+        await h.Service.DeleteDocumentAsync(id);
+
+        using var fresh = h.Fresh();
+        (await fresh.Collections.SingleAsync(c => c.Id == first)).DocumentCount.Should().Be(2);
+        (await fresh.Collections.SingleAsync(c => c.Id == second)).DocumentCount.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task ImportFileAsync_IntoACollection_IncrementsItsDocumentCount()
+    {
+        var h = NewHarness();
+        long collectionId = 0;
+        h.Seed(ctx =>
+        {
+            var c = new CollectionEntity { Name = "Inbox", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+            ctx.Collections.Add(c);
+            ctx.SaveChanges();
+            collectionId = c.Id;
+        });
+
+        await h.Service.ImportFileAsync(h.WriteFile("counted.txt", "one"), collectionId);
+        await h.Service.BulkAssignToCollectionAsync(
+            new[] { (await h.Service.ImportFileAsync(h.WriteFile("later.txt", "two"))).Id }, collectionId);
+
+        using var fresh = h.Fresh();
+        (await fresh.Collections.SingleAsync(c => c.Id == collectionId)).DocumentCount.Should().Be(2);
+    }
+
+    [Fact]
     public async Task DeleteDocumentAsync_KeywordIndexThrows_StillDeletes()
     {
         var h = NewHarness();

@@ -156,25 +156,12 @@ public sealed class DocumentService : IDocumentService
         // 8. Associate with collection if specified
         if (collectionId.HasValue)
         {
-            var collectionExists = await _db.Collections
-                .AnyAsync(c => c.Id == collectionId.Value, ct);
-
-            if (!collectionExists)
+            if (!await AddToCollectionAsync(entity.Id, collectionId.Value, ct))
             {
                 _logger.Warning("Collection {CollectionId} not found; skipping collection association", collectionId.Value);
             }
             else
             {
-                var docCollection = new DocumentCollectionEntity
-                {
-                    DocumentId = entity.Id,
-                    CollectionId = collectionId.Value,
-                    AddedAt = DateTime.UtcNow
-                };
-
-                _db.DocumentCollections.Add(docCollection);
-                await _db.SaveChangesAsync(ct);
-
                 _logger.Debug(
                     "Associated document {DocumentId} with collection {CollectionId}",
                     entity.Id, collectionId.Value);
@@ -258,21 +245,7 @@ public sealed class DocumentService : IDocumentService
         // Associate with collection if specified
         if (collectionId.HasValue)
         {
-            var collectionExists = await _db.Collections
-                .AnyAsync(c => c.Id == collectionId.Value, ct);
-
-            if (collectionExists)
-            {
-                var docCollection = new DocumentCollectionEntity
-                {
-                    DocumentId = entity.Id,
-                    CollectionId = collectionId.Value,
-                    AddedAt = DateTime.UtcNow
-                };
-
-                _db.DocumentCollections.Add(docCollection);
-                await _db.SaveChangesAsync(ct);
-            }
+            await AddToCollectionAsync(entity.Id, collectionId.Value, ct);
         }
 
         if (processed is not null)
@@ -281,6 +254,33 @@ public sealed class DocumentService : IDocumentService
         }
 
         return entity;
+    }
+
+    /// <summary>
+    /// Links a document to a collection and keeps the collection's denormalized
+    /// <see cref="CollectionEntity.DocumentCount"/> in step. Returns false when the collection
+    /// does not exist.
+    /// </summary>
+    private async Task<bool> AddToCollectionAsync(long documentId, long collectionId, CancellationToken ct)
+    {
+        var collection = await _db.Collections.FirstOrDefaultAsync(c => c.Id == collectionId, ct);
+        if (collection is null)
+        {
+            return false;
+        }
+
+        _db.DocumentCollections.Add(new DocumentCollectionEntity
+        {
+            DocumentId = documentId,
+            CollectionId = collectionId,
+            AddedAt = DateTime.UtcNow
+        });
+
+        collection.DocumentCount += 1;
+        collection.UpdatedAt = DateTime.UtcNow;
+
+        await _db.SaveChangesAsync(ct);
+        return true;
     }
 
     /// <summary>
@@ -533,6 +533,26 @@ public sealed class DocumentService : IDocumentService
         // Keyword hits carry their indexed text straight into search results and RAG
         // prompts, so FTS rows left behind would keep serving the deleted document's text.
         await RemoveFromKeywordIndexAsync(documentId, "delete");
+
+        // Keep the denormalized document count of every collection it belonged to in step.
+        var collectionIds = await _db.DocumentCollections
+            .AsNoTracking()
+            .Where(dc => dc.DocumentId == documentId)
+            .Select(dc => dc.CollectionId)
+            .ToListAsync();
+
+        if (collectionIds.Count > 0)
+        {
+            var collections = await _db.Collections
+                .Where(c => collectionIds.Contains(c.Id))
+                .ToListAsync();
+
+            foreach (var collection in collections)
+            {
+                collection.DocumentCount = Math.Max(0, collection.DocumentCount - 1);
+                collection.UpdatedAt = DateTime.UtcNow;
+            }
+        }
 
         // Tracked dependents are removed by EF, the rest by the database cascade.
         _db.Documents.Remove(document);
@@ -879,15 +899,7 @@ public sealed class DocumentService : IDocumentService
                     continue;
                 }
 
-                var docCollection = new DocumentCollectionEntity
-                {
-                    DocumentId = id,
-                    CollectionId = collectionId,
-                    AddedAt = DateTime.UtcNow
-                };
-
-                _db.DocumentCollections.Add(docCollection);
-                await _db.SaveChangesAsync(ct);
+                await AddToCollectionAsync(id, collectionId, ct);
             }
             catch (Exception ex)
             {
