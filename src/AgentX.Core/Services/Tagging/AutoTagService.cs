@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using AgentX.Core.AI;
@@ -165,6 +166,13 @@ public class AutoTagService : IAutoTagService
             var appliedCount = 0;
             var skippedCount = 0;
 
+            // Two generated names can normalize to the same tag ("Machine Learning" and
+            // "machine-learning"). Associations are saved once at the end, so the second one
+            // is not yet visible in the database and adding it again made EF throw on the
+            // duplicate key. Track what this batch has already handled.
+            var namesInBatch = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var tagIdsInBatch = new HashSet<long>();
+
             foreach (var (tagName, confidence) in generatedTags)
             {
                 if (string.IsNullOrWhiteSpace(tagName))
@@ -174,6 +182,11 @@ public class AutoTagService : IAutoTagService
 
                 // Find or create the TagEntity (case-insensitive match)
                 var normalizedName = NormalizeTagName(tagName);
+                if (string.IsNullOrEmpty(normalizedName) || !namesInBatch.Add(normalizedName))
+                {
+                    continue;
+                }
+
                 var tagEntity = await _db.Tags
                     .FirstOrDefaultAsync(
                         t => t.Name.ToLower() == normalizedName.ToLower(), ct);
@@ -193,6 +206,11 @@ public class AutoTagService : IAutoTagService
                     _log.Debug(
                         "Created auto-generated tag '{TagName}' (Id={TagId})",
                         tagEntity.Name, tagEntity.Id);
+                }
+
+                if (!tagIdsInBatch.Add(tagEntity.Id))
+                {
+                    continue;
                 }
 
                 // Check if the document-tag association already exists
@@ -746,20 +764,24 @@ public class AutoTagService : IAutoTagService
     /// Normalizes a tag name: trims whitespace, converts to lowercase,
     /// and replaces spaces with hyphens for consistency.
     /// </summary>
-    private static string NormalizeTagName(string tagName)
+    internal static string NormalizeTagName(string tagName)
     {
         if (string.IsNullOrWhiteSpace(tagName))
         {
             return string.Empty;
         }
 
-        var normalized = tagName.Trim().ToLowerInvariant();
+        // Composed form first, so a decomposed accent and its precomposed character
+        // normalize to the same tag.
+        var normalized = tagName.Trim().Normalize(NormalizationForm.FormC).ToLowerInvariant();
 
         // Replace spaces and underscores with hyphens for a consistent tag format
         normalized = Regex.Replace(normalized, @"[\s_]+", "-");
 
-        // Remove any non-alphanumeric characters except hyphens
-        normalized = Regex.Replace(normalized, @"[^a-z0-9\-]", "");
+        // Remove anything that is not a letter, digit, combining mark or hyphen. Letters and
+        // digits of every script are kept: an ASCII-only filter erased CJK and Arabic tags
+        // entirely and turned an accented "cafe" into "caf".
+        normalized = Regex.Replace(normalized, @"[^\p{L}\p{M}\p{N}\-]", "");
 
         // Collapse multiple hyphens into one
         normalized = Regex.Replace(normalized, @"-{2,}", "-");

@@ -298,6 +298,50 @@ public sealed class AutoTagServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task ApplyAutoTags_names_that_normalize_to_the_same_tag_are_applied_once()
+    {
+        // Both names normalize to "machine-learning". The second association used to be added
+        // to the change tracker again and EF threw on the duplicate key.
+        var doc = await SeedDocumentAsync(chunks: new[] { "content" });
+        SetupAiTags("Machine Learning", "machine-learning", "robotics");
+
+        await CreateSut().ApplyAutoTagsAsync(doc.Id);
+
+        await using var verify = _factory.CreateContext();
+        (await verify.Tags.Select(t => t.Name).ToListAsync())
+            .Should().BeEquivalentTo("machine-learning", "robotics");
+        (await verify.DocumentTags.CountAsync(dt => dt.DocumentId == doc.Id)).Should().Be(2);
+    }
+
+    [Fact]
+    public async Task ApplyAutoTags_keeps_tags_written_in_other_scripts()
+    {
+        var doc = await SeedDocumentAsync(chunks: new[] { "content" });
+        SetupAiTags("機械学習", "تعلم الآلة");
+
+        await CreateSut().ApplyAutoTagsAsync(doc.Id);
+
+        await using var verify = _factory.CreateContext();
+        (await verify.Tags.Select(t => t.Name).ToListAsync())
+            .Should().BeEquivalentTo("機械学習", "تعلم-الآلة");
+    }
+
+    [Theory]
+    [InlineData("Café", "café")]
+    [InlineData("Café", "café")]            // decomposed accent composes to the same tag
+    [InlineData("機械学習", "機械学習")]
+    [InlineData("Straße Ölpreis", "straße-ölpreis")]
+    [InlineData("Machine_Learning  AI", "machine-learning-ai")]
+    [InlineData("C++ / .NET", "c-net")]
+    [InlineData("--###--", "")]
+    public void NormalizeTagName_keeps_letters_and_digits_of_every_script(string input, string expected)
+    {
+        // Everything outside [a-z0-9-] used to be stripped: CJK and Arabic tags vanished and
+        // an accented "cafe" became "caf".
+        AutoTagService.NormalizeTagName(input).Should().Be(expected);
+    }
+
+    [Fact]
     public async Task ApplyAutoTags_reuses_existing_tag_and_skips_existing_association()
     {
         var doc = await SeedDocumentAsync(chunks: new[] { "content" });
