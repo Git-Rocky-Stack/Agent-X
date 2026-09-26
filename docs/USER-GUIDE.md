@@ -225,10 +225,10 @@ The summary screen provides a complete readiness report:
 
 **What happens on Launch?**
 
-1. **Database Initialization**: EF Core migrations run, creating 16 tables (conversations, messages, documents, chunks, embeddings, collections, tags, memories, workflows, and more)
+1. **Database Initialization**: EF Core migrations create or upgrade the schema (conversations, messages, documents, chunks, collections, tags, memories, workflows, and more)
 2. **Vector Store Setup**: HNSW ANN index initializes for semantic search (or linear-scan fallback for small vaults)
-3. **Indexing Queue**: Background service starts for async document processing
-4. **File System Watcher**: The watch-folder service is part of the indexing pipeline, but the app has no UI to add a watch folder yet (Settings only has an **Auto-index watch folders** switch), so there is nothing for it to watch. Import files from the Knowledge Vault instead.
+3. **Indexing Pipeline**: The background indexer starts. Documents left pending or interrupted in an earlier session are queued again, and every import is chunked, embedded and full-text indexed in the background, so it becomes searchable without further action
+4. **File System Watcher**: With **Auto-index watch folders** on, the watch-folder service starts and catches up on files added or changed while the app was closed, but the app has no UI to add a watch folder yet, so there is nothing for it to watch. Import files from the Knowledge Vault instead.
 5. **Dashboard Loads**: Your operational command center surfaces recent activity, recommended actions, and system health
 
 ### Re-running Onboarding
