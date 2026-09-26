@@ -229,6 +229,8 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
 
     private async Task LoadAiStatusAsync()
     {
+        // The status names the active provider (the built-in model is the default), not Ollama.
+        var providerName = "AI provider";
         try
         {
             IAiProvider activeProvider;
@@ -245,9 +247,14 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
                 return;
             }
 
+            if (!string.IsNullOrWhiteSpace(activeProvider.DisplayName))
+            {
+                providerName = activeProvider.DisplayName;
+            }
+
             var connected = await activeProvider.CheckConnectionAsync();
             IsOllamaConnected = connected;
-            ConnectionStatus = connected ? "Connected to Ollama" : "Ollama not detected";
+            ConnectionStatus = connected ? $"Connected to {providerName}" : $"{providerName} not available";
             ActiveModelName = connected && !string.IsNullOrEmpty(_aiService.ActiveModelId)
                 ? _aiService.ActiveModelId
                 : "Setup required";
@@ -256,7 +263,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         {
             Log.Warning(ex, "Failed to check AI connection status for dashboard");
             IsOllamaConnected = false;
-            ConnectionStatus = "Ollama not detected";
+            ConnectionStatus = $"{providerName} not available";
             ActiveModelName = "Setup required";
         }
     }

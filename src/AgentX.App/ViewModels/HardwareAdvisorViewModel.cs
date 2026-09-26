@@ -249,13 +249,6 @@ public partial class HardwareAdvisorViewModel : ObservableObject, IDisposable
             });
             models.Add(new RecommendedModel
             {
-                Name = "phi3:medium",
-                Description = "Microsoft Phi-3 Medium (14B, Q4) -- Strong reasoning in a compact package.",
-                Size = "4.9 GB",
-                Category = "Chat"
-            });
-            models.Add(new RecommendedModel
-            {
                 Name = "mistral:7b",
                 Description = "Mistral 7B -- Fast, versatile, and great at following instructions.",
                 Size = "4.1 GB",
@@ -281,9 +274,9 @@ public partial class HardwareAdvisorViewModel : ObservableObject, IDisposable
             // Standard tier: 8-16GB
             models.Add(new RecommendedModel
             {
-                Name = "llama3.2:latest",
-                Description = "Meta Llama 3.2 (8B) -- Top-tier open model. Excellent for chat, analysis, and writing.",
-                Size = "4.7 GB",
+                Name = "llama3.1:8b",
+                Description = "Meta Llama 3.1 (8B) -- Top-tier open model. Excellent for chat, analysis, and writing.",
+                Size = "4.9 GB",
                 Category = "Chat"
             });
             models.Add(new RecommendedModel
@@ -298,6 +291,13 @@ public partial class HardwareAdvisorViewModel : ObservableObject, IDisposable
                 Name = "deepseek-r1:8b",
                 Description = "DeepSeek R1 (8B) -- Strong reasoning model with chain-of-thought capabilities.",
                 Size = "4.9 GB",
+                Category = "Chat"
+            });
+            models.Add(new RecommendedModel
+            {
+                Name = "phi3:medium",
+                Description = "Microsoft Phi-3 Medium (14B, Q4) -- Strong reasoning in a compact package.",
+                Size = "7.9 GB",
                 Category = "Chat"
             });
             models.Add(new RecommendedModel
@@ -349,8 +349,8 @@ public partial class HardwareAdvisorViewModel : ObservableObject, IDisposable
             models.Add(new RecommendedModel
             {
                 Name = "llama3.2:latest",
-                Description = "Meta Llama 3.2 (8B) -- Fast, efficient option for quick everyday tasks.",
-                Size = "4.7 GB",
+                Description = "Meta Llama 3.2 (3B) -- Fast, efficient option for quick everyday tasks.",
+                Size = "2.0 GB",
                 Category = "Chat"
             });
             models.Add(new RecommendedModel

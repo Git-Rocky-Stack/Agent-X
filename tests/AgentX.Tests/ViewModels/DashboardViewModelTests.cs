@@ -277,6 +277,25 @@ public sealed class DashboardViewModelTests
         _aiProvider.Verify(provider => provider.CheckConnectionAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
+    [Theory]
+    [InlineData("Built-in LLM", true, "Connected to Built-in LLM")]
+    [InlineData("OpenAI", false, "OpenAI not available")]
+    [InlineData("", true, "Connected to AI provider")]
+    public async Task InitializeAsync_names_the_active_provider_in_the_connection_status(
+        string displayName, bool connected, string expected)
+    {
+        _aiProvider.SetupGet(provider => provider.DisplayName).Returns(displayName);
+        _aiProvider.Setup(provider => provider.CheckConnectionAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(connected);
+
+        var viewModel = CreateViewModel();
+
+        await viewModel.InitializeAsync();
+
+        viewModel.ConnectionStatus.Should().Be(expected);
+        viewModel.ConnectionStatus.Should().NotContain("Ollama");
+    }
+
     [Fact]
     public async Task InitializeAsync_prefers_exact_targets_when_operations_snapshot_includes_preview_ids()
     {
