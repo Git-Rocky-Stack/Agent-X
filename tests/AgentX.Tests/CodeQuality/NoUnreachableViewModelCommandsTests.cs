@@ -31,15 +31,11 @@ public sealed class NoUnreachableViewModelCommandsTests
 {
     /// <summary>
     /// Unreachable commands another workstream is fixing. Temporary: remove each entry with
-    /// its fix. Inbox refresh and comparison selection are in flight; the knowledge vault's
-    /// ImportFiles was found when this guard was tightened (the page imports through
-    /// ImportWithDedup) and is reported to its owner.
+    /// its fix. Comparison selection is in flight.
     /// </summary>
     private static readonly HashSet<string> KnownUnreachableCommands = new(StringComparer.Ordinal)
     {
-        "InboxViewModel.RefreshCommand",
         "ComparisonViewModel.ToggleDocumentSelectionCommand",
-        "KnowledgeVaultViewModel.ImportFilesCommand",
     };
 
     /// <summary>
