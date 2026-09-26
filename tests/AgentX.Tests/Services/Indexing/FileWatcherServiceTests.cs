@@ -120,14 +120,14 @@ public sealed class FileWatcherServiceTests : IDisposable
         SeedWatchFolder();
         WriteFile("copy.txt", "same bytes as an existing document");
         _documents.Setup(d => d.ImportFileAsync(It.IsAny<string>(), It.IsAny<long?>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new InvalidOperationException("A document with identical content already exists: 'x' (ID 9)."));
+            .ThrowsAsync(new DuplicateDocumentException(9, "x"));
 
         var imported = await NewService().ScanWatchFoldersAsync();
 
         imported.Should().Be(0);
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
+    // Helpers
 
     private FileWatcherService NewService()
     {

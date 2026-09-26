@@ -198,7 +198,9 @@ public sealed partial class KnowledgeVaultPage : Page
             {
                 var items = await e.DataView.GetStorageItemsAsync();
                 var filePaths = new List<string>();
+                var folderPaths = new List<string>();
 
+                // Collect every dropped item; files and folders can be mixed in one drop.
                 foreach (var item in items)
                 {
                     if (item is StorageFile file)
@@ -207,16 +209,11 @@ public sealed partial class KnowledgeVaultPage : Page
                     }
                     else if (item is StorageFolder folder)
                     {
-                        // For dropped folders, use the folder import path
-                        await ViewModel.ImportFolderCommand.ExecuteAsync(folder.Path);
-                        return;
+                        folderPaths.Add(folder.Path);
                     }
                 }
 
-                if (filePaths.Count > 0)
-                {
-                    await ViewModel.HandleDroppedFilesAsync(filePaths);
-                }
+                await ViewModel.HandleDroppedItemsAsync(filePaths, folderPaths);
             }
         }
         catch (Exception ex)

@@ -671,6 +671,82 @@ public sealed class DocumentServiceTests : IDisposable
         await act.Should().ThrowAsync<OperationCanceledException>();
     }
 
+    // The vault reported "Successfully imported N file(s)" for any batch, although files
+    // that failed were only logged and duplicates were silently dropped. The report says
+    // what actually happened to each file.
+
+    [Fact]
+    public async Task ImportFilesWithReportAsync_ReportsImportedUnreadableDuplicateAndFailedFiles()
+    {
+        var processor = new StubProcessor(new[] { ".txt", ".pdf" }, path =>
+            path.EndsWith("locked.pdf", StringComparison.Ordinal)
+                ? throw new DocumentExtractionException("The PDF is password protected.")
+                : new ProcessedDocument
+                {
+                    FilePath = path,
+                    FileName = Path.GetFileName(path),
+                    ExtractedText = "text",
+                    WordCount = 1,
+                    Metadata = new DocumentMetadata()
+                });
+        var h = NewHarness(processor);
+        var existing = h.WriteFile("existing.txt", "already in the vault");
+        await h.Service.ImportFileAsync(existing);
+
+        var fresh = h.WriteFile("fresh.txt", "new content");
+        var copy = h.WriteFile("copy.txt", "already in the vault");
+        var locked = h.WriteFile("locked.pdf", "encrypted bytes");
+        var unsupported = h.WriteFile("notes.zzz", "no processor");
+        var missing = Path.Combine(h.TempDir, "gone.txt");
+        var progress = new List<int>();
+
+        var report = await h.Service.ImportFilesWithReportAsync(
+            new[] { fresh, copy, locked, unsupported, missing },
+            progress: new SyncProgress<int>(progress.Add));
+
+        report.Imported.Select(d => d.FileName).Should().BeEquivalentTo(new[] { "fresh.txt", "locked.pdf" });
+        report.ExtractionFailedCount.Should().Be(1);
+        report.Imported.Single(d => d.FileName == "locked.pdf").IndexingError.Should().Be("The PDF is password protected.");
+        report.Duplicates.Should().Equal(copy);
+        report.Failed.Select(f => f.FilePath).Should().BeEquivalentTo(new[] { unsupported, missing });
+        report.Failed.Single(f => f.FilePath == unsupported).Reason.Should().Contain("No processor found");
+        progress.Should().Equal(1, 2, 3, 4, 5);
+    }
+
+    [Fact]
+    public async Task ImportFilesWithReportAsync_AllowDuplicates_ImportsTheCopyAsASeparateDocument()
+    {
+        // "Import all anyway" re-submitted the duplicates through the normal import, which
+        // rejected them again, so they could never be imported.
+        var h = NewHarness();
+        var original = h.WriteFile("original.txt", "same bytes");
+        var copy = h.WriteFile("copy.txt", "same bytes");
+        var first = await h.Service.ImportFileAsync(original);
+
+        var report = await h.Service.ImportFilesWithReportAsync(new[] { copy }, allowDuplicates: true);
+
+        report.Duplicates.Should().BeEmpty();
+        report.Imported.Should().ContainSingle();
+        report.Imported[0].Id.Should().NotBe(first.Id);
+        report.Imported[0].ContentHash.Should().Be(first.ContentHash);
+
+        using var fresh = h.Fresh();
+        (await fresh.Documents.CountAsync()).Should().Be(2);
+    }
+
+    [Fact]
+    public async Task ImportFileAsync_DuplicateContent_ThrowsATypedExceptionNamingTheExistingDocument()
+    {
+        var h = NewHarness();
+        var first = await h.Service.ImportFileAsync(h.WriteFile("first.txt", "twin"));
+
+        var act = () => h.Service.ImportFileAsync(h.WriteFile("second.txt", "twin"));
+
+        var thrown = (await act.Should().ThrowAsync<DuplicateDocumentException>()).Which;
+        thrown.ExistingDocumentId.Should().Be(first.Id);
+        thrown.ExistingFileName.Should().Be("first.txt");
+    }
+
     // ═══════════════════════════════════════════════════════════════════════════
     //  GetDocumentAsync / GetDocumentByHashAsync
     // ═══════════════════════════════════════════════════════════════════════════

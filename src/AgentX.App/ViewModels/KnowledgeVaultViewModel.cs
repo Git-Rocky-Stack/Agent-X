@@ -6,6 +6,7 @@ using AgentX.Core.AI.Models;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Documents;
 using AgentX.Core.Helpers;
+using AgentX.Core.Search.Models;
 using AgentX.Core.Services.Collections;
 using AgentX.Core.Services.Indexing;
 using AgentX.Core.Services.Tagging;
@@ -171,13 +172,15 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         List<DocumentDisplayItem>? loaded = null;
         try
         {
+            // The pickers yield local calendar days while ImportedAt is stored in UTC; the
+            // "before" day is inclusive, so the bound is the end of that day.
             var docs = await _documentService.GetAllDocumentsAsync(
                 fileTypeFilter: FileTypeFilter,
                 statusFilter: StatusFilter,
                 tagFilter: TagFilter,
                 collectionId: CollectionFilter,
-                importedAfter: DateAfterFilter,
-                importedBefore: DateBeforeFilter,
+                importedAfter: DateAfterFilter.HasValue ? LocalDayRange.StartUtc(DateAfterFilter.Value) : null,
+                importedBefore: DateBeforeFilter.HasValue ? LocalDayRange.EndUtc(DateBeforeFilter.Value) : null,
                 sortBy: SortBy);
 
             var filteredDocs = new List<AgentX.Core.Data.Entities.DocumentEntity>();
@@ -247,8 +250,35 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
             }
         }
 
+        SyncSelectionWithDocuments();
         OnPropertyChanged(nameof(HasDocuments));
         UpdateDropZoneVisibility();
+    }
+
+    /// <summary>
+    /// Keeps the multi-select state in step with the rows on screen. A reload creates new
+    /// row items, so their checkboxes are re-applied from <see cref="SelectedDocumentIds"/>,
+    /// and selections whose rows are no longer shown are dropped: a bulk action must only
+    /// touch rows the user can see checked.
+    /// </summary>
+    private void SyncSelectionWithDocuments()
+    {
+        var visibleIds = new HashSet<long>(Documents.Select(document => document.Id));
+        for (var i = SelectedDocumentIds.Count - 1; i >= 0; i--)
+        {
+            if (!visibleIds.Contains(SelectedDocumentIds[i]))
+            {
+                SelectedDocumentIds.RemoveAt(i);
+            }
+        }
+
+        foreach (var document in Documents)
+        {
+            document.IsSelected = SelectedDocumentIds.Contains(document.Id);
+        }
+
+        SelectedCount = SelectedDocumentIds.Count;
+        OnPropertyChanged(nameof(HasSelection));
     }
 
     private async Task LoadStatsAsync()
@@ -462,15 +492,19 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     // ═══════════════════════════════════════════════════════════════
 
     /// <summary>
-    /// Opens a file picker and imports the selected files.
-    /// The actual picker logic is handled in the code-behind because
-    /// WinUI 3 file pickers require a window handle (HWND).
-    /// This command is invoked after the code-behind obtains file paths.
+    /// Imports a batch of files and reports what actually happened. The file picker lives in
+    /// the code-behind because WinUI 3 pickers need a window handle; picked and dropped files
+    /// reach this through the duplicate check in <see cref="ImportWithDedupAsync"/>.
     /// </summary>
-    [RelayCommand]
-    private async Task ImportFilesAsync(IReadOnlyList<string>? filePaths)
+    /// <param name="filePaths">Files to import.</param>
+    /// <param name="allowDuplicates">
+    /// True when the user chose "Import all anyway", so files matching an existing document
+    /// are imported as separate documents instead of being skipped.
+    /// </param>
+    /// <param name="fromFolder">Whether the files came from a folder scan (wording only).</param>
+    private async Task ImportBatchAsync(IReadOnlyList<string> filePaths, bool allowDuplicates, bool fromFolder = false)
     {
-        if (filePaths is null || filePaths.Count == 0) return;
+        if (filePaths.Count == 0) return;
 
         Log.Information("Importing {Count} file(s)", filePaths.Count);
 
@@ -487,10 +521,24 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
                 ImportStatus = $"Importing file {completed}/{filePaths.Count}...";
             });
 
-            await _documentService.ImportFilesAsync(filePaths, progress: progressReporter);
+            var report = await _documentService.ImportFilesWithReportAsync(
+                filePaths, allowDuplicates: allowDuplicates, progress: progressReporter);
 
-            ImportStatus = $"Successfully imported {filePaths.Count} file(s)";
-            Log.Information("Import completed: {Count} files", filePaths.Count);
+            var summary = FormatImportSummary(report, filePaths.Count, fromFolder);
+            ImportStatus = summary;
+            Log.Information(
+                "Import completed: {Imported}/{Total} imported, {ExtractionFailed} unreadable, {Duplicates} duplicates skipped, {Failed} failed",
+                report.Imported.Count, filePaths.Count, report.ExtractionFailedCount, report.Duplicates.Count, report.Failed.Count);
+
+            // The progress panel disappears when the import ends, so anything short of a
+            // clean import is also raised on the page's message banner.
+            if (report.Failed.Count > 0 || report.Duplicates.Count > 0 || report.ExtractionFailedCount > 0)
+            {
+                var firstFailure = report.Failed.FirstOrDefault();
+                SetError(firstFailure is null
+                    ? summary
+                    : $"{summary}. {Path.GetFileName(firstFailure.FilePath)}: {firstFailure.Reason}");
+            }
 
             // Refresh the document list
             await LoadDocumentsAsync();
@@ -510,6 +558,47 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
+    /// One-line outcome of an import: a plain success message when every file was imported
+    /// and readable, otherwise the real counts of what was imported, unreadable, skipped as
+    /// a duplicate, or not imported.
+    /// </summary>
+    internal static string FormatImportSummary(DocumentImportReport report, int totalFiles, bool fromFolder = false)
+    {
+        var origin = fromFolder ? " from folder" : string.Empty;
+        var imported = report.Imported.Count;
+        var unreadable = report.ExtractionFailedCount;
+        var duplicates = report.Duplicates.Count;
+        var failed = report.Failed.Count;
+
+        if (unreadable == 0 && duplicates == 0 && failed == 0)
+        {
+            return $"Successfully imported {imported} file(s){origin}";
+        }
+
+        var parts = new List<string> { $"Imported {imported} of {totalFiles} file(s){origin}" };
+        if (unreadable > 0)
+        {
+            parts.Add(unreadable == 1
+                ? "1 of them could not be read and is marked Failed"
+                : $"{unreadable} of them could not be read and are marked Failed");
+        }
+
+        if (duplicates > 0)
+        {
+            parts.Add(duplicates == 1
+                ? "1 skipped as a duplicate"
+                : $"{duplicates} skipped as duplicates");
+        }
+
+        if (failed > 0)
+        {
+            parts.Add($"{failed} could not be imported");
+        }
+
+        return string.Join("; ", parts);
+    }
+
+    /// <summary>
     /// Opens a folder picker and imports all supported files from the folder.
     /// The actual picker logic is handled in the code-behind.
     /// This command is invoked after the code-behind obtains the folder path.
@@ -526,54 +615,43 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         ImportStatus = "Scanning folder...";
         ClearError();
 
+        List<string> filePaths;
         try
         {
-            // Enumerate supported files in the folder
-            var supportedExtensions = _documentService.GetSupportedExtensions();
-            var filePaths = new List<string>();
-
-            foreach (var file in Directory.EnumerateFiles(folderPath, "*.*", SearchOption.AllDirectories))
-            {
-                var ext = Path.GetExtension(file).ToLowerInvariant();
-                if (supportedExtensions.Contains(ext))
-                {
-                    filePaths.Add(file);
-                }
-            }
-
-            if (filePaths.Count == 0)
-            {
-                ImportStatus = "No supported files found in folder";
-                return;
-            }
-
-            ImportStatus = $"Found {filePaths.Count} supported file(s). Importing...";
-
-            var progressReporter = new Progress<int>(completed =>
-            {
-                ImportProgress = (int)((double)completed / filePaths.Count * 100);
-                ImportStatus = $"Importing file {completed}/{filePaths.Count}...";
-            });
-
-            await _documentService.ImportFilesAsync(filePaths, progress: progressReporter);
-
-            ImportStatus = $"Successfully imported {filePaths.Count} file(s) from folder";
-            Log.Information("Folder import completed: {FolderPath} ({Count} files)", folderPath, filePaths.Count);
-
-            await LoadDocumentsAsync();
-            await LoadStatsAsync();
-            await CheckIndexingStatusAsync();
+            filePaths = await Task.Run(() => EnumerateSupportedFiles(folderPath));
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Failed to import folder: {FolderPath}", folderPath);
+            Log.Error(ex, "Failed to scan folder: {FolderPath}", folderPath);
             ImportStatus = "Folder import failed";
             SetError($"Failed to import folder: {ex.Message}");
-        }
-        finally
-        {
             IsImporting = false;
+            return;
         }
+
+        if (filePaths.Count == 0)
+        {
+            ImportStatus = "No supported files found in folder";
+            SetError("No supported files found in the selected folder.");
+            IsImporting = false;
+            return;
+        }
+
+        await ImportBatchAsync(filePaths, allowDuplicates: false, fromFolder: true);
+    }
+
+    /// <summary>
+    /// Supported files under <paramref name="folderPath"/>, including subfolders. Subfolders
+    /// the user cannot read are skipped instead of aborting the whole scan.
+    /// </summary>
+    private List<string> EnumerateSupportedFiles(string folderPath)
+    {
+        var supportedExtensions = _documentService.GetSupportedExtensions();
+        var options = new EnumerationOptions { RecurseSubdirectories = true, IgnoreInaccessible = true };
+
+        return Directory.EnumerateFiles(folderPath, "*", options)
+            .Where(file => supportedExtensions.Contains(Path.GetExtension(file).ToLowerInvariant()))
+            .ToList();
     }
 
     [RelayCommand]
@@ -599,6 +677,12 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
                 Documents.Remove(item);
                 OnPropertyChanged(nameof(HasDocuments));
                 UpdateDropZoneVisibility();
+            }
+
+            if (SelectedDocumentIds.Remove(id))
+            {
+                SelectedCount = SelectedDocumentIds.Count;
+                OnPropertyChanged(nameof(HasSelection));
             }
 
             TotalDocuments = await _documentService.GetTotalDocumentCountAsync();
@@ -644,17 +728,13 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     {
         Log.Debug("Select document for preview: {DocumentId}", id);
 
-        // Deselect previous
-        if (SelectedDocument is not null)
-        {
-            SelectedDocument.IsSelected = false;
-        }
-
+        // The previewed document is tracked by SelectedDocument alone. IsSelected is the
+        // multi-select checkbox, backed by SelectedDocumentIds, and must not change here:
+        // toggling it made rows look checked (or unchecked) out of step with what a bulk
+        // delete or re-index would actually act on.
         var item = Documents.FirstOrDefault(d => d.Id == id);
         if (item is not null)
         {
-            item.IsSelected = true;
-
             // Enrich with latest data from the database
             try
             {
@@ -682,10 +762,7 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private void ClosePreview()
     {
-        if (SelectedDocument is not null)
-        {
-            SelectedDocument.IsSelected = false;
-        }
+        // Closing the preview leaves the multi-select checkboxes as they are.
         SelectedDocument = null;
     }
 
@@ -964,15 +1041,47 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     // ═══════════════════════════════════════════════════════════════
 
     /// <summary>
-    /// Called by the code-behind when files are dropped onto the drop zone.
-    /// Routes through dedup check before importing.
+    /// Called by the code-behind when items are dropped onto the drop zone. Dropped folders
+    /// are expanded to the supported files they contain, and everything dropped (files and
+    /// folders together) is imported as one batch through the duplicate check.
     /// </summary>
-    public async Task HandleDroppedFilesAsync(IReadOnlyList<string> filePaths)
+    public async Task HandleDroppedItemsAsync(IReadOnlyList<string> filePaths, IReadOnlyList<string> folderPaths)
     {
-        if (filePaths.Count == 0) return;
+        if (filePaths.Count == 0 && folderPaths.Count == 0) return;
 
-        Log.Information("Files dropped: {Count}", filePaths.Count);
-        await ImportWithDedupAsync(filePaths);
+        Log.Information("Items dropped: {FileCount} file(s), {FolderCount} folder(s)", filePaths.Count, folderPaths.Count);
+        ClearError();
+
+        var toImport = new List<string>(filePaths);
+        var unreadableFolders = new List<string>();
+        foreach (var folderPath in folderPaths)
+        {
+            try
+            {
+                toImport.AddRange(await Task.Run(() => EnumerateSupportedFiles(folderPath)));
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Failed to scan dropped folder: {FolderPath}", folderPath);
+                unreadableFolders.Add(folderPath);
+            }
+        }
+
+        var distinct = toImport.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        if (distinct.Count > 0)
+        {
+            await ImportWithDedupAsync(distinct);
+        }
+
+        // Import errors take precedence on the banner; otherwise say what was left out.
+        if (!HasError && unreadableFolders.Count > 0)
+        {
+            SetError($"Could not read the dropped folder {unreadableFolders[0]}; its files were not imported.");
+        }
+        else if (distinct.Count == 0 && unreadableFolders.Count == 0)
+        {
+            SetError("No supported files found in the dropped folder(s).");
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -1037,8 +1146,8 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         }
         else
         {
-            // No duplicates found — import all files directly
-            await ImportFilesCommand.ExecuteAsync(filePaths);
+            // No duplicates found, so import all files directly
+            await ImportBatchAsync(filePaths, allowDuplicates: false);
         }
     }
 
@@ -1050,23 +1159,26 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     {
         ShowDuplicateWarning = false;
 
-        if (_pendingImportPaths is not null && _pendingImportPaths.Count > 0)
+        // Claim the pending batch before awaiting so a second click cannot import it twice.
+        var pending = _pendingImportPaths;
+        _pendingImportPaths = null;
+        _duplicateFilePaths = null;
+
+        if (pending is not null && pending.Count > 0)
         {
             Log.Information("Importing {Count} non-duplicate file(s), skipping duplicates",
-                _pendingImportPaths.Count);
-            await ImportFilesCommand.ExecuteAsync(_pendingImportPaths);
+                pending.Count);
+            await ImportBatchAsync(pending, allowDuplicates: false);
         }
         else
         {
             Log.Information("No non-duplicate files to import after skipping duplicates");
         }
-
-        _pendingImportPaths = null;
-        _duplicateFilePaths = null;
     }
 
     /// <summary>
-    /// Imports all files regardless of duplicate status.
+    /// Imports all files regardless of duplicate status. The duplicates become separate
+    /// documents, because the user explicitly asked for them.
     /// </summary>
     [RelayCommand]
     private async Task ImportAllAnywayAsync()
@@ -1076,15 +1188,14 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         var allPaths = new List<string>();
         if (_pendingImportPaths is not null) allPaths.AddRange(_pendingImportPaths);
         if (_duplicateFilePaths is not null) allPaths.AddRange(_duplicateFilePaths);
+        _pendingImportPaths = null;
+        _duplicateFilePaths = null;
 
         if (allPaths.Count > 0)
         {
             Log.Information("Importing all {Count} file(s) including duplicates", allPaths.Count);
-            await ImportFilesCommand.ExecuteAsync(allPaths);
+            await ImportBatchAsync(allPaths, allowDuplicates: true);
         }
-
-        _pendingImportPaths = null;
-        _duplicateFilePaths = null;
     }
 
     /// <summary>
@@ -1383,7 +1494,14 @@ public class DocumentDisplayItem : ObservableObject
     public string IndexingStatus
     {
         get => _indexingStatus;
-        set => SetProperty(ref _indexingStatus, value);
+        set
+        {
+            if (SetProperty(ref _indexingStatus, value))
+            {
+                // The status badge binds the derived label, not the raw status.
+                OnPropertyChanged(nameof(IndexingStatusLabel));
+            }
+        }
     }
 
     public string? IndexingError

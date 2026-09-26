@@ -24,6 +24,7 @@ public interface IDocumentService
     /// <param name="collectionId">Optional collection to associate the document with.</param>
     /// <param name="ct">Cancellation token.</param>
     /// <returns>The created DocumentEntity with status "pending".</returns>
+    /// <exception cref="DuplicateDocumentException">A document with the same content already exists.</exception>
     Task<DocumentEntity> ImportFileAsync(string filePath, long? collectionId = null, CancellationToken ct = default);
 
     /// <summary>
@@ -58,6 +59,27 @@ public interface IDocumentService
     Task<IReadOnlyList<DocumentEntity>> ImportFilesAsync(
         IReadOnlyList<string> filePaths,
         long? collectionId = null,
+        IProgress<int>? progress = null,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// Imports multiple files and reports the outcome of each: imported (possibly recorded as
+    /// failed when its text could not be extracted), skipped as a duplicate, or not imported
+    /// with a reason. Failures of individual files do not abort the batch.
+    /// </summary>
+    /// <param name="filePaths">Absolute paths to the files to import.</param>
+    /// <param name="collectionId">Optional collection to associate all documents with.</param>
+    /// <param name="allowDuplicates">
+    /// When true, files whose content matches an existing document are imported anyway (the
+    /// user explicitly asked for it); otherwise they are reported in
+    /// <see cref="DocumentImportReport.Duplicates"/>.
+    /// </param>
+    /// <param name="progress">Optional progress reporter (number of files completed).</param>
+    /// <param name="ct">Cancellation token.</param>
+    Task<DocumentImportReport> ImportFilesWithReportAsync(
+        IReadOnlyList<string> filePaths,
+        long? collectionId = null,
+        bool allowDuplicates = false,
         IProgress<int>? progress = null,
         CancellationToken ct = default);
 

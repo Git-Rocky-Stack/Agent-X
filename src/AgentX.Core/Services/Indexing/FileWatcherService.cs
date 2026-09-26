@@ -541,7 +541,7 @@ public sealed class FileWatcherService : IFileWatcherService
                 document.FileName, document.Id);
             return true;
         }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("identical content"))
+        catch (DuplicateDocumentException)
         {
             // Duplicate file - this is expected and not an error
             _logger.Debug("Skipped duplicate file in watch folder: {FilePath}", filePath);

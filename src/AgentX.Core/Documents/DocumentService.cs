@@ -67,10 +67,22 @@ public sealed class DocumentService : IDocumentService
     }
 
     /// <inheritdoc />
-    public async Task<DocumentEntity> ImportFileAsync(
+    public Task<DocumentEntity> ImportFileAsync(
         string filePath,
         long? collectionId = null,
         CancellationToken ct = default)
+        => ImportFileCoreAsync(filePath, collectionId, allowDuplicate: false, ct);
+
+    /// <summary>
+    /// Imports one file. When <paramref name="allowDuplicate"/> is false, a file whose content
+    /// matches an existing document throws <see cref="DuplicateDocumentException"/>; when true
+    /// (the user explicitly chose to import duplicates) it is imported as a separate document.
+    /// </summary>
+    private async Task<DocumentEntity> ImportFileCoreAsync(
+        string filePath,
+        long? collectionId,
+        bool allowDuplicate,
+        CancellationToken ct)
     {
         // 1. Validate file exists
         if (!File.Exists(filePath))
@@ -92,11 +104,17 @@ public sealed class DocumentService : IDocumentService
         var existingDoc = await GetDocumentByHashAsync(contentHash);
         if (existingDoc is not null)
         {
+            if (!allowDuplicate)
+            {
+                _logger.Information(
+                    "Duplicate detected: {FilePath} matches existing document {DocumentId} ({FileName})",
+                    filePath, existingDoc.Id, existingDoc.FileName);
+                throw new DuplicateDocumentException(existingDoc.Id, existingDoc.FileName);
+            }
+
             _logger.Information(
-                "Duplicate detected: {FilePath} matches existing document {DocumentId} ({FileName})",
+                "Importing {FilePath} although it matches existing document {DocumentId} ({FileName}); duplicates were allowed",
                 filePath, existingDoc.Id, existingDoc.FileName);
-            throw new InvalidOperationException(
-                $"A document with identical content already exists: '{existingDoc.FileName}' (ID {existingDoc.Id}).");
         }
 
         // 4. Find the appropriate processor
@@ -318,12 +336,24 @@ public sealed class DocumentService : IDocumentService
         IProgress<int>? progress = null,
         CancellationToken ct = default)
     {
+        var report = await ImportFilesWithReportAsync(filePaths, collectionId, allowDuplicates: false, progress, ct);
+        return report.Imported.AsReadOnly();
+    }
+
+    /// <inheritdoc />
+    public async Task<DocumentImportReport> ImportFilesWithReportAsync(
+        IReadOnlyList<string> filePaths,
+        long? collectionId = null,
+        bool allowDuplicates = false,
+        IProgress<int>? progress = null,
+        CancellationToken ct = default)
+    {
+        var report = new DocumentImportReport();
         if (filePaths is null || filePaths.Count == 0)
         {
-            return Array.Empty<DocumentEntity>();
+            return report;
         }
 
-        var results = new List<DocumentEntity>(filePaths.Count);
         var completed = 0;
 
         foreach (var filePath in filePaths)
@@ -332,21 +362,28 @@ public sealed class DocumentService : IDocumentService
 
             try
             {
-                var entity = await ImportFileAsync(filePath, collectionId, ct);
-                results.Add(entity);
+                var entity = await ImportFileCoreAsync(filePath, collectionId, allowDuplicates, ct);
+                report.Imported.Add(entity);
+            }
+            catch (DuplicateDocumentException)
+            {
+                report.Duplicates.Add(filePath);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                // Log and continue with remaining files rather than aborting the batch
+                // Record and continue with the remaining files rather than aborting the batch
                 _logger.Warning(ex, "Failed to import file: {FilePath}", filePath);
+                report.Failed.Add(new DocumentImportFailure(filePath, ex.Message));
             }
 
             completed++;
             progress?.Report(completed);
         }
 
-        _logger.Information("Batch import completed: {Imported}/{Total} files imported", results.Count, filePaths.Count);
-        return results.AsReadOnly();
+        _logger.Information(
+            "Batch import completed: {Imported}/{Total} files imported ({ExtractionFailed} without readable text), {Duplicates} duplicates skipped, {Failed} failed",
+            report.Imported.Count, filePaths.Count, report.ExtractionFailedCount, report.Duplicates.Count, report.Failed.Count);
+        return report;
     }
 
     /// <inheritdoc />
