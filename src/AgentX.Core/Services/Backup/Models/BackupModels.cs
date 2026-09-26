@@ -128,19 +128,26 @@ public class BackupSizeEstimate
 
 /// <summary>
 /// Configuration controlling the automatic scheduled backup behaviour.
-/// Persisted as JSON inside <see cref="AgentX.Core.Services.Settings.AppSettings"/> or a dedicated key-value row.
+/// Persisted in settings.json as <see cref="AgentX.Core.Services.Settings.AppSettings.BackupSchedule"/>.
 /// </summary>
 public class BackupScheduleConfig
 {
+    /// <summary>Longest supported interval (30 days).</summary>
+    public const int MaxIntervalHours = 720;
+
     /// <summary>Whether scheduled backups are active.</summary>
     public bool Enabled { get; set; }
 
-    /// <summary>How many hours to wait between automatic backups. Default is 168 (weekly).</summary>
+    /// <summary>
+    /// How many hours to wait between automatic backups, 1 to <see cref="MaxIntervalHours"/>.
+    /// Default is 168 (weekly). The next backup is due one interval after the last scheduled
+    /// one, across restarts.
+    /// </summary>
     public int IntervalHours { get; set; } = 168;
 
     /// <summary>
-    /// Maximum number of automatic backup archives to retain.
-    /// Once this limit is reached the oldest archive is deleted before a new one is created.
+    /// Maximum number of automatic backup archives to retain (0 keeps all). After each scheduled
+    /// backup, the oldest scheduled archives beyond this limit are deleted.
     /// </summary>
     public int MaxBackupsToKeep { get; set; } = 5;
 

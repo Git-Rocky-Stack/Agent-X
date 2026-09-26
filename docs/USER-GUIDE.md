@@ -845,22 +845,56 @@ Hardware Advisor detects system capacity and recommends suitable models.
 
 ## 23. Backup and Restore
 
-Backup and Restore protects local Agent-X data.
+Backup and Restore protects local Agent-X data. A backup is a single `.agentxbak` file.
+
+### What a backup contains
+
+- The Agent-X database: extracted document text and chunks, embeddings, conversations, workflows, collections, annotations, and history.
+- With **Include indexed documents** on: the document files Agent-X keeps in its own storage folder, which are the pages saved by Web Import (`WebImports`). Files you imported from other folders are indexed where they live and are not copied into the backup; back those folders up separately.
+- Never included: settings and API keys, the database encryption marker (`encryption.info.json`), logs, downloaded models, plugins, and caches.
+
+If database encryption is on, the database inside the backup stays encrypted with this installation's key, so only this installation, on the same Windows account, can restore it.
 
 ### Backup options
 
 | Option | Purpose |
 | --- | --- |
-| Destination | Folder where backup packages are written |
-| Include documents | Includes vault source artifacts, not just the database |
-| Encryption | Adds password protection to the backup package |
+| Destination | Folder where the backup file is written |
+| Include indexed documents | Adds the web-imported document files described above |
+| Encryption | Encrypts the backup file with a password. The password is needed to restore and cannot be recovered |
 | Notes | Adds human-readable context to the backup history |
 
-Backups run only when you click **Create Backup**. There is no scheduled backup or retention setting in the app yet, and backups raise no notifications; the `BAK` lamp on the instrument strip shows how old your latest backup is.
+### Scheduled backups
+
+Scheduled backups are off by default, and the Backup and Restore page has no switch for them yet. To turn them on, close Agent-X and add a `backupSchedule` section to `%LocalAppData%\AgentX\settings.json`:
+
+```json
+"backupSchedule": {
+  "enabled": true,
+  "intervalHours": 168,
+  "maxBackupsToKeep": 5,
+  "destinationPath": "D:\\AgentX Backups",
+  "encryptionPassword": null
+}
+```
+
+- `intervalHours` (1 to 720): a backup is due one interval after the last scheduled backup. If one is overdue when Agent-X starts, it runs a few minutes after startup.
+- `maxBackupsToKeep`: after each scheduled backup, the oldest scheduled backups beyond this number are deleted (0 keeps all). Manual backups are never deleted this way.
+- `destinationPath`: defaults to `%LocalAppData%\AgentX` when empty; a folder on another drive is safer.
+- `encryptionPassword`: optional. Agent-X encrypts it with Windows DPAPI in `settings.json` the next time it starts.
+
+Backups raise no notifications; the `BAK` lamp on the instrument strip shows how old your latest backup is.
 
 ### Restore behavior
 
-Choose a backup package, provide the password if encrypted, and run restore. A restore replaces the current database with the one in the backup and writes its documents back; there is no merge or selective (cherry-pick) restore. Agent-X keeps a safety copy of the current database while it restores and puts it back if the restore fails, but a successful restore cannot be undone, so create a fresh backup first. Review the restore summary afterward. Restore operations should be treated as data-changing maintenance; close other Agent-X windows or background jobs first.
+Choose a backup file and select **Restore**. If the backup is encrypted, Agent-X asks for its password.
+
+Restore checks the backup before changing anything: the file is decrypted and validated, and its database is unpacked next to the current one and verified with this installation's database key. A backup made before you turned on database encryption is encrypted with the current key as it is restored. Only then is the current database replaced. If anything fails after that point, the previous database and document files are put back.
+
+Restore replaces the database and the web-imported document files with the backup's contents. It does not change settings, API keys, or the encryption marker. Restart Agent-X when the restore completes: open pages, search caches, and the vector index keep the previous data until then, and the restored database is upgraded to the current version at startup.
+
+- If Agent-X reports that the database is in use, wait for background work (indexing, sync, workflows) to finish or restart Agent-X, then restore again. Nothing is changed in that case.
+- A backup whose database is encrypted with another key (another installation or Windows account) is refused, and nothing is changed.
 
 ### Backup before high-risk changes
 
@@ -986,7 +1020,7 @@ Before enabling encryption:
 3. Store passphrases securely.
 4. Keep `encryption.info.json` with the encrypted database when backing up manually.
 
-Disabling encryption in-place is not supported in this release; restore a plaintext backup if you need to return to an unencrypted vault.
+Turning encryption off is not supported in this release. Restoring a backup keeps encryption on: a backup made before encryption was enabled is encrypted with the current key as it is restored. Because the key is tied to this installation and Windows account, a backup of an encrypted database cannot be restored on another machine.
 
 ---
 
@@ -1176,7 +1210,7 @@ By default: `%LocalAppData%\AgentX\`.
 
 **Can I move Agent-X to another machine?**
 
-Use Backup and Restore or Collaborative Sync. If the database is encrypted, move the required encryption metadata or passphrase too.
+Use Backup and Restore or Collaborative Sync. A backup of an encrypted database can only be restored by the installation and Windows account that created it, so Backup and Restore cannot move an encrypted vault to another machine.
 
 **Why should I use Collections if Search already works?**
 

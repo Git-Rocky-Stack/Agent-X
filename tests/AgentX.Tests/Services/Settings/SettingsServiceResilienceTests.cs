@@ -134,6 +134,25 @@ public sealed class SettingsServiceResilienceTests : IDisposable
     }
 
     [Fact]
+    public async Task BackupSchedule_round_trips_with_its_password_encrypted_on_disk()
+    {
+        var sut = CreateSut();
+        var settings = await sut.GetSettingsAsync();
+        settings.BackupSchedule.Enabled = true;
+        settings.BackupSchedule.IntervalHours = 24;
+        settings.BackupSchedule.EncryptionPassword = "backup-pw";
+
+        await sut.SaveSettingsAsync(settings);
+
+        var onDisk = JsonNode.Parse(File.ReadAllText(_settingsPath))!;
+        onDisk["backupSchedule"]!["encryptionPassword"]!.GetValue<string>().Should().StartWith("DPAPI:");
+        var reloaded = (await CreateSut().GetSettingsAsync()).BackupSchedule;
+        reloaded.Enabled.Should().BeTrue();
+        reloaded.IntervalHours.Should().Be(24);
+        reloaded.EncryptionPassword.Should().Be("backup-pw");
+    }
+
+    [Fact]
     public async Task SaveSettingsAsync_rejects_clearly_invalid_values_and_keeps_the_saved_settings()
     {
         var sut = CreateSut();

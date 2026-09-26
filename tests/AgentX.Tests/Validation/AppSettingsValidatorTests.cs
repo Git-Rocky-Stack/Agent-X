@@ -536,6 +536,51 @@ public sealed class AppSettingsValidatorTests
         result.Errors.Should().Contain(e => e.FieldName == nameof(AppSettings.ChunkSize));
     }
 
+    // Scheduled backups
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(721)]
+    public void Validate_EnabledBackupScheduleWithIntervalOutOfRange_Fails(int intervalHours)
+    {
+        var settings = CreateValidSettings();
+        settings.BackupSchedule = new AgentX.Core.Services.Backup.Models.BackupScheduleConfig
+        {
+            Enabled = true,
+            IntervalHours = intervalHours,
+        };
+
+        var result = _sut.Validate(settings);
+
+        result.Errors.Should().ContainSingle(e => e.FieldName == "BackupSchedule.IntervalHours");
+    }
+
+    [Fact]
+    public void Validate_EnabledBackupScheduleWithNegativeRetention_Fails()
+    {
+        var settings = CreateValidSettings();
+        settings.BackupSchedule = new AgentX.Core.Services.Backup.Models.BackupScheduleConfig
+        {
+            Enabled = true,
+            MaxBackupsToKeep = -1,
+        };
+
+        _sut.Validate(settings).Errors.Should().ContainSingle(e => e.FieldName == "BackupSchedule.MaxBackupsToKeep");
+    }
+
+    [Fact]
+    public void Validate_DisabledBackupScheduleIsNotChecked()
+    {
+        var settings = CreateValidSettings();
+        settings.BackupSchedule = new AgentX.Core.Services.Backup.Models.BackupScheduleConfig
+        {
+            Enabled = false,
+            IntervalHours = 0,
+        };
+
+        _sut.Validate(settings).IsValid.Should().BeTrue();
+    }
+
     // ══════════════════════════════════════════════════════════════════════
     //  Null instance
     // ══════════════════════════════════════════════════════════════════════

@@ -79,6 +79,12 @@ public sealed class BackupService : IBackupService
     /// </summary>
     private CancellationTokenSource? _scheduledCts;
 
+    /// <summary>
+    /// Shortest wait before a due scheduled backup starts after the loop starts, so it does not
+    /// compete with startup work. Internal so tests can shorten it.
+    /// </summary>
+    internal TimeSpan ScheduledStartupDelay { get; set; } = TimeSpan.FromMinutes(5);
+
     private static readonly JsonSerializerOptions ManifestJsonOptions = new()
     {
         WriteIndented = true,
@@ -736,64 +742,100 @@ public sealed class BackupService : IBackupService
     {
         var interval = TimeSpan.FromHours(config.IntervalHours);
 
-        using var timer = new PeriodicTimer(interval);
-
-        Log.Debug("Scheduled backup loop running. First backup in {Hours}h", config.IntervalHours);
-
         try
         {
-            while (await timer.WaitForNextTickAsync(ct).ConfigureAwait(false))
+            // The next backup is due one interval after the last scheduled one. A timer that
+            // started over with every launch never fired a weekly backup for anyone who restarts
+            // the app more often than weekly.
+            var delay = await GetDelayUntilNextScheduledBackupAsync(interval, ct).ConfigureAwait(false);
+            Log.Debug("Scheduled backup loop running. Next backup in {Delay}", delay);
+
+            while (true)
             {
-                ct.ThrowIfCancellationRequested();
-
-                Log.Information("Scheduled backup triggered");
-
-                try
-                {
-                    var destination = string.IsNullOrWhiteSpace(config.DestinationPath)
-                        ? GetDefaultStoragePath()
-                        : config.DestinationPath;
-
-                    var options = new BackupOptions
-                    {
-                        DestinationPath = destination,
-                        EncryptionPassword = config.EncryptionPassword,
-                        IncludeDocuments = true,
-                        BackupType = "scheduled",
-                        Notes = $"Automatic scheduled backup, {DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)} UTC",
-                    };
-
-                    var result = await CreateBackupAsync(options, progress: null, ct).ConfigureAwait(false);
-
-                    if (result.Success)
-                    {
-                        Log.Information(
-                            "Scheduled backup succeeded: {FilePath} ({SizeMB:F2} MB)",
-                            result.BackupFilePath, result.SizeMB);
-
-                        // Enforce retention limit: delete the oldest scheduled backups beyond the cap
-                        await EnforceRetentionPolicyAsync(config.MaxBackupsToKeep, ct).ConfigureAwait(false);
-                    }
-                    else
-                    {
-                        Log.Error("Scheduled backup failed: {ErrorMessage}", result.ErrorMessage);
-                    }
-                }
-                catch (OperationCanceledException)
-                {
-                    throw; // propagate to outer loop
-                }
-                catch (Exception ex)
-                {
-                    // Never let a single backup failure crash the loop
-                    Log.Error(ex, "Unhandled error during scheduled backup cycle; loop continues");
-                }
+                await Task.Delay(delay, ct).ConfigureAwait(false);
+                await RunScheduledBackupAsync(config, ct).ConfigureAwait(false);
+                delay = interval;
             }
         }
         catch (OperationCanceledException)
         {
             Log.Debug("Scheduled backup loop exiting due to cancellation");
         }
+    }
+
+    private async Task RunScheduledBackupAsync(BackupScheduleConfig config, CancellationToken ct)
+    {
+        Log.Information("Scheduled backup triggered");
+
+        try
+        {
+            var options = new BackupOptions
+            {
+                DestinationPath = config.DestinationPath,
+                EncryptionPassword = config.EncryptionPassword,
+                IncludeDocuments = true,
+                BackupType = "scheduled",
+                Notes = $"Automatic scheduled backup, {DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)} UTC",
+            };
+
+            var result = await CreateBackupAsync(options, progress: null, ct).ConfigureAwait(false);
+
+            if (result.Success)
+            {
+                Log.Information(
+                    "Scheduled backup succeeded: {FilePath} ({SizeMB:F2} MB)",
+                    result.BackupFilePath, result.SizeMB);
+
+                // Enforce retention limit: delete the oldest scheduled backups beyond the cap
+                await EnforceRetentionPolicyAsync(config.MaxBackupsToKeep, ct).ConfigureAwait(false);
+            }
+            else
+            {
+                Log.Error("Scheduled backup failed: {ErrorMessage}", result.ErrorMessage);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            throw; // propagate to the loop
+        }
+        catch (Exception ex)
+        {
+            // Never let a single backup failure crash the loop
+            Log.Error(ex, "Unhandled error during scheduled backup cycle; loop continues");
+        }
+    }
+
+    /// <summary>
+    /// Time until the next scheduled backup: one interval after the last scheduled backup,
+    /// never sooner than <see cref="ScheduledStartupDelay"/> (so a backup that is already due
+    /// does not compete with startup work) and never later than one interval.
+    /// </summary>
+    private async Task<TimeSpan> GetDelayUntilNextScheduledBackupAsync(TimeSpan interval, CancellationToken ct)
+    {
+        DateTime? last = null;
+        try
+        {
+            last = await _db.Backups
+                .AsNoTracking()
+                .Where(b => b.BackupType == "scheduled")
+                .OrderByDescending(b => b.CreatedAt)
+                .Select(b => (DateTime?)b.CreatedAt)
+                .FirstOrDefaultAsync(ct)
+                .ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            Log.Warning(ex, "Could not read the last scheduled backup time; treating a backup as due");
+        }
+
+        var now = DateTime.UtcNow;
+        var due = last is null ? now : DateTime.SpecifyKind(last.Value, DateTimeKind.Utc) + interval;
+        var delay = due - now;
+
+        if (delay < ScheduledStartupDelay)
+            return ScheduledStartupDelay;
+
+        return delay > interval ? interval : delay;
     }
 
     // ── Private: ZIP archive builder ───────────────────────────────────────
@@ -1344,31 +1386,37 @@ public sealed class BackupService : IBackupService
 
     // ── Private: schedule config helpers ──────────────────────────────────
 
+    /// <summary>
+    /// Reads <see cref="AppSettings.BackupSchedule"/> (settings.json). The schedule used to be
+    /// looked up under a "BackupScheduleConfig" key that no AppSettings property matched, so it
+    /// was always off. Out-of-range values from a hand-edited file are clamped: a zero interval
+    /// would otherwise throw inside the loop.
+    /// </summary>
     private async Task<BackupScheduleConfig> LoadScheduleConfigAsync()
     {
+        BackupScheduleConfig? stored = null;
         try
         {
-            var json = await _settingsService.GetValueAsync<string>("BackupScheduleConfig")
-                .ConfigureAwait(false);
-
-            if (!string.IsNullOrWhiteSpace(json))
-            {
-                var config = JsonSerializer.Deserialize<BackupScheduleConfig>(json, ManifestJsonOptions);
-                if (config is not null)
-                    return config;
-            }
+            var settings = await _settingsService.GetSettingsAsync().ConfigureAwait(false);
+            stored = settings.BackupSchedule;
         }
         catch (Exception ex)
         {
-            Log.Warning(ex, "Failed to load backup schedule config; using defaults");
+            Log.Warning(ex, "Failed to load the backup schedule; scheduled backups stay off");
         }
+
+        if (stored is null)
+            return new BackupScheduleConfig { Enabled = false };
 
         return new BackupScheduleConfig
         {
-            Enabled = false,
-            IntervalHours = 168,
-            MaxBackupsToKeep = 5,
-            DestinationPath = GetDefaultStoragePath(),
+            Enabled = stored.Enabled,
+            IntervalHours = Math.Clamp(stored.IntervalHours, 1, BackupScheduleConfig.MaxIntervalHours),
+            MaxBackupsToKeep = Math.Max(0, stored.MaxBackupsToKeep),
+            DestinationPath = string.IsNullOrWhiteSpace(stored.DestinationPath)
+                ? GetDefaultStoragePath()
+                : stored.DestinationPath,
+            EncryptionPassword = stored.EncryptionPassword,
         };
     }
 

@@ -1,3 +1,4 @@
+using AgentX.Core.Services.Backup.Models;
 using AgentX.Core.Services.Search;
 
 namespace AgentX.Core.Services.Settings;
@@ -82,6 +83,10 @@ public class AppSettings
 
     // Email Connector
     public EmailSettings EmailConnector { get; set; } = new();
+
+    // Scheduled backups (read by IBackupService.StartScheduledBackupsAsync). Off by default; the
+    // optional archive password is stored DPAPI-encrypted like the other secrets.
+    public BackupScheduleConfig BackupSchedule { get; set; } = new();
 
     // Storage
     public string StoragePath { get; set; } = Path.Combine(

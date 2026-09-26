@@ -761,10 +761,9 @@ public sealed class BackupServiceTests : IDisposable
     // ── Scheduled backups: config loading + lifecycle ────────────────────────
 
     [Fact]
-    public async Task StartScheduledBackupsAsync_NoConfig_DoesNotStartLoop()
+    public async Task StartScheduledBackupsAsync_DefaultSettings_DoesNotStartLoop()
     {
         var h = NewHarness();
-        h.Settings.Setup(s => s.GetValueAsync<string>("BackupScheduleConfig")).ReturnsAsync((string?)null);
 
         await h.Service.StartScheduledBackupsAsync();
 
@@ -774,21 +773,23 @@ public sealed class BackupServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task StartScheduledBackupsAsync_MalformedConfig_FallsBackToDisabled()
+    public async Task StartScheduledBackupsAsync_OutOfRangeValues_AreClampedInsteadOfThrowing()
     {
         var h = NewHarness();
-        h.Settings.Setup(s => s.GetValueAsync<string>("BackupScheduleConfig")).ReturnsAsync("{ not valid json");
+        // A hand-edited settings.json: a zero interval used to throw inside the timer.
+        h.CurrentSettings.BackupSchedule = new BackupScheduleConfig { Enabled = true, IntervalHours = 0, MaxBackupsToKeep = -3 };
 
         var act = () => h.Service.StartScheduledBackupsAsync();
 
         await act.Should().NotThrowAsync();
+        h.Service.StopScheduledBackups();
     }
 
     [Fact]
-    public async Task StartScheduledBackupsAsync_NullJsonLiteral_FallsBackToDisabled()
+    public async Task StartScheduledBackupsAsync_NullSchedule_FallsBackToDisabled()
     {
         var h = NewHarness();
-        h.Settings.Setup(s => s.GetValueAsync<string>("BackupScheduleConfig")).ReturnsAsync("null");
+        h.CurrentSettings.BackupSchedule = null!;
 
         var act = () => h.Service.StartScheduledBackupsAsync();
 
@@ -799,16 +800,15 @@ public sealed class BackupServiceTests : IDisposable
     public async Task StartScheduledBackupsAsync_EnabledConfig_StartsAndCanBeStopped()
     {
         var h = NewHarness();
-        // Long interval (weekly) — the loop arms its timer but never fires within the test.
-        var config = JsonSerializer.Serialize(new BackupScheduleConfig
+        // FF24: the schedule lives in AppSettings.BackupSchedule. It used to be read from a
+        // "BackupScheduleConfig" key that no AppSettings property matched, so it was always off.
+        h.CurrentSettings.BackupSchedule = new BackupScheduleConfig
         {
             Enabled = true,
             IntervalHours = 168,
             MaxBackupsToKeep = 3,
             DestinationPath = h.DestDir,
-        }, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
-
-        h.Settings.Setup(s => s.GetValueAsync<string>("BackupScheduleConfig")).ReturnsAsync(config);
+        };
 
         await h.Service.StartScheduledBackupsAsync();
         // A second start must cancel the first cleanly.
@@ -816,6 +816,56 @@ public sealed class BackupServiceTests : IDisposable
 
         var act = () => h.Service.StopScheduledBackups();
         act.Should().NotThrow();
+    }
+
+    [Fact]
+    public async Task ScheduledBackups_RunWhenTheLastScheduledBackupIsOverdue()
+    {
+        var h = NewHarness();
+        h.Seed(ctx => ctx.Backups.Add(new BackupEntity
+        {
+            FileName = "last-week",
+            BackupType = "scheduled",
+            CreatedAt = DateTime.UtcNow.AddDays(-8),
+        }));
+        h.CurrentSettings.BackupSchedule = new BackupScheduleConfig { Enabled = true, IntervalHours = 168, DestinationPath = h.DestDir };
+        h.Service.ScheduledStartupDelay = TimeSpan.FromMilliseconds(50);
+
+        await h.Service.StartScheduledBackupsAsync();
+        try
+        {
+            // A weekly timer that restarted with every launch never fired for anyone who restarts
+            // more often than weekly; an overdue backup now runs shortly after startup.
+            var deadline = DateTime.UtcNow.AddSeconds(20);
+            while (DateTime.UtcNow < deadline && !Directory.EnumerateFiles(h.DestDir, "*.agentxbak").Any())
+                await Task.Delay(50);
+
+            Directory.EnumerateFiles(h.DestDir, "*.agentxbak").Should().NotBeEmpty();
+        }
+        finally
+        {
+            h.Service.StopScheduledBackups();
+        }
+    }
+
+    [Fact]
+    public async Task ScheduledBackups_WaitWhenTheLastScheduledBackupIsRecent()
+    {
+        var h = NewHarness();
+        h.Seed(ctx => ctx.Backups.Add(new BackupEntity
+        {
+            FileName = "an-hour-ago",
+            BackupType = "scheduled",
+            CreatedAt = DateTime.UtcNow.AddHours(-1),
+        }));
+        h.CurrentSettings.BackupSchedule = new BackupScheduleConfig { Enabled = true, IntervalHours = 168, DestinationPath = h.DestDir };
+        h.Service.ScheduledStartupDelay = TimeSpan.FromMilliseconds(50);
+
+        await h.Service.StartScheduledBackupsAsync();
+        await Task.Delay(500);
+        h.Service.StopScheduledBackups();
+
+        Directory.EnumerateFiles(h.DestDir, "*.agentxbak").Should().BeEmpty();
     }
 
     [Fact]

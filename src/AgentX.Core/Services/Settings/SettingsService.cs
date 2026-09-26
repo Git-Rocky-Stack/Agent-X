@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using AgentX.Core.Services.Backup.Models;
 using AgentX.Core.Services.Security;
 using AgentX.Core.Validation;
 using Serilog;
@@ -37,6 +38,8 @@ public class SettingsService : ISettingsService
         // OAuth client secrets.
         new("OAuth.Google.ClientSecret", s => s.OAuth.Google.ClientSecret, (s, v) => s.OAuth.Google.ClientSecret = v ?? string.Empty),
         new("OAuth.Microsoft.ClientSecret", s => s.OAuth.Microsoft.ClientSecret, (s, v) => s.OAuth.Microsoft.ClientSecret = v ?? string.Empty),
+        // The archive password for scheduled backups.
+        new("BackupSchedule.EncryptionPassword", s => s.BackupSchedule.EncryptionPassword, (s, v) => s.BackupSchedule.EncryptionPassword = v),
     };
 
     private readonly string _settingsPath;
@@ -309,6 +312,7 @@ public class SettingsService : ISettingsService
         settings.OAuth.Microsoft ??= new MicrosoftOAuthSettings();
         settings.CalendarConnector ??= new CalendarSettings();
         settings.EmailConnector ??= new EmailSettings();
+        settings.BackupSchedule ??= new BackupScheduleConfig();
     }
 
     private async Task<string> ReadSettingsTextAsync()

@@ -1,4 +1,5 @@
 using AgentX.Core.Constants;
+using AgentX.Core.Services.Backup.Models;
 using AgentX.Core.Services.Settings;
 
 namespace AgentX.Core.Validation;
@@ -17,6 +18,8 @@ namespace AgentX.Core.Validation;
 ///   <item>Provider-specific endpoints must be valid URIs when their provider is active.</item>
 ///   <item>Provider-specific API keys must be non-empty when their provider is active.</item>
 ///   <item><see cref="AppSettings.StoragePath"/> must not be null or whitespace.</item>
+///   <item>An enabled <see cref="AppSettings.BackupSchedule"/> must have an interval of 1 to
+///         <see cref="BackupScheduleConfig.MaxIntervalHours"/> hours and a non-negative retention count.</item>
 /// </list>
 /// </remarks>
 public sealed class AppSettingsValidator : IValidator<AppSettings>
@@ -138,6 +141,25 @@ public sealed class AppSettingsValidator : IValidator<AppSettings>
             errors.Add(new ValidationError(
                 nameof(AppSettings.StoragePath),
                 "Storage path must not be null or whitespace."));
+        }
+
+        // Scheduled backups: checked only while enabled
+        var schedule = instance.BackupSchedule;
+        if (schedule is { Enabled: true })
+        {
+            if (schedule.IntervalHours < 1 || schedule.IntervalHours > BackupScheduleConfig.MaxIntervalHours)
+            {
+                errors.Add(new ValidationError(
+                    $"{nameof(AppSettings.BackupSchedule)}.{nameof(BackupScheduleConfig.IntervalHours)}",
+                    $"Backup interval must be between 1 and {BackupScheduleConfig.MaxIntervalHours} hours. Got {schedule.IntervalHours}."));
+            }
+
+            if (schedule.MaxBackupsToKeep < 0)
+            {
+                errors.Add(new ValidationError(
+                    $"{nameof(AppSettings.BackupSchedule)}.{nameof(BackupScheduleConfig.MaxBackupsToKeep)}",
+                    $"The number of scheduled backups to keep must not be negative. Got {schedule.MaxBackupsToKeep}."));
+            }
         }
 
         return errors.Count == 0
