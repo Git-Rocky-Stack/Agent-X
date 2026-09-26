@@ -236,6 +236,9 @@ public sealed class MigrationRunner : IMigrationRunner
         """CREATE INDEX IF NOT EXISTS "IX_memories_CreatedAt" ON "memories" ("CreatedAt");"""
     ];
 
+    // The schema probes below run raw commands on the context's connection. EF cannot see
+    // them, so each one holds the context's database gate (AgentXDbContext.EnterDatabaseGate)
+    // while it runs, and EF work from other flows, such as status polling, waits for it.
     private readonly AgentXDbContext _context;
     private readonly SemaphoreSlim _runLock = new(1, 1);
 
@@ -441,13 +444,14 @@ public sealed class MigrationRunner : IMigrationRunner
         string alterSql,
         CancellationToken cancellationToken)
     {
+        using var gate = _context.EnterDatabaseGate();
         using var cmd = _context.Database.GetDbConnection().CreateCommand();
-        await _context.Database.OpenConnectionAsync(cancellationToken);
+        await _context.Database.OpenConnectionAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             cmd.CommandText = $"PRAGMA table_info(\"{tableName.Replace("\"", "\"\"")}\");";
-            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
-            while (await reader.ReadAsync(cancellationToken))
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
                 if (string.Equals(reader.GetString(1), columnName, System.StringComparison.OrdinalIgnoreCase))
                 {
@@ -457,7 +461,7 @@ public sealed class MigrationRunner : IMigrationRunner
         }
         finally
         {
-            await _context.Database.CloseConnectionAsync();
+            await _context.Database.CloseConnectionAsync().ConfigureAwait(false);
         }
 
         await _context.Database.ExecuteSqlRawAsync(alterSql, cancellationToken);
@@ -465,17 +469,18 @@ public sealed class MigrationRunner : IMigrationRunner
 
     private async Task<bool> HasMigrationsHistoryTableAsync(CancellationToken cancellationToken)
     {
+        using var gate = _context.EnterDatabaseGate();
         using var cmd = _context.Database.GetDbConnection().CreateCommand();
-        await _context.Database.OpenConnectionAsync(cancellationToken);
+        await _context.Database.OpenConnectionAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             cmd.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name='__EFMigrationsHistory';";
-            var result = await cmd.ExecuteScalarAsync(cancellationToken);
+            var result = await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
             return result is not null;
         }
         finally
         {
-            await _context.Database.CloseConnectionAsync();
+            await _context.Database.CloseConnectionAsync().ConfigureAwait(false);
         }
     }
 
@@ -487,19 +492,20 @@ public sealed class MigrationRunner : IMigrationRunner
     /// </summary>
     private async Task<bool> HasApplicationTablesAsync(CancellationToken cancellationToken)
     {
+        using var gate = _context.EnterDatabaseGate();
         using var cmd = _context.Database.GetDbConnection().CreateCommand();
-        await _context.Database.OpenConnectionAsync(cancellationToken);
+        await _context.Database.OpenConnectionAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             cmd.CommandText =
                 "SELECT COUNT(*) FROM sqlite_master WHERE type='table' " +
                 "AND name NOT LIKE 'sqlite_%' AND name <> '__EFMigrationsHistory';";
-            var result = await cmd.ExecuteScalarAsync(cancellationToken);
+            var result = await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
             return System.Convert.ToInt64(result) > 0;
         }
         finally
         {
-            await _context.Database.CloseConnectionAsync();
+            await _context.Database.CloseConnectionAsync().ConfigureAwait(false);
         }
     }
 
@@ -835,20 +841,21 @@ public sealed class MigrationRunner : IMigrationRunner
     private async Task<IReadOnlyList<string>> GetMissingBaselineTablesAsync(CancellationToken cancellationToken)
     {
         var existing = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        using var gate = _context.EnterDatabaseGate();
         using var cmd = _context.Database.GetDbConnection().CreateCommand();
-        await _context.Database.OpenConnectionAsync(cancellationToken);
+        await _context.Database.OpenConnectionAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             cmd.CommandText = "SELECT name FROM sqlite_master WHERE type='table';";
-            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
-            while (await reader.ReadAsync(cancellationToken))
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
                 existing.Add(reader.GetString(0));
             }
         }
         finally
         {
-            await _context.Database.CloseConnectionAsync();
+            await _context.Database.CloseConnectionAsync().ConfigureAwait(false);
         }
 
         return BaselineTables.Where(table => !existing.Contains(table)).ToList();
@@ -882,8 +889,9 @@ public sealed class MigrationRunner : IMigrationRunner
 
     private async Task<bool> IndexExistsAsync(string indexName, CancellationToken cancellationToken)
     {
+        using var gate = _context.EnterDatabaseGate();
         using var cmd = _context.Database.GetDbConnection().CreateCommand();
-        await _context.Database.OpenConnectionAsync(cancellationToken);
+        await _context.Database.OpenConnectionAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             cmd.CommandText = "SELECT name FROM sqlite_master WHERE type='index' AND name=$indexName;";
@@ -891,11 +899,11 @@ public sealed class MigrationRunner : IMigrationRunner
             parameter.ParameterName = "$indexName";
             parameter.Value = indexName;
             cmd.Parameters.Add(parameter);
-            return await cmd.ExecuteScalarAsync(cancellationToken) is not null;
+            return await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false) is not null;
         }
         finally
         {
-            await _context.Database.CloseConnectionAsync();
+            await _context.Database.CloseConnectionAsync().ConfigureAwait(false);
         }
     }
 
@@ -975,8 +983,9 @@ public sealed class MigrationRunner : IMigrationRunner
 
     private async Task<bool> MigrationStampedAsync(string migrationId, CancellationToken cancellationToken)
     {
+        using var gate = _context.EnterDatabaseGate();
         using var cmd = _context.Database.GetDbConnection().CreateCommand();
-        await _context.Database.OpenConnectionAsync(cancellationToken);
+        await _context.Database.OpenConnectionAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             cmd.CommandText = "SELECT 1 FROM \"__EFMigrationsHistory\" WHERE \"MigrationId\" = $migrationId;";
@@ -984,11 +993,11 @@ public sealed class MigrationRunner : IMigrationRunner
             parameter.ParameterName = "$migrationId";
             parameter.Value = migrationId;
             cmd.Parameters.Add(parameter);
-            return await cmd.ExecuteScalarAsync(cancellationToken) is not null;
+            return await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false) is not null;
         }
         finally
         {
-            await _context.Database.CloseConnectionAsync();
+            await _context.Database.CloseConnectionAsync().ConfigureAwait(false);
         }
     }
 
@@ -1006,8 +1015,9 @@ public sealed class MigrationRunner : IMigrationRunner
 
     private async Task<bool> TableExistsAsync(string tableName, CancellationToken cancellationToken)
     {
+        using var gate = _context.EnterDatabaseGate();
         using var cmd = _context.Database.GetDbConnection().CreateCommand();
-        await _context.Database.OpenConnectionAsync(cancellationToken);
+        await _context.Database.OpenConnectionAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             cmd.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name=$tableName;";
@@ -1015,11 +1025,11 @@ public sealed class MigrationRunner : IMigrationRunner
             parameter.ParameterName = "$tableName";
             parameter.Value = tableName;
             cmd.Parameters.Add(parameter);
-            return await cmd.ExecuteScalarAsync(cancellationToken) is not null;
+            return await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false) is not null;
         }
         finally
         {
-            await _context.Database.CloseConnectionAsync();
+            await _context.Database.CloseConnectionAsync().ConfigureAwait(false);
         }
     }
 
@@ -1029,20 +1039,21 @@ public sealed class MigrationRunner : IMigrationRunner
         CancellationToken cancellationToken)
     {
         var existingColumns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        using var gate = _context.EnterDatabaseGate();
         using var cmd = _context.Database.GetDbConnection().CreateCommand();
-        await _context.Database.OpenConnectionAsync(cancellationToken);
+        await _context.Database.OpenConnectionAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             cmd.CommandText = $"PRAGMA table_info(\"{tableName.Replace("\"", "\"\"")}\");";
-            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
-            while (await reader.ReadAsync(cancellationToken))
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
                 existingColumns.Add(reader.GetString(1));
             }
         }
         finally
         {
-            await _context.Database.CloseConnectionAsync();
+            await _context.Database.CloseConnectionAsync().ConfigureAwait(false);
         }
 
         return columnNames.All(existingColumns.Contains);

@@ -5,6 +5,7 @@ using AgentX.Core.Data.Entities;
 using AgentX.Core.Search.Models;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Serilog;
 
 namespace AgentX.Core.Search;
@@ -37,8 +38,9 @@ public sealed class KeywordSearchService : IKeywordSearchService
     {
         _logger.Information("Initializing FTS5 full-text search table");
 
+        using var gate = EnterRawSqlSection();
         var connection = _db.Database.GetDbConnection();
-        await EnsureConnectionOpenAsync(connection, ct);
+        await EnsureConnectionOpenAsync(connection, ct).ConfigureAwait(false);
 
         using var cmd = connection.CreateCommand();
         cmd.CommandText = @"
@@ -54,7 +56,7 @@ public sealed class KeywordSearchService : IKeywordSearchService
                 tokenize='porter unicode61'
             );";
 
-        await cmd.ExecuteNonQueryAsync(ct);
+        await cmd.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
 
         _logger.Information("FTS5 table fts_chunks initialized successfully");
     }
@@ -76,11 +78,12 @@ public sealed class KeywordSearchService : IKeywordSearchService
             return;
         }
 
+        using var gate = EnterRawSqlSection();
         var connection = _db.Database.GetDbConnection();
-        await EnsureConnectionOpenAsync(connection, ct);
+        await EnsureConnectionOpenAsync(connection, ct).ConfigureAwait(false);
 
         // Use a transaction for batch insert consistency
-        using var transaction = await connection.BeginTransactionAsync(ct) as SqliteTransaction;
+        using var transaction = await connection.BeginTransactionAsync(ct).ConfigureAwait(false) as SqliteTransaction;
 
         try
         {
@@ -94,7 +97,7 @@ public sealed class KeywordSearchService : IKeywordSearchService
                 deleteCmd.Transaction = transaction;
                 deleteCmd.CommandText = "DELETE FROM fts_chunks WHERE document_id = @documentId;";
                 deleteCmd.Parameters.Add(CreateParameter(deleteCmd, "@documentId", documentId.ToString()));
-                await deleteCmd.ExecuteNonQueryAsync(ct);
+                await deleteCmd.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
             }
 
             foreach (var chunk in document.Chunks.OrderBy(c => c.ChunkIndex))
@@ -116,12 +119,12 @@ public sealed class KeywordSearchService : IKeywordSearchService
                 cmd.Parameters.Add(CreateParameter(cmd, "@pageNumber", chunk.PageNumber?.ToString() ?? string.Empty));
                 cmd.Parameters.Add(CreateParameter(cmd, "@chunkIndex", chunk.ChunkIndex.ToString()));
 
-                await cmd.ExecuteNonQueryAsync(ct);
+                await cmd.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
             }
 
             if (transaction is not null)
             {
-                await transaction.CommitAsync(ct);
+                await transaction.CommitAsync(ct).ConfigureAwait(false);
             }
 
             _logger.Debug("Indexed {ChunkCount} chunks into FTS5 for document {DocumentId} ({FileName})",
@@ -133,7 +136,7 @@ public sealed class KeywordSearchService : IKeywordSearchService
 
             if (transaction is not null)
             {
-                await transaction.RollbackAsync(CancellationToken.None);
+                await transaction.RollbackAsync(CancellationToken.None).ConfigureAwait(false);
             }
 
             throw;
@@ -145,14 +148,15 @@ public sealed class KeywordSearchService : IKeywordSearchService
     {
         _logger.Debug("Removing document {DocumentId} from FTS5 index", documentId);
 
+        using var gate = EnterRawSqlSection();
         var connection = _db.Database.GetDbConnection();
-        await EnsureConnectionOpenAsync(connection, ct);
+        await EnsureConnectionOpenAsync(connection, ct).ConfigureAwait(false);
 
         using var cmd = connection.CreateCommand();
         cmd.CommandText = "DELETE FROM fts_chunks WHERE document_id = @documentId;";
         cmd.Parameters.Add(CreateParameter(cmd, "@documentId", documentId.ToString()));
 
-        var deleted = await cmd.ExecuteNonQueryAsync(ct);
+        var deleted = await cmd.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
         _logger.Debug("Removed {Count} FTS5 entries for document {DocumentId}", deleted, documentId);
     }
 
@@ -173,8 +177,9 @@ public sealed class KeywordSearchService : IKeywordSearchService
 
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
+        using var gate = EnterRawSqlSection();
         var connection = _db.Database.GetDbConnection();
-        await EnsureConnectionOpenAsync(connection, ct);
+        await EnsureConnectionOpenAsync(connection, ct).ConfigureAwait(false);
 
         // Sanitize the query text for FTS5 MATCH syntax.
         // Convert natural language to a valid FTS5 query by quoting individual terms.
@@ -242,8 +247,8 @@ public sealed class KeywordSearchService : IKeywordSearchService
 
         try
         {
-            using var reader = await cmd.ExecuteReaderAsync(ct);
-            while (await reader.ReadAsync(ct))
+            using var reader = await cmd.ExecuteReaderAsync(ct).ConfigureAwait(false);
+            while (await reader.ReadAsync(ct).ConfigureAwait(false))
             {
                 rawResults.Add(new FtsRawResult
                 {
@@ -296,7 +301,8 @@ public sealed class KeywordSearchService : IKeywordSearchService
             .AsNoTracking()
             .Include(dc => dc.Collection)
             .Where(dc => allDocIds.Contains(dc.DocumentId))
-            .ToListAsync(ct);
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
 
         var collectionsByDocId = docCollections
             .GroupBy(dc => dc.DocumentId)
@@ -360,14 +366,16 @@ public sealed class KeywordSearchService : IKeywordSearchService
     {
         _logger.Information("Starting FTS5 index rebuild");
 
+        // Held for the whole rebuild, so no document is indexed between the clear and the re-insert.
+        using var gate = EnterRawSqlSection();
         var connection = _db.Database.GetDbConnection();
-        await EnsureConnectionOpenAsync(connection, ct);
+        await EnsureConnectionOpenAsync(connection, ct).ConfigureAwait(false);
 
         // Clear existing FTS data
         using (var clearCmd = connection.CreateCommand())
         {
             clearCmd.CommandText = "DELETE FROM fts_chunks;";
-            await clearCmd.ExecuteNonQueryAsync(ct);
+            await clearCmd.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
         }
 
         _logger.Debug("Cleared existing FTS5 index data");
@@ -377,7 +385,8 @@ public sealed class KeywordSearchService : IKeywordSearchService
             .AsNoTracking()
             .Where(d => d.IndexingStatus == "completed" && d.ChunkCount > 0)
             .Select(d => d.Id)
-            .ToListAsync(ct);
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
 
         var total = documentIds.Count;
         var processed = 0;
@@ -390,7 +399,7 @@ public sealed class KeywordSearchService : IKeywordSearchService
 
             try
             {
-                await IndexDocumentChunksAsync(docId, ct);
+                await IndexDocumentChunksAsync(docId, ct).ConfigureAwait(false);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
@@ -409,13 +418,24 @@ public sealed class KeywordSearchService : IKeywordSearchService
     // ═══════════════════════════════════════════════════════════════════
 
     /// <summary>
+    /// Holds the shared context's database gate for a raw ADO.NET section. Commands created
+    /// from <c>Database.GetDbConnection()</c> are invisible to EF, so without the gate an EF
+    /// operation from another flow could use the same connection at the same time, or issue a
+    /// command while this service's transaction is open, which SQLite rejects because that
+    /// command is not enlisted in the transaction. With it, EF work from other flows waits.
+    /// Awaits inside the section use ConfigureAwait(false), so releasing the gate never needs
+    /// the UI thread, which may itself be waiting for the gate.
+    /// </summary>
+    private ConcurrencyDetectorCriticalSectionDisposer EnterRawSqlSection() => _db.EnterDatabaseGate();
+
+    /// <summary>
     /// Ensures the database connection is open. Required for raw ADO.NET operations.
     /// </summary>
     private static async Task EnsureConnectionOpenAsync(DbConnection connection, CancellationToken ct)
     {
         if (connection.State != ConnectionState.Open)
         {
-            await connection.OpenAsync(ct);
+            await connection.OpenAsync(ct).ConfigureAwait(false);
         }
     }
 
