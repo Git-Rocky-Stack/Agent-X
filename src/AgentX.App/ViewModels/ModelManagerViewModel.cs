@@ -55,23 +55,40 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
             Log.Error(ex, "ModelManager initialization failed");
             ConnectionStatus = "Connection failed";
             IsConnected = false;
-            SetError("Failed to connect to Ollama. Ensure Ollama is running.");
+            SetError($"Failed to connect to {ActiveProviderName()}. Check the AI provider in Settings.");
+        }
+    }
+
+    /// <summary>
+    /// Display name of the active provider (the built-in model, Ollama, OpenAI or Anthropic), so
+    /// status and error text never name a provider that is not in use.
+    /// </summary>
+    private string ActiveProviderName()
+    {
+        try
+        {
+            return _aiService.ActiveProvider.DisplayName;
+        }
+        catch (InvalidOperationException)
+        {
+            return "AI provider"; // not initialized yet
         }
     }
 
     // ── Connection Check ───────────────────────────────────────
     private async Task CheckConnectionAsync()
     {
+        var providerName = ActiveProviderName();
         try
         {
             var connected = await _aiService.ActiveProvider.CheckConnectionAsync();
             IsConnected = connected;
-            ConnectionStatus = connected ? "Connected to Ollama" : "Ollama not detected";
+            ConnectionStatus = connected ? $"Connected to {providerName}" : $"{providerName} not available";
         }
         catch
         {
             IsConnected = false;
-            ConnectionStatus = "Ollama not detected";
+            ConnectionStatus = $"{providerName} not available";
         }
     }
 
@@ -113,7 +130,7 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to load models");
-            SetError("Failed to load model list. Check Ollama connection.");
+            SetError($"Failed to load the model list. Check the {ActiveProviderName()} connection.");
         }
         finally
         {
@@ -169,7 +186,7 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
         {
             Log.Error(ex, "Failed to pull model: {ModelName}", modelName);
             DownloadStatus = $"Download failed: {ex.Message}";
-            SetError($"Failed to download {modelName}. Ensure Ollama is running and the model name is correct.");
+            SetError($"Failed to download {modelName}. Ensure {ActiveProviderName()} is available and the model name is correct.");
         }
         finally
         {
