@@ -14,7 +14,7 @@ namespace AgentX.Tests.Services.Backup;
 /// </summary>
 public sealed class BackupServiceSecurityTests
 {
-    // ── Path traversal in document entries ───────────────────────────────────
+    // --- Path traversal in document entries ---
 
     [Fact]
     public void TryValidateDocumentEntries_AcceptsSafeNestedDocuments()
@@ -45,7 +45,7 @@ public sealed class BackupServiceSecurityTests
         reason.Should().NotBeNullOrEmpty();
     }
 
-    // ── AES-256-GCM authenticated encryption (V3, streamed) ─────────────────
+    // --- AES-256-GCM authenticated encryption (V3, streamed) ---
 
     [Fact]
     public void EncryptBytes_ProducesV3FormatRecordingTheIterationCount()
@@ -171,7 +171,7 @@ public sealed class BackupServiceSecurityTests
         BackupService.DecryptBytes(legacy, password).Should().Equal(plaintext);
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
+    // --- Helpers ---
 
     private static ZipArchive BuildReadArchive(params (string name, byte[] data)[] entries)
     {

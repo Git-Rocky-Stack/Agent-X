@@ -46,7 +46,7 @@ public sealed class BackupRestoreRoundTripTests : IDisposable
     private static DatabaseKeyMaterial NewKey()
         => DatabaseKeyMaterial.FromBytes(RandomNumberGenerator.GetBytes(32), KeyStorageMode.DpapiWrapped);
 
-    // ── Restore: the swap ────────────────────────────────────────────────────
+    // --- Restore: the swap ---
 
     [Fact]
     public async Task Restore_replaces_the_live_database_and_the_app_connection_keeps_working()
@@ -172,7 +172,7 @@ public sealed class BackupRestoreRoundTripTests : IDisposable
         h.LeftoverRestoreFiles().Should().BeEmpty();
     }
 
-    // ── Restore: document files ──────────────────────────────────────────────
+    // --- Restore: document files ---
 
     [Fact]
     public async Task Restore_brings_back_documents_and_skips_settings_keys_and_logs_from_older_archives()
@@ -230,7 +230,7 @@ public sealed class BackupRestoreRoundTripTests : IDisposable
         h.LeftoverRestoreFiles().Should().BeEmpty();
     }
 
-    // ── Create ──────────────────────────────────────────────────────────────
+    // --- Create ---
 
     [Fact]
     public async Task CreateBackup_releases_its_pooled_connections_and_removes_the_database_copy()
@@ -281,7 +281,7 @@ public sealed class BackupRestoreRoundTripTests : IDisposable
         File.Exists(second).Should().BeTrue();
     }
 
-    // ── Helpers ─────────────────────────────────────────────────────────────
+    // --- Helpers ---
 
     private static bool HasPlaintextHeader(string path)
     {

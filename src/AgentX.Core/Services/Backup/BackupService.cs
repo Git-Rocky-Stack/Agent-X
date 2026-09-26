@@ -42,7 +42,7 @@ namespace AgentX.Core.Services.Backup;
 /// </summary>
 public sealed class BackupService : IBackupService
 {
-    // ── Constants ──────────────────────────────────────────────────────────
+    // --- Constants ---
 
     // Single source (assembly version) so backup manifests record the real build (AX-QA-014).
     private static readonly string AppVersion = AppVersionInfo.Display;
@@ -66,7 +66,7 @@ public sealed class BackupService : IBackupService
     // SQLite result code for "file is not a database": the file is encrypted with another key.
     private const int SqliteNotADatabase = 26;
 
-    // ── Fields ─────────────────────────────────────────────────────────────
+    // --- Fields ---
 
     private readonly AgentXDbContext _db;
     private readonly ISettingsService _settingsService;
@@ -91,7 +91,7 @@ public sealed class BackupService : IBackupService
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
 
-    // ── Constructor ────────────────────────────────────────────────────────
+    // --- Constructor ---
 
     /// <summary>
     /// Creates a <see cref="BackupService"/>. The <paramref name="connectionFactory"/> is a
@@ -120,7 +120,7 @@ public sealed class BackupService : IBackupService
         Log.Information("BackupService initialized");
     }
 
-    // ── IBackupService: CreateBackupAsync ──────────────────────────────────
+    // --- IBackupService: CreateBackupAsync ---
 
     /// <inheritdoc />
     public async Task<BackupResult> CreateBackupAsync(
@@ -152,7 +152,7 @@ public sealed class BackupService : IBackupService
                 $"agentx-backup-{timestamp.ToString("yyyy-MM-dd-HHmmss", CultureInfo.InvariantCulture)}{BackupExtension}"));
             var fileName = Path.GetFileName(archivePath);
 
-            // ── Phase 1: gather counts for the manifest ────────────────────
+            // --- Phase 1: gather counts for the manifest ---
             Report(progress, "Gathering statistics", 5);
             ct.ThrowIfCancellationRequested();
 
@@ -160,14 +160,14 @@ public sealed class BackupService : IBackupService
             var convCount = await _db.Conversations.CountAsync(ct).ConfigureAwait(false);
             var workflowCount = await _db.Workflows.CountAsync(ct).ConfigureAwait(false);
 
-            // ── Phase 2: copy database via SQLite Online Backup API ─────────
+            // --- Phase 2: copy database via SQLite Online Backup API ---
             Report(progress, "Copying database", 15);
             ct.ThrowIfCancellationRequested();
 
             dbTempPath = Path.Combine(Path.GetTempPath(), $"agentx-dbcopy-{Guid.NewGuid():N}.tmp");
             await CreateSqliteBackupCopyAsync(dbTempPath, ct).ConfigureAwait(false);
 
-            // ── Phase 3: stream the ZIP to a partial file ──────────────────
+            // --- Phase 3: stream the ZIP to a partial file ---
             Report(progress, "Writing archive", 35);
             ct.ThrowIfCancellationRequested();
 
@@ -197,12 +197,12 @@ public sealed class BackupService : IBackupService
                 await file.FlushAsync(ct).ConfigureAwait(false);
             }
 
-            // ── Phase 4: publish the finished archive ──────────────────────
+            // --- Phase 4: publish the finished archive ---
             Report(progress, "Finalising archive", 90);
             File.Move(partialPath, archivePath);
             partialPath = null;
 
-            // ── Phase 5: record in database ────────────────────────────────
+            // --- Phase 5: record in database ---
             Report(progress, "Saving history record", 95);
 
             var fileInfo = new FileInfo(archivePath);
@@ -269,7 +269,7 @@ public sealed class BackupService : IBackupService
         }
     }
 
-    // ── IBackupService: RestoreFromBackupAsync ─────────────────────────────
+    // --- IBackupService: RestoreFromBackupAsync ---
 
     /// <inheritdoc />
     public Task<RestoreResult> RestoreFromBackupAsync(
@@ -299,7 +299,7 @@ public sealed class BackupService : IBackupService
             if (!File.Exists(backupFilePath))
                 throw new FileNotFoundException("Backup file not found.", backupFilePath);
 
-            // ── Phase 1: decrypt when needed, then validate the archive ─────
+            // --- Phase 1: decrypt when needed, then validate the archive ---
             Report(progress, "Validating archive", 5);
             ct.ThrowIfCancellationRequested();
 
@@ -324,7 +324,7 @@ public sealed class BackupService : IBackupService
             paths = new RestorePaths(ResolveLiveDatabaseFile(), settings.StoragePath);
             paths.PrepareWorkspace();
 
-            // ── Phase 2: stage the database and verify it with the current key ──
+            // --- Phase 2: stage the database and verify it with the current key ---
             Report(progress, "Extracting database", 25);
             ct.ThrowIfCancellationRequested();
 
@@ -334,14 +334,14 @@ public sealed class BackupService : IBackupService
             Report(progress, "Verifying database", 40);
             var restoredDatabase = await Task.Run(() => PrepareStagedDatabase(paths), ct).ConfigureAwait(false);
 
-            // ── Phase 3: stage document files ─────────────────────────────
+            // --- Phase 3: stage document files ---
             Report(progress, "Staging document files", 55);
             var stagedDocuments = await StageDocumentsAsync(archive, paths, warnings, ct).ConfigureAwait(false);
 
             // Last point where cancelling leaves nothing to undo.
             ct.ThrowIfCancellationRequested();
 
-            // ── Phase 4: swap the database in, verify it, install documents ──
+            // --- Phase 4: swap the database in, verify it, install documents ---
             Report(progress, "Replacing database", 70);
             SwapInDatabase(restoredDatabase, paths);
 
@@ -428,7 +428,7 @@ public sealed class BackupService : IBackupService
         }
     }
 
-    // ── IBackupService: GetBackupHistoryAsync ──────────────────────────────
+    // --- IBackupService: GetBackupHistoryAsync ---
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<BackupEntity>> GetBackupHistoryAsync()
@@ -445,7 +445,7 @@ public sealed class BackupService : IBackupService
         return history;
     }
 
-    // ── IBackupService: DeleteBackupAsync ──────────────────────────────────
+    // --- IBackupService: DeleteBackupAsync ---
 
     /// <inheritdoc />
     public async Task DeleteBackupAsync(long backupId)
@@ -482,7 +482,7 @@ public sealed class BackupService : IBackupService
         Log.Information("Backup record {BackupId} deleted", backupId);
     }
 
-    // ── IBackupService: EstimateBackupSizeAsync ────────────────────────────
+    // --- IBackupService: EstimateBackupSizeAsync ---
 
     /// <inheritdoc />
     public async Task<BackupSizeEstimate> EstimateBackupSizeAsync()
@@ -526,7 +526,7 @@ public sealed class BackupService : IBackupService
         return estimate;
     }
 
-    // ── IBackupService: ValidateBackupAsync ───────────────────────────────
+    // --- IBackupService: ValidateBackupAsync ---
 
     /// <inheritdoc />
     public Task<bool> ValidateBackupAsync(string backupFilePath)
@@ -694,7 +694,7 @@ public sealed class BackupService : IBackupService
         return written;
     }
 
-    // ── IBackupService: StartScheduledBackupsAsync ─────────────────────────
+    // --- IBackupService: StartScheduledBackupsAsync ---
 
     /// <inheritdoc />
     public async Task StartScheduledBackupsAsync(CancellationToken ct = default)
@@ -721,7 +721,7 @@ public sealed class BackupService : IBackupService
             config.IntervalHours, config.MaxBackupsToKeep);
     }
 
-    // ── IBackupService: StopScheduledBackups ──────────────────────────────
+    // --- IBackupService: StopScheduledBackups ---
 
     /// <inheritdoc />
     public void StopScheduledBackups()
@@ -736,7 +736,7 @@ public sealed class BackupService : IBackupService
         Log.Information("Scheduled backup loop stopped");
     }
 
-    // ── Private: Scheduled loop ────────────────────────────────────────────
+    // --- Private: Scheduled loop ---
 
     private async Task RunScheduledLoopAsync(BackupScheduleConfig config, CancellationToken ct)
     {
@@ -838,7 +838,7 @@ public sealed class BackupService : IBackupService
         return delay > interval ? interval : delay;
     }
 
-    // ── Private: ZIP archive builder ───────────────────────────────────────
+    // --- Private: ZIP archive builder ---
 
     private static async Task BuildZipArchiveAsync(
         Stream outputStream,
@@ -855,7 +855,7 @@ public sealed class BackupService : IBackupService
     {
         using var archive = new ZipArchive(outputStream, ZipArchiveMode.Create, leaveOpen: true);
 
-        // ── 1. Database file ───────────────────────────────────────────────
+        // --- 1. Database file ---
         Report(progress, "Adding database to archive", 40);
         ct.ThrowIfCancellationRequested();
 
@@ -866,7 +866,7 @@ public sealed class BackupService : IBackupService
             await dbStream.CopyToAsync(entryStream, ct).ConfigureAwait(false);
         }
 
-        // ── 2. Manifest ────────────────────────────────────────────────────
+        // --- 2. Manifest ---
         Report(progress, "Writing manifest", 55);
         ct.ThrowIfCancellationRequested();
 
@@ -892,7 +892,7 @@ public sealed class BackupService : IBackupService
             await entryStream.WriteAsync(manifestBytes, ct).ConfigureAwait(false);
         }
 
-        // ── 3. Document files ──────────────────────────────────────────────
+        // --- 3. Document files ---
         if (!options.IncludeDocuments)
             return;
 
@@ -972,7 +972,7 @@ public sealed class BackupService : IBackupService
         return DocumentFolders.Any(f => string.Equals(f, firstSegment, StringComparison.OrdinalIgnoreCase));
     }
 
-    // ── Private: SQLite Online Backup ──────────────────────────────────────
+    // --- Private: SQLite Online Backup ---
 
     /// <summary>
     /// Uses the SQLite Online Backup API (<c>SqliteConnection.BackupDatabase</c>) to obtain
@@ -1013,7 +1013,7 @@ public sealed class BackupService : IBackupService
         Log.Debug("SQLite backup copy created ({Bytes} bytes)", new FileInfo(tempPath).Length);
     }
 
-    // ── Private: restore steps ─────────────────────────────────────────────
+    // --- Private: restore steps ---
 
     private static ZipArchive OpenArchiveForRestore(string zipPath)
     {
@@ -1337,7 +1337,7 @@ public sealed class BackupService : IBackupService
         return allRestored;
     }
 
-    // ── Private: AES-256 encryption/decryption ─────────────────────────────
+    // --- Private: AES-256 encryption/decryption ---
 
     /// <summary>
     /// Encrypts backup bytes in the current archive format (V3, see
@@ -1356,7 +1356,7 @@ public sealed class BackupService : IBackupService
     public static byte[] DecryptBytes(byte[] cipherData, string password)
         => BackupArchiveCrypto.Decrypt(cipherData, password);
 
-    // ── Private: scheduled backup retention ───────────────────────────────
+    // --- Private: scheduled backup retention ---
 
     private async Task EnforceRetentionPolicyAsync(int maxToKeep, CancellationToken ct)
     {
@@ -1384,7 +1384,7 @@ public sealed class BackupService : IBackupService
         }
     }
 
-    // ── Private: schedule config helpers ──────────────────────────────────
+    // --- Private: schedule config helpers ---
 
     /// <summary>
     /// Reads <see cref="AppSettings.BackupSchedule"/> (settings.json). The schedule used to be
@@ -1420,7 +1420,7 @@ public sealed class BackupService : IBackupService
         };
     }
 
-    // ── Private: path helpers ──────────────────────────────────────────────
+    // --- Private: path helpers ---
 
     private static string GetDefaultStoragePath() =>
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AgentX");
@@ -1468,7 +1468,7 @@ public sealed class BackupService : IBackupService
         }
     }
 
-    // ── Private: utility helpers ───────────────────────────────────────────
+    // --- Private: utility helpers ---
 
     private static void Report(
         IProgress<BackupProgress>? progress,
@@ -1528,7 +1528,7 @@ public sealed class BackupService : IBackupService
         }
     }
 
-    // ── Private: restore bookkeeping ───────────────────────────────────────
+    // --- Private: restore bookkeeping ---
 
     private sealed record StagedDocument(string StagedPath, string TargetPath, string RelativePath);
 
