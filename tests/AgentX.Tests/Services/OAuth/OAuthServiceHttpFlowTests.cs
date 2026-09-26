@@ -461,7 +461,8 @@ public sealed class OAuthServiceHttpFlowTests : IDisposable
         }
 
         using var service = CreateService();
-        // No refresh token in the response → encrypts an empty string for the refresh slot.
+        // No refresh token in the response: the stored one is kept, because the earlier
+        // grant still works and an empty value would end access at the next expiry.
         var tokenResponse = NewTokenResponse("new-access", refresh: null, expiresIn: 0, userId: "new-user");
 
         var result = (OAuthCredential)(await InvokePrivateAsync(
@@ -473,7 +474,7 @@ public sealed class OAuthServiceHttpFlowTests : IDisposable
         (await verify.OAuthCredentials.CountAsync(c => c.ProviderId == "google")).Should().Be(1);
         var entity = await verify.OAuthCredentials.AsNoTracking().FirstAsync(c => c.ProviderId == "google");
         entity.AccessToken.Should().Be("ENC:new-access");
-        entity.RefreshToken.Should().Be("ENC:"); // Encrypt(string.Empty)
+        entity.RefreshToken.Should().Be("DPAPI:old-refresh"); // kept, not replaced by Encrypt(string.Empty)
         entity.Scopes.Should().Be("openid email");
         entity.UserId.Should().Be("new-user");
         entity.CreatedAt.Should().BeCloseTo(originalCreatedAt, TimeSpan.FromSeconds(1)); // preserved
@@ -693,5 +694,118 @@ public sealed class OAuthServiceHttpFlowTests : IDisposable
         service.Dispose();
         Action second = () => service.Dispose(); // guard: _isDisposed short-circuits
         second.Should().NotThrow();
+    }
+
+    // -- Refresh token lifecycle, revocation, settings --------------------------
+
+    [Fact]
+    public async Task PersistCredential_WithoutAnyRefreshToken_IsFlaggedForReauthorization()
+    {
+        using var service = CreateService();
+        var tokenResponse = NewTokenResponse("access-plain", refresh: null, expiresIn: 3600);
+
+        var result = (OAuthCredential)(await InvokePrivateAsync(
+            service, "PersistCredentialAsync", "microsoft", tokenResponse, "Mail.Read"))!;
+
+        result.RequiresReauthorization.Should().BeTrue(
+            "without a refresh token nothing can renew access after the first hour");
+    }
+
+    [Fact]
+    public async Task GetAccessTokenAsync_ExpiredWithoutRefreshToken_AsksForAReconnect()
+    {
+        using var server = new StubHttpServer();
+        SeedCredential(expiry: DateTime.UtcNow.AddMinutes(-1));
+        _encryption.Setup(e => e.Decrypt("DPAPI:access")).Returns("access-plain");
+        _encryption.Setup(e => e.Decrypt("DPAPI:refresh")).Returns(string.Empty);
+
+        using var service = CreateService();
+        service.RegisterProvider(ProviderConfig(server.TokenEndpoint));
+
+        Func<Task> act = () => service.GetAccessTokenAsync("google");
+
+        (await act.Should().ThrowAsync<InvalidOperationException>())
+            .Which.Message.Should().Contain("no refresh token").And.Contain("Reconnect");
+        server.Requests.Should().BeEmpty("there is no refresh token to send");
+    }
+
+    [Fact]
+    public async Task RevokeAsync_RevokesTheRefreshToken_SoTheWholeGrantEnds()
+    {
+        using var server = new StubHttpServer();
+        server.Handler = _ => (200, "{}");
+
+        SeedCredential(expiry: DateTime.UtcNow.AddHours(-2)); // an expired access token
+        _encryption.Setup(e => e.Decrypt("DPAPI:access")).Returns("access-plain");
+        _encryption.Setup(e => e.Decrypt("DPAPI:refresh")).Returns("refresh-plain");
+
+        using var service = CreateService();
+        service.RegisterProvider(ProviderConfig(server.TokenEndpoint, revocationEndpoint: server.RevocationEndpoint));
+
+        await service.RevokeAsync("google");
+
+        (await ReadCredentialAsync()).Should().BeNull();
+        var request = server.Requests.Should().ContainSingle().Subject;
+        request.Should().Contain("token=refresh-plain");
+        request.Should().NotContain("access-plain");
+    }
+
+    [Fact]
+    public void ApplySettings_UsesTheConfiguredBufferAndTimeout_Clamped()
+    {
+        using var service = CreateService();
+        service.RefreshBuffer.Should().Be(TimeSpan.FromMinutes(5));
+        service.AuthTimeout.Should().Be(TimeSpan.FromMinutes(5));
+
+        service.ApplySettings(new AgentX.Core.Services.Settings.OAuthSettings
+        {
+            TokenRefreshBufferMinutes = 15,
+            AuthTimeoutSeconds = 120,
+        });
+        service.RefreshBuffer.Should().Be(TimeSpan.FromMinutes(15));
+        service.AuthTimeout.Should().Be(TimeSpan.FromSeconds(120));
+
+        service.ApplySettings(new AgentX.Core.Services.Settings.OAuthSettings
+        {
+            TokenRefreshBufferMinutes = -5,
+            AuthTimeoutSeconds = 1,
+        });
+        service.RefreshBuffer.Should().Be(TimeSpan.Zero);
+        service.AuthTimeout.Should().Be(TimeSpan.FromSeconds(30));
+    }
+
+    [Fact]
+    public async Task GetAccessTokenAsync_RefreshesWithinTheConfiguredBuffer()
+    {
+        using var server = new StubHttpServer();
+        server.Handler = _ => (200, """{"access_token":"refreshed-access","token_type":"Bearer","expires_in":3600}""");
+
+        // Ten minutes left: outside the default 5-minute buffer, inside a 15-minute one.
+        SeedCredential(expiry: DateTime.UtcNow.AddMinutes(10));
+        _encryption.Setup(e => e.Decrypt("DPAPI:access")).Returns("access-plain");
+        _encryption.Setup(e => e.Decrypt("DPAPI:refresh")).Returns("refresh-plain");
+        _encryption.Setup(e => e.Decrypt("ENC:refreshed-access")).Returns("refreshed-access-plain");
+
+        using var service = CreateService();
+        service.RegisterProvider(ProviderConfig(server.TokenEndpoint));
+
+        (await service.GetAccessTokenAsync("google")).Should().Be("access-plain");
+        server.Requests.Should().BeEmpty();
+
+        service.ApplySettings(new AgentX.Core.Services.Settings.OAuthSettings { TokenRefreshBufferMinutes = 15 });
+
+        (await service.GetAccessTokenAsync("google")).Should().Be("refreshed-access-plain");
+        server.Requests.Should().ContainSingle();
+    }
+
+    [Fact]
+    public void BuildScopes_SplitsSpaceSeparatedLists_AndKeepsEachScopeOnce()
+    {
+        var result = (string)InvokeStatic(
+            "BuildScopes",
+            "openid profile email offline_access User.Read",
+            "offline_access Mail.Read User.Read")!;
+
+        result.Should().Be("openid profile email offline_access User.Read Mail.Read");
     }
 }

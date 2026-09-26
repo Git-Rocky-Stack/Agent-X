@@ -74,7 +74,9 @@ public static class OAuthProviderRegistry
             AuthorizationEndpoint = $"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/authorize",
             TokenEndpoint = $"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token",
             RevocationEndpoint = string.Empty, // Microsoft does not expose a standard revocation endpoint
-            Scopes = "openid profile email Calendars.Read Mail.Read User.Read",
+            // offline_access is what makes Microsoft issue a refresh token; without it the
+            // connectors lose access when the first access token expires (about an hour).
+            Scopes = "openid profile email offline_access Calendars.Read Mail.Read User.Read",
             ClientId = clientId,
             ClientSecret = clientSecret,
             RedirectUri = redirectUri,

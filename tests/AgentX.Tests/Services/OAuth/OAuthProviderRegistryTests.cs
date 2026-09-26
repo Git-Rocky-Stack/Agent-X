@@ -219,6 +219,10 @@ public sealed class OAuthProviderRegistryTests
         config.Scopes.Should().Contain("Calendars.Read");
         config.Scopes.Should().Contain("Mail.Read");
         config.Scopes.Should().Contain("User.Read");
+
+        // Without offline_access Microsoft issues no refresh token and access ends after
+        // about an hour.
+        config.Scopes.Split(' ').Should().Contain("offline_access");
     }
 
     [Fact]

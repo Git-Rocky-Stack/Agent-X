@@ -32,6 +32,13 @@ public sealed class OAuthCredential
     public DateTime TokenExpiry { get; init; }
 
     /// <summary>
+    /// True when no refresh token was issued (for Microsoft, the <c>offline_access</c> scope
+    /// was not granted): the access token cannot be renewed, so access ends at
+    /// <see cref="TokenExpiry"/> and the user has to connect the account again.
+    /// </summary>
+    public bool RequiresReauthorization => string.IsNullOrEmpty(RefreshToken);
+
+    /// <summary>
     /// Comma-separated list of OAuth scopes that were granted during authorization
     /// (e.g. <c>"calendar.read,calendar.write,email.read"</c>).
     /// </summary>

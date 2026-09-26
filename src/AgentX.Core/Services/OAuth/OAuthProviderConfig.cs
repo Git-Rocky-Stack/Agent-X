@@ -45,8 +45,8 @@ public sealed class OAuthProviderConfig
     public string? RevocationEndpoint { get; init; }
 
     /// <summary>
-    /// Comma-separated default scopes to request during authorization
-    /// (e.g. <c>"https://www.googleapis.com/auth/calendar.readonly"</c>).
+    /// Space-separated default scopes to request during authorization (commas are accepted
+    /// too), e.g. <c>"openid https://www.googleapis.com/auth/calendar.readonly"</c>.
     /// Additional scopes may be passed to <see cref="IOAuthService.AuthorizeAsync"/>.
     /// </summary>
     public string Scopes { get; init; } = string.Empty;
