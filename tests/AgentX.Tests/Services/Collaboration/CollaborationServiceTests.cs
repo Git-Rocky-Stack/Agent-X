@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
@@ -16,16 +17,17 @@ namespace AgentX.Tests.Services.Collaboration;
 /// Coverage for <see cref="CollaborationService"/> — a lightweight real-time collaboration hub
 /// built on <see cref="HttpListener"/> + <see cref="HttpClient"/> (no EF, no external runtime libs).
 ///
-/// The public <see cref="CollaborationService.StartHostingAsync"/> binds the strong-wildcard prefix
-/// <c>http://+:{port}/</c>, which requires an elevated URL-ACL reservation and can't run unprivileged
-/// in CI. To exercise the real request handlers anyway, the harness injects a non-privileged
-/// <c>http://localhost:{port}/</c> listener into the service's own fields and starts its real
-/// <c>RunListenerLoopAsync</c> via reflection — the established "drive the service's own loop against a
-/// localhost prefix" pattern (cf. the OAuth HTTP-flow + ApiHost suites). A real silent Serilog logger is
-/// supplied because the constructor consumes <c>logger.ForContext&lt;T&gt;()</c>.
+/// Most endpoint tests inject a <c>http://localhost:{port}/</c> listener into the service's own
+/// fields and start its real <c>RunListenerLoopAsync</c> via reflection, retrying the bind when a
+/// parallel test takes the port first. <see cref="CollaborationService.StartHostingAsync"/> itself
+/// now binds the same unprivileged localhost prefix by default and is exercised directly too. The
+/// service is built with a known access token (CO26) and the harness client presents it. A real
+/// silent Serilog logger is supplied because the constructor consumes <c>logger.ForContext&lt;T&gt;()</c>.
 /// </summary>
 public sealed class CollaborationServiceTests : IDisposable
 {
+    private const string TestToken = "collab-test-token-0123456789abcdef";
+
     private readonly Serilog.Core.Logger _logger = new LoggerConfiguration().CreateLogger();
     private readonly CollaborationService _svc;
 
@@ -36,7 +38,7 @@ public sealed class CollaborationServiceTests : IDisposable
 
     public CollaborationServiceTests()
     {
-        _svc = new CollaborationService(_logger);
+        _svc = new CollaborationService(_logger, new CollaborationOptions { AccessToken = TestToken });
     }
 
     public void Dispose()
@@ -93,7 +95,11 @@ public sealed class CollaborationServiceTests : IDisposable
     private sealed class Hosted : IAsyncDisposable
     {
         public string BaseUrl { get; }
-        public HttpClient Client { get; } = new() { Timeout = TimeSpan.FromSeconds(10) };
+        public HttpClient Client { get; } = new()
+        {
+            Timeout = TimeSpan.FromSeconds(10),
+            DefaultRequestHeaders = { Authorization = new AuthenticationHeaderValue("Bearer", TestToken) },
+        };
         private readonly HttpListener _listener;
         private readonly CancellationTokenSource _cts = new();
         private readonly Task _loop;
@@ -506,6 +512,118 @@ public sealed class CollaborationServiceTests : IDisposable
         var resp = await h.Client.GetAsync($"{h.BaseUrl}/api/does-not-exist");
 
         resp.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    // CO26: authentication and loopback-only hosting
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("Bearer wrong-token-wrong-token-wrong-token")]
+    [InlineData("Basic " + TestToken)]
+    public async Task Requests_without_the_access_token_are_rejected(string? authorization)
+    {
+        await using var h = new Hosted(_svc);
+        using var anonymous = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
+        if (authorization is not null)
+            anonymous.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", authorization);
+        Sessions(_svc)["live-1"] = NewSession("live-1", DateTime.UtcNow);
+        var raised = false;
+        _svc.EventReceived += (_, _) => raised = true;
+
+        var read = await anonymous.GetAsync($"{h.BaseUrl}/api/sessions");
+        var inject = await anonymous.PostAsync($"{h.BaseUrl}/api/events", JsonBody(new CollaborationEvent
+        {
+            EventType = CollaborationEventType.DocumentLocked,
+            UserId = "intruder",
+        }));
+        var register = await anonymous.PostAsync($"{h.BaseUrl}/api/session", JsonBody(NewSession("intruder", DateTime.UtcNow)));
+
+        // Previously all three succeeded for any caller that could reach the port.
+        read.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        (await read.Content.ReadAsStringAsync()).Should().NotContain("live-1");
+        inject.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        register.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        raised.Should().BeFalse();
+        Sessions(_svc).Should().NotContainKey("intruder");
+    }
+
+    [Fact]
+    public async Task StartHosting_listens_on_localhost_only_and_requires_the_token()
+    {
+        int port = 0;
+        for (var attempt = 0; attempt < 12 && !_svc.IsHosting; attempt++)
+        {
+            port = FreePort();
+            try { await _svc.StartHostingAsync(port); }
+            catch (HttpListenerException) { /* port taken by a parallel test; retry */ }
+        }
+        _svc.IsHosting.Should().BeTrue();
+
+        try
+        {
+            GetField<HttpListener>(_svc, "_listener").Prefixes
+                .Should().Equal($"http://localhost:{port}/");
+
+            using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
+            (await client.GetAsync($"http://localhost:{port}/api/sessions")).StatusCode
+                .Should().Be(HttpStatusCode.Unauthorized);
+
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", TestToken);
+            (await client.GetAsync($"http://localhost:{port}/api/sessions")).StatusCode
+                .Should().Be(HttpStatusCode.OK);
+        }
+        finally
+        {
+            await _svc.StopHostingAsync();
+        }
+    }
+
+    [Theory]
+    [InlineData("127.0.0.1", false, null)]
+    [InlineData("::1", false, null)]
+    [InlineData("::ffff:127.0.0.1", false, null)]
+    [InlineData("192.168.1.5", false, HttpStatusCode.Forbidden)]
+    [InlineData("192.168.1.5", true, null)]
+    public void CheckRequest_refuses_remote_callers_unless_remote_peers_are_allowed(
+        string remote, bool allowRemotePeers, HttpStatusCode? expected)
+    {
+        var token = Encoding.UTF8.GetBytes(TestToken);
+
+        CollaborationService.CheckRequest(IPAddress.Parse(remote), "Bearer " + TestToken, token, allowRemotePeers)
+            .Should().Be(expected);
+    }
+
+    [Fact]
+    public void CheckRequest_requires_the_exact_token_even_for_allowed_remote_peers()
+    {
+        var token = Encoding.UTF8.GetBytes(TestToken);
+        var remote = IPAddress.Parse("192.168.1.5");
+
+        CollaborationService.CheckRequest(remote, null, token, allowRemotePeers: true)
+            .Should().Be(HttpStatusCode.Unauthorized);
+        CollaborationService.CheckRequest(remote, "Bearer " + TestToken + "x", token, allowRemotePeers: true)
+            .Should().Be(HttpStatusCode.Unauthorized);
+        CollaborationService.CheckRequest(null, "Bearer " + TestToken, token, allowRemotePeers: false)
+            .Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public void Constructor_rejects_a_short_configured_token()
+    {
+        var act = () => new CollaborationService(_logger, new CollaborationOptions { AccessToken = "short" });
+
+        act.Should().Throw<ArgumentException>().WithParameterName("options");
+    }
+
+    [Fact]
+    public async Task Default_options_generate_a_token_that_only_this_process_knows()
+    {
+        using var svc = new CollaborationService(_logger);
+        await using var h = new Hosted(svc); // the harness client presents TestToken
+
+        var resp = await h.Client.GetAsync($"{h.BaseUrl}/api/sessions");
+
+        resp.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     // ── Timer callbacks (invoked directly) ───────────────────────────────────

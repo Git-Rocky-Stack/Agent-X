@@ -1,5 +1,7 @@
 using System.Collections.Concurrent;
 using System.Net;
+using System.Net.Http.Headers;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using AgentX.Core.Services.Collaboration.Models;
@@ -37,6 +39,15 @@ namespace AgentX.Core.Services.Collaboration;
 ///   </item>
 /// </list>
 /// </para>
+///
+/// <para>
+/// <b>Security:</b> every request must carry <c>Authorization: Bearer {token}</c> with the
+/// access token from <see cref="CollaborationOptions"/> (random per process by default), and
+/// unless <see cref="CollaborationOptions.AllowRemotePeers"/> is set the host listens on
+/// <c>localhost</c> only and refuses non-loopback callers. The endpoints previously accepted
+/// anyone on the network: session data (user and machine names, open documents) could be read
+/// and events injected without credentials.
+/// </para>
 /// </summary>
 public sealed class CollaborationService : ICollaborationService, IDisposable
 {
@@ -61,6 +72,8 @@ public sealed class CollaborationService : ICollaborationService, IDisposable
 
     private readonly ILogger _log;
     private readonly HttpClient _http;
+    private readonly bool _allowRemotePeers;
+    private readonly byte[] _accessToken;
 
     // Active session registry (shared between host and peer paths).
     private readonly ConcurrentDictionary<string, CollaborationSession> _sessions = new();
@@ -93,12 +106,40 @@ public sealed class CollaborationService : ICollaborationService, IDisposable
     /// Initialises the service. The <paramref name="logger"/> is enriched with the
     /// service type context automatically.
     /// </summary>
-    public CollaborationService(ILogger logger)
+    /// <param name="logger">Logger; required.</param>
+    /// <param name="options">
+    /// Hosting and authentication options. <c>null</c> uses the safe defaults: loopback only,
+    /// with a random access token for this process.
+    /// </param>
+    public CollaborationService(ILogger logger, CollaborationOptions? options = null)
     {
         _log = logger?.ForContext<CollaborationService>()
                ?? throw new ArgumentNullException(nameof(logger));
 
+        options ??= new CollaborationOptions();
+        _allowRemotePeers = options.AllowRemotePeers;
+
+        string token;
+        if (string.IsNullOrEmpty(options.AccessToken))
+        {
+            token = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
+        }
+        else if (options.AccessToken.Length < CollaborationOptions.MinimumAccessTokenLength)
+        {
+            throw new ArgumentException(
+                $"The collaboration access token must be at least {CollaborationOptions.MinimumAccessTokenLength} characters long.",
+                nameof(options));
+        }
+        else
+        {
+            token = options.AccessToken;
+        }
+
+        _accessToken = Encoding.UTF8.GetBytes(token);
+
+        // Outbound calls (to the host and to peers) present the same shared token.
         _http = new HttpClient { Timeout = PeerRequestTimeout };
+        _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
     }
 
     // ── ICollaborationService — Hosting ──────────────────────────────────────
@@ -116,10 +157,16 @@ public sealed class CollaborationService : ICollaborationService, IDisposable
         {
             _listenerCts = new CancellationTokenSource();
             _listener = new HttpListener();
-            _listener.Prefixes.Add($"http://+:{port}/");
+
+            // Loopback only unless remote peers were explicitly allowed. This used to bind
+            // http://+:{port}/ unconditionally, exposing the endpoints on every interface.
+            _listener.Prefixes.Add(_allowRemotePeers ? $"http://+:{port}/" : $"http://localhost:{port}/");
             _listener.Start();
 
-            _log.Information("Collaboration host started on port {Port}", port);
+            if (_allowRemotePeers)
+                _log.Warning("Collaboration host started on port {Port} and accepts remote peers", port);
+            else
+                _log.Information("Collaboration host started on port {Port} (this machine only)", port);
 
             // Prune stale sessions every 10 seconds.
             _pruneTimer = new Timer(
@@ -458,6 +505,19 @@ public sealed class CollaborationService : ICollaborationService, IDisposable
 
             _log.Debug("Collaboration request: {Method} {Path}", method, path);
 
+            // http.sys matches a "localhost" prefix by Host header, not by interface, so the
+            // remote address is checked as well as the token.
+            var rejection = CheckRequest(
+                req.RemoteEndPoint?.Address, req.Headers["Authorization"], _accessToken, _allowRemotePeers);
+            if (rejection is not null)
+            {
+                _log.Warning(
+                    "Rejected collaboration request {Method} {Path} from {Remote}: {Status}",
+                    method, path, req.RemoteEndPoint?.Address, rejection);
+                res.StatusCode = (int)rejection.Value;
+                return;
+            }
+
             switch ((method, path))
             {
                 case ("POST", "/api/session"):
@@ -491,6 +551,37 @@ public sealed class CollaborationService : ICollaborationService, IDisposable
         {
             try { res.Close(); } catch { /* ignore */ }
         }
+    }
+
+    /// <summary>
+    /// Decides whether a request may be handled. Returns <c>null</c> to accept it, or the status
+    /// to reject it with: 403 for a caller that is not on this machine while remote peers are
+    /// not allowed, 401 for a missing or wrong access token.
+    /// </summary>
+    internal static HttpStatusCode? CheckRequest(
+        IPAddress? remoteAddress, string? authorizationHeader, byte[] expectedToken, bool allowRemotePeers)
+    {
+        if (!allowRemotePeers)
+        {
+            if (remoteAddress is null)
+                return HttpStatusCode.Forbidden;
+            if (remoteAddress.IsIPv4MappedToIPv6)
+                remoteAddress = remoteAddress.MapToIPv4();
+            if (!IPAddress.IsLoopback(remoteAddress))
+                return HttpStatusCode.Forbidden;
+        }
+
+        const string scheme = "Bearer ";
+        if (authorizationHeader is null ||
+            !authorizationHeader.StartsWith(scheme, StringComparison.OrdinalIgnoreCase))
+        {
+            return HttpStatusCode.Unauthorized;
+        }
+
+        var presented = Encoding.UTF8.GetBytes(authorizationHeader[scheme.Length..].Trim());
+        return CryptographicOperations.FixedTimeEquals(presented, expectedToken)
+            ? null
+            : HttpStatusCode.Unauthorized;
     }
 
     /// <summary>

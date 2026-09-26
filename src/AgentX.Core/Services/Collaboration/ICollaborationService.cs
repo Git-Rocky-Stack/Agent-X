@@ -43,9 +43,14 @@ public interface ICollaborationService
     // ── Hosting ──────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Starts the HTTP listener that acts as the collaboration hub for all peers on the LAN.
+    /// Starts the HTTP listener that acts as the collaboration hub.
     /// Calling this when already hosting is a no-op.
     /// </summary>
+    /// <remarks>
+    /// By default the hub accepts connections from this machine only, and every request must
+    /// carry the access token (see <see cref="CollaborationOptions"/>). LAN peers need
+    /// <see cref="CollaborationOptions.AllowRemotePeers"/> and a shared token.
+    /// </remarks>
     /// <param name="port">
     /// TCP port for the listener. Defaults to <c>9847</c> — chosen to avoid common conflicts.
     /// </param>
