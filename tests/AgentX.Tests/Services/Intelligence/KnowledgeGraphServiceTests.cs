@@ -19,8 +19,13 @@ public sealed class KnowledgeGraphServiceTests
         {
             var doc = new DocumentEntity
             {
-                FileName = $"doc{i}.md", FilePath = $"/docs/doc{i}.md", FileType = "md", ContentHash = $"h{i}",
-                ImportedAt = now, FileModifiedAt = now, IndexingStatus = "completed",
+                FileName = $"doc{i}.md",
+                FilePath = $"/docs/doc{i}.md",
+                FileType = "md",
+                ContentHash = $"h{i}",
+                ImportedAt = now,
+                FileModifiedAt = now,
+                IndexingStatus = "completed",
             };
             doc.DocumentTags.Add(new DocumentTagEntity { Document = doc, Tag = tag });
             db.Documents.Add(doc);

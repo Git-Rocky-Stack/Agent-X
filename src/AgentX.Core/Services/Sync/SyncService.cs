@@ -1724,48 +1724,48 @@ public sealed class SyncService : ISyncService
             switch (change.EntityType)
             {
                 case nameof(DocumentEntity):
-                {
-                    var key = change.NaturalKey ?? KeyFromPayload<DocumentEntity>(change, d => SyncNaturalKeys.ForDocument(d.ContentHash, d.FilePath, d.FileName));
-                    var id = key is null ? null : await FindDocumentIdAsync(key, ct).ConfigureAwait(false);
-                    return id is null ? null : new SyncLocalVersion(id.Value, null);
-                }
-                case nameof(CollectionEntity):
-                {
-                    var key = change.NaturalKey ?? KeyFromPayload<CollectionEntity>(change, c => SyncNaturalKeys.ForCollectionPath([c.Name]));
-                    var index = await GetCollectionIndexAsync(context, ct).ConfigureAwait(false);
-                    if (key is null || !index.TryGetValue(key, out var id))
-                        return null;
-                    var updatedAt = await _db.Collections.AsNoTracking().Where(c => c.Id == id)
-                        .Select(c => (DateTime?)c.UpdatedAt).FirstOrDefaultAsync(ct).ConfigureAwait(false);
-                    return updatedAt is null ? null : new SyncLocalVersion(id, updatedAt);
-                }
-                case nameof(TagEntity):
-                {
-                    var name = change.NaturalKey ?? KeyFromPayload<TagEntity>(change, t => t.Name);
-                    var id = name is null ? null : await _db.Tags.AsNoTracking().Where(t => t.Name == name)
-                        .Select(t => (long?)t.Id).FirstOrDefaultAsync(ct).ConfigureAwait(false);
-                    return id is null ? null : new SyncLocalVersion(id.Value, null);
-                }
-                case nameof(ConversationEntity):
-                {
-                    var key = change.NaturalKey ?? KeyFromPayload<ConversationEntity>(change, c => SyncNaturalKeys.ForConversation(c.CreatedAt, c.Title));
-                    return key is null ? null : await FindConversationAsync(key, ct).ConfigureAwait(false);
-                }
-                case nameof(AnnotationEntity):
-                {
-                    if (SyncNaturalKeys.TryParseAnnotation(change.NaturalKey, out var documentKey, out var start, out var end, out var text))
                     {
-                        var documentId = await FindDocumentIdAsync(documentKey, ct).ConfigureAwait(false);
-                        return documentId is null ? null : await FindAnnotationAsync(documentId.Value, start, end, text, ct).ConfigureAwait(false);
+                        var key = change.NaturalKey ?? KeyFromPayload<DocumentEntity>(change, d => SyncNaturalKeys.ForDocument(d.ContentHash, d.FilePath, d.FileName));
+                        var id = key is null ? null : await FindDocumentIdAsync(key, ct).ConfigureAwait(false);
+                        return id is null ? null : new SyncLocalVersion(id.Value, null);
                     }
+                case nameof(CollectionEntity):
+                    {
+                        var key = change.NaturalKey ?? KeyFromPayload<CollectionEntity>(change, c => SyncNaturalKeys.ForCollectionPath([c.Name]));
+                        var index = await GetCollectionIndexAsync(context, ct).ConfigureAwait(false);
+                        if (key is null || !index.TryGetValue(key, out var id))
+                            return null;
+                        var updatedAt = await _db.Collections.AsNoTracking().Where(c => c.Id == id)
+                            .Select(c => (DateTime?)c.UpdatedAt).FirstOrDefaultAsync(ct).ConfigureAwait(false);
+                        return updatedAt is null ? null : new SyncLocalVersion(id, updatedAt);
+                    }
+                case nameof(TagEntity):
+                    {
+                        var name = change.NaturalKey ?? KeyFromPayload<TagEntity>(change, t => t.Name);
+                        var id = name is null ? null : await _db.Tags.AsNoTracking().Where(t => t.Name == name)
+                            .Select(t => (long?)t.Id).FirstOrDefaultAsync(ct).ConfigureAwait(false);
+                        return id is null ? null : new SyncLocalVersion(id.Value, null);
+                    }
+                case nameof(ConversationEntity):
+                    {
+                        var key = change.NaturalKey ?? KeyFromPayload<ConversationEntity>(change, c => SyncNaturalKeys.ForConversation(c.CreatedAt, c.Title));
+                        return key is null ? null : await FindConversationAsync(key, ct).ConfigureAwait(false);
+                    }
+                case nameof(AnnotationEntity):
+                    {
+                        if (SyncNaturalKeys.TryParseAnnotation(change.NaturalKey, out var documentKey, out var start, out var end, out var text))
+                        {
+                            var documentId = await FindDocumentIdAsync(documentKey, ct).ConfigureAwait(false);
+                            return documentId is null ? null : await FindAnnotationAsync(documentId.Value, start, end, text, ct).ConfigureAwait(false);
+                        }
 
-                    return null;
-                }
+                        return null;
+                    }
                 case nameof(SystemPromptEntity):
-                {
-                    var name = change.NaturalKey ?? KeyFromPayload<SystemPromptEntity>(change, p => p.Name);
-                    return name is null ? null : await FindSystemPromptAsync(name, ct).ConfigureAwait(false);
-                }
+                    {
+                        var name = change.NaturalKey ?? KeyFromPayload<SystemPromptEntity>(change, p => p.Name);
+                        return name is null ? null : await FindSystemPromptAsync(name, ct).ConfigureAwait(false);
+                    }
                 default:
                     return null;
             }

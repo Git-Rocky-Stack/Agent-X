@@ -402,8 +402,14 @@ public sealed class ComparisonServiceTests : IDisposable
         using var db = factory.CreateContext();
         db.Documents.Add(new DocumentEntity
         {
-            Id = 2, FileName = "b.txt", FilePath = "/docs/b.txt", FileType = "txt", ContentHash = "hash-b",
-            ImportedAt = DateTime.UtcNow, FileModifiedAt = DateTime.UtcNow, IndexingStatus = "completed",
+            Id = 2,
+            FileName = "b.txt",
+            FilePath = "/docs/b.txt",
+            FileType = "txt",
+            ContentHash = "hash-b",
+            ImportedAt = DateTime.UtcNow,
+            FileModifiedAt = DateTime.UtcNow,
+            IndexingStatus = "completed",
         });
         for (var i = 0; i < 10; i++)
         {

@@ -764,7 +764,9 @@ public sealed class TemporalIdentityServiceTests : IDisposable
 
         db.Messages.Add(new MessageEntity
         {
-            ConversationId = conv.Id, Role = "assistant", Timestamp = DateTime.UtcNow.AddMinutes(-2),
+            ConversationId = conv.Id,
+            Role = "assistant",
+            Timestamp = DateTime.UtcNow.AddMinutes(-2),
             Content = "That is the key insight here!",
         });
         await db.SaveChangesAsync();
@@ -772,7 +774,9 @@ public sealed class TemporalIdentityServiceTests : IDisposable
 
         db.Messages.Add(new MessageEntity
         {
-            ConversationId = conv.Id, Role = "assistant", Timestamp = DateTime.UtcNow.AddMinutes(-1),
+            ConversationId = conv.Id,
+            Role = "assistant",
+            Timestamp = DateTime.UtcNow.AddMinutes(-1),
             Content = "Fascinating, that works!",
         });
         await db.SaveChangesAsync();

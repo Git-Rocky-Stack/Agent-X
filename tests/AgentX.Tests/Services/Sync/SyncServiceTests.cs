@@ -758,8 +758,14 @@ public sealed class SyncServiceTests
             ctx.Documents.Add(Doc(5, "hash-5"));
             ctx.Annotations.Add(new AnnotationEntity
             {
-                Id = 9, DocumentId = 5, StartOffset = 3, EndOffset = 8, HighlightedText = "hello",
-                Color = "yellow", CreatedAt = created, UpdatedAt = created,
+                Id = 9,
+                DocumentId = 5,
+                StartOffset = 3,
+                EndOffset = 8,
+                HighlightedText = "hello",
+                Color = "yellow",
+                CreatedAt = created,
+                UpdatedAt = created,
             });
             ctx.Conversations.Add(new ConversationEntity { Id = 1, Title = "Root", ModelId = "m", CreatedAt = created, UpdatedAt = created });
             ctx.Conversations.Add(new ConversationEntity { Id = 2, Title = "Branch", ModelId = "m", ParentConversationId = 1, CreatedAt = created.AddMinutes(1), UpdatedAt = created.AddMinutes(1) });
@@ -932,7 +938,12 @@ public sealed class SyncServiceTests
         var now = DateTime.UtcNow;
         h.Seed(ctx => ctx.SystemPrompts.Add(new SystemPromptEntity
         {
-            Id = 5, Name = "local only", Content = "mine", Category = "General", CreatedAt = now, UpdatedAt = now,
+            Id = 5,
+            Name = "local only",
+            Content = "mine",
+            Category = "General",
+            CreatedAt = now,
+            UpdatedAt = now,
         }));
 
         // The sender's prompt 5 is a different prompt that happens to share the id.
@@ -1023,7 +1034,12 @@ public sealed class SyncServiceTests
         var localEdit = DateTime.UtcNow;
         h.Seed(ctx => ctx.SystemPrompts.Add(new SystemPromptEntity
         {
-            Id = 1, Name = "p1", Content = "local edit", Category = "General", CreatedAt = localEdit.AddDays(-1), UpdatedAt = localEdit,
+            Id = 1,
+            Name = "p1",
+            Content = "local edit",
+            Category = "General",
+            CreatedAt = localEdit.AddDays(-1),
+            UpdatedAt = localEdit,
         }));
 
         var stale = new SystemPromptEntity { Id = 1, Name = "p1", Content = "stale remote", Category = "General", CreatedAt = localEdit.AddDays(-1), UpdatedAt = localEdit.AddMinutes(-10) };
@@ -1231,7 +1247,12 @@ public sealed class SyncServiceTests
         var now = DateTime.UtcNow;
         h.Seed(ctx => ctx.SystemPrompts.Add(new SystemPromptEntity
         {
-            Id = 7, Name = "survivor", Content = "c", Category = "General", CreatedAt = now, UpdatedAt = now,
+            Id = 7,
+            Name = "survivor",
+            Content = "c",
+            Category = "General",
+            CreatedAt = now,
+            UpdatedAt = now,
         }));
 
         var applied = await h.Service.ImportChangesAsync(
@@ -1496,8 +1517,14 @@ public sealed class SyncServiceTests
             ctx.Conversations.Add(new ConversationEntity { Id = 14, Title = "chat", ModelId = "m", CreatedAt = convCreated, UpdatedAt = convTime });
             ctx.Annotations.Add(new AnnotationEntity
             {
-                Id = 15, DocumentId = 11, StartOffset = 0, EndOffset = 1, HighlightedText = "x",
-                Color = "yellow", CreatedAt = now, UpdatedAt = annTime,
+                Id = 15,
+                DocumentId = 11,
+                StartOffset = 0,
+                EndOffset = 1,
+                HighlightedText = "x",
+                Color = "yellow",
+                CreatedAt = now,
+                UpdatedAt = annTime,
             });
             ctx.SystemPrompts.Add(new SystemPromptEntity { Id = 16, Name = "p", Content = "c", Category = "General", CreatedAt = now, UpdatedAt = promptTime });
         });
@@ -1740,8 +1767,11 @@ public sealed class SyncServiceTests
 
         h.Seed(ctx => ctx.SystemPrompts.Add(new SystemPromptEntity
         {
-            Name = "before first pass", Content = "c", Category = "General",
-            CreatedAt = DateTime.UtcNow.AddMinutes(-5), UpdatedAt = DateTime.UtcNow.AddMinutes(-5),
+            Name = "before first pass",
+            Content = "c",
+            Category = "General",
+            CreatedAt = DateTime.UtcNow.AddMinutes(-5),
+            UpdatedAt = DateTime.UtcNow.AddMinutes(-5),
         }));
 
         var first = await h.Service.SyncNowAsync();
@@ -1755,8 +1785,11 @@ public sealed class SyncServiceTests
 
         h.Seed(ctx => ctx.SystemPrompts.Add(new SystemPromptEntity
         {
-            Name = "after first pass", Content = "c", Category = "General",
-            CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow,
+            Name = "after first pass",
+            Content = "c",
+            Category = "General",
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
         }));
 
         var second = await restarted.SyncNowAsync();
@@ -1779,8 +1812,11 @@ public sealed class SyncServiceTests
             .Setup(t => t.ReadPeerFilesAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .Callback(() => h.Seed(ctx => ctx.SystemPrompts.Add(new SystemPromptEntity
             {
-                Name = "edited during pass", Content = "c", Category = "General",
-                CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow,
+                Name = "edited during pass",
+                Content = "c",
+                Category = "General",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
             })))
             .ReturnsAsync((IReadOnlyList<SyncFilePayload>)Array.Empty<SyncFilePayload>());
 
