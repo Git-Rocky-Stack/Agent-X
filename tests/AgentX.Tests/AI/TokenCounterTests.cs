@@ -213,4 +213,23 @@ public sealed class TokenCounterTests
         // Assert
         result.Should().Be(0);
     }
+
+    [Theory]
+    [InlineData("gpt-4o-mini", 128000)]
+    [InlineData("gpt-4o-2024-08-06", 128000)]
+    [InlineData("gpt-4-turbo-preview", 128000)]
+    [InlineData("gpt-4-0613", 8192)]
+    public void GetRemainingCapacity_UsesTheLongestMatchingModelPrefix(string modelId, int contextWindow)
+    {
+        _tokenCounter.GetRemainingCapacity(1000, modelId).Should().Be(contextWindow - 1000);
+    }
+
+    [Fact]
+    public void CountTokens_MixedText_AddsLatinAndCjkParts()
+    {
+        // 400 Latin characters (100 tokens) plus 100 CJK ideographs (100 / 0.6 = 167 tokens).
+        var text = new string('a', 400) + new string((char)0x4E2D, 100);
+
+        _tokenCounter.CountTokens(text, "llama-3.1-8b").Should().Be(267);
+    }
 }

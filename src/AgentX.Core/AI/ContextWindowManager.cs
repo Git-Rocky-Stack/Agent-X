@@ -9,8 +9,9 @@ namespace AgentX.Core.AI;
 /// older messages while preserving the system prompt and most recent exchanges.
 ///
 /// Token estimation uses a conservative heuristic of ~4 characters per token,
-/// which is appropriate for English text with Llama-family models. Each message
-/// also incurs a small overhead (~4 tokens) for role labels and formatting.
+/// which is appropriate for English text with Llama-family models; CJK characters
+/// are counted separately at more than one token each. Each message also incurs a
+/// small overhead (~4 tokens) for role labels and formatting.
 /// </summary>
 public sealed class ContextWindowManager : IContextWindowManager
 {
@@ -143,8 +144,9 @@ public sealed class ContextWindowManager : IContextWindowManager
         if (string.IsNullOrEmpty(text))
             return 0;
 
-        // Conservative estimate: ~4 characters per token for English text
-        return (text.Length + CharsPerToken - 1) / CharsPerToken;
+        // Conservative estimate: ~4 characters per token for English text, and CJK characters
+        // (which cost one or more tokens each) at their own rate.
+        return TokenEstimator.Estimate(text, CharsPerToken);
     }
 
     /// <inheritdoc />
@@ -268,9 +270,10 @@ public sealed class ContextWindowManager : IContextWindowManager
             if (msgContentTokens <= 0)
                 continue;
 
-            // Calculate how many characters to remove from this message
+            // Calculate how many characters to remove from this message, in proportion to its
+            // own characters-per-token rate (CJK text has far fewer characters per token)
             var tokensToRemoveFromThis = Math.Min(msgContentTokens, excessTokens);
-            var charsToRemove = tokensToRemoveFromThis * CharsPerToken;
+            var charsToRemove = (int)Math.Ceiling((double)msg.Content.Length * tokensToRemoveFromThis / msgContentTokens);
 
             if (charsToRemove >= msg.Content.Length)
             {
