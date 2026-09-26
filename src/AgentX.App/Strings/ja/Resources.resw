@@ -1734,9 +1734,6 @@
   <data name="EmailSet_SyncIntervalMinutes.Text" xml:space="preserve"><value>同期間隔 (分)</value></data>
   <data name="EmailSet_MaxMessagesPerSync.Text" xml:space="preserve"><value>1 回の同期の最大メッセージ数</value></data>
   <data name="EmailSet_SyncDaysBack.Text" xml:space="preserve"><value>同期する過去日数</value></data>
-  <data name="EmailSet_AiEmailCategorization.Header" xml:space="preserve"><value>AI メール分類</value></data>
-  <data name="EmailSet_AiEmailCategorization.OffContent" xml:space="preserve"><value>オフ</value></data>
-  <data name="EmailSet_AiEmailCategorization.OnContent" xml:space="preserve"><value>オン</value></data>
   <data name="EmailSet_IncludeAttachmentNamesIn.Header" xml:space="preserve"><value>添付ファイル名を検索インデックスに含める</value></data>
   <data name="EmailSet_IncludeAttachmentNamesIn.OffContent" xml:space="preserve"><value>含めない</value></data>
   <data name="EmailSet_IncludeAttachmentNamesIn.OnContent" xml:space="preserve"><value>含める</value></data>

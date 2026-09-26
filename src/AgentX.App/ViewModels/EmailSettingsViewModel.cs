@@ -75,9 +75,6 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
     private int _syncDaysBack = 30;
 
     [ObservableProperty]
-    private bool _enableAiCategorization = true;
-
-    [ObservableProperty]
     private bool _includeAttachmentNames = true;
 
     [ObservableProperty]
@@ -109,19 +106,18 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
 
         try
         {
-            var settings = await _settingsService.GetSettingsAsync().ConfigureAwait(false);
+            var settings = await _settingsService.GetSettingsAsync();
 
             EnableEmailSync = settings.EmailConnector.EnableEmailSync;
             SyncIntervalMinutes = settings.EmailConnector.SyncIntervalMinutes;
             MaxMessagesPerSync = settings.EmailConnector.MessagesPerSync;
             SyncDaysBack = settings.EmailConnector.DaysBackToSync;
-            EnableAiCategorization = settings.EmailConnector.EnableAiCategorization;
             IncludeAttachmentNames = settings.EmailConnector.IncludeAttachmentMetadata;
 
             SyncIntervalIndex = SyncIntervalOptions.IndexOf(SyncIntervalMinutes);
             if (SyncIntervalIndex < 0) SyncIntervalIndex = 1;
 
-            await CheckConnectionStatusAsync().ConfigureAwait(false);
+            await CheckConnectionStatusAsync();
         }
         catch (Exception ex)
         {
@@ -147,10 +143,9 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
         {
             _log.Information("Initiating Gmail OAuth2 connection");
             await _oauthService.AuthorizeAsync("google",
-                scopes: "https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/userinfo.profile")
-                .ConfigureAwait(false);
+                scopes: "https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/userinfo.profile");
 
-            await CheckConnectionStatusAsync().ConfigureAwait(false);
+            await CheckConnectionStatusAsync();
             _log.Information("Gmail connected successfully");
         }
         catch (OperationCanceledException)
@@ -186,11 +181,12 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
         try
         {
             _log.Information("Initiating Outlook Email OAuth2 connection");
+            // offline_access makes Microsoft issue a refresh token; without it the connector
+            // loses access when the first access token expires.
             await _oauthService.AuthorizeAsync("microsoft",
-                scopes: "Mail.Read User.Read")
-                .ConfigureAwait(false);
+                scopes: "offline_access Mail.Read User.Read");
 
-            await CheckConnectionStatusAsync().ConfigureAwait(false);
+            await CheckConnectionStatusAsync();
             _log.Information("Outlook Email connected successfully");
         }
         catch (OperationCanceledException)
@@ -225,8 +221,8 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
 
         try
         {
-            await _oauthService.RevokeAsync("google").ConfigureAwait(false);
-            await CheckConnectionStatusAsync().ConfigureAwait(false);
+            await _oauthService.RevokeAsync("google");
+            await CheckConnectionStatusAsync();
             _log.Information("Gmail disconnected");
         }
         catch (Exception ex)
@@ -249,8 +245,8 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
 
         try
         {
-            await _oauthService.RevokeAsync("microsoft").ConfigureAwait(false);
-            await CheckConnectionStatusAsync().ConfigureAwait(false);
+            await _oauthService.RevokeAsync("microsoft");
+            await CheckConnectionStatusAsync();
             _log.Information("Outlook Email disconnected");
         }
         catch (Exception ex)
@@ -273,7 +269,7 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
 
         try
         {
-            await PersistConnectorSettingsAsync(refreshLifecycle: true).ConfigureAwait(false);
+            await PersistConnectorSettingsAsync(refreshLifecycle: true);
             _log.Information("Email connector settings saved");
         }
         catch (Exception ex)
@@ -302,9 +298,9 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
         try
         {
             EnableEmailSync = true;
-            await PersistConnectorSettingsAsync(refreshLifecycle: true).ConfigureAwait(false);
+            await PersistConnectorSettingsAsync(refreshLifecycle: true);
 
-            var result = await _emailService.SyncMessagesAsync().ConfigureAwait(false);
+            var result = await _emailService.SyncMessagesAsync();
             LastSyncTime = FormatSyncTime(result.CompletedAt);
             SyncStatusText = FormatSyncResult(result);
             _log.Information(
@@ -332,22 +328,20 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
 
     private async Task PersistConnectorSettingsAsync(bool refreshLifecycle)
     {
-        var settings = await _settingsService.GetSettingsAsync().ConfigureAwait(false);
+        var settings = await _settingsService.GetSettingsAsync();
 
         settings.EmailConnector.EnableEmailSync = EnableEmailSync;
         settings.EmailConnector.SyncIntervalMinutes = SyncIntervalMinutes;
         settings.EmailConnector.MessagesPerSync = MaxMessagesPerSync;
         settings.EmailConnector.DaysBackToSync = SyncDaysBack;
-        settings.EmailConnector.EnableAiCategorization = EnableAiCategorization;
         settings.EmailConnector.IncludeAttachmentMetadata = IncludeAttachmentNames;
 
-        await _settingsService.SaveSettingsAsync(settings).ConfigureAwait(false);
+        await _settingsService.SaveSettingsAsync(settings);
 
-        var syncSettings = await _emailService.GetSyncSettingsAsync().ConfigureAwait(false);
+        var syncSettings = await _emailService.GetSyncSettingsAsync();
         syncSettings.SyncIntervalMinutes = SyncIntervalMinutes;
         syncSettings.MaxMessagesPerSync = MaxMessagesPerSync;
         syncSettings.SyncDaysBack = SyncDaysBack;
-        syncSettings.EnableAiCategorization = EnableAiCategorization;
         syncSettings.IncludeAttachmentNames = IncludeAttachmentNames;
 
         if (!syncSettings.EnabledFolders.Any(kv => kv.Value))
@@ -355,24 +349,35 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
             syncSettings.EnabledFolders["INBOX"] = true;
         }
 
-        await _emailService.UpdateSyncSettingsAsync(syncSettings).ConfigureAwait(false);
+        await _emailService.UpdateSyncSettingsAsync(syncSettings);
 
         if (refreshLifecycle)
         {
-            await _connectorLifecycle.RefreshAsync().ConfigureAwait(false);
+            await _connectorLifecycle.RefreshAsync();
         }
     }
 
     private async Task CheckConnectionStatusAsync()
     {
-        var googleCred = await _oauthService.GetCredentialAsync("google").ConfigureAwait(false);
-        IsGoogleConnected = googleCred is not null;
-        GoogleStatusText = IsGoogleConnected ? "Connected" : "Not connected";
+        var googleCred = await _oauthService.GetCredentialAsync("google");
+        (IsGoogleConnected, GoogleStatusText) = DescribeConnection(googleCred);
 
-        var msCred = await _oauthService.GetCredentialAsync("microsoft").ConfigureAwait(false);
-        IsMicrosoftConnected = msCred is not null;
-        MicrosoftStatusText = IsMicrosoftConnected ? "Connected" : "Not connected";
+        var msCred = await _oauthService.GetCredentialAsync("microsoft");
+        (IsMicrosoftConnected, MicrosoftStatusText) = DescribeConnection(msCred);
     }
+
+    /// <summary>
+    /// A stored credential without a refresh token stops working when its access token
+    /// expires, so it is reported as needing a reconnect (the Connect button stays offered)
+    /// rather than as connected.
+    /// </summary>
+    internal static (bool IsConnected, string StatusText) DescribeConnection(OAuthCredential? credential) =>
+        credential switch
+        {
+            null => (false, "Not connected"),
+            { RequiresReauthorization: true } => (false, "Reconnect required"),
+            _ => (true, "Connected"),
+        };
 
     // ── Reactive property changes ──────────────────────────────────────────────
 

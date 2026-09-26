@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -12,8 +14,15 @@ namespace AgentX.Core.Services.Plugins.Email;
 /// from the user's Outlook account via the Microsoft Graph REST API.
 /// Uses delta queries for incremental sync.
 /// </summary>
+/// <remarks>
+/// The inbox is reported with the id <see cref="IEmailProvider.InboxFolderId"/> ("INBOX")
+/// and read through Graph's well-known folder name "inbox", so the default folder selection
+/// (which is Gmail's inbox label id) selects the Outlook inbox too.
+/// </remarks>
 public sealed class OutlookEmailProvider : IEmailProvider
 {
+    private const string GraphBase = "https://graph.microsoft.com/v1.0";
+
     public string ProviderId => "microsoft";
 
     private readonly IOAuthService _oauthService;
@@ -27,25 +36,38 @@ public sealed class OutlookEmailProvider : IEmailProvider
     };
 
     public OutlookEmailProvider(IOAuthService oauthService, ILogger logger, string scopes)
+        : this(oauthService, logger, new HttpClient())
+    {
+    }
+
+    /// <summary>Test seam: routes every request through <paramref name="handler"/>.</summary>
+    internal OutlookEmailProvider(IOAuthService oauthService, ILogger logger, HttpMessageHandler handler)
+        : this(oauthService, logger, new HttpClient(handler ?? throw new ArgumentNullException(nameof(handler))))
+    {
+    }
+
+    private OutlookEmailProvider(IOAuthService oauthService, ILogger logger, HttpClient http)
     {
         _oauthService = oauthService ?? throw new ArgumentNullException(nameof(oauthService));
         _log = (logger ?? throw new ArgumentNullException(nameof(logger))).ForContext<OutlookEmailProvider>();
-        _http = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
+        _http = http;
+        _http.Timeout = TimeSpan.FromSeconds(30);
     }
 
     public async Task<IReadOnlyList<EmailFolderInfo>> ListFoldersAsync(
         CancellationToken cancellationToken = default)
     {
         var token = await GetAccessTokenAsync().ConfigureAwait(false);
-        var url = "https://graph.microsoft.com/v1.0/me/mailFolders?$select=id,displayName,unreadItemCount,totalItemCount,isHidden";
+        var inboxId = await GetInboxIdAsync(token, cancellationToken).ConfigureAwait(false);
+        var url = $"{GraphBase}/me/mailFolders?$select=id,displayName,unreadItemCount,totalItemCount,isHidden";
         var folders = new List<EmailFolderInfo>();
 
         while (!string.IsNullOrEmpty(url))
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, url);
+            using var request = new HttpRequestMessage(HttpMethod.Get, url);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
 
             var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
@@ -55,7 +77,10 @@ public sealed class OutlookEmailProvider : IEmailProvider
             {
                 folders.AddRange(result.Value.Select(f => new EmailFolderInfo
                 {
-                    Id = f.Id ?? string.Empty,
+                    // Graph ids are opaque; the inbox gets the id the settings select by default.
+                    Id = f.Id is not null && string.Equals(f.Id, inboxId, StringComparison.Ordinal)
+                        ? IEmailProvider.InboxFolderId
+                        : f.Id ?? string.Empty,
                     Name = f.DisplayName ?? string.Empty,
                     TotalCount = f.TotalItemCount ?? 0,
                     UnreadCount = f.UnreadItemCount ?? 0,
@@ -69,44 +94,62 @@ public sealed class OutlookEmailProvider : IEmailProvider
         return folders;
     }
 
+    /// <summary>
+    /// The opaque id of the mailbox's inbox, read through Graph's well-known folder name,
+    /// or null when it cannot be read (the folders are then listed without the mapping).
+    /// </summary>
+    private async Task<string?> GetInboxIdAsync(string token, CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, $"{GraphBase}/me/mailFolders/inbox?$select=id");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+
+            var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            return JsonSerializer.Deserialize<GraphMailFolder>(json, JsonOptions)?.Id;
+        }
+        catch (Exception ex) when (ex is HttpRequestException or JsonException)
+        {
+            _log.Warning(ex, "Could not identify the Outlook inbox folder");
+            return null;
+        }
+    }
+
     public async Task<(IReadOnlyList<EmailMessage> Messages, string? DeltaToken)> GetMessagesAsync(
         string folderId, int maxResults = 50, string? deltaToken = null,
-        CancellationToken cancellationToken = default)
+        DateTime? receivedAfterUtc = null, CancellationToken cancellationToken = default)
     {
         var token = await GetAccessTokenAsync().ConfigureAwait(false);
         var messages = new List<EmailMessage>();
 
-        // Build URL: use delta endpoint if we have a token, otherwise initial delta query.
-        string? url;
-        if (!string.IsNullOrEmpty(deltaToken))
-        {
-            // deltaToken is the full URL from @odata.deltaLink
-            url = deltaToken;
-        }
-        else
-        {
-            url = $"https://graph.microsoft.com/v1.0/me/mailFolders/{Uri.EscapeDataString(folderId)}/messages/delta" +
-                  $"?$top={Math.Min(maxResults, 200)}" +
-                  $"&$select=id,subject,bodyPreview,body,from,toRecipients,ccRecipients,receivedDateTime,isRead,flag,conversationId,hasAttachments,webLink";
-        }
+        // Build URL: continue from the stored link if we have one, otherwise start a delta round.
+        var incremental = !string.IsNullOrEmpty(deltaToken);
+        var url = incremental
+            ? deltaToken! // the full @odata.deltaLink (or @odata.nextLink) URL from the last sync
+            : BuildInitialDeltaUrl(folderId, maxResults, receivedAfterUtc);
 
-        var newDeltaToken = (string?)null;
-        var fetched = 0;
+        string? newDeltaToken = null;
 
-        while (!string.IsNullOrEmpty(url) && fetched < maxResults)
+        while (!string.IsNullOrEmpty(url))
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, url);
+            using var request = new HttpRequestMessage(HttpMethod.Get, url);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             // Request plain text body in addition to HTML
             request.Headers.Add("Prefer", "outlook.body-content-type=\"text\"");
 
-            var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
-            if (response.StatusCode == System.Net.HttpStatusCode.Gone)
+            // A stored link Graph no longer accepts (410 Gone when the sync state expired, 400
+            // when it is malformed) is discarded for a new round from the start.
+            if (incremental && response.StatusCode is HttpStatusCode.Gone or HttpStatusCode.BadRequest)
             {
-                // Delta token expired — fall back to full sync.
-                _log.Warning("Outlook delta token expired — performing full sync for folder {FolderId}", folderId);
-                return await GetMessagesAsync(folderId, maxResults, deltaToken: null, cancellationToken)
+                _log.Warning(
+                    "Outlook rejected the stored delta link ({Status}); starting a full sync for folder {FolderId}",
+                    (int)response.StatusCode, folderId);
+                return await GetMessagesAsync(folderId, maxResults, deltaToken: null, receivedAfterUtc, cancellationToken)
                     .ConfigureAwait(false);
             }
 
@@ -115,32 +158,59 @@ public sealed class OutlookEmailProvider : IEmailProvider
             var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
             var result = JsonSerializer.Deserialize<GraphMessageListResponse>(json, JsonOptions);
 
-            if (result?.Value is not null)
+            foreach (var msg in result?.Value ?? [])
             {
-                foreach (var msg in result.Value)
-                {
-                    if (msg.ODataRemoved is not null) continue; // deleted message
+                // A deleted or moved message arrives as {"id": ..., "@removed": {"reason": ...}}.
+                if (msg.Removed is not null) continue;
 
-                    var email = ConvertMessage(msg, folderId);
-                    messages.Add(email);
-                    fetched++;
-
-                    if (fetched >= maxResults) break;
-                }
+                messages.Add(ConvertMessage(msg, folderId));
             }
 
-            // Check for delta link (end of current round).
+            // The delta link ends the round.
             if (!string.IsNullOrEmpty(result?.ODataDeltaLink))
             {
                 newDeltaToken = result.ODataDeltaLink;
+                break;
             }
 
-            // Continue with next page if available.
             url = result?.ODataNextLink;
-            if (url is not null && fetched >= maxResults) break;
+
+            if (url is not null && messages.Count >= maxResults)
+            {
+                // The per-sync cap is reached mid-round. The next-page link is itself a valid
+                // continuation, so it is kept and the next sync resumes there; discarding it
+                // meant a large folder never reached its delta link.
+                newDeltaToken = url;
+                break;
+            }
         }
 
         return (messages, newDeltaToken);
+    }
+
+    /// <summary>
+    /// The first request of a delta round on <paramref name="folderId"/>. The inbox is
+    /// addressed by Graph's well-known name. <paramref name="receivedAfterUtc"/> becomes the
+    /// one filter message delta supports, on receivedDateTime.
+    /// </summary>
+    internal static string BuildInitialDeltaUrl(string folderId, int maxResults, DateTime? receivedAfterUtc)
+    {
+        var folderSegment = string.Equals(folderId, IEmailProvider.InboxFolderId, StringComparison.OrdinalIgnoreCase)
+            ? "inbox"
+            : Uri.EscapeDataString(folderId);
+
+        var url = $"{GraphBase}/me/mailFolders/{folderSegment}/messages/delta" +
+                  $"?$top={Math.Clamp(maxResults, 1, 200)}" +
+                  "&$select=id,subject,bodyPreview,body,from,toRecipients,ccRecipients,receivedDateTime,isRead,flag,conversationId,hasAttachments,webLink";
+
+        if (receivedAfterUtc is { } after)
+        {
+            var since = DateTime.SpecifyKind(after, DateTimeKind.Utc)
+                .ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture);
+            url += "&$filter=" + Uri.EscapeDataString($"receivedDateTime ge {since}");
+        }
+
+        return url;
     }
 
     private static EmailMessage ConvertMessage(GraphMessage msg, string folderId)
@@ -266,9 +336,21 @@ public sealed class OutlookEmailProvider : IEmailProvider
         public string? ConversationId { get; init; }
         [JsonPropertyName("webLink")]
         public string? WebLink { get; init; }
+        /// <summary>
+        /// Present (an object such as <c>{"reason": "deleted"}</c>) when the message was
+        /// deleted or moved out of the folder. Typed as a string before, which made every
+        /// delta page with a removal fail to parse.
+        /// </summary>
         [JsonPropertyName("@removed")]
-        public string? ODataRemoved { get; init; }
+        public GraphRemoved? Removed { get; init; }
     }
+
+    private sealed class GraphRemoved
+    {
+        [JsonPropertyName("reason")]
+        public string? Reason { get; init; }
+    }
+
 
     private sealed class GraphMessageBody
     {

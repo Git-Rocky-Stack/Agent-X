@@ -166,10 +166,6 @@
                                    MinWidth="200"/>
                     </StackPanel>
 
-                    <ToggleSwitch x:Uid="EmailSet_AiEmailCategorization" Header="AI email categorization"
-                                  IsOn="{x:Bind ViewModel.EnableAiCategorization, Mode=TwoWay}"
-                                  OffContent="Off" OnContent="On"/>
-
                     <ToggleSwitch x:Uid="EmailSet_IncludeAttachmentNamesIn" Header="Include attachment names in search index"
                                   IsOn="{x:Bind ViewModel.IncludeAttachmentNames, Mode=TwoWay}"
                                   OffContent="Exclude" OnContent="Include"/>

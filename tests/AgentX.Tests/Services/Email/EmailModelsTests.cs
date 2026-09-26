@@ -1,3 +1,4 @@
+using System.Globalization;
 using AgentX.Core.Services.Plugins.Email;
 using AgentX.Core.Services.Plugins.Email.Models;
 using FluentAssertions;
@@ -146,6 +147,51 @@ public sealed class EmailModelsTests
         var settings = EmailSyncSettings.Load("/non/existent/path.json");
         settings.SyncIntervalMinutes.Should().Be(10);
     }
+
+    [Fact]
+    public void EmailSyncSettings_Load_CorruptFile_GivesDefaults_AndKeepsTheFileAside()
+    {
+        // A corrupt file used to throw out of Load, aborting connector startup (and the
+        // calendar connector initialized after it).
+        var tempDir = Path.Combine(Path.GetTempPath(), $"agentx-email-settings-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(tempDir);
+        try
+        {
+            var path = Path.Combine(tempDir, "email-sync-settings.json");
+            File.WriteAllText(path, """{ "syncIntervalMinutes": 20, "enabledFolders": """);
+
+            var settings = EmailSyncSettings.Load(path);
+
+            settings.SyncIntervalMinutes.Should().Be(10);
+            settings.EnabledFolders.Should().ContainKey("INBOX");
+            File.Exists(path + ".corrupt").Should().BeTrue("the broken file is kept for inspection");
+        }
+        finally
+        {
+            if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true);
+        }
+    }
+
+    [Fact]
+    public void EmailSyncSettings_Save_ReplacesTheFileAtomically()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), $"agentx-email-settings-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(tempDir);
+        try
+        {
+            var path = Path.Combine(tempDir, "email-sync-settings.json");
+            new EmailSyncSettings { SyncIntervalMinutes = 15 }.Save(path);
+            new EmailSyncSettings { SyncIntervalMinutes = 30 }.Save(path);
+
+            EmailSyncSettings.Load(path).SyncIntervalMinutes.Should().Be(30);
+            Directory.GetFiles(tempDir).Select(Path.GetFileName)
+                .Should().Equal("email-sync-settings.json"); // no temporary file left behind
+        }
+        finally
+        {
+            if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true);
+        }
+    }
 }
 
 /// <summary>
@@ -256,10 +302,51 @@ public sealed class EmailTriageProcessorTests
     }
 
     [Fact]
+    public void ExtractSearchableContent_AttachmentNamesSettingOff_LeavesThemOut()
+    {
+        var msg = CreateSampleMessage(hasAttachments: true);
+        msg.AttachmentNames.Add("salaries-2026.xlsx");
+        var off = new EmailSyncSettings { IncludeAttachmentNames = false };
+
+        var content = _processor.ExtractSearchableContent(msg, off);
+        var (_, _, _, _, _, _, _, _, contentText) = _processor.ConvertToInboxParameters(msg, off);
+
+        content.Should().NotContain("salaries-2026.xlsx");
+        contentText.Should().NotContain("salaries-2026.xlsx");
+        _processor.ExtractSearchableContent(msg, new EmailSyncSettings()).Should().Contain("salaries-2026.xlsx");
+    }
+
+    [Theory]
+    [InlineData("th-TH")]
+    [InlineData("ar-SA")]
+    public void ExtractSearchableContent_DateIsGregorianIso_WhateverTheUserCulture(string cultureName)
+    {
+        var previous = CultureInfo.CurrentCulture;
+        try
+        {
+            CultureInfo.CurrentCulture = new CultureInfo(cultureName);
+            var msg = new EmailMessage
+            {
+                Id = "m1",
+                Subject = "Hello",
+                ReceivedAt = new DateTime(2026, 4, 15, 9, 30, 0, DateTimeKind.Utc),
+                SourceProvider = "google",
+            };
+
+            _processor.ExtractSearchableContent(msg).Should().Contain("Date: 2026-04-15 09:30 UTC");
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = previous;
+        }
+    }
+
+    [Fact]
     public void ConvertToInboxParameters_NullMessage_Throws()
     {
         Assert.Throws<ArgumentNullException>(() => _processor.ConvertToInboxParameters(null!));
     }
+
 
     [Fact]
     public void ExtractSearchableContent_NullMessage_Throws()

@@ -9,7 +9,7 @@ namespace AgentX.Core.Services.Plugins.Email;
 /// <summary>
 /// Orchestrates email sync cycles: fetches messages from all registered providers,
 /// converts them into inbox items via <see cref="EmailTriageProcessor"/>,
-/// and pushes them into the Smart Inbox via <see cref="IInboxService.TriageExternalAsync"/>.
+/// and pushes them into the Smart Inbox via <see cref="IInboxService.UpsertExternalAsync"/>.
 /// </summary>
 public sealed class EmailSyncService
 {
@@ -90,9 +90,16 @@ public sealed class EmailSyncService
                     var deltaKey = $"{provider.ProviderId}:{folder.Id}";
                     var existingDeltaToken = deltaTokens.GetValueOrDefault(deltaKey);
 
+                    // "Sync days back" bounds the first (full) read of a folder; incremental
+                    // reads return whatever changed since the stored token.
+                    DateTime? receivedAfterUtc = settings.SyncDaysBack > 0
+                        ? DateTime.UtcNow.AddDays(-settings.SyncDaysBack)
+                        : null;
+
                     var (messages, newDeltaToken) = await provider.GetMessagesAsync(
                         folder.Id, settings.MaxMessagesPerSync,
                         deltaToken: existingDeltaToken,
+                        receivedAfterUtc: receivedAfterUtc,
                         cancellationToken: cancellationToken)
                         .ConfigureAwait(false);
 
@@ -107,7 +114,8 @@ public sealed class EmailSyncService
                         {
                             var (fileName, fileType, sourceType, sourceUrl,
                                  sourcePluginId, sourceCategory, externalId,
-                                 contentPreview, contentText) = _processor.ConvertToInboxParameters(email);
+                                 contentPreview, contentText) = _processor.ConvertToInboxParameters(email, settings);
+
 
                             var triage = await _inboxService.UpsertExternalAsync(
                                 fileName, fileType, sourceType, sourceUrl,

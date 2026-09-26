@@ -126,7 +126,7 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
 
         try
         {
-            var settings = await _settingsService.GetSettingsAsync().ConfigureAwait(false);
+            var settings = await _settingsService.GetSettingsAsync();
 
             // Load calendar settings.
             EnableCalendarSync = settings.CalendarConnector.EnableCalendarSync;
@@ -144,7 +144,7 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
             if (ConflictResolutionIndex < 0) ConflictResolutionIndex = 0;
 
             // Check OAuth connection status.
-            await CheckConnectionStatusAsync().ConfigureAwait(false);
+            await CheckConnectionStatusAsync();
         }
         catch (Exception ex)
         {
@@ -170,10 +170,9 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
         {
             _log.Information("Initiating Google Calendar OAuth2 connection");
             await _oauthService.AuthorizeAsync("google",
-                scopes: "https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/userinfo.profile")
-                .ConfigureAwait(false);
+                scopes: "https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/userinfo.profile");
 
-            await CheckConnectionStatusAsync().ConfigureAwait(false);
+            await CheckConnectionStatusAsync();
             _log.Information("Google Calendar connected successfully");
         }
         catch (OperationCanceledException)
@@ -209,11 +208,12 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
         try
         {
             _log.Information("Initiating Microsoft Outlook OAuth2 connection");
+            // offline_access makes Microsoft issue a refresh token; without it the connector
+            // loses access when the first access token expires.
             await _oauthService.AuthorizeAsync("microsoft",
-                scopes: "Calendars.Read User.Read")
-                .ConfigureAwait(false);
+                scopes: "offline_access Calendars.Read User.Read");
 
-            await CheckConnectionStatusAsync().ConfigureAwait(false);
+            await CheckConnectionStatusAsync();
             _log.Information("Microsoft Outlook Calendar connected successfully");
         }
         catch (OperationCanceledException)
@@ -248,8 +248,8 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
 
         try
         {
-            await _oauthService.RevokeAsync("google").ConfigureAwait(false);
-            await CheckConnectionStatusAsync().ConfigureAwait(false);
+            await _oauthService.RevokeAsync("google");
+            await CheckConnectionStatusAsync();
             _log.Information("Google Calendar disconnected");
         }
         catch (Exception ex)
@@ -272,8 +272,8 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
 
         try
         {
-            await _oauthService.RevokeAsync("microsoft").ConfigureAwait(false);
-            await CheckConnectionStatusAsync().ConfigureAwait(false);
+            await _oauthService.RevokeAsync("microsoft");
+            await CheckConnectionStatusAsync();
             _log.Information("Microsoft Outlook Calendar disconnected");
         }
         catch (Exception ex)
@@ -296,7 +296,7 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
 
         try
         {
-            await PersistConnectorSettingsAsync(refreshLifecycle: true).ConfigureAwait(false);
+            await PersistConnectorSettingsAsync(refreshLifecycle: true);
             _log.Information("Calendar connector settings saved");
         }
         catch (Exception ex)
@@ -325,9 +325,9 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
         try
         {
             EnableCalendarSync = true;
-            await PersistConnectorSettingsAsync(refreshLifecycle: true).ConfigureAwait(false);
+            await PersistConnectorSettingsAsync(refreshLifecycle: true);
 
-            var result = await _calendarService.SyncEventsAsync().ConfigureAwait(false);
+            var result = await _calendarService.SyncEventsAsync();
             LastSyncTime = FormatSyncTime(result.CompletedAt);
             SyncStatusText = FormatSyncResult(result);
             _log.Information(
@@ -355,7 +355,7 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
 
     private async Task PersistConnectorSettingsAsync(bool refreshLifecycle)
     {
-        var settings = await _settingsService.GetSettingsAsync().ConfigureAwait(false);
+        var settings = await _settingsService.GetSettingsAsync();
 
         settings.CalendarConnector.EnableCalendarSync = EnableCalendarSync;
         settings.CalendarConnector.SyncIntervalMinutes = SyncIntervalMinutes;
@@ -365,9 +365,9 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
         settings.CalendarConnector.IncludeAttendeeDetails = IncludeAttendeeDetails;
         settings.CalendarConnector.IncludeDescriptions = IncludeDescriptions;
 
-        await _settingsService.SaveSettingsAsync(settings).ConfigureAwait(false);
+        await _settingsService.SaveSettingsAsync(settings);
 
-        var syncSettings = await _calendarService.GetSyncSettingsAsync().ConfigureAwait(false);
+        var syncSettings = await _calendarService.GetSyncSettingsAsync();
         syncSettings.SyncIntervalMinutes = SyncIntervalMinutes;
         syncSettings.DaysPastToSync = DaysPastToSync;
         syncSettings.DaysFutureToSync = DaysFutureToSync;
@@ -377,31 +377,42 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
 
         if (!syncSettings.EnabledCalendars.Any(kv => kv.Value))
         {
-            var calendars = await _calendarService.ListAvailableCalendarsAsync().ConfigureAwait(false);
+            var calendars = await _calendarService.ListAvailableCalendarsAsync();
             foreach (var calendar in calendars.Where(c => !string.IsNullOrWhiteSpace(c.Id)))
             {
                 syncSettings.EnabledCalendars[calendar.Id] = true;
             }
         }
 
-        await _calendarService.UpdateSyncSettingsAsync(syncSettings).ConfigureAwait(false);
+        await _calendarService.UpdateSyncSettingsAsync(syncSettings);
 
         if (refreshLifecycle)
         {
-            await _connectorLifecycle.RefreshAsync().ConfigureAwait(false);
+            await _connectorLifecycle.RefreshAsync();
         }
     }
 
     private async Task CheckConnectionStatusAsync()
     {
-        var googleCred = await _oauthService.GetCredentialAsync("google").ConfigureAwait(false);
-        IsGoogleConnected = googleCred is not null;
-        GoogleStatusText = IsGoogleConnected ? "Connected" : "Not connected";
+        var googleCred = await _oauthService.GetCredentialAsync("google");
+        (IsGoogleConnected, GoogleStatusText) = DescribeConnection(googleCred);
 
-        var msCred = await _oauthService.GetCredentialAsync("microsoft").ConfigureAwait(false);
-        IsMicrosoftConnected = msCred is not null;
-        MicrosoftStatusText = IsMicrosoftConnected ? "Connected" : "Not connected";
+        var msCred = await _oauthService.GetCredentialAsync("microsoft");
+        (IsMicrosoftConnected, MicrosoftStatusText) = DescribeConnection(msCred);
     }
+
+    /// <summary>
+    /// A stored credential without a refresh token stops working when its access token
+    /// expires, so it is reported as needing a reconnect (the Connect button stays offered)
+    /// rather than as connected.
+    /// </summary>
+    internal static (bool IsConnected, string StatusText) DescribeConnection(OAuthCredential? credential) =>
+        credential switch
+        {
+            null => (false, "Not connected"),
+            { RequiresReauthorization: true } => (false, "Reconnect required"),
+            _ => (true, "Connected"),
+        };
 
     // ── Reactive property changes ──────────────────────────────────────────────
 

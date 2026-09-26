@@ -1734,9 +1734,6 @@
   <data name="EmailSet_SyncIntervalMinutes.Text" xml:space="preserve"><value>同步间隔(分钟)</value></data>
   <data name="EmailSet_MaxMessagesPerSync.Text" xml:space="preserve"><value>每次同步的最大邮件数</value></data>
   <data name="EmailSet_SyncDaysBack.Text" xml:space="preserve"><value>同步回溯天数</value></data>
-  <data name="EmailSet_AiEmailCategorization.Header" xml:space="preserve"><value>AI 邮件分类</value></data>
-  <data name="EmailSet_AiEmailCategorization.OffContent" xml:space="preserve"><value>关</value></data>
-  <data name="EmailSet_AiEmailCategorization.OnContent" xml:space="preserve"><value>开</value></data>
   <data name="EmailSet_IncludeAttachmentNamesIn.Header" xml:space="preserve"><value>将附件名称纳入搜索索引</value></data>
   <data name="EmailSet_IncludeAttachmentNamesIn.OffContent" xml:space="preserve"><value>不包含</value></data>
   <data name="EmailSet_IncludeAttachmentNamesIn.OnContent" xml:space="preserve"><value>包含</value></data>

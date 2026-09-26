@@ -21,6 +21,16 @@ public sealed class EmailPlugin : IPlugin
     private Timer? _syncTimer;
     private readonly SemaphoreSlim _syncLock = new(1, 1);
 
+    // Cancelled by DeactivateAsync and Dispose so a running sync stops at its next request
+    // or message instead of holding deactivation (a settings save, app shutdown) until it ends.
+    private CancellationTokenSource _lifetimeCts = new();
+    private bool _isActivated;
+
+    /// <summary>
+    /// How long <see cref="DeactivateAsync"/> waits for a cancelled sync to stop.
+    /// </summary>
+    internal TimeSpan DeactivationWaitTimeout { get; set; } = TimeSpan.FromSeconds(10);
+
     // ── IPlugin ─────────────────────────────────────────────────────────────────
 
     public string Id => "com.agentx.email";
@@ -94,31 +104,49 @@ public sealed class EmailPlugin : IPlugin
             dueTime: TimeSpan.FromMinutes(1),
             period: TimeSpan.FromMinutes(_settings.SyncIntervalMinutes));
 
+        _isActivated = true;
+
         _log.Information(
             "EmailPlugin activated. Providers={Count} SyncInterval={Min}m",
             _providers.Count, _settings.SyncIntervalMinutes);
     }
 
+    /// <summary>
+    /// Stops the sync timer, cancels a sync that is running and waits (at most
+    /// <see cref="DeactivationWaitTimeout"/>) for it to stop.
+    /// </summary>
+    /// <remarks>
+    /// Deactivation runs when sync is turned off, on every connector settings save (the
+    /// connectors are restarted) and at app shutdown. It used to "flush" by running a full
+    /// mail sync without cancellation and outside the sync lock, which made each of those
+    /// start a sync and could hang shutdown. Nothing is pending between syncs, so there is
+    /// nothing to flush.
+    /// </remarks>
     public async Task DeactivateAsync()
     {
+        _isActivated = false;
+
         // Wave 4a: DisposeAsync awaits any in-flight Timer callback before tearing
         // down the timer — prevents a race with the SafeOnSyncTimerTickAsync wrapper.
         if (_syncTimer is not null)
             await _syncTimer.DisposeAsync().ConfigureAwait(false);
         _syncTimer = null;
 
-        // Flush pending sync if possible.
-        if (_syncService is not null && _providers.Count > 0)
+        var lifetime = _lifetimeCts;
+        await lifetime.CancelAsync().ConfigureAwait(false);
+
+        if (!await _syncLock.WaitAsync(DeactivationWaitTimeout).ConfigureAwait(false))
         {
-            try
-            {
-                await _syncService.SyncAsync(
-                    _providers, _settings, CancellationToken.None).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                _log.Error(ex, "Failed to flush email sync on deactivation");
-            }
+            // The old source is left undisposed: the sync still running may hold a link to it.
+            _log.Warning("Timed out waiting for the cancelled email sync to stop during deactivation");
+            _lifetimeCts = new CancellationTokenSource();
+        }
+        else
+        {
+            // A fresh source for the next activation or manual sync.
+            _lifetimeCts = new CancellationTokenSource();
+            _syncLock.Release();
+            lifetime.Dispose();
         }
 
         _log.Information("EmailPlugin deactivated");
@@ -164,6 +192,8 @@ public sealed class EmailPlugin : IPlugin
         _isDisposed = true;
         _syncTimer?.Dispose();
         _syncTimer = null;
+        _lifetimeCts.Cancel();
+        _lifetimeCts.Dispose();
         _syncLock.Dispose();
         _providers.Clear();
         _log.Information("EmailPlugin disposed");
@@ -216,10 +246,7 @@ public sealed class EmailPlugin : IPlugin
 
     private async Task OnSyncTimerTickAsync()
     {
-        // Timer callbacks have no CancellationToken — use a default 5-minute timeout.
-        using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
-
-        if (!await _syncLock.WaitAsync(0, cts.Token).ConfigureAwait(false))
+        if (!await _syncLock.WaitAsync(0).ConfigureAwait(false))
         {
             _log.Debug("Email sync timer tick skipped — sync already in progress");
             return;
@@ -227,13 +254,22 @@ public sealed class EmailPlugin : IPlugin
 
         try
         {
+            // A tick that fired while the plugin was being deactivated has nothing to do.
+            if (!_isActivated)
+                return;
+
+            // Timer callbacks have no CancellationToken: bound the cycle at 5 minutes, and let
+            // deactivation cancel it sooner.
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(_lifetimeCts.Token);
+            cts.CancelAfter(TimeSpan.FromMinutes(5));
+
             var result = await ExecuteSyncCycleAsync(cts.Token).ConfigureAwait(false);
             LastSyncResult = result;
             SyncCompleted?.Invoke(this, result);
         }
         catch (OperationCanceledException)
         {
-            _log.Debug("Email sync cycle cancelled (5-minute timeout)");
+            _log.Debug("Email sync cycle cancelled (timeout or deactivation)");
         }
         catch (Exception ex)
         {
@@ -255,7 +291,9 @@ public sealed class EmailPlugin : IPlugin
 
         try
         {
-            var result = await ExecuteSyncCycleAsync(cancellationToken).ConfigureAwait(false);
+            // Deactivation cancels a manual sync too.
+            using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _lifetimeCts.Token);
+            var result = await ExecuteSyncCycleAsync(linked.Token).ConfigureAwait(false);
             LastSyncResult = result;
             SyncCompleted?.Invoke(this, result);
             return result;
@@ -288,8 +326,9 @@ public sealed class EmailPlugin : IPlugin
             // Fetch-only fallback when InboxService is not available.
             return await FetchOnlySyncCycleAsync(cancellationToken).ConfigureAwait(false);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
+
             _log.Error(ex, "Email sync cycle failed");
             return new SyncResult
             {

@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.RegularExpressions;
 using AgentX.Core.Services.Inbox;
 using AgentX.Core.Services.Plugins.Email.Models;
@@ -24,13 +25,18 @@ public sealed class EmailTriageProcessor
     }
 
     /// <summary>
-    /// Converts an <see cref="EmailMessage"/> into the 10-parameter tuple
-    /// expected by <see cref="IInboxService.TriageExternalAsync"/>.
+    /// Converts an <see cref="EmailMessage"/> into the parameters expected by
+    /// <see cref="IInboxService.UpsertExternalAsync"/>.
     /// </summary>
+    /// <param name="message">The message to convert.</param>
+    /// <param name="settings">
+    /// The connector's sync settings; <see cref="EmailSyncSettings.IncludeAttachmentNames"/>
+    /// decides whether attachment names are indexed. Null includes them.
+    /// </param>
     public (string FileName, string FileType, string SourceType, string? SourceUrl,
             string SourcePluginId, string? SourceCategory, string ExternalId,
             string? ContentPreview, string ContentText)
-        ConvertToInboxParameters(EmailMessage message)
+        ConvertToInboxParameters(EmailMessage message, EmailSyncSettings? settings = null)
     {
         ArgumentNullException.ThrowIfNull(message);
 
@@ -38,7 +44,7 @@ public sealed class EmailTriageProcessor
         var fileType = "EmailMessage";
         var externalId = $"{message.SourceProvider}:{message.FolderId}:{message.Id}";
         var contentPreview = message.BodyPreview;
-        var contentText = ExtractSearchableContent(message);
+        var contentText = ExtractSearchableContent(message, settings);
         var category = Classify(message).ToString();
 
         return (fileName, fileType, SourceType, message.WebLink,
@@ -196,7 +202,11 @@ public sealed class EmailTriageProcessor
     /// <summary>
     /// Builds a rich text representation of the email for full-text search.
     /// </summary>
-    public string ExtractSearchableContent(EmailMessage message)
+    /// <param name="message">The message to describe.</param>
+    /// <param name="settings">
+    /// Sync settings deciding whether attachment names are indexed. Null includes them.
+    /// </param>
+    public string ExtractSearchableContent(EmailMessage message, EmailSyncSettings? settings = null)
     {
         ArgumentNullException.ThrowIfNull(message);
 
@@ -216,8 +226,9 @@ public sealed class EmailTriageProcessor
         if (message.Cc.Count > 0)
             parts.Add($"Cc: {string.Join(", ", message.Cc.Select(FormatContact))}");
 
-        // Date
-        parts.Add($"Date: {message.ReceivedAt:yyyy-MM-dd HH:mm}");
+        // Date: ISO digits and the Gregorian calendar whatever the user's culture (a Thai or
+        // Arabic culture would otherwise index years such as 2569 or 1448).
+        parts.Add(string.Create(CultureInfo.InvariantCulture, $"Date: {message.ReceivedAt:yyyy-MM-dd HH:mm} UTC"));
 
         // Folder
         parts.Add($"Folder: {message.FolderName}");
@@ -231,8 +242,9 @@ public sealed class EmailTriageProcessor
             parts.Add($"Flags: {string.Join(", ", flags)}");
 
         // Attachments
-        if (message.AttachmentNames.Count > 0)
+        if ((settings?.IncludeAttachmentNames ?? true) && message.AttachmentNames.Count > 0)
             parts.Add($"Attachments: {string.Join(", ", message.AttachmentNames)}");
+
 
         // Source provider
         parts.Add($"Source: {message.SourceProvider}");

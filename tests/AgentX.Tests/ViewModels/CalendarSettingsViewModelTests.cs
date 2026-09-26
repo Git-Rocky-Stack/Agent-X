@@ -1,9 +1,11 @@
+using System.Collections.Concurrent;
 using AgentX.App.Services;
 using AgentX.App.ViewModels;
 using AgentX.Core.Services.OAuth;
 using AgentX.Core.Services.Plugins.Calendar;
 using AgentX.Core.Services.Plugins.Calendar.Models;
 using AgentX.Core.Services.Settings;
+using AgentX.Tests.Helpers;
 using FluentAssertions;
 using Moq;
 using Serilog.Core;
@@ -131,5 +133,76 @@ public sealed class CalendarSettingsViewModelTests
         vm.HasError.Should().BeTrue();
         vm.ErrorMessage.Should().Contain("settings.json").And.Contain("restart Agent-X");
         vm.ErrorMessage.Should().NotContain("RegisterProvider");
+    }
+
+    // -- UI-thread affinity and connection status -------------------------------
+
+    private static Task<T> Later<T>(T value) => Task.Delay(5).ContinueWith(_ => value, TaskScheduler.Default);
+
+    [Fact]
+    public async Task Commands_WriteBoundPropertiesOnlyOnTheUiThread()
+    {
+        // Every service call completes on the thread pool. A command body that awaited with
+        // ConfigureAwait(false) would go on writing bound properties from there, which WinUI's
+        // x:Bind rejects (the page is left with a spinner that never stops).
+        var settings = new Mock<ISettingsService>();
+        var oauth = new Mock<IOAuthService>();
+        var calendar = new Mock<ICalendarService>();
+
+        settings.Setup(s => s.GetSettingsAsync()).Returns(() => Later(new AppSettings()));
+        oauth.Setup(o => o.GetCredentialAsync(It.IsAny<string>()))
+            .Returns(() => Later<OAuthCredential?>(new OAuthCredential { AccessToken = "a", RefreshToken = "r" }));
+        calendar.Setup(c => c.GetSyncSettingsAsync())
+            .Returns(() => Later(new CalendarSyncSettings { EnabledCalendars = { ["primary"] = true } }));
+        calendar.Setup(c => c.SyncEventsAsync(It.IsAny<CancellationToken>()))
+            .Returns(() => Later(new SyncResult { ItemsAdded = 1, CompletedAt = DateTime.UtcNow }));
+
+        var vm = new CalendarSettingsViewModel(
+            settings.Object, oauth.Object, calendar.Object,
+            Mock.Of<IBuiltinConnectorLifecycleService>(), Logger.None);
+
+        using var ui = new SingleThreadSynchronizationContext();
+        var offThreadWrites = new ConcurrentQueue<string>();
+        vm.PropertyChanged += (_, e) =>
+        {
+            if (Environment.CurrentManagedThreadId != ui.ThreadId)
+                offThreadWrites.Enqueue(e.PropertyName ?? "?");
+        };
+
+        await ui.RunAsync(() => vm.InitializeAsync());
+        await ui.RunAsync(() => vm.SyncNowCommand.ExecuteAsync(null));
+
+        offThreadWrites.Should().BeEmpty();
+        vm.IsGoogleConnected.Should().BeTrue();
+        vm.SyncStatusText.Should().Contain("Added 1");
+        vm.IsSyncing.Should().BeFalse();
+    }
+
+    [Fact]
+    public void DescribeConnection_ACredentialWithoutRefreshToken_NeedsAReconnect()
+    {
+        CalendarSettingsViewModel.DescribeConnection(null)
+            .Should().Be((false, "Not connected"));
+        CalendarSettingsViewModel.DescribeConnection(new OAuthCredential { AccessToken = "a", RefreshToken = "" })
+            .Should().Be((false, "Reconnect required"));
+        CalendarSettingsViewModel.DescribeConnection(new OAuthCredential { AccessToken = "a", RefreshToken = "r" })
+            .Should().Be((true, "Connected"));
+    }
+
+    [Fact]
+    public async Task ConnectMicrosoftCommand_AsksForOfflineAccess()
+    {
+        var oauth = new Mock<IOAuthService>();
+        var vm = new CalendarSettingsViewModel(
+            Mock.Of<ISettingsService>(), oauth.Object, Mock.Of<ICalendarService>(),
+            Mock.Of<IBuiltinConnectorLifecycleService>(), Logger.None);
+
+        await vm.ConnectMicrosoftCommand.ExecuteAsync(null);
+
+        oauth.Verify(o => o.AuthorizeAsync(
+            "microsoft",
+            It.Is<string?>(scopes => scopes != null && scopes.Split(' ', StringSplitOptions.None).Contains("offline_access")),
+            It.IsAny<string?>(),
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 }

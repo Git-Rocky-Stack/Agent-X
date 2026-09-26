@@ -1734,9 +1734,6 @@
   <data name="EmailSet_SyncIntervalMinutes.Text" xml:space="preserve"><value>Intervalle de synchronisation (minutes)</value></data>
   <data name="EmailSet_MaxMessagesPerSync.Text" xml:space="preserve"><value>Messages max. par synchronisation</value></data>
   <data name="EmailSet_SyncDaysBack.Text" xml:space="preserve"><value>Jours à synchroniser en arrière</value></data>
-  <data name="EmailSet_AiEmailCategorization.Header" xml:space="preserve"><value>Catégorisation des e-mails par IA</value></data>
-  <data name="EmailSet_AiEmailCategorization.OffContent" xml:space="preserve"><value>Désactivée</value></data>
-  <data name="EmailSet_AiEmailCategorization.OnContent" xml:space="preserve"><value>Activée</value></data>
   <data name="EmailSet_IncludeAttachmentNamesIn.Header" xml:space="preserve"><value>Inclure les noms des pièces jointes dans l'index de recherche</value></data>
   <data name="EmailSet_IncludeAttachmentNamesIn.OffContent" xml:space="preserve"><value>Exclure</value></data>
   <data name="EmailSet_IncludeAttachmentNamesIn.OnContent" xml:space="preserve"><value>Inclure</value></data>
