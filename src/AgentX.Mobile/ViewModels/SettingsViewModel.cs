@@ -105,7 +105,8 @@ public sealed partial class SettingsViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Hits GET /api/health on the current URL to verify connectivity.
+    /// Hits GET /api/health with the URL and token currently on screen to verify connectivity
+    /// and pairing, without applying them.
     /// </summary>
     [RelayCommand]
     private async Task TestConnectionAsync(CancellationToken ct = default)
@@ -113,31 +114,29 @@ public sealed partial class SettingsViewModel : ObservableObject
         IsTesting = true;
         TestSucceeded = false;
         TestFailed = false;
-        ConnectionStatus = "Testing connection…";
+        ConnectionStatus = "Testing connection...";
         HealthInfo = null;
 
         try
         {
-            // Apply the current field values for the test even if not yet saved
-            var testUrl = ApiUrl.Trim().TrimEnd('/');
-            _api.SetBaseUrl(testUrl);
-            _api.SetToken(ApiToken?.Trim());
+            // Probe the unsaved field values with a throwaway client. Re-pointing the shared client
+            // here left every page on an unsaved URL and token until the app restarted.
+            using var probe = new AgentXApiClient(ApiUrl.Trim().TrimEnd('/'), ApiToken?.Trim());
+            var result = await probe.GetHealthAsync(ct).ConfigureAwait(true);
 
-            var health = await _api.GetHealthAsync(ct).ConfigureAwait(true);
-
-            if (health is not null)
+            if (result.IsSuccess && result.Data is { } health)
             {
                 HealthInfo = health;
                 TestSucceeded = true;
                 ConnectionStatus =
-                    $"Connected — Agent-X v{health.Version}, " +
+                    $"Connected to Agent-X v{health.Version}: " +
                     $"{health.DocumentCount:N0} docs, " +
                     $"{health.ConversationCount:N0} conversations.";
             }
             else
             {
                 TestFailed = true;
-                ConnectionStatus = "Connection failed. Ensure Agent-X is running, the URL is correct, and the API token matches AgentX → Settings → Connections.";
+                ConnectionStatus = result.ErrorMessage ?? "Connection failed.";
             }
         }
         catch (ArgumentException ex)

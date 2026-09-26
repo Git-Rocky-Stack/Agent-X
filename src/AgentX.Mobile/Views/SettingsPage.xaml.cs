@@ -1,4 +1,3 @@
-using CommunityToolkit.Maui.Converters;
 using AgentX.Mobile.ViewModels;
 
 namespace AgentX.Mobile.Views;
@@ -13,11 +12,6 @@ public sealed partial class SettingsPage : ContentPage
     {
         InitializeComponent();
         BindingContext = vm;
-
-        // Converters referenced by this page's XAML
-        Resources.Add("InvertedBoolConverter", new InvertedBoolConverter());
-        Resources.Add("StringNotEmptyConverter", new IsStringNotNullOrEmptyConverter());
-        Resources.Add("IsNotNullConverter", new IsNotNullConverter());
     }
 
     protected override void OnAppearing()

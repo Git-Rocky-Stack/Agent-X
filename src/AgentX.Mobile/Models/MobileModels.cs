@@ -15,6 +15,56 @@ public sealed class ApiResponse<T>
     public DateTime Timestamp { get; init; }
 }
 
+// --- Client call results ---
+
+/// <summary>How a call to the desktop API ended.</summary>
+public enum ApiStatus
+{
+    /// <summary>The call succeeded and <see cref="ApiResult{T}.Data"/> holds the payload.</summary>
+    Ok,
+
+    /// <summary>The desktop answered 404 (unknown item, or a route this desktop build lacks).</summary>
+    NotFound,
+
+    /// <summary>The desktop rejected the bearer token (401/403): unpaired, or the token was regenerated.</summary>
+    Unauthorized,
+
+    /// <summary>No HTTP answer at all: not running, wrong URL, blocked, or timed out.</summary>
+    Unreachable,
+
+    /// <summary>The desktop answered with a server error or a response the app cannot read.</summary>
+    Error,
+}
+
+/// <summary>
+/// Result of one desktop API call. Failures are reported as a status plus a user-facing message
+/// instead of an empty list, so an unpaired app no longer claims "No documents found".
+/// </summary>
+public sealed class ApiResult<T>
+{
+    private ApiResult(ApiStatus status, T? data, string? errorMessage)
+    {
+        Status = status;
+        Data = data;
+        ErrorMessage = errorMessage;
+    }
+
+    public ApiStatus Status { get; }
+
+    /// <summary>The payload; set only when <see cref="IsSuccess"/> is true.</summary>
+    public T? Data { get; }
+
+    /// <summary>A message to show the user; null on success.</summary>
+    public string? ErrorMessage { get; }
+
+    public bool IsSuccess => Status == ApiStatus.Ok;
+
+    public static ApiResult<T> Ok(T data) => new(ApiStatus.Ok, data, null);
+
+    public static ApiResult<T> Failure(ApiStatus status, string? errorMessage) =>
+        new(status, default, errorMessage ?? "The request failed.");
+}
+
 // ── Document ─────────────────────────────────────────────────────────────────
 
 /// <summary>

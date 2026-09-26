@@ -48,10 +48,19 @@ public sealed partial class DocumentsViewModel : ObservableObject
 
         try
         {
-            var docs = await _api.GetDocumentsAsync(ct).ConfigureAwait(true);
+            var result = await _api.GetDocumentsAsync(ct).ConfigureAwait(true);
+            if (!result.IsSuccess)
+            {
+                // Say why (not paired, unreachable, server error) instead of showing the
+                // "No documents found" empty state for what is really a failure.
+                HasError = true;
+                ErrorMessage = result.ErrorMessage ?? "Could not load documents.";
+                IsEmpty = false;
+                return;
+            }
 
             Documents.Clear();
-            foreach (var doc in docs)
+            foreach (var doc in result.Data!)
                 Documents.Add(doc);
 
             IsEmpty = Documents.Count == 0;

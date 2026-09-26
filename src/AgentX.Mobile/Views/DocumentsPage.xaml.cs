@@ -15,9 +15,6 @@ public sealed partial class DocumentsPage : ContentPage
         InitializeComponent();
         _vm = vm;
         BindingContext = vm;
-
-        // Register the inverted bool converter referenced in XAML
-        Resources.Add("InvertedBoolConverter", new CommunityToolkit.Maui.Converters.InvertedBoolConverter());
     }
 
     /// <inheritdoc/>

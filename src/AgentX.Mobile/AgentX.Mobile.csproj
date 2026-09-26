@@ -47,6 +47,12 @@
     <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#FFFFFF" BaseSize="128,128" />
   </ItemGroup>
 
+  <!-- Tab bar icons referenced by AppShell.xaml (tab_*.png). MAUI has no default glob for images:
+       each single-color 24x24 SVG here is rendered by the resizetizer to a PNG of the same name. -->
+  <ItemGroup>
+    <MauiImage Include="Resources\Images\*.svg" />
+  </ItemGroup>
+
   <!-- MAUI resource inclusions -->
   <ItemGroup>
     <MauiXaml Update="App.xaml">

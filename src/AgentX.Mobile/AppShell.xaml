@@ -10,9 +10,9 @@
     <!--
         Shell.TabBar hosts the four primary tabs.
         Each ShellContent is backed by a ContentPage from the Views namespace.
-        The Icon values use standard SF Symbols (iOS) / Material Design (Android);
-        MAUI resolves the correct platform glyph automatically when you place
-        platform-specific icon files in Resources/Images.
+        The tab icons are the single-color SVGs in Resources/Images (MauiImage items in
+        AgentX.Mobile.csproj); the resizetizer renders each one to a PNG of the same name,
+        which is why the references below say .png. The tab bar tints them.
     -->
 
     <TabBar>

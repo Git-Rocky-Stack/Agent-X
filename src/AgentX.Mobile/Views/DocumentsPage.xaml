@@ -12,7 +12,6 @@
     <ContentPage.ToolbarItems>
         <ToolbarItem
             Text="Refresh"
-            IconImageSource="icon_refresh.png"
             Command="{Binding LoadCommand}" />
     </ContentPage.ToolbarItems>
 

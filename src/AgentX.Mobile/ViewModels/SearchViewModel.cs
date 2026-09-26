@@ -69,9 +69,16 @@ public sealed partial class SearchViewModel : ObservableObject
 
         try
         {
-            var results = await _api.SearchAsync(Query, topK: 20, ct: ct).ConfigureAwait(true);
+            var result = await _api.SearchAsync(Query, topK: 20, ct: ct).ConfigureAwait(true);
+            if (!result.IsSuccess)
+            {
+                // Say why (not paired, unreachable, server error) instead of "No results found".
+                HasError = true;
+                ErrorMessage = result.ErrorMessage ?? "Search failed.";
+                return;
+            }
 
-            foreach (var r in results)
+            foreach (var r in result.Data!)
                 Results.Add(r);
 
             HasSearched = true;

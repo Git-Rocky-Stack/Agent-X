@@ -2,10 +2,19 @@
 <Application
     x:Class="AgentX.Mobile.App"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit">
 
     <Application.Resources>
         <ResourceDictionary>
+
+            <!-- Converters used by the pages. They must be declared here (or in a page's own
+                 XAML resources): a StaticResource is resolved while the page's InitializeComponent
+                 runs, so keys added from code-behind afterwards crashed every page on load with
+                 "StaticResource not found". -->
+            <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
+            <toolkit:IsStringNotNullOrEmptyConverter x:Key="StringNotEmptyConverter" />
+            <toolkit:IsNotNullConverter x:Key="IsNotNullConverter" />
 
             <!-- ── Brand palette ─────────────────────────────────────── -->
             <Color x:Key="BrandPrimary">#6366F1</Color>

@@ -15,8 +15,6 @@ public sealed partial class ConversationsPage : ContentPage
         InitializeComponent();
         _vm = vm;
         BindingContext = vm;
-
-        Resources.Add("InvertedBoolConverter", new CommunityToolkit.Maui.Converters.InvertedBoolConverter());
     }
 
     /// <inheritdoc/>

@@ -16,14 +16,11 @@ public static class MauiProgram
     {
         var builder = MauiApp.CreateBuilder();
 
+        // No custom fonts are registered: the app ships none (the OpenSans registrations pointed at
+        // files that never existed), and the pages use the platform default face.
         builder
             .UseMauiApp<App>()
-            .UseMauiCommunityToolkit()
-            .ConfigureFonts(fonts =>
-            {
-                fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-                fonts.AddFont("OpenSans-SemiBold.ttf", "OpenSansSemiBold");
-            });
+            .UseMauiCommunityToolkit();
 
 #if DEBUG
         builder.Logging.AddDebug();
@@ -38,7 +35,10 @@ public static class MauiProgram
         builder.Services.AddSingleton<AgentXApiClient>(sp =>
         {
             var settings = sp.GetRequiredService<SettingsService>();
-            return new AgentXApiClient(settings.ApiUrl);
+
+            // The client awaits the persisted pairing token (secure storage) before its first
+            // request, so a page that loads during startup is never sent unauthenticated.
+            return new AgentXApiClient(settings.ApiUrl, persistedTokenLoader: settings.GetApiTokenAsync);
         });
 
         // ── View-Models ───────────────────────────────────────────────────────
