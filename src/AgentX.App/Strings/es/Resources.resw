@@ -2053,4 +2053,5 @@
   <data name="Chat_DeleteConversationConfirm" xml:space="preserve"><value>Eliminar</value></data>
   <data name="Chat_DeleteConversationCancel" xml:space="preserve"><value>Cancelar</value></data>
   <data name="ExportDlg_Close" xml:space="preserve"><value>Cerrar</value></data>
+  <data name="Settings_SaveError.Title" xml:space="preserve"><value>No se guardó la configuración</value></data>
 </root>

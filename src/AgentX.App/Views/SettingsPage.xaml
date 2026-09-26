@@ -608,13 +608,17 @@
             <!-- ════════════════════════════════════════════════════════
                  ACTIONS
                  ════════════════════════════════════════════════════════ -->
-            <Grid Grid.Row="11" ColumnSpacing="12">
+            <Grid Grid.Row="11" ColumnSpacing="12" RowSpacing="12">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
 
                 <Button x:Uid="Settings_SaveSettings" Content="Save Settings"
                         Style="{StaticResource AccentButtonStyle}"
@@ -631,6 +635,13 @@
                     <Run Text="Agent-X v" />
                     <Run Text="{x:Bind ViewModel.AppVersion, Mode=OneWay}" />
                 </TextBlock>
+
+                <InfoBar Grid.Row="1" Grid.ColumnSpan="4"
+                         x:Uid="Settings_SaveError" Title="Settings were not saved"
+                         Severity="Error"
+                         IsOpen="{x:Bind ViewModel.HasSaveError, Mode=TwoWay}"
+                         Message="{x:Bind ViewModel.SaveErrorMessage, Mode=OneWay}"
+                         IsClosable="True" />
             </Grid>
 
         </Grid>

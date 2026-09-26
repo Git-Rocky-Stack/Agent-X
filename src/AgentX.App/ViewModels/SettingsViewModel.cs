@@ -117,6 +117,11 @@ public partial class SettingsViewModel : ObservableObject
     // Single source (assembly version) instead of a hardcoded string (AX-QA-014).
     [ObservableProperty] private string _appVersion = AgentX.Core.AppVersionInfo.Display;
 
+    // Save outcome: the settings service rejects invalid values (for example a chunk overlap
+    // that is not smaller than the chunk size) and writes nothing, so the page must say why.
+    [ObservableProperty] private bool _hasSaveError;
+    [ObservableProperty] private string _saveErrorMessage = string.Empty;
+
     /// <summary>
     /// Provider display names for the ComboBox items, in <see cref="ProviderChoices"/> order
     /// (the built-in model first, since it is the default provider).
@@ -288,7 +293,20 @@ public partial class SettingsViewModel : ObservableObject
         if (!string.IsNullOrWhiteSpace(LocalApiToken))
             settings.LocalApiToken = LocalApiToken;
 
-        await _settingsService.SaveSettingsAsync(settings);
+        HasSaveError = false;
+        try
+        {
+            await _settingsService.SaveSettingsAsync(settings);
+        }
+        catch (SettingsValidationException ex)
+        {
+            // Nothing was written. Without this the exception reached the global handler and
+            // the page looked saved.
+            SaveErrorMessage = ex.Message;
+            HasSaveError = true;
+            Log.Warning(ex, "Settings were not saved because a value is invalid");
+            return;
+        }
 
         // Turning the Local API on or off takes effect now, not on the next launch.
         await ApplyLocalApiSettingsAsync();
