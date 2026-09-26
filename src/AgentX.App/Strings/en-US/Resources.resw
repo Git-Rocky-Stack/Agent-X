@@ -2166,4 +2166,5 @@
   <data name="Chat_DeleteConversationBody" xml:space="preserve"><value>"{0}" and all of its messages will be permanently deleted. Branches made from it are kept.</value></data>
   <data name="Chat_DeleteConversationConfirm" xml:space="preserve"><value>Delete</value></data>
   <data name="Chat_DeleteConversationCancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="ExportDlg_Close" xml:space="preserve"><value>Close</value></data>
 </root>

@@ -2056,4 +2056,5 @@
   <data name="Chat_DeleteConversationBody" xml:space="preserve"><value>"{0}" und alle zugehörigen Nachrichten werden endgültig gelöscht. Daraus erstellte Zweige bleiben erhalten.</value></data>
   <data name="Chat_DeleteConversationConfirm" xml:space="preserve"><value>Löschen</value></data>
   <data name="Chat_DeleteConversationCancel" xml:space="preserve"><value>Abbrechen</value></data>
+  <data name="ExportDlg_Close" xml:space="preserve"><value>Schließen</value></data>
 </root>

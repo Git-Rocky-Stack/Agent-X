@@ -2056,4 +2056,5 @@
   <data name="Chat_DeleteConversationBody" xml:space="preserve"><value>« {0} » et tous ses messages seront définitivement supprimés. Les branches créées à partir de celle-ci sont conservées.</value></data>
   <data name="Chat_DeleteConversationConfirm" xml:space="preserve"><value>Supprimer</value></data>
   <data name="Chat_DeleteConversationCancel" xml:space="preserve"><value>Annuler</value></data>
+  <data name="ExportDlg_Close" xml:space="preserve"><value>Fermer</value></data>
 </root>

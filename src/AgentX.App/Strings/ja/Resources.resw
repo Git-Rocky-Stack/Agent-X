@@ -2056,4 +2056,5 @@
   <data name="Chat_DeleteConversationBody" xml:space="preserve"><value>「{0}」とそのすべてのメッセージは完全に削除されます。この会話から作成したブランチは残ります。</value></data>
   <data name="Chat_DeleteConversationConfirm" xml:space="preserve"><value>削除</value></data>
   <data name="Chat_DeleteConversationCancel" xml:space="preserve"><value>キャンセル</value></data>
+  <data name="ExportDlg_Close" xml:space="preserve"><value>閉じる</value></data>
 </root>

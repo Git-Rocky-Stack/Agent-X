@@ -1,5 +1,6 @@
 using AgentX.App.ViewModels;
 using AgentX.Core.Services.Export.Models;
+using AgentX.Core.Services.Localization;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
@@ -68,7 +69,12 @@ public sealed partial class ExportDialog : ContentDialog
 
     private async void OnPrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
     {
+        // The dialog stays open: the export's result is shown in the InfoBar, which the dialog
+        // used to close over as soon as the export returned. The operator closes it after
+        // reading the result (and can retry a failed export in place).
+        args.Cancel = true;
         var deferral = args.GetDeferral();
+        IsPrimaryButtonEnabled = false;
         try
         {
             var format = (ExportFormat)FormatCombo.SelectedItem!;
@@ -101,14 +107,22 @@ public sealed partial class ExportDialog : ContentDialog
                 }
                 else
                 {
-                    StatusInfoBar.Severity = _viewModel.StatusMessage.StartsWith("Export failed")
+                    var failed = _viewModel.StatusMessage.StartsWith("Export failed");
+                    StatusInfoBar.Severity = failed
                         ? InfoBarSeverity.Error
                         : InfoBarSeverity.Success;
+
+                    if (!failed)
+                    {
+                        // Nothing is left to cancel once the file is written.
+                        CloseButtonText = App.GetService<ILocalizationService>().GetString("ExportDlg_Close");
+                    }
                 }
             }
         }
         finally
         {
+            IsPrimaryButtonEnabled = true;
             deferral.Complete();
         }
     }
