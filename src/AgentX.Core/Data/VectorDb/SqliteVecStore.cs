@@ -178,6 +178,7 @@ public sealed class SqliteVecStore : IVectorStore
 
         // Load all embeddings from the database and compute cosine similarity in C#.
         var candidates = new List<VectorSearchResult>();
+        var mismatchedRows = 0;
 
         const string sql = "SELECT chunk_id, embedding, magnitude FROM vec_embeddings;";
 
@@ -198,12 +199,11 @@ public sealed class SqliteVecStore : IVectorStore
 
             var storedEmbedding = DeserializeEmbedding(blob);
 
-            // Ensure dimension compatibility.
+            // Ensure dimension compatibility. Rows from another embedding model are counted and
+            // reported once per search instead of one warning per row.
             if (storedEmbedding.Length != queryEmbedding.Length)
             {
-                _logger.Warning(
-                    "Dimension mismatch for chunk {ChunkId}: stored={StoredDims}, query={QueryDims}. Skipping.",
-                    chunkId, storedEmbedding.Length, queryEmbedding.Length);
+                mismatchedRows++;
                 continue;
             }
 
@@ -227,6 +227,13 @@ public sealed class SqliteVecStore : IVectorStore
             .Take(topK)
             .ToList()
             .AsReadOnly();
+
+        if (mismatchedRows > 0)
+        {
+            _logger.Warning(
+                "Skipped {Count} stored embeddings whose size differs from the {QueryDims}-dimension query (another embedding model); re-index those documents",
+                mismatchedRows, queryEmbedding.Length);
+        }
 
         _logger.Debug("Search returned {Count} results (from {Total} candidates above threshold)",
             results.Count, candidates.Count);

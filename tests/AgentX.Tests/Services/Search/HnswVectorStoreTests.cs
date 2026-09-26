@@ -623,4 +623,97 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
         var count = await store.GetEmbeddingCountAsync();
         count.Should().Be(1);
     }
+
+    // Embedding-size changes (a new embedding model)
+
+    private static readonly float[] Wide1 = { 1f, 0f, 0f, 0f };
+    private static readonly float[] Wide2 = { 0f, 1f, 0f, 0f };
+
+    private async Task InsertRawRowAsync(long chunkId, float[] embedding)
+    {
+        await using var conn = new SqliteConnection($"Data Source={Path.Combine(_tempPath, "agentx.db")}");
+        await conn.OpenAsync();
+        await using var cmd = conn.CreateCommand();
+        cmd.CommandText = """
+            CREATE TABLE IF NOT EXISTS vec_embeddings (chunk_id INTEGER PRIMARY KEY, embedding BLOB NOT NULL, magnitude REAL NOT NULL);
+            INSERT OR REPLACE INTO vec_embeddings (chunk_id, embedding, magnitude) VALUES (@id, @e, @m);
+            """;
+        cmd.Parameters.AddWithValue("@id", chunkId);
+        cmd.Parameters.AddWithValue("@e", SqliteVecStore.SerializeEmbedding(embedding));
+        cmd.Parameters.AddWithValue("@m", SqliteVecStore.ComputeMagnitude(embedding));
+        await cmd.ExecuteNonQueryAsync();
+    }
+
+    [Fact]
+    public async Task Initialize_with_rows_of_another_size_skips_them_instead_of_failing()
+    {
+        // Rows from an earlier embedding model (4 dims) next to current rows (3 dims): the old
+        // rebuild fed both into one index and threw, leaving the store unusable on every start.
+        await InsertRawRowAsync(1, Vector1);
+        await InsertRawRowAsync(2, Wide1);
+        await InsertRawRowAsync(3, Vector2);
+        SqliteConnection.ClearAllPools();
+
+        await using var store = CreateStore(dimensions: 3);
+        await store.InitializeAsync();
+
+        (await store.GetEmbeddingCountAsync()).Should().Be(3);
+        var results = await store.SearchAsync(Vector1, topK: 5, minSimilarity: 0.0);
+        results.Select(r => r.ChunkId).Should().Contain(new long[] { 1, 3 }).And.NotContain(2);
+    }
+
+    [Fact]
+    public async Task Insert_of_a_new_embedding_size_switches_the_index_before_writing_the_row()
+    {
+        await using var store = CreateStore(dimensions: 3);
+        await store.InitializeAsync();
+        await store.InsertEmbeddingAsync(1, Vector1);
+
+        // The embedding model changed: 4-dimension vectors arrive.
+        await store.InsertEmbeddingAsync(2, Wide1);
+        await store.InsertEmbeddingAsync(3, Wide2);
+
+        (await store.GetEmbeddingCountAsync()).Should().Be(3);
+
+        var wide = await store.SearchAsync(Wide1, topK: 1, minSimilarity: 0.99);
+        wide.Should().ContainSingle().Which.ChunkId.Should().Be(2);
+
+        // A query from the previous model is answered by the linear scan instead of throwing.
+        var narrow = await store.SearchAsync(Vector1, topK: 5, minSimilarity: 0.99);
+        narrow.Should().ContainSingle().Which.ChunkId.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task Restart_after_a_model_change_rebuilds_the_index_for_the_current_size()
+    {
+        {
+            await using var store = CreateStore(dimensions: 3);
+            await store.InitializeAsync();
+            await store.InsertEmbeddingAsync(1, Vector1);
+            await store.OptimizeAsync(); // persist a 3-dimension index
+        }
+
+        await InsertRawRowAsync(2, Wide1);
+        SqliteConnection.ClearAllPools();
+
+        await using var reopened = CreateStore(dimensions: 4);
+        await reopened.InitializeAsync();
+
+        var results = await reopened.SearchAsync(Wide1, topK: 1, minSimilarity: 0.99);
+        results.Should().ContainSingle().Which.ChunkId.Should().Be(2);
+    }
+
+    [Fact]
+    public async Task Embeddings_wider_than_the_HNSW_limit_use_the_linear_scan()
+    {
+        var huge = new float[5000];
+        huge[0] = 1f;
+
+        await using var store = CreateStore(dimensions: 5000);
+        await store.InitializeAsync();
+        await store.InsertEmbeddingAsync(7, huge);
+
+        var results = await store.SearchAsync(huge, topK: 1, minSimilarity: 0.99);
+        results.Should().ContainSingle().Which.ChunkId.Should().Be(7);
+    }
 }
