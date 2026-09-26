@@ -627,6 +627,7 @@
   <data name="Inbox_AcceptAllBtn.Content" xml:space="preserve"><value>Aceptar todos los pendientes</value></data>
   <data name="Inbox_GeneratePreviewsBtn.Content" xml:space="preserve"><value>Generar vistas previas con IA</value></data>
   <data name="Inbox_CleanupBtn.Content" xml:space="preserve"><value>Limpiar procesados</value></data>
+  <data name="Inbox_RefreshBtn.Content" xml:space="preserve"><value>Actualizar</value></data>
   <data name="Inbox_TriageTitle.Text" xml:space="preserve"><value>CLASIFICACIÓN DE DOCUMENTOS</value></data>
   <data name="Inbox_TriageSubtitle.Text" xml:space="preserve"><value>Revise los archivos nuevos antes de que entren en su base de conocimiento. La IA sugiere colecciones y etiquetas.</value></data>
   <data name="Inbox_FocusedTitle.Text" xml:space="preserve"><value>Elemento de bandeja enfocado</value></data>

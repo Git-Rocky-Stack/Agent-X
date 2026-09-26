@@ -627,6 +627,7 @@
   <data name="Inbox_AcceptAllBtn.Content" xml:space="preserve"><value>接受全部待处理</value></data>
   <data name="Inbox_GeneratePreviewsBtn.Content" xml:space="preserve"><value>生成 AI 预览</value></data>
   <data name="Inbox_CleanupBtn.Content" xml:space="preserve"><value>清理已处理项</value></data>
+  <data name="Inbox_RefreshBtn.Content" xml:space="preserve"><value>刷新</value></data>
   <data name="Inbox_TriageTitle.Text" xml:space="preserve"><value>文档分拣</value></data>
   <data name="Inbox_TriageSubtitle.Text" xml:space="preserve"><value>在新文件进入知识库之前先行审阅。AI 会推荐合集与标签。</value></data>
   <data name="Inbox_FocusedTitle.Text" xml:space="preserve"><value>聚焦的收件项</value></data>

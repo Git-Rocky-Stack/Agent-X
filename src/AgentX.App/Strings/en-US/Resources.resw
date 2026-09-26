@@ -749,6 +749,7 @@
   <data name="Inbox_AcceptAllBtn.Content" xml:space="preserve"><value>Accept All Pending</value></data>
   <data name="Inbox_GeneratePreviewsBtn.Content" xml:space="preserve"><value>Generate AI Previews</value></data>
   <data name="Inbox_CleanupBtn.Content" xml:space="preserve"><value>Clean Up Processed</value></data>
+  <data name="Inbox_RefreshBtn.Content" xml:space="preserve"><value>Refresh</value></data>
   <data name="Inbox_TriageTitle.Text" xml:space="preserve"><value>DOCUMENT TRIAGE</value></data>
   <data name="Inbox_TriageSubtitle.Text" xml:space="preserve"><value>Review new files before they enter your knowledge base. AI suggests collections and tags.</value></data>
   <data name="Inbox_FocusedTitle.Text" xml:space="preserve"><value>Focused Inbox Item</value></data>

@@ -129,6 +129,12 @@
                             Command="{x:Bind ViewModel.CleanupProcessedCommand}"
                             Style="{StaticResource GhostButtonStyle}"
                             HorizontalAlignment="Stretch" />
+                    <!-- Items keep arriving (watch folders, web clips, connectors) while the page
+                         is open; the list otherwise reloads only on navigation. -->
+                    <Button x:Uid="Inbox_RefreshBtn" Content="Refresh"
+                            Command="{x:Bind ViewModel.RefreshCommand}"
+                            Style="{StaticResource GhostButtonStyle}"
+                            HorizontalAlignment="Stretch" />
                 </StackPanel>
             </StackPanel>
         </Border>

@@ -627,6 +627,7 @@
   <data name="Inbox_AcceptAllBtn.Content" xml:space="preserve"><value>保留中をすべて承認</value></data>
   <data name="Inbox_GeneratePreviewsBtn.Content" xml:space="preserve"><value>AI プレビューを生成</value></data>
   <data name="Inbox_CleanupBtn.Content" xml:space="preserve"><value>処理済みを整理</value></data>
+  <data name="Inbox_RefreshBtn.Content" xml:space="preserve"><value>更新</value></data>
   <data name="Inbox_TriageTitle.Text" xml:space="preserve"><value>ドキュメントの仕分け</value></data>
   <data name="Inbox_TriageSubtitle.Text" xml:space="preserve"><value>ナレッジベースに取り込む前に新しいファイルを確認します。AI がコレクションとタグを提案します。</value></data>
   <data name="Inbox_FocusedTitle.Text" xml:space="preserve"><value>フォーカス中の受信アイテム</value></data>

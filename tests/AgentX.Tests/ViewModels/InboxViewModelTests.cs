@@ -306,4 +306,28 @@ public sealed class InboxViewModelTests
         viewModel.StatusMessage.Should().Be(
             "Accepted 3 items (1 already in the vault); 1 failed and stayed pending: gone.md: file no longer exists");
     }
+
+    [Fact]
+    public async Task RefreshCommand_picks_up_items_that_arrived_while_the_page_was_open()
+    {
+        _inboxService.SetupSequence(service => service.GetAllItemsAsync("pending", 0, 100))
+            .ReturnsAsync(Array.Empty<InboxItemEntity>())
+            .ReturnsAsync(
+            [
+                new InboxItemEntity { Id = 3, FileName = "clip.md", FileType = "Markdown", Status = "pending", AddedAt = DateTime.UtcNow },
+            ]);
+        _inboxService.Setup(service => service.GetPendingCountAsync()).ReturnsAsync(1);
+        _collectionService.Setup(service => service.GetAllCollectionsAsync())
+            .ReturnsAsync(Array.Empty<CollectionEntity>());
+        var viewModel = new InboxViewModel(_inboxService.Object, _collectionService.Object);
+        await viewModel.InitializeAsync();
+        viewModel.HasItems.Should().BeFalse();
+
+        await viewModel.RefreshCommand.ExecuteAsync(null);
+
+        viewModel.InboxItems.Should().ContainSingle().Which.FileName.Should().Be("clip.md");
+        viewModel.HasItems.Should().BeTrue();
+        viewModel.PendingCount.Should().Be(1);
+    }
 }
+

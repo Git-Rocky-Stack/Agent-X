@@ -627,6 +627,7 @@
   <data name="Inbox_AcceptAllBtn.Content" xml:space="preserve"><value>Alle Ausstehenden übernehmen</value></data>
   <data name="Inbox_GeneratePreviewsBtn.Content" xml:space="preserve"><value>KI-Vorschauen generieren</value></data>
   <data name="Inbox_CleanupBtn.Content" xml:space="preserve"><value>Verarbeitete bereinigen</value></data>
+  <data name="Inbox_RefreshBtn.Content" xml:space="preserve"><value>Aktualisieren</value></data>
   <data name="Inbox_TriageTitle.Text" xml:space="preserve"><value>DOKUMENTEN-TRIAGE</value></data>
   <data name="Inbox_TriageSubtitle.Text" xml:space="preserve"><value>Prüfen Sie neue Dateien, bevor sie in Ihre Wissensbasis aufgenommen werden. Die KI schlägt Sammlungen und Tags vor.</value></data>
   <data name="Inbox_FocusedTitle.Text" xml:space="preserve"><value>Fokussiertes Posteingangselement</value></data>

@@ -627,6 +627,7 @@
   <data name="Inbox_AcceptAllBtn.Content" xml:space="preserve"><value>Tout accepter</value></data>
   <data name="Inbox_GeneratePreviewsBtn.Content" xml:space="preserve"><value>Générer les aperçus IA</value></data>
   <data name="Inbox_CleanupBtn.Content" xml:space="preserve"><value>Nettoyer les éléments traités</value></data>
+  <data name="Inbox_RefreshBtn.Content" xml:space="preserve"><value>Actualiser</value></data>
   <data name="Inbox_TriageTitle.Text" xml:space="preserve"><value>TRI DES DOCUMENTS</value></data>
   <data name="Inbox_TriageSubtitle.Text" xml:space="preserve"><value>Examinez les nouveaux fichiers avant leur entrée dans votre base de connaissances. L'IA suggère des collections et des étiquettes.</value></data>
   <data name="Inbox_FocusedTitle.Text" xml:space="preserve"><value>Élément de boîte de réception ciblé</value></data>
