@@ -75,12 +75,6 @@ public sealed class KeywordSearchService : IKeywordSearchService
             return;
         }
 
-        if (document.Chunks.Count == 0)
-        {
-            _logger.Debug("Document {DocumentId} has no chunks; nothing to index in FTS", documentId);
-            return;
-        }
-
         var connection = _db.Database.GetDbConnection();
         await EnsureConnectionOpenAsync(connection, ct);
 
@@ -89,6 +83,19 @@ public sealed class KeywordSearchService : IKeywordSearchService
 
         try
         {
+            // Replace, never append: clear the document's existing rows inside the same
+            // transaction so re-indexing (or retrying) a document cannot leave a second copy
+            // of its text behind. Keyword hits carry the indexed text straight into search
+            // results and RAG prompts, so a stale row is stale content. A document that now
+            // has no chunks ends up with no rows at all.
+            using (var deleteCmd = connection.CreateCommand())
+            {
+                deleteCmd.Transaction = transaction;
+                deleteCmd.CommandText = "DELETE FROM fts_chunks WHERE document_id = @documentId;";
+                deleteCmd.Parameters.Add(CreateParameter(deleteCmd, "@documentId", documentId.ToString()));
+                await deleteCmd.ExecuteNonQueryAsync(ct);
+            }
+
             foreach (var chunk in document.Chunks.OrderBy(c => c.ChunkIndex))
             {
                 ct.ThrowIfCancellationRequested();

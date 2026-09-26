@@ -427,19 +427,21 @@ public sealed class IndexingService : IIndexingService
             var chunks = _chunkingService.ChunkDocument(processed, chunkSize, chunkOverlap);
             _logger.Debug("Generated {ChunkCount} chunks for document {DocumentId}", chunks.Count, documentId);
 
-            // 5. Delete any existing chunks (in case of re-index)
+            // 5. Delete any existing index data (in case of re-index). FTS rows are cleared
+            //    even when the document has no chunks: a re-index requested through
+            //    DocumentService removes the chunks first, and the rows of the previous
+            //    version must not survive to be served next to the new ones.
+            try
+            {
+                await _keywordSearchService.RemoveDocumentFromFtsAsync(documentId, ct);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                _logger.Warning(ex, "Failed to remove document {DocumentId} from FTS5 during re-index", documentId);
+            }
+
             if (document.Chunks.Count > 0)
             {
-                // Remove from FTS5 first (non-fatal)
-                try
-                {
-                    await _keywordSearchService.RemoveDocumentFromFtsAsync(documentId, ct);
-                }
-                catch (Exception ex)
-                {
-                    _logger.Warning(ex, "Failed to remove document {DocumentId} from FTS5 during re-index", documentId);
-                }
-
                 var existingEmbeddedIds = document.Chunks
                     .Where(c => c.IsEmbedded && c.VectorRowId.HasValue)
                     .Select(c => c.Id)
@@ -541,8 +543,9 @@ public sealed class IndexingService : IIndexingService
             RaiseProgressChanged(queueLength, _processedCount, null);
             DocumentIndexed?.Invoke(this, documentId);
 
-            // Invalidate cached search results that reference this document
-            _searchCacheService?.InvalidateForDocument(documentId);
+            // Any cached result set may now be stale: entries that referenced this document
+            // hold its old chunks, and every other entry was computed without the new text.
+            _searchCacheService?.InvalidateAll();
 
             // Auto-tag the document (non-fatal — must not block the indexing pipeline)
             try

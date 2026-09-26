@@ -200,6 +200,54 @@ public sealed class KeywordSearchServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Index_twice_replaces_the_rows_instead_of_duplicating_them()
+    {
+        // A re-index (or retry) must not leave a second copy of the text in the index:
+        // duplicate rows mean duplicate keyword hits for the same chunk.
+        await _service.InitializeFtsAsync();
+        var doc = SeedDocument("twice.pdf", chunkContents: new[] { "alpha content", "bravo content" });
+
+        await _service.IndexDocumentChunksAsync(doc.Id);
+        await _service.IndexDocumentChunksAsync(doc.Id);
+
+        (await CountFtsRowsAsync(doc.Id)).Should().Be(2);
+    }
+
+    [Fact]
+    public async Task Index_after_chunks_are_replaced_drops_the_previous_versions_text()
+    {
+        await _service.InitializeFtsAsync();
+        var doc = SeedDocument("versioned.pdf", chunkContents: new[] { "obsolete wording here" });
+        await _service.IndexDocumentChunksAsync(doc.Id);
+
+        // Simulate a re-index: the old chunks are deleted and new ones written.
+        _db.DocumentChunks.RemoveRange(_db.DocumentChunks.Where(c => c.DocumentId == doc.Id));
+        _db.DocumentChunks.Add(new DocumentChunkEntity { DocumentId = doc.Id, ChunkIndex = 0, Content = "current wording" });
+        _db.SaveChanges();
+
+        await _service.IndexDocumentChunksAsync(doc.Id);
+
+        (await CountFtsRowsAsync(doc.Id)).Should().Be(1);
+        (await _service.SearchAsync(Q("obsolete"))).Should().BeEmpty();
+        (await _service.SearchAsync(Q("current"))).Should().ContainSingle();
+    }
+
+    [Fact]
+    public async Task Index_document_that_now_has_no_chunks_clears_its_old_rows()
+    {
+        await _service.InitializeFtsAsync();
+        var doc = SeedDocument("emptied.pdf", chunkContents: new[] { "text that goes away" });
+        await _service.IndexDocumentChunksAsync(doc.Id);
+
+        _db.DocumentChunks.RemoveRange(_db.DocumentChunks.Where(c => c.DocumentId == doc.Id));
+        _db.SaveChanges();
+
+        await _service.IndexDocumentChunksAsync(doc.Id);
+
+        (await CountFtsRowsAsync(doc.Id)).Should().Be(0);
+    }
+
+    [Fact]
     public async Task Index_precanceled_token_throws_OCE_and_persists_nothing()
     {
         await _service.InitializeFtsAsync();

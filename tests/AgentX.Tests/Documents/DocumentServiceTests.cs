@@ -5,6 +5,8 @@ using AgentX.Core.Data.VectorDb;
 using AgentX.Core.Documents;
 using AgentX.Core.Documents.Models;
 using AgentX.Core.Helpers;
+using AgentX.Core.Search;
+using AgentX.Core.Services.Search;
 using AgentX.Core.Services.Settings;
 using AgentX.Tests.Helpers;
 using FluentAssertions;
@@ -57,6 +59,8 @@ public sealed class DocumentServiceTests : IDisposable
         public AgentXDbContext Db { get; }
         public StubProcessor Processor { get; }
         public Mock<IVectorStore> VectorStore { get; } = new();
+        public Mock<IKeywordSearchService> KeywordSearch { get; } = new();
+        public Mock<ISearchCacheService> SearchCache { get; } = new();
         public Mock<ISettingsService> Settings { get; } = new();
         public Mock<ILogger> Logger { get; } = new();
         public DocumentService Service { get; }
@@ -76,7 +80,9 @@ public sealed class DocumentServiceTests : IDisposable
                 procList,
                 Settings.Object,
                 Logger.Object,
-                withVectorStore ? VectorStore.Object : null);
+                withVectorStore ? VectorStore.Object : null,
+                KeywordSearch.Object,
+                SearchCache.Object);
         }
 
         /// <summary>Writes a real file into the per-test temp directory and returns its full path.</summary>
@@ -1095,6 +1101,77 @@ public sealed class DocumentServiceTests : IDisposable
         h.VectorStore.Verify(
             v => v.DeleteEmbeddingsForDocumentAsync(It.IsAny<long>(), It.IsAny<IReadOnlyList<long>>(), It.IsAny<CancellationToken>()),
             Times.Never);
+    }
+
+    [Fact]
+    public async Task DeleteDocumentAsync_RemovesKeywordRowsAndInvalidatesCachedResults()
+    {
+        // Keyword hits carry their indexed text into RAG context, so a delete that leaves
+        // FTS rows (or cached result sets) behind keeps serving the deleted text.
+        var h = NewHarness();
+        long id = 0;
+        h.Seed(ctx =>
+        {
+            var d = NewDoc();
+            ctx.Documents.Add(d);
+            ctx.SaveChanges();
+            id = d.Id;
+        });
+
+        await h.Service.DeleteDocumentAsync(id);
+
+        h.KeywordSearch.Verify(k => k.RemoveDocumentFromFtsAsync(id, It.IsAny<CancellationToken>()), Times.Once);
+        h.SearchCache.Verify(c => c.InvalidateForDocument(id), Times.Once);
+    }
+
+    [Fact]
+    public async Task DeleteDocumentAsync_KeywordIndexThrows_StillDeletes()
+    {
+        var h = NewHarness();
+        h.KeywordSearch
+            .Setup(k => k.RemoveDocumentFromFtsAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("fts down"));
+        long id = 0;
+        h.Seed(ctx =>
+        {
+            var d = NewDoc();
+            ctx.Documents.Add(d);
+            ctx.SaveChanges();
+            id = d.Id;
+        });
+
+        await h.Service.DeleteDocumentAsync(id);
+
+        using var fresh = h.Fresh();
+        (await fresh.Documents.CountAsync()).Should().Be(0);
+    }
+
+    [Fact]
+    public async Task DeleteDocumentAsync_RemovesChunksAndLinksEvenWhenTheDocumentWasLoadedWithoutThem()
+    {
+        var h = NewHarness();
+        long id = 0;
+        long collectionId = 0;
+        h.Seed(ctx =>
+        {
+            var d = NewDoc();
+            var c = new CollectionEntity { Name = "Research", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+            ctx.Documents.Add(d);
+            ctx.Collections.Add(c);
+            ctx.SaveChanges();
+            id = d.Id;
+            collectionId = c.Id;
+            ctx.DocumentChunks.Add(new DocumentChunkEntity { DocumentId = id, ChunkIndex = 0, Content = "c0" });
+            ctx.DocumentCollections.Add(new DocumentCollectionEntity { DocumentId = id, CollectionId = collectionId, AddedAt = DateTime.UtcNow });
+            ctx.SaveChanges();
+        });
+
+        await h.Service.DeleteDocumentAsync(id);
+
+        using var fresh = h.Fresh();
+        (await fresh.DocumentChunks.CountAsync()).Should().Be(0);
+        (await fresh.DocumentCollections.CountAsync()).Should().Be(0);
+        (await fresh.Collections.CountAsync()).Should().Be(1, "only the document goes, not the collection");
     }
 
     // ═══════════════════════════════════════════════════════════════════════════

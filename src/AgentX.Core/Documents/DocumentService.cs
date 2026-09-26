@@ -3,6 +3,8 @@ using AgentX.Core.Data;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Data.VectorDb;
 using AgentX.Core.Helpers;
+using AgentX.Core.Search;
+using AgentX.Core.Services.Search;
 using AgentX.Core.Services.Settings;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -20,6 +22,8 @@ public sealed class DocumentService : IDocumentService
     private readonly IReadOnlyList<IDocumentProcessor> _processors;
     private readonly ISettingsService _settingsService;
     private readonly IVectorStore? _vectorStore;
+    private readonly IKeywordSearchService? _keywordSearchService;
+    private readonly ISearchCacheService? _searchCacheService;
     private readonly ILogger _logger;
 
     /// <summary>
@@ -32,13 +36,17 @@ public sealed class DocumentService : IDocumentService
         IEnumerable<IDocumentProcessor> processors,
         ISettingsService settingsService,
         ILogger logger,
-        IVectorStore? vectorStore = null)
+        IVectorStore? vectorStore = null,
+        IKeywordSearchService? keywordSearchService = null,
+        ISearchCacheService? searchCacheService = null)
     {
         _db = db ?? throw new ArgumentNullException(nameof(db));
         _processors = (processors ?? throw new ArgumentNullException(nameof(processors))).ToList().AsReadOnly();
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _vectorStore = vectorStore;
+        _keywordSearchService = keywordSearchService;
+        _searchCacheService = searchCacheService;
 
         _allSupportedExtensions = new Lazy<IReadOnlySet<string>>(() =>
         {
@@ -435,7 +443,6 @@ public sealed class DocumentService : IDocumentService
     public async Task DeleteDocumentAsync(long documentId)
     {
         var document = await _db.Documents
-            .Include(d => d.Chunks)
             .FirstOrDefaultAsync(d => d.Id == documentId);
 
         if (document is null)
@@ -444,34 +451,74 @@ public sealed class DocumentService : IDocumentService
             return;
         }
 
-        // Delete vector embeddings for all chunks if VectorStore is available
-        if (_vectorStore is not null && document.Chunks.Count > 0)
-        {
-            var chunkIds = document.Chunks
-                .Where(c => c.IsEmbedded && c.VectorRowId.HasValue)
-                .Select(c => c.Id)
-                .ToList();
+        // Only the ids and embedding state are needed to clean up the vector store, so the
+        // chunk text is never loaded just to be deleted.
+        var embeddedChunkIds = await _db.DocumentChunks
+            .AsNoTracking()
+            .Where(c => c.DocumentId == documentId && c.IsEmbedded && c.VectorRowId.HasValue)
+            .Select(c => c.Id)
+            .ToListAsync();
 
-            if (chunkIds.Count > 0)
+        // Delete vector embeddings for all chunks if VectorStore is available
+        if (_vectorStore is not null && embeddedChunkIds.Count > 0)
+        {
+            try
             {
-                try
-                {
-                    await _vectorStore.DeleteEmbeddingsForDocumentAsync(documentId, chunkIds);
-                    _logger.Debug("Deleted {Count} vector embeddings for document {DocumentId}", chunkIds.Count, documentId);
-                }
-                catch (Exception ex)
-                {
-                    _logger.Error(ex, "Failed to delete vector embeddings for document {DocumentId}", documentId);
-                    // Continue with entity deletion even if vector cleanup fails
-                }
+                await _vectorStore.DeleteEmbeddingsForDocumentAsync(documentId, embeddedChunkIds);
+                _logger.Debug("Deleted {Count} vector embeddings for document {DocumentId}", embeddedChunkIds.Count, documentId);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Failed to delete vector embeddings for document {DocumentId}", documentId);
+                // Continue with entity deletion even if vector cleanup fails
             }
         }
 
-        // EF Core cascade delete will remove chunks, document-collection links, and tags
+        // Keyword hits carry their indexed text straight into search results and RAG
+        // prompts, so FTS rows left behind would keep serving the deleted document's text.
+        await RemoveFromKeywordIndexAsync(documentId, "delete");
+
+        // Tracked dependents are removed by EF, the rest by the database cascade.
         _db.Documents.Remove(document);
         await _db.SaveChangesAsync();
 
+        // The cascade only runs when the connection enforces foreign keys, so sweep up any
+        // rows that survived. Tracked instances were already removed by SaveChanges above,
+        // so these set-based deletes cannot conflict with the change tracker.
+        await _db.DocumentChunks.Where(c => c.DocumentId == documentId).ExecuteDeleteAsync();
+        await _db.DocumentCollections.Where(dc => dc.DocumentId == documentId).ExecuteDeleteAsync();
+        await _db.DocumentTags.Where(dt => dt.DocumentId == documentId).ExecuteDeleteAsync();
+
+        // Cached result sets may still reference the deleted document.
+        _searchCacheService?.InvalidateForDocument(documentId);
+
         _logger.Information("Deleted document: {FileName} (ID {DocumentId})", document.FileName, documentId);
+    }
+
+    /// <summary>
+    /// Removes a document's rows from the FTS5 keyword index. Non-fatal: the caller's
+    /// primary operation proceeds even when the index cannot be updated.
+    /// </summary>
+    private async Task RemoveFromKeywordIndexAsync(long documentId, string operation, CancellationToken ct = default)
+    {
+        if (_keywordSearchService is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _keywordSearchService.RemoveDocumentFromFtsAsync(documentId, ct);
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning(ex, "Failed to remove document {DocumentId} from the keyword index during {Operation}",
+                documentId, operation);
+        }
     }
 
     /// <inheritdoc />
