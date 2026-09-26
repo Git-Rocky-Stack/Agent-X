@@ -29,12 +29,14 @@ public sealed partial class PluginManagerPage : Page
         ViewModel = App.GetService<PluginManagerViewModel>();
         InitializeComponent();
 
-        // Wire up the file-picker request from the ViewModel
-        ViewModel.FilePickerRequested += OnFilePickerRequestedAsync;
-
+        // The page is cached, so Loaded runs on every visit while the constructor runs once.
+        // The file-picker request is wired here, symmetrically with Unloaded: wired in the
+        // constructor, the first Unloaded removed it for good and Install did nothing after.
         Loaded += async (_, _) =>
         {
             Log.Debug("PluginManagerPage loaded");
+            ViewModel.FilePickerRequested -= OnFilePickerRequestedAsync;
+            ViewModel.FilePickerRequested += OnFilePickerRequestedAsync;
             ViewModel.PropertyChanged -= OnViewModelPropertyChanged;
             ViewModel.PropertyChanged += OnViewModelPropertyChanged;
             await ViewModel.InitializeAsync();
