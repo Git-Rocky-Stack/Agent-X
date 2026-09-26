@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text;
+using System.Text.RegularExpressions;
 using AgentX.Core.AI.Models;
 using Serilog;
 
@@ -84,6 +85,12 @@ public sealed class MultiAgentOrchestrator : IMultiAgentOrchestrator
     }
 
     /// <inheritdoc />
+    /// <remarks>
+    /// Cancelling <paramref name="ct"/> throws <see cref="OperationCanceledException"/> instead of
+    /// returning a failed result. A single failing agent does not fail the run while the others
+    /// produce an answer: its error is listed in <see cref="OrchestrationResult.Errors"/> and the
+    /// final answer says that it is incomplete.
+    /// </remarks>
     public async Task<OrchestrationResult> RunAsync(
         string task,
         IReadOnlyList<AgentRole> agents,
@@ -114,10 +121,12 @@ public sealed class MultiAgentOrchestrator : IMultiAgentOrchestrator
                     break;
 
                 case OrchestratorStrategy.Debate:
-                    var debateResult = await RunDebateAsync(task, agents, rounds: 2, ct);
-                    result.FinalAnswer = debateResult.Synthesis;
+                    var debateErrors = new List<string>();
+                    var debateResult = await RunDebateCoreAsync(task, agents, rounds: 2, debateErrors, ct);
+                    result.Errors.AddRange(debateErrors);
                     result.IsSuccess = debateResult.Rounds.Any(round => round.Positions.Count > 0) &&
                                        !string.IsNullOrEmpty(debateResult.Synthesis);
+                    result.FinalAnswer = AppendFailureNote(debateResult.Synthesis, debateErrors, agents.Count * 2);
                     break;
 
                 case OrchestratorStrategy.DivideAndConquer:
@@ -132,6 +141,11 @@ public sealed class MultiAgentOrchestrator : IMultiAgentOrchestrator
                     result = await RunSequentialAsync(task, agents, ct);
                     break;
             }
+        }
+        catch (Exception ex) when (IsCancellation(ex, ct))
+        {
+            _log.Information("Orchestration cancelled");
+            throw;
         }
         catch (Exception ex)
         {
@@ -149,11 +163,19 @@ public sealed class MultiAgentOrchestrator : IMultiAgentOrchestrator
     }
 
     /// <inheritdoc />
-    public async Task<DebateResult> RunDebateAsync(
+    public Task<DebateResult> RunDebateAsync(
         string task,
         IReadOnlyList<AgentRole> agents,
         int rounds,
-        CancellationToken ct = default)
+        CancellationToken ct = default) =>
+        RunDebateCoreAsync(task, agents, rounds, new List<string>(), ct);
+
+    private async Task<DebateResult> RunDebateCoreAsync(
+        string task,
+        IReadOnlyList<AgentRole> agents,
+        int rounds,
+        List<string> errors,
+        CancellationToken ct)
     {
         _log.Information("Starting debate: {Rounds} rounds, {AgentCount} participants", rounds, agents.Count);
 
@@ -200,9 +222,10 @@ public sealed class MultiAgentOrchestrator : IMultiAgentOrchestrator
 
                     roundContext.AppendLine($"{agent.Name}: {response}");
                 }
-                catch (Exception ex)
+                catch (Exception ex) when (!IsCancellation(ex, ct))
                 {
                     _log.Warning(ex, "Agent {AgentName} failed in round {Round}", agent.Name, round);
+                    errors.Add(DescribeFailure($"{agent.Name} (round {round})", ex));
                 }
             }
 
@@ -222,15 +245,24 @@ public sealed class MultiAgentOrchestrator : IMultiAgentOrchestrator
         IReadOnlyList<AgentRole> agents,
         CancellationToken ct = default)
     {
+        var (result, _) = await RunParallelCoreAsync(task, agents, ct);
+        return result;
+    }
+
+    private async Task<(ParallelResult Result, List<string> Errors)> RunParallelCoreAsync(
+        string task,
+        IReadOnlyList<AgentRole> agents,
+        CancellationToken ct)
+    {
         _log.Information("Running {AgentCount} agents in parallel", agents.Count);
 
-        var tasks = agents.Select(agent => RunAgentAsync(agent, task, ct)).ToArray();
-        var results = await Task.WhenAll(tasks);
+        var outcomes = await Task.WhenAll(agents.Select(agent => RunAgentAsync(agent, task, ct)));
 
-        var outputs = results.OfType<AgentContribution>().ToList();
+        var outputs = outcomes.Where(o => o.Contribution is not null).Select(o => o.Contribution!).ToList();
+        var errors = outcomes.Where(o => o.Error is not null).Select(o => o.Error!).ToList();
         var combined = await SynthesizeParallelOutputsAsync(task, outputs, ct);
 
-        return new ParallelResult
+        var result = new ParallelResult
         {
             Task = task,
             Outputs = outputs,
@@ -238,6 +270,8 @@ public sealed class MultiAgentOrchestrator : IMultiAgentOrchestrator
             Consensus = combined.consensus,
             Disagreements = combined.disagreements
         };
+
+        return (result, errors);
     }
 
     private async Task<OrchestrationResult> RunSequentialAsync(
@@ -277,15 +311,15 @@ public sealed class MultiAgentOrchestrator : IMultiAgentOrchestrator
                 context += $"{agent.Name}'s contribution:\n{response}\n\n";
                 finalAnswer = response;
             }
-            catch (Exception ex)
+            catch (Exception ex) when (!IsCancellation(ex, ct))
             {
                 _log.Warning(ex, "Agent {AgentName} failed", agent.Name);
-                result.Errors.Add($"{agent.Name}: {ex.Message}");
+                result.Errors.Add(DescribeFailure(agent.Name, ex));
             }
         }
 
-        result.FinalAnswer = finalAnswer;
-        result.IsSuccess = result.Errors.Count == 0;
+        result.IsSuccess = !string.IsNullOrWhiteSpace(finalAnswer);
+        result.FinalAnswer = AppendFailureNote(finalAnswer, result.Errors, agents.Count);
         return result;
     }
 
@@ -294,15 +328,19 @@ public sealed class MultiAgentOrchestrator : IMultiAgentOrchestrator
         IReadOnlyList<AgentRole> agents,
         CancellationToken ct)
     {
-        var parallelResult = await RunParallelAsync(task, agents, ct);
+        var (parallelResult, errors) = await RunParallelCoreAsync(task, agents, ct);
+        var isSuccess = parallelResult.Outputs.Count > 0 && !string.IsNullOrEmpty(parallelResult.CombinedOutput);
 
         return new OrchestrationResult
         {
             Task = task,
             Strategy = OrchestratorStrategy.Parallel,
-            FinalAnswer = parallelResult.CombinedOutput,
+            FinalAnswer = isSuccess
+                ? AppendFailureNote(parallelResult.CombinedOutput, errors, agents.Count)
+                : parallelResult.CombinedOutput,
             Contributions = parallelResult.Outputs,
-            IsSuccess = parallelResult.Outputs.Count > 0 && !string.IsNullOrEmpty(parallelResult.CombinedOutput)
+            Errors = errors,
+            IsSuccess = isSuccess
         };
     }
 
@@ -332,53 +370,42 @@ public sealed class MultiAgentOrchestrator : IMultiAgentOrchestrator
 
             // Execute sub-tasks in parallel
             var subTasks = ParseSubTasks(division);
-            var subTaskPromises = new List<Task<AgentContribution?>>();
-
-            for (int i = 0; i < Math.Min(agents.Count, subTasks.Count); i++)
+            var assigned = Math.Min(agents.Count, subTasks.Count);
+            if (subTasks.Count > agents.Count)
             {
-                var agent = agents[i];
-                var subTask = subTasks[i];
-
-                subTaskPromises.Add(Task.Run(async () =>
-                {
-                    try
-                    {
-                        var response = await _aiService.ChatAsync(
-                            messages: new List<ChatMessage> { ChatMessage.User(subTask) },
-                            systemPrompt: agent.SystemPrompt,
-                            options: new ChatOptions { Temperature = agent.Temperature, MaxTokens = 2000 },
-                            ct: ct);
-
-                        return new AgentContribution
-                        {
-                            Agent = agent,
-                            Output = response,
-                            Timestamp = DateTime.UtcNow
-                        };
-                    }
-                    catch
-                    {
-                        return null;
-                    }
-                }, ct));
+                _log.Warning("Task planner returned {SubTaskCount} parts for {AgentCount} agents; extra parts are not run",
+                    subTasks.Count, agents.Count);
             }
 
-            var contributions = await Task.WhenAll(subTaskPromises);
-            result.Contributions = contributions.Where(c => c is not null).ToList()!;
+            var subTaskRuns = Enumerable.Range(0, assigned)
+                .Select(i => Task.Run(() => RunAgentAsync(agents[i], subTasks[i], ct), ct))
+                .ToList();
+
+            var outcomes = await Task.WhenAll(subTaskRuns);
+            result.Contributions = outcomes.Where(o => o.Contribution is not null).Select(o => o.Contribution!).ToList();
+            result.Errors.AddRange(outcomes.Where(o => o.Error is not null).Select(o => o.Error!));
+
+            if (result.Contributions.Count == 0)
+            {
+                result.IsSuccess = false;
+                result.Errors.Add("No sub-task produced a result.");
+                return result;
+            }
 
             // Synthesize final answer
             var synthesisPrompt = $"Original task: {task}\n\n" +
                 "Partial results:\n" + string.Join("\n", result.Contributions.Select(c => $"{c.Agent.Name}: {c.Output.Truncate(200)}"));
 
-            result.FinalAnswer = await _aiService.ChatAsync(
+            var synthesis = await _aiService.ChatAsync(
                 messages: new List<ChatMessage> { ChatMessage.User(synthesisPrompt) },
                 systemPrompt: "You are a synthesizer. Combine partial results into a complete answer.",
                 options: new ChatOptions { Temperature = 0.5, MaxTokens = 3000 },
                 ct: ct);
 
-            result.IsSuccess = true;
+            result.FinalAnswer = AppendFailureNote(synthesis, result.Errors, assigned);
+            result.IsSuccess = !string.IsNullOrWhiteSpace(synthesis);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!IsCancellation(ex, ct))
         {
             _log.Error(ex, "Divide and conquer failed");
             result.IsSuccess = false;
@@ -441,7 +468,7 @@ public sealed class MultiAgentOrchestrator : IMultiAgentOrchestrator
             result.FinalAnswer = refined;
             result.IsSuccess = true;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!IsCancellation(ex, ct))
         {
             _log.Error(ex, "GCR orchestration failed");
             result.IsSuccess = false;
@@ -451,7 +478,10 @@ public sealed class MultiAgentOrchestrator : IMultiAgentOrchestrator
         return result;
     }
 
-    private async Task<AgentContribution?> RunAgentAsync(AgentRole agent, string task, CancellationToken ct)
+    /// <summary>One agent's output, or the reason it produced none.</summary>
+    private readonly record struct AgentOutcome(AgentContribution? Contribution, string? Error);
+
+    private async Task<AgentOutcome> RunAgentAsync(AgentRole agent, string task, CancellationToken ct)
     {
         try
         {
@@ -461,18 +491,53 @@ public sealed class MultiAgentOrchestrator : IMultiAgentOrchestrator
                 options: new ChatOptions { Temperature = agent.Temperature, MaxTokens = 2000 },
                 ct: ct);
 
-            return new AgentContribution
-            {
-                Agent = agent,
-                Output = response,
-                Timestamp = DateTime.UtcNow
-            };
+            return new AgentOutcome(
+                new AgentContribution
+                {
+                    Agent = agent,
+                    Output = response,
+                    Timestamp = DateTime.UtcNow
+                },
+                null);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!IsCancellation(ex, ct))
         {
             _log.Warning(ex, "Agent {AgentName} failed", agent.Name);
-            return null;
+            return new AgentOutcome(null, DescribeFailure(agent.Name, ex));
         }
+    }
+
+    /// <summary>
+    /// True when <paramref name="ex"/> is the caller's cancellation. A timeout inside a provider
+    /// also surfaces as an <see cref="OperationCanceledException"/>, but without the caller's
+    /// token being cancelled; that is an agent failure, not a cancellation.
+    /// </summary>
+    private static bool IsCancellation(Exception ex, CancellationToken ct) =>
+        ex is OperationCanceledException && ct.IsCancellationRequested;
+
+    private static string DescribeFailure(string agentName, Exception ex) =>
+        $"{agentName}: {ex.Message.Truncate(200)}";
+
+    /// <summary>
+    /// Appends a note naming the failed agents, so an answer built from only some of them is
+    /// never presented as complete.
+    /// </summary>
+    private static string AppendFailureNote(string answer, IReadOnlyCollection<string> errors, int attempted)
+    {
+        if (errors.Count == 0 || string.IsNullOrWhiteSpace(answer))
+            return answer;
+
+        var sb = new StringBuilder(answer.TrimEnd());
+        sb.AppendLine();
+        sb.AppendLine();
+        sb.Append($"Note: {errors.Count} of {Math.Max(attempted, errors.Count)} agent responses failed, so this answer is incomplete.");
+        foreach (var error in errors)
+        {
+            sb.AppendLine();
+            sb.Append("- ").Append(error);
+        }
+
+        return sb.ToString();
     }
 
     private static Task<(string combined, string? consensus, List<string> disagreements)> SynthesizeParallelOutputsAsync(
@@ -586,27 +651,70 @@ public sealed class MultiAgentOrchestrator : IMultiAgentOrchestrator
             .Name;
     }
 
-    private static List<string> ParseSubTasks(string division)
-    {
-        // Accept the common bullet and numbered formats returned by the task planner prompt.
-        var subTasks = new List<string>();
-        var lines = division.Split('\n');
-        var currentTask = new StringBuilder();
+    // A list item: "- x", "* x", "+ x", "\u2022 x", "1. x", "1) x", "(1) x". Group "indent" is the
+    // leading whitespace, group "text" the item text exactly as written.
+    private static readonly Regex ListItemPattern = new(
+        @"^(?<indent>[ \t]*)(?:[-*+\u2022]|\(?\d{1,3}[.)])[ \t]+(?<text>\S.*)$",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
-        foreach (var line in lines)
+    // A heading such as "**Part 2: Risks** (Critic)" or "Step 3 - Review".
+    private static readonly Regex PartHeadingPattern = new(
+        @"^(?<indent>[ \t]*)(?:\*\*|__)?(?:part|step|sub-?task|task)[ \t]+\d{1,3}\b",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+
+    /// <summary>
+    /// Splits the planner's answer into sub-tasks: one per top-level bullet, numbered item or
+    /// "Part N" heading. Indented (nested) items and plain lines continue the current sub-task.
+    /// The item text is kept as written, including any numbers in it. Without a recognizable
+    /// list the whole answer is a single sub-task.
+    /// </summary>
+    internal static List<string> ParseSubTasks(string division)
+    {
+        var subTasks = new List<string>();
+        var currentTask = new StringBuilder();
+        int? topLevelIndent = null;
+
+        foreach (var rawLine in division.Split('\n'))
         {
-            if (line.Trim().StartsWith("-") || line.Trim().StartsWith("*") || line.Trim().StartsWith("1."))
+            var line = rawLine.TrimEnd('\r');
+            if (string.IsNullOrWhiteSpace(line))
+                continue;
+
+            string? itemText = null;
+            var indent = 0;
+
+            var heading = PartHeadingPattern.Match(line);
+            if (heading.Success)
+            {
+                indent = heading.Groups["indent"].Length;
+                itemText = line.Replace("**", string.Empty).Replace("__", string.Empty).Trim();
+            }
+            else
+            {
+                var item = ListItemPattern.Match(line);
+                if (item.Success)
+                {
+                    indent = item.Groups["indent"].Length;
+                    itemText = item.Groups["text"].Value.Trim();
+                }
+            }
+
+            var startsTopLevelItem = itemText is not null && (topLevelIndent is null || indent <= topLevelIndent);
+            if (startsTopLevelItem)
             {
                 if (currentTask.Length > 0)
                 {
                     subTasks.Add(currentTask.ToString().Trim());
                     currentTask.Clear();
                 }
-                currentTask.Append(line.TrimStart().TrimStart('-', '*', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', ' '));
+
+                topLevelIndent = indent;
+                currentTask.Append(itemText);
             }
             else if (currentTask.Length > 0)
             {
-                currentTask.Append(' ').Append(line.Trim());
+                // A nested item or a wrapped line belongs to the current sub-task.
+                currentTask.Append(' ').Append(itemText ?? line.Trim());
             }
         }
 
