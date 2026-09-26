@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Net;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
 using AgentX.Core.AI.Providers;
 using FluentAssertions;
@@ -187,26 +188,45 @@ public sealed class LocalLlmProviderTests : IDisposable
     // ─── PullModelAsync / download pipeline ──────────────────────────────────────
 
     [Fact]
-    public async Task Pull_unknown_model_without_url_is_a_noop()
+    public async Task Pull_unknown_model_throws_instead_of_reporting_success()
     {
         var p = NewProvider();
-        await p.PullModelAsync("unknown-model.gguf");
-        Directory.EnumerateFiles(_modelsDir).Should().BeEmpty();
+
+        await FluentActions.Awaiting(() => p.PullModelAsync("unknown-model.gguf"))
+            .Should().ThrowAsync<NotSupportedException>()
+            .WithMessage("*unknown-model.gguf*");
+
+        Directory.Exists(_modelsDir).Should().BeFalse("nothing may be written for an unknown model");
+    }
+
+    [Theory]
+    [InlineData("..\\outside.gguf")]
+    [InlineData("../outside.gguf")]
+    [InlineData("sub/dir.gguf")]
+    [InlineData("notes.txt")]
+    [InlineData("")]
+    public async Task Pull_and_delete_reject_names_that_are_not_bare_gguf_files(string name)
+    {
+        var p = NewProvider();
+
+        await FluentActions.Awaiting(() => p.PullModelAsync(name))
+            .Should().ThrowAsync<ArgumentException>();
+        await FluentActions.Awaiting(() => p.DeleteModelAsync(name))
+            .Should().ThrowAsync<ArgumentException>();
     }
 
     [Fact]
-    public void ResolveDownloadUrl_maps_known_models_and_rejects_unknown()
+    public void Catalog_maps_known_models_and_rejects_unknown()
     {
-        var method = typeof(LocalLlmProvider).GetMethod(
-            "ResolveDownloadUrl", BindingFlags.NonPublic | BindingFlags.Static)!;
-        string? Invoke(string name) => (string?)method.Invoke(null, new object[] { name });
-
-        Invoke("llama-3.2-3b-instruct-q4_k_m.gguf").Should()
+        BuiltInModelCatalog.Find("llama-3.2-3b-instruct-q4_k_m.gguf")!.DownloadUrl.Should()
             .Be("https://huggingface.co/hugging-quants/Llama-3.2-3B-Instruct-Q4_K_M-GGUF/resolve/main/llama-3.2-3b-instruct-q4_k_m.gguf");
-        Invoke("LLAMA-3.2-1B-INSTRUCT-Q4_K_M.GGUF").Should()
+        BuiltInModelCatalog.Find("LLAMA-3.2-1B-INSTRUCT-Q4_K_M.GGUF")!.DownloadUrl.Should()
             .Be("https://huggingface.co/hugging-quants/Llama-3.2-1B-Instruct-Q4_K_M-GGUF/resolve/main/llama-3.2-1b-instruct-q4_k_m.gguf");
-        Invoke("mystery.gguf").Should().BeNull();
+        BuiltInModelCatalog.Find("mystery.gguf").Should().BeNull();
     }
+
+    private static BuiltInModelSource StubSource(string fileName, string url, long minimumValidBytes = 1) =>
+        new(fileName, fileName, url, ExpectedSizeBytes: 1024, MinimumValidBytes: minimumValidBytes, Sha256: null);
 
     /// <summary>Starts a localhost HttpListener on a free port (established bind-retry harness
     /// for the free-port TOCTOU flake) and serves exactly one request via the handler.</summary>
@@ -253,15 +273,13 @@ public sealed class LocalLlmProviderTests : IDisposable
         using var _ = listener;
 
         var p = NewProvider();
-        p.DownloadUrlResolver = _ => url;
+        p.DownloadSourceResolver = name => StubSource(name, url);
         var reports = new ConcurrentQueue<ModelDownloadProgress>();
         var progress = new SynchronousProgress<ModelDownloadProgress>(reports.Enqueue);
 
-        // The download itself must succeed; the trailing LoadModelAsync then fails on the
-        // garbage GGUF (llama.cpp rejects the magic managed-side). That throw is expected
-        // and is exactly the LoadModelAsync catch-arm we want covered.
-        await FluentActions.Awaiting(() => p.PullModelAsync("target.gguf", progress))
-            .Should().ThrowAsync<Exception>();
+        // The pulled file is not the configured model, so the pull must complete without
+        // loading (and failing on) the configured model afterwards.
+        await p.PullModelAsync("target.gguf", progress);
 
         var target = Path.Combine(_modelsDir, "target.gguf");
         File.Exists(target).Should().BeTrue();
@@ -278,7 +296,7 @@ public sealed class LocalLlmProviderTests : IDisposable
         using var _ = listener;
 
         var p = NewProvider();
-        p.DownloadUrlResolver = _ => url;
+        p.DownloadSourceResolver = name => StubSource(name, url);
 
         await FluentActions.Awaiting(() => p.PullModelAsync("errored.gguf"))
             .Should().ThrowAsync<HttpRequestException>();
@@ -300,13 +318,54 @@ public sealed class LocalLlmProviderTests : IDisposable
         using var _ = listener;
 
         var p = NewProvider();
-        p.DownloadUrlResolver = _ => url;
+        p.DownloadSourceResolver = name => StubSource(name, url);
 
         await FluentActions.Awaiting(() => p.PullModelAsync("aborted.gguf"))
             .Should().ThrowAsync<Exception>(); // HttpIOException/IOException depending on stack
 
         File.Exists(Path.Combine(_modelsDir, "aborted.gguf")).Should().BeFalse();
         File.Exists(Path.Combine(_modelsDir, "aborted.gguf.part")).Should().BeFalse();
+        await served.WaitAsync(TimeSpan.FromSeconds(5));
+    }
+
+    [Fact]
+    public async Task Pull_rejects_a_download_below_the_size_floor_and_publishes_nothing()
+    {
+        var (listener, url, served) = StartStub(ctx =>
+        {
+            ctx.Response.ContentLength64 = 64;
+            ctx.Response.OutputStream.Write(new byte[64]);
+        });
+        using var _ = listener;
+
+        var p = NewProvider();
+        p.DownloadSourceResolver = name => StubSource(name, url, minimumValidBytes: 1_000_000);
+
+        await FluentActions.Awaiting(() => p.PullModelAsync("tiny.gguf"))
+            .Should().ThrowAsync<IOException>().WithMessage("*implausibly small*");
+
+        File.Exists(Path.Combine(_modelsDir, "tiny.gguf")).Should().BeFalse();
+        File.Exists(Path.Combine(_modelsDir, "tiny.gguf.part")).Should().BeFalse();
+        await served.WaitAsync(TimeSpan.FromSeconds(5));
+    }
+
+    [Fact]
+    public async Task Pull_verifies_a_configured_checksum_and_rejects_a_mismatch()
+    {
+        var (listener, url, served) = StartStub(ctx =>
+        {
+            ctx.Response.ContentLength64 = 32;
+            ctx.Response.OutputStream.Write(new byte[32]);
+        });
+        using var _ = listener;
+
+        var p = NewProvider();
+        p.DownloadSourceResolver = name => StubSource(name, url) with { Sha256 = new string('0', 64) };
+
+        await FluentActions.Awaiting(() => p.PullModelAsync("hashed.gguf"))
+            .Should().ThrowAsync<IOException>().WithMessage("*checksum mismatch*");
+
+        File.Exists(Path.Combine(_modelsDir, "hashed.gguf")).Should().BeFalse();
         await served.WaitAsync(TimeSpan.FromSeconds(5));
     }
 
@@ -365,6 +424,125 @@ public sealed class LocalLlmProviderTests : IDisposable
 
         capturedPrompt.Should().Contain("You MUST respond with valid JSON only.");
         capturedPrompt.Should().EndWith("<|start_header_id|>assistant<|end_header_id|>\n\n{");
+    }
+
+    [Fact]
+    public async Task Chat_json_mode_returns_the_primed_brace_so_the_object_parses()
+    {
+        // The model continues after the primed "{", so its stream does NOT start with a brace.
+        var p = NewProvider();
+        p.InferenceOverride = (_, _, ct) => Tokens(ct, "\"score\"", ": 8", ", \"reason\": \"relevant\"", "}");
+
+        var response = await p.ChatAsync(
+            Msgs(("user", "rate it")), new ChatOptions { ResponseFormat = ResponseFormat.JsonObject });
+
+        response.Should().Be("{\"score\": 8, \"reason\": \"relevant\"}");
+        var start = response.IndexOf('{');
+        var end = response.LastIndexOf('}');
+        using var doc = System.Text.Json.JsonDocument.Parse(response[start..(end + 1)]);
+        doc.RootElement.GetProperty("score").GetInt32().Should().Be(8);
+    }
+
+    [Fact]
+    public async Task Chat_json_mode_drops_a_duplicate_opening_brace_from_the_model()
+    {
+        var p = NewProvider();
+        p.InferenceOverride = (_, _, ct) => Tokens(ct, " {", "\"ok\": true}");
+
+        var response = await p.ChatAsync(
+            Msgs(("user", "json")), new ChatOptions { ResponseFormat = ResponseFormat.JsonObject });
+
+        response.Should().Be("{ \"ok\": true}");
+        using var doc = System.Text.Json.JsonDocument.Parse(response);
+        doc.RootElement.GetProperty("ok").GetBoolean().Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Chat_text_mode_does_not_add_a_brace()
+    {
+        var p = NewProvider();
+        p.InferenceOverride = (_, _, ct) => Tokens(ct, "plain", " answer");
+
+        (await p.ChatAsync(Msgs(("user", "hi")))).Should().Be("plain answer");
+    }
+
+    [Fact]
+    public async Task StreamChat_drops_oldest_history_when_the_prompt_exceeds_the_local_context()
+    {
+        // 1 token per character keeps the arithmetic obvious: 512-token context, 128 reserved.
+        var p = NewProvider(contextSize: 512);
+        p.PromptTokenCounterOverride = text => text.Length;
+        string? capturedPrompt = null;
+        p.InferenceOverride = (prompt, _, ct) => { capturedPrompt = prompt; return Tokens(ct, "ok"); };
+
+        var messages = Msgs(
+            ("system", "Be brief"),
+            ("user", "OLDEST " + new string('a', 200)),
+            ("assistant", "MIDDLE " + new string('b', 200)),
+            ("user", "LATEST question"));
+
+        (await p.ChatAsync(messages, new ChatOptions { MaxTokens = 128, ContextWindow = 32_768 })).Should().Be("ok");
+
+        capturedPrompt.Should().Contain("Be brief").And.Contain("LATEST question");
+        capturedPrompt.Should().NotContain("OLDEST");
+        capturedPrompt!.Length.Should().BeLessThanOrEqualTo(512 - 128);
+    }
+
+    [Fact]
+    public async Task StreamChat_throws_a_clear_error_when_the_final_message_alone_overflows_the_context()
+    {
+        var p = NewProvider(contextSize: 256);
+        p.PromptTokenCounterOverride = text => text.Length;
+        p.InferenceOverride = (_, _, ct) => Tokens(ct, "never");
+
+        await FluentActions.Awaiting(() => p.ChatAsync(Msgs(("user", new string('x', 1000)))))
+            .Should().ThrowAsync<InvalidOperationException>().WithMessage("*context*");
+    }
+
+    [Fact]
+    public void ResolveChatModelFileName_uses_installed_ggufs_and_falls_back_to_the_configured_model()
+    {
+        WriteModelFile(PrimaryModel);
+        WriteModelFile("llama-3.2-1b-instruct-q4_k_m.gguf");
+        var p = NewProvider();
+
+        p.ResolveChatModelFileName(null).Should().Be(PrimaryModel);
+        p.ResolveChatModelFileName("LLAMA-3.2-3B-INSTRUCT-Q4_K_M.GGUF").Should().Be(PrimaryModel);
+        p.ResolveChatModelFileName("llama-3.2-1b-instruct-q4_k_m.gguf").Should().Be("llama-3.2-1b-instruct-q4_k_m.gguf");
+        p.ResolveChatModelFileName("llama3.2").Should().Be(PrimaryModel, "an Ollama tag is not a local model");
+        p.ResolveChatModelFileName("missing.gguf").Should().Be(PrimaryModel);
+        p.ResolveChatModelFileName("..\\llama-3.2-1b-instruct-q4_k_m.gguf").Should().Be(PrimaryModel);
+    }
+
+    [Fact]
+    public async Task Dispose_during_a_stream_defers_release_and_the_stream_completes()
+    {
+        var p = NewProvider();
+        var disposeNow = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        p.InferenceOverride = (_, _, _) => DisposeMidStream();
+
+        var received = new List<string>();
+        var consumer = Task.Run(async () =>
+        {
+            await foreach (var t in p.StreamChatAsync(Msgs(("user", "hi"))))
+                received.Add(t);
+        });
+
+        await disposeNow.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        p.Dispose();
+        await consumer.WaitAsync(TimeSpan.FromSeconds(5));
+
+        received.Should().Equal(new[] { "before", "after" }, "dispose must not break the running stream");
+        await FluentActions.Awaiting(() => p.ChatAsync(Msgs(("user", "again"))))
+            .Should().ThrowAsync<ObjectDisposedException>();
+
+        async IAsyncEnumerable<string> DisposeMidStream()
+        {
+            yield return "before";
+            disposeNow.SetResult();
+            await Task.Delay(50);
+            yield return "after";
+        }
     }
 
     [Fact]
@@ -440,11 +618,125 @@ public sealed class LocalLlmProviderTests : IDisposable
     {
         var p = NewProvider();
 
-        await FluentActions.Awaiting(() => p.GenerateEmbeddingAsync("text", "model"))
+        await FluentActions.Awaiting(() => p.GenerateEmbeddingAsync("text", PrimaryModel))
             .Should().ThrowAsync<FileNotFoundException>();
-        await FluentActions.Awaiting(() => p.GenerateEmbeddingsAsync(new[] { "a", "b" }, "model"))
+        await FluentActions.Awaiting(() => p.GenerateEmbeddingsAsync(new[] { "a", "b" }, PrimaryModel))
             .Should().ThrowAsync<FileNotFoundException>();
         p.IsAvailable.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task Embeddings_reject_a_model_other_than_the_configured_one()
+    {
+        var p = NewProvider();
+        p.EmbeddingOverride = (_, _) => Task.FromResult<IReadOnlyList<float[]>>(new[] { new[] { 1f } });
+
+        await FluentActions.Awaiting(() => p.GenerateEmbeddingAsync("text", "all-minilm"))
+            .Should().ThrowAsync<NotSupportedException>().WithMessage("*" + PrimaryModel + "*");
+
+        (await p.GenerateEmbeddingAsync("text", PrimaryModel)).Should().Equal(1f);
+        (await p.GenerateEmbeddingAsync("text", string.Empty)).Should().Equal(1f);
+    }
+
+    [Fact]
+    public async Task Embeddings_are_input_dependent_rather_than_the_leading_token_vector()
+    {
+        // Simulates a runtime that returns one vector per token: the first (BOS) vector is the
+        // same for every input in a causal model, so returning it made every chunk identical.
+        var bos = new[] { 9f, 9f };
+        var p = NewProvider();
+        p.EmbeddingOverride = (text, _) =>
+        {
+            var vectors = new List<float[]> { bos };
+            vectors.AddRange(text.Split(' ').Select(w => new[] { (float)w.Length, w[0] == 'a' ? 1f : 0f }));
+            return Task.FromResult<IReadOnlyList<float[]>>(vectors);
+        };
+
+        var first = await p.GenerateEmbeddingAsync("alpha beta", PrimaryModel);
+        var second = await p.GenerateEmbeddingAsync("gamma delta epsilon", PrimaryModel);
+
+        first.Should().NotEqual(bos);
+        second.Should().NotEqual(bos);
+        first.Should().NotEqual(second);
+        first.Should().Equal((9f + 5f + 4f) / 3f, (9f + 1f + 0f) / 3f); // mean over all token vectors
+    }
+
+    [Fact]
+    public async Task Embeddings_are_serialized_through_the_single_embedder_context()
+    {
+        var p = NewProvider();
+        var active = 0;
+        var maxActive = 0;
+        p.EmbeddingOverride = async (text, ct) =>
+        {
+            var now = Interlocked.Increment(ref active);
+            InterlockedMax(ref maxActive, now);
+            await Task.Delay(20, ct);
+            Interlocked.Decrement(ref active);
+            return new[] { new[] { (float)text.Length } };
+        };
+
+        var calls = Enumerable.Range(0, 6)
+            .Select(async i => i % 2 == 0
+                ? await p.GenerateEmbeddingAsync(new string('q', i + 1), PrimaryModel)
+                : (await p.GenerateEmbeddingsAsync(new[] { "index a", "index bb" }, PrimaryModel))[0])
+            .ToArray();
+        await Task.WhenAll(calls);
+
+        maxActive.Should().Be(1, "background indexing and query embedding share one native context");
+
+        static void InterlockedMax(ref int target, int value)
+        {
+            int current;
+            while ((current = Volatile.Read(ref target)) < value &&
+                   Interlocked.CompareExchange(ref target, value, current) != current)
+            {
+            }
+        }
+    }
+
+    [Fact]
+    public void PoolEmbeddings_returns_a_pooled_vector_and_rejects_empty_output()
+    {
+        var single = new[] { 1f, 2f };
+        LocalLlmProvider.PoolEmbeddings(new[] { single }).Should().BeSameAs(single);
+        LocalLlmProvider.PoolEmbeddings(new[] { new[] { 1f, 3f }, new[] { 3f, 5f } }).Should().Equal(2f, 4f);
+
+        FluentActions.Invoking(() => LocalLlmProvider.PoolEmbeddings(Array.Empty<float[]>()))
+            .Should().Throw<InvalidOperationException>();
+        FluentActions.Invoking(() => LocalLlmProvider.PoolEmbeddings(new[] { Array.Empty<float>() }))
+            .Should().Throw<InvalidOperationException>();
+        FluentActions.Invoking(() => LocalLlmProvider.PoolEmbeddings(new[] { new[] { 1f }, new[] { 1f, 2f } }))
+            .Should().Throw<InvalidOperationException>();
+    }
+
+    [Fact]
+    public void FitToTokenLimit_keeps_short_inputs_and_truncates_long_ones_to_the_limit()
+    {
+        static string[] Tokenize(string s) => s.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        static string Decode(string[] tokens, int count) => string.Join(' ', tokens.Take(count));
+
+        const string shortText = "one two three";
+        LocalLlmProvider.FitToTokenLimit(shortText, 5, Tokenize, Decode).Should().BeSameAs(shortText);
+
+        var longText = string.Join(' ', Enumerable.Range(0, 2000).Select(i => "w" + i));
+        var fitted = LocalLlmProvider.FitToTokenLimit(longText, 1023, Tokenize, Decode);
+
+        Tokenize(fitted).Should().HaveCount(1023);
+        fitted.Should().StartWith("w0 w1 w2");
+    }
+
+    [Fact]
+    public void FitToTokenLimit_rechecks_a_prefix_that_grows_when_re_tokenized()
+    {
+        // A decoder that adds a token on the way back forces the loop to shorten the prefix.
+        static string[] Tokenize(string s) => s.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        static string Decode(string[] tokens, int count) => string.Join(' ', tokens.Take(count)) + " extra";
+
+        var fitted = LocalLlmProvider.FitToTokenLimit(
+            string.Join(' ', Enumerable.Range(0, 100).Select(i => "t" + i)), 10, Tokenize, Decode);
+
+        Tokenize(fitted).Length.Should().BeLessThanOrEqualTo(10);
     }
 
     [Fact]

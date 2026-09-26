@@ -102,7 +102,9 @@ public static class AppConstants
     public const int RerankerMaxTokens = 256;
     public const int MultiQueryMaxTokens = 256;
     public const int DefaultModelParamCountMillions = 3000;
-    public const int EmbeddingContextSize = 512;
+    // Token window of the built-in embedder (context, batch and micro-batch alike). Covers the
+    // default 768-token chunks with room for denser scripts; longer inputs are truncated.
+    public const int EmbeddingContextSize = 1024;
 
     // ── Cryptography ──────────────────────────────────────────────
     public const int AesKeyBytes = 32;

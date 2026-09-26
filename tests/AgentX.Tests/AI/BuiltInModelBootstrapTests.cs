@@ -119,6 +119,70 @@ public sealed class BuiltInModelBootstrapTests : IDisposable
         File.Exists(bootstrap.ModelPath + ".part").Should().BeFalse();
     }
 
+    [Fact]
+    public async Task DownloadAsync_verifies_a_configured_sha256_and_rejects_a_mismatch()
+    {
+        var body = RandomBytes(64);
+        var goodHash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(body));
+
+        using (var client = new HttpClient(new StubHandler(body)))
+        {
+            var verified = new BuiltInModelBootstrap(
+                client, _dir, Log.Logger, modelFileName: "hashed.gguf",
+                downloadUrl: "https://example.invalid/hashed.gguf", minimumValidBytes: 8, expectedSha256: goodHash);
+
+            verified.VerifiesChecksum.Should().BeTrue();
+            await verified.DownloadAsync();
+            File.ReadAllBytes(verified.ModelPath).Should().Equal(body);
+        }
+
+        using (var client = new HttpClient(new StubHandler(body)))
+        {
+            var tampered = new BuiltInModelBootstrap(
+                client, _dir, Log.Logger, modelFileName: "tampered.gguf",
+                downloadUrl: "https://example.invalid/tampered.gguf", minimumValidBytes: 8,
+                expectedSha256: new string('A', 64));
+
+            var act = async () => await tampered.DownloadAsync();
+
+            await act.Should().ThrowAsync<IOException>().WithMessage("*checksum mismatch*");
+            File.Exists(tampered.ModelPath).Should().BeFalse("a file failing verification is never published");
+            File.Exists(tampered.ModelPath + ".part").Should().BeFalse();
+        }
+    }
+
+    [Fact]
+    public void Catalog_supplies_the_url_and_size_floor_for_the_configured_file()
+    {
+        using var client = new HttpClient(new StubHandler(RandomBytes(8)));
+
+        var small = new BuiltInModelBootstrap(client, _dir, Log.Logger, modelFileName: "llama-3.2-1b-instruct-q4_k_m.gguf");
+        small.CanDownload.Should().BeTrue();
+        small.ModelDisplayName.Should().Be("Llama 3.2 1B Instruct (Q4_K_M)");
+        small.ExpectedSizeBytes.Should().Be(BuiltInModelCatalog.Llama32Instruct1B.ExpectedSizeBytes);
+
+        var standard = new BuiltInModelBootstrap(client, _dir, Log.Logger);
+        standard.ModelFileName.Should().Be(BuiltInModelBootstrap.DefaultModelFileName);
+        standard.ExpectedSizeBytes.Should().Be(BuiltInModelCatalog.Llama32Instruct3B.ExpectedSizeBytes);
+    }
+
+    [Fact]
+    public async Task Unknown_model_file_has_no_download_source_instead_of_fetching_the_3B_model()
+    {
+        var handler = new StubHandler(RandomBytes(64)) { ThrowIfCalled = true };
+        using var client = new HttpClient(handler);
+        var bootstrap = new BuiltInModelBootstrap(client, _dir, Log.Logger, modelFileName: "my-own-model.gguf");
+
+        bootstrap.CanDownload.Should().BeFalse();
+        var act = async () => await bootstrap.DownloadAsync();
+
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*my-own-model.gguf*");
+        handler.WasCalled.Should().BeFalse();
+
+        File.WriteAllBytes(bootstrap.ModelPath, RandomBytes(2_000_000));
+        bootstrap.IsInstalled().Should().BeTrue("a user-supplied GGUF is judged by a generic size floor");
+    }
+
     public void Dispose()
     {
         try { if (Directory.Exists(_dir)) Directory.Delete(_dir, recursive: true); }

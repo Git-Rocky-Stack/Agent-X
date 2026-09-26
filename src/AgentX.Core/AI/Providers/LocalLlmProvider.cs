@@ -4,6 +4,7 @@ using AgentX.Core.AI.Models;
 using AgentX.Core.Constants;
 using LLama;
 using LLama.Common;
+using LLama.Native;
 using LLama.Sampling;
 using Serilog;
 
@@ -13,6 +14,12 @@ namespace AgentX.Core.AI.Providers;
 /// AI provider implementation backed by LLamaSharp — .NET bindings for llama.cpp.
 /// Loads a GGUF model directly from disk for fully offline, zero-internet inference.
 /// Supports chat completion (streaming + non-streaming) and embedding generation.
+/// <para>
+/// Embeddings always come from the configured model file (the one passed to the constructor),
+/// mean-pooled over every token of the input. Chat uses the model named by
+/// <see cref="ChatOptions.ModelId"/> when it is another GGUF installed in the models directory,
+/// so selecting a different chat model never changes the embedding space.
+/// </para>
 /// </summary>
 public sealed class LocalLlmProvider : IAiProvider
 {
@@ -21,16 +28,24 @@ public sealed class LocalLlmProvider : IAiProvider
     private readonly int _contextSize;
     private readonly int _gpuLayers;
     private readonly ILogger _logger;
+    private readonly ProviderLifetime _lifetime = new(nameof(LocalLlmProvider));
 
-    private LLamaWeights? _weights;
-    private LLamaEmbedder? _embedder;
-    private ModelParams? _chatParams;
-    private ModelParams? _embeddingParams;
-    private bool _isAvailable;
-    private bool _disposed;
+    // The configured model backs embeddings and default chat; an alternate GGUF selected for chat
+    // is loaded separately. Both are published with volatile writes because the fast paths read
+    // them without taking the load lock.
+    private volatile LoadedModel? _primary;
+    private volatile LoadedModel? _alternate;
+    private volatile LLamaEmbedder? _embedder;
+    private volatile bool _isAvailable;
+    private int? _detectedGpuLayers;
 
+    // Lock order (never acquired in reverse): inference -> embedding -> load.
     private readonly SemaphoreSlim _loadLock = new(1, 1);
     private readonly SemaphoreSlim _inferenceLock = new(1, 1);
+
+    // The embedder owns a single native context whose KV cache is cleared and refilled per call,
+    // so background indexing and query embedding must never run through it concurrently.
+    private readonly SemaphoreSlim _embeddingLock = new(1, 1);
 
     /// <summary>
     /// Test seam (AX-QA-009): when set, replaces the StatelessExecutor-based inference stream so
@@ -41,11 +56,25 @@ public sealed class LocalLlmProvider : IAiProvider
     internal Func<string, InferenceParams, CancellationToken, IAsyncEnumerable<string>>? InferenceOverride { get; set; }
 
     /// <summary>
-    /// Test seam (AX-QA-009): overrides the HuggingFace URL lookup in <see cref="PullModelAsync"/>
-    /// so the download pipeline (streaming copy, progress, atomic .part move, failure cleanup) is
-    /// testable against a localhost HTTP stub. Never set in production.
+    /// Test seam: replaces the native embedder call (after the embedding lock is taken) so the
+    /// embedding pipeline (lock, pooling, model-name validation) is testable without a GGUF.
+    /// Receives the input text and returns the raw vectors the embedder would produce.
+    /// Never set in production.
     /// </summary>
-    internal Func<string, string?>? DownloadUrlResolver { get; set; }
+    internal Func<string, CancellationToken, Task<IReadOnlyList<float[]>>>? EmbeddingOverride { get; set; }
+
+    /// <summary>
+    /// Test seam: counts prompt tokens for the context-fit check when no native tokenizer is
+    /// available. Never set in production.
+    /// </summary>
+    internal Func<string, int>? PromptTokenCounterOverride { get; set; }
+
+    /// <summary>
+    /// Test seam (AX-QA-009): overrides the catalog lookup in <see cref="PullModelAsync"/> so the
+    /// download pipeline (verified bootstrap download, progress, atomic .part move, failure
+    /// cleanup) is testable against a localhost HTTP stub. Never set in production.
+    /// </summary>
+    internal Func<string, BuiltInModelSource?>? DownloadSourceResolver { get; set; }
 
     /// <inheritdoc />
     public string ProviderId => "local";
@@ -55,6 +84,9 @@ public sealed class LocalLlmProvider : IAiProvider
 
     /// <inheritdoc />
     public bool IsAvailable => _isAvailable;
+
+    /// <summary>The configured model file (the one used for embeddings).</summary>
+    public string ModelFileName => _modelFileName;
 
     public LocalLlmProvider(
         string modelsDirectory,
@@ -82,33 +114,36 @@ public sealed class LocalLlmProvider : IAiProvider
     /// <inheritdoc />
     public async Task<bool> CheckConnectionAsync(CancellationToken ct = default)
     {
-        ThrowIfDisposed();
-
+        _lifetime.Enter();
         try
         {
             var modelExists = File.Exists(ModelPath);
-            _isAvailable = modelExists;
-
             if (!modelExists)
             {
+                _isAvailable = false;
                 _logger.Warning("Local model not found at {ModelPath}. Download it first.", ModelPath);
                 return false;
             }
 
             // Lazy-load the model on first connection check
-            if (_weights is null)
-            {
-                await LoadModelAsync(ct).ConfigureAwait(false);
-            }
+            await EnsurePrimaryLoadedAsync(ct).ConfigureAwait(false);
 
             _logger.Information("Local LLM available: {ModelPath}", ModelPath);
             return true;
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw;
         }
         catch (Exception ex)
         {
             _logger.Error(ex, "Failed to check local LLM availability");
             _isAvailable = false;
             return false;
+        }
+        finally
+        {
+            _lifetime.Exit();
         }
     }
 
@@ -125,7 +160,8 @@ public sealed class LocalLlmProvider : IAiProvider
             models.Add(new AiModel
             {
                 Id = _modelFileName,
-                Name = "Llama 3.2 3B Instruct (Q4_K_M)",
+                Name = BuiltInModelCatalog.Find(_modelFileName)?.DisplayName
+                    ?? Path.GetFileNameWithoutExtension(_modelFileName),
                 ProviderId = ProviderId,
                 Family = "llama",
                 IsAvailable = true,
@@ -165,111 +201,97 @@ public sealed class LocalLlmProvider : IAiProvider
     }
 
     /// <inheritdoc />
+    /// <remarks>
+    /// Only models listed in <see cref="BuiltInModelCatalog"/> can be pulled. The download goes
+    /// through <see cref="BuiltInModelBootstrap"/>, so it gets the same completeness, size-floor
+    /// and (when pinned) SHA-256 checks as the first-run download. An unknown name throws instead
+    /// of returning as if the pull had succeeded.
+    /// </remarks>
     public async Task PullModelAsync(
         string modelName,
         IProgress<ModelDownloadProgress>? progress = null,
         CancellationToken ct = default)
     {
-        ThrowIfDisposed();
-
-        // Download the default model from HuggingFace
-        var targetPath = Path.Combine(_modelsDirectory, modelName);
-        Directory.CreateDirectory(_modelsDirectory);
-
-        var url = DownloadUrlResolver is not null
-            ? DownloadUrlResolver(modelName)
-            : ResolveDownloadUrl(modelName);
-        if (string.IsNullOrEmpty(url))
-        {
-            _logger.Warning("No download URL known for model: {Model}", modelName);
-            return;
-        }
-
-        _logger.Information("Downloading model {Model} from {Url}", modelName, url);
-
-        progress?.Report(new ModelDownloadProgress
-        {
-            ModelId = modelName,
-            Status = "Downloading..."
-        });
-
-        using var httpClient = new HttpClient { Timeout = AppConstants.ModelDownloadTimeout };
-        using var response = await httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, ct)
-            .ConfigureAwait(false);
-        response.EnsureSuccessStatusCode();
-
-        var totalBytes = response.Content.Headers.ContentLength ?? -1;
-        var downloadedBytes = 0L;
-
-        // Download to a temporary .part file and atomically move it into place on success, so an
-        // interrupted or failed download never leaves a truncated .gguf that File.Exists would
-        // treat as a usable model. The partial is removed on any failure or cancellation.
-        var partPath = targetPath + ".part";
+        _lifetime.Enter();
         try
         {
-            await using (var contentStream = await response.Content.ReadAsStreamAsync(ct).ConfigureAwait(false))
-            await using (var fileStream = new FileStream(partPath, FileMode.Create, FileAccess.Write, FileShare.None,
-                bufferSize: AppConstants.FileStreamBufferSize, useAsync: true))
+            var fileName = RequireGgufFileName(modelName);
+            var source = DownloadSourceResolver is not null
+                ? DownloadSourceResolver(fileName)
+                : BuiltInModelCatalog.Find(fileName);
+
+            if (source is null)
             {
-                var buffer = new byte[AppConstants.FileStreamBufferSize];
-                int bytesRead;
-
-                while ((bytesRead = await contentStream.ReadAsync(buffer, ct).ConfigureAwait(false)) > 0)
-                {
-                    await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead), ct).ConfigureAwait(false);
-                    downloadedBytes += bytesRead;
-
-                    progress?.Report(new ModelDownloadProgress
-                    {
-                        ModelId = modelName,
-                        Status = "Downloading...",
-                        CompletedBytes = downloadedBytes,
-                        TotalBytes = totalBytes
-                    });
-                }
+                var known = string.Join(", ", BuiltInModelCatalog.All.Select(m => m.FileName));
+                throw new NotSupportedException(
+                    $"No download source is known for '{fileName}'. The built-in provider can download: {known}. " +
+                    $"Other GGUF files can be copied into {_modelsDirectory}.");
             }
 
-            File.Move(partPath, targetPath, overwrite: true);
+            _logger.Information("Downloading model {Model} from {Url}", source.FileName, source.DownloadUrl);
+
+            using var httpClient = new HttpClient { Timeout = AppConstants.ModelDownloadTimeout };
+            var bootstrap = BuiltInModelBootstrap.ForSource(httpClient, _modelsDirectory, _logger, source);
+            await bootstrap.EnsureInstalledAsync(progress, ct).ConfigureAwait(false);
+
+            // No eager load here: the pulled file may not be the configured model at all (pulling
+            // the 1B model must not load the 3B one), and the configured model loads lazily on
+            // its first use or connection check.
+            _logger.Information("Model available: {Model}", source.FileName);
         }
-        catch
+        finally
         {
-            TryDeletePartial(partPath);
-            throw;
+            _lifetime.Exit();
         }
-
-        _logger.Information("Model downloaded: {Model} ({Size} bytes)", modelName, downloadedBytes);
-
-        progress?.Report(new ModelDownloadProgress
-        {
-            ModelId = modelName,
-            Status = "Complete",
-            CompletedBytes = downloadedBytes,
-            TotalBytes = downloadedBytes
-        });
-
-        // Reload the model after download
-        await LoadModelAsync(ct).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
-    public Task DeleteModelAsync(string modelName, CancellationToken ct = default)
+    public async Task DeleteModelAsync(string modelName, CancellationToken ct = default)
     {
-        ThrowIfDisposed();
-
-        var path = Path.Combine(_modelsDirectory, modelName);
-        if (File.Exists(path))
+        _lifetime.Enter();
+        try
         {
-            // Unload if it's the active model
-            if (modelName.Equals(_modelFileName, StringComparison.OrdinalIgnoreCase))
+            var fileName = RequireGgufFileName(modelName);
+            var path = Path.Combine(_modelsDirectory, fileName);
+            if (!File.Exists(path))
+                return;
+
+            // Unload first if the file is mapped by a loaded model. Wait for running inference
+            // and embedding work before freeing the weights: releasing them underneath llama.cpp
+            // crashes the process.
+            await _inferenceLock.WaitAsync(ct).ConfigureAwait(false);
+            try
             {
-                DisposeModel();
+                await _embeddingLock.WaitAsync(ct).ConfigureAwait(false);
+                try
+                {
+                    await _loadLock.WaitAsync(ct).ConfigureAwait(false);
+                    try
+                    {
+                        UnloadModelFile(fileName);
+                    }
+                    finally
+                    {
+                        _loadLock.Release();
+                    }
+                }
+                finally
+                {
+                    _embeddingLock.Release();
+                }
+            }
+            finally
+            {
+                _inferenceLock.Release();
             }
 
             File.Delete(path);
-            _logger.Information("Deleted local model: {Model}", modelName);
+            _logger.Information("Deleted local model: {Model}", fileName);
         }
-
-        return Task.CompletedTask;
+        finally
+        {
+            _lifetime.Exit();
+        }
     }
 
     /// <inheritdoc />
@@ -278,51 +300,84 @@ public sealed class LocalLlmProvider : IAiProvider
         ChatOptions? options = null,
         [EnumeratorCancellation] CancellationToken ct = default)
     {
-        ThrowIfDisposed();
-        if (InferenceOverride is null)
-        {
-            await EnsureModelLoadedAsync(ct).ConfigureAwait(false);
-        }
-
-        var prompt = FormatChatPrompt(messages, options?.ResponseFormat == ResponseFormat.JsonObject);
-        var inferenceParams = BuildInferenceParams(options);
-
-        // StatelessExecutor creates its own context per call — thread-safe. The override
-        // substitutes the token source only; lock, accounting, and cancellation are unchanged.
-        var tokenStream = InferenceOverride is not null
-            ? InferenceOverride(prompt, inferenceParams, ct)
-            : new StatelessExecutor(_weights!, _chatParams!).InferAsync(prompt, inferenceParams, ct);
-
-        // Track emitted tokens so we can warn on MaxTokens truncation (P0-6).
-        // LLamaSharp StatelessExecutor stops naturally on antiprompt or MaxTokens —
-        // when token count equals MaxTokens, we likely hit the budget cap.
-        int emittedTokens = 0;
-        var maxTokens = inferenceParams.MaxTokens;
-
-        await _inferenceLock.WaitAsync(ct).ConfigureAwait(false);
+        _lifetime.Enter();
         try
         {
-            await foreach (var token in tokenStream.ConfigureAwait(false))
+            var jsonMode = options?.ResponseFormat == ResponseFormat.JsonObject;
+            var inferenceParams = BuildInferenceParams(options);
+
+            // Track emitted tokens so we can warn on MaxTokens truncation (P0-6).
+            // LLamaSharp StatelessExecutor stops naturally on antiprompt or MaxTokens -
+            // when token count equals MaxTokens, we likely hit the budget cap.
+            int emittedTokens = 0;
+            var maxTokens = inferenceParams.MaxTokens;
+
+            await _inferenceLock.WaitAsync(ct).ConfigureAwait(false);
+            try
             {
-                if (ct.IsCancellationRequested) yield break;
-                emittedTokens++;
-                yield return token;
+                IAsyncEnumerable<string> tokenStream;
+                if (InferenceOverride is not null)
+                {
+                    // The override substitutes the token source only; prompt fitting, lock,
+                    // accounting, and cancellation are unchanged.
+                    var countTokens = PromptTokenCounterOverride ?? EstimatePromptTokens;
+                    var prompt = BuildPromptWithinContext(messages, jsonMode, countTokens, _contextSize, maxTokens, _logger);
+                    tokenStream = InferenceOverride(prompt, inferenceParams, ct);
+                }
+                else
+                {
+                    // Resolved under the inference lock, so an alternate chat model is never
+                    // swapped out while another stream is still using it.
+                    var model = await ResolveChatModelAsync(options?.ModelId, ct).ConfigureAwait(false);
+                    var countTokens = PromptTokenCounterOverride
+                        ?? (text => model.Weights.Tokenize(text, true, true, Encoding.UTF8).Length);
+                    var prompt = BuildPromptWithinContext(messages, jsonMode, countTokens, _contextSize, maxTokens, _logger);
+
+                    // StatelessExecutor creates its own context per call, sized to the configured
+                    // LocalContextSize; the prompt was fitted to that size above, so a caller that
+                    // budgeted for a larger ContextWindow cannot overflow it.
+                    tokenStream = new StatelessExecutor(model.Weights, model.ChatParams).InferAsync(prompt, inferenceParams, ct);
+                }
+
+                // JSON mode primes the prompt with "{", so the model continues after the brace and
+                // the brace itself is not part of the generated stream. Emit it first so callers
+                // receive a complete JSON object.
+                var awaitingJsonBody = jsonMode;
+                if (jsonMode)
+                    yield return "{";
+
+                await foreach (var token in tokenStream.ConfigureAwait(false))
+                {
+                    if (ct.IsCancellationRequested) yield break;
+                    emittedTokens++;
+
+                    var text = token;
+                    if (awaitingJsonBody)
+                        (text, awaitingJsonBody) = StripDuplicateOpeningBrace(text);
+
+                    if (text.Length > 0)
+                        yield return text;
+                }
+            }
+            finally
+            {
+                _inferenceLock.Release();
+            }
+
+            // Heuristic truncation detection: LLamaSharp doesn't expose a stop_reason,
+            // but reaching MaxTokens is the most common failure mode for evaluators
+            // and rerankers (which set tight budgets like 128 tokens).
+            if (maxTokens > 0 && emittedTokens >= maxTokens)
+            {
+                _logger.Warning(
+                    "Local LLM response likely truncated: emitted {Emitted} tokens, MaxTokens={MaxTokens}, model={Model}. " +
+                    "If the response should have been shorter, check antiprompts; otherwise raise MaxTokens.",
+                    emittedTokens, maxTokens, options?.ModelId ?? _modelFileName);
             }
         }
         finally
         {
-            _inferenceLock.Release();
-        }
-
-        // Heuristic truncation detection: LLamaSharp doesn't expose a stop_reason,
-        // but reaching MaxTokens is the most common failure mode for evaluators
-        // and rerankers (which set tight budgets like 128 tokens).
-        if (maxTokens > 0 && emittedTokens >= maxTokens)
-        {
-            _logger.Warning(
-                "Local LLM response likely truncated: emitted {Emitted} tokens, MaxTokens={MaxTokens}, model={Model}. " +
-                "If the response should have been shorter, check antiprompts; otherwise raise MaxTokens.",
-                emittedTokens, maxTokens, _modelFileName);
+            _lifetime.Exit();
         }
     }
 
@@ -343,19 +398,26 @@ public sealed class LocalLlmProvider : IAiProvider
     }
 
     /// <inheritdoc />
+    /// <remarks>
+    /// Embeddings come from the configured model file only; <paramref name="modelName"/> must be
+    /// empty or name that file. The input is mean-pooled over all of its tokens and truncated to
+    /// the embedding context (<see cref="AppConstants.EmbeddingContextSize"/> tokens).
+    /// </remarks>
     public async Task<float[]> GenerateEmbeddingAsync(
         string text,
         string modelName,
         CancellationToken ct = default)
     {
-        ThrowIfDisposed();
-        await EnsureModelLoadedAsync(ct).ConfigureAwait(false);
-
-        if (_embedder is null)
-            throw new InvalidOperationException("Embedding model not loaded.");
-
-        var embeddings = await _embedder.GetEmbeddings(text).ConfigureAwait(false);
-        return embeddings[0];
+        _lifetime.Enter();
+        try
+        {
+            EnsureEmbeddingModel(modelName);
+            return await EmbedAsync(text, ct).ConfigureAwait(false);
+        }
+        finally
+        {
+            _lifetime.Exit();
+        }
     }
 
     /// <inheritdoc />
@@ -364,33 +426,35 @@ public sealed class LocalLlmProvider : IAiProvider
         string modelName,
         CancellationToken ct = default)
     {
-        ThrowIfDisposed();
-        await EnsureModelLoadedAsync(ct).ConfigureAwait(false);
-
-        if (_embedder is null)
-            throw new InvalidOperationException("Embedding model not loaded.");
-
-        // LLamaEmbedder doesn't support batch natively — process sequentially
-        var results = new List<float[]>(texts.Count);
-        foreach (var text in texts)
+        _lifetime.Enter();
+        try
         {
-            ct.ThrowIfCancellationRequested();
-            var embedding = await _embedder.GetEmbeddings(text).ConfigureAwait(false);
-            results.Add(embedding[0]);
-        }
+            EnsureEmbeddingModel(modelName);
 
-        return results.AsReadOnly();
+            // LLamaEmbedder has no batch API. The lock is taken per text so query embeddings for
+            // search can interleave with a long indexing batch instead of waiting for all of it.
+            var results = new List<float[]>(texts.Count);
+            foreach (var text in texts)
+            {
+                ct.ThrowIfCancellationRequested();
+                results.Add(await EmbedAsync(text, ct).ConfigureAwait(false));
+            }
+
+            return results.AsReadOnly();
+        }
+        finally
+        {
+            _lifetime.Exit();
+        }
     }
 
     /// <inheritdoc />
     public void Dispose()
     {
-        if (_disposed) return;
-        _disposed = true;
-
-        DisposeModel();
-        _loadLock.Dispose();
-        _inferenceLock.Dispose();
+        // Deferred: if a chat stream or an embedding is still running, the weights are released
+        // when it finishes instead of being freed underneath llama.cpp.
+        if (!_lifetime.RequestDispose(ReleaseResources))
+            return;
 
         _logger.Information("LocalLlmProvider disposed");
     }
@@ -399,57 +463,77 @@ public sealed class LocalLlmProvider : IAiProvider
     //  Model Lifecycle
     // ═══════════════════════════════════════════════════════════════════
 
-    private async Task LoadModelAsync(CancellationToken ct)
+    /// <summary>Loaded weights for one GGUF file plus the chat parameters built for it.</summary>
+    private sealed class LoadedModel : IDisposable
     {
+        public LoadedModel(string fileName, LLamaWeights weights, ModelParams chatParams)
+        {
+            FileName = fileName;
+            Weights = weights;
+            ChatParams = chatParams;
+        }
+
+        public string FileName { get; }
+        public LLamaWeights Weights { get; }
+        public ModelParams ChatParams { get; }
+
+        public void Dispose() => Weights.Dispose();
+    }
+
+    private async Task<LoadedModel> LoadWeightsAsync(string fileName, CancellationToken ct)
+    {
+        var modelPath = Path.Combine(_modelsDirectory, fileName);
+        if (!File.Exists(modelPath))
+            throw new FileNotFoundException($"GGUF model not found: {modelPath}", modelPath);
+
+        // Auto-detect GPU layers: if user set 0 (default), try to detect NVIDIA GPU
+        var effectiveGpuLayers = _gpuLayers;
+        if (effectiveGpuLayers == 0)
+        {
+            _detectedGpuLayers ??= DetectRecommendedGpuLayers();
+            effectiveGpuLayers = _detectedGpuLayers.Value;
+        }
+
+        _logger.Information(
+            "Loading local LLM from {ModelPath} (GPU layers: {GpuLayers})...",
+            modelPath, effectiveGpuLayers);
+
+        var chatParams = new ModelParams(modelPath)
+        {
+            ContextSize = (uint)_contextSize,
+            GpuLayerCount = effectiveGpuLayers
+        };
+
+        var weights = await LLamaWeights.LoadFromFileAsync(
+            chatParams, ct,
+            new Progress<float>(p =>
+                _logger.Debug("Model loading: {Percent:P0}", p)))
+            .ConfigureAwait(false);
+
+        _logger.Information("Local LLM loaded: {Model} (context: {ContextSize})", fileName, _contextSize);
+        return new LoadedModel(fileName, weights, chatParams);
+    }
+
+    /// <summary>Loads the configured model (used for embeddings and default chat) once.</summary>
+    private async Task<LoadedModel> EnsurePrimaryLoadedAsync(CancellationToken ct)
+    {
+        var loaded = _primary;
+        if (loaded is not null)
+            return loaded;
+
         await _loadLock.WaitAsync(ct).ConfigureAwait(false);
         try
         {
-            if (_weights is not null) return; // Already loaded
+            loaded = _primary;
+            if (loaded is not null)
+                return loaded;
 
-            var modelPath = ModelPath;
-            if (!File.Exists(modelPath))
-                throw new FileNotFoundException($"GGUF model not found: {modelPath}");
-
-            // Auto-detect GPU layers: if user set 0 (default), try to detect NVIDIA GPU
-            var effectiveGpuLayers = _gpuLayers;
-            if (effectiveGpuLayers == 0)
-            {
-                effectiveGpuLayers = DetectRecommendedGpuLayers();
-            }
-
-            _logger.Information(
-                "Loading local LLM from {ModelPath} (GPU layers: {GpuLayers})...",
-                modelPath, effectiveGpuLayers);
-
-            // Chat parameters
-            _chatParams = new ModelParams(modelPath)
-            {
-                ContextSize = (uint)_contextSize,
-                GpuLayerCount = effectiveGpuLayers
-            };
-
-            // Load weights (shared between chat and embeddings)
-            _weights = await LLamaWeights.LoadFromFileAsync(
-                _chatParams, ct,
-                new Progress<float>(p =>
-                    _logger.Debug("Model loading: {Percent:P0}", p)))
-                .ConfigureAwait(false);
-
-            // Embedding parameters (same weights, embedding mode)
-            _embeddingParams = new ModelParams(modelPath)
-            {
-                ContextSize = AppConstants.EmbeddingContextSize, // Smaller context for embeddings
-                GpuLayerCount = effectiveGpuLayers,
-                Embeddings = true
-            };
-
-            _embedder = new LLamaEmbedder(_weights, _embeddingParams);
-
+            loaded = await LoadWeightsAsync(_modelFileName, ct).ConfigureAwait(false);
+            _primary = loaded;
             _isAvailable = true;
-            _logger.Information("Local LLM loaded successfully — context: {ContextSize}, embeddings ready",
-                _contextSize);
+            return loaded;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             _logger.Error(ex, "Failed to load local LLM model");
             _isAvailable = false;
@@ -461,26 +545,381 @@ public sealed class LocalLlmProvider : IAiProvider
         }
     }
 
-    private async Task EnsureModelLoadedAsync(CancellationToken ct)
+    /// <summary>
+    /// Creates the embedding context on the configured model: mean pooling (one vector for the
+    /// whole input rather than one per token) and a batch as large as the context, because
+    /// llama.cpp only pools the tokens of a single micro-batch and LLamaSharp rejects inputs
+    /// longer than the batch.
+    /// </summary>
+    private async Task<LLamaEmbedder> EnsureEmbedderAsync(CancellationToken ct)
     {
-        if (_weights is not null) return;
-        await LoadModelAsync(ct).ConfigureAwait(false);
+        var embedder = _embedder;
+        if (embedder is not null)
+            return embedder;
+
+        var primary = await EnsurePrimaryLoadedAsync(ct).ConfigureAwait(false);
+
+        await _loadLock.WaitAsync(ct).ConfigureAwait(false);
+        try
+        {
+            embedder = _embedder;
+            if (embedder is not null)
+                return embedder;
+
+            const uint embeddingWindow = AppConstants.EmbeddingContextSize;
+            var embeddingParams = new ModelParams(primary.ChatParams.ModelPath)
+            {
+                ContextSize = embeddingWindow,
+                BatchSize = embeddingWindow,
+                UBatchSize = embeddingWindow,
+                GpuLayerCount = primary.ChatParams.GpuLayerCount,
+                Embeddings = true,
+                PoolingType = LLamaPoolingType.Mean
+            };
+
+            embedder = new LLamaEmbedder(primary.Weights, embeddingParams);
+            _embedder = embedder;
+            _logger.Information(
+                "Local embedder ready: {Model}, {Dimensions} dimensions, mean pooling, {Window}-token window",
+                primary.FileName, embedder.EmbeddingSize, embeddingWindow);
+            return embedder;
+        }
+        finally
+        {
+            _loadLock.Release();
+        }
     }
 
-    private void DisposeModel()
+    /// <summary>
+    /// Returns the weights to chat with. Caller must hold the inference lock, which guarantees
+    /// no other stream is using the alternate model while it is replaced.
+    /// </summary>
+    private async Task<LoadedModel> ResolveChatModelAsync(string? requestedModelId, CancellationToken ct)
     {
-        _embedder?.Dispose();
-        _embedder = null;
+        var fileName = ResolveChatModelFileName(requestedModelId);
+        if (string.Equals(fileName, _modelFileName, StringComparison.OrdinalIgnoreCase))
+            return await EnsurePrimaryLoadedAsync(ct).ConfigureAwait(false);
 
-        _weights?.Dispose();
-        _weights = null;
+        var alternate = _alternate;
+        if (alternate is not null && string.Equals(alternate.FileName, fileName, StringComparison.OrdinalIgnoreCase))
+            return alternate;
+
+        await _loadLock.WaitAsync(ct).ConfigureAwait(false);
+        try
+        {
+            // Embeddings never use the alternate, and the inference lock keeps other chats off
+            // it, so the previous alternate can be released right away.
+            var previous = _alternate;
+            _alternate = null;
+            previous?.Dispose();
+
+            alternate = await LoadWeightsAsync(fileName, ct).ConfigureAwait(false);
+            _alternate = alternate;
+            return alternate;
+        }
+        finally
+        {
+            _loadLock.Release();
+        }
+    }
+
+    /// <summary>
+    /// Maps a requested chat model id to a GGUF file: the configured model when the id is empty
+    /// or not an installed GGUF file name (ids such as an Ollama tag cannot be served by this
+    /// provider), otherwise the requested file.
+    /// </summary>
+    internal string ResolveChatModelFileName(string? requestedModelId)
+    {
+        if (string.IsNullOrWhiteSpace(requestedModelId))
+            return _modelFileName;
+
+        var requested = requestedModelId.Trim();
+        if (string.Equals(requested, _modelFileName, StringComparison.OrdinalIgnoreCase))
+            return _modelFileName;
+
+        if (IsPlainGgufFileName(requested) && File.Exists(Path.Combine(_modelsDirectory, requested)))
+            return requested;
+
+        _logger.Warning(
+            "Model {Requested} is not an installed GGUF file; the built-in provider uses {Configured}",
+            requested, _modelFileName);
+        return _modelFileName;
+    }
+
+    private void EnsureEmbeddingModel(string? modelName)
+    {
+        if (string.IsNullOrWhiteSpace(modelName) ||
+            string.Equals(modelName.Trim(), _modelFileName, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        throw new NotSupportedException(
+            $"The built-in provider embeds only with its configured model '{_modelFileName}'; " +
+            $"'{modelName}' was requested.");
+    }
+
+    private async Task<float[]> EmbedAsync(string text, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            throw new ArgumentException("Text to embed cannot be null or empty.", nameof(text));
+
+        await _embeddingLock.WaitAsync(ct).ConfigureAwait(false);
+        try
+        {
+            IReadOnlyList<float[]> vectors;
+            if (EmbeddingOverride is not null)
+            {
+                vectors = await EmbeddingOverride(text, ct).ConfigureAwait(false);
+            }
+            else
+            {
+                var embedder = await EnsureEmbedderAsync(ct).ConfigureAwait(false);
+                var input = FitToEmbeddingWindow(embedder, text);
+                vectors = await embedder.GetEmbeddings(input, ct).ConfigureAwait(false);
+            }
+
+            return PoolEmbeddings(vectors);
+        }
+        finally
+        {
+            _embeddingLock.Release();
+        }
+    }
+
+    /// <summary>
+    /// Truncates <paramref name="text"/> so that, with the BOS token the embedder prepends, it
+    /// fits the embedding batch. Longer chunks are embedded from their leading tokens instead of
+    /// failing with "Input contains more tokens than configured batch size".
+    /// </summary>
+    private string FitToEmbeddingWindow(LLamaEmbedder embedder, string text)
+    {
+        var context = embedder.Context;
+        var limit = (int)context.BatchSize - 1;
+
+        var fitted = FitToTokenLimit(
+            text,
+            limit,
+            value => context.Tokenize(value, addBos: false, special: false),
+            (tokens, count) =>
+            {
+                var decoder = new StreamingTokenDecoder(context);
+                decoder.AddRange(new ReadOnlySpan<LLamaToken>(tokens, 0, count));
+                return decoder.Read();
+            });
+
+        if (!ReferenceEquals(fitted, text))
+        {
+            _logger.Debug(
+                "Embedding input truncated to the {Limit}-token embedding window ({Chars} of {Total} characters kept)",
+                limit, fitted.Length, text.Length);
+        }
+
+        return fitted;
+    }
+
+    /// <summary>
+    /// Returns <paramref name="text"/> unchanged when it has at most <paramref name="maxTokens"/>
+    /// tokens, otherwise the longest decoded token prefix that re-tokenizes within the limit
+    /// (decoding and re-encoding is not always length-preserving, so the prefix is re-checked).
+    /// </summary>
+    internal static string FitToTokenLimit<TToken>(
+        string text,
+        int maxTokens,
+        Func<string, TToken[]> tokenize,
+        Func<TToken[], int, string> decodePrefix)
+    {
+        ArgumentNullException.ThrowIfNull(tokenize);
+        ArgumentNullException.ThrowIfNull(decodePrefix);
+
+        if (maxTokens <= 0)
+            return string.Empty;
+
+        var tokens = tokenize(text);
+        if (tokens.Length <= maxTokens)
+            return text;
+
+        var keep = maxTokens;
+        while (keep > 0)
+        {
+            var candidate = decodePrefix(tokens, keep);
+            if (tokenize(candidate).Length <= maxTokens)
+                return candidate;
+
+            keep -= Math.Max(1, keep / 16);
+        }
+
+        return string.Empty;
+    }
+
+    /// <summary>
+    /// Reduces the embedder output to one vector. With mean pooling llama.cpp returns a single
+    /// pooled vector; if a runtime ignores the pooling type and returns one vector per token,
+    /// the token vectors are averaged here instead of returning the first (BOS) vector, which
+    /// is identical for every input in a causal model.
+    /// </summary>
+    internal static float[] PoolEmbeddings(IReadOnlyList<float[]> vectors)
+    {
+        ArgumentNullException.ThrowIfNull(vectors);
+
+        if (vectors.Count == 0 || vectors[0].Length == 0)
+            throw new InvalidOperationException("The local embedder returned no embedding vector.");
+
+        if (vectors.Count == 1)
+            return vectors[0];
+
+        var dimensions = vectors[0].Length;
+        var mean = new float[dimensions];
+        foreach (var vector in vectors)
+        {
+            if (vector.Length != dimensions)
+                throw new InvalidOperationException("The local embedder returned vectors of different sizes.");
+
+            for (var i = 0; i < dimensions; i++)
+                mean[i] += vector[i];
+        }
+
+        for (var i = 0; i < dimensions; i++)
+            mean[i] /= vectors.Count;
+
+        return mean;
+    }
+
+    private void UnloadModelFile(string fileName)
+    {
+        var primary = _primary;
+        if (primary is not null && string.Equals(primary.FileName, fileName, StringComparison.OrdinalIgnoreCase))
+        {
+            var embedder = _embedder;
+            _embedder = null;
+            embedder?.Dispose();
+
+            _primary = null;
+            primary.Dispose();
+            _isAvailable = false;
+        }
+
+        var alternate = _alternate;
+        if (alternate is not null && string.Equals(alternate.FileName, fileName, StringComparison.OrdinalIgnoreCase))
+        {
+            _alternate = null;
+            alternate.Dispose();
+        }
+    }
+
+    private void ReleaseResources()
+    {
+        var embedder = _embedder;
+        _embedder = null;
+        embedder?.Dispose();
+
+        var alternate = _alternate;
+        _alternate = null;
+        alternate?.Dispose();
+
+        var primary = _primary;
+        _primary = null;
+        primary?.Dispose();
 
         _isAvailable = false;
+        _loadLock.Dispose();
+        _inferenceLock.Dispose();
+        _embeddingLock.Dispose();
     }
 
     // ═══════════════════════════════════════════════════════════════════
     //  Prompt Formatting (Llama 3 Instruct Template)
     // ═══════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Formats the messages and, when the prompt would not leave room for the answer inside the
+    /// model context, drops the oldest non-system messages (the final message is always kept).
+    /// Throws a clear error when even that cannot fit, instead of letting llama.cpp fail the
+    /// decode with an opaque "no KV slot" error.
+    /// </summary>
+    internal static string BuildPromptWithinContext(
+        IReadOnlyList<ChatMessage> messages,
+        bool jsonMode,
+        Func<string, int> countTokens,
+        int contextSize,
+        int maxTokens,
+        ILogger logger)
+    {
+        ArgumentNullException.ThrowIfNull(messages);
+        ArgumentNullException.ThrowIfNull(countTokens);
+
+        var prompt = FormatChatPrompt(messages, jsonMode);
+        if (contextSize <= 0)
+            return prompt;
+
+        // Room for the answer: MaxTokens, capped at a quarter of the context. Generation beyond
+        // the context is handled by the executor's context shift, but the prompt itself must fit.
+        const int minimumHeadroom = 16;
+        var reserve = Math.Clamp(maxTokens, minimumHeadroom, Math.Max(minimumHeadroom, contextSize / 4));
+        var budget = contextSize - reserve;
+
+        var tokens = countTokens(prompt);
+        if (tokens <= budget)
+            return prompt;
+
+        var kept = messages.ToList();
+        var dropped = 0;
+        while (tokens > budget)
+        {
+            var oldest = kept.FindIndex(m => !string.Equals(m.Role, "system", StringComparison.OrdinalIgnoreCase));
+            if (oldest < 0 || oldest == kept.Count - 1)
+                break;
+
+            kept.RemoveAt(oldest);
+            dropped++;
+            prompt = FormatChatPrompt(kept, jsonMode);
+            tokens = countTokens(prompt);
+        }
+
+        if (dropped > 0)
+        {
+            logger.Warning(
+                "Prompt exceeded the built-in model context ({ContextSize} tokens, {Reserve} reserved for the answer); " +
+                "dropped the {Dropped} oldest messages",
+                contextSize, reserve, dropped);
+        }
+
+        if (tokens > contextSize - minimumHeadroom)
+        {
+            throw new InvalidOperationException(
+                $"The prompt needs about {tokens} tokens but the built-in model context holds {contextSize}. " +
+                "Shorten the input or raise the local context size in Settings.");
+        }
+
+        return prompt;
+    }
+
+    /// <summary>Rough token estimate used when no native tokenizer is loaded (test seam path).</summary>
+    private static int EstimatePromptTokens(string text) => (text.Length + 3) / 4;
+
+    /// <summary>
+    /// In JSON mode the prompt already ends with "{" and that brace is emitted before the
+    /// generated tokens. If the model nevertheless starts its answer with another "{", that
+    /// duplicate is dropped: a second "{" can never legally follow the opening brace.
+    /// Returns the token to emit and whether the body start is still pending (whitespace only).
+    /// </summary>
+    internal static (string Text, bool StillAwaiting) StripDuplicateOpeningBrace(string token)
+    {
+        if (string.IsNullOrEmpty(token))
+            return (token ?? string.Empty, true);
+
+        for (var i = 0; i < token.Length; i++)
+        {
+            if (char.IsWhiteSpace(token[i]))
+                continue;
+
+            return token[i] == '{'
+                ? (token.Remove(i, 1), false)
+                : (token, false);
+        }
+
+        return (token, true);
+    }
 
     /// <summary>
     /// Formats messages into the Llama 3.x instruct chat template.
@@ -550,19 +989,31 @@ public sealed class LocalLlmProvider : IAiProvider
     }
 
     /// <summary>
-    /// Resolves the HuggingFace download URL for a known GGUF model.
+    /// True for a bare "*.gguf" file name with no directory components. Both separator styles
+    /// and drive prefixes are rejected on every platform, not only the host's own separator.
     /// </summary>
-    private static string? ResolveDownloadUrl(string modelFileName)
+    private static bool IsPlainGgufFileName(string name) =>
+        !string.IsNullOrWhiteSpace(name) &&
+        name.IndexOfAny(['/', '\\', ':']) < 0 &&
+        string.Equals(Path.GetFileName(name), name, StringComparison.Ordinal) &&
+        name.IndexOfAny(Path.GetInvalidFileNameChars()) < 0 &&
+        name.EndsWith(".gguf", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Validates a model file name received from the UI before it is combined with the models
+    /// directory, so a name such as "..\x" can never reach a file outside it.
+    /// </summary>
+    private static string RequireGgufFileName(string? modelName)
     {
-        // Map known model filenames to their HuggingFace download URLs
-        return modelFileName.ToLowerInvariant() switch
+        var name = modelName?.Trim() ?? string.Empty;
+        if (!IsPlainGgufFileName(name))
         {
-            "llama-3.2-3b-instruct-q4_k_m.gguf" =>
-                "https://huggingface.co/hugging-quants/Llama-3.2-3B-Instruct-Q4_K_M-GGUF/resolve/main/llama-3.2-3b-instruct-q4_k_m.gguf",
-            "llama-3.2-1b-instruct-q4_k_m.gguf" =>
-                "https://huggingface.co/hugging-quants/Llama-3.2-1B-Instruct-Q4_K_M-GGUF/resolve/main/llama-3.2-1b-instruct-q4_k_m.gguf",
-            _ => null
-        };
+            throw new ArgumentException(
+                $"'{modelName}' is not a GGUF model file name (expected a bare *.gguf name).",
+                nameof(modelName));
+        }
+
+        return name;
     }
 
     /// <summary>
@@ -573,41 +1024,20 @@ public sealed class LocalLlmProvider : IAiProvider
     {
         try
         {
-            using var searcher = new System.Management.ManagementObjectSearcher(
-                "SELECT Name, AdapterRAM FROM Win32_VideoController");
-            using var results = searcher.Get();
-
-            foreach (System.Management.ManagementObject gpu in results)
+            // The reader prefers the driver's 64-bit qwMemorySize over WMI AdapterRAM, which
+            // saturates at 4 GB and would cap every modern card at the 28-layer tier.
+            foreach (var adapter in GpuMemoryReader.ReadAdapters(_logger))
             {
-                try
-                {
-                    var name = gpu["Name"]?.ToString() ?? "";
-                    if (!name.Contains("NVIDIA", StringComparison.OrdinalIgnoreCase))
-                        continue;
+                var capability = new HardwareCapability { GpuName = adapter.Name, GpuVramBytes = adapter.VramBytes };
+                if (!capability.IsNvidiaGpu)
+                    continue;
 
-                    var adapterRam = gpu["AdapterRAM"];
-                    long vramBytes = adapterRam is not null ? Convert.ToInt64(adapterRam) : 0;
-                    if (vramBytes < 0) vramBytes += 4_294_967_296L;
+                var layers = capability.RecommendedGpuLayers;
+                _logger.Information(
+                    "NVIDIA GPU detected: {GpuName} ({Vram:F1} GB) - auto-setting {Layers} GPU layers",
+                    adapter.Name, adapter.VramBytes / 1_000_000_000.0, layers);
 
-                    var layers = vramBytes switch
-                    {
-                        < 2_000_000_000L => 0,
-                        < 4_000_000_000L => 16,
-                        < 6_000_000_000L => 28,
-                        < 8_000_000_000L => 33,
-                        _ => 33
-                    };
-
-                    _logger.Information(
-                        "NVIDIA GPU detected: {GpuName} ({Vram:F1} GB) — auto-setting {Layers} GPU layers",
-                        name, vramBytes / 1_000_000_000.0, layers);
-
-                    return layers;
-                }
-                finally
-                {
-                    gpu.Dispose();
-                }
+                return layers;
             }
         }
         catch (Exception ex)
@@ -619,20 +1049,8 @@ public sealed class LocalLlmProvider : IAiProvider
         return 0;
     }
 
-    private void TryDeletePartial(string path)
-    {
-        try
-        {
-            if (File.Exists(path)) File.Delete(path);
-        }
-        catch (Exception ex)
-        {
-            _logger.Debug(ex, "Could not delete partial model download {Path}", path);
-        }
-    }
-
     private void ThrowIfDisposed()
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_lifetime.IsDisposeRequested, this);
     }
 }
