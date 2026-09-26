@@ -281,6 +281,22 @@ public partial class App : Application
         {
             Log.Warning(ex, "Failed to initialize theme");
         }
+
+        // 5. Start the indexing pipeline: initialize the vector store, re-queue documents left
+        //    pending or interrupted, and start the background loop that chunks, embeds and
+        //    FTS-indexes every import. Nothing else starts it, so without this call no document
+        //    ever becomes searchable. Last, because embedding needs the AI service from step 2,
+        //    and on the thread pool, because rebuilding the vector index is CPU-heavy.
+        try
+        {
+            var indexing = GetService<IIndexingService>();
+            await Task.Run(() => indexing.InitializeAsync());
+            Log.Information("Indexing pipeline started");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Indexing pipeline failed to start; imported documents will not be indexed");
+        }
     }
 
     private void ConfigureServices(HostBuilderContext context, IServiceCollection services)
