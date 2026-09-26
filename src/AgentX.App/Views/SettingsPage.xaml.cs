@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using AgentX.App.Helpers;
 using AgentX.App.ViewModels;
 using AgentX.Core.Services.Shortcuts;
@@ -24,8 +25,12 @@ public sealed partial class SettingsPage : Page
         {
             await ViewModel.InitializeAsync();
             await ViewModel.LoadEncryptionStatusAsync();
+            ViewModel.PropertyChanged -= OnViewModelPropertyChanged;
+            ViewModel.PropertyChanged += OnViewModelPropertyChanged;
+            SyncEncryptionToggle();
             _isLoaded = true;
         };
+        Unloaded += (_, _) => ViewModel.PropertyChanged -= OnViewModelPropertyChanged;
     }
 
     protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -48,11 +53,33 @@ public sealed partial class SettingsPage : Page
         _shortcutScope = null;
     }
 
+    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(SettingsViewModel.EncryptionEnabled))
+            SyncEncryptionToggle();
+    }
+
+    /// <summary>
+    /// Mirrors the view model's encryption state onto the toggle. Toggled also fires for
+    /// programmatic IsOn changes, so the handler is unhooked while the state is written;
+    /// otherwise every view-model update would re-enter the handler as a new user request.
+    /// </summary>
+    private void SyncEncryptionToggle()
+    {
+        EncryptionToggle.Toggled -= EncryptionToggle_Toggled;
+        EncryptionToggle.IsOn = ViewModel.EncryptionEnabled;
+        EncryptionToggle.Toggled += EncryptionToggle_Toggled;
+    }
+
     private async void EncryptionToggle_Toggled(object sender, RoutedEventArgs e)
     {
-        // Suppress the event while the toggle is being initialized by data binding.
+        // Suppress the event until the page has loaded the real encryption state.
         if (!_isLoaded) return;
-        await ViewModel.OnEncryptionToggledAsync();
+        await ViewModel.RequestEncryptionStateAsync(EncryptionToggle.IsOn);
+
+        // A declined or failed request can leave EncryptionEnabled unchanged (no PropertyChanged),
+        // so always show the real state once the request settles.
+        SyncEncryptionToggle();
     }
 
     /// <summary>

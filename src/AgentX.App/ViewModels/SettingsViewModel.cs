@@ -20,11 +20,10 @@ public partial class SettingsViewModel : ObservableObject
     private readonly IThemeService _themeService;
     private readonly ISecurityStatusService _securityStatusService;
     private readonly IModelRouterService? _modelRouterService;
-    private readonly IDatabaseKeyService _databaseKeyService;
-    private readonly IDatabaseEncryptionMigrator _databaseEncryptionMigrator;
-    private readonly IDatabaseKeyProvider _databaseKeyProvider;
     private readonly IEncryptionStateFile _encryptionStateFile;
     private readonly IApiHostLifecycleService _apiHostLifecycle;
+    private readonly IDatabaseEncryptionManager? _databaseEncryptionManager;
+    private bool _encryptionChangeInFlight;
 
     // ── Active Provider ──────────────────────────────────────
     [ObservableProperty] private int _activeProviderIndex;
@@ -137,24 +136,20 @@ public partial class SettingsViewModel : ObservableObject
         ICostTracker costTracker,
         IThemeService themeService,
         ISecurityStatusService securityStatusService,
-        IDatabaseKeyService databaseKeyService,
-        IDatabaseEncryptionMigrator databaseEncryptionMigrator,
-        IDatabaseKeyProvider databaseKeyProvider,
         IEncryptionStateFile encryptionStateFile,
         IApiHostLifecycleService apiHostLifecycle,
-        IModelRouterService? modelRouterService = null)
+        IModelRouterService? modelRouterService = null,
+        IDatabaseEncryptionManager? databaseEncryptionManager = null)
     {
         _settingsService = settingsService;
         _aiService = aiService;
         _costTracker = costTracker;
         _themeService = themeService;
         _securityStatusService = securityStatusService;
-        _databaseKeyService = databaseKeyService;
-        _databaseEncryptionMigrator = databaseEncryptionMigrator;
-        _databaseKeyProvider = databaseKeyProvider;
         _encryptionStateFile = encryptionStateFile;
         _apiHostLifecycle = apiHostLifecycle;
         _modelRouterService = modelRouterService;
+        _databaseEncryptionManager = databaseEncryptionManager;
 
         StoragePath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -587,67 +582,62 @@ public partial class SettingsViewModel : ObservableObject
     // ── Database Encryption Toggle Flow ───────────────────────
 
     /// <summary>
-    /// Invoked by the Settings page when the encryption ToggleSwitch changes.
-    /// Database encryption is available to every user, free of charge. The key is
-    /// wrapped with Windows DPAPI and tied transparently to the current Windows user
-    /// account — no passphrase to remember and no risk of permanent data loss.
-    /// On failure, reverts the toggle and does NOT write the marker file.
+    /// Invoked by the Settings page with the state the user asked for on the encryption
+    /// ToggleSwitch. Database encryption is available to every user, free of charge. The key is
+    /// wrapped with Windows DPAPI and tied transparently to the current Windows user account.
+    /// <para>
+    /// Idempotent: the request is compared with the real state (the encryption marker), not with
+    /// the toggle, so a repeated request or an echo of a programmatic toggle change does nothing.
+    /// Only one change runs at a time, and <see cref="EncryptionEnabled"/> always ends on the real
+    /// state. <see cref="IDatabaseEncryptionManager"/> writes the marker only after the database
+    /// was migrated and verified, so a failed attempt leaves an unencrypted database and no marker.
+    /// </para>
     /// </summary>
-    public async System.Threading.Tasks.Task OnEncryptionToggledAsync()
+    public async System.Threading.Tasks.Task RequestEncryptionStateAsync(bool enable)
     {
-        // Called by the XAML code-behind when the ToggleSwitch is toggled by the user.
-        // The TwoWay binding means EncryptionEnabled already reflects the target state.
+        if (_encryptionChangeInFlight)
+            return;
 
-        if (!EncryptionEnabled)
+        var encrypted = _encryptionStateFile.Exists();
+        if (enable == encrypted)
         {
-            // v2.1 does not support disabling encryption.
-            if (_encryptionStateFile.Exists())
-            {
-                EncryptionStatus = "Disabling encryption is not supported in v2.1. Restore from an unencrypted backup to revert.";
-                EncryptionEnabled = true;
-            }
-            else
-            {
-                EncryptionStatus = "Encryption is not enabled.";
-            }
+            EncryptionEnabled = encrypted;
             return;
         }
 
-        // DPAPI-wrapped key storage is the universal, transparent mode available to
-        // every user. The key is managed automatically and tied to the Windows account.
-        const KeyStorageMode mode = KeyStorageMode.DpapiWrapped;
+        if (!enable)
+        {
+            // Turning encryption off in place is not supported.
+            EncryptionEnabled = true;
+            EncryptionStatus = "Turning encryption off is not supported. Your database stays encrypted.";
+            return;
+        }
 
+        if (_databaseEncryptionManager is null)
+        {
+            EncryptionEnabled = false;
+            EncryptionStatus = "Database encryption is not available in this build.";
+            return;
+        }
+
+        _encryptionChangeInFlight = true;
+        EncryptionStatus = "Encrypting...";
         try
         {
-            EncryptionStatus = "Encrypting…";
-
-            // Provisioning writes the marker file (containing the DPAPI-wrapped key)
-            // as part of GetOrCreateKeyAsync — no separate marker write is needed.
-            // If MigrateToEncryptedAsync fails below, the marker will be present but
-            // the DB unencrypted; the next launch will detect the mismatch and prompt
-            // the user. This is acceptable for v2.1 (disable-encryption flow is a
-            // future feature).
-            var key = await _databaseKeyService.GetOrCreateKeyAsync(mode, passphrase: null);
-            var dbPath = System.IO.Path.Combine(
-                System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData),
-                "AgentX",
-                "agentx.db");
-
-            await _databaseEncryptionMigrator.MigrateToEncryptedAsync(dbPath, key);
-
-            // Activate the key for THIS session so subsequent DB opens see it.
-            if (_databaseKeyProvider is DatabaseKeyProvider provider)
-                provider.Set(key);
-
+            await _databaseEncryptionManager.EnableEncryptionAsync();
             EncryptionStatus = "Encrypted. The key is managed automatically and tied to your Windows user account.";
-
-            Serilog.Log.Information("Database encryption enabled (mode={Mode})", mode);
         }
         catch (System.Exception ex)
         {
             Serilog.Log.Error(ex, "Database encryption enable failed");
-            EncryptionEnabled = false;
-            EncryptionStatus = $"Encryption failed: {ex.Message}";
+            EncryptionStatus = _encryptionStateFile.Exists()
+                ? $"Encryption was applied, but the database could not be reopened: {ex.Message} Restart Agent-X."
+                : $"Encryption failed: {ex.Message} Your database was left unencrypted.";
+        }
+        finally
+        {
+            _encryptionChangeInFlight = false;
+            EncryptionEnabled = _encryptionStateFile.Exists();
         }
     }
 

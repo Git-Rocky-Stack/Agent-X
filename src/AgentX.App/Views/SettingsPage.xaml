@@ -530,10 +530,11 @@
                                Text="Encrypt your knowledge vault with AES-256 (SQLCipher). The key is managed automatically and tied to your Windows account."
                                Style="{StaticResource BodySecondaryStyle}"
                                TextWrapping="Wrap" />
+                    <!-- IsOn is set from code-behind with Toggled unhooked (SettingsPage.SyncEncryptionToggle):
+                         a TwoWay binding re-raised Toggled for every view-model write. -->
                     <ToggleSwitch x:Name="EncryptionToggle"
                                   x:Uid="Settings_Encrypted" OnContent="Encrypted"
                                   OffContent="Not encrypted"
-                                  IsOn="{x:Bind ViewModel.EncryptionEnabled, Mode=TwoWay}"
                                   Toggled="EncryptionToggle_Toggled"
                                   AutomationProperties.LabeledBy="{x:Bind EncryptionSectionHeader}" />
                     <TextBlock Text="{x:Bind ViewModel.EncryptionStatus, Mode=OneWay}"

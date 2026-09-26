@@ -25,4 +25,12 @@ public interface IEncryptionStateFile
 
     /// <summary>Removes the marker. Used by the disable-encryption flow (future feature).</summary>
     void Delete();
+
+    /// <summary>
+    /// Renames the marker to <c>encryption.info.json.stale-&lt;UTC timestamp&gt;</c> so it no
+    /// longer drives startup, keeping the file for diagnosis. Used when the marker claims
+    /// encryption but the database on disk is plaintext. Returns the new path, or null when there
+    /// was no marker.
+    /// </summary>
+    string? MoveAside();
 }

@@ -109,6 +109,59 @@ public class DatabaseKeyServiceTests
     }
 
     [Fact]
+    public async Task CreateUncommittedKeyAsync_returns_key_and_marker_without_writing_the_marker()
+    {
+        var markerPath = Path.Combine(Path.GetTempPath(), $"agentx-keysvc-{Guid.NewGuid():N}.json");
+        var dpapi = new AgentX.Tests.Helpers.FakeDpapiEncryptionService();
+        var sut = new DatabaseKeyService(new EncryptionStateFile(markerPath), dpapi);
+        try
+        {
+            var provisioned = await sut.CreateUncommittedKeyAsync(KeyStorageMode.DpapiWrapped);
+
+            // The marker must only be written after the database migration is verified, so
+            // provisioning alone leaves nothing on disk.
+            File.Exists(markerPath).Should().BeFalse();
+            (await sut.IsProvisionedAsync()).Should().BeFalse();
+
+            provisioned.Key.Mode.Should().Be(KeyStorageMode.DpapiWrapped);
+            provisioned.Key.HexKey.Should().HaveLength(64);
+            provisioned.Marker.StorageMode.Should().Be(KeyStorageMode.DpapiWrapped);
+            dpapi.Decrypt(provisioned.Marker.DpapiWrappedKey!).Should().Be(provisioned.Key.HexKey);
+
+            // Once committed, the marker unlocks the same key.
+            await new EncryptionStateFile(markerPath).WriteAsync(provisioned.Marker);
+            (await sut.GetOrCreateKeyAsync(KeyStorageMode.DpapiWrapped)).HexKey.Should().Be(provisioned.Key.HexKey);
+        }
+        finally
+        {
+            if (File.Exists(markerPath)) File.Delete(markerPath);
+        }
+    }
+
+    [Fact]
+    public async Task CreateUncommittedKeyAsync_refuses_when_a_marker_already_exists()
+    {
+        var markerPath = Path.Combine(Path.GetTempPath(), $"agentx-keysvc-{Guid.NewGuid():N}.json");
+        var stateFile = new EncryptionStateFile(markerPath);
+        var sut = new DatabaseKeyService(stateFile, new AgentX.Tests.Helpers.FakeDpapiEncryptionService());
+        try
+        {
+            var first = await sut.CreateUncommittedKeyAsync(KeyStorageMode.DpapiWrapped);
+            await stateFile.WriteAsync(first.Marker);
+
+            // A second key would orphan the database the existing marker unlocks.
+            var act = () => sut.CreateUncommittedKeyAsync(KeyStorageMode.DpapiWrapped);
+
+            await act.Should().ThrowAsync<InvalidOperationException>();
+            stateFile.Read()!.DpapiWrappedKey.Should().Be(first.Marker.DpapiWrappedKey);
+        }
+        finally
+        {
+            if (File.Exists(markerPath)) File.Delete(markerPath);
+        }
+    }
+
+    [Fact]
     public async Task GetProvisionedModeAsync_returns_null_before_provisioning()
     {
         var (sut, markerPath) = NewSut();
