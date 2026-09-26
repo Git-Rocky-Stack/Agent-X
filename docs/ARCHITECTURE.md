@@ -304,9 +304,11 @@ The DI container lifetime strategy is deliberate:
 | Registration | Lifetime | Reason |
 |---|---|---|
 | All Core Services | Singleton | Services are stateful (DB connection, AI provider, indexing queue) and expensive to construct. Sharing a single instance across the app avoids redundant initialization. |
-| `AgentXDbContext` | Singleton | A single long-lived EF Core context avoids connection pool overhead. SQLite WAL mode supports concurrent access. |
+| `AgentXDbContext` | Singleton | One long-lived EF Core context, shared by the UI and all background work. A `DbContext` is not thread-safe, and WAL mode does not change that (it lets separate connections read while one writes), so the context serializes its own operations; see the note below the table. |
 | `IVectorStore` | Singleton | Created by `VectorStoreFactory`. Uses `HnswVectorStore` when enabled, with SQLite persistence and linear-scan fallback; otherwise uses `SqliteVecStore`. Must not be recreated. |
 | Views and ViewModels | Transient | New instances are created on each navigation, ensuring clean state. The `Frame` caches page instances at the WinUI 3 level, so navigation back does not necessarily trigger reconstruction unless the page was evicted. |
+
+**The shared context is serialized, not concurrent.** The indexing loop, the local REST API, status-bar polling, scheduled backup and sync, and connector timers all use the one `AgentXDbContext` alongside the UI thread. The context replaces EF Core's concurrency detector with `SerializingConcurrencyDetector`, so an overlapping operation waits for the one in flight instead of throwing, and `SerializingQueryCompiler` holds the same gate across whole query executions. `SaveChanges`/`SaveChangesAsync` run under the gate and discard the pending changes of a save that fails, so a rejected change cannot poison every later save. Raw ADO.NET sections join the gate through `EnterDatabaseGate()`. Because all of this work queues on one gate, background services should keep each database section short and do slow work (embedding, model calls, file I/O) outside it.
 
 ### 4.4 Fire-and-Forget Startup Initialization
 

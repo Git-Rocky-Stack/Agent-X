@@ -401,7 +401,17 @@ The DI container is configured in `App.xaml.cs` inside `ConfigureServices()`. It
 | All services (Core) | Singleton | Services hold state, connections, or are expensive to create |
 | All ViewModels | Transient | Each page navigation creates a fresh ViewModel instance |
 | All Views (Pages) | Transient | Each navigation creates a fresh Page instance |
-| `AgentXDbContext` | Singleton | Shared across all services; SQLite handles concurrency |
+| `AgentXDbContext` | Singleton | One context shared by the UI and all background work. An EF Core `DbContext` is not thread-safe, so the context serializes its own operations (see below); SQLite does not do this for you |
+
+**The shared `AgentXDbContext`:**
+
+EF Core does not support two operations running at once on one `DbContext` instance, and SQLite's locking (WAL included) does nothing to change that: WAL lets separate connections read while one writes, it does not make one context safe to use from several threads. Agent-X still registers a single context, and reaches it from the UI thread and from background work at the same time (the indexing loop, the local REST API, status-bar polling, scheduled backup and sync, connector timers). So the context serializes itself behind one gate:
+
+- A custom `IConcurrencyDetector` (`SerializingConcurrencyDetector`) makes an overlapping operation wait for the one in flight instead of throwing "A second operation was started on this context instance". `SerializingQueryCompiler` holds the same gate across whole query executions, including enumerator disposal.
+- `SaveChanges` and `SaveChangesAsync` run under the gate. When a save fails, the pending changes it tried to write are discarded (added entities are detached, modified and deleted ones reverted), so one rejected change is not replayed, and failed again, by every later unrelated save.
+- Raw ADO.NET work on `Database.GetDbConnection()` is invisible to EF and must join the gate for its whole duration, including any transaction it opens: `using (db.EnterDatabaseGate()) { ... }`. The gate is re-entrant within one async flow, so do not fan out parallel database work while holding it.
+
+Every caller waits on the same gate, the UI thread included, so a long database section stalls everything else. Keep database work in background services short: read what you need, leave the gate, and do the slow part (embedding, model calls, file I/O) outside it.
 
 **Service resolution:**
 
@@ -411,7 +421,9 @@ Services are resolved via constructor injection in all classes. For the rare cas
 var myService = App.GetService<IMyService>();
 ```
 
-This is used in `MainWindow.xaml.cs` for the status bar, in Pages for their ViewModels, and during startup initialization.
+This is used in `MainWindow.xaml.cs` for the status bar and during startup initialization.
+
+Pages create their ViewModel with `PageViewModelFactory.Create<TViewModel>()` (`Helpers/PageViewModelFactory.cs`), not `App.GetService<TViewModel>()`. `App.GetService` resolves from the root provider, which keeps every transient `IDisposable` it creates until shutdown; the `Frame` caches only ten pages, so each evicted and rebuilt page would leave its old ViewModel (and, through event subscriptions, the old page) alive for the rest of the session. The factory builds the same object with `ActivatorUtilities` without the container tracking it. `PagesCreateDisposableViewModelsUntrackedTests` fails on a page that resolves an `IDisposable` ViewModel through the root provider.
 
 **Registration pattern:**
 
