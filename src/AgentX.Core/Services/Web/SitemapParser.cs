@@ -125,11 +125,11 @@ public sealed class SitemapParser : ISitemapParser
 
         _log.Debug("Fetching sitemap from: {SitemapUrl}", sitemapUrl);
 
-        var crawl = new CrawlState();
+        var crawl = new CrawlState(ParseHttpUrl(sitemapUrl, nameof(sitemapUrl)));
         crawl.TryVisit(sitemapUrl);
         crawl.Fetches++;
 
-        var xml = await FetchSitemapXmlAsync(sitemapUrl, ct);
+        var xml = await FetchSitemapXmlAsync(sitemapUrl, crawl.Root, ct);
 
         if (string.IsNullOrWhiteSpace(xml))
         {
@@ -149,7 +149,8 @@ public sealed class SitemapParser : ISitemapParser
 
         _log.Debug("Fetching sitemap index from: {SitemapIndexUrl}", sitemapIndexUrl);
 
-        var xml = await FetchSitemapXmlAsync(sitemapIndexUrl, ct);
+        var xml = await FetchSitemapXmlAsync(
+            sitemapIndexUrl, ParseHttpUrl(sitemapIndexUrl, nameof(sitemapIndexUrl)), ct);
 
         if (string.IsNullOrWhiteSpace(xml))
         {
@@ -220,9 +221,20 @@ public sealed class SitemapParser : ISitemapParser
 
                 try
                 {
+                    // A public sitemap may not point Agent-X at this machine or the local network
+                    if (Uri.TryCreate(childUrl, UriKind.Absolute, out var childUri)
+                        && await PrivateNetworkGuard.IsPrivateOrLocalHostAsync(childUri, ct)
+                        && !await crawl.RootIsPrivateAsync(ct))
+                    {
+                        _log.Warning(
+                            "Skipping child sitemap {ChildUrl}: it points to a private or local network address.",
+                            childUrl);
+                        continue;
+                    }
+
                     _log.Debug("Fetching child sitemap: {ChildUrl} (depth {Depth})", childUrl, depth + 1);
                     crawl.Fetches++;
-                    var childXml = await FetchSitemapXmlAsync(childUrl, ct);
+                    var childXml = await FetchSitemapXmlAsync(childUrl, crawl.Root, ct);
                     if (string.IsNullOrWhiteSpace(childXml))
                         continue;
 
@@ -332,22 +344,37 @@ public sealed class SitemapParser : ISitemapParser
     // ─── HTTP Fetching ──────────────────────────────────────────────────────
 
     /// <summary>
-    /// Fetches the raw XML content from the specified sitemap URL, reading at most
-    /// <see cref="MaxSitemapBytes"/>. Handles BOM removal and HTML-wrapped XML extraction for
-    /// compatibility.
+    /// Parses an absolute HTTP or HTTPS URL, or throws <see cref="ArgumentException"/>.
     /// </summary>
-    private async Task<string> FetchSitemapXmlAsync(string url, CancellationToken ct)
+    private static Uri ParseHttpUrl(string url, string paramName)
     {
         if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)
             || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
         {
-            throw new ArgumentException($"Invalid sitemap URL: '{url}'. Only HTTP and HTTPS URLs are supported.", nameof(url));
+            throw new ArgumentException($"Invalid sitemap URL: '{url}'. Only HTTP and HTTPS URLs are supported.", paramName);
         }
+
+        return uri;
+    }
+
+    /// <summary>
+    /// Fetches the raw XML content from the specified sitemap URL, reading at most
+    /// <see cref="MaxSitemapBytes"/>. Redirects are held to the network zone of
+    /// <paramref name="origin"/>, the sitemap the user asked for. Handles BOM removal and
+    /// HTML-wrapped XML extraction for compatibility.
+    /// </summary>
+    private async Task<string> FetchSitemapXmlAsync(string url, Uri origin, CancellationToken ct)
+    {
+        var uri = ParseHttpUrl(url, nameof(url));
 
         try
         {
             var (response, _) = await WebHttp.GetFollowingRedirectsAsync(
-                _httpClient, uri, configureRequest: null, checkRedirect: null, ct);
+                _httpClient,
+                uri,
+                configureRequest: null,
+                (from, to, token) => PrivateNetworkGuard.EnsureRedirectAllowedAsync(origin, from, to, token),
+                ct);
 
             string content;
             using (response)
@@ -398,12 +425,23 @@ public sealed class SitemapParser : ISitemapParser
     /// Bookkeeping for one <see cref="ParseSitemapAsync"/> call: which sitemap documents were
     /// already read, how many were fetched, and how many page URLs were collected.
     /// </summary>
-    internal sealed class CrawlState
+    internal sealed class CrawlState(Uri root)
     {
         private readonly HashSet<string> _visited = new(StringComparer.Ordinal);
+        private Task<bool>? _rootIsPrivate;
+
+        /// <summary>The sitemap the user asked for; it sets the network zone of the whole crawl.</summary>
+        public Uri Root { get; } = root;
 
         /// <summary>Sitemap documents fetched so far, the root included.</summary>
         public int Fetches { get; set; }
+
+        /// <summary>
+        /// Whether the root sitemap is on this machine or a private network (looked up once).
+        /// Only then may the sitemaps it lists point at private or local addresses.
+        /// </summary>
+        public Task<bool> RootIsPrivateAsync(CancellationToken ct) =>
+            _rootIsPrivate ??= PrivateNetworkGuard.IsPrivateOrLocalHostAsync(Root, ct);
 
         /// <summary>Page URLs collected so far.</summary>
         public int UrlCount { get; set; }

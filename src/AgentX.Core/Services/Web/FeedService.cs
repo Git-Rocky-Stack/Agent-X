@@ -393,7 +393,11 @@ public class FeedService : IFeedService
         }
 
         var (response, _) = await WebHttp.GetFollowingRedirectsAsync(
-            _httpClient, feedUri, configureRequest: null, checkRedirect: null, ct);
+            _httpClient,
+            feedUri,
+            configureRequest: null,
+            (from, to, token) => PrivateNetworkGuard.EnsureRedirectAllowedAsync(feedUri, from, to, token),
+            ct);
 
         string content;
         using (response)

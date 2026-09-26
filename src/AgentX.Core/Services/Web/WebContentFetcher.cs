@@ -166,7 +166,8 @@ public class WebContentFetcher : IWebContentFetcher, IDisposable
             requestUri,
             // Some sites return different content based on Accept header
             request => request.Headers.Accept.ParseAdd("text/html,application/xhtml+xml"),
-            checkRedirect: null,
+            // A public page may not redirect the fetch to this machine or the local network
+            (from, to, token) => PrivateNetworkGuard.EnsureRedirectAllowedAsync(requestUri, from, to, token),
             ct).ConfigureAwait(false);
 
         using (response)

@@ -151,6 +151,36 @@ public sealed class WebImportServiceTests : IDisposable
         db.Documents.Should().BeEmpty();
     }
 
+    [Fact]
+    public async Task ImportDiscoveredUrlsAsync_skips_local_addresses_listed_by_a_public_feed()
+    {
+        using var factory = new TestDbContextFactory();
+        using var db = factory.CreateContext();
+        var service = CreateService(db);
+
+        var results = await service.ImportDiscoveredUrlsAsync(
+            "https://93.184.216.34/feed.xml",
+            ["http://127.0.0.1:9000/admin", "http://169.254.169.254/latest/meta-data", "https://93.184.216.35/post"]);
+
+        results.Select(r => r.Success).Should().Equal(false, false, true);
+        results[0].ErrorMessage.Should().StartWith("Skipped");
+        _scraper.Verify(s => s.ExtractContentAsync(It.Is<string>(u => u.Contains("127.0.0.1")), It.IsAny<CancellationToken>()), Times.Never);
+        _scraper.Verify(s => s.ExtractContentAsync(It.Is<string>(u => u.Contains("169.254.169.254")), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ImportDiscoveredUrlsAsync_imports_private_links_of_an_intranet_sitemap()
+    {
+        using var factory = new TestDbContextFactory();
+        using var db = factory.CreateContext();
+        var service = CreateService(db);
+
+        var results = await service.ImportDiscoveredUrlsAsync(
+            "http://192.168.1.2/sitemap.xml", ["http://192.168.1.3/wiki/page"]);
+
+        results.Should().ContainSingle().Which.Success.Should().BeTrue();
+    }
+
     private sealed class FailingSaveInterceptor : SaveChangesInterceptor
     {
         public bool Fail { get; set; }

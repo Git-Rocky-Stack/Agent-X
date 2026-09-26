@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 using Microsoft.Playwright;
 
@@ -48,11 +49,21 @@ public sealed class JsRenderingService : IJsRenderingService, IDisposable, IAsyn
 
         var page = await browser.NewPageAsync(new BrowserNewPageOptions
         {
-            UserAgent = "Agent-X/1.5.0 (Knowledge Vault Web Clipper)"
+            UserAgent = "Agent-X/1.5.0 (Knowledge Vault Web Clipper)",
+            // Requests answered by a service worker would bypass the routing below
+            ServiceWorkers = ServiceWorkerPolicy.Block,
         });
 
         try
         {
+            // A public page may not use the browser to reach this machine or the local network
+            // (scripts, images, frames, fetch/XHR). An intranet page the user asked for may.
+            var pageIsPrivate = await PrivateNetworkGuard.IsPrivateOrLocalHostAsync(new Uri(url), ct);
+            if (!pageIsPrivate)
+            {
+                await page.RouteAsync("**/*", CreatePrivateNetworkBlocker(url));
+            }
+
             IResponse? response;
 
             // Playwright takes no cancellation token; closing the page aborts a navigation in
@@ -81,6 +92,16 @@ public sealed class JsRenderingService : IJsRenderingService, IDisposable, IAsyn
                 return string.Empty;
             }
 
+            // Redirects of the top-level navigation are not routed, so check where it ended.
+            if (!pageIsPrivate
+                && Uri.TryCreate(page.Url, UriKind.Absolute, out var landedOn)
+                && await PrivateNetworkGuard.IsPrivateOrLocalHostAsync(landedOn, ct))
+            {
+                _logger.LogWarning(
+                    "Discarded the render of {Url}: it redirected to the private address {FinalUrl}", url, page.Url);
+                return string.Empty;
+            }
+
             var content = await page.ContentAsync();
             return content;
         }
@@ -88,6 +109,33 @@ public sealed class JsRenderingService : IJsRenderingService, IDisposable, IAsyn
         {
             await ClosePageQuietlyAsync(page);
         }
+    }
+
+    /// <summary>
+    /// Builds the route handler for a public page: every request to a private or local
+    /// address is aborted, everything else continues. Host verdicts are cached per render.
+    /// </summary>
+    private Func<IRoute, Task> CreatePrivateNetworkBlocker(string pageUrl)
+    {
+        var verdicts = new ConcurrentDictionary<string, Task<bool>>(StringComparer.OrdinalIgnoreCase);
+
+        return async route =>
+        {
+            var requestUrl = route.Request.Url;
+            if (Uri.TryCreate(requestUrl, UriKind.Absolute, out var target)
+                && (target.Scheme == Uri.UriSchemeHttp || target.Scheme == Uri.UriSchemeHttps)
+                && await verdicts.GetOrAdd(
+                    target.Host,
+                    _ => PrivateNetworkGuard.IsPrivateOrLocalHostAsync(target, CancellationToken.None)))
+            {
+                _logger.LogWarning(
+                    "Blocked a request from {PageUrl} to the private address {RequestUrl}", pageUrl, requestUrl);
+                await route.AbortAsync("blockedbyclient");
+                return;
+            }
+
+            await route.ContinueAsync();
+        };
     }
 
     /// <summary>

@@ -46,6 +46,26 @@ public interface IWebImportService
         long? collectionId = null,
         IProgress<int>? progress = null,
         CancellationToken ct = default);
+
+    /// <summary>
+    /// Imports URLs read from a feed or sitemap. Works like <see cref="ImportFromUrlsAsync"/>,
+    /// except that these URLs come from remote content: a URL that points to this computer or
+    /// a private network address is not fetched, and its result says why, unless
+    /// <paramref name="sourceUrl"/> (the feed or sitemap itself) is on such a network too.
+    /// This keeps a public feed or sitemap from making Agent-X call local services.
+    /// </summary>
+    /// <param name="sourceUrl">The feed or sitemap URL the user entered.</param>
+    /// <param name="urls">The URLs listed by that feed or sitemap.</param>
+    /// <param name="collectionId">Optional collection to associate all imported documents with.</param>
+    /// <param name="progress">Optional progress reporter (number of URLs completed).</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>One <see cref="WebImportResult"/> per requested URL, in request order.</returns>
+    Task<IReadOnlyList<WebImportResult>> ImportDiscoveredUrlsAsync(
+        string sourceUrl,
+        IReadOnlyList<string> urls,
+        long? collectionId = null,
+        IProgress<int>? progress = null,
+        CancellationToken ct = default);
 }
 
 /// <summary>
@@ -246,11 +266,52 @@ public class WebImportService : IWebImportService
     }
 
     /// <inheritdoc />
-    public async Task<IReadOnlyList<WebImportResult>> ImportFromUrlsAsync(
+    public Task<IReadOnlyList<WebImportResult>> ImportFromUrlsAsync(
+        IReadOnlyList<string> urls,
+        long? collectionId = null,
+        IProgress<int>? progress = null,
+        CancellationToken ct = default) =>
+        ImportBatchAsync(urls, collectionId, progress, screen: null, ct);
+
+    /// <inheritdoc />
+    public Task<IReadOnlyList<WebImportResult>> ImportDiscoveredUrlsAsync(
+        string sourceUrl,
         IReadOnlyList<string> urls,
         long? collectionId = null,
         IProgress<int>? progress = null,
         CancellationToken ct = default)
+    {
+        // Looked up once, and only if some listed URL turns out to be private
+        Task<bool>? sourceIsPrivate = null;
+
+        return ImportBatchAsync(urls, collectionId, progress, async (url, token) =>
+        {
+            if (!Uri.TryCreate(url, UriKind.Absolute, out var target)
+                || !await PrivateNetworkGuard.IsPrivateOrLocalHostAsync(target, token))
+            {
+                return null;
+            }
+
+            sourceIsPrivate ??= Uri.TryCreate(sourceUrl, UriKind.Absolute, out var source)
+                ? PrivateNetworkGuard.IsPrivateOrLocalHostAsync(source, token)
+                : Task.FromResult(false);
+
+            return await sourceIsPrivate
+                ? null
+                : $"Skipped: '{url}' points to this computer or a private network address, which a public feed or sitemap may not do.";
+        }, ct);
+    }
+
+    /// <summary>
+    /// Imports each URL in turn. <paramref name="screen"/>, when given, may refuse a URL before
+    /// it is fetched by returning the reason, which becomes that URL's failed result.
+    /// </summary>
+    private async Task<IReadOnlyList<WebImportResult>> ImportBatchAsync(
+        IReadOnlyList<string> urls,
+        long? collectionId,
+        IProgress<int>? progress,
+        Func<string, CancellationToken, Task<string?>>? screen,
+        CancellationToken ct)
     {
         if (urls is null || urls.Count == 0)
         {
@@ -267,8 +328,17 @@ public class WebImportService : IWebImportService
 
             try
             {
-                var entity = await ImportFromUrlAsync(url, collectionId, ct);
-                results.Add(new WebImportResult { Url = url, Document = entity });
+                var refusal = screen is null ? null : await screen(url, ct);
+                if (refusal is not null)
+                {
+                    _log.Warning("Did not import {Url}: {Reason}", url, refusal);
+                    results.Add(new WebImportResult { Url = url, ErrorMessage = refusal });
+                }
+                else
+                {
+                    var entity = await ImportFromUrlAsync(url, collectionId, ct);
+                    results.Add(new WebImportResult { Url = url, Document = entity });
+                }
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested)
             {

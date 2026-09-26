@@ -239,8 +239,10 @@ public partial class WebImportViewModel : ObservableObject
                     });
 
                     long? collectionId = SelectedCollection?.Id;
-                    var results = await _webImportService.ImportFromUrlsAsync(
-                        urls, collectionId, progress, _importCts.Token);
+
+                    // Feed item links are remote content, held to the feed's own network zone
+                    var results = await _webImportService.ImportDiscoveredUrlsAsync(
+                        FeedUrl, urls, collectionId, progress, _importCts.Token);
 
                     ShowImportResults(results);
                     StatusMessage = $"Imported {SuccessCount} of {urls.Count} feed items";
@@ -307,8 +309,10 @@ public partial class WebImportViewModel : ObservableObject
                 });
 
                 long? collectionId = SelectedCollection?.Id;
-                var results = await _webImportService.ImportFromUrlsAsync(
-                    urlsToImport, collectionId, progress, _importCts.Token);
+
+                // Sitemap entries are remote content, held to the sitemap's own network zone
+                var results = await _webImportService.ImportDiscoveredUrlsAsync(
+                    SitemapUrl, urlsToImport, collectionId, progress, _importCts.Token);
 
                 ShowImportResults(results);
                 StatusMessage = $"Imported {SuccessCount} of {urlsToImport.Count} sitemap URLs";
