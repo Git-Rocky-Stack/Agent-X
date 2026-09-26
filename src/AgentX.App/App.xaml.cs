@@ -292,6 +292,23 @@ public partial class App : Application
             Log.Warning(ex, "Failed to initialize theme");
         }
 
+        // 4b. Activate the plugins the operator enabled. After the migration gate, because plugin
+        //     state lives in the database, and before indexing, so document processors that
+        //     plugins contribute are available to imports. A plugin that fails to activate is
+        //     marked disabled and logged by the plugin service.
+        try
+        {
+            var plugins = await GetService<IPluginService>().ActivateEnabledPluginsAsync();
+            Log.Information(
+                "Plugins activated: {Activated}; failed: {Failed}",
+                plugins.Activated.Count,
+                plugins.Failed.Count);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Plugin activation failed; enabled plugins stay inactive this session");
+        }
+
         // 5. Start the indexing pipeline: initialize the vector store, re-queue documents left
         //    pending or interrupted, and start the background loop that chunks, embeds and
         //    FTS-indexes every import. Nothing else starts it, so without this call no document
@@ -366,6 +383,9 @@ public partial class App : Application
                 sp.GetRequiredService<Serilog.ILogger>());
 
             var settings = sp.GetRequiredService<ISettingsService>().GetSettingsAsync().GetAwaiter().GetResult();
+
+            // Token refresh buffer and consent timeout come from settings.json.
+            oauthService.ApplySettings(settings.OAuth);
 
             // Only register Google if credentials are configured
             if (!string.IsNullOrWhiteSpace(settings.OAuth.Google.ClientId))
@@ -688,6 +708,9 @@ public partial class App : Application
 
         // ── Plugin API ──────────────────────────────────────────
         services.AddSingleton<IPluginService, PluginService>();
+        // The same instance offers active plugins' document processors to DocumentService.
+        services.AddSingleton<IPluginDocumentProcessorSource>(sp =>
+            (PluginService)sp.GetRequiredService<IPluginService>());
         services.AddSingleton<CalendarPlugin>();
         services.AddSingleton<ICalendarService>(sp =>
             new CalendarService(
@@ -1023,7 +1046,8 @@ public partial class App : Application
 
     private static void OnProcessExit(object? sender, EventArgs e)
     {
-        ShutdownCoreServicesAsync().GetAwaiter().GetResult();
+        // Bounded, so a shutdown step that never completes cannot hang process exit.
+        ShutdownCoreServicesAsync().Wait(TimeSpan.FromSeconds(20));
     }
 
     private static async System.Threading.Tasks.Task ShutdownCoreServicesAsync()
@@ -1035,9 +1059,11 @@ public partial class App : Application
         {
             if (_host is not null)
             {
+                // Bounded: a connector stuck mid-sync must not hold the app open.
+                using var stopTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(15));
                 await _host.Services
                     .GetRequiredService<IBuiltinConnectorLifecycleService>()
-                    .StopAsync()
+                    .StopAsync(stopTimeout.Token)
                     .ConfigureAwait(false);
             }
         }
@@ -1059,6 +1085,22 @@ public partial class App : Application
         catch (Exception ex)
         {
             Log.Warning(ex, "Failed to stop REST API during shutdown");
+        }
+
+        try
+        {
+            if (_host is not null)
+            {
+                // Each plugin's OnDeactivateAsync is capped by the plugin service.
+                await _host.Services
+                    .GetRequiredService<IPluginService>()
+                    .DeactivateAllPluginsAsync()
+                    .ConfigureAwait(false);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to deactivate plugins during shutdown");
         }
 
         try
