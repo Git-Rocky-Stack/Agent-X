@@ -714,6 +714,61 @@ public sealed class SemanticSearchServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task SearchAsync_ScopedSearch_WidensTheCandidatePoolUntilInScopeMatchesAppear()
+    {
+        // The collection filter ran on the first TopK x 3 candidates only, so a scoped search
+        // whose matches ranked below that cut returned nothing.
+        var h = NewHarness();
+        var outside = SeedDoc(h, "outside.pdf", filePath: "/docs/outside.pdf");
+        var inside = SeedDoc(h, "inside.pdf", filePath: "/docs/inside.pdf");
+        var collection = SeedCollection(h, "Scoped");
+        Link(h, inside, collection);
+
+        var candidates = new List<VectorSearchResult>();
+        for (var i = 0; i < 6; i++)
+        {
+            candidates.Add(Vec(SeedChunk(h, outside, $"outside passage {i}", chunkIndex: i), 0.95 - i * 0.01));
+        }
+
+        var insideChunk = SeedChunk(h, inside, "inside passage");
+        candidates.Add(Vec(insideChunk, 0.6));
+
+        var requested = new List<int>();
+        h.Vector.Setup(v => v.SearchAsync(
+                It.IsAny<float[]>(), It.IsAny<int>(), It.IsAny<double>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((float[] _, int topK, double _, CancellationToken _) =>
+            {
+                requested.Add(topK);
+                return (IReadOnlyList<VectorSearchResult>)candidates.Take(topK).ToList();
+            });
+
+        var results = await h.Service.SearchAsync(Q("inside", topK: 2, collectionId: collection));
+
+        results.Should().ContainSingle().Which.ChunkId.Should().Be(insideChunk);
+        requested.Should().Equal(6, 24); // 2 x 3, then widened once; the store then ran out
+    }
+
+    [Fact]
+    public async Task SearchAsync_UnscopedSearch_FetchesCandidatesOnce()
+    {
+        var h = NewHarness();
+        var doc = SeedDoc(h);
+        var chunk = SeedChunk(h, doc, "only passage");
+        var calls = 0;
+        h.Vector.Setup(v => v.SearchAsync(
+                It.IsAny<float[]>(), It.IsAny<int>(), It.IsAny<double>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((float[] _, int topK, double _, CancellationToken _) =>
+            {
+                calls++;
+                return (IReadOnlyList<VectorSearchResult>)Enumerable.Repeat(Vec(chunk, 0.9), 1).ToList();
+            });
+
+        await h.Service.SearchAsync(Q("only", topK: 5));
+
+        calls.Should().Be(1);
+    }
+
+    [Fact]
     public async Task SearchAsync_WithRagConfig_AppliesMultiplierAndCap()
     {
         var h = NewHarness(withRag: true);

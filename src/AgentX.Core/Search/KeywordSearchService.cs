@@ -12,8 +12,9 @@ namespace AgentX.Core.Search;
 /// <summary>
 /// Full-text keyword search implementation backed by SQLite FTS5.
 /// Uses the Porter stemmer and Unicode61 tokenizer for broad language support.
-/// BM25 ranking scores are normalized to a 0-1 range for compatibility with
-/// the semantic search scoring model.
+/// BM25 ranks are reported on a 0-1 scale relative to the best hit of each search
+/// (the best keyword match scores 1.0); <see cref="SearchQuery.MinScore"/> is applied
+/// on that relative scale.
 /// </summary>
 public sealed class KeywordSearchService : IKeywordSearchService
 {
@@ -185,20 +186,57 @@ public sealed class KeywordSearchService : IKeywordSearchService
             return Array.Empty<SearchResult>();
         }
 
-        // Request extra results to compensate for post-query metadata filtering.
-        int ftsTopK = Math.Min(query.TopK * 3, 500);
-
         using var cmd = connection.CreateCommand();
-        cmd.CommandText = @"
+
+        // Collection, file-type and date filters are part of the query, not applied to its
+        // top rows afterwards: filtering a LIMITed result set returned nothing whenever the
+        // in-scope matches ranked below the cut. Table and column names are the ones mapped
+        // in AgentXDbContext (documents, document_collections).
+        var sql = new System.Text.StringBuilder(@"
             SELECT content, document_id, chunk_id, file_name, file_path, file_type,
                    page_number, chunk_index, rank
             FROM fts_chunks
-            WHERE fts_chunks MATCH @query
-            ORDER BY rank
-            LIMIT @topK;";
+            WHERE fts_chunks MATCH @query");
 
+        if (!string.IsNullOrWhiteSpace(query.FileTypeFilter))
+        {
+            sql.Append(" AND lower(file_type) = @fileType");
+            cmd.Parameters.Add(CreateParameter(cmd, "@fileType", query.FileTypeFilter.Trim().ToLowerInvariant()));
+        }
+
+        if (query.CollectionId.HasValue)
+        {
+            sql.Append(" AND CAST(document_id AS INTEGER) IN " +
+                       "(SELECT DocumentId FROM document_collections WHERE CollectionId = @collectionId)");
+            cmd.Parameters.Add(CreateParameter(cmd, "@collectionId", query.CollectionId.Value));
+        }
+
+        if (query.CreatedAfter.HasValue || query.CreatedBefore.HasValue)
+        {
+            sql.Append(" AND CAST(document_id AS INTEGER) IN (SELECT Id FROM documents WHERE 1 = 1");
+
+            if (query.CreatedAfter.HasValue)
+            {
+                sql.Append(" AND ImportedAt >= @createdAfter");
+                cmd.Parameters.Add(CreateParameter(cmd, "@createdAfter", query.CreatedAfter.Value));
+            }
+
+            if (query.CreatedBefore.HasValue)
+            {
+                sql.Append(" AND ImportedAt <= @createdBefore");
+                cmd.Parameters.Add(CreateParameter(cmd, "@createdBefore", query.CreatedBefore.Value));
+            }
+
+            sql.Append(')');
+        }
+
+        sql.Append(@"
+            ORDER BY rank
+            LIMIT @topK;");
+
+        cmd.CommandText = sql.ToString();
         cmd.Parameters.Add(CreateParameter(cmd, "@query", ftsQuery));
-        cmd.Parameters.Add(CreateParameter(cmd, "@topK", ftsTopK.ToString()));
+        cmd.Parameters.Add(CreateParameter(cmd, "@topK", Math.Max(1, query.TopK)));
 
         var rawResults = new List<FtsRawResult>();
 
@@ -240,52 +278,14 @@ public sealed class KeywordSearchService : IKeywordSearchService
 
         _logger.Debug("FTS5 returned {Count} raw results", rawResults.Count);
 
-        // Apply post-query metadata filters
-        IEnumerable<FtsRawResult> filtered = rawResults;
+        var filteredResults = rawResults;
 
-        // Filter by file type
-        if (!string.IsNullOrWhiteSpace(query.FileTypeFilter))
-        {
-            string fileType = query.FileTypeFilter.Trim().ToLowerInvariant();
-            filtered = filtered.Where(r =>
-                string.Equals(r.FileType, fileType, StringComparison.OrdinalIgnoreCase));
-        }
-
-        // Filter by collection membership (requires a DB lookup)
-        if (query.CollectionId.HasValue)
-        {
-            var collectionId = query.CollectionId.Value;
-            var documentIdsInCollection = await _db.DocumentCollections
-                .AsNoTracking()
-                .Where(dc => dc.CollectionId == collectionId)
-                .Select(dc => dc.DocumentId)
-                .ToListAsync(ct);
-
-            var docIdSet = new HashSet<long>(documentIdsInCollection);
-            filtered = filtered.Where(r => docIdSet.Contains(r.DocumentId));
-        }
-
-        // Filter by date range
-        if (query.CreatedAfter.HasValue || query.CreatedBefore.HasValue)
-        {
-            var docIds = filtered.Select(r => r.DocumentId).Distinct().ToList();
-            var documentsQuery = _db.Documents.AsNoTracking().Where(d => docIds.Contains(d.Id));
-
-            if (query.CreatedAfter.HasValue)
-            {
-                documentsQuery = documentsQuery.Where(d => d.ImportedAt >= query.CreatedAfter.Value);
-            }
-
-            if (query.CreatedBefore.HasValue)
-            {
-                documentsQuery = documentsQuery.Where(d => d.ImportedAt <= query.CreatedBefore.Value);
-            }
-
-            var validDocIds = new HashSet<long>(await documentsQuery.Select(d => d.Id).ToListAsync(ct));
-            filtered = filtered.Where(r => validDocIds.Contains(r.DocumentId));
-        }
-
-        var filteredResults = filtered.ToList();
+        // BM25 ranks are negative (more negative = better match) and their magnitude depends
+        // on the corpus and the query, so a fixed cut-off such as |rank| / (1 + |rank|) >= 0.3
+        // discarded good matches on common terms. Scores are relative to the best hit in this
+        // result set (1.0 = the best keyword match), and MinScore keeps hits at least that
+        // fraction as strong as the best one.
+        var bestRankMagnitude = rawResults.Max(r => Math.Abs(r.Rank));
 
         // Build query words for excerpt generation
         var queryWords = ExtractQueryWords(query.QueryText);
@@ -311,11 +311,9 @@ public sealed class KeywordSearchService : IKeywordSearchService
 
         foreach (var raw in filteredResults)
         {
-            // Normalize BM25 rank to a 0-1 score.
-            // BM25 returns negative values (more negative = better match), so |rank|
-            // grows with match quality; |rank| / (1 + |rank|) maps it to 0-1 with
-            // higher = better. (1 / (1 + |rank|) would invert relevance ordering.)
-            float score = (float)(Math.Abs(raw.Rank) / (1.0 + Math.Abs(raw.Rank)));
+            float score = bestRankMagnitude > 0
+                ? (float)Math.Clamp(Math.Abs(raw.Rank) / bestRankMagnitude, 0.0, 1.0)
+                : 1f;
 
             // Apply MinScore filter
             if (score < query.MinScore)
@@ -424,7 +422,7 @@ public sealed class KeywordSearchService : IKeywordSearchService
     /// <summary>
     /// Creates a DbParameter with the given name and value.
     /// </summary>
-    private static DbParameter CreateParameter(DbCommand cmd, string name, string value)
+    private static DbParameter CreateParameter(DbCommand cmd, string name, object value)
     {
         var param = cmd.CreateParameter();
         param.ParameterName = name;
@@ -433,29 +431,71 @@ public sealed class KeywordSearchService : IKeywordSearchService
     }
 
     /// <summary>
-    /// Sanitizes user input for FTS5 MATCH syntax.
-    /// Splits the input into individual terms and quotes each one to prevent
-    /// FTS5 syntax errors from special characters (AND, OR, NOT, parentheses, etc.).
+    /// Common English function words dropped from keyword queries. Natural-language questions
+    /// are largely made of them; requiring them made "What did the contract say about
+    /// termination fees?" match nothing, because no passage contains every one.
     /// </summary>
-    private static string SanitizeFtsQuery(string queryText)
+    private static readonly HashSet<string> StopWords = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "a", "about", "above", "after", "again", "against", "all", "am", "an", "and", "any", "are", "as", "at",
+        "be", "because", "been", "before", "being", "below", "between", "both", "but", "by",
+        "can", "could", "did", "do", "does", "doing", "down", "during",
+        "each", "few", "for", "from", "further",
+        "had", "has", "have", "having", "he", "her", "here", "hers", "herself", "him", "himself", "his", "how",
+        "i", "if", "in", "into", "is", "it", "its", "itself",
+        "just", "me", "more", "most", "my", "myself",
+        "no", "nor", "not", "now", "of", "off", "on", "once", "only", "or", "other", "our", "ours",
+        "ourselves", "out", "over", "own",
+        "same", "she", "should", "so", "some", "such",
+        "than", "that", "the", "their", "theirs", "them", "themselves", "then", "there", "these", "they",
+        "this", "those", "through", "to", "too",
+        "under", "until", "up", "very",
+        "was", "we", "were", "what", "when", "where", "which", "while", "who", "whom", "why", "will",
+        "with", "would",
+        "you", "your", "yours", "yourself", "yourselves"
+    };
+
+    private static readonly char[] QueryTermSeparators =
+    {
+        ' ', '\t', '\n', '\r', ',', '.', '!', '?', ';', ':', '(', ')', '[', ']', '{', '}', '"', '\''
+    };
+
+    /// <summary>
+    /// Turns user input into an FTS5 MATCH expression. Every term is double-quoted (embedded
+    /// quotes doubled), so operators (AND, OR, NOT, NEAR), prefix stars, column filters and
+    /// punctuation in the input are matched as text, never interpreted. Stop words are dropped
+    /// and the remaining terms are joined with OR: a passage matching any of them qualifies
+    /// and BM25 ranks those containing more, and rarer, terms first. A query made only of stop
+    /// words still requires all of its terms, so it matches something specific.
+    /// </summary>
+    internal static string SanitizeFtsQuery(string queryText)
     {
         if (string.IsNullOrWhiteSpace(queryText))
         {
             return string.Empty;
         }
 
-        // Split on whitespace and punctuation, keep meaningful terms
+        // Split on whitespace and punctuation; a term must contain a letter or digit, or the
+        // tokenizer would reduce it to an empty phrase.
         var terms = queryText
-            .Split(new[] { ' ', '\t', '\n', '\r', ',', '.', '!', '?', ';', ':', '(', ')', '[', ']', '{', '}', '"', '\'' },
-                StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Where(t => t.Length >= 1)
-            .Select(t => t.Replace("\"", "\"\"")) // Escape double quotes within terms
-            .Select(t => $"\"{t}\"")               // Quote each term
+            .Split(QueryTermSeparators, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(t => t.Any(char.IsLetterOrDigit))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
 
-        // Join with implicit AND (FTS5 default)
-        return string.Join(" ", terms);
+        if (terms.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        var meaningful = terms.Where(t => !StopWords.Contains(t)).ToList();
+
+        return meaningful.Count > 0
+            ? string.Join(" OR ", meaningful.Select(QuoteFtsTerm))
+            : string.Join(" ", terms.Select(QuoteFtsTerm)); // implicit AND
     }
+
+    private static string QuoteFtsTerm(string term) => $"\"{term.Replace("\"", "\"\"")}\"";
 
     /// <summary>
     /// Parses a nullable integer from a string. Returns null for empty strings.

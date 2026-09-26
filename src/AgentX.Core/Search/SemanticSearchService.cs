@@ -105,6 +105,102 @@ public sealed class SemanticSearchService : ISemanticSearchService
         int cap = Math.Max(1, _ragConfiguration?.RetrievalCap ?? FallbackRetrievalCap);
         int vectorTopK = Math.Min(query.TopK * multiplier, cap);
 
+        // A scoped search (collection, file type or date range) can find its matches well
+        // below the global top candidates, so the pool is widened, up to a bounded ceiling,
+        // until enough in-scope results remain or the store has no more candidates above
+        // MinScore. Unscoped searches keep the single fetch.
+        bool isScoped = query.CollectionId.HasValue
+            || !string.IsNullOrWhiteSpace(query.FileTypeFilter)
+            || query.CreatedAfter.HasValue
+            || query.CreatedBefore.HasValue;
+        int maxCandidates = isScoped ? Math.Max(vectorTopK, cap * ScopedCandidateCapMultiplier) : vectorTopK;
+
+        while (true)
+        {
+            var (results, candidateCount) = await SearchCandidatesAsync(query, queryEmbedding, vectorTopK, ct)
+                .ConfigureAwait(false);
+
+            bool storeExhausted = candidateCount < vectorTopK;
+            if (results is null || results.Count >= query.TopK || storeExhausted || vectorTopK >= maxCandidates)
+            {
+                var finalResults = (results ?? new List<SearchResult>())
+                    .OrderByDescending(r => r.Score)
+                    .Take(query.TopK)
+                    .ToList();
+
+                stopwatch.Stop();
+
+                _logger.Information(
+                    "Semantic search completed: {ResultCount} results returned in {ElapsedMs}ms for query \"{Query}\"",
+                    finalResults.Count, stopwatch.ElapsedMilliseconds, TruncateForLog(query.QueryText));
+
+                return finalResults;
+            }
+
+            _logger.Debug(
+                "Scoped search kept {Count} of {Candidates} candidates; widening the candidate pool",
+                results.Count, candidateCount);
+            vectorTopK = (int)Math.Min((long)vectorTopK * 4, maxCandidates);
+        }
+    }
+
+    /// <summary>
+    /// Ceiling for scoped searches, as a multiple of <see cref="IRagConfiguration.RetrievalCap"/>.
+    /// </summary>
+    private const int ScopedCandidateCapMultiplier = 8;
+
+    /// <summary>
+    /// Candidate chunks with their documents and collections, restricted to the query's
+    /// collection, file type and creation date range.
+    /// </summary>
+    private IQueryable<DocumentChunkEntity> BuildChunkQuery(SearchQuery query, List<long> chunkIds)
+    {
+        IQueryable<DocumentChunkEntity> chunkQuery = _db.DocumentChunks
+            .AsNoTracking()
+            .Include(c => c.Document)
+                .ThenInclude(d => d.DocumentCollections)
+                    .ThenInclude(dc => dc.Collection)
+            .Where(c => chunkIds.Contains(c.Id));
+
+        if (query.CollectionId.HasValue)
+        {
+            long collectionId = query.CollectionId.Value;
+            chunkQuery = chunkQuery.Where(c => c.Document.DocumentCollections.Any(dc => dc.CollectionId == collectionId));
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.FileTypeFilter))
+        {
+            string fileType = query.FileTypeFilter.Trim().ToLowerInvariant();
+            chunkQuery = chunkQuery.Where(c => c.Document.FileType.ToLower() == fileType);
+        }
+
+        // Creation date range (using ImportedAt as the creation date)
+        if (query.CreatedAfter.HasValue)
+        {
+            DateTime after = query.CreatedAfter.Value;
+            chunkQuery = chunkQuery.Where(c => c.Document.ImportedAt >= after);
+        }
+
+        if (query.CreatedBefore.HasValue)
+        {
+            DateTime before = query.CreatedBefore.Value;
+            chunkQuery = chunkQuery.Where(c => c.Document.ImportedAt <= before);
+        }
+
+        return chunkQuery;
+    }
+
+    /// <summary>
+    /// Runs one vector search for <paramref name="vectorTopK"/> candidates and turns the
+    /// in-scope, version-compatible ones into results. Returns null results when a backend
+    /// failed (logged), and the number of candidates the store returned.
+    /// </summary>
+    private async Task<(List<SearchResult>? Results, int CandidateCount)> SearchCandidatesAsync(
+        SearchQuery query,
+        float[] queryEmbedding,
+        int vectorTopK,
+        CancellationToken ct)
+    {
         IReadOnlyList<VectorSearchResult> vectorResults;
         try
         {
@@ -121,17 +217,16 @@ public sealed class SemanticSearchService : ISemanticSearchService
         catch (Exception ex)
         {
             _logger.Error(ex, "Vector store search failed");
-            return Array.Empty<SearchResult>();
+            return (null, 0);
         }
 
         if (vectorResults.Count == 0)
         {
             _logger.Information("Vector search returned 0 results for query");
-            return Array.Empty<SearchResult>();
+            return (new List<SearchResult>(), 0);
         }
 
-        _logger.Debug("Vector search returned {Count} candidates in {ElapsedMs}ms",
-            vectorResults.Count, stopwatch.ElapsedMilliseconds);
+        _logger.Debug("Vector search returned {Count} candidates", vectorResults.Count);
 
         // ── Step 3: Load chunk and document metadata from EF Core ───────
         var chunkIds = vectorResults.Select(v => v.ChunkId).ToList();
@@ -139,16 +234,12 @@ public sealed class SemanticSearchService : ISemanticSearchService
         // Build a lookup from ChunkId -> similarity score for fast access.
         var scoreByChunkId = vectorResults.ToDictionary(v => v.ChunkId, v => v.Similarity);
 
-        // Load chunks with their parent documents in a single query.
+        // Load chunks with their parent documents in a single query. The collection, file-type
+        // and date filters are part of that query, so only in-scope chunks are loaded.
         List<DocumentChunkEntity> chunks;
         try
         {
-            chunks = await _db.DocumentChunks
-                .AsNoTracking()
-                .Include(c => c.Document)
-                    .ThenInclude(d => d.DocumentCollections)
-                        .ThenInclude(dc => dc.Collection)
-                .Where(c => chunkIds.Contains(c.Id))
+            chunks = await BuildChunkQuery(query, chunkIds)
                 .ToListAsync(ct)
                 .ConfigureAwait(false);
         }
@@ -159,13 +250,15 @@ public sealed class SemanticSearchService : ISemanticSearchService
         catch (Exception ex)
         {
             _logger.Error(ex, "Failed to load document chunks from database");
-            return Array.Empty<SearchResult>();
+            return (null, vectorResults.Count);
         }
+
+        _logger.Debug("After metadata filtering: {FilteredCount} of {TotalCount} candidates remain",
+            chunks.Count, chunkIds.Count);
 
         if (chunks.Count == 0)
         {
-            _logger.Warning("No matching chunks found in database for {Count} chunk IDs from vector search", chunkIds.Count);
-            return Array.Empty<SearchResult>();
+            return (new List<SearchResult>(), vectorResults.Count);
         }
 
         // ── Step 3b: Embedding model version validation (P1-4) ──────────
@@ -216,55 +309,15 @@ public sealed class SemanticSearchService : ISemanticSearchService
         if (compatibleChunks.Count == 0)
         {
             _logger.Warning("All {Count} retrieved chunks were filtered out by version validation; returning empty results", chunks.Count);
-            return Array.Empty<SearchResult>();
+            return (new List<SearchResult>(), vectorResults.Count);
         }
 
-        chunks = compatibleChunks;
-
-        // ── Step 4: Apply metadata filters ──────────────────────────────
-        IEnumerable<DocumentChunkEntity> filtered = chunks;
-
-        // Filter by collection membership
-        if (query.CollectionId.HasValue)
-        {
-            long collectionId = query.CollectionId.Value;
-            filtered = filtered.Where(c =>
-                c.Document.DocumentCollections.Any(dc => dc.CollectionId == collectionId));
-        }
-
-        // Filter by file type
-        if (!string.IsNullOrWhiteSpace(query.FileTypeFilter))
-        {
-            string fileType = query.FileTypeFilter.Trim().ToLowerInvariant();
-            filtered = filtered.Where(c =>
-                string.Equals(c.Document.FileType, fileType, StringComparison.OrdinalIgnoreCase));
-        }
-
-        // Filter by creation date range (using ImportedAt as the creation date)
-        if (query.CreatedAfter.HasValue)
-        {
-            DateTime after = query.CreatedAfter.Value;
-            filtered = filtered.Where(c => c.Document.ImportedAt >= after);
-        }
-
-        if (query.CreatedBefore.HasValue)
-        {
-            DateTime before = query.CreatedBefore.Value;
-            filtered = filtered.Where(c => c.Document.ImportedAt <= before);
-        }
-
-        // Materialize after all in-memory filters are applied.
-        var filteredChunks = filtered.ToList();
-
-        _logger.Debug("After metadata filtering: {FilteredCount} of {TotalCount} chunks remain",
-            filteredChunks.Count, chunks.Count);
-
-        // ── Step 5: Build search results with excerpts ──────────────────
+        // ── Step 4: Build search results with excerpts ──────────────────
         var queryWords = ExtractQueryWords(query.QueryText);
 
-        var results = new List<SearchResult>(filteredChunks.Count);
+        var results = new List<SearchResult>(compatibleChunks.Count);
 
-        foreach (var chunk in filteredChunks)
+        foreach (var chunk in compatibleChunks)
         {
             if (!scoreByChunkId.TryGetValue(chunk.Id, out double similarity))
             {
@@ -302,19 +355,7 @@ public sealed class SemanticSearchService : ISemanticSearchService
             });
         }
 
-        // ── Step 6: Sort by score descending and take TopK ──────────────
-        var finalResults = results
-            .OrderByDescending(r => r.Score)
-            .Take(query.TopK)
-            .ToList();
-
-        stopwatch.Stop();
-
-        _logger.Information(
-            "Semantic search completed: {ResultCount} results returned in {ElapsedMs}ms for query \"{Query}\"",
-            finalResults.Count, stopwatch.ElapsedMilliseconds, TruncateForLog(query.QueryText));
-
-        return finalResults;
+        return (results, vectorResults.Count);
     }
 
     /// <inheritdoc />

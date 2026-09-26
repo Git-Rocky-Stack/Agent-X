@@ -146,11 +146,16 @@ public sealed class HybridSearchOrchestrator : IHybridSearchOrchestrator
         int multiplier = Math.Max(1, _ragConfiguration?.RetrievalMultiplier ?? FallbackRetrievalMultiplier);
         int cap = Math.Max(1, _ragConfiguration?.RetrievalCap ?? FallbackRetrievalCap);
 
+        // Relevance is filtered per backend, before fusion, on each backend's own scale: the
+        // semantic leg drops candidates below MinScore cosine similarity, and the keyword leg
+        // drops hits weaker than MinScore relative to its best match. Fused RRF scores are
+        // rank based (the top-ranked items always score high), so filtering after fusion
+        // could never remove anything and irrelevant chunks were always passed on.
         var expandedQuery = new SearchQuery
         {
             QueryText = query.QueryText,
             TopK = Math.Min(query.TopK * multiplier, cap),
-            MinScore = 0.0f, // RRF handles scoring; don't pre-filter aggressively
+            MinScore = query.MinScore,
             CollectionId = query.CollectionId,
             FileTypeFilter = query.FileTypeFilter,
             CreatedAfter = query.CreatedAfter,

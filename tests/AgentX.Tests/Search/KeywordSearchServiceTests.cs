@@ -345,7 +345,7 @@ public sealed class KeywordSearchServiceTests : IDisposable
         r.PageNumber.Should().Be(1);
         r.ChunkIndex.Should().Be(0);
         r.MatchedText.Should().Contain("quarterly revenue projections");
-        r.Score.Should().BeGreaterThan(0f).And.BeLessThan(1f); // |bm25| / (1+|bm25|)
+        r.Score.Should().Be(1f); // the best keyword hit anchors the relative scale
         r.CollectionNames.Should().BeEmpty();
     }
 
@@ -360,13 +360,129 @@ public sealed class KeywordSearchServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task Search_min_score_filters_out_all_bm25_scores()
+    public async Task Search_min_score_is_relative_to_the_best_keyword_hit()
     {
         await _service.InitializeFtsAsync();
-        var doc = SeedDocument("a.pdf", chunkContents: new[] { "alpha bravo charlie" });
+        var strong = SeedDocument("strong.pdf", chunkContents: new[] { "alpha alpha alpha bravo" });
+        var weak = SeedDocument("weak.pdf", chunkContents: new[] { "alpha bravo charlie delta echo foxtrot golf hotel" });
+        await _service.IndexDocumentChunksAsync(strong.Id);
+        await _service.IndexDocumentChunksAsync(weak.Id);
+
+        var results = await _service.SearchAsync(Q("alpha", minScore: 0.99f));
+
+        results.Should().ContainSingle().Which.DocumentId.Should().Be(strong.Id);
+    }
+
+    [Fact]
+    public async Task Search_term_present_in_every_document_is_not_dropped_by_min_score()
+    {
+        // A term that appears everywhere has a near-zero BM25 magnitude. Mapped onto an
+        // absolute scale it fell below MinScore 0.3 and every hit was discarded.
+        await _service.InitializeFtsAsync();
+        foreach (var name in new[] { "q1.pdf", "q2.pdf", "q3.pdf" })
+        {
+            var doc = SeedDocument(name, chunkContents: new[] { $"quarterly report {name}" });
+            await _service.IndexDocumentChunksAsync(doc.Id);
+        }
+
+        var results = await _service.SearchAsync(Q("report", minScore: 0.3f));
+
+        results.Should().HaveCount(3);
+    }
+
+    [Fact]
+    public async Task Search_natural_language_question_matches_on_its_content_words()
+    {
+        // Every word used to be quoted and ANDed, stop words included, so this question
+        // matched nothing: no passage contains "what", "did", "say" and "about" as well.
+        await _service.InitializeFtsAsync();
+        var contract = SeedDocument("contract.pdf", chunkContents: new[]
+            { "Early termination fees are set at five percent of the remaining contract value." });
+        var other = SeedDocument("menu.pdf", chunkContents: new[] { "Lunch menu for the week." });
+        await _service.IndexDocumentChunksAsync(contract.Id);
+        await _service.IndexDocumentChunksAsync(other.Id);
+
+        var results = await _service.SearchAsync(Q("What did the contract say about termination fees?", minScore: 0.3f));
+
+        results.Should().ContainSingle().Which.DocumentId.Should().Be(contract.Id);
+    }
+
+    [Theory]
+    [InlineData("What did the contract say about termination fees?", "\"contract\" OR \"say\" OR \"termination\" OR \"fees\"")]
+    [InlineData("alpha AND beta", "\"alpha\" OR \"beta\"")]
+    [InlineData("alpha NEAR(beta gamma)", "\"alpha\" OR \"NEAR\" OR \"beta\" OR \"gamma\"")]
+    [InlineData("prefix* col:value", "\"prefix*\" OR \"col\" OR \"value\"")]
+    [InlineData("to be or not to be", "\"to\" \"be\" \"or\" \"not\"")]
+    [InlineData("+++ --- ...", "")]
+    [InlineData("Revenue revenue REVENUE", "\"Revenue\"")]
+    public void SanitizeFtsQuery_quotes_every_term_drops_stop_words_and_ors_the_rest(string input, string expected)
+    {
+        KeywordSearchService.SanitizeFtsQuery(input).Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData("\"quoted\" OR (grouped) AND NOT excluded*")]
+    [InlineData("content: title:x ^start")]
+    [InlineData("NEAR/3 \"unbalanced")]
+    public async Task Search_operator_and_punctuation_input_never_raises_a_syntax_error(string input)
+    {
+        await _service.InitializeFtsAsync();
+        var doc = SeedDocument("ops.pdf", chunkContents: new[] { "quoted grouped excluded content title start unbalanced" });
         await _service.IndexDocumentChunksAsync(doc.Id);
 
-        (await _service.SearchAsync(Q("alpha", minScore: 0.99f))).Should().BeEmpty();
+        var act = () => _service.SearchAsync(Q(input));
+
+        await act.Should().NotThrowAsync();
+        (await _service.SearchAsync(Q(input))).Should().NotBeEmpty();
+    }
+
+    [Fact]
+    public async Task Search_collection_filter_finds_members_that_rank_below_the_global_top()
+    {
+        // The filter used to run after LIMIT (TopK * 3), so a collection whose matches ranked
+        // below that cut returned nothing even though matches existed.
+        await _service.InitializeFtsAsync();
+        for (var i = 0; i < 20; i++)
+        {
+            var noise = SeedDocument($"noise{i}.pdf", chunkContents: new[] { "budget budget budget budget" });
+            await _service.IndexDocumentChunksAsync(noise.Id);
+        }
+
+        var member = SeedDocument("member.pdf", chunkContents: new[]
+            { "The budget appears once in this much longer passage about planning and other topics entirely." });
+        var collection = new CollectionEntity { Name = "Finance" };
+        _db.Set<CollectionEntity>().Add(collection);
+        _db.SaveChanges();
+        _db.Set<DocumentCollectionEntity>().Add(new DocumentCollectionEntity { DocumentId = member.Id, CollectionId = collection.Id });
+        _db.SaveChanges();
+        await _service.IndexDocumentChunksAsync(member.Id);
+
+        var results = await _service.SearchAsync(Q("budget", topK: 2, collectionId: collection.Id));
+
+        results.Should().ContainSingle().Which.DocumentId.Should().Be(member.Id);
+    }
+
+    [Fact]
+    public async Task Search_file_type_and_date_filters_find_matches_below_the_global_top()
+    {
+        await _service.InitializeFtsAsync();
+        for (var i = 0; i < 20; i++)
+        {
+            var noise = SeedDocument($"n{i}.pdf", fileType: "pdf", chunkContents: new[] { "forecast forecast forecast" });
+            await _service.IndexDocumentChunksAsync(noise.Id);
+        }
+
+        var old = DateTime.UtcNow.AddDays(-30);
+        var target = SeedDocument("plan.md", fileType: "md", importedAt: old, chunkContents: new[]
+            { "A single forecast sits in this long markdown note about many other planning matters." });
+        await _service.IndexDocumentChunksAsync(target.Id);
+
+        var byType = await _service.SearchAsync(Q("forecast", topK: 2, fileType: "MD"));
+        var byDate = await _service.SearchAsync(Q("forecast", topK: 2,
+            createdAfter: old.AddDays(-1), createdBefore: old.AddDays(1)));
+
+        byType.Should().ContainSingle().Which.DocumentId.Should().Be(target.Id);
+        byDate.Should().ContainSingle().Which.DocumentId.Should().Be(target.Id);
     }
 
     [Fact]

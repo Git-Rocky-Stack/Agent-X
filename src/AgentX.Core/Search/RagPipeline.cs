@@ -227,10 +227,12 @@ public sealed class RagPipeline : IRagPipeline
             _metrics.RecordSearch(MapSearchType(searchMode), allResults.Count, 0, 0, searchStopwatch);
         }
 
-        // Filter by minimum score
-        var relevantResults = allResults
-            .Where(r => r.Score >= _ragConfiguration.DefaultMinScore)
-            .ToList();
+        // Filter by minimum score. Each backend already applies MinScore on its own scale
+        // (cosine for semantic, relative BM25 for keyword); hybrid scores are rank-based RRF
+        // values that a cosine threshold does not apply to, so they are not re-filtered here.
+        var relevantResults = searchMode == SearchMode.Hybrid
+            ? allResults
+            : allResults.Where(r => r.Score >= _ragConfiguration.DefaultMinScore).ToList();
 
         // ── Step 3: Handle No Results ────────────────────────────────────
         if (relevantResults.Count == 0)

@@ -546,7 +546,33 @@ public sealed class HybridSearchOrchestratorTests
         // Hybrid mode requests TopK * 3 for better RRF results
         semanticQuery!.TopK.Should().Be(15); // 5 * 3
         keywordQuery!.TopK.Should().Be(15);
-        semanticQuery.MinScore.Should().Be(0.0f); // No pre-filtering for RRF
-        keywordQuery.MinScore.Should().Be(0.0f);
+
+        // Relevance is filtered per backend before fusion; fused RRF scores are rank based
+        // and cannot be thresholded meaningfully afterwards.
+        semanticQuery.MinScore.Should().Be(query.MinScore);
+        keywordQuery.MinScore.Should().Be(query.MinScore);
+    }
+
+    [Fact]
+    public async Task SearchAsync_HybridMode_WhenNeitherBackendFindsAnythingRelevant_ReturnsNoResults()
+    {
+        // With MinScore applied per backend, an irrelevant question yields nothing to fuse,
+        // so the RAG pipeline's "no relevant information" answer can trigger again.
+        _semanticSearch
+            .Setup(s => s.SearchAsync(It.Is<SearchQuery>(q => q.MinScore == 0.25f), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<SearchResult>());
+        _keywordSearch
+            .Setup(s => s.SearchAsync(It.Is<SearchQuery>(q => q.MinScore == 0.25f), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<SearchResult>());
+
+        var results = await _orchestrator.SearchAsync(new SearchQuery
+        {
+            Mode = SearchMode.Hybrid,
+            QueryText = "unrelated question",
+            TopK = 8,
+            MinScore = 0.25f
+        });
+
+        results.Should().BeEmpty();
     }
 }

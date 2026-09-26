@@ -31,8 +31,10 @@ public interface IKeywordSearchService
 
     /// <summary>
     /// Performs a full-text keyword search using FTS5 MATCH with BM25 ranking.
-    /// Results are returned as <see cref="Models.SearchResult"/> objects with
-    /// scores normalized to the 0-1 range.
+    /// Stop words are ignored and any remaining query term may match. Collection, file-type
+    /// and date filters are applied inside the query. Results are returned as
+    /// <see cref="Models.SearchResult"/> objects scored 0-1 relative to the best match, and
+    /// <see cref="Models.SearchQuery.MinScore"/> is applied on that relative scale.
     /// </summary>
     /// <param name="query">The search query with text and optional filters.</param>
     /// <param name="ct">Cancellation token.</param>
