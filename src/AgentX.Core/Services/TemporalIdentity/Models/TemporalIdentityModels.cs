@@ -19,6 +19,12 @@ public class TemporalBeliefEntity
     public DateTime UpdatedAt { get; set; }
 
     /// <summary>
+    /// Row creation time. Mapped because the AddTemporalIdentity migration created this column
+    /// as NOT NULL without a default, so every insert must supply it.
+    /// </summary>
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    /// <summary>
     /// The topic/concept this belief is about (e.g., "remote work", "AI safety", "microservices").
     /// Extracted from message content, annotations, and document themes.
     /// </summary>
@@ -75,6 +81,12 @@ public class InsightMomentEntity
     public long Id { get; set; }
     public DateTime CapturedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+
+    /// <summary>
+    /// Row creation time. Mapped because the AddTemporalIdentity migration created this column
+    /// as NOT NULL without a default, so every insert must supply it.
+    /// </summary>
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     /// <summary>
     /// What the insight was about.
@@ -146,6 +158,12 @@ public class EngagementMetricsEntity
     public DateTime FirstEngagedAt { get; set; }
     public DateTime LastEngagedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+
+    /// <summary>
+    /// Row creation time. Mapped because the AddTemporalIdentity migration created this column
+    /// as NOT NULL without a default, so every insert must supply it.
+    /// </summary>
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     /// <summary>
     /// What type of content this is.
@@ -221,6 +239,24 @@ public class BeliefConflictEntity
     public DateTime DetectedAt { get; set; }
 
     /// <summary>
+    /// Row creation time. Mapped because the AddTemporalIdentity migration created this column
+    /// as NOT NULL without a default, so every insert must supply it.
+    /// </summary>
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    /// <summary>
+    /// Last modification time (for example when the conflict is acknowledged). Mapped for the
+    /// same reason as <see cref="CreatedAt"/>.
+    /// </summary>
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+    /// <summary>
+    /// Topic of the conflicting belief, copied from <see cref="TemporalBeliefEntity.Topic"/> so
+    /// conflicts can be listed without a join. The column is NOT NULL in every schema version.
+    /// </summary>
+    public string Topic { get; set; } = string.Empty;
+
+    /// <summary>
     /// The belief that has conflicted.
     /// </summary>
     public long BeliefId { get; set; }
@@ -277,6 +313,12 @@ public class VoiceProfileEntity
     public DateTime FirstSampleAt { get; set; }
     public DateTime LastSampleAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+
+    /// <summary>
+    /// Row creation time. Mapped because the AddTemporalIdentity migration created this column
+    /// as NOT NULL without a default, so every insert must supply it.
+    /// </summary>
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     /// <summary>
     /// How many messages/communications have been analyzed.

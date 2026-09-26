@@ -201,6 +201,41 @@ public sealed class MigrationRunner : IMigrationRunner
         """CREATE INDEX IF NOT EXISTS "IX_belief_conflicts_Topic" ON "belief_conflicts" ("Topic");"""
     ];
 
+    /// <summary>
+    /// Columns the temporal identity entities map but that a database may lack. The
+    /// AddTemporalIdentity migration created the five tables without HasBeenResurfaced,
+    /// LastResurfacedAt, ResurfaceCount, SentimentShifted, CurrentSentiment, AvgParagraphLength
+    /// and PronounPatterns, so every insert and most queries failed with "no such column"; and a
+    /// table that reached a database by another route (an EnsureCreated build, the compatibility
+    /// schema above) can instead lack CreatedAt, UpdatedAt or Topic. NOT NULL additions carry a
+    /// default because SQLite requires one for ADD COLUMN.
+    /// </summary>
+    private static readonly (string Table, string Column, string Definition)[] TemporalIdentityColumns =
+    [
+        ("temporal_beliefs", "CreatedAt", "TEXT NOT NULL DEFAULT '0001-01-01 00:00:00'"),
+        ("insight_moments", "CreatedAt", "TEXT NOT NULL DEFAULT '0001-01-01 00:00:00'"),
+        ("insight_moments", "HasBeenResurfaced", "INTEGER NOT NULL DEFAULT 0"),
+        ("insight_moments", "LastResurfacedAt", "TEXT NULL"),
+        ("insight_moments", "ResurfaceCount", "INTEGER NOT NULL DEFAULT 0"),
+        ("engagement_metrics", "CreatedAt", "TEXT NOT NULL DEFAULT '0001-01-01 00:00:00'"),
+        ("engagement_metrics", "SentimentShifted", "INTEGER NOT NULL DEFAULT 0"),
+        ("engagement_metrics", "CurrentSentiment", "REAL NOT NULL DEFAULT 0"),
+        ("belief_conflicts", "Topic", "TEXT NOT NULL DEFAULT ''"),
+        ("belief_conflicts", "CreatedAt", "TEXT NOT NULL DEFAULT '0001-01-01 00:00:00'"),
+        ("belief_conflicts", "UpdatedAt", "TEXT NOT NULL DEFAULT '0001-01-01 00:00:00'"),
+        ("voice_profiles", "CreatedAt", "TEXT NOT NULL DEFAULT '0001-01-01 00:00:00'"),
+        ("voice_profiles", "AvgParagraphLength", "REAL NOT NULL DEFAULT 0"),
+        ("voice_profiles", "PronounPatterns", "TEXT NOT NULL DEFAULT ''"),
+    ];
+
+    private static readonly string[] ModelIndexRepairSql =
+    [
+        """CREATE INDEX IF NOT EXISTS "IX_insight_moments_HasBeenResurfaced" ON "insight_moments" ("HasBeenResurfaced");""",
+        """CREATE INDEX IF NOT EXISTS "IX_engagement_metrics_Depth" ON "engagement_metrics" ("Depth");""",
+        """CREATE INDEX IF NOT EXISTS "IX_memories_LastUsedAt" ON "memories" ("LastUsedAt");""",
+        """CREATE INDEX IF NOT EXISTS "IX_memories_CreatedAt" ON "memories" ("CreatedAt");"""
+    ];
+
     private readonly AgentXDbContext _context;
     private readonly SemaphoreSlim _runLock = new(1, 1);
 
@@ -325,6 +360,9 @@ public sealed class MigrationRunner : IMigrationRunner
             await _context.Database.ExecuteSqlRawAsync(sql, cancellationToken);
         }
 
+        // Before the compatibility schema below, which indexes belief_conflicts.Topic.
+        await EnsureTemporalIdentityColumnsAsync(cancellationToken);
+
         foreach (var sql in CompatibilitySchemaSql)
         {
             await _context.Database.ExecuteSqlRawAsync(sql, cancellationToken);
@@ -368,6 +406,33 @@ public sealed class MigrationRunner : IMigrationRunner
         await _context.Database.ExecuteSqlRawAsync(
             """CREATE INDEX IF NOT EXISTS "IX_conversations_ParentConversationId" ON "conversations" ("ParentConversationId");""",
             cancellationToken);
+
+        // Indexes the model declares but no migration ever created.
+        foreach (var sql in ModelIndexRepairSql)
+        {
+            await _context.Database.ExecuteSqlRawAsync(sql, cancellationToken);
+        }
+    }
+
+    /// <summary>
+    /// Adds each <see cref="TemporalIdentityColumns"/> entry that is missing. Idempotent, and a
+    /// no-op for tables that do not exist, so every starting shape converges on the model.
+    /// </summary>
+    private async Task EnsureTemporalIdentityColumnsAsync(CancellationToken cancellationToken)
+    {
+        foreach (var (table, column, definition) in TemporalIdentityColumns)
+        {
+            if (!await TableExistsAsync(table, cancellationToken))
+            {
+                continue;
+            }
+
+            await EnsureColumnAsync(
+                table,
+                column,
+                $"ALTER TABLE \"{table}\" ADD COLUMN \"{column}\" {definition};",
+                cancellationToken);
+        }
     }
 
     private async Task EnsureColumnAsync(

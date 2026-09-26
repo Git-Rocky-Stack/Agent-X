@@ -241,9 +241,12 @@ public class AgentXDbContext : DbContext
             entity.Property(e => e.EvidenceJson).IsRequired().HasDefaultValue("[]");
             entity.Property(e => e.FirstDetectedAt).IsRequired();
             entity.Property(e => e.LastObservedAt).IsRequired();
+            entity.Property(e => e.CreatedAt).IsRequired();
             entity.Property(e => e.UpdatedAt).IsRequired();
 
-            entity.HasIndex(e => e.Topic);
+            // One belief per topic: TemporalIdentityService upserts by Topic, and the
+            // AddTemporalIdentity migration created this index as unique.
+            entity.HasIndex(e => e.Topic).IsUnique();
             entity.HasIndex(e => e.LastObservedAt);
             entity.HasIndex(e => e.HasEvolved);
         });
@@ -258,9 +261,11 @@ public class AgentXDbContext : DbContext
             entity.Property(e => e.InsightText).IsRequired();
             entity.Property(e => e.SignificanceScore).IsRequired();
             entity.Property(e => e.CapturedAt).IsRequired();
+            entity.Property(e => e.CreatedAt).IsRequired();
             entity.Property(e => e.UpdatedAt).IsRequired();
             entity.Property(e => e.RelatedTopicsJson).IsRequired().HasDefaultValue("[]");
 
+            entity.HasIndex(e => e.Topic);
             entity.HasIndex(e => e.SignificanceScore);
             entity.HasIndex(e => e.CapturedAt);
             entity.HasIndex(e => e.HasBeenResurfaced);
@@ -276,13 +281,16 @@ public class AgentXDbContext : DbContext
             entity.Property(e => e.TargetId).IsRequired();
             entity.Property(e => e.FirstEngagedAt).IsRequired();
             entity.Property(e => e.LastEngagedAt).IsRequired();
+            entity.Property(e => e.CreatedAt).IsRequired();
             entity.Property(e => e.UpdatedAt).IsRequired();
             entity.Property(e => e.TotalSecondsSpent).IsRequired();
             entity.Property(e => e.RevisitCount).IsRequired();
             entity.Property(e => e.Depth).IsRequired();
             entity.Property(e => e.TopicsJson).IsRequired().HasDefaultValue("[]");
 
-            entity.HasIndex(e => new { e.TargetType, e.TargetId });
+            // One row per engaged item: TemporalIdentityService upserts by target, and the
+            // AddTemporalIdentity migration created this index as unique.
+            entity.HasIndex(e => new { e.TargetType, e.TargetId }).IsUnique();
             entity.HasIndex(e => e.LastEngagedAt);
             entity.HasIndex(e => e.Depth);
         });
@@ -294,16 +302,20 @@ public class AgentXDbContext : DbContext
             entity.HasKey(e => e.Id);
 
             entity.Property(e => e.BeliefId).IsRequired();
+            entity.Property(e => e.Topic).IsRequired();
             entity.Property(e => e.PreviousStance).IsRequired();
             entity.Property(e => e.CurrentStance).IsRequired();
             entity.Property(e => e.DetectedAt).IsRequired();
             entity.Property(e => e.ConflictMagnitude).IsRequired();
+            entity.Property(e => e.CreatedAt).IsRequired();
+            entity.Property(e => e.UpdatedAt).IsRequired();
 
             entity.HasOne(e => e.Belief)
                 .WithMany()
                 .HasForeignKey(e => e.BeliefId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            entity.HasIndex(e => e.Topic);
             entity.HasIndex(e => e.DetectedAt);
             entity.HasIndex(e => e.HasBeenAcknowledged);
             entity.HasIndex(e => e.ConflictMagnitude);
@@ -317,6 +329,7 @@ public class AgentXDbContext : DbContext
 
             entity.Property(e => e.FirstSampleAt).IsRequired();
             entity.Property(e => e.LastSampleAt).IsRequired();
+            entity.Property(e => e.CreatedAt).IsRequired();
             entity.Property(e => e.UpdatedAt).IsRequired();
             entity.Property(e => e.SampleCount).IsRequired();
             entity.Property(e => e.AvgSentenceLength).IsRequired();
@@ -381,6 +394,7 @@ public class AgentXDbContext : DbContext
             // Indexes
             entity.HasIndex(e => new { e.ConversationId, e.SortOrder });
             entity.HasIndex(e => e.EmbeddedAt);
+            entity.HasIndex(e => e.EmbeddingModel);
         });
     }
 
@@ -572,6 +586,7 @@ public class AgentXDbContext : DbContext
             // Indexes
             entity.HasIndex(e => new { e.DocumentId, e.ChunkIndex });
             entity.HasIndex(e => e.VectorRowId);
+            entity.HasIndex(e => e.EmbeddingModelVersion);
         });
     }
 
@@ -826,6 +841,7 @@ public class AgentXDbContext : DbContext
             entity.HasIndex(m => m.LinkedMemoryId);
             entity.HasIndex(m => m.LastUsedAt);
             entity.HasIndex(m => m.CreatedAt);
+            entity.HasIndex(m => m.EmbeddingModelVersion);
         });
     }
 
