@@ -151,4 +151,42 @@ public class TaskTypeDetectorTests
         var result = _detector.Detect("Extract and summarize this document");
         result.Name.Should().Be("extraction");
     }
+
+    // Whole-word matching
+
+    [Theory]
+    [InlineData("Please describe the subscription options")] // "script" inside words
+    [InlineData("Show me a preview of the report")] // "review" inside "preview"
+    [InlineData("The dishwasher has a malfunction")] // "function" inside "malfunction"
+    [InlineData("What is in my briefcase?")] // "brief" inside "briefcase"
+    [InlineData("The embedded video will not play")] // "embed" inside "embedded"
+    [InlineData("Which payment method is cheapest?")]
+    [InlineData("Book a first class ticket to Denver")]
+    [InlineData("How do I decode my car's VIN?")]
+    public void Detect_KeywordsInsideOtherWords_DoNotMatch(string prompt)
+    {
+        _detector.Detect(prompt).Should().BeSameAs(TaskType.Chat);
+    }
+
+    [Theory]
+    [InlineData("What is the zip code for Boston?", "chat")]
+    [InlineData("Is there a dress code at the gala?", "chat")]
+    [InlineData("My promo code is not accepted", "chat")]
+    [InlineData("Draft a code of conduct for volunteers", "generation")]
+    [InlineData("Which area codes cover Toronto?", "chat")]
+    public void Detect_EverydayUsesOfCode_AreNotProgrammingTasks(string prompt, string expected)
+    {
+        _detector.Detect(prompt).Name.Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData("I summarized the notes, can you tighten them?", "summarization")]
+    [InlineData("Refactoring the parser is next", "code")]
+    [InlineData("Help with a programming exercise", "code")]
+    [InlineData("Fix the zip code validation function", "code")]
+    [InlineData("Parse   data from this log", "extraction")]
+    public void Detect_InflectionsAndSpacing_StillMatch(string prompt, string expected)
+    {
+        _detector.Detect(prompt).Name.Should().Be(expected);
+    }
 }

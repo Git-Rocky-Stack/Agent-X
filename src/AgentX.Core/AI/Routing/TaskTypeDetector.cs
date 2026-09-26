@@ -16,8 +16,9 @@ public sealed partial class TaskTypeDetector : ITaskTypeDetector
     private static readonly Regex TagPattern = GenerateTagRegex();
 
     /// <summary>
-    /// Ordered keyword-to-task-type mappings. Keywords are matched case-insensitively
-    /// against the prompt. First match wins. Order matters: more specific keywords first.
+    /// Ordered keyword-to-task-type mappings. Keywords are matched case-insensitively as whole
+    /// words (plus a plain s/es/d/ed/ing ending), so "script" does not match "description" and
+    /// "code" does not match "decode". First match wins. Order matters: more specific keywords first.
     /// </summary>
     private static readonly (string[] Keywords, TaskType Type)[] KeywordMap =
     [
@@ -26,9 +27,12 @@ public sealed partial class TaskTypeDetector : ITaskTypeDetector
         (["analyze", "analyse", "analysis", "compare", "comparison", "evaluate", "assess", "review", "critique", "examine"], TaskType.Analysis),
         (["generate embedding", "generate vector", "embed", "embedding", "vectorize", "vector"], TaskType.Embedding),
         (["creative", "creative story", "poem", "fiction", "novel", "imagine", "brainstorm", "lyrics", "haiku"], TaskType.Creative),
-        (["write code", "code", "program", "function", "debug", "fix bug", "refactor", "implement", "script", "algorithm", "class ", "method "], TaskType.Code),
+        (["write code", "code", "coding", "program", "programming", "function", "debug", "debugging", "fix bug", "refactor", "implement", "script", "algorithm"], TaskType.Code),
         (["write", "generate", "draft", "compose", "create content", "produce", "article", "blog post", "essay"], TaskType.Generation),
     ];
+
+    private static readonly (Regex Pattern, TaskType Type)[] KeywordPatterns =
+        KeywordMap.Select(entry => (BuildKeywordPattern(entry.Keywords), entry.Type)).ToArray();
 
     /// <inheritdoc />
     public TaskType Detect(string prompt)
@@ -45,17 +49,16 @@ public sealed partial class TaskTypeDetector : ITaskTypeDetector
             return taskType;
         }
 
-        // 2. Keyword matching (case-insensitive, first match wins)
-        var lowerPrompt = prompt.ToLowerInvariant();
+        // 2. Keyword matching (case-insensitive whole words, first match wins). Everyday uses of
+        // "code" (zip code, dress code, code of conduct) are removed first so they do not route
+        // an ordinary question as a programming task.
+        var text = NonProgrammingCodeRegex().Replace(prompt, " ");
 
-        foreach (var (keywords, type) in KeywordMap)
+        foreach (var (pattern, type) in KeywordPatterns)
         {
-            foreach (var keyword in keywords)
+            if (pattern.IsMatch(text))
             {
-                if (lowerPrompt.Contains(keyword.ToLowerInvariant()))
-                {
-                    return type;
-                }
+                return type;
             }
         }
 
@@ -63,6 +66,19 @@ public sealed partial class TaskTypeDetector : ITaskTypeDetector
         return TaskType.Chat;
     }
 
+    private static Regex BuildKeywordPattern(IEnumerable<string> keywords)
+    {
+        var alternatives = keywords.Select(keyword => Regex.Escape(keyword.Trim()).Replace(@"\ ", @"\s+"));
+        return new Regex(
+            $@"\b(?:{string.Join("|", alternatives)})(?:s|es|d|ed|ing)?\b",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+    }
+
     [GeneratedRegex(@"^\[(\w+)\]\s*", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex GenerateTagRegex();
+
+    [GeneratedRegex(
+        @"\b(?:zip|postal|post|area|dress|country|promo|promotional|coupon|discount|voucher|gift|verification|security|access|pin|tax)\s+codes?\b|\bcodes?\s+of\s+(?:conduct|ethics|practice)\b",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex NonProgrammingCodeRegex();
 }
