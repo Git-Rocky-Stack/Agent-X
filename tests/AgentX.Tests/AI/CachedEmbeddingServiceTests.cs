@@ -182,4 +182,89 @@ public sealed class CachedEmbeddingServiceTests
         // Act & Assert
         await Assert.ThrowsAsync<ArgumentException>(() => service.EmbedAsync(null!));
     }
+
+    [Fact]
+    public async Task EmbedAsync_after_a_model_change_never_returns_the_old_models_vector()
+    {
+        var version = "ollama:all-minilm:384";
+        _innerService.Setup(s => s.ModelVersion).Returns(() => version);
+        _innerService
+            .Setup(s => s.EmbedAsync("query", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => version.EndsWith("384") ? new float[384] : new float[3072]);
+
+        var service = new CachedEmbeddingService(_innerService.Object, _configuration.Object, _logger);
+
+        (await service.EmbedAsync("query")).Should().HaveCount(384);
+        (await service.EmbedAsync("query")).Should().HaveCount(384, "same model: served from cache");
+
+        version = "local:llama-3.2-3b-instruct-q4_k_m.gguf:3072";
+
+        (await service.EmbedAsync("query")).Should().HaveCount(3072, "a new embedding space must be re-embedded");
+        _innerService.Verify(s => s.EmbedAsync("query", It.IsAny<CancellationToken>()), Times.Exactly(2));
+        service.GetStatistics().CacheSize.Should().Be(1, "vectors of the previous model are dropped");
+    }
+
+    [Fact]
+    public async Task Cache_is_bounded_and_evicts_the_least_recently_used_entry()
+    {
+        _innerService.Setup(s => s.ModelVersion).Returns("ollama:all-minilm:384");
+        _innerService
+            .Setup(s => s.EmbedAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((string text, CancellationToken _) => new[] { (float)text.Length });
+
+        var service = new CachedEmbeddingService(_innerService.Object, _configuration.Object, _logger, maxEntries: 3);
+
+        await service.EmbedAsync("a");
+        await service.EmbedAsync("bb");
+        await service.EmbedAsync("ccc");
+        await service.EmbedAsync("a");      // touch "a" so "bb" becomes the oldest
+        await service.EmbedAsync("dddd");   // evicts "bb"
+
+        service.GetStatistics().CacheSize.Should().Be(3);
+
+        await service.EmbedAsync("a");
+        await service.EmbedAsync("bb");
+        _innerService.Verify(s => s.EmbedAsync("a", It.IsAny<CancellationToken>()), Times.Once);
+        _innerService.Verify(s => s.EmbedAsync("bb", It.IsAny<CancellationToken>()), Times.Exactly(2));
+    }
+
+    [Fact]
+    public async Task Batch_requests_are_counted_so_the_hit_rate_stays_a_fraction()
+    {
+        _innerService.Setup(s => s.ModelVersion).Returns("ollama:all-minilm:384");
+        _innerService
+            .Setup(s => s.EmbedBatchAsync(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((IEnumerable<string> texts, CancellationToken _) => texts.Select(t => new[] { (float)t.Length }).ToList());
+
+        var service = new CachedEmbeddingService(_innerService.Object, _configuration.Object, _logger);
+
+        await service.EmbedBatchAsync(new[] { "one", "two" });
+        await service.EmbedBatchAsync(new[] { "one", "two", "three" });
+
+        var stats = service.GetStatistics();
+        stats.Total.Should().Be(5);
+        stats.Hits.Should().Be(2);
+        stats.Misses.Should().Be(3);
+        stats.HitRate.Should().BeApproximately(0.4, 0.001);
+    }
+
+    [Fact]
+    public async Task ClearCacheForModel_removes_only_that_models_entries()
+    {
+        var version = "ollama:all-minilm:384";
+        _innerService.Setup(s => s.ModelVersion).Returns(() => version);
+        _innerService
+            .Setup(s => s.EmbedAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new[] { 1f });
+
+        var service = new CachedEmbeddingService(_innerService.Object, _configuration.Object, _logger);
+        await service.EmbedAsync("x");
+        await service.EmbedAsync("y");
+
+        service.ClearCacheForModel("some-other:model:1");
+        service.GetStatistics().CacheSize.Should().Be(2);
+
+        service.ClearCacheForModel(version);
+        service.GetStatistics().CacheSize.Should().Be(0);
+    }
 }
