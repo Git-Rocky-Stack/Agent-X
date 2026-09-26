@@ -541,6 +541,19 @@ public sealed class OAuthServiceHttpFlowTests : IDisposable
             .Which.Message.Should().Contain("No OAuth provider configuration");
     }
 
+    [Fact]
+    public async Task AuthorizeAsync_WhenProviderNotRegistered_IdentifiesTheMissingSetup()
+    {
+        // Connectors catch this type to tell the operator how to configure the provider.
+        using var service = CreateService();
+
+        Func<Task> act = () => service.AuthorizeAsync("google");
+
+        var thrown = (await act.Should().ThrowAsync<OAuthProviderNotConfiguredException>()).Which;
+        thrown.Provider.Should().Be("google");
+        thrown.UserGuidance.Should().Contain("Google Cloud Console").And.Contain("settings.json");
+    }
+
     // ══════════════════════════════════════════════════════════════════════════
     //  BuildScopes (reflection — static helper)
     // ══════════════════════════════════════════════════════════════════════════

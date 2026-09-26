@@ -751,7 +751,8 @@ public sealed class OAuthService : IOAuthService, IDisposable
         if (_providerConfigs.TryGetValue(provider, out var config))
             return config;
 
-        throw new InvalidOperationException(
+        throw new OAuthProviderNotConfiguredException(
+            provider,
             $"No OAuth provider configuration registered for '{provider}'. " +
             $"Call RegisterProvider() before attempting OAuth operations. " +
             $"Registered providers: {string.Join(", ", _providerConfigs.Keys)}");

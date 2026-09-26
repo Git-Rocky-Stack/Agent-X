@@ -159,6 +159,12 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
             HasError = true;
             ErrorMessage = "Connection cancelled.";
         }
+        catch (OAuthProviderNotConfiguredException ex)
+        {
+            _log.Warning(ex, "Gmail OAuth2 is not configured");
+            HasError = true;
+            ErrorMessage = ex.UserGuidance;
+        }
         catch (Exception ex)
         {
             _log.Error(ex, "Failed to connect Gmail");
@@ -192,6 +198,12 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
             _log.Warning("Outlook Email OAuth2 flow cancelled by user");
             HasError = true;
             ErrorMessage = "Connection cancelled.";
+        }
+        catch (OAuthProviderNotConfiguredException ex)
+        {
+            _log.Warning(ex, "Outlook Email OAuth2 is not configured");
+            HasError = true;
+            ErrorMessage = ex.UserGuidance;
         }
         catch (Exception ex)
         {

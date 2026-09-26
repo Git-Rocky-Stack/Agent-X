@@ -99,4 +99,30 @@ public sealed class EmailSettingsViewModelTests
         vm.SyncStatusText.Should().Contain("Added 4");
         vm.SyncStatusText.Should().Contain("skipped 2");
     }
+
+    [Theory]
+    [InlineData("google")]
+    [InlineData("microsoft")]
+    public async Task ConnectCommand_WithoutOAuthClientCredentials_ExplainsTheSetupInsteadOfTheDeveloperError(string provider)
+    {
+        // A default install registers no OAuth providers; the raw error told the operator to
+        // "Call RegisterProvider()".
+        var oauth = new Mock<IOAuthService>();
+        oauth
+            .Setup(o => o.AuthorizeAsync(provider, It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new OAuthProviderNotConfiguredException(
+                provider, "No OAuth provider configuration registered. Call RegisterProvider() first."));
+        var vm = new EmailSettingsViewModel(
+            Mock.Of<ISettingsService>(),
+            oauth.Object,
+            Mock.Of<IEmailService>(),
+            Mock.Of<IBuiltinConnectorLifecycleService>(),
+            Logger.None);
+
+        await (provider == "google" ? vm.ConnectGoogleCommand : vm.ConnectMicrosoftCommand).ExecuteAsync(null);
+
+        vm.HasError.Should().BeTrue();
+        vm.ErrorMessage.Should().Contain("settings.json").And.Contain("restart Agent-X");
+        vm.ErrorMessage.Should().NotContain("RegisterProvider");
+    }
 }

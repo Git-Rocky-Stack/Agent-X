@@ -182,6 +182,12 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
             HasError = true;
             ErrorMessage = "Connection cancelled.";
         }
+        catch (OAuthProviderNotConfiguredException ex)
+        {
+            _log.Warning(ex, "Google Calendar OAuth2 is not configured");
+            HasError = true;
+            ErrorMessage = ex.UserGuidance;
+        }
         catch (Exception ex)
         {
             _log.Error(ex, "Failed to connect Google Calendar");
@@ -215,6 +221,12 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
             _log.Warning("Microsoft Outlook OAuth2 flow cancelled by user");
             HasError = true;
             ErrorMessage = "Connection cancelled.";
+        }
+        catch (OAuthProviderNotConfiguredException ex)
+        {
+            _log.Warning(ex, "Microsoft Outlook OAuth2 is not configured");
+            HasError = true;
+            ErrorMessage = ex.UserGuidance;
         }
         catch (Exception ex)
         {
