@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
 using AgentX.Core.AI.Models;
@@ -22,8 +23,9 @@ public sealed class OllamaProvider : IAiProvider
 {
     private readonly OllamaApiClient _client;
     private readonly ILogger _logger;
+    private readonly ICostTracker? _costTracker;
+    private readonly ProviderLifetime _lifetime = new(nameof(OllamaProvider));
     private bool _isAvailable;
-    private bool _disposed;
 
     /// <inheritdoc />
     public string ProviderId => "ollama";
@@ -39,10 +41,10 @@ public sealed class OllamaProvider : IAiProvider
     /// </summary>
     /// <param name="endpoint">The Ollama server URI (e.g. http://localhost:11434).</param>
     /// <param name="logger">Serilog logger for diagnostics.</param>
-    public OllamaProvider(Uri endpoint, ILogger logger)
+    /// <param name="costTracker">Optional usage recorder; Ollama's prompt/eval token counts are recorded (at no cost).</param>
+    public OllamaProvider(Uri endpoint, ILogger logger, ICostTracker? costTracker = null)
+        : this(new OllamaApiClient(endpoint), logger, costTracker)
     {
-        _client = new OllamaApiClient(endpoint);
-        _logger = logger ?? Log.Logger;
         _logger.Information("OllamaProvider created targeting {Endpoint}", endpoint);
     }
 
@@ -55,11 +57,18 @@ public sealed class OllamaProvider : IAiProvider
     {
     }
 
+    /// <summary>Test seam: wraps an existing client (for example one over a stub HTTP handler).</summary>
+    internal OllamaProvider(OllamaApiClient client, ILogger logger, ICostTracker? costTracker)
+    {
+        _client = client ?? throw new ArgumentNullException(nameof(client));
+        _logger = logger ?? Log.Logger;
+        _costTracker = costTracker;
+    }
+
     /// <inheritdoc />
     public async Task<bool> CheckConnectionAsync(CancellationToken ct = default)
     {
-        ThrowIfDisposed();
-
+        _lifetime.Enter();
         try
         {
             _logger.Debug("Checking Ollama connection...");
@@ -81,19 +90,22 @@ public sealed class OllamaProvider : IAiProvider
             _logger.Warning("Ollama connection check timed out (3s)");
             return false;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             _isAvailable = false;
             _logger.Warning(ex, "Ollama connection check failed");
             return false;
+        }
+        finally
+        {
+            _lifetime.Exit();
         }
     }
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<AiModel>> ListModelsAsync(CancellationToken ct = default)
     {
-        ThrowIfDisposed();
-
+        _lifetime.Enter();
         try
         {
             _logger.Debug("Listing local Ollama models...");
@@ -114,6 +126,10 @@ public sealed class OllamaProvider : IAiProvider
             _logger.Error(ex, "Failed to list Ollama models");
             throw;
         }
+        finally
+        {
+            _lifetime.Exit();
+        }
     }
 
     /// <inheritdoc />
@@ -122,13 +138,12 @@ public sealed class OllamaProvider : IAiProvider
         IProgress<ModelDownloadProgress>? progress = null,
         CancellationToken ct = default)
     {
-        ThrowIfDisposed();
-
-        if (string.IsNullOrWhiteSpace(modelName))
-            throw new ArgumentException("Model name cannot be null or empty.", nameof(modelName));
-
+        _lifetime.Enter();
         try
         {
+            if (string.IsNullOrWhiteSpace(modelName))
+                throw new ArgumentException("Model name cannot be null or empty.", nameof(modelName));
+
             _logger.Information("Pulling Ollama model: {ModelName}", modelName);
 
             await foreach (var status in _client.PullModelAsync(modelName, ct).ConfigureAwait(false))
@@ -157,18 +172,21 @@ public sealed class OllamaProvider : IAiProvider
             _logger.Error(ex, "Failed to pull model: {ModelName}", modelName);
             throw;
         }
+        finally
+        {
+            _lifetime.Exit();
+        }
     }
 
     /// <inheritdoc />
     public async Task DeleteModelAsync(string modelName, CancellationToken ct = default)
     {
-        ThrowIfDisposed();
-
-        if (string.IsNullOrWhiteSpace(modelName))
-            throw new ArgumentException("Model name cannot be null or empty.", nameof(modelName));
-
+        _lifetime.Enter();
         try
         {
+            if (string.IsNullOrWhiteSpace(modelName))
+                throw new ArgumentException("Model name cannot be null or empty.", nameof(modelName));
+
             _logger.Information("Deleting Ollama model: {ModelName}", modelName);
             await _client.DeleteModelAsync(modelName, ct).ConfigureAwait(false);
             _logger.Information("Successfully deleted model: {ModelName}", modelName);
@@ -178,6 +196,10 @@ public sealed class OllamaProvider : IAiProvider
             _logger.Error(ex, "Failed to delete model: {ModelName}", modelName);
             throw;
         }
+        finally
+        {
+            _lifetime.Exit();
+        }
     }
 
     /// <inheritdoc />
@@ -186,55 +208,62 @@ public sealed class OllamaProvider : IAiProvider
         ChatOptions? options = null,
         [EnumeratorCancellation] CancellationToken ct = default)
     {
-        ThrowIfDisposed();
-
-        if (messages is null || messages.Count == 0)
-            throw new ArgumentException("Messages list cannot be null or empty.", nameof(messages));
-
-        var chatRequest = BuildChatRequest(messages, options, stream: true);
-
-        _logger.Debug("Streaming chat with {MessageCount} messages, model={Model}",
-            messages.Count, chatRequest.Model);
-
-        IAsyncEnumerable<ChatResponseStream?> responseStream;
-
+        _lifetime.Enter();
         try
         {
-            responseStream = _client.ChatAsync(chatRequest, ct);
-        }
-        catch (Exception ex)
-        {
-            _logger.Error(ex, "Failed to initiate streaming chat");
-            throw;
-        }
+            if (messages is null || messages.Count == 0)
+                throw new ArgumentException("Messages list cannot be null or empty.", nameof(messages));
 
-        // Tracks Ollama's done_reason (P0-6). The terminal chunk is typed as
-        // ChatDoneResponseStream and exposes DoneReason: "stop" (natural), "length"
-        // (max tokens), "load", "unload". Anything other than "stop" indicates a
-        // degraded response.
-        string? doneReason = null;
+            var chatRequest = BuildChatRequest(messages, options, stream: true);
 
-        await foreach (var chunk in responseStream.WithCancellation(ct).ConfigureAwait(false))
-        {
-            if (chunk is ChatDoneResponseStream done)
+            _logger.Debug("Streaming chat with {MessageCount} messages, model={Model}",
+                messages.Count, chatRequest.Model);
+
+            IAsyncEnumerable<ChatResponseStream?> responseStream;
+
+            try
             {
-                doneReason = done.DoneReason;
+                responseStream = _client.ChatAsync(chatRequest, ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Failed to initiate streaming chat");
+                throw;
             }
 
-            var token = chunk?.Message?.Content;
-            if (!string.IsNullOrEmpty(token))
+            // Tracks Ollama's done_reason (P0-6). The terminal chunk is typed as
+            // ChatDoneResponseStream and exposes DoneReason: "stop" (natural), "length"
+            // (max tokens), "load", "unload". Anything other than "stop" indicates a
+            // degraded response.
+            string? doneReason = null;
+
+            await foreach (var chunk in responseStream.WithCancellation(ct).ConfigureAwait(false))
             {
-                yield return token;
+                if (chunk is ChatDoneResponseStream done)
+                {
+                    doneReason = done.DoneReason;
+                    RecordUsage(chatRequest.Model, done);
+                }
+
+                var token = chunk?.Message?.Content;
+                if (!string.IsNullOrEmpty(token))
+                {
+                    yield return token;
+                }
+            }
+
+            if (!string.IsNullOrEmpty(doneReason)
+                && !string.Equals(doneReason, "stop", StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.Warning(
+                    "Ollama response truncated: done_reason={DoneReason}, model={Model}, max_tokens={MaxTokens}. " +
+                    "Consider raising MaxTokens.",
+                    doneReason, chatRequest.Model, options?.MaxTokens ?? 2048);
             }
         }
-
-        if (!string.IsNullOrEmpty(doneReason)
-            && !string.Equals(doneReason, "stop", StringComparison.OrdinalIgnoreCase))
+        finally
         {
-            _logger.Warning(
-                "Ollama response truncated: done_reason={DoneReason}, model={Model}, max_tokens={MaxTokens}. " +
-                "Consider raising MaxTokens.",
-                doneReason, chatRequest.Model, options?.MaxTokens ?? 2048);
+            _lifetime.Exit();
         }
     }
 
@@ -244,18 +273,17 @@ public sealed class OllamaProvider : IAiProvider
         ChatOptions? options = null,
         CancellationToken ct = default)
     {
-        ThrowIfDisposed();
-
-        if (messages is null || messages.Count == 0)
-            throw new ArgumentException("Messages list cannot be null or empty.", nameof(messages));
-
-        var chatRequest = BuildChatRequest(messages, options, stream: true);
-
-        _logger.Debug("Chat request with {MessageCount} messages, model={Model}",
-            messages.Count, chatRequest.Model);
-
+        _lifetime.Enter();
         try
         {
+            if (messages is null || messages.Count == 0)
+                throw new ArgumentException("Messages list cannot be null or empty.", nameof(messages));
+
+            var chatRequest = BuildChatRequest(messages, options, stream: true);
+
+            _logger.Debug("Chat request with {MessageCount} messages, model={Model}",
+                messages.Count, chatRequest.Model);
+
             var sb = new StringBuilder();
             string? doneReason = null;
 
@@ -264,6 +292,7 @@ public sealed class OllamaProvider : IAiProvider
                 if (chunk is ChatDoneResponseStream done)
                 {
                     doneReason = done.DoneReason;
+                    RecordUsage(chatRequest.Model, done);
                 }
 
                 var token = chunk?.Message?.Content;
@@ -292,6 +321,10 @@ public sealed class OllamaProvider : IAiProvider
             _logger.Error(ex, "Chat request failed");
             throw;
         }
+        finally
+        {
+            _lifetime.Exit();
+        }
     }
 
     /// <inheritdoc />
@@ -300,22 +333,26 @@ public sealed class OllamaProvider : IAiProvider
         string modelName,
         CancellationToken ct = default)
     {
-        ThrowIfDisposed();
-
-        if (string.IsNullOrWhiteSpace(text))
-            throw new ArgumentException("Text cannot be null or empty.", nameof(text));
-        if (string.IsNullOrWhiteSpace(modelName))
-            throw new ArgumentException("Model name cannot be null or empty.", nameof(modelName));
-
+        _lifetime.Enter();
         try
         {
+            if (string.IsNullOrWhiteSpace(text))
+                throw new ArgumentException("Text cannot be null or empty.", nameof(text));
+            if (string.IsNullOrWhiteSpace(modelName))
+                throw new ArgumentException("Model name cannot be null or empty.", nameof(modelName));
+
             _logger.Debug("Generating embedding with model {Model}, text length: {Length}",
                 modelName, text.Length);
 
-            // Set the selected model for the embed request
-            _client.SelectedModel = modelName;
+            // The model travels in the request. Setting the client's SelectedModel instead would
+            // make the next chat request that carries no model id use the embedding model.
+            var request = new EmbedRequest
+            {
+                Model = modelName,
+                Input = new List<string> { text }
+            };
 
-            var response = await _client.EmbedAsync(text, ct).ConfigureAwait(false);
+            var response = await _client.EmbedAsync(request, ct).ConfigureAwait(false);
 
             if (response.Embeddings is null || response.Embeddings.Count == 0)
             {
@@ -333,6 +370,10 @@ public sealed class OllamaProvider : IAiProvider
             _logger.Error(ex, "Failed to generate embedding with model {Model}", modelName);
             throw;
         }
+        finally
+        {
+            _lifetime.Exit();
+        }
     }
 
     /// <inheritdoc />
@@ -341,15 +382,14 @@ public sealed class OllamaProvider : IAiProvider
         string modelName,
         CancellationToken ct = default)
     {
-        ThrowIfDisposed();
-
-        if (texts is null || texts.Count == 0)
-            throw new ArgumentException("Texts list cannot be null or empty.", nameof(texts));
-        if (string.IsNullOrWhiteSpace(modelName))
-            throw new ArgumentException("Model name cannot be null or empty.", nameof(modelName));
-
+        _lifetime.Enter();
         try
         {
+            if (texts is null || texts.Count == 0)
+                throw new ArgumentException("Texts list cannot be null or empty.", nameof(texts));
+            if (string.IsNullOrWhiteSpace(modelName))
+                throw new ArgumentException("Model name cannot be null or empty.", nameof(modelName));
+
             _logger.Debug("Generating {Count} embeddings with model {Model}", texts.Count, modelName);
 
             var request = new EmbedRequest
@@ -383,18 +423,41 @@ public sealed class OllamaProvider : IAiProvider
             _logger.Error(ex, "Failed to generate batch embeddings with model {Model}", modelName);
             throw;
         }
+        finally
+        {
+            _lifetime.Exit();
+        }
     }
 
     /// <inheritdoc />
     public void Dispose()
     {
-        if (_disposed) return;
-        _disposed = true;
+        // The client owns an HttpClient: dispose it (a new provider is created on every AI
+        // re-initialization and every connection test), deferred while a call still runs.
+        if (!_lifetime.RequestDispose(() => ((IDisposable)_client).Dispose()))
+            return;
+
         _isAvailable = false;
         _logger.Debug("OllamaProvider disposed");
     }
 
     // ── Private Helpers ─────────────────────────────────────────────
+
+    private void RecordUsage(string model, ChatDoneResponseStream done)
+    {
+        if (_costTracker is null)
+            return;
+
+        try
+        {
+            // Local inference: token counts are tracked, the cost is zero.
+            _costTracker.RecordUsage(model, ProviderId, done.PromptEvalCount, done.EvalCount);
+        }
+        catch (Exception ex)
+        {
+            _logger.Debug(ex, "Could not record Ollama usage");
+        }
+    }
 
     /// <summary>
     /// Builds an OllamaSharp ChatRequest from the application's ChatMessage list and options.
@@ -478,6 +541,7 @@ public sealed class OllamaProvider : IAiProvider
         {
             Id = name,
             Name = name,
+            ProviderId = "ollama",
             Family = model.Details?.Family ?? string.Empty,
             SizeBytes = model.Size,
             QuantizationLevel = model.Details?.QuantizationLevel ?? string.Empty,
@@ -490,32 +554,28 @@ public sealed class OllamaProvider : IAiProvider
 
     /// <summary>
     /// Parses a parameter size string (e.g. "7B", "3.8B", "70B") into an integer
-    /// representing millions of parameters (e.g. 7000 for 7B).
+    /// representing millions of parameters (e.g. 7000 for 7B). Ollama always writes the
+    /// number with a '.' decimal separator, so it is parsed with the invariant culture: under a
+    /// culture that uses ',' as the decimal separator "3.8B" would otherwise become 38000.
     /// </summary>
-    private static int ParseParameterCount(string? parameterSize)
+    internal static int ParseParameterCount(string? parameterSize)
     {
         if (string.IsNullOrWhiteSpace(parameterSize))
             return 0;
 
         var cleaned = parameterSize.Trim().ToUpperInvariant();
 
-        if (cleaned.EndsWith("B"))
+        if (cleaned.EndsWith('B'))
         {
-            if (double.TryParse(cleaned[..^1], out var billions))
-                return (int)(billions * 1000); // Convert to millions for display
+            if (double.TryParse(cleaned[..^1], NumberStyles.Float, CultureInfo.InvariantCulture, out var billions))
+                return (int)Math.Round(billions * 1000); // Convert to millions for display
         }
-        else if (cleaned.EndsWith("M"))
+        else if (cleaned.EndsWith('M'))
         {
-            if (double.TryParse(cleaned[..^1], out var millions))
-                return (int)millions;
+            if (double.TryParse(cleaned[..^1], NumberStyles.Float, CultureInfo.InvariantCulture, out var millions))
+                return (int)Math.Round(millions);
         }
 
         return 0;
-    }
-
-    private void ThrowIfDisposed()
-    {
-        if (_disposed)
-            throw new ObjectDisposedException(nameof(OllamaProvider));
     }
 }
