@@ -999,6 +999,33 @@ public sealed class DocumentServiceTests : IDisposable
         result[0].FileType.Should().Be("pdf");
     }
 
+    [Theory]
+    [InlineData("code", new[] { "Program.cs", "script.py", "page.html" })]
+    [InlineData("image", new[] { "photo.jpg", "scan.png" })]
+    [InlineData("pdf", new[] { "report.pdf" })]
+    public async Task GetAllDocumentsAsync_FileTypeFilter_MatchesTheCategoryChipsByExtension(
+        string filter, string[] expected)
+    {
+        // The Code and Images chips filtered on FileType "code" and "image", but FileType is
+        // the extension without the dot, so both chips always showed an empty vault.
+        var h = NewHarness();
+        h.Seed(ctx =>
+        {
+            ctx.Documents.Add(NewDoc(fileName: "Program.cs", fileType: "cs"));
+            ctx.Documents.Add(NewDoc(fileName: "script.py", fileType: "py"));
+            ctx.Documents.Add(NewDoc(fileName: "page.html", fileType: "html"));
+            ctx.Documents.Add(NewDoc(fileName: "photo.jpg", fileType: "jpg"));
+            ctx.Documents.Add(NewDoc(fileName: "scan.png", fileType: "png"));
+            ctx.Documents.Add(NewDoc(fileName: "report.pdf", fileType: "pdf"));
+            ctx.Documents.Add(NewDoc(fileName: "notes.md", fileType: "md"));
+            ctx.SaveChanges();
+        });
+
+        var result = await h.Service.GetAllDocumentsAsync(fileTypeFilter: filter, sortBy: null);
+
+        result.Select(d => d.FileName).Should().BeEquivalentTo(expected);
+    }
+
     [Fact]
     public async Task GetAllDocumentsAsync_StatusFilter_Filters()
     {

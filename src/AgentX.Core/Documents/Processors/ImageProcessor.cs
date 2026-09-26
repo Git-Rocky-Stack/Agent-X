@@ -29,10 +29,12 @@ public class ImageProcessor : IDocumentProcessor
 {
     private static readonly ILogger Log = Serilog.Log.ForContext<ImageProcessor>();
 
-    private static readonly HashSet<string> Extensions = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ".png", ".jpg", ".jpeg", ".bmp", ".tiff"
-    };
+    /// <summary>
+    /// Uses the canonical set from <see cref="SupportedFileTypes.Image"/>, which the vault's
+    /// Images filter also matches on.
+    /// </summary>
+    private static readonly HashSet<string> Extensions =
+        new(SupportedFileTypes.Image, StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
     /// Maximum image dimension (width or height) supported by <see cref="OcrEngine"/>.

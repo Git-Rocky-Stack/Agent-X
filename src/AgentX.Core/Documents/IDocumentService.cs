@@ -98,7 +98,10 @@ public interface IDocumentService
     /// Retrieves all documents with optional filtering by file type and indexing status.
     /// Results are ordered by ImportedAt descending (newest first).
     /// </summary>
-    /// <param name="fileTypeFilter">Optional file type to filter by (e.g., "pdf").</param>
+    /// <param name="fileTypeFilter">
+    /// Optional file type to filter by (e.g., "pdf"), or a category: "code" or "image" match every
+    /// extension the code or image processor reads (see <see cref="DocumentFileTypeFilter"/>).
+    /// </param>
     /// <param name="statusFilter">Optional indexing status to filter by (e.g., "completed").</param>
     /// <param name="tagFilter">Optional tag name to filter documents that have this tag assigned.</param>
     /// <param name="collectionId">Optional collection ID to filter documents belonging to a specific collection.</param>

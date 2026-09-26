@@ -461,11 +461,13 @@ public sealed class DocumentService : IDocumentService
     {
         IQueryable<DocumentEntity> query = _db.Documents.AsNoTracking();
 
-        // File type filter
+        // File type filter: one type, or a category chip ("code", "image") that covers every
+        // extension its processor reads. FileType holds the extension without the dot, so the
+        // categories never matched anything when compared as a type.
         if (!string.IsNullOrWhiteSpace(fileTypeFilter))
         {
-            var normalizedFilter = fileTypeFilter.TrimStart('.').ToLowerInvariant();
-            query = query.Where(d => d.FileType == normalizedFilter);
+            var fileTypes = DocumentFileTypeFilter.Resolve(fileTypeFilter).ToArray();
+            query = query.Where(d => fileTypes.Contains(d.FileType));
         }
 
         // Status filter
