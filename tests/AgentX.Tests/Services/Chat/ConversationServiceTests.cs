@@ -681,6 +681,28 @@ public sealed class ConversationServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task AddMessageAsync_SavesTheModelAndTheSourcesOfAnAnswer()
+    {
+        var h = NewHarness();
+        var id = SeedConv(h, NewConv());
+
+        await h.Service.AddMessageAsync(
+            id,
+            "assistant",
+            "Version 2 shipped [1].",
+            modelId: "llama3.2:3b",
+            citationsJson: "[{\"kind\":\"web\",\"title\":\"Notes\",\"url\":\"https://example.org/notes\"}]");
+        await h.Service.AddMessageAsync(id, "user", "Thanks", modelId: " ", citationsJson: "");
+
+        using var fresh = h.Fresh();
+        var messages = await fresh.Messages.OrderBy(m => m.SortOrder).ToListAsync();
+        messages[0].ModelId.Should().Be("llama3.2:3b");
+        messages[0].CitationsJson.Should().Contain("https://example.org/notes");
+        messages[1].ModelId.Should().BeNull();
+        messages[1].CitationsJson.Should().BeNull();
+    }
+
+    [Fact]
     public async Task AddMessageAsync_SecondMessage_IncrementsSortOrder()
     {
         var h = NewHarness();

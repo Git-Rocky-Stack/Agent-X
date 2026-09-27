@@ -1713,7 +1713,7 @@ IAsyncEnumerable<string> SendMessageAsync(
     CancellationToken ct = default);
 ```
 
-Sends a user message and streams the assistant response token-by-token. The user message and final assistant response are persisted automatically to the database.
+Sends a user message and streams the assistant response token-by-token. The user message and final assistant response are persisted automatically to the database, the response with the id of the model that wrote it.
 
 **Parameters:**
 
@@ -1724,6 +1724,8 @@ Sends a user message and streams the assistant response token-by-token. The user
 | `ct` | `CancellationToken` | `default` | Cancellation token. |
 
 **Returns:** `IAsyncEnumerable<string>` -- An async stream of response tokens as they arrive.
+
+An overload takes a `SupplementalContext supplementalContext` (for example Research Mode's web results) before the token. Its `PromptContext` text is added to this reply's context only and is not saved; its `Citations` are saved with the response in `MessageEntity.CitationsJson`.
 
 ---
 
@@ -1890,7 +1892,9 @@ Task AddMessageAsync(
     string role,
     string content,
     int? tokenCount = null,
-    double? generationTimeMs = null);
+    double? generationTimeMs = null,
+    string? modelId = null,
+    string? citationsJson = null);
 ```
 
 Adds a new message to a conversation and updates conversation metadata (`MessageCount`, `TokensUsed`, `UpdatedAt`).
@@ -1904,6 +1908,8 @@ Adds a new message to a conversation and updates conversation metadata (`Message
 | `content` | `string` | -- | The message content. |
 | `tokenCount` | `int?` | `null` | Optional estimated token count for the message. |
 | `generationTimeMs` | `double?` | `null` | Optional generation time in milliseconds (for assistant messages). |
+| `modelId` | `string?` | `null` | The model that wrote an assistant message. Blank is stored as `null`. |
+| `citationsJson` | `string?` | `null` | The sources an assistant message cites, in the `MessageCitations` format. Blank is stored as `null`. |
 
 ---
 
@@ -3038,7 +3044,7 @@ Represents a single message within a conversation.
 | `TokenCount` | `int` | `0` | Estimated token count for this message. |
 | `GenerationTimeMs` | `double?` | `null` | Generation time in milliseconds (for assistant messages only). |
 | `ModelId` | `string?` | `null` | The AI model that generated this message (for assistant messages). |
-| `CitationsJson` | `string?` | `null` | JSON array of `Citation` objects (for RAG-sourced assistant messages). |
+| `CitationsJson` | `string?` | `null` | JSON array of the sources an assistant message cites (see `MessageCitations`): web pages as `{"kind":"web","title","url","snippet"}` (Research Mode), documents as `{"fileName","pageNumber","excerpt"}`. |
 | `SortOrder` | `int` | `0` | Ordering index within the conversation. |
 
 **Navigation Properties:**

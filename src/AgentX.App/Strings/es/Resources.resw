@@ -1005,6 +1005,7 @@
   <data name="Chat_MsgsLabel.Text" xml:space="preserve"><value>mens.</value></data>
   <data name="Chat_InspectContextTip.ToolTipService.ToolTip" xml:space="preserve"><value>Inspeccionar el contexto completo usado para esta respuesta</value></data>
   <data name="Chat_ContextUsedLabel.Text" xml:space="preserve"><value>Contexto usado</value></data>
+  <data name="Chat_WebSourcesLabel.Text" xml:space="preserve"><value>Fuentes web</value></data>
   <data name="Chat_ConversationsTitle.Text" xml:space="preserve"><value>Conversaciones</value></data>
   <data name="Chat_NewConversationTip.ToolTipService.ToolTip" xml:space="preserve"><value>Nueva conversación</value></data>
   <data name="Chat_NewLabel.Text" xml:space="preserve"><value>Nueva</value></data>
@@ -1780,6 +1781,8 @@
   <data name="ExportDlg_ExportConversation.CloseButtonText" xml:space="preserve"><value>Cancelar</value></data>
   <data name="ExportDlg_Format.Header" xml:space="preserve"><value>Formato</value></data>
   <data name="ExportDlg_TemplateOptional.Header" xml:space="preserve"><value>Plantilla (opcional)</value></data>
+  <data name="ExportDlg_IncludeCitations.Header" xml:space="preserve"><value>Incluir citas</value></data>
+  <data name="ExportDlg_IncludeModelInfo.Header" xml:space="preserve"><value>Incluir información del modelo</value></data>
   <data name="ExportDlg_IncludeMetadata.Header" xml:space="preserve"><value>Incluir metadatos</value></data>
   <data name="ExportDlg_IncludeTimestamps.Header" xml:space="preserve"><value>Incluir marcas de tiempo</value></data>
   <data name="JumpTo_JumpToPageDocumentPh.PlaceholderText" xml:space="preserve"><value>Ir a una página, documento o conversación...</value></data>

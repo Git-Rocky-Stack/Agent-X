@@ -428,6 +428,7 @@ AI Chat is the full conversational workspace. Quick Chat is the tray/shortcut-st
 - The sidebar supports history review, search, pinning, and deletion.
 - Each conversation has its own message list and model context.
 - Export saves selected conversations as portable text/Markdown artifacts.
+- Every answer is saved with the name of the model that wrote it, and a Research Mode answer with the web pages it was given. In the export dialog, **Include citations** lists each answer's sources under it (numbered as its [n] markers) and **Include model info** names its model.
 
 ### Prompt and context tools
 
@@ -439,6 +440,7 @@ AI Chat is the full conversational workspace. Quick Chat is the tray/shortcut-st
 | Context inspection | Helps explain what Agent-X assembled before sending a prompt |
 | Branching | Explore alternate responses without losing the original path |
 | Suggested questions | Continue a thread with relevant follow-ups |
+| Research Mode | The Research mode toggle beside the message box adds web search results to your next answers (Research Mode must also be enabled in Settings, with a web search provider configured); the pages an answer used are listed under it as numbered sources, and clicking one opens it in your browser |
 | Voice input | Dictate text into chat through local transcription |
 
 ### Message behavior

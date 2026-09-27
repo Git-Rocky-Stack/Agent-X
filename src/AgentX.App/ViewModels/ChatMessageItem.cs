@@ -18,6 +18,7 @@ public class ChatMessageItem : ObservableObject
     private IReadOnlyList<string> _inlineContextStorySourceChips = Array.Empty<string>();
     private int _tokenCount;
     private double _generationTimeMs;
+    private IReadOnlyList<WebCitation>? _webCitations;
 
     /// <summary>Database primary key. 0 if not yet persisted.</summary>
     public long MessageId { get; set; }
@@ -198,9 +199,94 @@ public class ChatMessageItem : ObservableObject
         set => SetProperty(ref _branchCountAtPoint, value);
     }
 
-    /// <summary>Web citations associated with this message (from Deep Research Mode).</summary>
-    public IReadOnlyList<WebCitation>? WebCitations { get; set; }
+    /// <summary>
+    /// The web sources Research Mode added to this answer. A streamed reply gets them when it
+    /// completes, after the bubble is on screen, so this notifies along with what is built from it.
+    /// </summary>
+    public IReadOnlyList<WebCitation>? WebCitations
+    {
+        get => _webCitations;
+        set
+        {
+            if (SetProperty(ref _webCitations, value))
+            {
+                OnPropertyChanged(nameof(HasWebCitations));
+                OnPropertyChanged(nameof(WebCitationChips));
+            }
+        }
+    }
 
     /// <summary>Whether this message has web citations to display.</summary>
     public bool HasWebCitations => WebCitations?.Count > 0;
+
+    /// <summary>The web sources as numbered chips for the bubble.</summary>
+    public IReadOnlyList<WebCitationChip> WebCitationChips => WebCitationChip.From(WebCitations);
+}
+
+/// <summary>
+/// One web source under an answer: its number in the answer's [n] markers (the order Research
+/// Mode listed the results in), its title and site, and the link that opens it. Only http and
+/// https addresses become links; anything else is shown but cannot be opened.
+/// </summary>
+public sealed class WebCitationChip
+{
+    public int Number { get; init; }
+    public string Title { get; init; } = string.Empty;
+    public string Site { get; init; } = string.Empty;
+    public string Url { get; init; } = string.Empty;
+    public Uri? Link { get; init; }
+
+    public bool HasLink => Link is not null;
+    public bool HasNoLink => Link is null;
+
+    /// <summary>The chip text, for example "[1] Release notes (example.org)".</summary>
+    public string Label
+    {
+        get
+        {
+            var name = string.IsNullOrWhiteSpace(Title) ? Site : Title;
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                name = Url;
+            }
+
+            return string.IsNullOrWhiteSpace(Site) || string.Equals(name, Site, StringComparison.OrdinalIgnoreCase)
+                ? $"[{Number}] {name}"
+                : $"[{Number}] {name} ({Site})";
+        }
+    }
+
+    public static IReadOnlyList<WebCitationChip> From(IReadOnlyList<WebCitation>? citations)
+    {
+        if (citations is not { Count: > 0 })
+        {
+            return Array.Empty<WebCitationChip>();
+        }
+
+        var chips = new List<WebCitationChip>(citations.Count);
+        for (var i = 0; i < citations.Count; i++)
+        {
+            var citation = citations[i];
+            var url = citation.Url?.Trim() ?? string.Empty;
+            Uri? link = null;
+            var site = string.Empty;
+            if (Uri.TryCreate(url, UriKind.Absolute, out var uri) &&
+                (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
+            {
+                link = uri;
+                site = uri.Host.StartsWith("www.", StringComparison.OrdinalIgnoreCase) ? uri.Host[4..] : uri.Host;
+            }
+
+            chips.Add(new WebCitationChip
+            {
+                Number = i + 1,
+                Title = citation.Title?.Trim() ?? string.Empty,
+                Site = site,
+                Url = url,
+                Link = link
+            });
+        }
+
+        return chips;
+    }
 }

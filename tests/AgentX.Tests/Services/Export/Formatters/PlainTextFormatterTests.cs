@@ -260,6 +260,19 @@ public sealed class PlainTextFormatterTests
     }
 
     [Fact]
+    public async Task ExportConversationAsync_ListsEachAnswersWebSourcesUnderIt_NumberedAsItsMarkers()
+    {
+        var result = await _sut.ExportConversationAsync(
+            ResearchConversation.Create(), new ExportOptions { IncludeCitations = true, IncludeModelInfo = true });
+
+        var second = result.IndexOf(ResearchConversation.SecondAnswer, StringComparison.Ordinal);
+        result[..second].Should().Contain("1. Release notes - https://example.org/notes");
+        result[second..].Should().Contain("1. Blog - https://blog.example.org/v2")
+            .And.NotContain("Release notes");
+        result.Should().Contain("Model: claude-sonnet-5");
+    }
+
+    [Fact]
     public async Task ExportConversationAsync_EndsWithExportFooter()
     {
         // Arrange

@@ -1,3 +1,5 @@
+using AgentX.Core.Search.Models;
+
 namespace AgentX.App.ViewModels.Coordinators;
 
 /// <summary>
@@ -120,4 +122,7 @@ public sealed class MessageSummary
     public int TokenCount { get; init; }
     public double GenerationTimeMs { get; init; }
     public string FeedbackRating { get; init; } = "none";
+
+    /// <summary>The web sources saved with an assistant message (Research Mode).</summary>
+    public IReadOnlyList<WebCitation> WebCitations { get; init; } = Array.Empty<WebCitation>();
 }

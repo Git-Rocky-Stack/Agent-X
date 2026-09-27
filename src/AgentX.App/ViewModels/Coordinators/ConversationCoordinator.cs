@@ -331,7 +331,8 @@ public sealed class ConversationCoordinator : IConversationCoordinator
                     Timestamp = msg.Timestamp,
                     TokenCount = msg.TokenCount,
                     GenerationTimeMs = msg.GenerationTimeMs ?? 0,
-                    FeedbackRating = rating
+                    FeedbackRating = rating,
+                    WebCitations = MessageCitations.ParseWebCitations(msg.CitationsJson)
                 });
             }
         }

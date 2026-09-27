@@ -299,7 +299,9 @@ public class MessagingCoordinatorTests
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<int?>(),
-                It.IsAny<double?>()))
+                It.IsAny<double?>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>()))
             .Returns(Task.CompletedTask);
         _multiAgentOrchestrator
             .Setup(service => service.RunAsync(
@@ -337,13 +339,17 @@ public class MessagingCoordinatorTests
             "user",
             "Plan launch",
             null,
+            null,
+            null,
             null), Times.Once);
         _conversationService.Verify(service => service.AddMessageAsync(
             5,
             "assistant",
             It.Is<string>(content => content.Contains("Multi-Agent Synthesis", StringComparison.Ordinal)),
             It.Is<int?>(tokenCount => tokenCount > 0),
-            It.Is<double?>(duration => duration >= 0)), Times.Once);
+            It.Is<double?>(duration => duration >= 0),
+            It.IsAny<string?>(),
+            It.IsAny<string?>()), Times.Once);
     }
 
     [Fact]
@@ -626,8 +632,9 @@ public class MessagingCoordinatorTests
             .Setup(s => s.GetMessagesAsync(42))
             .ReturnsAsync([NewMessage(10, "user", 0), NewMessage(11, "assistant", 1)]);
         _conversationService
-            .Setup(s => s.AddMessageAsync(42, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int?>(), It.IsAny<double?>()))
-            .Callback<long, string, string, int?, double?>((_, role, _, _, _) => writes.Add($"add {role}"))
+            .Setup(s => s.AddMessageAsync(
+                42, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int?>(), It.IsAny<double?>(), It.IsAny<string?>(), It.IsAny<string?>()))
+            .Callback<long, string, string, int?, double?, string?, string?>((_, role, _, _, _, _, _) => writes.Add($"add {role}"))
             .Returns(Task.CompletedTask);
         _conversationService
             .Setup(s => s.DeleteMessageAsync(11))
@@ -657,7 +664,8 @@ public class MessagingCoordinatorTests
 
         result.HadError.Should().BeTrue();
         _conversationService.Verify(
-            s => s.AddMessageAsync(It.IsAny<long>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int?>(), It.IsAny<double?>()),
+            s => s.AddMessageAsync(
+                It.IsAny<long>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int?>(), It.IsAny<double?>(), It.IsAny<string?>(), It.IsAny<string?>()),
             Times.Never);
         _conversationService.Verify(s => s.DeleteMessageAsync(It.IsAny<long>()), Times.Never);
     }
@@ -693,7 +701,7 @@ public class MessagingCoordinatorTests
                 ]
             });
         _chatService
-            .Setup(s => s.SendMessageAsync(1, "What changed?", It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .Setup(s => s.SendMessageAsync(1, "What changed?", It.IsAny<SupplementalContext?>(), It.IsAny<CancellationToken>()))
             .Returns(CreateTokenStream("Answer [1]"));
 
         var result = await coordinator.SendMessageAsync("What changed?", 1, null, null, true);
@@ -701,10 +709,12 @@ public class MessagingCoordinatorTests
         _chatService.Verify(s => s.SendMessageAsync(
             1,
             "What changed?",
-            It.Is<string?>(context =>
-                context!.Contains("[1] Release notes", StringComparison.Ordinal) &&
-                context.Contains("URL: https://example.org/notes", StringComparison.Ordinal) &&
-                context.Contains("[2] Blog", StringComparison.Ordinal)),
+            It.Is<SupplementalContext?>(context =>
+                context!.PromptContext.Contains("[1] Release notes", StringComparison.Ordinal) &&
+                context.PromptContext.Contains("URL: https://example.org/notes", StringComparison.Ordinal) &&
+                context.PromptContext.Contains("[2] Blog", StringComparison.Ordinal) &&
+                context.Citations.Count == 2 &&
+                context.Citations[0].Url == "https://example.org/notes"),
             It.IsAny<CancellationToken>()), Times.Once);
         result.WebCitations.Should().HaveCount(2);
         result.WebCitations![0].Url.Should().Be("https://example.org/notes");
@@ -777,6 +787,68 @@ public class MessagingCoordinatorTests
         await coordinator.SendMessageAsync("q", 1, null, null, false);
 
         webSearch.Verify(s => s.SearchAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task SendMessageAsync_OrchestratedResearchAnswer_IsSavedWithTheActiveModelAndItsWebSources()
+    {
+        var (coordinator, webSearch, _) = CreateResearchCoordinator(researchEnabled: true, configured: true);
+        _aiService.SetupGet(s => s.ActiveModelId).Returns("llama3.2:3b");
+        webSearch
+            .Setup(s => s.SearchAsync("Plan launch", It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new WebSearchResponse
+            {
+                Query = "Plan launch",
+                Results = [new WebSearchResult { Title = "Launch guide", Url = "https://example.org/launch", Snippet = "Ship in phases." }]
+            });
+        _multiAgentOrchestrator
+            .Setup(service => service.RunAsync(
+                It.IsAny<string>(),
+                It.IsAny<IReadOnlyList<AgentRole>>(),
+                OrchestratorStrategy.Parallel,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OrchestrationResult
+            {
+                Task = "Plan launch",
+                Strategy = OrchestratorStrategy.Parallel,
+                FinalAnswer = "Ship in phases [1].",
+                IsSuccess = true
+            });
+
+        await coordinator.SendMessageAsync("Plan launch", 5, null, null, true, ChatOrchestrationMode.MultiAgentParallel);
+
+        _conversationService.Verify(service => service.AddMessageAsync(
+            5,
+            "assistant",
+            "Ship in phases [1].",
+            It.IsAny<int?>(),
+            It.IsAny<double?>(),
+            "llama3.2:3b",
+            It.Is<string?>(json => MessageCitations.ParseWebCitations(json).Single().Url == "https://example.org/launch")),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task SendMessageAsync_FailedOrchestration_SavesItsNoticeWithoutAModelOrSources()
+    {
+        _aiService.SetupGet(s => s.ActiveModelId).Returns("llama3.2:3b");
+        _multiAgentOrchestrator
+            .Setup(service => service.RunAsync(
+                It.IsAny<string>(),
+                It.IsAny<IReadOnlyList<AgentRole>>(),
+                OrchestratorStrategy.Parallel,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OrchestrationResult
+            {
+                Task = "Plan launch",
+                Strategy = OrchestratorStrategy.Parallel,
+                IsSuccess = false
+            });
+
+        await _coordinator.SendMessageAsync("Plan launch", 5, null, null, false, ChatOrchestrationMode.MultiAgentParallel);
+
+        _conversationService.Verify(service => service.AddMessageAsync(
+            5, "assistant", It.IsAny<string>(), It.IsAny<int?>(), It.IsAny<double?>(), null, null), Times.Once);
     }
 
     private (MessagingCoordinator Coordinator, Mock<IWebSearchService> WebSearch, Mock<ISettingsService> Settings)

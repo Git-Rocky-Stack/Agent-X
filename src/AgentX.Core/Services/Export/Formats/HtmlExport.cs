@@ -1,6 +1,7 @@
 using System.Text;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Documents;
+using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Export.Models;
 using Markdig;
 using Markdig.Renderers;
@@ -176,7 +177,6 @@ public sealed class HtmlExport : IExportFormat
         sb.AppendLine("  <div class=\"messages\">");
 
         var messages = conversation.Messages.OrderBy(m => m.SortOrder).ToList();
-        var citationsList = new List<string>();
 
         foreach (var message in messages)
         {
@@ -199,6 +199,11 @@ public sealed class HtmlExport : IExportFormat
 
             sb.AppendLine($"      <div class=\"content\">{htmlContent}</div>");
 
+            if (options.IncludeCitations)
+            {
+                AppendCitations(sb, message.CitationsJson);
+            }
+
             if (options.IncludeModelInfo && !string.IsNullOrWhiteSpace(message.ModelId))
             {
                 sb.AppendLine($"      <div class=\"model-info\">Model: {HtmlEncode(message.ModelId)}</div>");
@@ -218,29 +223,9 @@ public sealed class HtmlExport : IExportFormat
             }
 
             sb.AppendLine("    </div>");
-
-            if (options.IncludeCitations && !string.IsNullOrWhiteSpace(message.CitationsJson))
-            {
-                var citations = TryParseCitations(message.CitationsJson);
-                citationsList.AddRange(citations);
-            }
         }
 
         sb.AppendLine("  </div>");
-
-        if (citationsList.Count > 0)
-        {
-            sb.AppendLine("  <div class=\"citations\">");
-            sb.AppendLine("    <h2>Citations</h2>");
-            sb.AppendLine("    <ol>");
-            foreach (var citation in citationsList)
-            {
-                sb.AppendLine($"      <li>{HtmlEncode(citation)}</li>");
-            }
-            sb.AppendLine("    </ol>");
-            sb.AppendLine("  </div>");
-        }
-
         sb.AppendLine("</div>");
         return sb.ToString();
     }
@@ -338,6 +323,10 @@ public sealed class HtmlExport : IExportFormat
     .citations {{ margin-top: 2rem; padding-top: 1rem; border-top: 2px solid var(--border-color); }}
     .citations ol {{ padding-left: 1.5rem; }}
     .citations li {{ margin-bottom: 0.25rem; font-size: 0.875rem; color: var(--text-secondary); }}
+    .message-citations {{ margin-top: 0.75rem; font-size: 0.8125rem; color: var(--text-secondary); }}
+    .message-citations ol {{ padding-left: 1.5rem; margin-top: 0.25rem; }}
+    .message-citations li {{ margin-bottom: 0.125rem; overflow-wrap: anywhere; }}
+    .citations-label {{ font-weight: 600; color: var(--text-muted); }}
     .result {{ padding: 1rem 1.25rem; border-radius: 12px; border: 1px solid var(--border-color); background-color: var(--bg-secondary); margin-bottom: 1rem; }}
     .relevance {{ font-size: 0.8rem; color: var(--accent-color); font-weight: 600; margin-bottom: 0.5rem; }}
     hr.section-divider {{ border: none; border-top: 2px solid var(--border-color); margin: 2rem 0; }}
@@ -441,34 +430,28 @@ public sealed class HtmlExport : IExportFormat
         _ => role
     };
 
-    private static List<string> TryParseCitations(string citationsJson)
+    /// <summary>
+    /// Lists a message's sources with it, numbered as the message's own [n] markers number
+    /// them. Each answer numbers its own sources from 1, so one list for the whole export
+    /// would not match the markers of any answer after the first.
+    /// </summary>
+    private static void AppendCitations(StringBuilder sb, string? citationsJson)
     {
-        var result = new List<string>();
-        try
+        var citations = MessageCitations.Describe(citationsJson);
+        if (citations.Count == 0)
         {
-            using var doc = System.Text.Json.JsonDocument.Parse(citationsJson);
-            if (doc.RootElement.ValueKind != System.Text.Json.JsonValueKind.Array) return result;
-
-            foreach (var element in doc.RootElement.EnumerateArray())
-            {
-                var fileName = element.TryGetProperty("fileName", out var fn) ? fn.GetString() ?? "Unknown" : "Unknown";
-                var pageNumber = element.TryGetProperty("pageNumber", out var pn) && pn.ValueKind == System.Text.Json.JsonValueKind.Number ? pn.GetInt32() : (int?)null;
-                var excerpt = element.TryGetProperty("excerpt", out var ex) ? ex.GetString() : null;
-
-                var description = pageNumber.HasValue ? $"{fileName}, page {pageNumber.Value}" : fileName;
-                if (!string.IsNullOrWhiteSpace(excerpt))
-                {
-                    var shortExcerpt = excerpt.Length > 80 ? excerpt[..80] + "..." : excerpt;
-                    description += $" - \"{shortExcerpt}\"";
-                }
-                result.Add(description);
-            }
+            return;
         }
-        catch (System.Text.Json.JsonException)
+
+        sb.AppendLine("      <div class=\"message-citations\">");
+        sb.AppendLine("        <div class=\"citations-label\">Citations</div>");
+        sb.AppendLine("        <ol>");
+        foreach (var citation in citations)
         {
-            // Citation metadata is optional and decorative; malformed or partial
-            // JSON must not fail the export. Return whatever parsed successfully.
+            sb.AppendLine($"          <li>{HtmlEncode(citation)}</li>");
         }
-        return result;
+
+        sb.AppendLine("        </ol>");
+        sb.AppendLine("      </div>");
     }
 }

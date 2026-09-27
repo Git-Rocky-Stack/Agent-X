@@ -303,6 +303,14 @@ public sealed partial class ChatPage : Page
         }
     }
 
+    private void OnOpenWebCitationClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is WebCitationChip chip)
+        {
+            ViewModel.OpenWebCitationCommand.Execute(chip);
+        }
+    }
+
     private void OnInspectInlineContextClick(object sender, RoutedEventArgs e)
     {
         if (sender is Button btn && btn.Tag is ChatMessageItem message)

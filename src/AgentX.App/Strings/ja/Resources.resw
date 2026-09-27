@@ -1005,6 +1005,7 @@
   <data name="Chat_MsgsLabel.Text" xml:space="preserve"><value>件</value></data>
   <data name="Chat_InspectContextTip.ToolTipService.ToolTip" xml:space="preserve"><value>この応答に使われた完全なコンテキストを確認</value></data>
   <data name="Chat_ContextUsedLabel.Text" xml:space="preserve"><value>使用されたコンテキスト</value></data>
+  <data name="Chat_WebSourcesLabel.Text" xml:space="preserve"><value>Web ソース</value></data>
   <data name="Chat_ConversationsTitle.Text" xml:space="preserve"><value>会話</value></data>
   <data name="Chat_NewConversationTip.ToolTipService.ToolTip" xml:space="preserve"><value>新しい会話</value></data>
   <data name="Chat_NewLabel.Text" xml:space="preserve"><value>新規</value></data>
@@ -1780,6 +1781,8 @@
   <data name="ExportDlg_ExportConversation.CloseButtonText" xml:space="preserve"><value>キャンセル</value></data>
   <data name="ExportDlg_Format.Header" xml:space="preserve"><value>形式</value></data>
   <data name="ExportDlg_TemplateOptional.Header" xml:space="preserve"><value>テンプレート (省略可)</value></data>
+  <data name="ExportDlg_IncludeCitations.Header" xml:space="preserve"><value>引用を含める</value></data>
+  <data name="ExportDlg_IncludeModelInfo.Header" xml:space="preserve"><value>モデル情報を含める</value></data>
   <data name="ExportDlg_IncludeMetadata.Header" xml:space="preserve"><value>メタデータを含める</value></data>
   <data name="ExportDlg_IncludeTimestamps.Header" xml:space="preserve"><value>タイムスタンプを含める</value></data>
   <data name="JumpTo_JumpToPageDocumentPh.PlaceholderText" xml:space="preserve"><value>ページ、ドキュメント、会話にジャンプ...</value></data>

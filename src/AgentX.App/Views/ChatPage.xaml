@@ -1150,6 +1150,47 @@
                                             </Grid>
                                         </Border>
 
+                                        <!-- Web sources: the pages Research Mode gave this answer, numbered as its [n]
+                                             markers. A streamed reply gets them when it completes, after this bubble
+                                             is realized. Chips are raised controls (Layer 3); a click opens the page. -->
+                                        <StackPanel Margin="8,4,24,0"
+                                                    Spacing="4"
+                                                    Visibility="{x:Bind HasWebCitations, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                                            <TextBlock x:Name="WebSourcesLabel"
+                                                       x:Uid="Chat_WebSourcesLabel" Text="Web sources"
+                                                       Style="{StaticResource CaptionStyle}"
+                                                       Foreground="{ThemeResource TextSecondaryBrush}" />
+                                            <ItemsRepeater ItemsSource="{x:Bind WebCitationChips, Mode=OneWay}"
+                                                           AutomationProperties.LabeledBy="{Binding ElementName=WebSourcesLabel}">
+                                                <ItemsRepeater.Layout>
+                                                    <StackLayout Orientation="Vertical" Spacing="4" />
+                                                </ItemsRepeater.Layout>
+                                                <ItemsRepeater.ItemTemplate>
+                                                    <DataTemplate x:DataType="vm:WebCitationChip">
+                                                        <Button Style="{StaticResource GhostButtonStyle}"
+                                                                Padding="0"
+                                                                MinHeight="0"
+                                                                HorizontalAlignment="Left"
+                                                                Click="OnOpenWebCitationClick"
+                                                                Tag="{x:Bind}"
+                                                                IsEnabled="{x:Bind HasLink}"
+                                                                ToolTipService.ToolTip="{x:Bind Url}"
+                                                                AutomationProperties.Name="{x:Bind Label}">
+                                                            <Border Style="{StaticResource ControlCapStyle}"
+                                                                    Padding="8,3,8,3">
+                                                                <TextBlock Text="{x:Bind Label}"
+                                                                           Style="{StaticResource CaptionStyle}"
+                                                                           Foreground="{ThemeResource TextSecondaryBrush}"
+                                                                           TextWrapping="NoWrap"
+                                                                           TextTrimming="CharacterEllipsis"
+                                                                           MaxWidth="600" />
+                                                            </Border>
+                                                        </Button>
+                                                    </DataTemplate>
+                                                </ItemsRepeater.ItemTemplate>
+                                            </ItemsRepeater>
+                                        </StackPanel>
+
                                         <!-- Meta info + action bar -->
                                         <Grid Margin="4,4,0,0">
                                             <Grid.ColumnDefinitions>

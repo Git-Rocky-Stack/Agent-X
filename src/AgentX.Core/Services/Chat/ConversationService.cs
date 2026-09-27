@@ -357,7 +357,9 @@ public class ConversationService : IConversationService
         string role,
         string content,
         int? tokenCount = null,
-        double? generationTimeMs = null)
+        double? generationTimeMs = null,
+        string? modelId = null,
+        string? citationsJson = null)
     {
         try
         {
@@ -384,6 +386,8 @@ public class ConversationService : IConversationService
                 Timestamp = DateTime.UtcNow,
                 TokenCount = tokenCount ?? 0,
                 GenerationTimeMs = generationTimeMs,
+                ModelId = string.IsNullOrWhiteSpace(modelId) ? null : modelId,
+                CitationsJson = string.IsNullOrWhiteSpace(citationsJson) ? null : citationsJson,
                 SortOrder = maxSortOrder + 1,
             };
 

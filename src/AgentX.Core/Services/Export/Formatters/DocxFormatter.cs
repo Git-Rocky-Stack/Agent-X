@@ -1,5 +1,5 @@
-using System.Text.Json;
 using AgentX.Core.Data.Entities;
+using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Export.Models;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
@@ -164,8 +164,6 @@ public sealed class DocxFormatter : IExportFormatter
             .OrderBy(m => m.SortOrder)
             .ToList();
 
-        var citationsList = new List<string>();
-
         foreach (var message in messages)
         {
             if (message.Role == "system")
@@ -208,6 +206,11 @@ public sealed class DocxFormatter : IExportFormatter
                     new W.Run(new W.Text(line) { Space = SpaceProcessingModeValues.Preserve })));
             }
 
+            if (options.IncludeCitations)
+            {
+                AppendCitations(body, message.CitationsJson);
+            }
+
             // Generation metadata for assistant messages
             if (options.IncludeMetadata && message.Role == "assistant")
             {
@@ -227,30 +230,6 @@ public sealed class DocxFormatter : IExportFormatter
                             new W.RunProperties(new W.Italic(), new W.Color { Val = "ADB5BD" }, new W.FontSize { Val = "16" }),
                             new W.Text(string.Join(" | ", metaParts)))));
                 }
-            }
-
-            // Collect citations
-            if (options.IncludeCitations && !string.IsNullOrWhiteSpace(message.CitationsJson))
-            {
-                citationsList.AddRange(TryParseCitations(message.CitationsJson));
-            }
-        }
-
-        // -- Citations
-        if (citationsList.Count > 0)
-        {
-            body.AppendChild(new W.Paragraph(
-                new W.ParagraphProperties(new W.SpacingBetweenLines { Before = "480" }),
-                new W.Run(
-                    new W.RunProperties(new W.Bold(), new W.FontSize { Val = "28" }),
-                    new W.Text("Citations"))));
-
-            for (var i = 0; i < citationsList.Count; i++)
-            {
-                body.AppendChild(new W.Paragraph(
-                    new W.Run(
-                        new W.RunProperties(new W.FontSize { Val = "18" }, new W.Color { Val = "6C757D" }),
-                        new W.Text($"{i + 1}. {citationsList[i]}"))));
             }
         }
 
@@ -277,57 +256,30 @@ public sealed class DocxFormatter : IExportFormatter
     }
 
     /// <summary>
-    /// Attempts to parse a CitationsJson string into a list of human-readable
-    /// citation descriptions. Returns an empty list on parse failure.
+    /// Lists a message's sources with it, numbered as the message's own [n] markers number
+    /// them. Each answer numbers its own sources from 1, so one list for the whole export
+    /// would not match the markers of any answer after the first.
     /// </summary>
-    private static List<string> TryParseCitations(string citationsJson)
+    private static void AppendCitations(W.Body body, string? citationsJson)
     {
-        var result = new List<string>();
-
-        try
+        var citations = MessageCitations.Describe(citationsJson);
+        if (citations.Count == 0)
         {
-            using var doc = JsonDocument.Parse(citationsJson);
-
-            if (doc.RootElement.ValueKind != JsonValueKind.Array)
-            {
-                return result;
-            }
-
-            foreach (var element in doc.RootElement.EnumerateArray())
-            {
-                var fileName = element.TryGetProperty("fileName", out var fn)
-                    ? fn.GetString() ?? "Unknown"
-                    : "Unknown";
-
-                var pageNumber = element.TryGetProperty("pageNumber", out var pn)
-                    && pn.ValueKind == JsonValueKind.Number
-                    ? pn.GetInt32()
-                    : (int?)null;
-
-                var excerpt = element.TryGetProperty("excerpt", out var ex)
-                    ? ex.GetString()
-                    : null;
-
-                var description = pageNumber.HasValue
-                    ? $"{fileName}, page {pageNumber.Value}"
-                    : fileName;
-
-                if (!string.IsNullOrWhiteSpace(excerpt))
-                {
-                    var shortExcerpt = excerpt.Length > 80
-                        ? excerpt[..80] + "..."
-                        : excerpt;
-                    description += $" - \"{shortExcerpt}\"";
-                }
-
-                result.Add(description);
-            }
-        }
-        catch (JsonException)
-        {
-            // CitationsJson was not valid JSON; return empty list
+            return;
         }
 
-        return result;
+        body.AppendChild(new W.Paragraph(
+            new W.ParagraphProperties(new W.SpacingBetweenLines { Before = "120" }),
+            new W.Run(
+                new W.RunProperties(new W.Bold(), new W.Color { Val = "6C757D" }, new W.FontSize { Val = "18" }),
+                new W.Text("Citations"))));
+
+        for (var i = 0; i < citations.Count; i++)
+        {
+            body.AppendChild(new W.Paragraph(
+                new W.Run(
+                    new W.RunProperties(new W.FontSize { Val = "18" }, new W.Color { Val = "6C757D" }),
+                    new W.Text($"{i + 1}. {citations[i]}") { Space = SpaceProcessingModeValues.Preserve })));
+        }
     }
 }

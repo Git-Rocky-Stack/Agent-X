@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using AgentX.App.Helpers;
@@ -354,6 +355,10 @@ public partial class ChatViewModel : ObservableObject, IDisposable
 
     /// <summary>The clock engagement is timed with (a test seam).</summary>
     internal Func<DateTime> UtcNow { get; set; } = () => DateTime.UtcNow;
+
+    /// <summary>Opens a web page in the default browser (a test seam).</summary>
+    internal Action<Uri> OpenExternalLink { get; set; } = static link =>
+        Process.Start(new ProcessStartInfo { FileName = link.AbsoluteUri, UseShellExecute = true });
 
     public ChatViewModel(
         IConversationCoordinator conversationCoordinator,
@@ -1734,6 +1739,28 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         }
     }
 
+    /// <summary>
+    /// Opens a web source listed under an answer. Only http and https addresses are links
+    /// (<see cref="WebCitationChip.Link"/>), so nothing else a search result carries is launched.
+    /// </summary>
+    [RelayCommand]
+    private void OpenWebCitation(WebCitationChip? chip)
+    {
+        if (chip?.Link is not { } link)
+        {
+            return;
+        }
+
+        try
+        {
+            OpenExternalLink(link);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to open web source {Url}", link.AbsoluteUri);
+        }
+    }
+
     [RelayCommand]
     private void CopyMessage(string? content)
     {
@@ -1789,7 +1816,8 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         IsSystem = ms.Role == "system",
         TokenCount = ms.TokenCount,
         GenerationTimeMs = ms.GenerationTimeMs,
-        FeedbackRating = ms.FeedbackRating
+        FeedbackRating = ms.FeedbackRating,
+        WebCitations = ms.WebCitations.Count > 0 ? ms.WebCitations : null
     };
 
     private void ReapplyInlineContextNote(ChatMessageItem message)

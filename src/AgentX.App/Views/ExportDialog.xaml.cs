@@ -11,8 +11,9 @@ namespace AgentX.App.Views;
 /// Supports all 8 export formats and, for Markdown, 3 built-in templates.
 /// </summary>
 /// <remarks>
-/// "Include citations" and "Include branches" are not offered: chat does not store message
-/// citations, and no exporter includes branch conversations, so both switches changed nothing.
+/// "Include citations" lists the web sources saved with each answer, and "Include model info"
+/// names the model that wrote it. "Include branches" is not offered: no exporter includes
+/// branch conversations, so the switch would change nothing.
 /// </remarks>
 public sealed partial class ExportDialog : ContentDialog
 {
@@ -89,6 +90,8 @@ public sealed partial class ExportDialog : ContentDialog
             var options = new ExportOptions
             {
                 Format = format,
+                IncludeCitations = IncludeCitationsToggle.IsOn,
+                IncludeModelInfo = IncludeModelInfoToggle.IsOn,
                 IncludeMetadata = IncludeMetadataToggle.IsOn,
                 IncludeTimestamps = IncludeTimestampsToggle.IsOn,
                 TemplateId = template

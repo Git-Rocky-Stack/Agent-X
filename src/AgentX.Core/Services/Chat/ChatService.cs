@@ -178,7 +178,7 @@ public class ChatService : IChatService
     public async IAsyncEnumerable<string> SendMessageAsync(
         long conversationId,
         string userMessage,
-        string? supplementalContext,
+        SupplementalContext? supplementalContext,
         [EnumeratorCancellation] CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(userMessage))
@@ -288,15 +288,16 @@ public class ChatService : IChatService
 
     /// <summary>
     /// Assembles the context for <paramref name="currentQuery"/>, streams the reply, and persists
-    /// it once it is complete. When <paramref name="replacedMessageId"/> is set, that answer is
-    /// removed only after the new one has been saved, so a stop or a failure keeps it.
+    /// it once it is complete, with the model that wrote it and the sources it was given. When
+    /// <paramref name="replacedMessageId"/> is set, that answer is removed only after the new one
+    /// has been saved, so a stop or a failure keeps it.
     /// </summary>
     private async IAsyncEnumerable<string> StreamReplyAsync(
         long conversationId,
         string? systemPrompt,
         IReadOnlyList<ChatMessage> chatMessages,
         string currentQuery,
-        string? supplementalContext,
+        SupplementalContext? supplementalContext,
         long? replacedMessageId,
         Stopwatch stopwatch,
         [EnumeratorCancellation] CancellationToken ct)
@@ -309,11 +310,12 @@ public class ChatService : IChatService
 
         // 6. Assemble context with semantic selection and graceful fallback
         var memoryContext = await LoadMemoryContextAsync(conversationId, currentQuery, ct);
-        if (!string.IsNullOrWhiteSpace(supplementalContext))
+        var promptContext = supplementalContext?.PromptContext;
+        if (!string.IsNullOrWhiteSpace(promptContext))
         {
             memoryContext = string.IsNullOrWhiteSpace(memoryContext)
-                ? supplementalContext
-                : memoryContext + Environment.NewLine + Environment.NewLine + supplementalContext;
+                ? promptContext
+                : memoryContext + Environment.NewLine + Environment.NewLine + promptContext;
         }
 
         var assembledContext = await _contextAssemblyService.AssembleAsync(
@@ -345,6 +347,9 @@ public class ChatService : IChatService
         var responseBuilder = new StringBuilder();
         var tokenCount = 0;
 
+        // The model that writes this reply, saved with it: the routed one, else the active one.
+        var answeringModelId = routedTarget?.ModelId ?? ActiveModelIdOrNull();
+
         var stream = routedTarget is null
             ? _aiService.StreamChatAsync(chatMessages, systemPrompt, options, ct)
             : StreamFromRoutedProviderAsync(routedTarget, chatMessages, systemPrompt, options, ct);
@@ -367,7 +372,9 @@ public class ChatService : IChatService
                 "assistant",
                 fullResponse,
                 tokenCount: tokenCount,
-                generationTimeMs: stopwatch.Elapsed.TotalMilliseconds);
+                generationTimeMs: stopwatch.Elapsed.TotalMilliseconds,
+                modelId: answeringModelId,
+                citationsJson: MessageCitations.Serialize(supplementalContext?.Citations));
 
             if (replacedMessageId is long replaced)
             {
@@ -489,6 +496,12 @@ public class ChatService : IChatService
 
     /// <summary>The provider and model a routed reply is answered with.</summary>
     private sealed record RoutedTarget(IAiProvider Provider, string ModelId);
+
+    private string? ActiveModelIdOrNull()
+    {
+        var modelId = _aiService.ActiveModelId;
+        return string.IsNullOrWhiteSpace(modelId) ? null : modelId;
+    }
 
     /// <summary>
     /// Removes the answer a regeneration replaced. The new answer is already saved, so a

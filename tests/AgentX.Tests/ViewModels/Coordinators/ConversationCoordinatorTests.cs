@@ -1,5 +1,6 @@
 using AgentX.App.ViewModels.Coordinators;
 using AgentX.Core.Data.Entities;
+using AgentX.Core.Search.Models;
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Feedback;
 using FluentAssertions;
@@ -340,6 +341,27 @@ public class ConversationCoordinatorTests
         result[1].Role.Should().Be("assistant");
         result[1].MessageId.Should().Be(101);
         result[1].TokenCount.Should().Be(5);
+    }
+
+    [Fact]
+    public async Task LoadMessagesAsync_BringsBackTheWebSourcesSavedWithAnAnswer()
+    {
+        var sources = MessageCitations.Serialize(
+            [new WebCitation { Title = "Release notes", Url = "https://example.org/notes", Source = WebCitationSource.Web }]);
+        _conversationService
+            .Setup(s => s.GetMessagesAsync(1))
+            .ReturnsAsync(new List<MessageEntity>
+            {
+                new() { Id = 100, ConversationId = 1, SortOrder = 0, Role = "user", Content = "What changed?" },
+                new() { Id = 101, ConversationId = 1, SortOrder = 1, Role = "assistant", Content = "Version 2 [1].", CitationsJson = sources },
+                new() { Id = 102, ConversationId = 1, SortOrder = 2, Role = "assistant", Content = "Older", CitationsJson = "not json" }
+            });
+
+        var result = await _coordinator.LoadMessagesAsync(1);
+
+        result[0].WebCitations.Should().BeEmpty();
+        result[1].WebCitations.Should().ContainSingle().Which.Url.Should().Be("https://example.org/notes");
+        result[2].WebCitations.Should().BeEmpty();
     }
 
     [Fact]

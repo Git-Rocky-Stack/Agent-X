@@ -1005,6 +1005,7 @@
   <data name="Chat_MsgsLabel.Text" xml:space="preserve"><value>条</value></data>
   <data name="Chat_InspectContextTip.ToolTipService.ToolTip" xml:space="preserve"><value>查看此回复所用的完整上下文</value></data>
   <data name="Chat_ContextUsedLabel.Text" xml:space="preserve"><value>已用上下文</value></data>
+  <data name="Chat_WebSourcesLabel.Text" xml:space="preserve"><value>网页来源</value></data>
   <data name="Chat_ConversationsTitle.Text" xml:space="preserve"><value>会话</value></data>
   <data name="Chat_NewConversationTip.ToolTipService.ToolTip" xml:space="preserve"><value>新建会话</value></data>
   <data name="Chat_NewLabel.Text" xml:space="preserve"><value>新建</value></data>
@@ -1780,6 +1781,8 @@
   <data name="ExportDlg_ExportConversation.CloseButtonText" xml:space="preserve"><value>取消</value></data>
   <data name="ExportDlg_Format.Header" xml:space="preserve"><value>格式</value></data>
   <data name="ExportDlg_TemplateOptional.Header" xml:space="preserve"><value>模板(可选)</value></data>
+  <data name="ExportDlg_IncludeCitations.Header" xml:space="preserve"><value>包含引用</value></data>
+  <data name="ExportDlg_IncludeModelInfo.Header" xml:space="preserve"><value>包含模型信息</value></data>
   <data name="ExportDlg_IncludeMetadata.Header" xml:space="preserve"><value>包含元数据</value></data>
   <data name="ExportDlg_IncludeTimestamps.Header" xml:space="preserve"><value>包含时间戳</value></data>
   <data name="JumpTo_JumpToPageDocumentPh.PlaceholderText" xml:space="preserve"><value>跳转到页面、文档或会话...</value></data>

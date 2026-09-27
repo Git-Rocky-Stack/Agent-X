@@ -1221,7 +1221,7 @@ sequenceDiagram
         VM-->>USER: Append to MarkdownMessageControl (real-time)
     end
 
-    CS->>CVS: AddMessageAsync(id, "assistant", fullResponse, tokenCount, generationTimeMs)
+    CS->>CVS: AddMessageAsync(id, "assistant", fullResponse, tokenCount, generationTimeMs, modelId, citationsJson)
     CVS->>CVS: Persist to DB
     CS->>CS: IsGenerating = false
 

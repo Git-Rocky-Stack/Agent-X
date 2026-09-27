@@ -149,6 +149,19 @@ public sealed class HtmlExportTests
     }
 
     [Fact]
+    public async Task RenderAsync_ListsEachAnswersWebSourcesInsideIt_Encoded()
+    {
+        var html = (string)await _export.RenderAsync(
+            ResearchConversation.Create(), new ExportOptions { IncludeCitations = true });
+
+        var second = html.IndexOf(ResearchConversation.SecondAnswer, StringComparison.Ordinal);
+        html[..second].Should().Contain("<li>Migration &lt;guide&gt; - https://example.org/migrate?a=1&amp;b=2</li>");
+        html[second..].Should().Contain("<li>Blog - https://blog.example.org/v2</li>")
+            .And.NotContain("Release notes");
+        html.Should().NotContain("<h2>Citations</h2>");
+    }
+
+    [Fact]
     public async Task RenderAsync_WithSingleConversation_IncludesMetadata()
     {
         // Arrange

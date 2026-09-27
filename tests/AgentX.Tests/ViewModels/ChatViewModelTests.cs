@@ -4,6 +4,7 @@ using AgentX.App.ViewModels.Coordinators;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Context;
 using AgentX.Core.AI.Models;
+using AgentX.Core.Search.Models;
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Chat.Models;
 using AgentX.Core.Services.TemporalIdentity;
@@ -1385,6 +1386,127 @@ public sealed class ChatViewModelTests
             nameof(ChatMessageItem.FormattedTokenSpeed)
         ]);
         item.FormattedTokens.Should().Be("12 tokens");
+    }
+
+    // --- Web sources ---
+    // Research Mode answers showed no sources in the bubble, and chat saved none to reload.
+
+    [Fact]
+    public void ChatMessageItem_WebSourcesSetAfterTheBubbleIsShown_NotifyTheChips()
+    {
+        // The sources arrive with the completion, after the bubble is already bound.
+        var item = new ChatMessageItem { IsAssistant = true };
+        var changed = new List<string?>();
+        item.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+
+        item.WebCitations = [new WebCitation { Title = "Release notes", Url = "https://example.org/notes" }];
+
+        changed.Should().Contain(
+        [
+            nameof(ChatMessageItem.WebCitations),
+            nameof(ChatMessageItem.HasWebCitations),
+            nameof(ChatMessageItem.WebCitationChips)
+        ]);
+        item.HasWebCitations.Should().BeTrue();
+    }
+
+    [Fact]
+    public void WebCitationChip_NumbersSourcesInOrder_NamesTheSite_AndLinksOnlyWebAddresses()
+    {
+        var chips = WebCitationChip.From(
+        [
+            new WebCitation { Title = "Release notes", Url = "https://www.example.org/notes" },
+            new WebCitation { Title = "", Url = "http://docs.example.net/v2" },
+            new WebCitation { Title = "Local file", Url = "file:///C:/notes.txt" },
+            new WebCitation { Title = "Script", Url = "javascript:alert(1)" }
+        ]);
+
+        chips.Select(chip => chip.Label).Should().Equal(
+            "[1] Release notes (example.org)",
+            "[2] docs.example.net",
+            "[3] Local file",
+            "[4] Script");
+        chips.Select(chip => chip.HasLink).Should().Equal(true, true, false, false);
+        chips[0].Link.Should().Be(new Uri("https://www.example.org/notes"));
+    }
+
+    [Fact]
+    public async Task SendMessageAsync_InResearchMode_ShowsTheAnswersWebSourcesWhenItCompletes()
+    {
+        SetupSend("What changed?", new SendMessageResult
+        {
+            ConversationId = 42,
+            ResponseContent = "Version 2 shipped [1].",
+            WebCitations = [new WebCitation { Title = "Release notes", Url = "https://example.org/notes" }]
+        });
+        var viewModel = CreateViewModel();
+        viewModel.ActiveConversationId = 42;
+        viewModel.UserInput = "What changed?";
+
+        await viewModel.SendMessageCommand.ExecuteAsync(null);
+
+        viewModel.Messages[1].WebCitationChips.Should().ContainSingle()
+            .Which.Label.Should().Be("[1] Release notes (example.org)");
+    }
+
+    [Fact]
+    public async Task SelectConversationAsync_ShowsTheWebSourcesSavedWithEachAnswer()
+    {
+        _conversationCoordinator
+            .Setup(service => service.LoadMessagesAsync(42))
+            .ReturnsAsync(
+            [
+                new MessageSummary { MessageId = 1, ConversationId = 42, SortOrder = 0, Role = "user", Content = "What changed?", Timestamp = DateTime.UtcNow },
+                new MessageSummary
+                {
+                    MessageId = 2,
+                    ConversationId = 42,
+                    SortOrder = 1,
+                    Role = "assistant",
+                    Content = "Version 2 shipped [1].",
+                    Timestamp = DateTime.UtcNow,
+                    WebCitations = [new WebCitation { Title = "Release notes", Url = "https://example.org/notes" }]
+                }
+            ]);
+        var viewModel = CreateViewModel();
+        viewModel.Conversations.Add(new ConversationListItem { Id = 42, Title = "Release", UpdatedAt = DateTime.UtcNow });
+
+        await viewModel.SelectConversationCommand.ExecuteAsync(42L);
+
+        viewModel.Messages.Single(message => message.IsUser).HasWebCitations.Should().BeFalse();
+        viewModel.Messages.Single(message => message.IsAssistant).WebCitationChips.Should().ContainSingle()
+            .Which.Url.Should().Be("https://example.org/notes");
+    }
+
+    [Fact]
+    public void OpenWebCitation_OpensOnlyWebAddresses()
+    {
+        var viewModel = CreateViewModel();
+        var opened = new List<Uri>();
+        viewModel.OpenExternalLink = opened.Add;
+        var chips = WebCitationChip.From(
+        [
+            new WebCitation { Title = "Notes", Url = "https://example.org/notes" },
+            new WebCitation { Title = "Local", Url = "file:///C:/secrets.txt" },
+            new WebCitation { Title = "Script", Url = "javascript:alert(1)" }
+        ]);
+
+        foreach (var chip in chips)
+        {
+            viewModel.OpenWebCitationCommand.Execute(chip);
+        }
+
+        opened.Should().Equal(new Uri("https://example.org/notes"));
+    }
+
+    [Fact]
+    public void OpenWebCitation_WhenNoBrowserOpens_DoesNotThrow()
+    {
+        var viewModel = CreateViewModel();
+        viewModel.OpenExternalLink = _ => throw new InvalidOperationException("No browser.");
+        var chip = WebCitationChip.From([new WebCitation { Title = "Notes", Url = "https://example.org/notes" }])[0];
+
+        viewModel.Invoking(vm => vm.OpenWebCitationCommand.Execute(chip)).Should().NotThrow();
     }
 
     [Fact]

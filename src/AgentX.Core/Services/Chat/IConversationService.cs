@@ -74,12 +74,18 @@ public interface IConversationService
     /// <param name="content">The message content.</param>
     /// <param name="tokenCount">Optional estimated token count for the message.</param>
     /// <param name="generationTimeMs">Optional generation time in milliseconds (for assistant messages).</param>
+    /// <param name="modelId">The model that wrote an assistant message.</param>
+    /// <param name="citationsJson">
+    /// The sources an assistant message cites, in the <see cref="MessageCitations"/> format.
+    /// </param>
     Task AddMessageAsync(
         long conversationId,
         string role,
         string content,
         int? tokenCount = null,
-        double? generationTimeMs = null);
+        double? generationTimeMs = null,
+        string? modelId = null,
+        string? citationsJson = null);
 
     /// <summary>
     /// Deletes a specific message by ID and updates conversation metadata.

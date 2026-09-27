@@ -115,6 +115,38 @@ public sealed class ChatServiceRoutingTests
         _router.Verify(router => router.RouteAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
+    [Fact]
+    public async Task A_routed_reply_is_saved_with_the_routed_model()
+    {
+        _aiService.SetupGet(service => service.ActiveModelId).Returns("llama3.2:3b");
+        _aiService
+            .Setup(service => service.IsProviderAvailableAsync("anthropic", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+        _routedProvider
+            .Setup(provider => provider.StreamChatAsync(
+                It.IsAny<IReadOnlyList<ChatMessage>>(), It.IsAny<ChatOptions?>(), It.IsAny<CancellationToken>()))
+            .Returns(StreamTokens("Routed", " answer"));
+
+        await DrainAsync(CreateSut().SendMessageAsync(42, "Write a parser"));
+
+        _conversationService.Verify(service => service.AddMessageAsync(
+            42, "assistant", "Routed answer", It.IsAny<int?>(), It.IsAny<double?>(), "claude-sonnet-5", null), Times.Once);
+    }
+
+    [Fact]
+    public async Task A_reply_from_the_active_provider_is_saved_with_the_active_model()
+    {
+        _aiService.SetupGet(service => service.ActiveModelId).Returns("llama3.2:3b");
+        _aiService
+            .Setup(service => service.IsProviderAvailableAsync("anthropic", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        await DrainAsync(CreateSut().SendMessageAsync(42, "Write a parser"));
+
+        _conversationService.Verify(service => service.AddMessageAsync(
+            42, "assistant", "Active answer", It.IsAny<int?>(), It.IsAny<double?>(), "llama3.2:3b", null), Times.Once);
+    }
+
     private ChatService CreateSut() => new(
         _aiService.Object,
         _conversationService.Object,

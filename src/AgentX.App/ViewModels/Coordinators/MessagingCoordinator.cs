@@ -130,7 +130,7 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
             var orchestrated = orchestrationMode != ChatOrchestrationMode.Standard;
             var persisted = !orchestrated && exchange.ConversationId is not null && await IsProviderConnectedAsync();
 
-            ResearchContext? research = null;
+            SupplementalContext? research = null;
             if (isResearchMode && (orchestrated || persisted))
             {
                 research = await BuildResearchContextAsync(userContent, generation.Token);
@@ -162,7 +162,7 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
                 var conversation = exchange.ConversationId!.Value;
                 var stream = research is null
                     ? _chatService.SendMessageAsync(conversation, userContent, generation.Token)
-                    : _chatService.SendMessageAsync(conversation, userContent, research.PromptContext, generation.Token);
+                    : _chatService.SendMessageAsync(conversation, userContent, research, generation.Token);
                 exchange.TokenCount = await RelayTokensAsync(stream, exchange, generation);
                 exchange.ContextInspection = _chatService.GetLatestContextInspection(conversation);
             }
@@ -293,8 +293,6 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
         /// </summary>
         public long? Baseline { get; set; }
     }
-
-    private sealed record ResearchContext(string PromptContext, IReadOnlyList<WebCitation> Citations);
 
     private async Task<SendMessageResult> CompleteAsync(
         Exchange exchange,
@@ -543,12 +541,16 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
                 await _conversationService.AddMessageAsync(conversationId, "user", userContent, null, null);
             }
 
+            // A usable answer is saved with the model that wrote it (the orchestrator's agents all
+            // run on the active model) and the web sources it was given.
             await _conversationService.AddMessageAsync(
                 conversationId,
                 "assistant",
                 finalContent,
                 tokenCount,
-                exchange.Stopwatch.Elapsed.TotalMilliseconds);
+                exchange.Stopwatch.Elapsed.TotalMilliseconds,
+                modelId: succeeded ? ActiveModelIdOrNull() : null,
+                citationsJson: succeeded ? MessageCitations.Serialize(exchange.WebCitations) : null);
 
             if (replacedMessageId is long replaced)
             {
@@ -685,7 +687,7 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
     /// Whenever no web sources are added, the operator is told why instead of getting an
     /// answer that silently lacks them.
     /// </summary>
-    private async Task<ResearchContext?> BuildResearchContextAsync(string query, CancellationToken ct)
+    private async Task<SupplementalContext?> BuildResearchContextAsync(string query, CancellationToken ct)
     {
         if (_webSearchService is null)
         {
@@ -735,7 +737,7 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
                 })
                 .ToList();
 
-            return new ResearchContext(FormatResearchContext(results), citations);
+            return new SupplementalContext(FormatResearchContext(results), citations);
         }
         catch (OperationCanceledException) when (!ct.IsCancellationRequested)
         {
@@ -890,6 +892,12 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
             "openai" or "anthropic" => $"Check the {providerName} API key in Settings and your network connection.",
             _ => "Check the AI provider in Settings."
         };
+
+    private string? ActiveModelIdOrNull()
+    {
+        var modelId = _aiService.ActiveModelId;
+        return string.IsNullOrWhiteSpace(modelId) ? null : modelId;
+    }
 
     /// <summary>The active provider's id and display name, or nulls before the AI service is ready.</summary>
     private (string? ProviderId, string? DisplayName) ActiveProviderIdentity()

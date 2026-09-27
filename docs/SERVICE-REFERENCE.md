@@ -559,7 +559,7 @@ IAsyncEnumerable<string> SendMessageAsync(
     CancellationToken ct = default)
 ```
 
-Sends a user message and streams the assistant response token-by-token.
+Sends a user message and streams the assistant response token-by-token. The response is saved with the id of the model that wrote it. An overload takes a `SupplementalContext` (Research Mode's web results): its prompt text is used for this reply only, and its citations are saved with the response.
 
 **Parameters**:
 - `conversationId` (long): The conversation to send the message in
@@ -750,7 +750,9 @@ Task AddMessageAsync(
     string role,
     string content,
     int? tokenCount = null,
-    double? generationTimeMs = null)
+    double? generationTimeMs = null,
+    string? modelId = null,
+    string? citationsJson = null)
 ```
 
 Adds a new message to a conversation and updates conversation metadata.
@@ -761,6 +763,8 @@ Adds a new message to a conversation and updates conversation metadata.
 - `content` (string): The message content
 - `tokenCount` (int, optional): Estimated token count
 - `generationTimeMs` (double, optional): Generation time in milliseconds (for assistant messages)
+- `modelId` (string, optional): The model that wrote an assistant message
+- `citationsJson` (string, optional): The sources an assistant message cites, in the `MessageCitations` format
 
 **Returns**: Task
 

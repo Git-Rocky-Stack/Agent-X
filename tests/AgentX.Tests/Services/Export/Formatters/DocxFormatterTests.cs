@@ -179,6 +179,20 @@ public sealed class DocxFormatterTests
     }
 
     [Fact]
+    public async Task ExportConversationAsync_ListsEachAnswersWebSourcesUnderIt_AndItsModel()
+    {
+        var result = await _sut.ExportConversationAsync(
+            ResearchConversation.Create(), new ExportOptions { IncludeCitations = true, IncludeModelInfo = true });
+
+        var xml = DocumentXml(result);
+        var second = xml.IndexOf(ResearchConversation.SecondAnswer, StringComparison.Ordinal);
+        xml[..second].Should().Contain(">1. Release notes - https://example.org/notes<");
+        xml[second..].Should().Contain(">1. Blog - https://blog.example.org/v2<")
+            .And.NotContain("Release notes");
+        xml.Should().Contain("Model: claude-sonnet-5");
+    }
+
+    [Fact]
     public async Task ExportConversationAsync_WithCitations_ProducesValidDocx()
     {
         // Arrange
@@ -283,5 +297,13 @@ public sealed class DocxFormatterTests
 
         // Assert
         await act.Should().ThrowAsync<OperationCanceledException>();
+    }
+
+    private static string DocumentXml(string base64)
+    {
+        using var stream = new MemoryStream(Convert.FromBase64String(base64));
+        using var archive = new ZipArchive(stream, ZipArchiveMode.Read);
+        using var reader = new StreamReader(archive.GetEntry("word/document.xml")!.Open());
+        return reader.ReadToEnd();
     }
 }

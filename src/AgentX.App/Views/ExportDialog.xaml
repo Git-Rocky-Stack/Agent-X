@@ -19,6 +19,14 @@
                   HorizontalAlignment="Stretch"
                   SelectedIndex="0" />
 
+        <ToggleSwitch x:Name="IncludeCitationsToggle"
+                      x:Uid="ExportDlg_IncludeCitations" Header="Include citations"
+                      IsOn="True" />
+
+        <ToggleSwitch x:Name="IncludeModelInfoToggle"
+                      x:Uid="ExportDlg_IncludeModelInfo" Header="Include model info"
+                      IsOn="False" />
+
         <ToggleSwitch x:Name="IncludeMetadataToggle"
                       x:Uid="ExportDlg_IncludeMetadata" Header="Include metadata"
                       IsOn="True" />

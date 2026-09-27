@@ -24,12 +24,13 @@ public interface IChatService
     /// <summary>
     /// Sends a user message like <see cref="SendMessageAsync(long, string, CancellationToken)"/>,
     /// adding <paramref name="supplementalContext"/> (for example cited web search results) to the
-    /// context assembled for this reply only. The supplemental context is not persisted.
+    /// context assembled for this reply only. Its prompt text is not persisted; the sources it
+    /// cites are saved with the answer.
     /// </summary>
     IAsyncEnumerable<string> SendMessageAsync(
         long conversationId,
         string userMessage,
-        string? supplementalContext,
+        SupplementalContext? supplementalContext,
         CancellationToken ct);
 
     /// <summary>

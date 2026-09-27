@@ -3,6 +3,7 @@ using AgentX.Core.AI;
 using AgentX.Core.AI.Context;
 using AgentX.Core.AI.Models;
 using AgentX.Core.Data.Entities;
+using AgentX.Core.Search.Models;
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Chat.Models;
 using AgentX.Core.Services.Settings;
@@ -64,7 +65,9 @@ public sealed class ChatServiceContextAssemblyTests
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<int?>(),
-                It.IsAny<double?>()))
+                It.IsAny<double?>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>()))
             .Returns(Task.CompletedTask);
         _conversationService
             .Setup(service => service.GetConversationAsync(42))
@@ -173,7 +176,9 @@ public sealed class ChatServiceContextAssemblyTests
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<int?>(),
-                It.IsAny<double?>()))
+                It.IsAny<double?>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>()))
             .Returns(Task.CompletedTask);
         _conversationService
             .Setup(service => service.GetConversationAsync(42))
@@ -334,7 +339,9 @@ public sealed class ChatServiceContextAssemblyTests
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<int?>(),
-                It.IsAny<double?>()))
+                It.IsAny<double?>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>()))
             .Returns(Task.CompletedTask);
         _conversationService
             .Setup(service => service.GetConversationAsync(42))
@@ -443,7 +450,9 @@ public sealed class ChatServiceContextAssemblyTests
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<int?>(),
-                It.IsAny<double?>()))
+                It.IsAny<double?>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>()))
             .Returns(Task.CompletedTask);
         _conversationService
             .Setup(service => service.GetConversationAsync(42))
@@ -581,7 +590,8 @@ public sealed class ChatServiceContextAssemblyTests
                 It.IsAny<IReadOnlyList<ChatMessage>>(), It.IsAny<string?>(), It.IsAny<ChatOptions?>(), It.IsAny<CancellationToken>()))
             .Returns(StreamTokens("Answer"));
 
-        await DrainAsync(CreateSut().SendMessageAsync(42, "What changed?", "[Web Search Results]\n[1] Notes", CancellationToken.None));
+        await DrainAsync(CreateSut().SendMessageAsync(
+            42, "What changed?", new SupplementalContext("[Web Search Results]\n[1] Notes", []), CancellationToken.None));
 
         _contextAssemblyService.Verify(service => service.AssembleAsync(
             It.Is<ContextAssemblyRequest>(request =>
@@ -589,7 +599,37 @@ public sealed class ChatServiceContextAssemblyTests
                 request.MemoryContext.Contains("[1] Notes", StringComparison.Ordinal)),
             It.IsAny<CancellationToken>()), Times.Once);
         _conversationService.Verify(service => service.AddMessageAsync(
-            42, "user", "What changed?", It.IsAny<int?>(), It.IsAny<double?>()), Times.Once);
+            42, "user", "What changed?", It.IsAny<int?>(), It.IsAny<double?>(), It.IsAny<string?>(), It.IsAny<string?>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task SendMessageAsync_SavesTheAnswerWithItsModelAndTheWebSourcesItWasGiven()
+    {
+        // Chat saved neither, so exports could not name the model and a reopened Research
+        // Mode answer had lost its sources.
+        SetupRegenerationThread(Message(10, "user", "What changed?", 0));
+        _aiService.SetupGet(service => service.ActiveModelId).Returns("llama3.2:3b");
+        _aiService
+            .Setup(service => service.StreamChatAsync(
+                It.IsAny<IReadOnlyList<ChatMessage>>(), It.IsAny<string?>(), It.IsAny<ChatOptions?>(), It.IsAny<CancellationToken>()))
+            .Returns(StreamTokens("Version 2 shipped [1]."));
+        var research = new SupplementalContext(
+            "[Web Search Results]\n[1] Release notes",
+            [new WebCitation { Title = "Release notes", Url = "https://example.org/notes", Source = WebCitationSource.Web }]);
+
+        await DrainAsync(CreateSut().SendMessageAsync(42, "What changed?", research, CancellationToken.None));
+
+        _conversationService.Verify(service => service.AddMessageAsync(
+            42, "user", "What changed?", It.IsAny<int?>(), It.IsAny<double?>(), null, null), Times.Once);
+        _conversationService.Verify(service => service.AddMessageAsync(
+            42,
+            "assistant",
+            "Version 2 shipped [1].",
+            It.IsAny<int?>(),
+            It.IsAny<double?>(),
+            "llama3.2:3b",
+            It.Is<string?>(json => MessageCitations.ParseWebCitations(json).Single().Url == "https://example.org/notes")),
+            Times.Once);
     }
 
     /// <summary>
@@ -613,8 +653,9 @@ public sealed class ChatServiceContextAssemblyTests
             .Setup(service => service.GetConversationAsync(42))
             .ReturnsAsync(new ConversationEntity { Id = 42, SystemPrompt = "Original prompt", Messages = messages.ToList() });
         _conversationService
-            .Setup(service => service.AddMessageAsync(42, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int?>(), It.IsAny<double?>()))
-            .Callback<long, string, string, int?, double?>((_, role, content, _, _) =>
+            .Setup(service => service.AddMessageAsync(
+                42, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int?>(), It.IsAny<double?>(), It.IsAny<string?>(), It.IsAny<string?>()))
+            .Callback<long, string, string, int?, double?, string?, string?>((_, role, content, _, _, _, _) =>
             {
                 if (role == "assistant")
                 {

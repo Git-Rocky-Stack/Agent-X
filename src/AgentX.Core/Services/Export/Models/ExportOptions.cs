@@ -12,14 +12,15 @@ public class ExportOptions
     public ExportFormat Format { get; set; } = ExportFormat.Markdown;
 
     /// <summary>
-    /// When true, citation references and footnotes are included in the export. Only messages
-    /// that carry stored citations (<c>MessageEntity.CitationsJson</c>) have any; chat does not
-    /// store them yet, so the export dialog does not offer this option.
+    /// When true, each message's stored sources (<c>MessageEntity.CitationsJson</c>, such as the
+    /// web pages Research Mode gave an answer) are listed with that message, numbered as its [n]
+    /// markers are. JSON exports carry the stored list as it is; CSV and PowerPoint omit it.
     /// </summary>
     public bool IncludeCitations { get; set; } = true;
 
     /// <summary>
-    /// When true, additional metadata (model ID, token counts, generation time) is included.
+    /// When true, additional metadata (conversation details, and the token count and generation
+    /// time of each answer) is included.
     /// </summary>
     public bool IncludeMetadata { get; set; } = true;
 
@@ -29,8 +30,8 @@ public class ExportOptions
     public bool IncludeTimestamps { get; set; } = true;
 
     /// <summary>
-    /// When true, the AI model identifier is shown for assistant messages that carry one
-    /// (<c>MessageEntity.ModelId</c>, which chat does not store yet).
+    /// When true, the model that wrote each answer (<c>MessageEntity.ModelId</c>) is shown with
+    /// it. Answers saved before chat recorded the model have none, so nothing is shown for them.
     /// </summary>
     public bool IncludeModelInfo { get; set; } = false;
 
