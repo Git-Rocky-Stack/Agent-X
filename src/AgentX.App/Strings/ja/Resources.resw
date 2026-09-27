@@ -367,7 +367,7 @@
   <data name="UserGuide_KeyboardShortcuts_Action13.Text" xml:space="preserve"><value>Web インポートを開く</value></data>
   <data name="UserGuide_KeyboardShortcuts_Action14.Text" xml:space="preserve"><value>アナリティクスを開く</value></data>
   <data name="UserGuide_KeyboardShortcuts_Action15.Text" xml:space="preserve"><value>オペレーションを開く</value></data>
-  <data name="UserGuide_KeyboardShortcuts_Action16.Text" xml:space="preserve"><value>ナビゲーション順 1〜9 ページへのクイック ジャンプ(ダッシュボード、Chat、AskFiles、検索、Vault、Collections、Workflows、Models、Settings)</value></data>
+  <data name="UserGuide_KeyboardShortcuts_Action16.Text" xml:space="preserve"><value>9 つのページのいずれかを開く：1 ダッシュボード、2 AI Chat、3 ファイルに質問する、4 セマンティック検索、5 Knowledge Vault、6 コレクション、7 ワークフロー、8 モデル マネージャー、9 設定</value></data>
   <data name="UserGuide_KeyboardShortcuts_Footer.Text" xml:space="preserve"><value>ヒント: どこからでも F1 (または Ctrl+Shift+/) を押すとチートシートが開き、グローバル ショートカットと現在のページが登録したショートカットが一覧表示されます。このリリースではショートカットは固定で、再割り当てはできません。</value></data>
   <data name="UserGuide_FirstChat_Title.Text" xml:space="preserve"><value>最初のチャット</value></data>
   <data name="UserGuide_FirstChat_Description.Text" xml:space="preserve"><value>この短いチュートリアルでは、インストール直後から最初の会話までを案内します。AI Chat ページのどこに何があるか、モデルの選び方、時間を節約できるキー操作を紹介します。</value></data>
@@ -466,23 +466,23 @@
   <data name="UserGuide_MobileCompanion_Sync_Title.Text" xml:space="preserve"><value>接続とセキュリティ</value></data>
   <data name="UserGuide_MobileCompanion_Sync_Description.Text" xml:space="preserve"><value>電話は必要なときにデスクトップのローカル API からすべてを読み取り、保存するのは自身の接続設定だけです。デスクトップは localhost でのみ待ち受け、アプリはそれ以外のホストへの暗号化されていない HTTP を拒否するため、通信はエミュレーターのブリッジまたは USB 接続の中にとどまります。すべてのリクエストには API トークンが付きます。設定 &gt; 接続 でトークンを再生成すると、接続中のすべてのクライアントを一度に切断できます。</value></data>
   <data name="UserGuide_Workflows_Title.Text" xml:space="preserve"><value>ワークフローと自動化</value></data>
-  <data name="UserGuide_Workflows_Description.Text" xml:space="preserve"><value>ワークフローは、5 つのビルディングブロック — AI プロンプト、ドキュメント検索、テキスト変換、条件分岐、出力フォーマット — から組み立てる多段階の AI パイプラインで、必要なときにオンデマンドで実行します。繰り返し作業をワンクリックに変えられます。ドキュメント一式の要約、要点の抽出とレポート整形、手作業で行っていた任意のテキスト処理の自動化などに最適です。Workflow Builder(Ctrl+Shift+W)で視覚的に作成・実行できます。</value></data>
+  <data name="UserGuide_Workflows_Description.Text" xml:space="preserve"><value>ワークフローは、5 種類のステップ (AI プロンプト、ドキュメント検索、テキスト変換、条件分岐、出力フォーマット) から組み立て、好きなときに実行する多段階のパイプラインです。各ステップの出力が次のステップに渡されるので、たとえばテキストを要約し、要点を抜き出し、それを行動項目にまとめる、といった処理ができます。ワークフローの作成と実行はワークフロー ページ (Ctrl+Shift+W または Ctrl+7) で行います。</value></data>
   <data name="UserGuide_Workflows_Creating_Title.Text" xml:space="preserve"><value>ワークフローの作成</value></data>
   <data name="UserGuide_Workflows_CreateStep1.Text" xml:space="preserve"><value>ナビゲーション レールから Workflows を開き (または Ctrl+Shift+W を押し)、[新しいワークフロー] をクリックします。組み込みテンプレートのいずれかを選んで [テンプレートを使用] をクリックし、それを基に始めることもできます。</value></data>
-  <data name="UserGuide_Workflows_CreateStep2.Text" xml:space="preserve"><value>ワークフローに名前を付け、ステップを追加します。各ステップは 5 種類 (AI プロンプト、ドキュメント検索、テキスト変換、条件分岐、出力フォーマット) のいずれかで、各ステップの出力が次のステップに渡されます。</value></data>
+  <data name="UserGuide_Workflows_CreateStep2.Text" xml:space="preserve"><value>ワークフローに名前を付け、ステップごとに [ステップを追加] をクリックします。[ステップの種類] (一覧での表記は AiPrompt、DocumentLookup、TextTransform、ConditionalBranch、OutputFormat) を選び、プロンプトを書きます。プロンプトでは {{input}} がワークフローの入力を、{{previous_output}} が前のステップの出力を表します。オプションのある種類は「ステップの設定 (JSON)」からオプションを読み取ります。欄の下のヒントにオプションが表示され、入力中に誤りも指摘されます。各ステップの出力は次のステップに渡されます。</value></data>
   <data name="UserGuide_Workflows_CreateStep3.Text" xml:space="preserve"><value>上へ移動と下へ移動のボタンでステップの順序を整え、不要なステップを削除して保存します。ステップはテキストを変換するもので、通知やメッセージを送信するステップはありません。</value></data>
   <data name="UserGuide_Workflows_CreateStep4.Text" xml:space="preserve"><value>ワークフローを実行します。入力テキストを入力して [実行] をクリックすると、最後のステップが終わった時点で最終出力が表示され、Knowledge Vault に保存できます。各実行は実行履歴にも保存されます。ワークフローはユーザーが開始したときにだけ実行され、スケジュールやイベント トリガーはありません。</value></data>
   <data name="UserGuide_Workflows_Triggers_Title.Text" xml:space="preserve"><value>ワークフローの実行</value></data>
   <data name="UserGuide_Workflows_Trigger1_Title.Text" xml:space="preserve"><value>オンデマンド実行</value></data>
-  <data name="UserGuide_Workflows_Trigger1_Description.Text" xml:space="preserve"><value>Workflows ページまたは Workflow Builder から、必要なときにいつでもワークフローを実行できます。実行のたびに入力テキストがステップチェーンを通過し、最終出力が表示されます。</value></data>
+  <data name="UserGuide_Workflows_Trigger1_Description.Text" xml:space="preserve"><value>ワークフローを選び、[入力] に処理するテキストを入力または貼り付けて [実行] をクリックします。[キャンセル] で実行を止められます。「ステップの出力」に各ステップが生成したものが、「最終出力」に結果が表示されます。結果は [クリップボードにコピー] でコピー、[ドキュメントとして保存] で Knowledge Vault に追加、[結果をエクスポート] でファイルに保存できます。Knowledge Vault のドキュメント プレビューにある [ワークフロー] ボタンは、ドキュメントの名前、要約、テキストの抜粋を入力にしてこのページを開きます。</value></data>
   <data name="UserGuide_Workflows_Trigger2_Title.Text" xml:space="preserve"><value>ステップライブラリ</value></data>
-  <data name="UserGuide_Workflows_Trigger2_Description.Text" xml:space="preserve"><value>すべてのワークフローは 5 種類のステップで構成されます。AI プロンプト(テンプレート化したプロンプトでモデルを呼び出す)、ドキュメント検索(ボールトからコンテンツを取得)、テキスト変換(大文字小文字、抽出、重複排除など)、条件分岐(ステップ出力に対する if-then ロジック)、出力フォーマット(Markdown、HTML、JSON)です。</value></data>
+  <data name="UserGuide_Workflows_Trigger2_Description.Text" xml:space="preserve"><value>AiPrompt はプロンプトを有効な AI プロバイダーに送ります。DocumentLookup はプロンプトを質問として「ファイルに質問する」と同じ方法でドキュメントに問い合わせ (collectionId 設定で 1 つのコレクションに限定することも可能)、その回答を渡します。TextTransform は 1 つの操作を適用します：uppercase、lowercase、titlecase、trim、extract_lines、word_count、char_count、reverse_lines、deduplicate_lines、sort_lines、number_lines。ConditionalBranch は前の出力を判定し (contains、not_contains、starts_with、ends_with、equals、matches、length_greater_than)、2 つのテキストのどちらかを出力します。ステップを飛ばすことはありません。OutputFormat は出力を json、markdown、html、bullet_list、numbered_list のいずれかに変換し、前後に任意のテキストを付けられます。</value></data>
   <data name="UserGuide_Workflows_Trigger3_Title.Text" xml:space="preserve"><value>実行履歴</value></data>
   <data name="UserGuide_Workflows_Trigger3_Description.Text" xml:space="preserve"><value>すべての実行はステップごとの出力・所要時間・成否とともに記録されます。各ステップが何を生成したか、パイプラインのどこを調整すべきかを正確に確認できます。</value></data>
   <data name="UserGuide_Workflows_Examples_Title.Text" xml:space="preserve"><value>ワークフローの例</value></data>
-  <data name="UserGuide_Workflows_Example1.Text" xml:space="preserve"><value>「議事録」 — 生の文字起こしを貼り付け、AI プロンプトステップで決定事項とアクションアイテムを抽出し、結果を保存・共有できる Markdown サマリーに整形します。</value></data>
-  <data name="UserGuide_Workflows_Example2.Text" xml:space="preserve"><value>「リサーチダイジェスト」 — ドキュメント検索ステップで Research コレクションの文書を取得し、モデルに主要な知見を抽出させ、必要なときに構造化されたブリーフィングを生成します。</value></data>
-  <data name="UserGuide_Workflows_Example3.Text" xml:space="preserve"><value>「コンテンツ再利用」 — AI プロンプトステップで長文ドキュメントを要約し、条件分岐を使います。短い出力は SNS 投稿に、長い出力は整形済みの記事ドラフトになります。</value></data>
+  <data name="UserGuide_Workflows_Example1.Text" xml:space="preserve"><value>Summarize &amp; Act：会議メモや記事を貼り付けます。組み込みテンプレートの 3 つの AiPrompt ステップが、要約し、要点を番号付きリストとして抜き出し、優先順位付きの行動項目にまとめます。</value></data>
+  <data name="UserGuide_Workflows_Example2.Text" xml:space="preserve"><value>リサーチ ダイジェスト (自分で作成)：DocumentLookup ステップがトピックについてドキュメントに問い合わせ、AiPrompt ステップがその回答を短いブリーフィングにまとめ、形式 bullet_list の OutputFormat ステップが箇条書きにします。</value></data>
+  <data name="UserGuide_Workflows_Example3.Text" xml:space="preserve"><value>Content Repurpose：組み込みテンプレートがテキストの核となるメッセージを抜き出してツイート スレッドを書き、次にテキストとスレッドからビジネス メールを、テキストからブログ記事を書きます。「ステップの出力」で各バージョンを確認でき、「最終出力」はブログ記事です。</value></data>
   <data name="UserGuide_AdvancedQueries_Title.Text" xml:space="preserve"><value>高度なクエリ</value></data>
   <data name="UserGuide_AdvancedQueries_Description.Text" xml:space="preserve"><value>Agent-X は質問文から指示を読み取りません。「価格コレクション内で」「先週の」「ARR を必ず含む」のような表現も、ほかの語句と同じように検索されます。範囲、日付、完全一致の語句はページのコントロールで指定し、質問そのものはできるだけ明確に書いてください。</value></data>
   <data name="UserGuide_AdvancedQueries_Techniques_Title.Text" xml:space="preserve"><value>クエリ技法</value></data>
@@ -565,11 +565,11 @@
   <data name="UserGuide_BackupRestore_Migration_Title.Text" xml:space="preserve"><value>バージョン間移行</value></data>
   <data name="UserGuide_BackupRestore_Migration_Description.Text" xml:space="preserve"><value>以前のバージョンの Agent-X で作成したバックアップは復元できます。復元したデータベースは、次回 Agent-X の起動時に現在のバージョンにアップグレードされます。インストールされているバージョンより新しいバージョンで作成したバックアップの復元はサポートされていません。</value></data>
   <data name="UserGuide_Export_Title.Text" xml:space="preserve"><value>エクスポートとデータ ポータビリティ</value></data>
-  <data name="UserGuide_Export_Description.Text" xml:space="preserve"><value>あなたのデータはあらゆるレベルでオープン フォーマットでエクスポート可能です — 単一会話、完全な会話履歴、個別ドキュメント、Knowledge Vault 全体、voice profile、insights、beliefs、設定、プラグイン マニフェスト。ロックインはありません: Agent-X を離れる時、すべてをどこでも読み込めるフォーマットで持ち出せます。バックアップと復元(専用セクション)はラウンドトリップ ストーリー、本セクションは片道エクスポートを扱います。</value></data>
+  <data name="UserGuide_Export_Description.Text" xml:space="preserve"><value>エクスポートできるのは、会話 (1 件ずつ複数の形式で、またはすべてを 1 つの Markdown ファイルに)、コレクションのドキュメント一覧、Markdown 形式の注釈、Markdown 形式の比較レポート、ワークフローとその結果です。それ以外のデータには [バックアップと復元] を使います。バックアップにはデータベース全体が含まれます。Vault 全体、ドキュメントから抽出したテキストや埋め込み、文体プロファイル、信念、インサイト、設定をエクスポートする機能はありません。</value></data>
   <data name="UserGuide_Export_Conversations_Title.Text" xml:space="preserve"><value>会話のエクスポート</value></data>
   <data name="UserGuide_Export_Conversations.Text" xml:space="preserve"><value>AI Chat 上部の「会話をエクスポート」ボタンで、開いている会話を Markdown、HTML、PDF、JSON、プレーン テキスト、CSV、Word (.docx)、PowerPoint (.pptx) のいずれかで保存します。引用 (リサーチ モードの各回答が使った Web ソース。回答ごとに一覧表示)、モデル情報 (各回答を書いたモデル)、メタデータ、タイムスタンプを含めるかどうかを選べます。JSON はシステム プロンプトを含む完全な構造を保持します。Markdown のエクスポートにはテンプレート (Research Report、Executive Summary、Annotated Bibliography) を適用でき、「Markdown としてコピー」はファイルではなくクリップボードに会話を置きます。会話リスト下部の「すべての会話をエクスポート」は、一覧のすべての会話を 1 つの Markdown ファイルに保存し、保存先を表示します。</value></data>
-  <data name="UserGuide_Export_Documents_Title.Text" xml:space="preserve"><value>ドキュメントと Vault のエクスポート</value></data>
-  <data name="UserGuide_Export_Documents.Text" xml:space="preserve"><value>Knowledge Vault 全体を、原本ファイル、ドキュメントごとの抽出テキスト、チャンク インデックス、ベクトル埋め込み(ポータブル .vec フォーマット)を含む ZIP としてエクスポート。バンドルは別の Agent-X インストールでビット単位で再読み込み可能 — マシン間の移動、プロジェクトのアーカイブ、共同作業者への Vault 引き渡しに最適です。全体が不要な場合はサブセット(単一ドキュメント、単一コレクション、日付範囲)もエクスポートできます。</value></data>
+  <data name="UserGuide_Export_Documents_Title.Text" xml:space="preserve"><value>コレクションのエクスポート</value></data>
+  <data name="UserGuide_Export_Documents.Text" xml:space="preserve"><value>「コレクション」ページでコレクションのエクスポート ボタンを押すと、コレクション名を付けた ZIP ファイルがデータ フォルダーの Exports フォルダーに保存されます。中身は、コレクションの情報と各ドキュメントの名前、パス、種類、サイズ、インポート日、ページ数と単語数、要約、言語、インデックスの状態、コンテンツ ハッシュを記録した manifest.json と、その内容を読みやすくまとめた README.txt です。ファイルそのもの、テキスト、チャンク、埋め込みは含まれず、インポートすることもできません。</value></data>
   <data name="UserGuide_Export_Backup_Title.Text" xml:space="preserve"><value>自動バックアップ</value></data>
   <data name="UserGuide_Export_Backup.Text" xml:space="preserve"><value>スケジュール バックアップは既定でオフで、「バックアップと復元」ページの「スケジュール バックアップ」で設定します。バックアップには Agent-X のデータベースと、必要に応じて Web インポートで保存したページが含まれます。設定、API キー、プラグインは含まれません。クラウドと同期するフォルダーに保存する前に、パスワードでバックアップを保護してください。</value></data>
   <data name="UserGuide_Export_Restore_Title.Text" xml:space="preserve"><value>データの復元</value></data>
@@ -579,41 +579,41 @@
   <data name="UserGuide_Comparison_Title.Text" xml:space="preserve"><value>ドキュメント比較(Comparison)</value></data>
   <data name="UserGuide_Comparison_Description.Text" xml:space="preserve"><value>Comparison ページは、Knowledge Vault 内の 2 つ以上のドキュメントについて、AI が執筆する構造化された比較分析を生成します。ドキュメントを選択し、必要に応じてフォーカストピックを設定すると、Agent-X が各ドキュメントの最も関連性の高い箇所を取得し、対照レポートを合成します。</value></data>
   <data name="UserGuide_Comparison_Feature1_Title.Text" xml:space="preserve"><value>構造化された分析</value></data>
-  <data name="UserGuide_Comparison_Feature1_Description.Text" xml:space="preserve"><value>レポートは、共通テーマ、主要な相違点、各ドキュメント固有のポイントに分解され、冒頭に全体サマリーが付きます。</value></data>
+  <data name="UserGuide_Comparison_Feature1_Description.Text" xml:space="preserve"><value>レポートは 5 つの部分で構成されます。上部の「要約」(使用トークン数と所要時間付き)、続いて「類似点」「相違点」「矛盾点」「ドキュメントごとの固有ポイント」です。[詳細レベル] (要約または詳細) は、このバージョンではレポートに影響しません。</value></data>
   <data name="UserGuide_Comparison_Feature2_Title.Text" xml:space="preserve"><value>フォーカストピック</value></data>
   <data name="UserGuide_Comparison_Feature2_Description.Text" xml:space="preserve"><value>任意のフォーカストピック(「価格条件」「方法論」など)を追加すると、比較は全体的な概要ではなくその観点に集中します。</value></data>
   <data name="UserGuide_Comparison_Feature3_Title.Text" xml:space="preserve"><value>Markdown エクスポート</value></data>
   <data name="UserGuide_Comparison_Feature3_Description.Text" xml:space="preserve"><value>比較レポートは Markdown にエクスポートして、共有、保管、自分のドキュメントへの貼り付けに使えます。</value></data>
   <data name="UserGuide_Inbox_Title.Text" xml:space="preserve"><value>Smart Inbox</value></data>
-  <data name="UserGuide_Inbox_Description.Text" xml:space="preserve"><value>Smart Inbox は、ナレッジベースに入ってくるコンテンツのトリアージキューです。ブラウザ拡張機能とプラグインからのキャプチャはまずここに届きます。すべてを未整理のままボールトに流し込むのではなく、残す価値があるものをあなたが判断できます。</value></data>
+  <data name="UserGuide_Inbox_Description.Text" xml:space="preserve"><value>Smart Inbox は、ブラウザー拡張機能でクリップしたページが、どうするか決めるまで待機する場所です。承認するまで Knowledge Vault には入りません。コネクターからのカレンダー イベントとメールもここに表示されますが、同期時に Vault にインポートされるため、すでに承認済みになっています。監視フォルダーのファイルは Knowledge Vault に直接入ります。</value></data>
   <data name="UserGuide_Inbox_Feature1_Title.Text" xml:space="preserve"><value>AI プレビュー</value></data>
-  <data name="UserGuide_Inbox_Feature1_Description.Text" xml:space="preserve"><value>Agent-X は各アイテムのプレビュー(要約案、振り分け先コレクション、タグ)を下書きします。ほとんどのトリアージ判断は一目見てワンクリックで済みます。</value></data>
+  <data name="UserGuide_Inbox_Feature1_Description.Text" xml:space="preserve"><value>[AI プレビューを生成] は、まだプレビューのない保留中の各項目について、テキストの先頭 2,000 文字をもとに有効な AI プロバイダーに問い合わせます。2、3 文の要約を書き、コレクションと最大 5 個のタグを提案します。提案されたコレクションが既存のコレクションと一致すれば、承認時にそのコレクションが使われます。提案されたタグは表示されるだけで、ドキュメントにはインデックス作成時に独自のタグが付きます。ボタンをクリックするまで何も生成されません。</value></data>
   <data name="UserGuide_Inbox_Feature2_Title.Text" xml:space="preserve"><value>承認・保留・却下</value></data>
-  <data name="UserGuide_Inbox_Feature2_Description.Text" xml:space="preserve"><value>承認するとアイテムは選択したコレクションの下でボールトに取り込まれます。保留すれば後で判断でき、却下すれば破棄されます。バッチ操作なら満杯のキューも数秒で片付きます。</value></data>
+  <data name="UserGuide_Inbox_Feature2_Description.Text" xml:space="preserve"><value>[承認] は項目を Knowledge Vault にインポートします。インポート先は「対象コレクション」で選んだコレクション、選んでいなければ提案されたコレクションです。[保留] と [却下] は項目の状態を変えるだけで、何もインポートしません。「ステータス」の一覧 (pending、accepted、rejected、deferred、all) で、表示する項目を選びます。[保留中をすべて承認] は保留中のすべての項目を、それぞれ提案されたコレクションに承認します。[処理済みを整理] は、承認、却下、保留にした項目を一覧から削除します。インポート済みのドキュメントは Vault に残ります。</value></data>
   <data name="UserGuide_Inbox_Feature3_Title.Text" xml:space="preserve"><value>キャプチャソース</value></data>
-  <data name="UserGuide_Inbox_Feature3_Description.Text" xml:space="preserve"><value>ブラウザ拡張機能からの Web キャプチャとプラグインが提供するコンテンツが、一貫したトリアージワークフローを持つ 1 つのキューに集まります。</value></data>
+  <data name="UserGuide_Inbox_Feature3_Description.Text" xml:space="preserve"><value>「Web クリップ」の項目はブラウザー拡張機能から届き (ページ全体、選択範囲、リーダー ビューのいずれか)、判断を待ちます。カレンダーとメールの項目はコネクターから届き、同期時に Vault にインポートされるため、承認済みの状態で表示されます。監視フォルダーのファイルは Smart Inbox を通らず、それ以外に項目を追加するものはありません。</value></data>
   <data name="UserGuide_Analytics_Title.Text" xml:space="preserve"><value>Analytics(分析)</value></data>
-  <data name="UserGuide_Analytics_Description.Text" xml:space="preserve"><value>Analytics ページでは、ナレッジベースと AI 利用の推移を確認できます。会話、ドキュメント、トークンにわたる利用統計、パフォーマンス指標、アクティビティトレンド — すべてあなた自身のデータからローカルで算出されます。</value></data>
+  <data name="UserGuide_Analytics_Description.Text" xml:space="preserve"><value>Analytics ページ (Ctrl+Shift+A) には、Agent-X の使用状況が表示されます。ページを開いたときと [更新] をクリックしたときに、この PC 上で自分のデータから計算されます。利用状況のカウンター、ワークフローと会話の統計、過去 30 日間のアクティビティ、モデルの使用状況、ドキュメントの種類、応答時間を確認できます。</value></data>
   <data name="UserGuide_Analytics_Feature1_Title.Text" xml:space="preserve"><value>利用状況の概要</value></data>
-  <data name="UserGuide_Analytics_Feature1_Description.Text" xml:space="preserve"><value>会話、メッセージ、ドキュメント、トークン消費の主要カウンターにより、ワークスペースの規模とアクティビティを常に把握できます。</value></data>
+  <data name="UserGuide_Analytics_Feature1_Description.Text" xml:space="preserve"><value>カウンターには、会話数、メッセージ数、使用トークン数 (メッセージあたりの平均付き)、ドキュメント数 (インデックス済みと保留中)、検索数、平均応答時間、会話あたりのトークン数が表示されます。</value></data>
   <data name="UserGuide_Analytics_Feature2_Title.Text" xml:space="preserve"><value>アクティビティトレンド</value></data>
-  <data name="UserGuide_Analytics_Feature2_Description.Text" xml:space="preserve"><value>会話とドキュメント取り込みの日次チャートから、作業パターンとナレッジベースの成長を読み取れます。</value></data>
+  <data name="UserGuide_Analytics_Feature2_Description.Text" xml:space="preserve"><value>「アクティビティの傾向」には、過去 30 日間の会話数、インポートしたドキュメント数、検索数が日ごとにグラフで表示されます。そのほか、「ワークフロー インテリジェンス」(実行回数、成功率、よく使うワークフローと最近のワークフロー)、「会話インテリジェンス」(永続的な要約)、「セマンティック リコール プローブ」(過去のメッセージを意味で検索)、「会話テーマ」と「テーマのトレンド」、「モデル使用状況」、「ドキュメントの種類」、「パフォーマンス指標」(平均、中央値、P95、最速と最遅の応答、スループット) のセクションがあります。</value></data>
   <data name="UserGuide_Analytics_Feature3_Title.Text" xml:space="preserve"><value>インデックスの状態</value></data>
-  <data name="UserGuide_Analytics_Feature3_Description.Text" xml:space="preserve"><value>インデックス完了率のライブインジケーターで、ボールトのどれだけが埋め込み済みで検索可能かが分かります。</value></data>
+  <data name="UserGuide_Analytics_Feature3_Description.Text" xml:space="preserve"><value>「ナレッジのインデックス作成」には、インデックス済みのドキュメント数とまだ保留中のドキュメント数が表示されます。ページは自動では更新されないため、最新の数値を見るには [更新] をクリックします。</value></data>
   <data name="UserGuide_Operations_Title.Text" xml:space="preserve"><value>Operations(運用状況)</value></data>
-  <data name="UserGuide_Operations_Description.Text" xml:space="preserve"><value>Operations ページ(Ctrl+Shift+O)は、バックグラウンドで動くすべてのものの状態コンソールです。コネクタの状態、コラボレーション同期の状態、インデックス作成の進捗、最近のバックグラウンドアクティビティを 1 つのライブスナップショットで確認できます。</value></data>
+  <data name="UserGuide_Operations_Description.Text" xml:space="preserve"><value>Operations ページ (Ctrl+Shift+O) には、Agent-X がバックグラウンドで行う作業の状態が 5 つの領域にまとめて表示されます。「会話インテリジェンス」(会話の永続的な要約)、「同期の状態」(Collaborative Sync)、「取り込みバックログ」(Smart Inbox の保留中の項目と最近インポートしたドキュメント)、「ワークフロー アクティビティ」(最近の実行)、「コネクタとプラグイン」です。状態はページを開いたときと [更新] をクリックしたときに読み込まれます。</value></data>
   <data name="UserGuide_Operations_Feature1_Title.Text" xml:space="preserve"><value>ステータススナップショット</value></data>
-  <data name="UserGuide_Operations_Feature1_Description.Text" xml:space="preserve"><value>カレンダー・メールコネクタ、コラボレーション同期、インデックス作成が正常か、待機中か、対応が必要かを一目で確認できます。</value></data>
+  <data name="UserGuide_Operations_Feature1_Description.Text" xml:space="preserve"><value>「現在の運用状況」には、5 つの領域のうち対応が必要な数が示され、領域ごとのタイルが表示されるので、どこを確認すべきかが一目でわかります。</value></data>
   <data name="UserGuide_Operations_Feature2_Title.Text" xml:space="preserve"><value>推奨される修正</value></data>
-  <data name="UserGuide_Operations_Feature2_Description.Text" xml:space="preserve"><value>問題があるとき、Operations は現在のスナップショットに基づいて最も効果的な対処手順を提示します — ライブソースの接続、同期の有効化、設定の完了など。</value></data>
-  <data name="UserGuide_Operations_Feature3_Title.Text" xml:space="preserve"><value>ライブモニタリング</value></data>
-  <data name="UserGuide_Operations_Feature3_Description.Text" xml:space="preserve"><value>スナップショットは処理の進行に合わせて更新されます。一括インポートや再インデックスのような長時間の処理も、ページを離れずに見守れます。</value></data>
+  <data name="UserGuide_Operations_Feature2_Description.Text" xml:space="preserve"><value>「推奨される修正」には、現在の状態で必要な対応が、それを実行するボタンとともに一覧表示されます。古くなった会話の要約の更新、手動同期または同期設定の完了、Smart Inbox の保留中の項目の AI プレビュー生成、対応が必要な最近インポートしたドキュメントのインデックス再試行、オフになっているコネクターの有効化 (有効なコネクターがない場合はプラグイン マネージャーを開く)、確認が必要なワークフローの実行の確認です。修正すべきものがない場合は、Analytics を開くことを勧めます。</value></data>
+  <data name="UserGuide_Operations_Feature3_Title.Text" xml:space="preserve"><value>更新と関連ページ</value></data>
+  <data name="UserGuide_Operations_Feature3_Description.Text" xml:space="preserve"><value>ページは自動では更新されません。大量のインポートや再インデックスの実行中などは、[更新] をクリックして状態を読み込み直します。各領域のボタンは対応するページ (Analytics、Collaborative Sync、Smart Inbox、Knowledge Vault、ワークフロー、プラグイン マネージャー) を開きます。ここから開いた項目には、Analytics、Collaborative Sync、Smart Inbox、ワークフローの各ページで「Operations から開きました」と表示されます。</value></data>
   <data name="UserGuide_Sync_Title.Text" xml:space="preserve"><value>Collaborative Sync(コラボ同期)</value></data>
-  <data name="UserGuide_Sync_Description.Text" xml:space="preserve"><value>Collaborative Sync は、暗号化されたファイルベースのトランスポートで複数の Agent-X インストールを同期します。各デバイスを共有フォルダー(OneDrive、Google Drive、NAS、USB ドライブでも可)に向けるだけで、サーバーもクラウドアカウントも不要のまま変更が行き来します。</value></data>
+  <data name="UserGuide_Sync_Description.Text" xml:space="preserve"><value>Collaborative Sync は、ネットワーク共有や OneDrive、Dropbox のフォルダーなど、すべてのインストールからアクセスできるフォルダーを介して、Agent-X のインストール間でレコードをやり取りします。サーバーやアカウントは不要です。各インストールは変更を暗号化パッケージ (.axs ファイル、AES-256。鍵は [暗号化キー] のパスフレーズから生成され、パスフレーズはすべてのインストールで同じにする必要があります) としてそこに書き込み、ほかのインストールのパッケージを読み込みます。同期されるのはファイルではなくレコードです。ドキュメント (情報のみで、元のファイルやインデックスは含まない)、コレクション、タグ、会話 (メッセージは含まない)、注釈、システム プロンプトが対象です。同期されたドキュメントのファイルが相手の PC にない場合、そのドキュメントは相手側で失敗として扱われます。設定は同期されません。[同期範囲] で選択したコレクションだけに限定すると、それらのコレクション、そのドキュメント、ドキュメントの注釈だけがやり取りされ、タグ、会話、システム プロンプトは対象外になります。</value></data>
   <data name="UserGuide_Sync_Feature1_Title.Text" xml:space="preserve"><value>共有フォルダートランスポート</value></data>
-  <data name="UserGuide_Sync_Feature1_Description.Text" xml:space="preserve"><value>すべてのマシンからアクセスできるフォルダーなら何でも同期チャネルになります。Agent-X はそこに暗号化された変更パッケージを書き込みます — 共有場所に読み取り可能なデータが置かれることはありません。</value></data>
+  <data name="UserGuide_Sync_Feature1_Description.Text" xml:space="preserve"><value>すべてのインストールからアクセスできるフォルダーであれば使えます。[同期フォルダー] に入力し (または [参照] を使い)、[暗号化キー] を入力して [構成を保存] をクリックします。フォルダーに置かれるのは暗号化されたパッケージだけで、パスフレーズがなければ読めません。</value></data>
   <data name="UserGuide_Sync_Feature2_Title.Text" xml:space="preserve"><value>競合解決</value></data>
-  <data name="UserGuide_Sync_Feature2_Description.Text" xml:space="preserve"><value>同じアイテムが 2 台のデバイスで編集された場合は、タイムスタンプに基づく競合解決がどちらの変更を採用するかを決定します。手動でのマージ作業は不要です。</value></data>
+  <data name="UserGuide_Sync_Feature2_Description.Text" xml:space="preserve"><value>同じ項目が 2 つのインストールで変更された場合は、新しいほうの変更が優先されます (後勝ち)。時刻がまったく同じ場合は、デバイス ID の大きいインストールが優先されます。マージは行われず、同期履歴には各実行の競合件数が表示されます。</value></data>
   <data name="UserGuide_Sync_Feature3_Title.Text" xml:space="preserve"><value>自動同期と履歴</value></data>
   <data name="UserGuide_Sync_Feature3_Description.Text" xml:space="preserve"><value>自動同期をオンにすると、一定の間隔で変更をやり取りします。「今すぐ同期」でいつでも手動で同期することもできます。同期履歴には各実行とその結果が一覧表示されるため、失敗した同期をすぐに見つけられます。</value></data>
 
@@ -1168,18 +1168,18 @@
   <data name="Onb_WelcomeTitle.Text" xml:space="preserve"><value>Agent-X へようこそ</value></data>
   <data name="Onb_WelcomeSubtitle.Text" xml:space="preserve"><value>ローカルファーストの AI インテリジェンス ハブ</value></data>
   <data name="Onb_PrivateTitle.Text" xml:space="preserve"><value>プライベートで安全</value></data>
-  <data name="Onb_PrivateDesc.Text" xml:space="preserve"><value>すべてがお使いのマシン上でローカルに動作します。データがデバイスの外に出ることはありません。</value></data>
-  <data name="Onb_FreeTitle.Text" xml:space="preserve"><value>無制限・無料</value></data>
-  <data name="Onb_FreeDesc.Text" xml:space="preserve"><value>Ollama によるローカルのオープンソース AI モデルで動作します。必要に応じて OpenAI や Anthropic Claude のクラウド モデルにも接続できます。</value></data>
+  <data name="Onb_PrivateDesc.Text" xml:space="preserve"><value>内蔵モデル、またはこの PC 上の Ollama を使う場合、ドキュメントと会話はこの PC 上で処理されます。クラウド プロバイダー、リサーチ モードの Web 検索、メールとカレンダーのコネクターは、設定した場合にのみデータを送信します。</value></data>
+  <data name="Onb_FreeTitle.Text" xml:space="preserve"><value>無料のローカル モデル</value></data>
+  <data name="Onb_FreeDesc.Text" xml:space="preserve"><value>ローカル モデル (内蔵モデルや Ollama で実行するモデル) は無料で使えます。OpenAI と Anthropic Claude は任意で、利用分はそれぞれのプロバイダーから請求されます。</value></data>
   <data name="Onb_DataTitle.Text" xml:space="preserve"><value>あなたのデータ、あなたのルール</value></data>
   <data name="Onb_DataDesc.Text" xml:space="preserve"><value>ドキュメントをインデックス化し、セマンティック検索を行い、ファイルとチャットできます。完全なプライバシーにはローカル AI を、モデルの選択肢を増やすには任意のクラウド プロバイダーを利用してください。</value></data>
   <data name="Onb_OllamaTitle.Text" xml:space="preserve"><value>Ollama に接続</value></data>
-  <data name="Onb_OllamaDesc.Text" xml:space="preserve"><value>Agent-X は Ollama を使って AI モデルをローカルで実行します。Ollama は AI モデルを管理・提供する無料のオープンソース ツールです。OpenAI や Anthropic のプロバイダーは、後から設定で構成することもできます。</value></data>
+  <data name="Onb_OllamaDesc.Text" xml:space="preserve"><value>Ollama は、オープンソースのモデルを PC 上で実行する無料のツールです。使用は任意で、Agent-X には数ステップ後で案内する内蔵モデルもあります。Ollama を使わない場合はこのステップをスキップしてください。OpenAI と Anthropic のキーは、その後のステップまたは設定で追加できます。</value></data>
   <data name="Onb_EndpointOverline.Text" xml:space="preserve"><value>OLLAMA エンドポイント</value></data>
   <data name="Onb_TestConnBtn.Content" xml:space="preserve"><value>接続をテスト</value></data>
   <data name="Onb_OllamaHelpRun1.Text" xml:space="preserve"><value>Ollama をお持ちでない場合は</value></data>
   <data name="Onb_OllamaHelpRun2.Text" xml:space="preserve"><value>からインストールしてください。</value></data>
-  <data name="Onb_SkipBtn.Content" xml:space="preserve"><value>今はスキップ — 後で設定します</value></data>
+  <data name="Onb_SkipBtn.Content" xml:space="preserve"><value>今はスキップ (後で設定します)</value></data>
   <data name="Onb_ModelsTitle.Text" xml:space="preserve"><value>モデルを選択</value></data>
   <data name="Onb_ModelsDesc.Text" xml:space="preserve"><value>既定のチャット モデルと、セマンティック検索用の埋め込みモデルを選択します。</value></data>
   <data name="Onb_LoadingModels.Text" xml:space="preserve"><value>利用可能なモデルを読み込んでいます...</value></data>

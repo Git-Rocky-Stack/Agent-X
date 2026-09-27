@@ -2,20 +2,20 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!--
-    ╔══════════════════════════════════════════════════════════════════╗
-    ║          USER GUIDE ADVANCED SECTIONS (BATCH 3)                 ║
-    ║                                                                  ║
-    ║  SemanticSearchTemplate, ModelManagerTemplate,                 ║
-    ║  HardwareAdvisorTemplate, SettingsTemplate,                    ║
-    ║  KeyboardShortcutsTemplate, CommandPaletteTemplate,            ║
-    ║  SupportedFileFormatsTemplate, TroubleshootingTemplate,       ║
-    ║  PrivacyAndSecurityTemplate, GettingHelpTemplate               ║
-    ╚══════════════════════════════════════════════════════════════════╝
+    +==================================================================+
+    |          USER GUIDE ADVANCED SECTIONS (BATCH 3)                 |
+    |                                                                  |
+    |  SemanticSearchTemplate, ModelManagerTemplate,                 |
+    |  HardwareAdvisorTemplate, SettingsTemplate,                    |
+    |  KeyboardShortcutsTemplate, CommandPaletteTemplate,            |
+    |  SupportedFileFormatsTemplate, TroubleshootingTemplate,       |
+    |  PrivacyAndSecurityTemplate, GettingHelpTemplate               |
+    +==================================================================+
     -->
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          ROW 11: SEMANTIC SEARCH
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
     <DataTemplate x:Key="SemanticSearchTemplate">
         <Border Style="{StaticResource CardStyle}">
             <StackPanel Spacing="16">
@@ -122,9 +122,9 @@
         </Border>
     </DataTemplate>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          ROW 12: MODEL MANAGER
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
     <DataTemplate x:Key="ModelManagerTemplate">
         <Border Style="{StaticResource CardStyle}">
             <StackPanel Spacing="16">
@@ -211,9 +211,9 @@
         </Border>
     </DataTemplate>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          ROW 13: HARDWARE ADVISOR
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
     <DataTemplate x:Key="HardwareAdvisorTemplate">
         <Border Style="{StaticResource CardStyle}">
             <StackPanel Spacing="16">
@@ -289,9 +289,9 @@
         </Border>
     </DataTemplate>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          ROW 14: SETTINGS
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
     <DataTemplate x:Key="SettingsTemplate">
         <Border Style="{StaticResource CardStyle}">
             <StackPanel Spacing="16">
@@ -368,9 +368,9 @@
         </Border>
     </DataTemplate>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          ROW 15: KEYBOARD SHORTCUTS
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
     <DataTemplate x:Key="KeyboardShortcutsTemplate">
         <Border Style="{StaticResource CardStyle}">
             <StackPanel Spacing="16">
@@ -1069,7 +1069,7 @@
                                             CornerRadius="{StaticResource RControl}"
                                             Padding="8,4"
                                             HorizontalAlignment="Left">
-                                        <TextBlock Text="1 … 9" Style="{StaticResource MonoSmallStyle}"
+                                        <TextBlock Text="1-9" Style="{StaticResource MonoSmallStyle}"
                                                    Foreground="{ThemeResource TextPrimaryBrush}" />
                                     </Border>
                             </Grid>
@@ -1086,9 +1086,9 @@
         </Border>
     </DataTemplate>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          ROW 16: COMMAND PALETTE
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
     <DataTemplate x:Key="CommandPaletteTemplate">
         <Border Style="{StaticResource CardStyle}">
             <StackPanel Spacing="16">
@@ -1176,9 +1176,9 @@
         </Border>
     </DataTemplate>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          ROW 17: SUPPORTED FILE FORMATS
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
     <DataTemplate x:Key="SupportedFileFormatsTemplate">
         <Border Style="{StaticResource CardStyle}">
             <StackPanel Spacing="16">
@@ -1343,9 +1343,9 @@
         </Border>
     </DataTemplate>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          ROW 18: TROUBLESHOOTING
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
     <DataTemplate x:Key="TroubleshootingTemplate">
         <Border Style="{StaticResource CardStyle}">
             <StackPanel Spacing="16">
@@ -1461,9 +1461,9 @@
         </Border>
     </DataTemplate>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          ROW 19: PRIVACY & SECURITY
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
     <DataTemplate x:Key="PrivacyAndSecurityTemplate">
         <Border Style="{StaticResource CardElevatedStyle}">
             <StackPanel Spacing="16">
@@ -1546,9 +1546,9 @@
         </Border>
     </DataTemplate>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          ROW 20: GETTING HELP
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
     <DataTemplate x:Key="GettingHelpTemplate">
         <Border Style="{StaticResource CardStyle}">
             <StackPanel Spacing="16">
