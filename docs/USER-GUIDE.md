@@ -283,7 +283,7 @@ The Dashboard is the page Agent-X opens on at startup (after onboarding), and `C
 - **Document and storage figures:** document and collection counts, the storage documents use and the share already indexed, conversations and tokens used, and GPU, RAM, and video memory.
 - **Recent documents and recent conversations:** the latest imports and chats. The entries are a list only; **View All** opens the Knowledge Vault or AI Chat.
 - **Operations Overview:** conversation intelligence, sync health, connectors and plugins, the Smart Inbox backlog, and workflow activity, each with a button to its page.
-- **Your Belief Evolution:** up to five topics whose recorded stance changed, with the earlier and the current stance; acknowledge one to dismiss it, or open Past Self. Until a view has been recorded more than once, the card reads "No beliefs to compare yet".
+- **Your Belief Evolution:** up to five topics whose recorded stance changed, with the earlier and the current stance; acknowledge one to dismiss it, or open Past Self. Until a view has been recorded, the card reads "No beliefs to compare yet"; with views recorded and none changed, it reads "Your beliefs are consistent", and right after you acknowledge the last change, "No open conflicts".
 - **Recommended Next Steps:** setup, remediation, and next steps such as finishing AI setup, indexing waiting documents, triaging the inbox, configuring sync, or creating a workflow.
 - **Status strip:** available RAM, vault storage, and the privacy line ("100% Private" or the list of services that send data off the machine).
 
@@ -1010,7 +1010,7 @@ Open the command palette with `Ctrl+K` or `Ctrl+Shift+P`. Type to filter the pag
 
 ### Jump To
 
-Open Jump To with `Ctrl+P` to open a page, a document, or a conversation by name. It also lists **Onboarding**.
+Open Jump To with `Ctrl+P` to open a page, a document, or a conversation by name. It lists every page, including **Onboarding**, the 50 most recently imported documents, and 50 conversations (pinned first, then the most recently updated); open older items from the Knowledge Vault or AI Chat.
 
 ### Keyboard Shortcuts list
 
