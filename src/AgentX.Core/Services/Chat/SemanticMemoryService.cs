@@ -112,7 +112,11 @@ public sealed class SemanticMemoryService : ISemanticMemoryService
 
             foreach (var memory in memoriesWithEmbeddings)
             {
-                if (TryParseEmbedding(memory.Embedding!, out var memoryEmbedding))
+                // A memory embedded by another embedding model (a different vector size) cannot be
+                // compared with this query; skipping it keeps the others usable, where the size
+                // mismatch used to throw and send every retrieval to the fallback.
+                if (TryParseEmbedding(memory.Embedding!, out var memoryEmbedding)
+                    && memoryEmbedding.Length == queryEmbedding.Length)
                 {
                     float similarity = VectorMath.CosineSimilarity(queryEmbedding, memoryEmbedding);
                     if (similarity >= minSimilarity)
@@ -324,7 +328,8 @@ public sealed class SemanticMemoryService : ISemanticMemoryService
                 foreach (var existing in existingMemories)
                 {
                     if (!string.IsNullOrEmpty(existing.Embedding) &&
-                        TryParseEmbedding(existing.Embedding, out var existingEmbedding))
+                        TryParseEmbedding(existing.Embedding, out var existingEmbedding) &&
+                        existingEmbedding.Length == contentEmbedding.Length)
                     {
                         var similarity = VectorMath.CosineSimilarity(contentEmbedding, existingEmbedding);
                         if (similarity > 0.92f) // High threshold for duplicate detection
@@ -355,6 +360,9 @@ public sealed class SemanticMemoryService : ISemanticMemoryService
                     DecayRate = GetDecayRateForCategory(category),
                     Confidence = confidence,
                     Embedding = embeddingStr,
+                    EmbeddingModelVersion = _embeddingService.ModelVersion,
+                    EmbeddingDimensions = contentEmbedding.Length,
+                    EmbeddedAt = DateTime.UtcNow,
                     CreatedAt = DateTime.UtcNow,
                     LastUsedAt = DateTime.UtcNow
                 };
@@ -568,6 +576,7 @@ public sealed class SemanticMemoryService : ISemanticMemoryService
                 {
                     if (string.IsNullOrEmpty(existing.Embedding)) continue;
                     if (!TryParseEmbedding(existing.Embedding, out var existingEmbedding)) continue;
+                    if (existingEmbedding.Length != newEmbedding.Length) continue;
 
                     var similarity = VectorMath.CosineSimilarity(newEmbedding, existingEmbedding);
 

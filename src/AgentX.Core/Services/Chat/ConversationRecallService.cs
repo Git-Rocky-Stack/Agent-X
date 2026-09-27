@@ -59,6 +59,7 @@ public sealed class ConversationRecallService : IConversationRecallService
 
             message.Embedding = SerializeEmbedding(embedding);
             message.EmbeddingModel = _embeddingService.ModelName;
+            message.EmbeddingDimensions = embedding.Length;
             message.EmbeddedAt = DateTime.UtcNow;
 
             await _db.SaveChangesAsync(ct).ConfigureAwait(false);
@@ -113,6 +114,7 @@ public sealed class ConversationRecallService : IConversationRecallService
             {
                 targets[i].Embedding = SerializeEmbedding(embeddings[i]);
                 targets[i].EmbeddingModel = _embeddingService.ModelName;
+                targets[i].EmbeddingDimensions = embeddings[i].Length;
                 targets[i].EmbeddedAt = embeddedAt;
             }
 
@@ -215,8 +217,11 @@ public sealed class ConversationRecallService : IConversationRecallService
 
         foreach (var candidate in candidates)
         {
+            // A message embedded by another embedding model (a different vector size) cannot be
+            // compared with this query and is skipped rather than failing the whole recall.
             if (string.IsNullOrWhiteSpace(candidate.Embedding)
-                || !TryParseEmbedding(candidate.Embedding, out var messageEmbedding))
+                || !TryParseEmbedding(candidate.Embedding, out var messageEmbedding)
+                || messageEmbedding.Length != queryEmbedding.Length)
             {
                 continue;
             }

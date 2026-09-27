@@ -127,6 +127,23 @@ public sealed class SemanticMemoryServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task RetrieveRelevant_skips_memories_embedded_by_another_model()
+    {
+        // After a switch to an embedding model with a different vector size, the older memory
+        // cannot be compared with the query. It is skipped; the size mismatch used to throw and
+        // send every retrieval to the importance-only fallback.
+        _db.Memories.AddRange(
+            Memory("from the old model", "1,0,0,0,0", importance: 0.9),
+            Memory("from the current model", "1,0,0,0", importance: 0.5));
+        await _db.SaveChangesAsync();
+        SetupEmbedding(1, 0, 0, 0);
+
+        var result = await CreateSut().RetrieveRelevantMemoriesAsync("anything", maxMemories: 5, minSimilarity: 0.5f);
+
+        result.Should().ContainSingle().Which.Content.Should().Be("from the current model");
+    }
+
+    [Fact]
     public async Task RetrieveRelevant_all_below_threshold_returns_empty()
     {
         _db.Memories.Add(Memory("orthogonal", "0,1,0,0", importance: 0.9));
@@ -308,6 +325,23 @@ public sealed class SemanticMemoryServiceTests : IDisposable
         (await verify.Memories.AnyAsync(m => m.Category == "user_preference")).Should().BeTrue();
         (await verify.Memories.AnyAsync(m => m.Category == "relationship")).Should().BeTrue();
         (await verify.Memories.AnyAsync(m => m.Content == "abc")).Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task ExtractMemories_records_which_embedding_model_made_each_memory()
+    {
+        var convId = await SeedConversationWithMessagesAsync("question", "answer");
+        SetupEmbedding(1, 0, 0, 0);
+        _embeddings.SetupGet(e => e.ModelVersion).Returns("test-embed:1.0");
+        SetupChat("fact|the user keeps project notes in Markdown|0.9");
+
+        await CreateSut().ExtractMemoriesAsync(convId);
+
+        await using var verify = _factory.CreateContext();
+        var memory = await verify.Memories.SingleAsync();
+        memory.EmbeddingModelVersion.Should().Be("test-embed:1.0");
+        memory.EmbeddingDimensions.Should().Be(4);
+        memory.EmbeddedAt.Should().NotBeNull();
     }
 
     [Fact]

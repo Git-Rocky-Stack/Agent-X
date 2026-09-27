@@ -55,6 +55,7 @@ public sealed class ConversationRecallServiceTests : IDisposable
 
         messages[0].Embedding.Should().NotBeNullOrWhiteSpace();
         messages[0].EmbeddingModel.Should().Be("all-minilm");
+        messages[0].EmbeddingDimensions.Should().Be(3);
         messages[0].EmbeddedAt.Should().NotBeNull();
         messages[1].Embedding.Should().NotBeNullOrWhiteSpace();
         messages[2].Embedding.Should().BeNull();
@@ -99,6 +100,30 @@ public sealed class ConversationRecallServiceTests : IDisposable
         results[0].Role.Should().Be("assistant");
         results[0].Similarity.Should().BeGreaterThan(0.9f);
         results[0].ContentPreview.Should().Contain("dashboard");
+    }
+
+    [Fact]
+    public async Task SearchRelevantMessagesAsync_skips_messages_embedded_by_another_model()
+    {
+        // After a switch to an embedding model with a different vector size, older message
+        // vectors cannot be compared with the query. They are skipped; the comparison used to
+        // throw and fail the whole recall.
+        using var db = _dbFactory.CreateContext();
+        var conversation = await SeedConversationAsync(db, "Mixed models");
+        await SeedMessageAsync(db, conversation.Id, 0, "assistant", "Embedded by the old four-dimension model.",
+            embedding: "1.000000,0.000000,0.000000,0.000000");
+        await SeedMessageAsync(db, conversation.Id, 1, "assistant", "Embedded by the current model.",
+            embedding: "1.000000,0.000000,0.000000");
+
+        _embeddingService
+            .Setup(service => service.EmbedAsync("current model", It.IsAny<CancellationToken>()))
+            .ReturnsAsync([1f, 0f, 0f]);
+
+        var sut = new ConversationRecallService(db, _embeddingService.Object, _logger);
+
+        var results = await sut.SearchRelevantMessagesAsync("current model", maxResults: 4, minSimilarity: 0.5f);
+
+        results.Should().ContainSingle().Which.ContentPreview.Should().Contain("current model");
     }
 
     private static async Task<ConversationEntity> SeedConversationAsync(
