@@ -1223,6 +1223,18 @@
   <data name="Main_PastSelf.Content" xml:space="preserve"><value>过往的自己</value></data>
   <data name="Main_AiChat.Content" xml:space="preserve"><value>AI Chat</value></data>
   <data name="Main_AskYourFiles.Content" xml:space="preserve"><value>向您的文件提问</value></data>
+  <data name="Dash_PrivacySurfaceAiModel" xml:space="preserve"><value>AI 模型</value></data>
+  <data name="Dash_PrivacySurfaceModelRouting" xml:space="preserve"><value>模型路由</value></data>
+  <data name="Dash_PrivacySurfaceWebSearch" xml:space="preserve"><value>网络搜索</value></data>
+  <data name="Dash_PrivacySurfaceCalendarSync" xml:space="preserve"><value>日历同步</value></data>
+  <data name="Dash_PrivacySurfaceEmailSync" xml:space="preserve"><value>邮件同步</value></data>
+  <data name="Dash_PrivacyDetailCloudAi" xml:space="preserve"><value>您的提示词和对话内容会发送到 {0} 进行处理。</value></data>
+  <data name="Dash_PrivacyDetailRemoteOllama" xml:space="preserve"><value>您的提示词和对话内容会发送到位于 {0} 的 Ollama 服务器。</value></data>
+  <data name="Dash_PrivacyDetailModelRouting" xml:space="preserve"><value>智能模型路由可能会将提示词发送到您配置的云 AI 提供商。</value></data>
+  <data name="Dash_PrivacyDetailWebSearch" xml:space="preserve"><value>在聊天中开启研究模式后，您的问题会发送到 {0}。</value></data>
+  <data name="Dash_PrivacyDetailSearXng" xml:space="preserve"><value>在聊天中开启研究模式后，您的问题会发送到位于 {0} 的 SearXNG 实例，并由其转发给公共搜索引擎。</value></data>
+  <data name="Dash_PrivacyDetailCalendarSync" xml:space="preserve"><value>日历同步会与您已连接的 Google 或 Microsoft 账户交换数据。</value></data>
+  <data name="Dash_PrivacyDetailEmailSync" xml:space="preserve"><value>邮件同步会与您已连接的 Gmail 或 Outlook 账户交换数据。</value></data>
   <data name="Chat_ShortcutNewConversation" xml:space="preserve"><value>新对话</value></data>
   <data name="Chat_ShortcutToggleConversationPane" xml:space="preserve"><value>显示或隐藏对话窗格</value></data>
   <data name="Chat_ShortcutCategory" xml:space="preserve"><value>聊天</value></data>

@@ -139,8 +139,8 @@ public partial class App : Application
             var localization = GetService<ILocalizationService>();
             await localization.InitializeAsync();
 
-            // Relative times ("5m ago") and the chat context inspector are worded in Core, which
-            // cannot read the app's resources.
+            // Relative times ("5m ago"), the chat context inspector and the dashboard's privacy
+            // disclosures are worded in Core, which cannot read the app's resources.
             AgentX.Core.Helpers.FormatHelper.LocalizedText = localization.GetString;
             Log.Information("Localization initialized: {Language}", localization.CurrentLanguage);
         }

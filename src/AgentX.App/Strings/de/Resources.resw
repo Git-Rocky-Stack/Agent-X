@@ -1223,6 +1223,18 @@
   <data name="Main_PastSelf.Content" xml:space="preserve"><value>Vergangenes Ich</value></data>
   <data name="Main_AiChat.Content" xml:space="preserve"><value>AI Chat</value></data>
   <data name="Main_AskYourFiles.Content" xml:space="preserve"><value>Fragen Sie Ihre Dateien</value></data>
+  <data name="Dash_PrivacySurfaceAiModel" xml:space="preserve"><value>KI-Modell</value></data>
+  <data name="Dash_PrivacySurfaceModelRouting" xml:space="preserve"><value>Modell-Routing</value></data>
+  <data name="Dash_PrivacySurfaceWebSearch" xml:space="preserve"><value>Websuche</value></data>
+  <data name="Dash_PrivacySurfaceCalendarSync" xml:space="preserve"><value>Kalendersynchronisierung</value></data>
+  <data name="Dash_PrivacySurfaceEmailSync" xml:space="preserve"><value>E-Mail-Synchronisierung</value></data>
+  <data name="Dash_PrivacyDetailCloudAi" xml:space="preserve"><value>Ihre Prompts und Unterhaltungsinhalte werden zur Verarbeitung an {0} gesendet.</value></data>
+  <data name="Dash_PrivacyDetailRemoteOllama" xml:space="preserve"><value>Ihre Prompts und Unterhaltungsinhalte werden an den Ollama-Server unter {0} gesendet.</value></data>
+  <data name="Dash_PrivacyDetailModelRouting" xml:space="preserve"><value>Das intelligente Modell-Routing kann Prompts an Ihren konfigurierten Cloud-KI-Anbieter senden.</value></data>
+  <data name="Dash_PrivacyDetailWebSearch" xml:space="preserve"><value>Wenn der Recherchemodus im Chat aktiv ist, werden Ihre Fragen an {0} gesendet.</value></data>
+  <data name="Dash_PrivacyDetailSearXng" xml:space="preserve"><value>Wenn der Recherchemodus im Chat aktiv ist, werden Ihre Fragen an die SearXNG-Instanz unter {0} gesendet, die sie an öffentliche Suchmaschinen weiterleitet.</value></data>
+  <data name="Dash_PrivacyDetailCalendarSync" xml:space="preserve"><value>Die Kalendersynchronisierung tauscht Daten mit Ihrem verbundenen Google- oder Microsoft-Konto aus.</value></data>
+  <data name="Dash_PrivacyDetailEmailSync" xml:space="preserve"><value>Die E-Mail-Synchronisierung tauscht Daten mit Ihrem verbundenen Gmail- oder Outlook-Konto aus.</value></data>
   <data name="Chat_ShortcutNewConversation" xml:space="preserve"><value>Neue Unterhaltung</value></data>
   <data name="Chat_ShortcutToggleConversationPane" xml:space="preserve"><value>Unterhaltungsbereich ein- oder ausblenden</value></data>
   <data name="Chat_ShortcutCategory" xml:space="preserve"><value>Chat</value></data>

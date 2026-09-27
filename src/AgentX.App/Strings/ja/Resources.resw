@@ -1223,6 +1223,18 @@
   <data name="Main_PastSelf.Content" xml:space="preserve"><value>Past Self</value></data>
   <data name="Main_AiChat.Content" xml:space="preserve"><value>AI Chat</value></data>
   <data name="Main_AskYourFiles.Content" xml:space="preserve"><value>ファイルに質問する</value></data>
+  <data name="Dash_PrivacySurfaceAiModel" xml:space="preserve"><value>AI モデル</value></data>
+  <data name="Dash_PrivacySurfaceModelRouting" xml:space="preserve"><value>モデル ルーティング</value></data>
+  <data name="Dash_PrivacySurfaceWebSearch" xml:space="preserve"><value>Web 検索</value></data>
+  <data name="Dash_PrivacySurfaceCalendarSync" xml:space="preserve"><value>カレンダー同期</value></data>
+  <data name="Dash_PrivacySurfaceEmailSync" xml:space="preserve"><value>メール同期</value></data>
+  <data name="Dash_PrivacyDetailCloudAi" xml:space="preserve"><value>プロンプトと会話の内容は処理のために {0} に送信されます。</value></data>
+  <data name="Dash_PrivacyDetailRemoteOllama" xml:space="preserve"><value>プロンプトと会話の内容は {0} の Ollama サーバーに送信されます。</value></data>
+  <data name="Dash_PrivacyDetailModelRouting" xml:space="preserve"><value>スマート モデル ルーティングにより、プロンプトが構成済みのクラウド AI プロバイダーに送信される場合があります。</value></data>
+  <data name="Dash_PrivacyDetailWebSearch" xml:space="preserve"><value>チャットでリサーチ モードがオンの間は、質問が {0} に送信されます。</value></data>
+  <data name="Dash_PrivacyDetailSearXng" xml:space="preserve"><value>チャットでリサーチ モードがオンの間は、質問が {0} の SearXNG インスタンスに送信され、そこから公開検索エンジンに転送されます。</value></data>
+  <data name="Dash_PrivacyDetailCalendarSync" xml:space="preserve"><value>カレンダー同期は、接続済みの Google または Microsoft アカウントとデータをやり取りします。</value></data>
+  <data name="Dash_PrivacyDetailEmailSync" xml:space="preserve"><value>メール同期は、接続済みの Gmail または Outlook アカウントとデータをやり取りします。</value></data>
   <data name="Chat_ShortcutNewConversation" xml:space="preserve"><value>新しい会話</value></data>
   <data name="Chat_ShortcutToggleConversationPane" xml:space="preserve"><value>会話ペインの表示/非表示を切り替え</value></data>
   <data name="Chat_ShortcutCategory" xml:space="preserve"><value>チャット</value></data>

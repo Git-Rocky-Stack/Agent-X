@@ -6,12 +6,12 @@ public static class FormatHelper
 {
     /// <summary>
     /// Words the text Core builds for the user in the user's language: <see cref="TimeAgo(DateTime)"/>,
-    /// <see cref="TimeAgoWithMonths(DateTime)"/> and the chat context inspector's story, chips and
-    /// explanations. Given a resource key such as "TimeAgo_MinutesAgo" it returns that resource,
-    /// or null, an empty string or the key itself when there is none. Core cannot read the app's
-    /// resources, so the app sets this at startup to its localization service's GetString. Until
-    /// then, and for a resource that is missing or does not format, the wording is English
-    /// ("5m ago", "just now"). See <see cref="LocalizedWords"/>.
+    /// <see cref="TimeAgoWithMonths(DateTime)"/>, the chat context inspector's story, chips and
+    /// explanations, and the dashboard's privacy disclosures. Given a resource key such as
+    /// "TimeAgo_MinutesAgo" it returns that resource, or null, an empty string or the key itself
+    /// when there is none. Core cannot read the app's resources, so the app sets this at startup
+    /// to its localization service's GetString. Until then, and for a resource that is missing or
+    /// does not format, the wording is English ("5m ago", "just now"). See <see cref="LocalizedWords"/>.
     /// </summary>
     public static Func<string, string?>? LocalizedText { get; set; }
 

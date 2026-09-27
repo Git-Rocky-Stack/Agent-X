@@ -8,8 +8,8 @@ namespace AgentX.Core.Services.Privacy;
 /// transmitted and to whom, so the UI can replace the blanket "no cloud" claim with an accurate,
 /// state-aware statement (AX-QA-008).
 /// </summary>
-/// <param name="Surface">Short label for the feature, e.g. "AI model", "Web search".</param>
-/// <param name="Detail">User-facing sentence describing what leaves the machine and where it goes.</param>
+/// <param name="Surface">Short label for the feature, e.g. "AI model", "Web search", in the user's language.</param>
+/// <param name="Detail">User-facing sentence describing what leaves the machine and where it goes, in the user's language.</param>
 public sealed record PrivacyDisclosure(string Surface, string Detail);
 
 /// <summary>

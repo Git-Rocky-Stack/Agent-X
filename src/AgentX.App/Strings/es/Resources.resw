@@ -1223,6 +1223,18 @@
   <data name="Main_PastSelf.Content" xml:space="preserve"><value>Tu yo del pasado</value></data>
   <data name="Main_AiChat.Content" xml:space="preserve"><value>AI Chat</value></data>
   <data name="Main_AskYourFiles.Content" xml:space="preserve"><value>Pregunta a tus archivos</value></data>
+  <data name="Dash_PrivacySurfaceAiModel" xml:space="preserve"><value>Modelo de IA</value></data>
+  <data name="Dash_PrivacySurfaceModelRouting" xml:space="preserve"><value>Enrutamiento de modelos</value></data>
+  <data name="Dash_PrivacySurfaceWebSearch" xml:space="preserve"><value>Búsqueda web</value></data>
+  <data name="Dash_PrivacySurfaceCalendarSync" xml:space="preserve"><value>Sincronización de calendario</value></data>
+  <data name="Dash_PrivacySurfaceEmailSync" xml:space="preserve"><value>Sincronización de correo</value></data>
+  <data name="Dash_PrivacyDetailCloudAi" xml:space="preserve"><value>Sus prompts y el contenido de sus conversaciones se envían a {0} para su procesamiento.</value></data>
+  <data name="Dash_PrivacyDetailRemoteOllama" xml:space="preserve"><value>Sus prompts y el contenido de sus conversaciones se envían al servidor de Ollama en {0}.</value></data>
+  <data name="Dash_PrivacyDetailModelRouting" xml:space="preserve"><value>El enrutamiento inteligente de modelos puede enviar prompts a su proveedor de IA en la nube configurado.</value></data>
+  <data name="Dash_PrivacyDetailWebSearch" xml:space="preserve"><value>Cuando el modo investigación está activado en el chat, sus preguntas se envían a {0}.</value></data>
+  <data name="Dash_PrivacyDetailSearXng" xml:space="preserve"><value>Cuando el modo investigación está activado en el chat, sus preguntas se envían a la instancia de SearXNG en {0}, que las reenvía a buscadores públicos.</value></data>
+  <data name="Dash_PrivacyDetailCalendarSync" xml:space="preserve"><value>La sincronización de calendario intercambia datos con su cuenta de Google o Microsoft conectada.</value></data>
+  <data name="Dash_PrivacyDetailEmailSync" xml:space="preserve"><value>La sincronización de correo intercambia datos con su cuenta de Gmail u Outlook conectada.</value></data>
   <data name="Chat_ShortcutNewConversation" xml:space="preserve"><value>Nueva conversación</value></data>
   <data name="Chat_ShortcutToggleConversationPane" xml:space="preserve"><value>Mostrar u ocultar el panel de conversaciones</value></data>
   <data name="Chat_ShortcutCategory" xml:space="preserve"><value>Chat</value></data>

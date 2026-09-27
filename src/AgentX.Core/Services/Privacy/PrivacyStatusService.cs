@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using AgentX.Core.Helpers;
 using AgentX.Core.Services.Search;
 using AgentX.Core.Services.Settings;
 
@@ -9,8 +10,10 @@ namespace AgentX.Core.Services.Privacy;
 
 /// <summary>
 /// Default <see cref="IPrivacyStatusService"/>. <see cref="Evaluate"/> is a pure function of an
-/// <see cref="AppSettings"/> snapshot — no I/O — so it is exhaustively unit-testable; the async
-/// member only loads the current settings before delegating to it.
+/// <see cref="AppSettings"/> snapshot with no I/O, so it is exhaustively unit-testable; the async
+/// member only loads the current settings before delegating to it. The dashboard shows the
+/// disclosures as they are, so they are worded in the user's language through
+/// <see cref="FormatHelper.LocalizedText"/> (English until the app sets it).
 /// </summary>
 public sealed class PrivacyStatusService : IPrivacyStatusService
 {
@@ -31,27 +34,33 @@ public sealed class PrivacyStatusService : IPrivacyStatusService
     {
         if (settings is null) throw new ArgumentNullException(nameof(settings));
 
+        var words = LocalizedWords.Current;
+
         // 1-3) Everything a prompt can reach: the AI model, model routing and web search. Research
         //      Mode is switched on per conversation in chat, so any configured search provider
         //      counts here whatever the settings toggle says.
         var disclosures = PromptRecipients(settings, settings.ActiveProviderId, includeWebSearch: true)
-            .Select(Disclose)
+            .Select(recipient => Disclose(recipient, words))
             .ToList();
 
         // 4) Calendar connector exchanges data with Google/Microsoft.
         if (settings.CalendarConnector.EnableCalendarSync)
         {
             disclosures.Add(new PrivacyDisclosure(
-                "Calendar sync",
-                "Calendar sync exchanges data with your connected Google or Microsoft account."));
+                words.GetString("Dash_PrivacySurfaceCalendarSync", "Calendar sync"),
+                words.GetString(
+                    "Dash_PrivacyDetailCalendarSync",
+                    "Calendar sync exchanges data with your connected Google or Microsoft account.")));
         }
 
         // 5) Email connector exchanges data with Gmail/Outlook.
         if (settings.EmailConnector.EnableEmailSync)
         {
             disclosures.Add(new PrivacyDisclosure(
-                "Email sync",
-                "Email sync exchanges data with your connected Gmail or Outlook account."));
+                words.GetString("Dash_PrivacySurfaceEmailSync", "Email sync"),
+                words.GetString(
+                    "Dash_PrivacyDetailEmailSync",
+                    "Email sync exchanges data with your connected Gmail or Outlook account.")));
         }
 
         return disclosures.Count == 0
@@ -125,24 +134,42 @@ public sealed class PrivacyStatusService : IPrivacyStatusService
     }
 
     /// <summary>The dashboard's disclosure for a place prompts go.</summary>
-    private static PrivacyDisclosure Disclose(PromptRecipient recipient) => recipient.Kind switch
+    private static PrivacyDisclosure Disclose(PromptRecipient recipient, LocalizedWords words)
     {
-        PromptRecipientKind.CloudAiProvider => new PrivacyDisclosure(
-            "AI model",
-            $"Your prompts and conversation content are sent to {recipient.Name} for processing."),
-        PromptRecipientKind.RemoteOllama => new PrivacyDisclosure(
-            "AI model",
-            $"Your prompts and conversation content are sent to the Ollama server at {recipient.Name}."),
-        PromptRecipientKind.ModelRouting => new PrivacyDisclosure(
-            "Model routing",
-            "Smart model routing may send prompts to your configured cloud AI provider."),
-        PromptRecipientKind.SearXng => new PrivacyDisclosure(
-            "Web search",
-            $"When Research Mode is on in chat, your questions are sent to the SearXNG instance at {recipient.Name}, which forwards them to public search engines."),
-        _ => new PrivacyDisclosure(
-            "Web search",
-            $"When Research Mode is on in chat, your questions are sent to {recipient.Name}."),
-    };
+        var name = recipient.Name ?? string.Empty;
+        return recipient.Kind switch
+        {
+            PromptRecipientKind.CloudAiProvider => new PrivacyDisclosure(
+                words.GetString("Dash_PrivacySurfaceAiModel", "AI model"),
+                words.GetString(
+                    "Dash_PrivacyDetailCloudAi",
+                    "Your prompts and conversation content are sent to {0} for processing.",
+                    name)),
+            PromptRecipientKind.RemoteOllama => new PrivacyDisclosure(
+                words.GetString("Dash_PrivacySurfaceAiModel", "AI model"),
+                words.GetString(
+                    "Dash_PrivacyDetailRemoteOllama",
+                    "Your prompts and conversation content are sent to the Ollama server at {0}.",
+                    name)),
+            PromptRecipientKind.ModelRouting => new PrivacyDisclosure(
+                words.GetString("Dash_PrivacySurfaceModelRouting", "Model routing"),
+                words.GetString(
+                    "Dash_PrivacyDetailModelRouting",
+                    "Smart model routing may send prompts to your configured cloud AI provider.")),
+            PromptRecipientKind.SearXng => new PrivacyDisclosure(
+                words.GetString("Dash_PrivacySurfaceWebSearch", "Web search"),
+                words.GetString(
+                    "Dash_PrivacyDetailSearXng",
+                    "When Research Mode is on in chat, your questions are sent to the SearXNG instance at {0}, which forwards them to public search engines.",
+                    name)),
+            _ => new PrivacyDisclosure(
+                words.GetString("Dash_PrivacySurfaceWebSearch", "Web search"),
+                words.GetString(
+                    "Dash_PrivacyDetailWebSearch",
+                    "When Research Mode is on in chat, your questions are sent to {0}.",
+                    name)),
+        };
+    }
 
     /// <summary>
     /// Returns the display name of a hosted cloud AI provider, or null for on-machine providers

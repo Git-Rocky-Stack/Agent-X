@@ -1223,6 +1223,18 @@
   <data name="Main_PastSelf.Content" xml:space="preserve"><value>Moi d'avant</value></data>
   <data name="Main_AiChat.Content" xml:space="preserve"><value>AI Chat</value></data>
   <data name="Main_AskYourFiles.Content" xml:space="preserve"><value>Interroger vos fichiers</value></data>
+  <data name="Dash_PrivacySurfaceAiModel" xml:space="preserve"><value>Modèle d'IA</value></data>
+  <data name="Dash_PrivacySurfaceModelRouting" xml:space="preserve"><value>Routage des modèles</value></data>
+  <data name="Dash_PrivacySurfaceWebSearch" xml:space="preserve"><value>Recherche web</value></data>
+  <data name="Dash_PrivacySurfaceCalendarSync" xml:space="preserve"><value>Synchronisation du calendrier</value></data>
+  <data name="Dash_PrivacySurfaceEmailSync" xml:space="preserve"><value>Synchronisation des e-mails</value></data>
+  <data name="Dash_PrivacyDetailCloudAi" xml:space="preserve"><value>Vos prompts et le contenu de vos conversations sont envoyés à {0} pour être traités.</value></data>
+  <data name="Dash_PrivacyDetailRemoteOllama" xml:space="preserve"><value>Vos prompts et le contenu de vos conversations sont envoyés au serveur Ollama à l'adresse {0}.</value></data>
+  <data name="Dash_PrivacyDetailModelRouting" xml:space="preserve"><value>Le routage intelligent des modèles peut envoyer des prompts à votre fournisseur d'IA cloud configuré.</value></data>
+  <data name="Dash_PrivacyDetailWebSearch" xml:space="preserve"><value>Lorsque le mode recherche est activé dans le chat, vos questions sont envoyées à {0}.</value></data>
+  <data name="Dash_PrivacyDetailSearXng" xml:space="preserve"><value>Lorsque le mode recherche est activé dans le chat, vos questions sont envoyées à l'instance SearXNG à l'adresse {0}, qui les transmet à des moteurs de recherche publics.</value></data>
+  <data name="Dash_PrivacyDetailCalendarSync" xml:space="preserve"><value>La synchronisation du calendrier échange des données avec votre compte Google ou Microsoft connecté.</value></data>
+  <data name="Dash_PrivacyDetailEmailSync" xml:space="preserve"><value>La synchronisation des e-mails échange des données avec votre compte Gmail ou Outlook connecté.</value></data>
   <data name="Chat_ShortcutNewConversation" xml:space="preserve"><value>Nouvelle conversation</value></data>
   <data name="Chat_ShortcutToggleConversationPane" xml:space="preserve"><value>Afficher ou masquer le volet des conversations</value></data>
   <data name="Chat_ShortcutCategory" xml:space="preserve"><value>Chat</value></data>
