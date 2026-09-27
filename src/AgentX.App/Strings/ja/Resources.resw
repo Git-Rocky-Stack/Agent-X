@@ -1670,8 +1670,8 @@
   <data name="Settings_EnableResearchMode.OffContent" xml:space="preserve"><value>ローカル ボールトのみ</value></data>
   <data name="Settings_EnableResearchMode.OnContent" xml:space="preserve"><value>ローカル ボールト + Web 検索</value></data>
   <data name="Settings_SearchProvider.Text" xml:space="preserve"><value>検索プロバイダー</value></data>
-  <data name="Settings_SearchApiKey.Text" xml:space="preserve"><value>検索 API キー</value></data>
-  <data name="Settings_EnterYourSearchApiPh.PlaceholderText" xml:space="preserve"><value>検索 API キーを入力</value></data>
+  <data name="Settings_SearchApiKey.Text" xml:space="preserve"><value>API キーまたはインスタンス URL</value></data>
+  <data name="Settings_EnterYourSearchApiPh.PlaceholderText" xml:space="preserve"><value>Brave または Serper の API キー、または SearXNG の URL</value></data>
   <data name="Settings_MaxSearchResults.Text" xml:space="preserve"><value>最大検索結果数</value></data>
   <data name="Settings_CacheDurationMinutes.Text" xml:space="preserve"><value>キャッシュ期間 (分)</value></data>
   <data name="Settings_Storage.Text" xml:space="preserve"><value>ストレージ</value></data>
@@ -2057,4 +2057,7 @@
   <data name="Chat_DeleteConversationCancel" xml:space="preserve"><value>キャンセル</value></data>
   <data name="ExportDlg_Close" xml:space="preserve"><value>閉じる</value></data>
   <data name="Settings_SaveError.Title" xml:space="preserve"><value>設定は保存されませんでした</value></data>
+
+  <!-- Settings: web search credential hint (API key or SearXNG URL) -->
+  <data name="Settings_SearchCredentialHint.Text" xml:space="preserve"><value>Brave と Serper: API キーを貼り付けてください。SearXNG: 代わりにインスタンスの URL (例: http://localhost:8080) を入力してください。使用されるのは選択したプロバイダーだけです。</value></data>
 </root>

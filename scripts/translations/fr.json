@@ -1319,8 +1319,8 @@
   "Settings_EnableResearchMode.OffContent": "Coffre-fort local uniquement",
   "Settings_EnableResearchMode.OnContent": "Coffre-fort local + recherche web",
   "Settings_SearchProvider.Text": "Fournisseur de recherche",
-  "Settings_SearchApiKey.Text": "Clé API de recherche",
-  "Settings_EnterYourSearchApiPh.PlaceholderText": "Saisissez votre clé API de recherche",
+  "Settings_SearchApiKey.Text": "Clé API ou URL de l’instance",
+  "Settings_EnterYourSearchApiPh.PlaceholderText": "Clé API Brave ou Serper, ou URL SearXNG",
   "Settings_MaxSearchResults.Text": "Résultats de recherche max.",
   "Settings_CacheDurationMinutes.Text": "Durée du cache (minutes)",
   "Settings_Storage.Text": "Stockage",
@@ -1636,5 +1636,6 @@
   "UserGuide_Collections_Working3.Text": "Collection-scoped search — When using Semantic Search or Ask Your Files, you can scope your query to a specific collection to narrow results to only the relevant documents.",
   "UserGuide_WeeklyDigest_Feature3.Text": "Rapports à la demande - Cliquez sur Générer un nouveau résumé dans la page Weekly Digest pour produire un rapport couvrant les sept derniers jours. Chaque rapport est conservé dans l'historique des résumés, ce qui vous permet de rouvrir les semaines précédentes. Les résumés ne sont pas générés selon une planification, et la période de sept jours est fixe.",
   "UserGuide_ModelManager_Capability4.Text": "Supprimer des modèles - Récupérez de l'espace disque en retirant les modèles que vous n'utilisez plus. La suppression porte sur un modèle à la fois et prend effet immédiatement : aucune confirmation n'est demandée et rien ne peut être annulé, alors retéléchargez (pull) le modèle si vous l'avez supprimé par erreur.",
-  "UserGuide_GettingHelp_Docs_Description.Text": "Full online documentation, tutorials, and API reference."
+  "UserGuide_GettingHelp_Docs_Description.Text": "Full online documentation, tutorials, and API reference.",
+  "Settings_SearchCredentialHint.Text": "Brave et Serper : collez votre clé API. SearXNG : saisissez plutôt l’URL de votre instance, par exemple http://localhost:8080. Seul le fournisseur sélectionné est utilisé."
 }

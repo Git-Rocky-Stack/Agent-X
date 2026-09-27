@@ -467,13 +467,21 @@
                                       MinWidth="200" />
                         </StackPanel>
 
+                        <!-- One stored field (WebSearchApiKey) holds the selected provider's API key,
+                             or the instance URL for SearXNG (WebSearchConfiguration.FromSettings). -->
                         <StackPanel Spacing="4">
-                            <TextBlock x:Uid="Settings_SearchApiKey" Text="Search API Key"
+                            <TextBlock x:Name="SearchCredentialLabel"
+                                       x:Uid="Settings_SearchApiKey" Text="API Key or Instance URL"
                                        Style="{StaticResource LabelStyle}" />
                             <PasswordBox Password="{x:Bind ViewModel.WebSearchApiKey, Mode=TwoWay}"
-                                         x:Uid="Settings_EnterYourSearchApiPh" PlaceholderText="Enter your search API key"
+                                         x:Uid="Settings_EnterYourSearchApiPh" PlaceholderText="Brave or Serper API key, or SearXNG URL"
+                                         AutomationProperties.LabeledBy="{x:Bind SearchCredentialLabel}"
                                          CornerRadius="{StaticResource RCard}"
                                          MinHeight="40" />
+                            <TextBlock x:Uid="Settings_SearchCredentialHint"
+                                       Text="Brave and Serper: paste your API key. SearXNG: enter your instance URL instead, for example http://localhost:8080. Only the selected provider is used."
+                                       Style="{StaticResource CaptionStyle}"
+                                       TextWrapping="Wrap" />
                         </StackPanel>
 
                         <Grid ColumnSpacing="16">

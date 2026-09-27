@@ -1319,8 +1319,8 @@
   "Settings_EnableResearchMode.OffContent": "ローカル ボールトのみ",
   "Settings_EnableResearchMode.OnContent": "ローカル ボールト + Web 検索",
   "Settings_SearchProvider.Text": "検索プロバイダー",
-  "Settings_SearchApiKey.Text": "検索 API キー",
-  "Settings_EnterYourSearchApiPh.PlaceholderText": "検索 API キーを入力",
+  "Settings_SearchApiKey.Text": "API キーまたはインスタンス URL",
+  "Settings_EnterYourSearchApiPh.PlaceholderText": "Brave または Serper の API キー、または SearXNG の URL",
   "Settings_MaxSearchResults.Text": "最大検索結果数",
   "Settings_CacheDurationMinutes.Text": "キャッシュ期間 (分)",
   "Settings_Storage.Text": "ストレージ",
@@ -1636,5 +1636,6 @@
   "UserGuide_Collections_Working3.Text": "Collection-scoped search — When using Semantic Search or Ask Your Files, you can scope your query to a specific collection to narrow results to only the relevant documents.",
   "UserGuide_WeeklyDigest_Feature3.Text": "オンデマンド レポート：Weekly Digest ページで [新しいダイジェストを生成] をクリックすると、直近 7 日間を対象とするレポートが作成されます。各レポートはダイジェスト履歴に保存されるため、以前の週をもう一度開けます。ダイジェストはスケジュールでは作成されず、7 日間という期間は固定です。",
   "UserGuide_ModelManager_Capability4.Text": "モデルの削除：使わなくなったモデルを削除してディスク容量を回復します。削除は 1 モデルずつ行われ、すぐに反映されます。確認メッセージも元に戻す操作もないため、誤って削除した場合はモデルをもう一度プル (pull) してください。",
-  "UserGuide_GettingHelp_Docs_Description.Text": "Full online documentation, tutorials, and API reference."
+  "UserGuide_GettingHelp_Docs_Description.Text": "Full online documentation, tutorials, and API reference.",
+  "Settings_SearchCredentialHint.Text": "Brave と Serper: API キーを貼り付けてください。SearXNG: 代わりにインスタンスの URL (例: http://localhost:8080) を入力してください。使用されるのは選択したプロバイダーだけです。"
 }

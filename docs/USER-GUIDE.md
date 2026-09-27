@@ -1021,7 +1021,7 @@ Settings is the control plane for provider, inference, indexing, security, stora
 | AI Provider | Ollama endpoint, active provider, OpenAI key, Anthropic key |
 | Inference | Temperature, max tokens, context window |
 | Knowledge Vault | Chunk size, chunk overlap, top-K, indexing behavior |
-| Web Search | Provider and API configuration where enabled |
+| Research Mode | Web search on or off, the search provider, and its credential: the API key for Brave or Serper, or the instance URL for SearXNG |
 | Database Encryption | SQLCipher enablement and key/passphrase flow |
 | Language/UI | Locale follows Windows display language |
 

@@ -1319,8 +1319,8 @@
   "Settings_EnableResearchMode.OffContent": "Solo bóveda local",
   "Settings_EnableResearchMode.OnContent": "Bóveda local + búsqueda web",
   "Settings_SearchProvider.Text": "Proveedor de búsqueda",
-  "Settings_SearchApiKey.Text": "Clave de API de búsqueda",
-  "Settings_EnterYourSearchApiPh.PlaceholderText": "Introduzca su clave de API de búsqueda",
+  "Settings_SearchApiKey.Text": "Clave de API o URL de la instancia",
+  "Settings_EnterYourSearchApiPh.PlaceholderText": "Clave de API de Brave o Serper, o URL de SearXNG",
   "Settings_MaxSearchResults.Text": "Resultados de búsqueda máx.",
   "Settings_CacheDurationMinutes.Text": "Duración de caché (minutos)",
   "Settings_Storage.Text": "Almacenamiento",
@@ -1636,5 +1636,6 @@
   "UserGuide_Collections_Working3.Text": "Collection-scoped search — When using Semantic Search or Ask Your Files, you can scope your query to a specific collection to narrow results to only the relevant documents.",
   "UserGuide_WeeklyDigest_Feature3.Text": "Informes bajo demanda - Haga clic en Generar nuevo resumen en la página Weekly Digest para crear un informe de los últimos siete días. Cada informe se conserva en el historial de resúmenes, para que pueda volver a abrir semanas anteriores. Los resúmenes no se generan según una programación y el periodo de siete días es fijo.",
   "UserGuide_ModelManager_Capability4.Text": "Eliminar modelos - Recupere espacio en disco quitando los modelos que ya no usa. La eliminación actúa sobre un modelo cada vez y es inmediata: no hay mensaje de confirmación ni forma de deshacerla, así que vuelva a descargar (pull) el modelo si lo quita por error.",
-  "UserGuide_GettingHelp_Docs_Description.Text": "Full online documentation, tutorials, and API reference."
+  "UserGuide_GettingHelp_Docs_Description.Text": "Full online documentation, tutorials, and API reference.",
+  "Settings_SearchCredentialHint.Text": "Brave y Serper: pegue su clave de API. SearXNG: introduzca en su lugar la URL de su instancia, por ejemplo http://localhost:8080. Solo se usa el proveedor seleccionado."
 }

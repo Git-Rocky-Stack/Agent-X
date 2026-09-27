@@ -1670,8 +1670,8 @@
   <data name="Settings_EnableResearchMode.OffContent" xml:space="preserve"><value>Coffre-fort local uniquement</value></data>
   <data name="Settings_EnableResearchMode.OnContent" xml:space="preserve"><value>Coffre-fort local + recherche web</value></data>
   <data name="Settings_SearchProvider.Text" xml:space="preserve"><value>Fournisseur de recherche</value></data>
-  <data name="Settings_SearchApiKey.Text" xml:space="preserve"><value>Clé API de recherche</value></data>
-  <data name="Settings_EnterYourSearchApiPh.PlaceholderText" xml:space="preserve"><value>Saisissez votre clé API de recherche</value></data>
+  <data name="Settings_SearchApiKey.Text" xml:space="preserve"><value>Clé API ou URL de l’instance</value></data>
+  <data name="Settings_EnterYourSearchApiPh.PlaceholderText" xml:space="preserve"><value>Clé API Brave ou Serper, ou URL SearXNG</value></data>
   <data name="Settings_MaxSearchResults.Text" xml:space="preserve"><value>Résultats de recherche max.</value></data>
   <data name="Settings_CacheDurationMinutes.Text" xml:space="preserve"><value>Durée du cache (minutes)</value></data>
   <data name="Settings_Storage.Text" xml:space="preserve"><value>Stockage</value></data>
@@ -2057,4 +2057,7 @@
   <data name="Chat_DeleteConversationCancel" xml:space="preserve"><value>Annuler</value></data>
   <data name="ExportDlg_Close" xml:space="preserve"><value>Fermer</value></data>
   <data name="Settings_SaveError.Title" xml:space="preserve"><value>Les paramètres n'ont pas été enregistrés</value></data>
+
+  <!-- Settings: web search credential hint (API key or SearXNG URL) -->
+  <data name="Settings_SearchCredentialHint.Text" xml:space="preserve"><value>Brave et Serper : collez votre clé API. SearXNG : saisissez plutôt l’URL de votre instance, par exemple http://localhost:8080. Seul le fournisseur sélectionné est utilisé.</value></data>
 </root>

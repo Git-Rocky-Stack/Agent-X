@@ -1319,8 +1319,8 @@
   "Settings_EnableResearchMode.OffContent": "Nur lokaler Tresor",
   "Settings_EnableResearchMode.OnContent": "Lokaler Tresor + Websuche",
   "Settings_SearchProvider.Text": "Suchanbieter",
-  "Settings_SearchApiKey.Text": "Such-API-Schlüssel",
-  "Settings_EnterYourSearchApiPh.PlaceholderText": "Such-API-Schlüssel eingeben",
+  "Settings_SearchApiKey.Text": "API-Schlüssel oder Instanz-URL",
+  "Settings_EnterYourSearchApiPh.PlaceholderText": "Brave- oder Serper-API-Schlüssel oder SearXNG-URL",
   "Settings_MaxSearchResults.Text": "Max. Suchergebnisse",
   "Settings_CacheDurationMinutes.Text": "Cache-Dauer (Minuten)",
   "Settings_Storage.Text": "Speicher",
@@ -1636,5 +1636,6 @@
   "UserGuide_Collections_Working3.Text": "Collection-scoped search — When using Semantic Search or Ask Your Files, you can scope your query to a specific collection to narrow results to only the relevant documents.",
   "UserGuide_WeeklyDigest_Feature3.Text": "Berichte auf Abruf - Klicken Sie auf der Seite „Weekly Digest“ auf „Neuen Digest erstellen“, um einen Bericht über die letzten sieben Tage zu erzeugen. Jeder Bericht bleibt im Digest-Verlauf erhalten, sodass Sie frühere Wochen wieder öffnen können. Digests werden nicht zeitgesteuert erstellt, und der Zeitraum von sieben Tagen ist fest.",
   "UserGuide_ModelManager_Capability4.Text": "Modelle löschen - Geben Sie Speicherplatz frei, indem Sie nicht mehr benötigte Modelle entfernen. Gelöscht wird jeweils ein Modell, und zwar sofort: Es gibt keine Rückfrage und kein Rückgängigmachen. Laden Sie das Modell erneut herunter (Pull), falls Sie es versehentlich entfernt haben.",
-  "UserGuide_GettingHelp_Docs_Description.Text": "Full online documentation, tutorials, and API reference."
+  "UserGuide_GettingHelp_Docs_Description.Text": "Full online documentation, tutorials, and API reference.",
+  "Settings_SearchCredentialHint.Text": "Brave und Serper: Fügen Sie Ihren API-Schlüssel ein. SearXNG: Geben Sie stattdessen die URL Ihrer Instanz ein, zum Beispiel http://localhost:8080. Es wird nur der ausgewählte Anbieter verwendet."
 }

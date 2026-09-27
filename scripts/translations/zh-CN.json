@@ -1319,8 +1319,8 @@
   "Settings_EnableResearchMode.OffContent": "仅本地知识库",
   "Settings_EnableResearchMode.OnContent": "本地知识库 + 网络搜索",
   "Settings_SearchProvider.Text": "搜索提供商",
-  "Settings_SearchApiKey.Text": "搜索 API 密钥",
-  "Settings_EnterYourSearchApiPh.PlaceholderText": "输入您的搜索 API 密钥",
+  "Settings_SearchApiKey.Text": "API 密钥或实例 URL",
+  "Settings_EnterYourSearchApiPh.PlaceholderText": "Brave 或 Serper API 密钥，或 SearXNG URL",
   "Settings_MaxSearchResults.Text": "最多搜索结果数",
   "Settings_CacheDurationMinutes.Text": "缓存时长(分钟)",
   "Settings_Storage.Text": "存储",
@@ -1636,5 +1636,6 @@
   "UserGuide_Collections_Working3.Text": "Collection-scoped search — When using Semantic Search or Ask Your Files, you can scope your query to a specific collection to narrow results to only the relevant documents.",
   "UserGuide_WeeklyDigest_Feature3.Text": "按需报告：在 Weekly Digest 页面点击“生成新摘要”，即可生成涵盖最近七天的报告。每份报告都会保存在摘要历史中，您可以重新打开之前各周的报告。摘要不会按计划自动生成，七天的时间范围也是固定的。",
   "UserGuide_ModelManager_Capability4.Text": "删除模型：删除不再使用的模型以回收磁盘空间。删除一次只针对一个模型，并且立即生效：没有确认提示，也无法撤销；如果误删了模型，请重新拉取（pull）该模型。",
-  "UserGuide_GettingHelp_Docs_Description.Text": "Full online documentation, tutorials, and API reference."
+  "UserGuide_GettingHelp_Docs_Description.Text": "Full online documentation, tutorials, and API reference.",
+  "Settings_SearchCredentialHint.Text": "Brave 和 Serper：粘贴您的 API 密钥。SearXNG：改为输入您的实例 URL，例如 http://localhost:8080。仅使用所选的提供商。"
 }

@@ -1670,8 +1670,8 @@
   <data name="Settings_EnableResearchMode.OffContent" xml:space="preserve"><value>Nur lokaler Tresor</value></data>
   <data name="Settings_EnableResearchMode.OnContent" xml:space="preserve"><value>Lokaler Tresor + Websuche</value></data>
   <data name="Settings_SearchProvider.Text" xml:space="preserve"><value>Suchanbieter</value></data>
-  <data name="Settings_SearchApiKey.Text" xml:space="preserve"><value>Such-API-Schlüssel</value></data>
-  <data name="Settings_EnterYourSearchApiPh.PlaceholderText" xml:space="preserve"><value>Such-API-Schlüssel eingeben</value></data>
+  <data name="Settings_SearchApiKey.Text" xml:space="preserve"><value>API-Schlüssel oder Instanz-URL</value></data>
+  <data name="Settings_EnterYourSearchApiPh.PlaceholderText" xml:space="preserve"><value>Brave- oder Serper-API-Schlüssel oder SearXNG-URL</value></data>
   <data name="Settings_MaxSearchResults.Text" xml:space="preserve"><value>Max. Suchergebnisse</value></data>
   <data name="Settings_CacheDurationMinutes.Text" xml:space="preserve"><value>Cache-Dauer (Minuten)</value></data>
   <data name="Settings_Storage.Text" xml:space="preserve"><value>Speicher</value></data>
@@ -2057,4 +2057,7 @@
   <data name="Chat_DeleteConversationCancel" xml:space="preserve"><value>Abbrechen</value></data>
   <data name="ExportDlg_Close" xml:space="preserve"><value>Schließen</value></data>
   <data name="Settings_SaveError.Title" xml:space="preserve"><value>Einstellungen wurden nicht gespeichert</value></data>
+
+  <!-- Settings: web search credential hint (API key or SearXNG URL) -->
+  <data name="Settings_SearchCredentialHint.Text" xml:space="preserve"><value>Brave und Serper: Fügen Sie Ihren API-Schlüssel ein. SearXNG: Geben Sie stattdessen die URL Ihrer Instanz ein, zum Beispiel http://localhost:8080. Es wird nur der ausgewählte Anbieter verwendet.</value></data>
 </root>
