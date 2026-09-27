@@ -144,6 +144,30 @@ public sealed class RagPipeline : IRagPipeline
         return _ragConfiguration.DefaultTopK;
     }
 
+    /// <summary>
+    /// Number of web results Research mode asks for: the Max Search Results setting in its
+    /// validated range (1 to <see cref="WebSearchConfiguration.MaxAllowedResults"/>), or the
+    /// default when settings are unavailable. It used to be a fixed 10, which the web search
+    /// service caps at the setting, so the setting could lower the count but never raise it.
+    /// </summary>
+    private async Task<int> ResolveWebResultCountAsync()
+    {
+        if (_settingsService is not null)
+        {
+            try
+            {
+                var settings = await _settingsService.GetSettingsAsync().ConfigureAwait(false);
+                return WebSearchConfiguration.FromSettings(settings).MaxResults;
+            }
+            catch (Exception ex)
+            {
+                _logger.Warning(ex, "Could not read the web result count from settings; using the default");
+            }
+        }
+
+        return WebSearchConfiguration.DefaultMaxResults;
+    }
+
     /// <inheritdoc />
     public async Task<RagResponse> AskAsync(
         string question,
@@ -359,8 +383,9 @@ public sealed class RagPipeline : IRagPipeline
         {
             try
             {
+                var webResultCount = await ResolveWebResultCountAsync().ConfigureAwait(false);
                 var webResponse = await _webSearchService
-                    .SearchAsync(question, 10, ct)
+                    .SearchAsync(question, webResultCount, ct)
                     .ConfigureAwait(false);
 
                 if (webResponse.Results.Count > 0)

@@ -6,6 +6,7 @@ using AgentX.Core.Data;
 using AgentX.Core.Observability;
 using AgentX.Core.Search;
 using AgentX.Core.Search.Models;
+using AgentX.Core.Services.Search;
 using AgentX.Core.Services.Settings;
 using FluentAssertions;
 using Moq;
@@ -66,7 +67,8 @@ public sealed class RagPipelineTests
         IContextualCompressor? compressor = null,
         IRagEvaluator? evaluator = null,
         IPiiDetector? piiDetector = null,
-        ISettingsService? settingsService = null)
+        ISettingsService? settingsService = null,
+        IWebSearchService? webSearchService = null)
     {
         return new RagPipeline(
             _searchOrchestrator.Object,
@@ -82,6 +84,7 @@ public sealed class RagPipelineTests
             parentRetriever: parentRetriever,
             compressor: compressor,
             evaluator: evaluator,
+            webSearchService: webSearchService,
             piiDetector: piiDetector,
             settingsService: settingsService);
     }
@@ -365,6 +368,48 @@ public sealed class RagPipelineTests
 
         captured!.TopK.Should().Be(expected);
         _reranker.Verify(r => r.Rerank(It.IsAny<List<RagContextChunk>>(), It.IsAny<string>(), expected), Times.Once);
+    }
+
+    [Theory]
+    [InlineData(15, 15)]
+    [InlineData(20, 20)]
+    [InlineData(3, 3)]
+    [InlineData(50, 20)] // above the range Settings offers
+    [InlineData(0, 10)] // not set
+    public async Task AskAsync_ResearchMode_AsksForTheConfiguredNumberOfWebResults(int setting, int expected)
+    {
+        // The pipeline always asked for 10 web results and the web search service caps the
+        // request at Max Search Results, so the setting could lower the count but not raise it.
+        var settings = new Mock<ISettingsService>();
+        settings.Setup(s => s.GetSettingsAsync()).ReturnsAsync(new AppSettings { MaxSearchResults = setting });
+        var webSearch = new Mock<IWebSearchService>();
+        webSearch.SetupGet(w => w.IsConfigured).Returns(true);
+        webSearch
+            .Setup(w => w.SearchAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new WebSearchResponse());
+        SetupSearchReturns(MakeResult(1));
+        SetupAiStreamReturns("answer");
+
+        await BuildPipeline(settingsService: settings.Object, webSearchService: webSearch.Object)
+            .AskAsync("question", enableResearchMode: true);
+
+        webSearch.Verify(w => w.SearchAsync("question", expected, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task AskAsync_ResearchModeWithoutSettings_AsksForTheDefaultNumberOfWebResults()
+    {
+        var webSearch = new Mock<IWebSearchService>();
+        webSearch.SetupGet(w => w.IsConfigured).Returns(true);
+        webSearch
+            .Setup(w => w.SearchAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new WebSearchResponse());
+        SetupSearchReturns(MakeResult(1));
+        SetupAiStreamReturns("answer");
+
+        await BuildPipeline(webSearchService: webSearch.Object).AskAsync("question", enableResearchMode: true);
+
+        webSearch.Verify(w => w.SearchAsync("question", 10, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
