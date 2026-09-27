@@ -92,6 +92,45 @@ public sealed class HnswVectorStoreEncryptionTests : IDisposable
     }
 
     [Fact]
+    public async Task Resuming_after_encryption_reopens_with_the_new_key_and_drops_plaintext_index_files()
+    {
+        // Turning encryption on suspends the store, encrypts its database file and sets the key.
+        var keys = new DatabaseKeyProvider();
+        var store = new HnswVectorStore(
+            _settings.Object,
+            Log.Logger,
+            m: 4,
+            efConstruction: 20,
+            dimensions: 3,
+            fallbackThreshold: 0,
+            connectionFactory: new EncryptedConnectionFactory(keys));
+        var dbPath = Path.Combine(_tempPath, "agentx.db");
+
+        await using (store)
+        {
+            await store.InitializeAsync();
+            await store.InsertEmbeddingAsync(1, Vector1);
+            await store.OptimizeAsync();
+            File.Exists(IndexFile).Should().BeTrue("the database is still plaintext");
+
+            await store.SuspendAsync();
+            var key = DatabaseKeyMaterial.FromBytes(RandomNumberGenerator.GetBytes(32), KeyStorageMode.DpapiWrapped);
+            await new DatabaseEncryptionMigrator().MigrateToEncryptedAsync(dbPath, key);
+            keys.Set(key);
+            await store.ResumeAsync(reloadFromDatabase: false);
+
+            File.Exists(IndexFile).Should().BeFalse("the vectors would sit unencrypted next to the SQLCipher database");
+            File.Exists(MetadataFile).Should().BeFalse();
+            (await store.SearchAsync(Vector1, topK: 1, minSimilarity: 0.99)).Should().ContainSingle().Which.ChunkId.Should().Be(1);
+            await store.InsertEmbeddingAsync(2, Vector2);
+            (await store.GetEmbeddingCountAsync()).Should().Be(2);
+        }
+
+        HnswVectorStore.IsDatabaseFileEncrypted(dbPath).Should().BeTrue();
+        File.Exists(IndexFile).Should().BeFalse();
+    }
+
+    [Fact]
     public void Plaintext_database_header_is_recognized()
     {
         var dbPath = Path.Combine(_tempPath, "plain.db");
