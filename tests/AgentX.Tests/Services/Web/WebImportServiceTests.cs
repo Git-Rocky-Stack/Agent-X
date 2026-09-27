@@ -1,5 +1,6 @@
 using AgentX.Core.Data;
 using AgentX.Core.Data.Entities;
+using AgentX.Core.Documents;
 using AgentX.Core.Services.Settings;
 using AgentX.Core.Services.Web;
 using AgentX.Core.Services.Web.Models;
@@ -48,7 +49,13 @@ public sealed class WebImportServiceTests : IDisposable
     }
 
     private WebImportService CreateService(AgentXDbContext db) =>
-        new(_scraper.Object, db, _settings.Object, Logger.None);
+        CreateService(db, CreateDocumentService(db));
+
+    private WebImportService CreateService(AgentXDbContext db, IDocumentService documentService) =>
+        new(_scraper.Object, db, documentService, _settings.Object, Logger.None);
+
+    private DocumentService CreateDocumentService(AgentXDbContext db) =>
+        new(db, Array.Empty<IDocumentProcessor>(), _settings.Object, Logger.None);
 
     [Fact]
     public async Task ImportFromUrlsAsync_returns_one_result_per_url_in_order_so_a_failure_never_shifts_documents()
@@ -149,6 +156,46 @@ public sealed class WebImportServiceTests : IDisposable
         db.Tags.Add(new TagEntity { Name = "later", CreatedAt = DateTime.UtcNow });
         await db.SaveChangesAsync();
         db.Documents.Should().BeEmpty();
+    }
+
+    // Through the document service
+    // Web import wrote its documents and collection counts itself, so imported pages waited
+    // for the indexer's idle sweep (no DocumentPendingIndexing) and duplicates were checked
+    // by a second copy of the vault's rule.
+
+    [Fact]
+    public async Task ImportFromUrlAsync_hands_the_page_to_the_indexer_at_once()
+    {
+        using var factory = new TestDbContextFactory();
+        using var db = factory.CreateContext();
+        var documentService = CreateDocumentService(db);
+        var pending = new List<DocumentPendingIndexingEventArgs>();
+        documentService.DocumentPendingIndexing += (_, e) => pending.Add(e);
+        var service = CreateService(db, documentService);
+
+        var document = await service.ImportFromUrlAsync("https://example.com/article");
+
+        pending.Should().ContainSingle().Which.DocumentId.Should().Be(document.Id);
+        document.IndexingStatus.Should().Be("pending");
+        document.FileType.Should().Be("web");
+    }
+
+    [Fact]
+    public async Task ImportFromUrlAsync_rejects_a_page_already_in_the_vault_with_the_vaults_duplicate_error()
+    {
+        using var factory = new TestDbContextFactory();
+        using var db = factory.CreateContext();
+        var service = CreateService(db);
+        var first = await service.ImportFromUrlAsync("https://example.com/article");
+
+        var act = () => service.ImportFromUrlAsync("https://example.com/article");
+
+        (await act.Should().ThrowAsync<DuplicateDocumentException>())
+            .Which.ExistingDocumentId.Should().Be(first.Id);
+        Directory.GetFiles(Path.Combine(_storageDir, "WebImports")).Should().ContainSingle(
+            "no file is written for a page that is already in the vault");
+        using var verify = factory.CreateContext();
+        verify.Documents.Should().ContainSingle();
     }
 
     [Fact]

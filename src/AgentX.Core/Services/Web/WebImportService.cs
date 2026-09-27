@@ -1,6 +1,7 @@
 using System.Text.Json;
 using AgentX.Core.Data;
 using AgentX.Core.Data.Entities;
+using AgentX.Core.Documents;
 using AgentX.Core.Helpers;
 using AgentX.Core.Services.Settings;
 using AgentX.Core.Services.Web.Models;
@@ -77,8 +78,11 @@ public interface IWebImportService
 ///   <item>Extract content from the URL using <see cref="IWebScraperService"/>.</item>
 ///   <item>Save the extracted text to a Markdown (.md) file in the application storage path.</item>
 ///   <item>Create a <see cref="DocumentEntity"/> with the file path, content hash, and metadata.</item>
-///   <item>Link the document to the requested collection in the same save; a missing collection fails the import.</item>
-///   <item>The document is left in "pending" status for the indexing pipeline.</item>
+///   <item>
+///     Record it through <see cref="IDocumentService.ImportPreparedDocumentAsync"/>, which applies
+///     the vault's duplicate rule, saves the document and its collection link (and count)
+///     together, and signals the indexing pipeline; a missing collection fails the import.
+///   </item>
 /// </list>
 /// </para>
 /// </summary>
@@ -86,6 +90,7 @@ public class WebImportService : IWebImportService
 {
     private readonly IWebScraperService _webScraper;
     private readonly AgentXDbContext _db;
+    private readonly IDocumentService _documentService;
     private readonly ISettingsService _settingsService;
     private readonly ILogger _log;
 
@@ -108,18 +113,21 @@ public class WebImportService : IWebImportService
     /// Initializes a new instance of <see cref="WebImportService"/>.
     /// </summary>
     /// <param name="webScraper">The web scraper service for content extraction.</param>
-    /// <param name="db">The EF Core database context.</param>
+    /// <param name="db">The EF Core database context (the up-front collection check).</param>
+    /// <param name="documentService">Records the imported documents in the vault.</param>
     /// <param name="settingsService">The settings service for resolving the storage path.</param>
     /// <param name="logger">The Serilog logger instance.</param>
     /// <exception cref="ArgumentNullException">Thrown when any required dependency is null.</exception>
     public WebImportService(
         IWebScraperService webScraper,
         AgentXDbContext db,
+        IDocumentService documentService,
         ISettingsService settingsService,
         ILogger logger)
     {
         _webScraper = webScraper ?? throw new ArgumentNullException(nameof(webScraper));
         _db = db ?? throw new ArgumentNullException(nameof(db));
+        _documentService = documentService ?? throw new ArgumentNullException(nameof(documentService));
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _log = logger?.ForContext<WebImportService>()
                ?? throw new ArgumentNullException(nameof(logger));
@@ -142,14 +150,13 @@ public class WebImportService : IWebImportService
                 $"Invalid URL: '{url}'. Only HTTP and HTTPS URLs are supported.");
         }
 
-        // Resolve the target collection before fetching anything: a missing collection fails
-        // the import up front instead of leaving an imported document outside it.
-        CollectionEntity? collection = null;
-        if (collectionId.HasValue)
+        // Check the target collection before fetching anything: a missing collection fails the
+        // import up front instead of leaving an imported document outside it.
+        if (collectionId.HasValue
+            && !await _db.Collections.AsNoTracking().AnyAsync(c => c.Id == collectionId.Value, ct))
         {
-            collection = await _db.Collections.FirstOrDefaultAsync(c => c.Id == collectionId.Value, ct)
-                ?? throw new InvalidOperationException(
-                    $"Collection {collectionId.Value} was not found, so '{url}' was not imported.");
+            throw new InvalidOperationException(
+                $"Collection {collectionId.Value} was not found, so '{url}' was not imported.");
         }
 
         _log.Information("Importing web content from: {Url}", url);
@@ -175,9 +182,9 @@ public class WebImportService : IWebImportService
         // Step 3: Compute content hash for duplicate detection
         var contentHash = HashHelper.ComputeStringHash(markdownContent);
 
-        // Check for existing document with same content
-        var existingDoc = await _db.Documents
-            .FirstOrDefaultAsync(d => d.ContentHash == contentHash, ct);
+        // Check for an existing document with the same content before writing a file for it.
+        // The document service applies the same check again when the document is saved.
+        var existingDoc = await _documentService.GetDocumentByHashAsync(contentHash);
 
         if (existingDoc is not null)
         {
@@ -185,8 +192,7 @@ public class WebImportService : IWebImportService
                 "Duplicate detected: URL {Url} matches existing document {DocumentId} ({FileName})",
                 url, existingDoc.Id, existingDoc.FileName);
 
-            throw new InvalidOperationException(
-                $"A document with identical content already exists: '{existingDoc.FileName}' (ID {existingDoc.Id}).");
+            throw new DuplicateDocumentException(existingDoc.Id, existingDoc.FileName);
         }
 
         // Step 4: Save content to a Markdown file
@@ -227,40 +233,22 @@ public class WebImportService : IWebImportService
             MetadataJson = metadataJson,
         };
 
-        _db.Documents.Add(entity);
-
-        // Step 6: Link to the collection in the same save, so the document is never imported
-        // without the collection membership the caller asked for.
-        DocumentCollectionEntity? link = null;
-        if (collection is not null)
-        {
-            link = new DocumentCollectionEntity
-            {
-                Document = entity,
-                CollectionId = collection.Id,
-                AddedAt = DateTime.UtcNow,
-            };
-            _db.DocumentCollections.Add(link);
-
-            // Keep the denormalized document count in step with the new membership
-            collection.DocumentCount += 1;
-            collection.UpdatedAt = DateTime.UtcNow;
-        }
-
+        // Step 6: Record the document with its collection link in one save. The document
+        // service raises DocumentPendingIndexing, so the indexer takes the page at once
+        // instead of finding it at its next idle sweep.
         try
         {
-            await _db.SaveChangesAsync(ct);
+            await _documentService.ImportPreparedDocumentAsync(entity, collectionId, ct);
         }
         catch
         {
-            UndoUnsavedImport(entity, link, collection);
             TryDeleteImportFile(filePath);
             throw;
         }
 
         _log.Information(
             "Imported web document: {FileName} (ID {DocumentId}, {WordCount} words) from {Url}, collection {CollectionId}",
-            entity.FileName, entity.Id, entity.WordCount, url, collection?.Id);
+            entity.FileName, entity.Id, entity.WordCount, url, collectionId);
 
         return entity;
     }
@@ -530,34 +518,6 @@ public class WebImportService : IWebImportService
         while (File.Exists(candidatePath));
 
         return candidatePath;
-    }
-
-    /// <summary>
-    /// Takes the unsaved document, its collection link and the collection count change back
-    /// off the shared context after a failed save, so a later unrelated save does not retry
-    /// (or trip over) them.
-    /// </summary>
-    private void UndoUnsavedImport(
-        DocumentEntity document,
-        DocumentCollectionEntity? link,
-        CollectionEntity? collection)
-    {
-        if (link is not null)
-        {
-            _db.Entry(link).State = EntityState.Detached;
-        }
-
-        _db.Entry(document).State = EntityState.Detached;
-
-        if (collection is not null)
-        {
-            var entry = _db.Entry(collection);
-            if (entry.State == EntityState.Modified)
-            {
-                entry.CurrentValues.SetValues(entry.OriginalValues);
-                entry.State = EntityState.Unchanged;
-            }
-        }
     }
 
     /// <summary>

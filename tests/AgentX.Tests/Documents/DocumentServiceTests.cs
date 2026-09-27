@@ -521,6 +521,70 @@ public sealed class DocumentServiceTests : IDisposable
         entity.Id.Should().BeGreaterThan(0);
     }
 
+    // --- ImportPreparedDocumentAsync (web import) ---
+
+    [Fact]
+    public async Task ImportPreparedDocumentAsync_SavesTheDocumentWithItsCollectionLinkAndQueuesIt()
+    {
+        var h = NewHarness();
+        long collectionId = 0;
+        h.Seed(ctx =>
+        {
+            var collection = new CollectionEntity { Name = "Reading", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+            ctx.Collections.Add(collection);
+            ctx.SaveChanges();
+            collectionId = collection.Id;
+        });
+        var raised = new List<DocumentPendingIndexingEventArgs>();
+        h.Service.DocumentPendingIndexing += (_, e) => raised.Add(e);
+
+        var document = await h.Service.ImportPreparedDocumentAsync(
+            NewDoc(fileName: "page.md", fileType: "web", hash: "page-hash", status: "pending"), collectionId);
+
+        raised.Should().ContainSingle().Which.DocumentId.Should().Be(document.Id);
+        raised[0].Extracted.Should().BeNull("the indexer reads the saved file itself");
+        using var fresh = h.Fresh();
+        fresh.Documents.Should().ContainSingle(d => d.Id == document.Id && d.FileType == "web");
+        fresh.DocumentCollections.Should().ContainSingle(l => l.DocumentId == document.Id && l.CollectionId == collectionId);
+        (await fresh.Collections.SingleAsync(c => c.Id == collectionId)).DocumentCount.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task ImportPreparedDocumentAsync_DuplicateContent_ThrowsTheVaultsDuplicateError()
+    {
+        var h = NewHarness();
+        long existingId = 0;
+        h.Seed(ctx =>
+        {
+            var existing = NewDoc(fileName: "saved.pdf", hash: "same-hash");
+            ctx.Documents.Add(existing);
+            ctx.SaveChanges();
+            existingId = existing.Id;
+        });
+
+        var act = () => h.Service.ImportPreparedDocumentAsync(NewDoc(fileName: "page.md", hash: "same-hash", status: "pending"));
+
+        (await act.Should().ThrowAsync<DuplicateDocumentException>()).Which.ExistingDocumentId.Should().Be(existingId);
+        using var fresh = h.Fresh();
+        fresh.Documents.Should().ContainSingle();
+    }
+
+    [Fact]
+    public async Task ImportPreparedDocumentAsync_MissingCollection_SavesNothing()
+    {
+        var h = NewHarness();
+        var raised = 0;
+        h.Service.DocumentPendingIndexing += (_, _) => raised++;
+
+        var act = () => h.Service.ImportPreparedDocumentAsync(NewDoc(fileName: "page.md", status: "pending"), collectionId: 404);
+
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*Collection 404 was not found*");
+        raised.Should().Be(0);
+        using var fresh = h.Fresh();
+        fresh.Documents.Should().BeEmpty();
+        h.Db.ChangeTracker.Entries().Should().BeEmpty();
+    }
+
     // ═══════════════════════════════════════════════════════════════════════════
     //  ImportExternalContentAsync
     // ═══════════════════════════════════════════════════════════════════════════

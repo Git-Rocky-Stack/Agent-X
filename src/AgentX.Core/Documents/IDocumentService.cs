@@ -49,6 +49,26 @@ public interface IDocumentService
         CancellationToken ct = default);
 
     /// <summary>
+    /// Records a document for a file Agent-X wrote itself from content it already holds (a web
+    /// page saved by Web Import). The caller fills in the new "pending" document, including its
+    /// <see cref="DocumentEntity.ContentHash"/>; the file is not read here. The document and,
+    /// when <paramref name="collectionId"/> is given, its collection link are saved together,
+    /// with the collection's document count, so the call either adds the document to that
+    /// collection or adds nothing. Raises <see cref="DocumentPendingIndexing"/> so the indexer
+    /// takes the document at once.
+    /// </summary>
+    /// <param name="document">The new document. Must not be tracked or saved yet.</param>
+    /// <param name="collectionId">Optional collection to add the document to.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>The saved document.</returns>
+    /// <exception cref="DuplicateDocumentException">A document with the same content already exists.</exception>
+    /// <exception cref="InvalidOperationException">The collection does not exist.</exception>
+    Task<DocumentEntity> ImportPreparedDocumentAsync(
+        DocumentEntity document,
+        long? collectionId = null,
+        CancellationToken ct = default);
+
+    /// <summary>
     /// Imports multiple files, reporting progress as each file completes.
     /// </summary>
     /// <param name="filePaths">Absolute paths to the files to import.</param>

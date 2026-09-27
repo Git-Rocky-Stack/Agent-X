@@ -278,6 +278,63 @@ public sealed class DocumentService : IDocumentService
         return entity;
     }
 
+    /// <inheritdoc />
+    public async Task<DocumentEntity> ImportPreparedDocumentAsync(
+        DocumentEntity document,
+        long? collectionId = null,
+        CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(document);
+        ArgumentException.ThrowIfNullOrWhiteSpace(document.ContentHash);
+
+        // The same duplicate rule as file imports: identical content is one document.
+        var existing = await GetDocumentByHashAsync(document.ContentHash);
+        if (existing is not null)
+        {
+            _logger.Information(
+                "Duplicate detected: {FileName} matches existing document {DocumentId} ({ExistingFileName})",
+                document.FileName, existing.Id, existing.FileName);
+            throw new DuplicateDocumentException(existing.Id, existing.FileName);
+        }
+
+        CollectionEntity? collection = null;
+        if (collectionId.HasValue)
+        {
+            collection = await _db.Collections.FirstOrDefaultAsync(c => c.Id == collectionId.Value, ct)
+                ?? throw new InvalidOperationException($"Collection {collectionId.Value} was not found.");
+        }
+
+        _db.Documents.Add(document);
+
+        if (collection is not null)
+        {
+            _db.DocumentCollections.Add(new DocumentCollectionEntity
+            {
+                Document = document,
+                CollectionId = collection.Id,
+                AddedAt = DateTime.UtcNow
+            });
+
+            collection.DocumentCount += 1;
+            collection.UpdatedAt = DateTime.UtcNow;
+        }
+
+        // One save for the document, its link and the count. A failed save is discarded by
+        // the context, so nothing of this import stays pending for a later save.
+        await _db.SaveChangesAsync(ct);
+
+        _logger.Information(
+            "Imported document {FileName} (ID {DocumentId}, {FileType}), collection {CollectionId}",
+            document.FileName, document.Id, document.FileType, collection?.Id);
+
+        if (document.IndexingStatus == "pending")
+        {
+            RaisePendingIndexing(document.Id, extracted: null);
+        }
+
+        return document;
+    }
+
     /// <summary>
     /// Links a document to a collection and keeps the collection's denormalized
     /// <see cref="CollectionEntity.DocumentCount"/> in step. Returns false when the collection
@@ -761,7 +818,9 @@ public sealed class DocumentService : IDocumentService
             return null;
         }
 
+        // Duplicate checks only read the match, so it is not tracked in the shared context.
         return await _db.Documents
+            .AsNoTracking()
             .FirstOrDefaultAsync(d => d.ContentHash == contentHash);
     }
 

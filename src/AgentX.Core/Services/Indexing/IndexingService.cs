@@ -29,7 +29,7 @@ namespace AgentX.Core.Services.Indexing;
 /// <see cref="IDocumentService"/> imports or re-indexes are queued the moment its
 /// <see cref="IDocumentService.DocumentPendingIndexing"/> event fires; explicit
 /// <see cref="IndexDocumentAsync"/> calls; and a periodic sweep for "pending" documents
-/// written by paths that do not signal the indexer (web import, sync, the local API).
+/// written by paths that do not signal the indexer (sync, the local API).
 /// When that sweep finds nothing to index either, chunks embedded before embedding model
 /// versions were recorded are embedded again with the current model (see
 /// <see cref="ReembedLegacyChunksAsync"/>).

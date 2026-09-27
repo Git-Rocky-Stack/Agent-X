@@ -176,7 +176,7 @@ public sealed class IndexingServiceTests : IDisposable
     [Fact]
     public async Task PendingDocumentWrittenWithoutASignal_IsPickedUpByTheSweep()
     {
-        // Web import, sync and the local API write "pending" rows directly. The idle loop
+        // Sync and the local API write "pending" rows directly. The idle loop
         // sweeps for them instead of leaving them for the next startup.
         var service = NewService();
         service.PendingSweepInterval = TimeSpan.FromMilliseconds(100);
