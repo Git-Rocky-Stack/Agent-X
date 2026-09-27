@@ -874,6 +874,30 @@
   <data name="Ops_ActionSyncUnreadable" xml:space="preserve"><value>{0} 件のファイルを読み取れませんでした</value></data>
   <data name="Ops_ActionSyncSkipped" xml:space="preserve"><value>{0} 件の変更をスキップしました</value></data>
   <data name="Ops_ActionSyncProblems" xml:space="preserve"><value>同期は問題が発生して終了しました: {0}。{1}</value></data>
+  <data name="Main_WindowTitle" xml:space="preserve"><value>Agent-X - インテリジェンス ハブ</value></data>
+  <data name="Shortcut_CategoryNavigation" xml:space="preserve"><value>ナビゲーション</value></data>
+  <data name="Shortcut_CommandPalette" xml:space="preserve"><value>コマンド パレット</value></data>
+  <data name="Shortcut_SemanticSearch" xml:space="preserve"><value>セマンティック検索</value></data>
+  <data name="Shortcut_NewConversation" xml:space="preserve"><value>新しい会話</value></data>
+  <data name="Shortcut_KnowledgeVault" xml:space="preserve"><value>Knowledge Vault</value></data>
+  <data name="Shortcut_Settings" xml:space="preserve"><value>設定</value></data>
+  <data name="Shortcut_Analytics" xml:space="preserve"><value>Analytics(分析)</value></data>
+  <data name="Shortcut_Operations" xml:space="preserve"><value>Operations(運用状況)</value></data>
+  <data name="Shortcut_CategoryQuickAccess" xml:space="preserve"><value>クイック アクセス</value></data>
+  <data name="Shortcut_QuickAccessPage" xml:space="preserve"><value>{0} (Ctrl+{1})</value></data>
+  <data name="Shortcut_PageChat" xml:space="preserve"><value>AI Chat</value></data>
+  <data name="Shortcut_PageAskFiles" xml:space="preserve"><value>ファイルに質問する</value></data>
+  <data name="Shortcut_PageCollections" xml:space="preserve"><value>コレクション</value></data>
+  <data name="Shortcut_PageModelManager" xml:space="preserve"><value>モデル マネージャー</value></data>
+  <data name="Shortcut_CategoryActions" xml:space="preserve"><value>アクション</value></data>
+  <data name="Shortcut_Workflows" xml:space="preserve"><value>ワークフロー</value></data>
+  <data name="Shortcut_WebImport" xml:space="preserve"><value>Web インポート</value></data>
+  <data name="Shortcut_Dashboard" xml:space="preserve"><value>ダッシュボード</value></data>
+  <data name="Shortcut_KnowledgeGraph" xml:space="preserve"><value>ナレッジ グラフ</value></data>
+  <data name="Shortcut_CategoryHelp" xml:space="preserve"><value>ヘルプ</value></data>
+  <data name="Shortcut_ShowKeyboardShortcuts" xml:space="preserve"><value>キーボードショートカットを表示</value></data>
+  <data name="Shortcut_KeyboardShortcuts" xml:space="preserve"><value>キーボードショートカット</value></data>
+  <data name="Shortcut_JumpTo" xml:space="preserve"><value>ジャンプ</value></data>
   <data name="Inbox_TargetCollectionOverline.Text" xml:space="preserve"><value>対象コレクション</value></data>
   <data name="Inbox_AutoSuggestPlaceholder.PlaceholderText" xml:space="preserve"><value>自動提案</value></data>
   <data name="Inbox_ActionsOverline.Text" xml:space="preserve"><value>操作</value></data>

@@ -3,8 +3,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AgentX.App.Services;
+using AgentX.Core.Services.Localization;
 using AgentX.Core.Services.Shortcuts;
+using AgentX.Tests.Helpers;
 using FluentAssertions;
+using Moq;
 using Xunit;
 
 namespace AgentX.Tests.Services;
@@ -15,7 +18,7 @@ public class ShortcutCatalogTests
     public void SeedDefaults_registers_global_shortcuts_from_legacy_catalog()
     {
         var registry = new ShortcutRegistry();
-        var catalog = new ShortcutCatalog(registry);
+        var catalog = new ShortcutCatalog(registry, EnglishResources.Create());
 
         catalog.SeedDefaults(NoopActions());
 
@@ -46,7 +49,7 @@ public class ShortcutCatalogTests
     {
         var registry = new ShortcutRegistry();
         var navigatedTo = string.Empty;
-        var catalog = new ShortcutCatalog(registry);
+        var catalog = new ShortcutCatalog(registry, EnglishResources.Create());
 
         catalog.SeedDefaults(NoopActions(navigateAsync: (page, _, _) =>
         {
@@ -67,7 +70,7 @@ public class ShortcutCatalogTests
     {
         var registry = new ShortcutRegistry();
         var cheatsheetCalls = 0;
-        var catalog = new ShortcutCatalog(registry);
+        var catalog = new ShortcutCatalog(registry, EnglishResources.Create());
 
         catalog.SeedDefaults(NoopActions(showCheatsheetAsync: _ =>
         {
@@ -90,7 +93,7 @@ public class ShortcutCatalogTests
     {
         var registry = new ShortcutRegistry();
         var navigatedTo = string.Empty;
-        var catalog = new ShortcutCatalog(registry);
+        var catalog = new ShortcutCatalog(registry, EnglishResources.Create());
 
         catalog.SeedDefaults(NoopActions(navigateAsync: (page, _, _) =>
         {
@@ -113,7 +116,7 @@ public class ShortcutCatalogTests
     {
         var registry = new ShortcutRegistry();
         var navigatedTo = string.Empty;
-        var catalog = new ShortcutCatalog(registry);
+        var catalog = new ShortcutCatalog(registry, EnglishResources.Create());
 
         catalog.SeedDefaults(NoopActions(navigateAsync: (page, _, _) =>
         {
@@ -135,7 +138,7 @@ public class ShortcutCatalogTests
     public void SeedDefaults_is_idempotent()
     {
         var registry = new ShortcutRegistry();
-        var catalog = new ShortcutCatalog(registry);
+        var catalog = new ShortcutCatalog(registry, EnglishResources.Create());
 
         catalog.SeedDefaults(NoopActions());
         catalog.SeedDefaults(NoopActions());
@@ -148,7 +151,7 @@ public class ShortcutCatalogTests
     {
         var registry = new ShortcutRegistry();
         object? parameter = "unset";
-        var catalog = new ShortcutCatalog(registry);
+        var catalog = new ShortcutCatalog(registry, EnglishResources.Create());
 
         catalog.SeedDefaults(NoopActions(navigateAsync: (_, p, _) =>
         {
@@ -167,7 +170,7 @@ public class ShortcutCatalogTests
     {
         var registry = new ShortcutRegistry();
         object? parameter = "unset";
-        var catalog = new ShortcutCatalog(registry);
+        var catalog = new ShortcutCatalog(registry, EnglishResources.Create());
 
         catalog.SeedDefaults(NoopActions(navigateAsync: (_, p, _) =>
         {
@@ -185,7 +188,7 @@ public class ShortcutCatalogTests
     public void PageChordDisplay_reads_the_live_registry_and_is_null_for_pages_without_a_chord()
     {
         var registry = new ShortcutRegistry();
-        var catalog = new ShortcutCatalog(registry);
+        var catalog = new ShortcutCatalog(registry, EnglishResources.Create());
         catalog.SeedDefaults(NoopActions());
 
         catalog.PageChordDisplay("KnowledgeVault").Should().Be("Ctrl+I");
@@ -193,6 +196,40 @@ public class ShortcutCatalogTests
         catalog.PageChordDisplay("Inbox").Should().BeNull();
         catalog.ActionChordDisplay("NewConversation").Should().Be("Ctrl+N");
         catalog.ActionChordDisplay("ToggleTheme").Should().BeNull();
+    }
+
+    [Fact]
+    public void Labels_and_categories_are_the_ones_the_keyboard_shortcuts_dialog_should_show()
+    {
+        // The Ctrl+number shortcuts showed the pages' internal tags ("AskFiles (Ctrl+3)").
+        var registry = new ShortcutRegistry();
+        new ShortcutCatalog(registry, EnglishResources.Create()).SeedDefaults(NoopActions());
+
+        var byId = registry.All().ToDictionary(s => s.Id);
+        byId["nav.page3"].Label.Should().Be("Ask Your Files (Ctrl+3)");
+        byId["nav.page8"].Label.Should().Be("Model Manager (Ctrl+8)");
+        byId["nav.page3"].Category.Should().Be("Quick Access");
+        byId["cmd.palette"].Label.Should().Be("Command Palette");
+        byId["cmd.palette"].Category.Should().Be("Navigation");
+        byId["help.cheatsheet"].Label.Should().Be("Keyboard Shortcuts");
+        byId["help.cheatsheet"].Category.Should().Be("Help");
+        byId["nav.graph"].Category.Should().Be("Actions");
+    }
+
+    [Fact]
+    public void Labels_and_categories_come_from_the_resources()
+    {
+        var localization = new Mock<ILocalizationService>();
+        localization.Setup(l => l.GetString(It.IsAny<string>())).Returns((string key) => $"<{key}>");
+        localization.Setup(l => l.GetString(It.IsAny<string>(), It.IsAny<object[]>()))
+            .Returns((string key, object[] args) => $"<{key}:{string.Join("|", args)}>");
+        var registry = new ShortcutRegistry();
+
+        new ShortcutCatalog(registry, localization.Object).SeedDefaults(NoopActions());
+
+        registry.All().Should().OnlyContain(s => s.Label.StartsWith("<Shortcut_") && s.Category!.StartsWith("<Shortcut_"));
+        registry.All().Single(s => s.Id == "nav.page2").Label
+            .Should().Be("<Shortcut_QuickAccessPage:<Shortcut_PageChat>|2>");
     }
 
     private static ShortcutCatalogActions NoopActions(

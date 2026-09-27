@@ -1213,6 +1213,30 @@
   <data name="Ops_ActionSyncUnreadable" xml:space="preserve"><value>{0} file(s) could not be read</value></data>
   <data name="Ops_ActionSyncSkipped" xml:space="preserve"><value>{0} change(s) were skipped</value></data>
   <data name="Ops_ActionSyncProblems" xml:space="preserve"><value>Sync finished with problems: {0}. {1}</value></data>
+  <data name="Main_WindowTitle" xml:space="preserve"><value>Agent-X - Intelligence Hub</value></data>
+  <data name="Shortcut_CategoryNavigation" xml:space="preserve"><value>Navigation</value></data>
+  <data name="Shortcut_CommandPalette" xml:space="preserve"><value>Command Palette</value></data>
+  <data name="Shortcut_SemanticSearch" xml:space="preserve"><value>Semantic Search</value></data>
+  <data name="Shortcut_NewConversation" xml:space="preserve"><value>New Conversation</value></data>
+  <data name="Shortcut_KnowledgeVault" xml:space="preserve"><value>Knowledge Vault</value></data>
+  <data name="Shortcut_Settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="Shortcut_Analytics" xml:space="preserve"><value>Analytics</value></data>
+  <data name="Shortcut_Operations" xml:space="preserve"><value>Operations</value></data>
+  <data name="Shortcut_CategoryQuickAccess" xml:space="preserve"><value>Quick Access</value></data>
+  <data name="Shortcut_QuickAccessPage" xml:space="preserve"><value>{0} (Ctrl+{1})</value></data>
+  <data name="Shortcut_PageChat" xml:space="preserve"><value>AI Chat</value></data>
+  <data name="Shortcut_PageAskFiles" xml:space="preserve"><value>Ask Your Files</value></data>
+  <data name="Shortcut_PageCollections" xml:space="preserve"><value>Collections</value></data>
+  <data name="Shortcut_PageModelManager" xml:space="preserve"><value>Model Manager</value></data>
+  <data name="Shortcut_CategoryActions" xml:space="preserve"><value>Actions</value></data>
+  <data name="Shortcut_Workflows" xml:space="preserve"><value>Workflows</value></data>
+  <data name="Shortcut_WebImport" xml:space="preserve"><value>Web Import</value></data>
+  <data name="Shortcut_Dashboard" xml:space="preserve"><value>Dashboard</value></data>
+  <data name="Shortcut_KnowledgeGraph" xml:space="preserve"><value>Knowledge Graph</value></data>
+  <data name="Shortcut_CategoryHelp" xml:space="preserve"><value>Help</value></data>
+  <data name="Shortcut_ShowKeyboardShortcuts" xml:space="preserve"><value>Show Keyboard Shortcuts</value></data>
+  <data name="Shortcut_KeyboardShortcuts" xml:space="preserve"><value>Keyboard Shortcuts</value></data>
+  <data name="Shortcut_JumpTo" xml:space="preserve"><value>Jump To</value></data>
   <data name="Inbox_TargetCollectionOverline.Text" xml:space="preserve"><value>TARGET COLLECTION</value></data>
   <data name="Inbox_AutoSuggestPlaceholder.PlaceholderText" xml:space="preserve"><value>Auto-suggest</value></data>
   <data name="Inbox_ActionsOverline.Text" xml:space="preserve"><value>ACTIONS</value></data>

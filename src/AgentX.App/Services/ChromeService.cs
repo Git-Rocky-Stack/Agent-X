@@ -1,4 +1,5 @@
 using AgentX.App.Helpers;
+using AgentX.Core.Services.Localization;
 using Microsoft.UI;
 using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Windowing;
@@ -22,9 +23,20 @@ public sealed class ChromeService : IChromeService
     private const int PreferredWidth = 1440;
     private const int PreferredHeight = 900;
 
+    private readonly ILocalizationService _localization;
+
     // Held for the life of the (singleton) service: a collected AccessibilitySettings
     // stops raising HighContrastChanged.
     private AccessibilitySettings? _accessibilitySettings;
+
+    /// <summary>
+    /// The localization service is initialized before the shell is built, so the window title
+    /// is read in the user's language.
+    /// </summary>
+    public ChromeService(ILocalizationService localization)
+    {
+        _localization = localization ?? throw new ArgumentNullException(nameof(localization));
+    }
 
     /// <inheritdoc />
     public void ConfigureWindow(Window window)
@@ -67,7 +79,8 @@ public sealed class ChromeService : IChromeService
                 PreferredWidth, PreferredHeight);
         }
 
-        window.Title = "Agent-X \u2014 Intelligence Hub";
+        // The taskbar and Alt+Tab show this title.
+        window.Title = _localization.GetString("Main_WindowTitle");
     }
 
     /// <inheritdoc />

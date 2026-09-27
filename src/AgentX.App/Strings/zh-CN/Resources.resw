@@ -874,6 +874,30 @@
   <data name="Ops_ActionSyncUnreadable" xml:space="preserve"><value>{0} 个文件无法读取</value></data>
   <data name="Ops_ActionSyncSkipped" xml:space="preserve"><value>已跳过 {0} 项更改</value></data>
   <data name="Ops_ActionSyncProblems" xml:space="preserve"><value>同步已完成，但存在问题：{0}。{1}</value></data>
+  <data name="Main_WindowTitle" xml:space="preserve"><value>Agent-X - 智能中心</value></data>
+  <data name="Shortcut_CategoryNavigation" xml:space="preserve"><value>导航</value></data>
+  <data name="Shortcut_CommandPalette" xml:space="preserve"><value>命令面板</value></data>
+  <data name="Shortcut_SemanticSearch" xml:space="preserve"><value>语义搜索</value></data>
+  <data name="Shortcut_NewConversation" xml:space="preserve"><value>新建对话</value></data>
+  <data name="Shortcut_KnowledgeVault" xml:space="preserve"><value>Knowledge Vault</value></data>
+  <data name="Shortcut_Settings" xml:space="preserve"><value>设置</value></data>
+  <data name="Shortcut_Analytics" xml:space="preserve"><value>Analytics(分析)</value></data>
+  <data name="Shortcut_Operations" xml:space="preserve"><value>Operations(运行状况)</value></data>
+  <data name="Shortcut_CategoryQuickAccess" xml:space="preserve"><value>快速访问</value></data>
+  <data name="Shortcut_QuickAccessPage" xml:space="preserve"><value>{0} (Ctrl+{1})</value></data>
+  <data name="Shortcut_PageChat" xml:space="preserve"><value>AI Chat</value></data>
+  <data name="Shortcut_PageAskFiles" xml:space="preserve"><value>向您的文件提问</value></data>
+  <data name="Shortcut_PageCollections" xml:space="preserve"><value>合集</value></data>
+  <data name="Shortcut_PageModelManager" xml:space="preserve"><value>模型管理器</value></data>
+  <data name="Shortcut_CategoryActions" xml:space="preserve"><value>操作</value></data>
+  <data name="Shortcut_Workflows" xml:space="preserve"><value>工作流</value></data>
+  <data name="Shortcut_WebImport" xml:space="preserve"><value>网页导入</value></data>
+  <data name="Shortcut_Dashboard" xml:space="preserve"><value>仪表板</value></data>
+  <data name="Shortcut_KnowledgeGraph" xml:space="preserve"><value>知识图谱</value></data>
+  <data name="Shortcut_CategoryHelp" xml:space="preserve"><value>帮助</value></data>
+  <data name="Shortcut_ShowKeyboardShortcuts" xml:space="preserve"><value>显示键盘快捷键</value></data>
+  <data name="Shortcut_KeyboardShortcuts" xml:space="preserve"><value>键盘快捷键</value></data>
+  <data name="Shortcut_JumpTo" xml:space="preserve"><value>跳转</value></data>
   <data name="Inbox_TargetCollectionOverline.Text" xml:space="preserve"><value>目标合集</value></data>
   <data name="Inbox_AutoSuggestPlaceholder.PlaceholderText" xml:space="preserve"><value>自动建议</value></data>
   <data name="Inbox_ActionsOverline.Text" xml:space="preserve"><value>操作</value></data>

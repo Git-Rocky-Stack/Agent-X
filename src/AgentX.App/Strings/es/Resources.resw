@@ -874,6 +874,30 @@
   <data name="Ops_ActionSyncUnreadable" xml:space="preserve"><value>{0} archivo(s) no se pudieron leer</value></data>
   <data name="Ops_ActionSyncSkipped" xml:space="preserve"><value>se omitieron {0} cambio(s)</value></data>
   <data name="Ops_ActionSyncProblems" xml:space="preserve"><value>La sincronización terminó con problemas: {0}. {1}</value></data>
+  <data name="Main_WindowTitle" xml:space="preserve"><value>Agent-X - Centro de inteligencia</value></data>
+  <data name="Shortcut_CategoryNavigation" xml:space="preserve"><value>Navegación</value></data>
+  <data name="Shortcut_CommandPalette" xml:space="preserve"><value>Paleta de comandos</value></data>
+  <data name="Shortcut_SemanticSearch" xml:space="preserve"><value>Búsqueda semántica</value></data>
+  <data name="Shortcut_NewConversation" xml:space="preserve"><value>Nueva conversación</value></data>
+  <data name="Shortcut_KnowledgeVault" xml:space="preserve"><value>Bóveda de Conocimiento</value></data>
+  <data name="Shortcut_Settings" xml:space="preserve"><value>Configuración</value></data>
+  <data name="Shortcut_Analytics" xml:space="preserve"><value>Analytics</value></data>
+  <data name="Shortcut_Operations" xml:space="preserve"><value>Operations</value></data>
+  <data name="Shortcut_CategoryQuickAccess" xml:space="preserve"><value>Acceso rápido</value></data>
+  <data name="Shortcut_QuickAccessPage" xml:space="preserve"><value>{0} (Ctrl+{1})</value></data>
+  <data name="Shortcut_PageChat" xml:space="preserve"><value>AI Chat</value></data>
+  <data name="Shortcut_PageAskFiles" xml:space="preserve"><value>Pregunta a tus archivos</value></data>
+  <data name="Shortcut_PageCollections" xml:space="preserve"><value>Colecciones</value></data>
+  <data name="Shortcut_PageModelManager" xml:space="preserve"><value>Gestor de modelos</value></data>
+  <data name="Shortcut_CategoryActions" xml:space="preserve"><value>Acciones</value></data>
+  <data name="Shortcut_Workflows" xml:space="preserve"><value>Workflows</value></data>
+  <data name="Shortcut_WebImport" xml:space="preserve"><value>Importación web</value></data>
+  <data name="Shortcut_Dashboard" xml:space="preserve"><value>Panel</value></data>
+  <data name="Shortcut_KnowledgeGraph" xml:space="preserve"><value>Grafo de conocimiento</value></data>
+  <data name="Shortcut_CategoryHelp" xml:space="preserve"><value>Ayuda</value></data>
+  <data name="Shortcut_ShowKeyboardShortcuts" xml:space="preserve"><value>Mostrar atajos de teclado</value></data>
+  <data name="Shortcut_KeyboardShortcuts" xml:space="preserve"><value>Atajos de teclado</value></data>
+  <data name="Shortcut_JumpTo" xml:space="preserve"><value>Ir a</value></data>
   <data name="Inbox_TargetCollectionOverline.Text" xml:space="preserve"><value>COLECCIÓN DE DESTINO</value></data>
   <data name="Inbox_AutoSuggestPlaceholder.PlaceholderText" xml:space="preserve"><value>Sugerencia automática</value></data>
   <data name="Inbox_ActionsOverline.Text" xml:space="preserve"><value>ACCIONES</value></data>
