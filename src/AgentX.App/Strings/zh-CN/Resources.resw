@@ -614,8 +614,8 @@
   <data name="UserGuide_Sync_Feature1_Description.Text" xml:space="preserve"><value>任何所有设备都能访问的文件夹都可作为同步通道。Agent-X 向其中写入加密的变更包 — 共享位置绝不存放可读数据。</value></data>
   <data name="UserGuide_Sync_Feature2_Title.Text" xml:space="preserve"><value>冲突解决</value></data>
   <data name="UserGuide_Sync_Feature2_Description.Text" xml:space="preserve"><value>当同一条目在两台设备上都被编辑时，基于时间戳的冲突解决机制会决定哪个变更生效 — 无需手动合并。</value></data>
-  <data name="UserGuide_Sync_Feature3_Title.Text" xml:space="preserve"><value>本地协作会话</value></data>
-  <data name="UserGuide_Sync_Feature3_Description.Text" xml:space="preserve"><value>在可信的本地网络中，Agent-X 安装之间还可以承载实时协作会话 — 在对等设备之间直接共享在线状态和活动事件，任何数据都不会离开您的网络。</value></data>
+  <data name="UserGuide_Sync_Feature3_Title.Text" xml:space="preserve"><value>自动同步与历史</value></data>
+  <data name="UserGuide_Sync_Feature3_Description.Text" xml:space="preserve"><value>开启自动同步后，将按固定间隔交换更改；也可以随时点击“立即同步”。同步历史会列出每次运行及其结果，便于快速找到失败的同步。</value></data>
 
   <!-- Page localization pass 2026-07: Smart Inbox / Comparison / Operations / Analytics / Collaborative Sync / Onboarding -->
   <data name="Inbox_Title.Text" xml:space="preserve"><value>Smart Inbox(智能收件箱)</value></data>

@@ -736,8 +736,8 @@
   <data name="UserGuide_Sync_Feature1_Description.Text" xml:space="preserve"><value>Any folder every machine can reach works as the sync channel. Agent-X writes encrypted change packages to it — the shared location never holds readable data.</value></data>
   <data name="UserGuide_Sync_Feature2_Title.Text" xml:space="preserve"><value>Conflict Resolution</value></data>
   <data name="UserGuide_Sync_Feature2_Description.Text" xml:space="preserve"><value>Timestamp-based conflict resolution decides which change wins when the same item was edited on two devices — no manual merge steps required.</value></data>
-  <data name="UserGuide_Sync_Feature3_Title.Text" xml:space="preserve"><value>Local Collaboration Sessions</value></data>
-  <data name="UserGuide_Sync_Feature3_Description.Text" xml:space="preserve"><value>On a trusted local network, Agent-X installations can also host live collaboration sessions — sharing presence and activity events directly between peers, with nothing leaving your network.</value></data>
+  <data name="UserGuide_Sync_Feature3_Title.Text" xml:space="preserve"><value>Auto-Sync and History</value></data>
+  <data name="UserGuide_Sync_Feature3_Description.Text" xml:space="preserve"><value>Turn on Auto-Sync to exchange changes at a regular interval, or press Sync Now whenever you want. Sync History lists every run with its result, so a failed pass is easy to find.</value></data>
 
   <!-- Page localization pass 2026-07: Smart Inbox / Comparison / Operations / Analytics / Collaborative Sync / Onboarding -->
   <data name="Inbox_Title.Text" xml:space="preserve"><value>Smart Inbox</value></data>

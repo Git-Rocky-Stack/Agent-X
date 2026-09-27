@@ -359,7 +359,7 @@ The application host project. Responsibilities:
 
 The portable class library. Responsibilities:
 
-- **AI Subsystem** (`AI/`): Provider abstraction (`IAiProvider`), multi-provider service (`IAiService`), embedding generation (`IEmbeddingService`), context window management (`IContextWindowManager`), model enumeration (`IModelManager`), hardware detection (`IHardwareDetector`), cost tracking (`ICostTracker`), and retry policy (`IRetryPolicy`).
+- **AI Subsystem** (`AI/`): Provider abstraction (`IAiProvider`), multi-provider service (`IAiService`), embedding generation (`IEmbeddingService`), context window management (`IContextWindowManager`), model enumeration (`IModelManager`), hardware detection (`IHardwareDetector`), cost tracking (`ICostTracker`), and model routing (`IModelRouterService`).
 - **Chat Subsystem** (`Services/Chat/`): Conversation persistence (`IConversationService`), message streaming orchestration (`IChatService`), system prompt management (`ISystemPromptService`), and AI memory extraction and injection (`IConversationMemoryService`).
 - **Document Processing** (`Documents/`): Document ingestion and metadata extraction (`IDocumentService`), pluggable processor pipeline (`IDocumentProcessor`), and text chunking with configurable size and overlap (`IChunkingService`).
 - **Indexing Pipeline** (`Services/Indexing/`): Asynchronous queue-based indexing (`IIndexingQueueService`, `IIndexingService`), file system watcher for watch folder auto-import (`IFileWatcherService`; the service exists, but the app has no UI to add a watch folder yet).

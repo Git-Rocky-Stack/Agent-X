@@ -863,31 +863,16 @@ No rate limit (local).
 | `invalid_api_key` | Authentication failed | No |
 | `insufficient_quota` | Quota exceeded | No |
 | `model_not_found` | Model unavailable | No |
-| `timeout` | Request timeout | Yes (exponential backoff) |
-| `network_error` | Connection failed | Yes (exponential backoff) |
+| `timeout` | Request timeout | Yes, send again |
+| `network_error` | Connection failed | Yes, send again |
 
 ---
 
 ## Retry Policy
 
-Agent-X uses **exponential backoff with jitter**:
-
-```csharp
-// src/AgentX.Core/AI/ExponentialBackoffRetryPolicy.cs
-public class ExponentialBackoffRetryPolicy : IRetryPolicy
-{
-    private readonly TimeSpan _initialDelay = TimeSpan.FromSeconds(1);
-    private readonly TimeSpan _maxDelay = TimeSpan.FromSeconds(60);
-    private readonly int _maxRetries = 5;
-    
-    public async Task<T> ExecuteAsync<T>(
-        Func<Task<T>> operation,
-        CancellationToken ct = default)
-    {
-        // Exponential backoff: 1s, 2s, 4s, 8s, 16s...
-    }
-}
-```
+Agent-X does not retry a failed provider request on its own. The error is reported where the
+request was made (for example in the chat, which keeps the prompt so it can be sent again), and
+the "Retry" column above says whether sending it again can help.
 
 ---
 

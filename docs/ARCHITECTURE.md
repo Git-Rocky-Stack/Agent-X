@@ -567,8 +567,6 @@ graph TD
 
 **`ContextWindowManager`** handles context window trimming: given a list of chat messages and a token budget, it removes the oldest non-system messages until the total estimated token count fits within the window, always preserving the system prompt and the most recent user message.
 
-**`ExponentialBackoffRetryPolicy`** implements `IRetryPolicy` for transient failures when calling AI providers, with configurable maximum attempts and base delay.
-
 **`CostTracker`** maintains in-memory token counts per provider session (thread-safe via `Interlocked`). It does not persist to disk; it resets on application restart.
 
 **Relevant files:**
@@ -1424,7 +1422,6 @@ All service registrations are in `App.xaml.cs` `ConfigureServices()`. The comple
 | `IHardwareDetector` | `IHardwareDetector` | `HardwareDetector` | Singleton |
 | `IEmbeddingService` | `IEmbeddingService` | `EmbeddingService` | Singleton |
 | `IContextWindowManager` | `IContextWindowManager` | `ContextWindowManager` | Singleton |
-| `IRetryPolicy` | `IRetryPolicy` | `ExponentialBackoffRetryPolicy` | Singleton |
 | `IVectorStore` | `IVectorStore` | `VectorStoreFactory` (`HnswVectorStore` or `SqliteVecStore`) | Singleton |
 | `IConversationService` | `IConversationService` | `ConversationService` | Singleton |
 | `ISystemPromptService` | `ISystemPromptService` | `SystemPromptService` | Singleton |

@@ -528,37 +528,6 @@ Calculates the number of tokens available for a response given the input message
 
 ---
 
-### IRetryPolicy
-
-**Namespace**: `AgentX.Core.AI`
-
-Defines retry behavior for transient AI service failures.
-
-#### Methods
-
-##### ExecuteAsync
-
-```csharp
-Task<T> ExecuteAsync<T>(
-    Func<Task<T>> operation,
-    int maxRetries,
-    CancellationToken ct)
-```
-
-Executes an operation with exponential backoff retry logic.
-
-**Type Parameters**:
-- `T`: The return type of the operation
-
-**Parameters**:
-- `operation` (Func<Task<T>>): The async operation to execute
-- `maxRetries` (int): Maximum number of retry attempts
-- `ct` (CancellationToken): Cancellation token
-
-**Returns**: `Task<T>` — The result of the operation
-
----
-
 ## Chat Services
 
 ### IChatService

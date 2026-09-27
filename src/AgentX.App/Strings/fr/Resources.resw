@@ -614,8 +614,8 @@
   <data name="UserGuide_Sync_Feature1_Description.Text" xml:space="preserve"><value>N'importe quel dossier accessible à toutes les machines sert de canal de synchronisation. Agent-X y écrit des paquets de changements chiffrés — l'emplacement partagé ne contient jamais de données lisibles.</value></data>
   <data name="UserGuide_Sync_Feature2_Title.Text" xml:space="preserve"><value>Résolution des conflits</value></data>
   <data name="UserGuide_Sync_Feature2_Description.Text" xml:space="preserve"><value>La résolution de conflits basée sur l'horodatage détermine quel changement l'emporte lorsque le même élément a été modifié sur deux appareils — aucune fusion manuelle requise.</value></data>
-  <data name="UserGuide_Sync_Feature3_Title.Text" xml:space="preserve"><value>Sessions de collaboration locales</value></data>
-  <data name="UserGuide_Sync_Feature3_Description.Text" xml:space="preserve"><value>Sur un réseau local de confiance, les installations d'Agent-X peuvent aussi héberger des sessions de collaboration en direct — partage de présence et d'événements d'activité directement entre pairs, sans que rien ne quitte votre réseau.</value></data>
+  <data name="UserGuide_Sync_Feature3_Title.Text" xml:space="preserve"><value>Synchronisation automatique et historique</value></data>
+  <data name="UserGuide_Sync_Feature3_Description.Text" xml:space="preserve"><value>Activez la synchronisation automatique pour échanger les modifications à intervalle régulier, ou cliquez sur « Synchroniser maintenant » quand vous le souhaitez. L'historique de synchronisation liste chaque exécution avec son résultat, ce qui permet de repérer facilement un passage en échec.</value></data>
 
   <!-- Page localization pass 2026-07: Smart Inbox / Comparison / Operations / Analytics / Collaborative Sync / Onboarding -->
   <data name="Inbox_Title.Text" xml:space="preserve"><value>Smart Inbox</value></data>

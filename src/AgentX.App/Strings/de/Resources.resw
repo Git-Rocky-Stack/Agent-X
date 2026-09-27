@@ -614,8 +614,8 @@
   <data name="UserGuide_Sync_Feature1_Description.Text" xml:space="preserve"><value>Jeder Ordner, den alle Rechner erreichen, taugt als Sync-Kanal. Agent-X legt dort verschlüsselte Änderungspakete ab — im gemeinsamen Speicherort liegen nie lesbare Daten.</value></data>
   <data name="UserGuide_Sync_Feature2_Title.Text" xml:space="preserve"><value>Konfliktauflösung</value></data>
   <data name="UserGuide_Sync_Feature2_Description.Text" xml:space="preserve"><value>Eine zeitstempelbasierte Konfliktauflösung entscheidet, welche Änderung gewinnt, wenn dasselbe Element auf zwei Geräten bearbeitet wurde — manuelle Merge-Schritte sind nicht nötig.</value></data>
-  <data name="UserGuide_Sync_Feature3_Title.Text" xml:space="preserve"><value>Lokale Kollaborationssitzungen</value></data>
-  <data name="UserGuide_Sync_Feature3_Description.Text" xml:space="preserve"><value>In einem vertrauenswürdigen lokalen Netzwerk können Agent-X-Installationen zusätzlich Live-Kollaborationssitzungen hosten — Präsenz- und Aktivitätsereignisse werden direkt zwischen den Geräten geteilt, ohne dass etwas Ihr Netzwerk verlässt.</value></data>
+  <data name="UserGuide_Sync_Feature3_Title.Text" xml:space="preserve"><value>Auto-Sync und Verlauf</value></data>
+  <data name="UserGuide_Sync_Feature3_Description.Text" xml:space="preserve"><value>Aktivieren Sie Auto-Sync, um Änderungen in einem festen Intervall auszutauschen, oder klicken Sie jederzeit auf „Jetzt synchronisieren“. Der Sync-Verlauf listet jeden Lauf mit seinem Ergebnis auf, sodass ein fehlgeschlagener Durchlauf leicht zu finden ist.</value></data>
 
   <!-- Page localization pass 2026-07: Smart Inbox / Comparison / Operations / Analytics / Collaborative Sync / Onboarding -->
   <data name="Inbox_Title.Text" xml:space="preserve"><value>Smart Inbox</value></data>

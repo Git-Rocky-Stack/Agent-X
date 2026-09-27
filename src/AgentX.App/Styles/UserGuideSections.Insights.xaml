@@ -397,7 +397,7 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <FontIcon Glyph="&#xE716;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                            <FontIcon Glyph="&#xE823;" FontFamily="Segoe MDL2 Assets" FontSize="16"
                                       Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,2,0,0" />
                             <StackPanel Grid.Column="1" Spacing="2">
                                 <TextBlock x:Uid="UserGuide_Sync_Feature3_Title"

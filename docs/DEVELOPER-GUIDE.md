@@ -235,8 +235,6 @@ AgentX.Core/
     HardwareDetector.cs          # GPU/RAM/CPU detection via System.Management
     IModelManager.cs
     ModelManager.cs              # Model listing, install/uninstall coordination
-    IRetryPolicy.cs
-    ExponentialBackoffRetryPolicy.cs
     Models/
       AiModel.cs                 # Model metadata (name, family, size, quantization)
       ChatMessage.cs             # Role + content DTO

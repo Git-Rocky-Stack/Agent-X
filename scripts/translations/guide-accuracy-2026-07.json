@@ -408,20 +408,20 @@
       "zh-CN": "当同一条目在两台设备上都被编辑时，基于时间戳的冲突解决机制会决定哪个变更生效 — 无需手动合并。"
     },
     "UserGuide_Sync_Feature3_Title.Text": {
-      "en-US": "Local Collaboration Sessions",
-      "de": "Lokale Kollaborationssitzungen",
-      "es": "Sesiones de colaboración locales",
-      "fr": "Sessions de collaboration locales",
-      "ja": "ローカルコラボレーションセッション",
-      "zh-CN": "本地协作会话"
+      "en-US": "Auto-Sync and History",
+      "de": "Auto-Sync und Verlauf",
+      "es": "Sincronización automática e historial",
+      "fr": "Synchronisation automatique et historique",
+      "ja": "自動同期と履歴",
+      "zh-CN": "自动同步与历史"
     },
     "UserGuide_Sync_Feature3_Description.Text": {
-      "en-US": "On a trusted local network, Agent-X installations can also host live collaboration sessions — sharing presence and activity events directly between peers, with nothing leaving your network.",
-      "de": "In einem vertrauenswürdigen lokalen Netzwerk können Agent-X-Installationen zusätzlich Live-Kollaborationssitzungen hosten — Präsenz- und Aktivitätsereignisse werden direkt zwischen den Geräten geteilt, ohne dass etwas Ihr Netzwerk verlässt.",
-      "es": "En una red local de confianza, las instalaciones de Agent-X también pueden alojar sesiones de colaboración en vivo, compartiendo presencia y eventos de actividad directamente entre pares, sin que nada salga de su red.",
-      "fr": "Sur un réseau local de confiance, les installations d'Agent-X peuvent aussi héberger des sessions de collaboration en direct — partage de présence et d'événements d'activité directement entre pairs, sans que rien ne quitte votre réseau.",
-      "ja": "信頼できるローカルネットワーク上では、Agent-X 同士でライブコラボレーションセッションをホストすることもできます。プレゼンスとアクティビティイベントをピア間で直接共有し、ネットワークの外には何も出ません。",
-      "zh-CN": "在可信的本地网络中，Agent-X 安装之间还可以承载实时协作会话 — 在对等设备之间直接共享在线状态和活动事件，任何数据都不会离开您的网络。"
+      "en-US": "Turn on Auto-Sync to exchange changes at a regular interval, or press Sync Now whenever you want. Sync History lists every run with its result, so a failed pass is easy to find.",
+      "de": "Aktivieren Sie Auto-Sync, um Änderungen in einem festen Intervall auszutauschen, oder klicken Sie jederzeit auf „Jetzt synchronisieren“. Der Sync-Verlauf listet jeden Lauf mit seinem Ergebnis auf, sodass ein fehlgeschlagener Durchlauf leicht zu finden ist.",
+      "es": "Active la sincronización automática para intercambiar cambios a intervalos regulares, o pulse «Sincronizar ahora» cuando quiera. El historial de sincronización muestra cada ejecución con su resultado, así que es fácil localizar una pasada fallida.",
+      "fr": "Activez la synchronisation automatique pour échanger les modifications à intervalle régulier, ou cliquez sur « Synchroniser maintenant » quand vous le souhaitez. L'historique de synchronisation liste chaque exécution avec son résultat, ce qui permet de repérer facilement un passage en échec.",
+      "ja": "自動同期をオンにすると、一定の間隔で変更をやり取りします。「今すぐ同期」でいつでも手動で同期することもできます。同期履歴には各実行とその結果が一覧表示されるため、失敗した同期をすぐに見つけられます。",
+      "zh-CN": "开启自动同步后，将按固定间隔交换更改；也可以随时点击“立即同步”。同步历史会列出每次运行及其结果，便于快速找到失败的同步。"
     }
   }
 }

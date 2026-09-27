@@ -91,8 +91,9 @@ public class ChatOptions
     public ResponseFormat ResponseFormat { get; set; } = ResponseFormat.Text;
 
     /// <summary>
-    /// Tools/functions that the model can call during inference.
-    /// When provided, the model may request tool calls instead of generating text directly.
+    /// Tools/functions that the model could call during inference. Tool calling is not
+    /// implemented: no provider sends these to the model yet, so this and the two tool
+    /// options below currently have no effect.
     /// </summary>
     public IReadOnlyList<ToolDefinition>? Tools { get; set; }
 

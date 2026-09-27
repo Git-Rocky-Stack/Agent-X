@@ -49,13 +49,13 @@ Agent-X is a sophisticated **AI-native knowledge management and RAG (Retrieval A
 │  ┌───────────────────┬─────────────────┬─────────────────┐  │
 │  │ AI & Agents      │ Search & RAG    │ Document        │  │
 │  │ - AiService      │ - SemanticSearch│ - DocumentService│  │
-│  │ - ReActAgent     │ - HybridSearch  │ - ChunkingService│  │
+│  │ - ModelRouter    │ - HybridSearch  │ - ChunkingService│  │
 │  │ - MultiAgent     │ - CitationService│ - IndexingService││
 │  └───────────────────┴─────────────────┴─────────────────┘  │
 │  ┌───────────────────┬─────────────────┬─────────────────┐  │
 │  │ Intelligence      │ Collaboration   │ Integration     │  │
 │  │ - KnowledgeGraph  │ - SyncService   │ - PluginService │  │
-│  │ - DigestService   │ - Collaboration │ - WebImport     │  │
+│  │ - DigestService   │ - ExportService │ - WebImport     │  │
 │  │ - ComparisonService│ - FeedbackService│ - WorkflowEngine││
 │  └───────────────────┴─────────────────┴─────────────────┘  │
 └─────────────────────────────────────────────────────────────┘
@@ -139,7 +139,7 @@ services.AddTransient<DashboardPage>();
 | Category | Services (Examples) | Lifetime |
 |----------|---------------------|----------|
 | **Core Infrastructure** | AgentXDbContext, MigrationRunner, SettingsService | Singleton |
-| **AI & Orchestration** | AiService, ReActAgent, MultiAgentOrchestrator | Singleton |
+| **AI & Orchestration** | AiService, ModelRouterService, MultiAgentOrchestrator | Singleton |
 | **Vector & Search** | VectorStore, SemanticSearchService, HybridSearchOrchestrator | Singleton |
 | **Document Processing** | DocumentService, ChunkingService, IndexingService | Singleton |
 | **UI Services** | ThemeService, NavigationService, StatusBarService | Singleton |
@@ -150,34 +150,26 @@ services.AddTransient<DashboardPage>();
 
 ### 1. Multi-Agent Chat Orchestration
 
-Agent-X implements a **multi-agent system** for complex reasoning:
+Chat has two multi-agent modes next to the standard single-model reply. Both run through
+`MultiAgentOrchestrator`, which gives each agent role (Researcher, Critic, Synthesizer or
+Creative) its own prompt and calls the active model through `IAiService.ChatAsync`:
 
 ```
-User Query
-    │
-    ▼
-┌─────────────────────────────────────────────────────────────┐
-│                   MultiAgentOrchestrator                    │
-│  - Analyzes task complexity and type                        │
-│  - Dispatches to appropriate agent(s)                      │
-│  - Synthesizes results                                      │
-└─────────────────────────────────────────────────────────────┘
-    │
-    ├──► ReActAgent (Reasoning + Acting)
-    │   - Tool use: screen capture, web search, file access
-    │   - Iterative reasoning loop
-    │   - Self-correction and reflection
-    │
-    ├──► ReflectionService (Meta-cognition)
-    │   - Evaluates response quality
-    │   - Suggests improvements
-    │   - Tracks reasoning patterns
-    │
-    └──► ReasoningService (Chain-of-thought)
-        - Decomposes complex tasks
-        - Maintains reasoning trace
-        - Validates logical consistency
+User query (Chat, multi-agent mode)
+    |
+    v
+MultiAgentOrchestrator
+    |-- Parallel: Researcher, Critic and Synthesizer answer side by side,
+    |             then one synthesis pass combines them
+    |-- Debate:   Researcher, Critic and Creative challenge each other's
+    |             positions before the final synthesis
+    v
+Final answer, saved to the conversation like a standard reply
 ```
+
+The agents see the prompt, the active system prompt and, in Research Mode, the web results
+added to it. There is no tool calling: no agent can run a search, open a file or capture the
+screen on its own.
 
 ### 2. RAG Pipeline Architecture
 
