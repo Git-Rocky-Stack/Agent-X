@@ -1154,6 +1154,30 @@
   <data name="Search_ClearFiltersBtn.Content" xml:space="preserve"><value>Filter zurücksetzen</value></data>
   <data name="Search_RelevanceLabel.Text" xml:space="preserve"><value>Relevanz</value></data>
   <data name="Search_PageRun.Text" xml:space="preserve"><value>Seite</value></data>
+  <data name="OAuthApp_Title.Text" xml:space="preserve"><value>OAuth-App-Anmeldedaten</value></data>
+  <data name="OAuthApp_Intro.Text" xml:space="preserve"><value>Agent-X liefert keine OAuth-Client-Anmeldedaten mit, daher brauchen Sie zum Verbinden eines Kontos eigene. Kalender- und E-Mail-Connector verwenden dieselben, und sie gelten, sobald Sie speichern.</value></data>
+  <data name="OAuthApp_GoogleHeading.Text" xml:space="preserve"><value>Google (Gmail und Google Kalender)</value></data>
+  <data name="OAuthApp_GoogleHint.Text" xml:space="preserve"><value>Erstellen Sie in der Google Cloud Console eine OAuth-Client-ID vom Typ „Desktop-App“ (APIs &amp; Dienste &gt; Anmeldedaten). In ihrem Projekt müssen die Gmail API und die Google Calendar API aktiviert und Ihr Konto als Testnutzer hinzugefügt sein.</value></data>
+  <data name="OAuthApp_GoogleClientIdLabel.Text" xml:space="preserve"><value>Client-ID</value></data>
+  <data name="OAuthApp_GoogleClientIdBox.PlaceholderText" xml:space="preserve"><value>Endet auf .apps.googleusercontent.com</value></data>
+  <data name="OAuthApp_GoogleClientSecretLabel.Text" xml:space="preserve"><value>Clientschlüssel</value></data>
+  <data name="OAuthApp_RevealGoogleSecret.Content" xml:space="preserve"><value>Anzeigen</value></data>
+  <data name="OAuthApp_RevealGoogleSecret.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Google-Clientschlüssel anzeigen</value></data>
+  <data name="OAuthApp_MicrosoftHeading.Text" xml:space="preserve"><value>Microsoft (Outlook-E-Mail und -Kalender)</value></data>
+  <data name="OAuthApp_MicrosoftHint.Text" xml:space="preserve"><value>Registrieren Sie im Microsoft Entra Admin Center eine App (App-Registrierungen) für Konten in einem beliebigen Organisationsverzeichnis und persönliche Microsoft-Konten. Fügen Sie unter „Authentifizierung“ die Plattform „Mobile Anwendungen und Desktopanwendungen“ mit dem Umleitungs-URI unten hinzu. Ein Clientschlüssel wird nicht benötigt.</value></data>
+  <data name="OAuthApp_MicrosoftRedirectLabel.Text" xml:space="preserve"><value>Umleitungs-URI</value></data>
+  <data name="OAuthApp_MicrosoftClientIdLabel.Text" xml:space="preserve"><value>Anwendungs-ID (Client)</value></data>
+  <data name="OAuthApp_Save.Content" xml:space="preserve"><value>Anmeldedaten speichern</value></data>
+  <data name="OAuthApp_Saved" xml:space="preserve"><value>Gespeichert. Die Anmeldedaten gelten sofort, ohne Neustart.</value></data>
+  <data name="OAuthApp_Failed" xml:space="preserve"><value>Die Anmeldedaten konnten nicht gelesen oder gespeichert werden: {0}</value></data>
+  <data name="OAuthApp_ErrNoSpaces" xml:space="preserve"><value>Entfernen Sie die Leerzeichen oder Zeilenumbrüche aus diesem Wert.</value></data>
+  <data name="OAuthApp_ErrGoogleClientId" xml:space="preserve"><value>Dies ist keine Google-Client-ID. Kopieren Sie die ID, die auf .apps.googleusercontent.com endet, aus der Google Cloud Console.</value></data>
+  <data name="OAuthApp_ErrGoogleSecretRequired" xml:space="preserve"><value>Geben Sie den Clientschlüssel ein, den die Google Cloud Console zu dieser Client-ID anzeigt.</value></data>
+  <data name="OAuthApp_ErrMicrosoftClientId" xml:space="preserve"><value>Dies ist keine Anwendungs-ID (Client). Kopieren Sie sie von der Seite „Übersicht“ der App; sie hat die Form 00000000-0000-0000-0000-000000000000.</value></data>
+  <data name="OAuthApp_DisconnectGoogleFirst" xml:space="preserve"><value>Trennen Sie das Google-Konto, bevor Sie diese Client-ID ändern oder entfernen: Das Konto ist über sie angemeldet.</value></data>
+  <data name="OAuthApp_DisconnectMicrosoftFirst" xml:space="preserve"><value>Trennen Sie das Microsoft-Konto, bevor Sie diese Client-ID ändern oder entfernen: Das Konto ist über sie angemeldet.</value></data>
+  <data name="OAuthApp_GoogleNotSetUp" xml:space="preserve"><value>Die Google-Anmeldung ist nicht eingerichtet. Geben Sie Ihre Client-ID und Ihren Clientschlüssel auf dieser Seite unter „OAuth-App-Anmeldedaten“ ein, speichern Sie sie und verbinden Sie dann.</value></data>
+  <data name="OAuthApp_MicrosoftNotSetUp" xml:space="preserve"><value>Die Microsoft-Anmeldung ist nicht eingerichtet. Geben Sie Ihre Anwendungs-ID (Client) auf dieser Seite unter „OAuth-App-Anmeldedaten“ ein, speichern Sie sie und verbinden Sie dann.</value></data>
   <data name="Search_ChunkRun.Text" xml:space="preserve"><value>Abschnitt</value></data>
   <data name="Search_OpenBtn.ToolTipService.ToolTip" xml:space="preserve"><value>Im Explorer öffnen</value></data>
   <data name="Search_OpenLabel.Text" xml:space="preserve"><value>Öffnen</value></data>

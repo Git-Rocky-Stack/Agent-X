@@ -617,14 +617,13 @@ public sealed class OAuthServiceHttpFlowTests : IDisposable
     [Fact]
     public async Task AuthorizeAsync_WhenProviderNotRegistered_IdentifiesTheMissingSetup()
     {
-        // Connectors catch this type to tell the operator how to configure the provider.
+        // The connector pages catch this type to point the user at the credentials form.
         using var service = CreateService();
 
         Func<Task> act = () => service.AuthorizeAsync("google");
 
         var thrown = (await act.Should().ThrowAsync<OAuthProviderNotConfiguredException>()).Which;
         thrown.Provider.Should().Be("google");
-        thrown.UserGuidance.Should().Contain("Google Cloud Console").And.Contain("settings.json");
     }
 
     // ══════════════════════════════════════════════════════════════════════════

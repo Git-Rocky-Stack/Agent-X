@@ -134,6 +134,49 @@ public sealed class SettingsServiceResilienceTests : IDisposable
     }
 
     [Fact]
+    public async Task OAuth_client_secrets_round_trip_encrypted_on_disk_while_the_client_ids_stay_readable()
+    {
+        const string googleId = "123456789012-abc.apps.googleusercontent.com";
+        var sut = CreateSut();
+        var settings = await sut.GetSettingsAsync();
+        settings.OAuth.Google.ClientId = googleId;
+        settings.OAuth.Google.ClientSecret = "GOCSPX-google-secret";
+        settings.OAuth.Microsoft.ClientId = "11111111-2222-3333-4444-555555555555";
+        settings.OAuth.Microsoft.ClientSecret = "hand-entered-microsoft-secret";
+
+        await sut.SaveSettingsAsync(settings);
+
+        var raw = File.ReadAllText(_settingsPath);
+        raw.Should().NotContain("GOCSPX-google-secret").And.NotContain("hand-entered-microsoft-secret");
+        var onDisk = JsonNode.Parse(raw)!["oAuth"]!;
+        onDisk["google"]!["clientSecret"]!.GetValue<string>().Should().StartWith("DPAPI:");
+        onDisk["microsoft"]!["clientSecret"]!.GetValue<string>().Should().StartWith("DPAPI:");
+        onDisk["google"]!["clientId"]!.GetValue<string>().Should().Be(googleId, "a client ID is not a secret");
+        settings.OAuth.Google.ClientSecret.Should().Be("GOCSPX-google-secret", "the settings in memory keep the plaintext");
+
+        var reloaded = (await CreateSut().GetSettingsAsync()).OAuth;
+        reloaded.Google.ClientId.Should().Be(googleId);
+        reloaded.Google.ClientSecret.Should().Be("GOCSPX-google-secret");
+        reloaded.Microsoft.ClientSecret.Should().Be("hand-entered-microsoft-secret");
+    }
+
+    [Fact]
+    public async Task OAuth_client_secret_removed_from_the_form_is_stored_empty()
+    {
+        var sut = CreateSut();
+        var settings = await sut.GetSettingsAsync();
+        settings.OAuth.Google.ClientSecret = "GOCSPX-google-secret";
+        await sut.SaveSettingsAsync(settings);
+
+        settings.OAuth.Google.ClientSecret = string.Empty;
+        await sut.SaveSettingsAsync(settings);
+
+        JsonNode.Parse(File.ReadAllText(_settingsPath))!["oAuth"]!["google"]!["clientSecret"]!
+            .GetValue<string>().Should().BeEmpty();
+        (await CreateSut().GetSettingsAsync()).OAuth.Google.ClientSecret.Should().BeEmpty();
+    }
+
+    [Fact]
     public async Task BackupSchedule_round_trips_with_its_password_encrypted_on_disk()
     {
         var sut = CreateSut();

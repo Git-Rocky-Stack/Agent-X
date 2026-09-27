@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using AgentX.App.Services;
 using AgentX.App.ViewModels;
+using AgentX.Core.Services.Localization;
 using AgentX.Core.Services.OAuth;
 using AgentX.Core.Services.Plugins.Calendar.Models;
 using AgentX.Core.Services.Plugins.Email;
@@ -16,6 +17,14 @@ namespace AgentX.Tests.ViewModels;
 
 public sealed class EmailSettingsViewModelTests
 {
+    /// <summary>Localization that returns each key, so a test can tell which string was shown.</summary>
+    private static ILocalizationService Keys()
+    {
+        var localization = new Mock<ILocalizationService>();
+        localization.Setup(l => l.GetString(It.IsAny<string>())).Returns((string key) => key);
+        return localization.Object;
+    }
+
     [Fact]
     public async Task SaveSettingsCommand_UpdatesAppSettingsPluginSettingsAndConnectorLifecycle()
     {
@@ -35,7 +44,7 @@ public sealed class EmailSettingsViewModelTests
             Mock.Of<IOAuthService>(),
             email.Object,
             lifecycle.Object,
-            Logger.None)
+            Logger.None, Keys())
         {
             EnableEmailSync = true,
             SyncIntervalMinutes = 20,
@@ -86,7 +95,7 @@ public sealed class EmailSettingsViewModelTests
             Mock.Of<IOAuthService>(),
             email.Object,
             lifecycle.Object,
-            Logger.None)
+            Logger.None, Keys())
         {
             EnableEmailSync = true,
         };
@@ -100,12 +109,12 @@ public sealed class EmailSettingsViewModelTests
     }
 
     [Theory]
-    [InlineData("google")]
-    [InlineData("microsoft")]
-    public async Task ConnectCommand_WithoutOAuthClientCredentials_ExplainsTheSetupInsteadOfTheDeveloperError(string provider)
+    [InlineData("google", "OAuthApp_GoogleNotSetUp")]
+    [InlineData("microsoft", "OAuthApp_MicrosoftNotSetUp")]
+    public async Task ConnectCommand_WithoutOAuthClientCredentials_PointsToTheCredentialsForm(string provider, string message)
     {
         // A default install registers no OAuth providers; the raw error told the operator to
-        // "Call RegisterProvider()".
+        // "Call RegisterProvider()", and the guidance after it to edit settings.json and restart.
         var oauth = new Mock<IOAuthService>();
         oauth
             .Setup(o => o.AuthorizeAsync(provider, It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
@@ -116,13 +125,12 @@ public sealed class EmailSettingsViewModelTests
             oauth.Object,
             Mock.Of<IEmailService>(),
             Mock.Of<IBuiltinConnectorLifecycleService>(),
-            Logger.None);
+            Logger.None, Keys());
 
         await (provider == "google" ? vm.ConnectGoogleCommand : vm.ConnectMicrosoftCommand).ExecuteAsync(null);
 
         vm.HasError.Should().BeTrue();
-        vm.ErrorMessage.Should().Contain("settings.json").And.Contain("restart Agent-X");
-        vm.ErrorMessage.Should().NotContain("RegisterProvider");
+        vm.ErrorMessage.Should().Be(message);
     }
 
     // -- UI-thread affinity and connection status -------------------------------
@@ -150,7 +158,7 @@ public sealed class EmailSettingsViewModelTests
 
         var vm = new EmailSettingsViewModel(
             settings.Object, oauth.Object, email.Object,
-            Mock.Of<IBuiltinConnectorLifecycleService>(), Logger.None);
+            Mock.Of<IBuiltinConnectorLifecycleService>(), Logger.None, Keys());
 
         using var ui = new SingleThreadSynchronizationContext();
         var offThreadWrites = new ConcurrentQueue<string>();
@@ -215,7 +223,7 @@ public sealed class EmailSettingsViewModelTests
 
         var vm = new EmailSettingsViewModel(
             settings.Object, Mock.Of<IOAuthService>(), email.Object,
-            Mock.Of<IBuiltinConnectorLifecycleService>(), Logger.None);
+            Mock.Of<IBuiltinConnectorLifecycleService>(), Logger.None, Keys());
         return (vm, email, saved);
     }
 
@@ -351,7 +359,7 @@ public sealed class EmailSettingsViewModelTests
 
         var vm = new EmailSettingsViewModel(
             settings.Object, oauth.Object, email.Object,
-            Mock.Of<IBuiltinConnectorLifecycleService>(), Logger.None);
+            Mock.Of<IBuiltinConnectorLifecycleService>(), Logger.None, Keys());
 
         using var ui = new SingleThreadSynchronizationContext();
         var offThreadWrites = new ConcurrentQueue<string>();
@@ -378,7 +386,7 @@ public sealed class EmailSettingsViewModelTests
         var oauth = new Mock<IOAuthService>();
         var vm = new EmailSettingsViewModel(
             Mock.Of<ISettingsService>(), oauth.Object, Mock.Of<IEmailService>(),
-            Mock.Of<IBuiltinConnectorLifecycleService>(), Logger.None);
+            Mock.Of<IBuiltinConnectorLifecycleService>(), Logger.None, Keys());
 
         await vm.ConnectMicrosoftCommand.ExecuteAsync(null);
 

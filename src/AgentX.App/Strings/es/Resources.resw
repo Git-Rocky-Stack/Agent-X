@@ -1154,6 +1154,30 @@
   <data name="Search_ClearFiltersBtn.Content" xml:space="preserve"><value>Borrar filtros</value></data>
   <data name="Search_RelevanceLabel.Text" xml:space="preserve"><value>Relevancia</value></data>
   <data name="Search_PageRun.Text" xml:space="preserve"><value>Página</value></data>
+  <data name="OAuthApp_Title.Text" xml:space="preserve"><value>Credenciales de la aplicación OAuth</value></data>
+  <data name="OAuthApp_Intro.Text" xml:space="preserve"><value>Agent-X no incluye credenciales de cliente OAuth, así que para conectar una cuenta necesita las suyas. Los conectores de calendario y de correo las comparten, y se aplican en cuanto las guarda.</value></data>
+  <data name="OAuthApp_GoogleHeading.Text" xml:space="preserve"><value>Google (Gmail y Google Calendar)</value></data>
+  <data name="OAuthApp_GoogleHint.Text" xml:space="preserve"><value>Cree un ID de cliente de OAuth de tipo App de escritorio en Google Cloud Console (APIs y servicios &gt; Credenciales). Su proyecto debe tener habilitadas las API de Gmail y de Google Calendar, y su cuenta añadida como usuario de prueba.</value></data>
+  <data name="OAuthApp_GoogleClientIdLabel.Text" xml:space="preserve"><value>ID de cliente</value></data>
+  <data name="OAuthApp_GoogleClientIdBox.PlaceholderText" xml:space="preserve"><value>Termina en .apps.googleusercontent.com</value></data>
+  <data name="OAuthApp_GoogleClientSecretLabel.Text" xml:space="preserve"><value>Secreto del cliente</value></data>
+  <data name="OAuthApp_RevealGoogleSecret.Content" xml:space="preserve"><value>Mostrar</value></data>
+  <data name="OAuthApp_RevealGoogleSecret.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Mostrar el secreto del cliente de Google</value></data>
+  <data name="OAuthApp_MicrosoftHeading.Text" xml:space="preserve"><value>Microsoft (correo y calendario de Outlook)</value></data>
+  <data name="OAuthApp_MicrosoftHint.Text" xml:space="preserve"><value>Registre una aplicación en el Centro de administración de Microsoft Entra (Registros de aplicaciones) para cuentas de cualquier directorio organizativo y cuentas personales de Microsoft. En Autenticación, agregue la plataforma Aplicaciones móviles y de escritorio con el URI de redirección de abajo. No se necesita un secreto de cliente.</value></data>
+  <data name="OAuthApp_MicrosoftRedirectLabel.Text" xml:space="preserve"><value>URI de redirección</value></data>
+  <data name="OAuthApp_MicrosoftClientIdLabel.Text" xml:space="preserve"><value>Id. de aplicación (cliente)</value></data>
+  <data name="OAuthApp_Save.Content" xml:space="preserve"><value>Guardar credenciales</value></data>
+  <data name="OAuthApp_Saved" xml:space="preserve"><value>Guardado. Las credenciales se aplican de inmediato, sin reiniciar.</value></data>
+  <data name="OAuthApp_Failed" xml:space="preserve"><value>No se pudieron leer ni guardar las credenciales: {0}</value></data>
+  <data name="OAuthApp_ErrNoSpaces" xml:space="preserve"><value>Quite los espacios o saltos de línea de este valor.</value></data>
+  <data name="OAuthApp_ErrGoogleClientId" xml:space="preserve"><value>Esto no es un ID de cliente de Google. Copie de Google Cloud Console el que termina en .apps.googleusercontent.com.</value></data>
+  <data name="OAuthApp_ErrGoogleSecretRequired" xml:space="preserve"><value>Escriba el secreto del cliente que Google Cloud Console muestra junto a este ID de cliente.</value></data>
+  <data name="OAuthApp_ErrMicrosoftClientId" xml:space="preserve"><value>Esto no es un Id. de aplicación (cliente). Cópielo de la página Información general de la aplicación; tiene el formato 00000000-0000-0000-0000-000000000000.</value></data>
+  <data name="OAuthApp_DisconnectGoogleFirst" xml:space="preserve"><value>Desconecte la cuenta de Google antes de cambiar o quitar este ID de cliente: la cuenta inició sesión a través de él.</value></data>
+  <data name="OAuthApp_DisconnectMicrosoftFirst" xml:space="preserve"><value>Desconecte la cuenta de Microsoft antes de cambiar o quitar este ID de cliente: la cuenta inició sesión a través de él.</value></data>
+  <data name="OAuthApp_GoogleNotSetUp" xml:space="preserve"><value>El inicio de sesión con Google no está configurado. Escriba su ID de cliente y su secreto en Credenciales de la aplicación OAuth en esta página, guárdelos y luego conecte.</value></data>
+  <data name="OAuthApp_MicrosoftNotSetUp" xml:space="preserve"><value>El inicio de sesión con Microsoft no está configurado. Escriba su Id. de aplicación (cliente) en Credenciales de la aplicación OAuth en esta página, guárdelo y luego conecte.</value></data>
   <data name="Search_ChunkRun.Text" xml:space="preserve"><value>Fragmento</value></data>
   <data name="Search_OpenBtn.ToolTipService.ToolTip" xml:space="preserve"><value>Abrir en el Explorador</value></data>
   <data name="Search_OpenLabel.Text" xml:space="preserve"><value>Abrir</value></data>

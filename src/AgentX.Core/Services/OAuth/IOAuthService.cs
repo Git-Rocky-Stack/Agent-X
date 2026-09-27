@@ -126,8 +126,10 @@ public interface IOAuthService
 
 /// <summary>
 /// Thrown when an OAuth flow is started for a provider that has no client configuration.
-/// Agent-X ships no OAuth client credentials: a provider is registered at startup only when
-/// the operator has put its client ID in settings, which a default install has not.
+/// Agent-X ships no OAuth client credentials: a provider is registered only once its client ID
+/// has been saved (OAuth App Credentials on the Calendar and Email connector pages), which a
+/// default install has not. The connector pages catch it to explain that setup instead of
+/// showing the developer-facing message.
 /// </summary>
 public sealed class OAuthProviderNotConfiguredException : InvalidOperationException
 {
@@ -139,25 +141,4 @@ public sealed class OAuthProviderNotConfiguredException : InvalidOperationExcept
 
     /// <summary>The provider identifier that has no configuration (e.g. "google").</summary>
     public string Provider { get; }
-
-    /// <summary>
-    /// What the operator has to do to connect, in place of the developer-facing message.
-    /// </summary>
-    public string UserGuidance => Provider.ToLowerInvariant() switch
-    {
-        "google" =>
-            "Google sign-in is not set up. Agent-X does not ship OAuth client credentials, so " +
-            "connecting needs your own: create an OAuth client ID in the Google Cloud Console " +
-            "(APIs & Services > Credentials), add its client ID and secret to " +
-            @"%LOCALAPPDATA%\AgentX\settings.json under oAuth > google (clientId, clientSecret), " +
-            "then restart Agent-X.",
-        "microsoft" =>
-            "Microsoft sign-in is not set up. Agent-X does not ship OAuth client credentials, so " +
-            "connecting needs your own: register an app in the Azure portal (App registrations), " +
-            @"add its client ID and secret to %LOCALAPPDATA%\AgentX\settings.json under " +
-            "oAuth > microsoft (clientId, clientSecret), then restart Agent-X.",
-        _ =>
-            $"Sign-in with {Provider} is not set up. Add the provider's OAuth client ID to " +
-            @"%LOCALAPPDATA%\AgentX\settings.json, then restart Agent-X."
-    };
 }

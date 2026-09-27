@@ -1,4 +1,5 @@
 using AgentX.App.Services;
+using AgentX.Core.Services.Localization;
 using AgentX.Core.Services.OAuth;
 using AgentX.Core.Services.Plugins.Calendar;
 using AgentX.Core.Services.Plugins.Calendar.Models;
@@ -19,6 +20,7 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
     private readonly IOAuthService _oauthService;
     private readonly ICalendarService _calendarService;
     private readonly IBuiltinConnectorLifecycleService _connectorLifecycle;
+    private readonly ILocalizationService _localization;
     private readonly ILogger _log;
 
     public CalendarSettingsViewModel(
@@ -26,13 +28,15 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
         IOAuthService oauthService,
         ICalendarService calendarService,
         IBuiltinConnectorLifecycleService connectorLifecycle,
-        ILogger logger)
+        ILogger logger,
+        ILocalizationService localization)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _oauthService = oauthService ?? throw new ArgumentNullException(nameof(oauthService));
         _calendarService = calendarService ?? throw new ArgumentNullException(nameof(calendarService));
         _connectorLifecycle = connectorLifecycle ?? throw new ArgumentNullException(nameof(connectorLifecycle));
         _log = (logger ?? throw new ArgumentNullException(nameof(logger))).ForContext<CalendarSettingsViewModel>();
+        _localization = localization ?? throw new ArgumentNullException(nameof(localization));
     }
 
     // ── Observable properties ──────────────────────────────────────────────────
@@ -185,7 +189,7 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
         {
             _log.Warning(ex, "Google Calendar OAuth2 is not configured");
             HasError = true;
-            ErrorMessage = ex.UserGuidance;
+            ErrorMessage = _localization.GetString("OAuthApp_GoogleNotSetUp");
         }
         catch (Exception ex)
         {
@@ -226,7 +230,7 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
         {
             _log.Warning(ex, "Microsoft Outlook OAuth2 is not configured");
             HasError = true;
-            ErrorMessage = ex.UserGuidance;
+            ErrorMessage = _localization.GetString("OAuthApp_MicrosoftNotSetUp");
         }
         catch (Exception ex)
         {

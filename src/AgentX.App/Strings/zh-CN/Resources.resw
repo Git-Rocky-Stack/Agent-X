@@ -1154,6 +1154,30 @@
   <data name="Search_ClearFiltersBtn.Content" xml:space="preserve"><value>清除筛选器</value></data>
   <data name="Search_RelevanceLabel.Text" xml:space="preserve"><value>相关性</value></data>
   <data name="Search_PageRun.Text" xml:space="preserve"><value>页</value></data>
+  <data name="OAuthApp_Title.Text" xml:space="preserve"><value>OAuth 应用凭据</value></data>
+  <data name="OAuthApp_Intro.Text" xml:space="preserve"><value>Agent-X 不附带 OAuth 客户端凭据，因此连接账户需要使用您自己的凭据。日历连接器和邮件连接器共用这些凭据，保存后立即生效。</value></data>
+  <data name="OAuthApp_GoogleHeading.Text" xml:space="preserve"><value>Google（Gmail 和 Google 日历）</value></data>
+  <data name="OAuthApp_GoogleHint.Text" xml:space="preserve"><value>在 Google Cloud Console 中创建类型为“桌面应用”的 OAuth 客户端 ID（API 和服务 &gt; 凭据）。其所在项目需要启用 Gmail API 和 Google Calendar API，并将您的账户添加为测试用户。</value></data>
+  <data name="OAuthApp_GoogleClientIdLabel.Text" xml:space="preserve"><value>客户端 ID</value></data>
+  <data name="OAuthApp_GoogleClientIdBox.PlaceholderText" xml:space="preserve"><value>以 .apps.googleusercontent.com 结尾</value></data>
+  <data name="OAuthApp_GoogleClientSecretLabel.Text" xml:space="preserve"><value>客户端密钥</value></data>
+  <data name="OAuthApp_RevealGoogleSecret.Content" xml:space="preserve"><value>显示</value></data>
+  <data name="OAuthApp_RevealGoogleSecret.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>显示 Google 客户端密钥</value></data>
+  <data name="OAuthApp_MicrosoftHeading.Text" xml:space="preserve"><value>Microsoft（Outlook 邮件和日历）</value></data>
+  <data name="OAuthApp_MicrosoftHint.Text" xml:space="preserve"><value>在 Microsoft Entra 管理中心注册一个应用（应用注册），支持任何组织目录中的账户和个人 Microsoft 账户。在“身份验证”下，使用下方的重定向 URI 添加“移动和桌面应用程序”平台。不需要客户端密钥。</value></data>
+  <data name="OAuthApp_MicrosoftRedirectLabel.Text" xml:space="preserve"><value>重定向 URI</value></data>
+  <data name="OAuthApp_MicrosoftClientIdLabel.Text" xml:space="preserve"><value>应用程序（客户端）ID</value></data>
+  <data name="OAuthApp_Save.Content" xml:space="preserve"><value>保存凭据</value></data>
+  <data name="OAuthApp_Saved" xml:space="preserve"><value>已保存。凭据立即生效，无需重启。</value></data>
+  <data name="OAuthApp_Failed" xml:space="preserve"><value>无法读取或保存凭据：{0}</value></data>
+  <data name="OAuthApp_ErrNoSpaces" xml:space="preserve"><value>请删除此值中的空格或换行符。</value></data>
+  <data name="OAuthApp_ErrGoogleClientId" xml:space="preserve"><value>这不是 Google 客户端 ID。请从 Google Cloud Console 复制以 .apps.googleusercontent.com 结尾的 ID。</value></data>
+  <data name="OAuthApp_ErrGoogleSecretRequired" xml:space="preserve"><value>请输入 Google Cloud Console 中与此客户端 ID 一起显示的客户端密钥。</value></data>
+  <data name="OAuthApp_ErrMicrosoftClientId" xml:space="preserve"><value>这不是应用程序（客户端）ID。请从应用的“概述”页面复制，格式类似 00000000-0000-0000-0000-000000000000。</value></data>
+  <data name="OAuthApp_DisconnectGoogleFirst" xml:space="preserve"><value>更改或删除此客户端 ID 之前，请先断开 Google 账户的连接：该账户是通过此客户端 ID 登录的。</value></data>
+  <data name="OAuthApp_DisconnectMicrosoftFirst" xml:space="preserve"><value>更改或删除此客户端 ID 之前，请先断开 Microsoft 账户的连接：该账户是通过此客户端 ID 登录的。</value></data>
+  <data name="OAuthApp_GoogleNotSetUp" xml:space="preserve"><value>尚未设置 Google 登录。请在此页面的“OAuth 应用凭据”中输入客户端 ID 和密钥，保存后再连接。</value></data>
+  <data name="OAuthApp_MicrosoftNotSetUp" xml:space="preserve"><value>尚未设置 Microsoft 登录。请在此页面的“OAuth 应用凭据”中输入应用程序（客户端）ID，保存后再连接。</value></data>
   <data name="Search_ChunkRun.Text" xml:space="preserve"><value>块</value></data>
   <data name="Search_OpenBtn.ToolTipService.ToolTip" xml:space="preserve"><value>在文件资源管理器中打开</value></data>
   <data name="Search_OpenLabel.Text" xml:space="preserve"><value>打开</value></data>

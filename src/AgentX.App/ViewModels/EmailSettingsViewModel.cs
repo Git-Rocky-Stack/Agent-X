@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using AgentX.App.Services;
+using AgentX.Core.Services.Localization;
 using AgentX.Core.Services.OAuth;
 using AgentX.Core.Services.Plugins.Calendar.Models;
 using AgentX.Core.Services.Plugins.Email;
@@ -21,6 +22,7 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
     private readonly IOAuthService _oauthService;
     private readonly IEmailService _emailService;
     private readonly IBuiltinConnectorLifecycleService _connectorLifecycle;
+    private readonly ILocalizationService _localization;
     private readonly ILogger _log;
 
     public EmailSettingsViewModel(
@@ -28,13 +30,15 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
         IOAuthService oauthService,
         IEmailService emailService,
         IBuiltinConnectorLifecycleService connectorLifecycle,
-        ILogger logger)
+        ILogger logger,
+        ILocalizationService localization)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _oauthService = oauthService ?? throw new ArgumentNullException(nameof(oauthService));
         _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
         _connectorLifecycle = connectorLifecycle ?? throw new ArgumentNullException(nameof(connectorLifecycle));
         _log = (logger ?? throw new ArgumentNullException(nameof(logger))).ForContext<EmailSettingsViewModel>();
+        _localization = localization ?? throw new ArgumentNullException(nameof(localization));
 
         Folders.CollectionChanged += (_, _) =>
         {
@@ -191,7 +195,7 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
         {
             _log.Warning(ex, "Gmail OAuth2 is not configured");
             HasError = true;
-            ErrorMessage = ex.UserGuidance;
+            ErrorMessage = _localization.GetString("OAuthApp_GoogleNotSetUp");
         }
         catch (Exception ex)
         {
@@ -233,7 +237,7 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
         {
             _log.Warning(ex, "Outlook Email OAuth2 is not configured");
             HasError = true;
-            ErrorMessage = ex.UserGuidance;
+            ErrorMessage = _localization.GetString("OAuthApp_MicrosoftNotSetUp");
         }
         catch (Exception ex)
         {

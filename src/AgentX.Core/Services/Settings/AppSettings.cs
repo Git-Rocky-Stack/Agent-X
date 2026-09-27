@@ -123,8 +123,9 @@ public class OAuthSettings
 }
 
 /// <summary>
-/// Google OAuth2 settings. Client credentials are obtained from the
-/// Google Cloud Console (APIs &amp; Services &gt; Credentials).
+/// Google OAuth2 settings, entered under OAuth App Credentials on the Calendar and Email
+/// connector pages. The client is a Desktop app OAuth client from the Google Cloud Console
+/// (APIs &amp; Services &gt; Credentials); its secret is stored DPAPI-encrypted.
 /// </summary>
 public class GoogleOAuthSettings
 {
@@ -134,8 +135,11 @@ public class GoogleOAuthSettings
 }
 
 /// <summary>
-/// Microsoft (Azure AD / Entra ID) OAuth2 settings. Client credentials are
-/// obtained from the Azure Portal (App Registrations).
+/// Microsoft (Azure AD / Entra ID) OAuth2 settings, entered under OAuth App Credentials on the
+/// Calendar and Email connector pages. The app registration is a public client (mobile and
+/// desktop applications), so <see cref="ClientSecret"/> stays empty; a secret entered here by
+/// hand for a confidential registration is sent, and is dropped when the page changes the
+/// client ID.
 /// </summary>
 public class MicrosoftOAuthSettings
 {

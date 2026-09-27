@@ -1154,6 +1154,30 @@
   <data name="Search_ClearFiltersBtn.Content" xml:space="preserve"><value>フィルターをクリア</value></data>
   <data name="Search_RelevanceLabel.Text" xml:space="preserve"><value>関連度</value></data>
   <data name="Search_PageRun.Text" xml:space="preserve"><value>ページ</value></data>
+  <data name="OAuthApp_Title.Text" xml:space="preserve"><value>OAuth アプリの資格情報</value></data>
+  <data name="OAuthApp_Intro.Text" xml:space="preserve"><value>Agent-X には OAuth クライアントの資格情報が含まれていないため、アカウントを接続するにはご自身の資格情報が必要です。カレンダー コネクタとメール コネクタで共有され、保存するとすぐに適用されます。</value></data>
+  <data name="OAuthApp_GoogleHeading.Text" xml:space="preserve"><value>Google (Gmail と Google カレンダー)</value></data>
+  <data name="OAuthApp_GoogleHint.Text" xml:space="preserve"><value>Google Cloud Console で、種類が「デスクトップ アプリ」の OAuth クライアント ID を作成します ([API とサービス] &gt; [認証情報])。そのプロジェクトでは Gmail API と Google Calendar API を有効にし、ご自身のアカウントをテスト ユーザーとして追加しておく必要があります。</value></data>
+  <data name="OAuthApp_GoogleClientIdLabel.Text" xml:space="preserve"><value>クライアント ID</value></data>
+  <data name="OAuthApp_GoogleClientIdBox.PlaceholderText" xml:space="preserve"><value>末尾が .apps.googleusercontent.com の ID</value></data>
+  <data name="OAuthApp_GoogleClientSecretLabel.Text" xml:space="preserve"><value>クライアント シークレット</value></data>
+  <data name="OAuthApp_RevealGoogleSecret.Content" xml:space="preserve"><value>表示</value></data>
+  <data name="OAuthApp_RevealGoogleSecret.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Google のクライアント シークレットを表示</value></data>
+  <data name="OAuthApp_MicrosoftHeading.Text" xml:space="preserve"><value>Microsoft (Outlook のメールと予定表)</value></data>
+  <data name="OAuthApp_MicrosoftHint.Text" xml:space="preserve"><value>Microsoft Entra 管理センターでアプリを登録します ([アプリの登録])。対象は、任意の組織ディレクトリ内のアカウントと個人用 Microsoft アカウントです。[認証] で、下のリダイレクト URI を指定して「モバイル アプリケーションとデスクトップ アプリケーション」プラットフォームを追加します。クライアント シークレットは不要です。</value></data>
+  <data name="OAuthApp_MicrosoftRedirectLabel.Text" xml:space="preserve"><value>リダイレクト URI</value></data>
+  <data name="OAuthApp_MicrosoftClientIdLabel.Text" xml:space="preserve"><value>アプリケーション (クライアント) ID</value></data>
+  <data name="OAuthApp_Save.Content" xml:space="preserve"><value>資格情報を保存</value></data>
+  <data name="OAuthApp_Saved" xml:space="preserve"><value>保存しました。資格情報は再起動しなくてもすぐに適用されます。</value></data>
+  <data name="OAuthApp_Failed" xml:space="preserve"><value>資格情報の読み込みまたは保存に失敗しました: {0}</value></data>
+  <data name="OAuthApp_ErrNoSpaces" xml:space="preserve"><value>この値からスペースまたは改行を削除してください。</value></data>
+  <data name="OAuthApp_ErrGoogleClientId" xml:space="preserve"><value>Google のクライアント ID ではありません。Google Cloud Console から、末尾が .apps.googleusercontent.com の ID をコピーしてください。</value></data>
+  <data name="OAuthApp_ErrGoogleSecretRequired" xml:space="preserve"><value>Google Cloud Console でこのクライアント ID と一緒に表示されるクライアント シークレットを入力してください。</value></data>
+  <data name="OAuthApp_ErrMicrosoftClientId" xml:space="preserve"><value>アプリケーション (クライアント) ID ではありません。アプリの [概要] ページからコピーしてください。形式は 00000000-0000-0000-0000-000000000000 です。</value></data>
+  <data name="OAuthApp_DisconnectGoogleFirst" xml:space="preserve"><value>このクライアント ID を変更または削除する前に、Google アカウントを切断してください。アカウントはこのクライアント ID でサインインしています。</value></data>
+  <data name="OAuthApp_DisconnectMicrosoftFirst" xml:space="preserve"><value>このクライアント ID を変更または削除する前に、Microsoft アカウントを切断してください。アカウントはこのクライアント ID でサインインしています。</value></data>
+  <data name="OAuthApp_GoogleNotSetUp" xml:space="preserve"><value>Google サインインが設定されていません。このページの [OAuth アプリの資格情報] にクライアント ID とシークレットを入力して保存してから、接続してください。</value></data>
+  <data name="OAuthApp_MicrosoftNotSetUp" xml:space="preserve"><value>Microsoft サインインが設定されていません。このページの [OAuth アプリの資格情報] にアプリケーション (クライアント) ID を入力して保存してから、接続してください。</value></data>
   <data name="Search_ChunkRun.Text" xml:space="preserve"><value>チャンク</value></data>
   <data name="Search_OpenBtn.ToolTipService.ToolTip" xml:space="preserve"><value>エクスプローラーで開く</value></data>
   <data name="Search_OpenLabel.Text" xml:space="preserve"><value>開く</value></data>

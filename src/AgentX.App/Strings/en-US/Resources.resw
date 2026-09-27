@@ -1276,6 +1276,30 @@
   <data name="Search_ClearFiltersBtn.Content" xml:space="preserve"><value>Clear Filters</value></data>
   <data name="Search_RelevanceLabel.Text" xml:space="preserve"><value>Relevance</value></data>
   <data name="Search_PageRun.Text" xml:space="preserve"><value>Page</value></data>
+  <data name="OAuthApp_Title.Text" xml:space="preserve"><value>OAuth App Credentials</value></data>
+  <data name="OAuthApp_Intro.Text" xml:space="preserve"><value>Agent-X does not ship OAuth client credentials, so connecting an account needs your own. The Calendar and Email connectors share them, and they apply as soon as you save.</value></data>
+  <data name="OAuthApp_GoogleHeading.Text" xml:space="preserve"><value>Google (Gmail and Google Calendar)</value></data>
+  <data name="OAuthApp_GoogleHint.Text" xml:space="preserve"><value>Create an OAuth client ID of type Desktop app in the Google Cloud Console (APIs &amp; Services &gt; Credentials). Its project needs the Gmail and Google Calendar APIs enabled, and your account added as a test user.</value></data>
+  <data name="OAuthApp_GoogleClientIdLabel.Text" xml:space="preserve"><value>Client ID</value></data>
+  <data name="OAuthApp_GoogleClientIdBox.PlaceholderText" xml:space="preserve"><value>Ends with .apps.googleusercontent.com</value></data>
+  <data name="OAuthApp_GoogleClientSecretLabel.Text" xml:space="preserve"><value>Client secret</value></data>
+  <data name="OAuthApp_RevealGoogleSecret.Content" xml:space="preserve"><value>Show</value></data>
+  <data name="OAuthApp_RevealGoogleSecret.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Show Google client secret</value></data>
+  <data name="OAuthApp_MicrosoftHeading.Text" xml:space="preserve"><value>Microsoft (Outlook mail and calendar)</value></data>
+  <data name="OAuthApp_MicrosoftHint.Text" xml:space="preserve"><value>Register an app in the Microsoft Entra admin center (App registrations) for accounts in any organizational directory and personal Microsoft accounts. Under Authentication, add the Mobile and desktop applications platform with the redirect URI below. No client secret is needed.</value></data>
+  <data name="OAuthApp_MicrosoftRedirectLabel.Text" xml:space="preserve"><value>Redirect URI</value></data>
+  <data name="OAuthApp_MicrosoftClientIdLabel.Text" xml:space="preserve"><value>Application (client) ID</value></data>
+  <data name="OAuthApp_Save.Content" xml:space="preserve"><value>Save Credentials</value></data>
+  <data name="OAuthApp_Saved" xml:space="preserve"><value>Saved. The credentials apply right away, without a restart.</value></data>
+  <data name="OAuthApp_Failed" xml:space="preserve"><value>The credentials could not be read or saved: {0}</value></data>
+  <data name="OAuthApp_ErrNoSpaces" xml:space="preserve"><value>Remove the spaces or line breaks from this value.</value></data>
+  <data name="OAuthApp_ErrGoogleClientId" xml:space="preserve"><value>This is not a Google client ID. Copy the one that ends with .apps.googleusercontent.com from the Google Cloud Console.</value></data>
+  <data name="OAuthApp_ErrGoogleSecretRequired" xml:space="preserve"><value>Enter the client secret that the Google Cloud Console shows with this client ID.</value></data>
+  <data name="OAuthApp_ErrMicrosoftClientId" xml:space="preserve"><value>This is not an Application (client) ID. Copy it from the app's Overview page; it looks like 00000000-0000-0000-0000-000000000000.</value></data>
+  <data name="OAuthApp_DisconnectGoogleFirst" xml:space="preserve"><value>Disconnect the Google account before changing or removing this client ID: the account is signed in through it.</value></data>
+  <data name="OAuthApp_DisconnectMicrosoftFirst" xml:space="preserve"><value>Disconnect the Microsoft account before changing or removing this client ID: the account is signed in through it.</value></data>
+  <data name="OAuthApp_GoogleNotSetUp" xml:space="preserve"><value>Google sign-in is not set up. Enter your client ID and secret under OAuth App Credentials on this page, save them, then connect.</value></data>
+  <data name="OAuthApp_MicrosoftNotSetUp" xml:space="preserve"><value>Microsoft sign-in is not set up. Enter your Application (client) ID under OAuth App Credentials on this page, save it, then connect.</value></data>
   <data name="Search_ChunkRun.Text" xml:space="preserve"><value>Chunk</value></data>
   <data name="Search_OpenBtn.ToolTipService.ToolTip" xml:space="preserve"><value>Open in Explorer</value></data>
   <data name="Search_OpenLabel.Text" xml:space="preserve"><value>Open</value></data>

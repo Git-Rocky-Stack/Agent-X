@@ -1154,6 +1154,30 @@
   <data name="Search_ClearFiltersBtn.Content" xml:space="preserve"><value>Effacer les filtres</value></data>
   <data name="Search_RelevanceLabel.Text" xml:space="preserve"><value>Pertinence</value></data>
   <data name="Search_PageRun.Text" xml:space="preserve"><value>Page</value></data>
+  <data name="OAuthApp_Title.Text" xml:space="preserve"><value>Identifiants de l'application OAuth</value></data>
+  <data name="OAuthApp_Intro.Text" xml:space="preserve"><value>Agent-X ne fournit pas d'identifiants de client OAuth : pour connecter un compte, il vous faut les vôtres. Les connecteurs de calendrier et d'e-mail les partagent, et ils s'appliquent dès que vous enregistrez.</value></data>
+  <data name="OAuthApp_GoogleHeading.Text" xml:space="preserve"><value>Google (Gmail et Google Agenda)</value></data>
+  <data name="OAuthApp_GoogleHint.Text" xml:space="preserve"><value>Créez un ID client OAuth de type « Application de bureau » dans la Google Cloud Console (API et services &gt; Identifiants). Son projet doit avoir les API Gmail et Google Calendar activées, et votre compte ajouté comme utilisateur test.</value></data>
+  <data name="OAuthApp_GoogleClientIdLabel.Text" xml:space="preserve"><value>ID client</value></data>
+  <data name="OAuthApp_GoogleClientIdBox.PlaceholderText" xml:space="preserve"><value>Se termine par .apps.googleusercontent.com</value></data>
+  <data name="OAuthApp_GoogleClientSecretLabel.Text" xml:space="preserve"><value>Code secret du client</value></data>
+  <data name="OAuthApp_RevealGoogleSecret.Content" xml:space="preserve"><value>Afficher</value></data>
+  <data name="OAuthApp_RevealGoogleSecret.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Afficher le code secret du client Google</value></data>
+  <data name="OAuthApp_MicrosoftHeading.Text" xml:space="preserve"><value>Microsoft (e-mail et calendrier Outlook)</value></data>
+  <data name="OAuthApp_MicrosoftHint.Text" xml:space="preserve"><value>Inscrivez une application dans le centre d'administration Microsoft Entra (Inscriptions d'applications) pour les comptes de tout annuaire organisationnel et les comptes Microsoft personnels. Sous « Authentification », ajoutez la plateforme « Applications mobiles et de bureau » avec l'URI de redirection ci-dessous. Aucun code secret client n'est nécessaire.</value></data>
+  <data name="OAuthApp_MicrosoftRedirectLabel.Text" xml:space="preserve"><value>URI de redirection</value></data>
+  <data name="OAuthApp_MicrosoftClientIdLabel.Text" xml:space="preserve"><value>ID d'application (client)</value></data>
+  <data name="OAuthApp_Save.Content" xml:space="preserve"><value>Enregistrer les identifiants</value></data>
+  <data name="OAuthApp_Saved" xml:space="preserve"><value>Enregistré. Les identifiants s'appliquent immédiatement, sans redémarrage.</value></data>
+  <data name="OAuthApp_Failed" xml:space="preserve"><value>Impossible de lire ou d'enregistrer les identifiants : {0}</value></data>
+  <data name="OAuthApp_ErrNoSpaces" xml:space="preserve"><value>Supprimez les espaces ou sauts de ligne de cette valeur.</value></data>
+  <data name="OAuthApp_ErrGoogleClientId" xml:space="preserve"><value>Ce n'est pas un ID client Google. Copiez depuis la Google Cloud Console celui qui se termine par .apps.googleusercontent.com.</value></data>
+  <data name="OAuthApp_ErrGoogleSecretRequired" xml:space="preserve"><value>Saisissez le code secret du client que la Google Cloud Console affiche avec cet ID client.</value></data>
+  <data name="OAuthApp_ErrMicrosoftClientId" xml:space="preserve"><value>Ce n'est pas un ID d'application (client). Copiez-le depuis la page « Vue d'ensemble » de l'application ; il a la forme 00000000-0000-0000-0000-000000000000.</value></data>
+  <data name="OAuthApp_DisconnectGoogleFirst" xml:space="preserve"><value>Déconnectez le compte Google avant de modifier ou de supprimer cet ID client : le compte est connecté par son intermédiaire.</value></data>
+  <data name="OAuthApp_DisconnectMicrosoftFirst" xml:space="preserve"><value>Déconnectez le compte Microsoft avant de modifier ou de supprimer cet ID client : le compte est connecté par son intermédiaire.</value></data>
+  <data name="OAuthApp_GoogleNotSetUp" xml:space="preserve"><value>La connexion Google n'est pas configurée. Saisissez votre ID client et votre code secret sous « Identifiants de l'application OAuth » sur cette page, enregistrez-les, puis connectez-vous.</value></data>
+  <data name="OAuthApp_MicrosoftNotSetUp" xml:space="preserve"><value>La connexion Microsoft n'est pas configurée. Saisissez votre ID d'application (client) sous « Identifiants de l'application OAuth » sur cette page, enregistrez-le, puis connectez-vous.</value></data>
   <data name="Search_ChunkRun.Text" xml:space="preserve"><value>Fragment</value></data>
   <data name="Search_OpenBtn.ToolTipService.ToolTip" xml:space="preserve"><value>Ouvrir dans l'Explorateur</value></data>
   <data name="Search_OpenLabel.Text" xml:space="preserve"><value>Ouvrir</value></data>

@@ -105,6 +105,7 @@
     <Compile Include="..\..\src\AgentX.App\ViewModels\SyncSettingsViewModel.cs" Link="ViewModels\SyncSettingsViewModel.cs" />
     <Compile Include="..\..\src\AgentX.App\ViewModels\CalendarSettingsViewModel.cs" Link="ViewModels\CalendarSettingsViewModel.cs" />
     <Compile Include="..\..\src\AgentX.App\ViewModels\EmailSettingsViewModel.cs" Link="ViewModels\EmailSettingsViewModel.cs" />
+    <Compile Include="..\..\src\AgentX.App\ViewModels\OAuthAppCredentialsViewModel.cs" Link="ViewModels\OAuthAppCredentialsViewModel.cs" />
     <Compile Include="..\..\src\AgentX.App\ViewModels\Sync\SyncLogDisplayItem.cs" Link="ViewModels\Sync\SyncLogDisplayItem.cs" />
     <Compile Include="..\..\src\AgentX.App\ViewModels\Sync\SyncHistoryItem.cs" Link="ViewModels\Sync\SyncHistoryItem.cs" />
     <!-- BackupRestoreViewModel is pure backup orchestration/state logic; linked for the schedule tests. -->
