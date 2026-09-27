@@ -414,6 +414,78 @@ public sealed class OAuthServiceHttpFlowTests : IDisposable
             .Which.Message.Should().Contain("did not contain an access token");
     }
 
+    // -- Client secret in the token requests (public vs confidential clients) ------------
+
+    [Fact]
+    public async Task RefreshTokenAsync_ForAPublicClient_SendsNoClientSecret()
+    {
+        // A Microsoft app registered for mobile and desktop applications has no secret, and
+        // Microsoft rejects such a client when the request carries a client_secret parameter.
+        using var server = new StubHttpServer();
+        server.Handler = _ => (200, """{"access_token":"new-access","token_type":"Bearer","expires_in":3600}""");
+        SeedCredential();
+        _encryption.Setup(e => e.Decrypt("DPAPI:refresh")).Returns("refresh-plain");
+
+        using var service = CreateService();
+        var config = ProviderConfig(server.TokenEndpoint);
+        service.RegisterProvider(new OAuthProviderConfig
+        {
+            ProviderId = config.ProviderId,
+            TokenEndpoint = config.TokenEndpoint,
+            ClientId = config.ClientId,
+            ClientSecret = string.Empty,
+            RedirectUri = config.RedirectUri,
+        });
+
+        (await service.RefreshTokenAsync("google")).Should().BeTrue();
+
+        var request = server.Requests.Should().ContainSingle().Subject;
+        request.Should().Contain("client_id=test-client-id").And.NotContain("client_secret");
+    }
+
+    [Fact]
+    public async Task RefreshTokenAsync_ForAClientWithASecret_SendsIt()
+    {
+        // Google's Desktop app clients need their secret in every token request.
+        using var server = new StubHttpServer();
+        server.Handler = _ => (200, """{"access_token":"new-access","token_type":"Bearer","expires_in":3600}""");
+        SeedCredential();
+        _encryption.Setup(e => e.Decrypt("DPAPI:refresh")).Returns("refresh-plain");
+
+        using var service = CreateService();
+        service.RegisterProvider(ProviderConfig(server.TokenEndpoint));
+
+        (await service.RefreshTokenAsync("google")).Should().BeTrue();
+
+        server.Requests.Should().ContainSingle().Which.Should().Contain("client_secret=test-client-secret");
+    }
+
+    [Theory]
+    [InlineData("", false)]
+    [InlineData("test-client-secret", true)]
+    public async Task ExchangeCodeForTokens_SendsTheClientSecretOnlyWhenTheClientHasOne(string secret, bool sent)
+    {
+        using var server = new StubHttpServer();
+        server.Handler = _ => (200, """{"access_token":"exchanged-access","expires_in":3600}""");
+
+        using var service = CreateService();
+        var template = ProviderConfig(server.TokenEndpoint);
+        var config = new OAuthProviderConfig
+        {
+            ProviderId = template.ProviderId,
+            TokenEndpoint = template.TokenEndpoint,
+            ClientId = template.ClientId,
+            ClientSecret = secret,
+            RedirectUri = template.RedirectUri,
+        };
+
+        await InvokePrivateAsync(service, "ExchangeCodeForTokensAsync", config, "auth-code", config.RedirectUri, "verifier");
+
+        var request = server.Requests.Should().ContainSingle().Subject;
+        request.Contains("client_secret", StringComparison.Ordinal).Should().Be(sent);
+        request.Should().Contain("code_verifier=verifier");
+    }
+
     // ══════════════════════════════════════════════════════════════════════════
     //  PersistCredentialAsync (reflection — walled behind AuthorizeAsync)
     // ══════════════════════════════════════════════════════════════════════════

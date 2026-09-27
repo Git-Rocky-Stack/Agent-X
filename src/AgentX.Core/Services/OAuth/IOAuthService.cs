@@ -1,3 +1,5 @@
+using AgentX.Core.Services.Settings;
+
 namespace AgentX.Core.Services.OAuth;
 
 /// <summary>
@@ -106,6 +108,20 @@ public interface IOAuthService
     /// The decrypted credential, or <see langword="null"/> if none exists.
     /// </returns>
     Task<OAuthCredential?> GetCredentialAsync(string provider);
+
+    /// <summary>
+    /// Registers the Google and Microsoft providers from the client credentials in
+    /// <paramref name="settings"/>. A provider with a client ID is registered, replacing the
+    /// configuration it had; a provider whose client ID is empty is removed, so connecting it
+    /// fails with <see cref="OAuthProviderNotConfiguredException"/>. Stored credentials are kept,
+    /// so an account connected through an unchanged client ID keeps working. Saved credentials
+    /// therefore take effect without a restart.
+    /// </summary>
+    /// <param name="settings">The OAuth section of the application settings.</param>
+    /// <exception cref="ArgumentNullException">
+    /// Thrown when <paramref name="settings"/> is null.
+    /// </exception>
+    void ApplyProviderSettings(OAuthSettings settings);
 }
 
 /// <summary>

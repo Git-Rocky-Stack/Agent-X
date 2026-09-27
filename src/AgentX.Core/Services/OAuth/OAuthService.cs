@@ -26,7 +26,9 @@ namespace AgentX.Core.Services.OAuth;
 /// <remarks>
 /// <para>Thread safety: <see cref="_refreshLocks"/> provides per-provider
 /// <see cref="SemaphoreSlim"/> guards to prevent concurrent token refresh operations
-/// from racing against each other.</para>
+/// from racing against each other. Provider configurations can be registered, replaced or
+/// removed at any time (see <see cref="ApplyProviderSettings"/>); each operation reads the
+/// configuration once.</para>
 ///
 /// <para>DPAPI encryption: All tokens are encrypted via <see cref="IDpapiEncryptionService"/>
 /// before being persisted to SQLite. Decryption happens only at runtime, in memory.</para>
@@ -76,6 +78,12 @@ public sealed class OAuthService : IOAuthService, IDisposable
     /// Registered provider configurations, keyed by <see cref="OAuthProviderConfig.ProviderId"/>.
     /// </summary>
     private readonly ConcurrentDictionary<string, OAuthProviderConfig> _providerConfigs = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Serializes <see cref="ApplyProviderSettings"/>, so two saves racing each other cannot
+    /// leave Google configured from one and Microsoft from the other. Readers never take it.
+    /// </summary>
+    private readonly object _providerSettingsGate = new();
 
     /// <summary>
     /// Pending CSRF state values for in-progress authorization flows, keyed by provider ID.
@@ -154,9 +162,10 @@ public sealed class OAuthService : IOAuthService, IDisposable
     // ── Public: Provider Configuration ─────────────────────────────────────────
 
     /// <summary>
-    /// Registers an OAuth provider configuration. Must be called before
-    /// <see cref="AuthorizeAsync"/> or <see cref="RefreshTokenAsync"/> can
-    /// work with the provider.
+    /// Registers an OAuth provider configuration, replacing any configuration registered for
+    /// the same provider. Must be called before <see cref="AuthorizeAsync"/> or
+    /// <see cref="RefreshTokenAsync"/> can work with the provider. An authorization or refresh
+    /// already running finishes with the configuration it started with.
     /// </summary>
     /// <param name="config">The provider configuration to register.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="config"/> is null.</exception>
@@ -170,6 +179,63 @@ public sealed class OAuthService : IOAuthService, IDisposable
         _providerConfigs[config.ProviderId] = config;
         _log.Information("OAuth provider registered: {ProviderId} ({DisplayName})",
             config.ProviderId, config.DisplayName);
+    }
+
+    /// <summary>
+    /// Removes the configuration registered for <paramref name="provider"/>. Connecting it then
+    /// fails with <see cref="OAuthProviderNotConfiguredException"/> until a configuration is
+    /// registered again. Stored credentials are kept.
+    /// </summary>
+    /// <param name="provider">The provider identifier (e.g. <c>"google"</c>).</param>
+    /// <returns><see langword="true"/> when a configuration was registered.</returns>
+    /// <exception cref="ArgumentException">
+    /// Thrown when <paramref name="provider"/> is null or whitespace.
+    /// </exception>
+    public bool UnregisterProvider(string provider)
+    {
+        ValidateProviderId(provider);
+
+        if (!_providerConfigs.TryRemove(provider, out _))
+            return false;
+
+        _log.Information("OAuth provider unregistered: {ProviderId}", provider);
+        return true;
+    }
+
+    /// <inheritdoc />
+    public void ApplyProviderSettings(OAuthSettings settings)
+    {
+        ArgumentNullException.ThrowIfNull(settings);
+
+        lock (_providerSettingsGate)
+        {
+            var google = settings.Google ?? new GoogleOAuthSettings();
+            if (string.IsNullOrWhiteSpace(google.ClientId))
+            {
+                UnregisterProvider(ProviderIdGoogle);
+            }
+            else
+            {
+                RegisterProvider(OAuthProviderRegistry.Google(
+                    google.ClientId.Trim(),
+                    google.ClientSecret?.Trim() ?? string.Empty,
+                    google.RedirectUri ?? string.Empty));
+            }
+
+            var microsoft = settings.Microsoft ?? new MicrosoftOAuthSettings();
+            if (string.IsNullOrWhiteSpace(microsoft.ClientId))
+            {
+                UnregisterProvider(ProviderIdMicrosoft);
+            }
+            else
+            {
+                RegisterProvider(OAuthProviderRegistry.Microsoft(
+                    microsoft.ClientId.Trim(),
+                    microsoft.ClientSecret?.Trim() ?? string.Empty,
+                    microsoft.TenantId ?? string.Empty,
+                    microsoft.RedirectUri ?? string.Empty));
+            }
+        }
     }
 
     /// <summary>
@@ -557,11 +623,11 @@ public sealed class OAuthService : IOAuthService, IDisposable
         {
             ["code"] = code,
             ["client_id"] = config.ClientId,
-            ["client_secret"] = config.ClientSecret,
             ["redirect_uri"] = redirectUri,
             ["grant_type"] = "authorization_code",
             ["code_verifier"] = codeVerifier
         };
+        AddClientSecret(tokenRequest, config);
 
         var response = await _httpClient.PostAsync(config.TokenEndpoint, new FormUrlEncodedContent(tokenRequest));
         var responseBody = await response.Content.ReadAsStringAsync();
@@ -582,6 +648,18 @@ public sealed class OAuthService : IOAuthService, IDisposable
         }
 
         return tokenData;
+    }
+
+    /// <summary>
+    /// Adds the client secret to a token request when the client has one. A public client (a
+    /// Microsoft app registered for mobile and desktop applications) has none and must not
+    /// send the parameter: Microsoft rejects a public client that presents a client_secret
+    /// (AADSTS700025). Google's Desktop app clients have a secret and need it.
+    /// </summary>
+    private static void AddClientSecret(Dictionary<string, string> tokenRequest, OAuthProviderConfig config)
+    {
+        if (!string.IsNullOrEmpty(config.ClientSecret))
+            tokenRequest["client_secret"] = config.ClientSecret;
     }
 
     /// <summary>
@@ -629,9 +707,9 @@ public sealed class OAuthService : IOAuthService, IDisposable
         {
             ["refresh_token"] = refreshToken,
             ["client_id"] = config.ClientId,
-            ["client_secret"] = config.ClientSecret,
             ["grant_type"] = "refresh_token"
         };
+        AddClientSecret(tokenRequest, config);
 
         try
         {

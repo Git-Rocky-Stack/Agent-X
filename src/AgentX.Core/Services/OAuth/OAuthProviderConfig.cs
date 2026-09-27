@@ -57,9 +57,10 @@ public sealed class OAuthProviderConfig
     public string ClientId { get; init; } = string.Empty;
 
     /// <summary>
-    /// OAuth2 client secret issued by the provider's developer console.
-    /// Stored here for the authorization code exchange; in production this
-    /// should be protected via DPAPI or a secrets manager.
+    /// OAuth2 client secret issued by the provider's developer console, or empty for a public
+    /// client (a Microsoft app registered for mobile and desktop applications), in which case
+    /// the token requests carry no <c>client_secret</c>. The settings service keeps it
+    /// DPAPI-encrypted in settings.json.
     /// </summary>
     public string ClientSecret { get; init; } = string.Empty;
 
