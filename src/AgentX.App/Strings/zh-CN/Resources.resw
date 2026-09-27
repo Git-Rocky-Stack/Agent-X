@@ -2346,6 +2346,108 @@
   <data name="CollMgr_AddDocumentsFirstFailure" xml:space="preserve"><value>{0}{1}：{2}</value></data>
   <data name="CollMgr_RemoveDocumentFailed" xml:space="preserve"><value>无法移除文档：{0}</value></data>
   <data name="CollMgr_BulkDeleteFailed" xml:space="preserve"><value>无法删除合集：{0}</value></data>
+  <data name="QuickAct_StatusReady" xml:space="preserve"><value>就绪</value></data>
+  <data name="QuickAct_LanguageSpanish" xml:space="preserve"><value>西班牙语</value></data>
+  <data name="QuickAct_LanguageFrench" xml:space="preserve"><value>法语</value></data>
+  <data name="QuickAct_LanguageGerman" xml:space="preserve"><value>德语</value></data>
+  <data name="QuickAct_LanguageChinese" xml:space="preserve"><value>中文</value></data>
+  <data name="QuickAct_LanguageJapanese" xml:space="preserve"><value>日语</value></data>
+  <data name="QuickAct_LanguageKorean" xml:space="preserve"><value>韩语</value></data>
+  <data name="QuickAct_LanguagePortuguese" xml:space="preserve"><value>葡萄牙语</value></data>
+  <data name="QuickAct_LanguageItalian" xml:space="preserve"><value>意大利语</value></data>
+  <data name="QuickAct_LanguageRussian" xml:space="preserve"><value>俄语</value></data>
+  <data name="QuickAct_LanguageArabic" xml:space="preserve"><value>阿拉伯语</value></data>
+  <data name="QuickAct_LoadingDocuments" xml:space="preserve"><value>正在加载文档...</value></data>
+  <data name="QuickAct_DocumentCountOne" xml:space="preserve"><value>1 个文档可用</value></data>
+  <data name="QuickAct_DocumentCountMany" xml:space="preserve"><value>{0} 个文档可用</value></data>
+  <data name="QuickAct_LoadDocumentsFailed" xml:space="preserve"><value>无法加载文档</value></data>
+  <data name="QuickAct_CategorySetup" xml:space="preserve"><value>设置</value></data>
+  <data name="QuickAct_ActionImportTitle" xml:space="preserve"><value>导入高价值的源资料</value></data>
+  <data name="QuickAct_ActionImportDetail" xml:space="preserve"><value>当 Knowledge Vault 中有您想要总结、比较和整理的文档时，Quick Actions 会有用得多。</value></data>
+  <data name="QuickAct_StatusNoDocument" xml:space="preserve"><value>未选择文档</value></data>
+  <data name="QuickAct_CommandOpenVault" xml:space="preserve"><value>打开 Knowledge Vault</value></data>
+  <data name="QuickAct_CategoryReadiness" xml:space="preserve"><value>就绪情况</value></data>
+  <data name="QuickAct_ActionFinishIndexingTitle" xml:space="preserve"><value>完成 {0} 的索引</value></data>
+  <data name="QuickAct_ActionFinishIndexingDetail" xml:space="preserve"><value>所选文档尚未完全准备好用于最强大的内容操作。请先在 Knowledge Vault 或 Operations 中查看。</value></data>
+  <data name="QuickAct_CommandReviewDocument" xml:space="preserve"><value>查看文档</value></data>
+  <data name="QuickAct_CategoryDocument" xml:space="preserve"><value>文档</value></data>
+  <data name="QuickAct_ActionSummarizeTitle" xml:space="preserve"><value>总结 {0}</value></data>
+  <data name="QuickAct_ActionSummarizeDetail" xml:space="preserve"><value>所选文档已可搜索并可以归纳，现在即可生成分层摘要。</value></data>
+  <data name="QuickAct_StatusSearchable" xml:space="preserve"><value>可搜索</value></data>
+  <data name="QuickAct_CommandRunSummary" xml:space="preserve"><value>生成摘要</value></data>
+  <data name="QuickAct_CategoryInbox" xml:space="preserve"><value>收件箱</value></data>
+  <data name="QuickAct_ActionTriageTitle" xml:space="preserve"><value>分拣新的传入内容</value></data>
+  <data name="QuickAct_ActionTriageDetail" xml:space="preserve"><value>当前的摄取积压需要先分派和审核，才能成为可靠的知识或工作流输入。</value></data>
+  <data name="QuickAct_CommandOpenInbox" xml:space="preserve"><value>打开收件箱</value></data>
+  <data name="QuickAct_CommandOpenItem" xml:space="preserve"><value>打开项目</value></data>
+  <data name="QuickAct_ActionExtractTitle" xml:space="preserve"><value>从 {0} 提取要点</value></data>
+  <data name="QuickAct_ActionExtractDetail" xml:space="preserve"><value>从当前所选文档中提取要点和可执行的结论。</value></data>
+  <data name="QuickAct_CommandExtractKeyPoints" xml:space="preserve"><value>提取要点</value></data>
+  <data name="QuickAct_CategoryExpansion" xml:space="preserve"><value>扩展</value></data>
+  <data name="QuickAct_ActionConnectTitle" xml:space="preserve"><value>连接实时来源</value></data>
+  <data name="QuickAct_ActionConnectDetail" xml:space="preserve"><value>引入新的电子邮件、日历或外部内容，让 Quick Actions 有更多真实输入可用。</value></data>
+  <data name="QuickAct_StatusNoConnectors" xml:space="preserve"><value>未启用连接器</value></data>
+  <data name="QuickAct_CommandOpenPlugins" xml:space="preserve"><value>打开插件</value></data>
+  <data name="QuickAct_CommandOpenConnector" xml:space="preserve"><value>打开连接器</value></data>
+  <data name="QuickAct_CategoryReview" xml:space="preserve"><value>审查</value></data>
+  <data name="QuickAct_ActionScanTitle" xml:space="preserve"><value>扫描语义近似重复项</value></data>
+  <data name="QuickAct_ActionScanDetail" xml:space="preserve"><value>在当前文档集中查找应合并的冗余或重叠内容。</value></data>
+  <data name="QuickAct_CommandRunDuplicateScan" xml:space="preserve"><value>运行重复扫描</value></data>
+  <data name="QuickAct_CategoryOrganize" xml:space="preserve"><value>整理</value></data>
+  <data name="QuickAct_ActionOrganizeTitle" xml:space="preserve"><value>生成整理建议</value></data>
+  <data name="QuickAct_ActionOrganizeDetail" xml:space="preserve"><value>让应用为未分类或整理松散的内容推荐合集和标签。</value></data>
+  <data name="QuickAct_CommandSuggestOrganization" xml:space="preserve"><value>推荐整理方式</value></data>
+  <data name="QuickAct_CategoryExplore" xml:space="preserve"><value>探索</value></data>
+  <data name="QuickAct_ActionTranslateTitle" xml:space="preserve"><value>翻译所选摘录</value></data>
+  <data name="QuickAct_ActionTranslateDetail" xml:space="preserve"><value>使用 Quick Actions 将简短内容翻译成另一种语言，无需离开此页面。</value></data>
+  <data name="QuickAct_CommandOpenTranslate" xml:space="preserve"><value>打开翻译</value></data>
+  <data name="QuickAct_SelectDocumentFirst" xml:space="preserve"><value>请先选择文档</value></data>
+  <data name="QuickAct_Summarizing" xml:space="preserve"><value>正在总结 {0}...</value></data>
+  <data name="QuickAct_SummaryDone" xml:space="preserve"><value>已成功生成摘要</value></data>
+  <data name="QuickAct_SummaryFailed" xml:space="preserve"><value>总结失败：{0}</value></data>
+  <data name="QuickAct_Extracting" xml:space="preserve"><value>正在从 {0} 提取要点...</value></data>
+  <data name="QuickAct_ExtractedOne" xml:space="preserve"><value>已提取 1 个要点</value></data>
+  <data name="QuickAct_ExtractedMany" xml:space="preserve"><value>已提取 {0} 个要点</value></data>
+  <data name="QuickAct_ExtractFailed" xml:space="preserve"><value>提取失败：{0}</value></data>
+  <data name="QuickAct_EnterTextFirst" xml:space="preserve"><value>请输入要翻译的文本</value></data>
+  <data name="QuickAct_SelectLanguageFirst" xml:space="preserve"><value>请选择目标语言</value></data>
+  <data name="QuickAct_Translating" xml:space="preserve"><value>正在翻译为{0}...</value></data>
+  <data name="QuickAct_TranslationDone" xml:space="preserve"><value>已翻译为{0}</value></data>
+  <data name="QuickAct_TranslationFailed" xml:space="preserve"><value>翻译失败：{0}</value></data>
+  <data name="QuickAct_ScanningExact" xml:space="preserve"><value>正在扫描完全重复的文档...</value></data>
+  <data name="QuickAct_NoExact" xml:space="preserve"><value>未发现完全重复项</value></data>
+  <data name="QuickAct_FoundExactOne" xml:space="preserve"><value>发现 1 组完全重复项（浪费 {0}）</value></data>
+  <data name="QuickAct_FoundExactMany" xml:space="preserve"><value>发现 {0} 组完全重复项（浪费 {1}）</value></data>
+  <data name="QuickAct_ScanExactFailed" xml:space="preserve"><value>重复扫描失败：{0}</value></data>
+  <data name="QuickAct_ScanningSemantic" xml:space="preserve"><value>正在扫描语义近似重复的文档...</value></data>
+  <data name="QuickAct_NoSemantic" xml:space="preserve"><value>未发现语义近似重复项</value></data>
+  <data name="QuickAct_FoundSemanticOne" xml:space="preserve"><value>发现 1 组语义近似重复项（{0} 可能冗余）</value></data>
+  <data name="QuickAct_FoundSemanticMany" xml:space="preserve"><value>发现 {0} 组语义近似重复项（{1} 可能冗余）</value></data>
+  <data name="QuickAct_ScanSemanticFailed" xml:space="preserve"><value>近似重复扫描失败：{0}</value></data>
+  <data name="QuickAct_Analyzing" xml:space="preserve"><value>正在分析文档以生成整理建议...</value></data>
+  <data name="QuickAct_NoTagsSuggested" xml:space="preserve"><value>没有推荐的标签</value></data>
+  <data name="QuickAct_ConfidenceHigh" xml:space="preserve"><value>高</value></data>
+  <data name="QuickAct_ConfidenceMedium" xml:space="preserve"><value>中</value></data>
+  <data name="QuickAct_ConfidenceLow" xml:space="preserve"><value>低</value></data>
+  <data name="QuickAct_AllOrganized" xml:space="preserve"><value>所有文档均已整理</value></data>
+  <data name="QuickAct_SuggestionsOne" xml:space="preserve"><value>已生成 1 条整理建议</value></data>
+  <data name="QuickAct_SuggestionsMany" xml:space="preserve"><value>已生成 {0} 条整理建议</value></data>
+  <data name="QuickAct_AnalysisFailed" xml:space="preserve"><value>分析失败：{0}</value></data>
+  <data name="QuickAct_GroupSemantic" xml:space="preserve"><value>{0} 个文件语义相似</value></data>
+  <data name="QuickAct_GroupExact" xml:space="preserve"><value>{0} 个文件内容完全相同</value></data>
+  <data name="QuickAct_MatchSemantic" xml:space="preserve"><value>语义</value></data>
+  <data name="QuickAct_MatchExact" xml:space="preserve"><value>完全一致</value></data>
+  <data name="QuickAct_DetailHash" xml:space="preserve"><value>哈希：{0}</value></data>
+  <data name="QuickAct_DetailSemanticConfidence" xml:space="preserve"><value>嵌入证据，置信度最高 {0}%</value></data>
+  <data name="QuickAct_DetailSemantic" xml:space="preserve"><value>基于嵌入的近似重复组</value></data>
+  <data name="QuickAct_HashUnavailable" xml:space="preserve"><value>无</value></data>
+  <data name="QuickAct_EvidenceOne" xml:space="preserve"><value>来自 1 个匹配知识块，置信度 {0}%</value></data>
+  <data name="QuickAct_EvidenceMany" xml:space="preserve"><value>来自 {1} 个匹配知识块，置信度 {0}%</value></data>
+  <data name="QuickAct_StatusQueued" xml:space="preserve"><value>已排队</value></data>
+  <data name="QuickAct_StatusProcessing" xml:space="preserve"><value>处理中</value></data>
+  <data name="QuickAct_StatusNeedsAttention" xml:space="preserve"><value>需要处理</value></data>
+  <data name="QuickAct_StatusNeedsReview" xml:space="preserve"><value>需要审核</value></data>
+  <data name="QuickAct_DrillInSourceLabel" xml:space="preserve"><value>已打开 Quick Actions 推荐“{0}”</value></data>
   <data name="PastSelf_CancelDraft.Content" xml:space="preserve"><value>取消</value></data>
   <data name="PastSelf_DraftWriting.Text" xml:space="preserve"><value>正在撰写草稿...</value></data>
   <data name="PastSelf_DraftNeedsContext" xml:space="preserve"><value>请先在“上下文”中描述您要写的内容。</value></data>

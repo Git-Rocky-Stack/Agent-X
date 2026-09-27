@@ -2346,6 +2346,108 @@
   <data name="CollMgr_AddDocumentsFirstFailure" xml:space="preserve"><value>{0} {1}: {2}</value></data>
   <data name="CollMgr_RemoveDocumentFailed" xml:space="preserve"><value>Das Dokument konnte nicht entfernt werden: {0}</value></data>
   <data name="CollMgr_BulkDeleteFailed" xml:space="preserve"><value>Die Sammlungen konnten nicht gelöscht werden: {0}</value></data>
+  <data name="QuickAct_StatusReady" xml:space="preserve"><value>Bereit</value></data>
+  <data name="QuickAct_LanguageSpanish" xml:space="preserve"><value>Spanisch</value></data>
+  <data name="QuickAct_LanguageFrench" xml:space="preserve"><value>Französisch</value></data>
+  <data name="QuickAct_LanguageGerman" xml:space="preserve"><value>Deutsch</value></data>
+  <data name="QuickAct_LanguageChinese" xml:space="preserve"><value>Chinesisch</value></data>
+  <data name="QuickAct_LanguageJapanese" xml:space="preserve"><value>Japanisch</value></data>
+  <data name="QuickAct_LanguageKorean" xml:space="preserve"><value>Koreanisch</value></data>
+  <data name="QuickAct_LanguagePortuguese" xml:space="preserve"><value>Portugiesisch</value></data>
+  <data name="QuickAct_LanguageItalian" xml:space="preserve"><value>Italienisch</value></data>
+  <data name="QuickAct_LanguageRussian" xml:space="preserve"><value>Russisch</value></data>
+  <data name="QuickAct_LanguageArabic" xml:space="preserve"><value>Arabisch</value></data>
+  <data name="QuickAct_LoadingDocuments" xml:space="preserve"><value>Dokumente werden geladen...</value></data>
+  <data name="QuickAct_DocumentCountOne" xml:space="preserve"><value>1 Dokument verfügbar</value></data>
+  <data name="QuickAct_DocumentCountMany" xml:space="preserve"><value>{0} Dokumente verfügbar</value></data>
+  <data name="QuickAct_LoadDocumentsFailed" xml:space="preserve"><value>Die Dokumente konnten nicht geladen werden</value></data>
+  <data name="QuickAct_CategorySetup" xml:space="preserve"><value>Einrichtung</value></data>
+  <data name="QuickAct_ActionImportTitle" xml:space="preserve"><value>Wertvolles Quellmaterial importieren</value></data>
+  <data name="QuickAct_ActionImportDetail" xml:space="preserve"><value>Quick Actions wird deutlich nützlicher, sobald der Tresor die Dokumente enthält, die Sie zusammenfassen, vergleichen und organisieren möchten.</value></data>
+  <data name="QuickAct_StatusNoDocument" xml:space="preserve"><value>Kein Dokument ausgewählt</value></data>
+  <data name="QuickAct_CommandOpenVault" xml:space="preserve"><value>Tresor öffnen</value></data>
+  <data name="QuickAct_CategoryReadiness" xml:space="preserve"><value>Bereitschaft</value></data>
+  <data name="QuickAct_ActionFinishIndexingTitle" xml:space="preserve"><value>Indexierung von {0} abschließen</value></data>
+  <data name="QuickAct_ActionFinishIndexingDetail" xml:space="preserve"><value>Das ausgewählte Dokument ist noch nicht vollständig für die leistungsstärksten Inhaltsaktionen bereit. Prüfen Sie es zuerst im Tresor oder in Operations.</value></data>
+  <data name="QuickAct_CommandReviewDocument" xml:space="preserve"><value>Dokument prüfen</value></data>
+  <data name="QuickAct_CategoryDocument" xml:space="preserve"><value>Dokument</value></data>
+  <data name="QuickAct_ActionSummarizeTitle" xml:space="preserve"><value>{0} zusammenfassen</value></data>
+  <data name="QuickAct_ActionSummarizeDetail" xml:space="preserve"><value>Erstellen Sie eine mehrstufige Zusammenfassung, solange das ausgewählte Dokument bereits durchsuchbar und bereit zur Verdichtung ist.</value></data>
+  <data name="QuickAct_StatusSearchable" xml:space="preserve"><value>Durchsuchbar</value></data>
+  <data name="QuickAct_CommandRunSummary" xml:space="preserve"><value>Zusammenfassung erstellen</value></data>
+  <data name="QuickAct_CategoryInbox" xml:space="preserve"><value>Posteingang</value></data>
+  <data name="QuickAct_ActionTriageTitle" xml:space="preserve"><value>Neue eingehende Inhalte sichten</value></data>
+  <data name="QuickAct_ActionTriageDetail" xml:space="preserve"><value>Der aktuelle Import-Rückstand muss zugeordnet und geprüft werden, bevor er zu verlässlichem Wissen oder Workflow-Eingaben werden kann.</value></data>
+  <data name="QuickAct_CommandOpenInbox" xml:space="preserve"><value>Posteingang öffnen</value></data>
+  <data name="QuickAct_CommandOpenItem" xml:space="preserve"><value>Element öffnen</value></data>
+  <data name="QuickAct_ActionExtractTitle" xml:space="preserve"><value>Kernpunkte aus {0} extrahieren</value></data>
+  <data name="QuickAct_ActionExtractDetail" xml:space="preserve"><value>Ziehen Sie die Hauptpunkte und handlungsorientierten Erkenntnisse aus dem ausgewählten Dokument heraus.</value></data>
+  <data name="QuickAct_CommandExtractKeyPoints" xml:space="preserve"><value>Kernpunkte extrahieren</value></data>
+  <data name="QuickAct_CategoryExpansion" xml:space="preserve"><value>Erweiterung</value></data>
+  <data name="QuickAct_ActionConnectTitle" xml:space="preserve"><value>Live-Quelle verbinden</value></data>
+  <data name="QuickAct_ActionConnectDetail" xml:space="preserve"><value>Holen Sie neue E-Mails, Kalendereinträge oder externe Inhalte herein, damit Quick Actions mit mehr echten Eingängen arbeiten kann.</value></data>
+  <data name="QuickAct_StatusNoConnectors" xml:space="preserve"><value>Keine Connectoren aktiviert</value></data>
+  <data name="QuickAct_CommandOpenPlugins" xml:space="preserve"><value>Plugins öffnen</value></data>
+  <data name="QuickAct_CommandOpenConnector" xml:space="preserve"><value>Connector öffnen</value></data>
+  <data name="QuickAct_CategoryReview" xml:space="preserve"><value>Prüfung</value></data>
+  <data name="QuickAct_ActionScanTitle" xml:space="preserve"><value>Nach semantischen Beinahe-Duplikaten suchen</value></data>
+  <data name="QuickAct_ActionScanDetail" xml:space="preserve"><value>Finden Sie im aktuellen Dokumentbestand redundante oder überlappende Inhalte, die zusammengeführt werden sollten.</value></data>
+  <data name="QuickAct_CommandRunDuplicateScan" xml:space="preserve"><value>Duplikatsuche starten</value></data>
+  <data name="QuickAct_CategoryOrganize" xml:space="preserve"><value>Organisieren</value></data>
+  <data name="QuickAct_ActionOrganizeTitle" xml:space="preserve"><value>Organisationsvorschläge erstellen</value></data>
+  <data name="QuickAct_ActionOrganizeDetail" xml:space="preserve"><value>Lassen Sie sich Sammlungen und Tags für unkategorisierte oder lose organisierte Inhalte vorschlagen.</value></data>
+  <data name="QuickAct_CommandSuggestOrganization" xml:space="preserve"><value>Organisation vorschlagen</value></data>
+  <data name="QuickAct_CategoryExplore" xml:space="preserve"><value>Entdecken</value></data>
+  <data name="QuickAct_ActionTranslateTitle" xml:space="preserve"><value>Ausgewählten Auszug übersetzen</value></data>
+  <data name="QuickAct_ActionTranslateDetail" xml:space="preserve"><value>Übertragen Sie kurze Inhalte mit Quick Actions in eine andere Sprache, ohne die Seite zu verlassen.</value></data>
+  <data name="QuickAct_CommandOpenTranslate" xml:space="preserve"><value>Übersetzen öffnen</value></data>
+  <data name="QuickAct_SelectDocumentFirst" xml:space="preserve"><value>Wählen Sie zuerst ein Dokument aus</value></data>
+  <data name="QuickAct_Summarizing" xml:space="preserve"><value>{0} wird zusammengefasst...</value></data>
+  <data name="QuickAct_SummaryDone" xml:space="preserve"><value>Zusammenfassung erstellt</value></data>
+  <data name="QuickAct_SummaryFailed" xml:space="preserve"><value>Zusammenfassen fehlgeschlagen: {0}</value></data>
+  <data name="QuickAct_Extracting" xml:space="preserve"><value>Kernpunkte aus {0} werden extrahiert...</value></data>
+  <data name="QuickAct_ExtractedOne" xml:space="preserve"><value>1 Kernpunkt extrahiert</value></data>
+  <data name="QuickAct_ExtractedMany" xml:space="preserve"><value>{0} Kernpunkte extrahiert</value></data>
+  <data name="QuickAct_ExtractFailed" xml:space="preserve"><value>Extrahieren fehlgeschlagen: {0}</value></data>
+  <data name="QuickAct_EnterTextFirst" xml:space="preserve"><value>Geben Sie einen zu übersetzenden Text ein</value></data>
+  <data name="QuickAct_SelectLanguageFirst" xml:space="preserve"><value>Wählen Sie eine Zielsprache aus</value></data>
+  <data name="QuickAct_Translating" xml:space="preserve"><value>Übersetzung ({0}) läuft...</value></data>
+  <data name="QuickAct_TranslationDone" xml:space="preserve"><value>Übersetzung ({0}) abgeschlossen</value></data>
+  <data name="QuickAct_TranslationFailed" xml:space="preserve"><value>Übersetzung fehlgeschlagen: {0}</value></data>
+  <data name="QuickAct_ScanningExact" xml:space="preserve"><value>Suche nach exakten Duplikaten...</value></data>
+  <data name="QuickAct_NoExact" xml:space="preserve"><value>Keine exakten Duplikate gefunden</value></data>
+  <data name="QuickAct_FoundExactOne" xml:space="preserve"><value>1 Gruppe exakter Duplikate gefunden ({0} verschwendet)</value></data>
+  <data name="QuickAct_FoundExactMany" xml:space="preserve"><value>{0} Gruppen exakter Duplikate gefunden ({1} verschwendet)</value></data>
+  <data name="QuickAct_ScanExactFailed" xml:space="preserve"><value>Duplikatsuche fehlgeschlagen: {0}</value></data>
+  <data name="QuickAct_ScanningSemantic" xml:space="preserve"><value>Suche nach semantischen Beinahe-Duplikaten...</value></data>
+  <data name="QuickAct_NoSemantic" xml:space="preserve"><value>Keine semantischen Beinahe-Duplikate gefunden</value></data>
+  <data name="QuickAct_FoundSemanticOne" xml:space="preserve"><value>1 Gruppe semantischer Beinahe-Duplikate gefunden ({0} möglicherweise redundant)</value></data>
+  <data name="QuickAct_FoundSemanticMany" xml:space="preserve"><value>{0} Gruppen semantischer Beinahe-Duplikate gefunden ({1} möglicherweise redundant)</value></data>
+  <data name="QuickAct_ScanSemanticFailed" xml:space="preserve"><value>Suche nach Beinahe-Duplikaten fehlgeschlagen: {0}</value></data>
+  <data name="QuickAct_Analyzing" xml:space="preserve"><value>Dokumente werden für Organisationsvorschläge analysiert...</value></data>
+  <data name="QuickAct_NoTagsSuggested" xml:space="preserve"><value>Keine Tags vorgeschlagen</value></data>
+  <data name="QuickAct_ConfidenceHigh" xml:space="preserve"><value>Hoch</value></data>
+  <data name="QuickAct_ConfidenceMedium" xml:space="preserve"><value>Mittel</value></data>
+  <data name="QuickAct_ConfidenceLow" xml:space="preserve"><value>Niedrig</value></data>
+  <data name="QuickAct_AllOrganized" xml:space="preserve"><value>Alle Dokumente sind bereits organisiert</value></data>
+  <data name="QuickAct_SuggestionsOne" xml:space="preserve"><value>1 Organisationsvorschlag erstellt</value></data>
+  <data name="QuickAct_SuggestionsMany" xml:space="preserve"><value>{0} Organisationsvorschläge erstellt</value></data>
+  <data name="QuickAct_AnalysisFailed" xml:space="preserve"><value>Analyse fehlgeschlagen: {0}</value></data>
+  <data name="QuickAct_GroupSemantic" xml:space="preserve"><value>{0} Dateien sind semantisch ähnlich</value></data>
+  <data name="QuickAct_GroupExact" xml:space="preserve"><value>{0} Dateien haben identischen Inhalt</value></data>
+  <data name="QuickAct_MatchSemantic" xml:space="preserve"><value>Semantisch</value></data>
+  <data name="QuickAct_MatchExact" xml:space="preserve"><value>Exakt</value></data>
+  <data name="QuickAct_DetailHash" xml:space="preserve"><value>Hash: {0}</value></data>
+  <data name="QuickAct_DetailSemanticConfidence" xml:space="preserve"><value>Embedding-Hinweise mit bis zu {0} % Konfidenz</value></data>
+  <data name="QuickAct_DetailSemantic" xml:space="preserve"><value>Beinahe-Duplikatgruppe auf Embedding-Basis</value></data>
+  <data name="QuickAct_HashUnavailable" xml:space="preserve"><value>k. A.</value></data>
+  <data name="QuickAct_EvidenceOne" xml:space="preserve"><value>{0} % Konfidenz aus 1 passenden Abschnitt</value></data>
+  <data name="QuickAct_EvidenceMany" xml:space="preserve"><value>{0} % Konfidenz aus {1} passenden Abschnitten</value></data>
+  <data name="QuickAct_StatusQueued" xml:space="preserve"><value>In der Warteschlange</value></data>
+  <data name="QuickAct_StatusProcessing" xml:space="preserve"><value>Wird verarbeitet</value></data>
+  <data name="QuickAct_StatusNeedsAttention" xml:space="preserve"><value>Erfordert Aufmerksamkeit</value></data>
+  <data name="QuickAct_StatusNeedsReview" xml:space="preserve"><value>Prüfung erforderlich</value></data>
+  <data name="QuickAct_DrillInSourceLabel" xml:space="preserve"><value>Quick-Actions-Empfehlung „{0}“ geöffnet</value></data>
   <data name="PastSelf_CancelDraft.Content" xml:space="preserve"><value>Abbrechen</value></data>
   <data name="PastSelf_DraftWriting.Text" xml:space="preserve"><value>Der Entwurf wird geschrieben...</value></data>
   <data name="PastSelf_DraftNeedsContext" xml:space="preserve"><value>Beschreiben Sie zuerst unter „Kontext“, was Sie schreiben möchten.</value></data>
