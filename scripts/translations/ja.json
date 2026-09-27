@@ -1712,5 +1712,18 @@
   "ExportDlg_TemplateResearchReport": "研究レポート",
   "ExportDlg_TemplateExecutiveSummary": "エグゼクティブ サマリー",
   "ExportDlg_TemplateAnnotatedBibliography": "注釈付き参考文献",
-  "ExportDlg_TitleFormat": "エクスポート: {0}"
+  "ExportDlg_TitleFormat": "エクスポート: {0}",
+  "Startup_PassphrasePlaceholder": "データベースのパスフレーズを入力",
+  "Startup_UnlockTitle": "Agent-X データベースのロックを解除",
+  "Startup_UnlockButton": "ロック解除",
+  "Startup_ExitAppButton": "アプリを終了",
+  "Startup_WrongPassphraseTitle": "パスフレーズが正しくありません",
+  "Startup_WrongPassphraseMessage": "このパスフレーズではデータベースのロックを解除できませんでした。もう一度お試しください。正しいパスフレーズがないと、Agent-X はこのデータベースを開くことも、そのバックアップを復元することもできません。",
+  "Startup_OkButton": "OK",
+  "Startup_FailedTitle": "Agent-X を起動できませんでした",
+  "Startup_SchemaIncomplete": "データベース スキーマが不完全で、自動的に修復できませんでした。不足しているテーブル: {0}。",
+  "Startup_UpgradeFailed": "データベースを最新バージョンにアップグレードできませんでした。",
+  "Startup_FailedHelp": "データを保護するため、Agent-X は機能を読み込む前に停止しました。バックアップは Agent-X の中からしか復元できないため、ここでは復元できません。まず %LocalAppData%\\AgentX フォルダーを安全な場所にコピーし、この問題を報告する際は %LocalAppData%\\AgentX\\Logs のログ ファイルを添付してください。",
+  "Startup_FailedManualRestore": "手動でバックアップに戻すには: Agent-X を閉じた状態で、%LocalAppData%\\AgentX に agentx.db-wal と agentx.db-shm があれば削除し、agentx.db を、パスワードなしで作成した .agentxbak バックアップ内の database\\agentx.db ファイルに置き換えます (このファイルは ZIP アーカイブです)。パスワード付きで作成したバックアップは Agent-X でしか開けません。",
+  "Startup_ExitButton": "終了"
 }

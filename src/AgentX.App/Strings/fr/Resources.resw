@@ -2140,4 +2140,17 @@
   <data name="ExportDlg_TemplateExecutiveSummary" xml:space="preserve"><value>Note de synthèse</value></data>
   <data name="ExportDlg_TemplateAnnotatedBibliography" xml:space="preserve"><value>Bibliographie commentée</value></data>
   <data name="ExportDlg_TitleFormat" xml:space="preserve"><value>Exporter : {0}</value></data>
+  <data name="Startup_PassphrasePlaceholder" xml:space="preserve"><value>Saisissez la phrase secrète de la base de données</value></data>
+  <data name="Startup_UnlockTitle" xml:space="preserve"><value>Déverrouiller la base de données Agent-X</value></data>
+  <data name="Startup_UnlockButton" xml:space="preserve"><value>Déverrouiller</value></data>
+  <data name="Startup_ExitAppButton" xml:space="preserve"><value>Quitter l'application</value></data>
+  <data name="Startup_WrongPassphraseTitle" xml:space="preserve"><value>Phrase secrète incorrecte</value></data>
+  <data name="Startup_WrongPassphraseMessage" xml:space="preserve"><value>Cette phrase secrète n'a pas déverrouillé la base de données. Veuillez réessayer. Sans la bonne phrase secrète, Agent-X ne peut ni ouvrir cette base de données ni en restaurer une sauvegarde.</value></data>
+  <data name="Startup_OkButton" xml:space="preserve"><value>OK</value></data>
+  <data name="Startup_FailedTitle" xml:space="preserve"><value>Agent-X n'a pas pu démarrer</value></data>
+  <data name="Startup_SchemaIncomplete" xml:space="preserve"><value>Le schéma de la base de données est incomplet et n'a pas pu être réparé automatiquement. Tables manquantes : {0}.</value></data>
+  <data name="Startup_UpgradeFailed" xml:space="preserve"><value>La base de données n'a pas pu être mise à niveau vers la dernière version.</value></data>
+  <data name="Startup_FailedHelp" xml:space="preserve"><value>Pour protéger vos données, Agent-X s'est arrêté avant de charger la moindre fonctionnalité. Les sauvegardes ne peuvent être restaurées que depuis Agent-X ; il est donc impossible d'en restaurer une ici. Copiez d'abord le dossier %LocalAppData%\AgentX en lieu sûr, et joignez les fichiers journaux de %LocalAppData%\AgentX\Logs lorsque vous signalez ce problème.</value></data>
+  <data name="Startup_FailedManualRestore" xml:space="preserve"><value>Pour revenir manuellement à une sauvegarde : Agent-X étant fermé, supprimez agentx.db-wal et agentx.db-shm de %LocalAppData%\AgentX s'ils existent, puis remplacez agentx.db par le fichier database\agentx.db d'une sauvegarde .agentxbak créée sans mot de passe (le fichier est une archive ZIP). Seul Agent-X peut ouvrir les sauvegardes créées avec un mot de passe.</value></data>
+  <data name="Startup_ExitButton" xml:space="preserve"><value>Quitter</value></data>
 </root>

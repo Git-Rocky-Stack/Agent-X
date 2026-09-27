@@ -2140,4 +2140,17 @@
   <data name="ExportDlg_TemplateExecutiveSummary" xml:space="preserve"><value>エグゼクティブ サマリー</value></data>
   <data name="ExportDlg_TemplateAnnotatedBibliography" xml:space="preserve"><value>注釈付き参考文献</value></data>
   <data name="ExportDlg_TitleFormat" xml:space="preserve"><value>エクスポート: {0}</value></data>
+  <data name="Startup_PassphrasePlaceholder" xml:space="preserve"><value>データベースのパスフレーズを入力</value></data>
+  <data name="Startup_UnlockTitle" xml:space="preserve"><value>Agent-X データベースのロックを解除</value></data>
+  <data name="Startup_UnlockButton" xml:space="preserve"><value>ロック解除</value></data>
+  <data name="Startup_ExitAppButton" xml:space="preserve"><value>アプリを終了</value></data>
+  <data name="Startup_WrongPassphraseTitle" xml:space="preserve"><value>パスフレーズが正しくありません</value></data>
+  <data name="Startup_WrongPassphraseMessage" xml:space="preserve"><value>このパスフレーズではデータベースのロックを解除できませんでした。もう一度お試しください。正しいパスフレーズがないと、Agent-X はこのデータベースを開くことも、そのバックアップを復元することもできません。</value></data>
+  <data name="Startup_OkButton" xml:space="preserve"><value>OK</value></data>
+  <data name="Startup_FailedTitle" xml:space="preserve"><value>Agent-X を起動できませんでした</value></data>
+  <data name="Startup_SchemaIncomplete" xml:space="preserve"><value>データベース スキーマが不完全で、自動的に修復できませんでした。不足しているテーブル: {0}。</value></data>
+  <data name="Startup_UpgradeFailed" xml:space="preserve"><value>データベースを最新バージョンにアップグレードできませんでした。</value></data>
+  <data name="Startup_FailedHelp" xml:space="preserve"><value>データを保護するため、Agent-X は機能を読み込む前に停止しました。バックアップは Agent-X の中からしか復元できないため、ここでは復元できません。まず %LocalAppData%\AgentX フォルダーを安全な場所にコピーし、この問題を報告する際は %LocalAppData%\AgentX\Logs のログ ファイルを添付してください。</value></data>
+  <data name="Startup_FailedManualRestore" xml:space="preserve"><value>手動でバックアップに戻すには: Agent-X を閉じた状態で、%LocalAppData%\AgentX に agentx.db-wal と agentx.db-shm があれば削除し、agentx.db を、パスワードなしで作成した .agentxbak バックアップ内の database\agentx.db ファイルに置き換えます (このファイルは ZIP アーカイブです)。パスワード付きで作成したバックアップは Agent-X でしか開けません。</value></data>
+  <data name="Startup_ExitButton" xml:space="preserve"><value>終了</value></data>
 </root>

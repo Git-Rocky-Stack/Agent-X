@@ -1712,5 +1712,18 @@
   "ExportDlg_TemplateResearchReport": "Rapport de recherche",
   "ExportDlg_TemplateExecutiveSummary": "Note de synthèse",
   "ExportDlg_TemplateAnnotatedBibliography": "Bibliographie commentée",
-  "ExportDlg_TitleFormat": "Exporter : {0}"
+  "ExportDlg_TitleFormat": "Exporter : {0}",
+  "Startup_PassphrasePlaceholder": "Saisissez la phrase secrète de la base de données",
+  "Startup_UnlockTitle": "Déverrouiller la base de données Agent-X",
+  "Startup_UnlockButton": "Déverrouiller",
+  "Startup_ExitAppButton": "Quitter l'application",
+  "Startup_WrongPassphraseTitle": "Phrase secrète incorrecte",
+  "Startup_WrongPassphraseMessage": "Cette phrase secrète n'a pas déverrouillé la base de données. Veuillez réessayer. Sans la bonne phrase secrète, Agent-X ne peut ni ouvrir cette base de données ni en restaurer une sauvegarde.",
+  "Startup_OkButton": "OK",
+  "Startup_FailedTitle": "Agent-X n'a pas pu démarrer",
+  "Startup_SchemaIncomplete": "Le schéma de la base de données est incomplet et n'a pas pu être réparé automatiquement. Tables manquantes : {0}.",
+  "Startup_UpgradeFailed": "La base de données n'a pas pu être mise à niveau vers la dernière version.",
+  "Startup_FailedHelp": "Pour protéger vos données, Agent-X s'est arrêté avant de charger la moindre fonctionnalité. Les sauvegardes ne peuvent être restaurées que depuis Agent-X ; il est donc impossible d'en restaurer une ici. Copiez d'abord le dossier %LocalAppData%\\AgentX en lieu sûr, et joignez les fichiers journaux de %LocalAppData%\\AgentX\\Logs lorsque vous signalez ce problème.",
+  "Startup_FailedManualRestore": "Pour revenir manuellement à une sauvegarde : Agent-X étant fermé, supprimez agentx.db-wal et agentx.db-shm de %LocalAppData%\\AgentX s'ils existent, puis remplacez agentx.db par le fichier database\\agentx.db d'une sauvegarde .agentxbak créée sans mot de passe (le fichier est une archive ZIP). Seul Agent-X peut ouvrir les sauvegardes créées avec un mot de passe.",
+  "Startup_ExitButton": "Quitter"
 }

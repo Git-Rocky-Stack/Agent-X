@@ -1712,5 +1712,18 @@
   "ExportDlg_TemplateResearchReport": "研究报告",
   "ExportDlg_TemplateExecutiveSummary": "执行摘要",
   "ExportDlg_TemplateAnnotatedBibliography": "注释书目",
-  "ExportDlg_TitleFormat": "导出：{0}"
+  "ExportDlg_TitleFormat": "导出：{0}",
+  "Startup_PassphrasePlaceholder": "输入数据库密码短语",
+  "Startup_UnlockTitle": "解锁 Agent-X 数据库",
+  "Startup_UnlockButton": "解锁",
+  "Startup_ExitAppButton": "退出应用",
+  "Startup_WrongPassphraseTitle": "密码短语不正确",
+  "Startup_WrongPassphraseMessage": "该密码短语未能解锁数据库。请重试。没有正确的密码短语，Agent-X 无法打开此数据库，也无法还原其备份。",
+  "Startup_OkButton": "确定",
+  "Startup_FailedTitle": "Agent-X 无法启动",
+  "Startup_SchemaIncomplete": "数据库架构不完整，且无法自动修复。缺少的表：{0}。",
+  "Startup_UpgradeFailed": "无法将数据库升级到最新版本。",
+  "Startup_FailedHelp": "为保护您的数据，Agent-X 在加载任何功能之前已停止。备份只能在 Agent-X 内部还原，因此无法在此处还原。请先将 %LocalAppData%\\AgentX 文件夹复制到安全的位置，并在报告此问题时附上 %LocalAppData%\\AgentX\\Logs 中的日志文件。",
+  "Startup_FailedManualRestore": "手动恢复到备份：在 Agent-X 关闭的情况下，如果 %LocalAppData%\\AgentX 中存在 agentx.db-wal 和 agentx.db-shm，请将其删除，然后用不带密码创建的 .agentxbak 备份中的 database\\agentx.db 文件替换 agentx.db（该文件是 ZIP 压缩包）。带密码创建的备份只能由 Agent-X 打开。",
+  "Startup_ExitButton": "退出"
 }

@@ -1712,5 +1712,18 @@
   "ExportDlg_TemplateResearchReport": "Forschungsbericht",
   "ExportDlg_TemplateExecutiveSummary": "Management-Zusammenfassung",
   "ExportDlg_TemplateAnnotatedBibliography": "Kommentierte Bibliografie",
-  "ExportDlg_TitleFormat": "Exportieren: {0}"
+  "ExportDlg_TitleFormat": "Exportieren: {0}",
+  "Startup_PassphrasePlaceholder": "Passphrase der Datenbank eingeben",
+  "Startup_UnlockTitle": "Agent-X-Datenbank entsperren",
+  "Startup_UnlockButton": "Entsperren",
+  "Startup_ExitAppButton": "App beenden",
+  "Startup_WrongPassphraseTitle": "Falsche Passphrase",
+  "Startup_WrongPassphraseMessage": "Mit dieser Passphrase ließ sich die Datenbank nicht entsperren. Bitte versuchen Sie es erneut. Ohne die richtige Passphrase kann Agent-X diese Datenbank weder öffnen noch eine Sicherung davon wiederherstellen.",
+  "Startup_OkButton": "OK",
+  "Startup_FailedTitle": "Agent-X konnte nicht gestartet werden",
+  "Startup_SchemaIncomplete": "Das Datenbankschema ist unvollständig und konnte nicht automatisch repariert werden. Fehlende Tabellen: {0}.",
+  "Startup_UpgradeFailed": "Die Datenbank konnte nicht auf die neueste Version aktualisiert werden.",
+  "Startup_FailedHelp": "Zum Schutz Ihrer Daten hat Agent-X angehalten, bevor Funktionen geladen wurden. Sicherungen lassen sich nur innerhalb von Agent-X wiederherstellen, daher ist das hier nicht möglich. Kopieren Sie zuerst den Ordner %LocalAppData%\\AgentX an einen sicheren Ort, und fügen Sie die Protokolldateien aus %LocalAppData%\\AgentX\\Logs bei, wenn Sie dieses Problem melden.",
+  "Startup_FailedManualRestore": "So kehren Sie manuell zu einer Sicherung zurück: Löschen Sie bei geschlossenem Agent-X die Dateien agentx.db-wal und agentx.db-shm in %LocalAppData%\\AgentX, falls vorhanden, und ersetzen Sie agentx.db durch die Datei database\\agentx.db aus einer ohne Passwort erstellten .agentxbak-Sicherung (die Datei ist ein ZIP-Archiv). Mit Passwort erstellte Sicherungen kann nur Agent-X öffnen.",
+  "Startup_ExitButton": "Beenden"
 }

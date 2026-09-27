@@ -911,10 +911,7 @@ public partial class App : Application
 
     private static async System.Threading.Tasks.Task<bool> TryProbeKeyAsync(AgentX.Core.Services.Security.DatabaseKeyMaterial candidate)
     {
-        var dbPath = System.IO.Path.Combine(
-            System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData),
-            "AgentX",
-            "agentx.db");
+        var dbPath = AgentX.Core.Helpers.PathHelper.GetDatabasePath();
         try
         {
             await using var conn = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={dbPath}");
@@ -935,16 +932,17 @@ public partial class App : Application
 
     private static async System.Threading.Tasks.Task<string?> PromptForPassphraseAsync()
     {
+        var localization = GetService<ILocalizationService>();
         var box = new Microsoft.UI.Xaml.Controls.PasswordBox
         {
-            PlaceholderText = "Enter your database passphrase"
+            PlaceholderText = localization.GetString("Startup_PassphrasePlaceholder")
         };
         var dialog = new Microsoft.UI.Xaml.Controls.ContentDialog
         {
-            Title = "Unlock your Agent-X database",
+            Title = localization.GetString("Startup_UnlockTitle"),
             Content = box,
-            PrimaryButtonText = "Unlock",
-            CloseButtonText = "Exit app",
+            PrimaryButtonText = localization.GetString("Startup_UnlockButton"),
+            CloseButtonText = localization.GetString("Startup_ExitAppButton"),
             DefaultButton = Microsoft.UI.Xaml.Controls.ContentDialogButton.Primary,
             XamlRoot = MainWindow.Content.XamlRoot,
         };
@@ -954,11 +952,12 @@ public partial class App : Application
 
     private static async System.Threading.Tasks.Task ShowInvalidPassphraseDialogAsync()
     {
+        var localization = GetService<ILocalizationService>();
         var dialog = new Microsoft.UI.Xaml.Controls.ContentDialog
         {
-            Title = "Incorrect passphrase",
-            Content = "That passphrase did not unlock the database. Please try again. Agent-X cannot open this database, or restore a backup of it, without the correct passphrase.",
-            CloseButtonText = "OK",
+            Title = localization.GetString("Startup_WrongPassphraseTitle"),
+            Content = localization.GetString("Startup_WrongPassphraseMessage"),
+            CloseButtonText = localization.GetString("Startup_OkButton"),
             XamlRoot = MainWindow.Content.XamlRoot,
         };
         await dialog.ShowAsync();
@@ -973,15 +972,20 @@ public partial class App : Application
     /// </summary>
     private static async System.Threading.Tasks.Task EnterMigrationRecoveryStateAsync(Exception? failure)
     {
-        var details = failure is AgentX.Core.Data.MigrationRunner.BaselineSchemaIncompleteException baselineEx
-            ? $"The database schema is incomplete and could not be repaired automatically. "
-              + $"Missing tables: {string.Join(", ", baselineEx.MissingTables)}."
-            : "The database could not be upgraded to the latest version.";
+        var missingTables = failure is AgentX.Core.Data.MigrationRunner.BaselineSchemaIncompleteException baselineEx
+            ? string.Join(", ", baselineEx.MissingTables)
+            : null;
 
         Log.Fatal(
             failure,
-            "Startup halted in migration recovery state — data-backed features were not started. {Details}",
-            details);
+            "Startup halted in migration recovery state; data-backed features were not started. Missing tables: {MissingTables}",
+            missingTables ?? "(none reported)");
+
+        // The dialog text is localized; the log above stays in English for bug reports.
+        var localization = GetService<ILocalizationService>();
+        var details = missingTables is not null
+            ? localization.GetString("Startup_SchemaIncomplete", missingTables)
+            : localization.GetString("Startup_UpgradeFailed");
 
         var window = _mainWindow;
         if (window?.Content?.XamlRoot is null)
@@ -999,18 +1003,12 @@ public partial class App : Application
             {
                 var dialog = new Microsoft.UI.Xaml.Controls.ContentDialog
                 {
-                    Title = "Agent-X could not start",
+                    Title = localization.GetString("Startup_FailedTitle"),
                     Content =
                         details
-                        + "\n\nTo protect your data, Agent-X stopped before loading any features. "
-                        + "Backups can only be restored from inside Agent-X, so a backup cannot be restored from here. "
-                        + "First copy the folder %LocalAppData%\\AgentX somewhere safe, and include the log files from "
-                        + "%LocalAppData%\\AgentX\\Logs when you report this problem."
-                        + "\n\nTo go back to a backup by hand: with Agent-X closed, delete agentx.db-wal and agentx.db-shm "
-                        + "from %LocalAppData%\\AgentX if they exist, then replace agentx.db with the database\\agentx.db file "
-                        + "from a .agentxbak backup made without a password (the file is a ZIP archive). "
-                        + "Backups made with a password can only be opened by Agent-X.",
-                    CloseButtonText = "Exit",
+                        + "\n\n" + localization.GetString("Startup_FailedHelp")
+                        + "\n\n" + localization.GetString("Startup_FailedManualRestore"),
+                    CloseButtonText = localization.GetString("Startup_ExitButton"),
                     XamlRoot = window.Content.XamlRoot,
                 };
                 await dialog.ShowAsync();
