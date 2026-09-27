@@ -2415,6 +2415,26 @@
   <data name="CalSet_ConflictRemoteWins" xml:space="preserve"><value>La version distante l'emporte</value></data>
   <data name="CalSet_ConflictLocalWins" xml:space="preserve"><value>La version locale l'emporte</value></data>
   <data name="CalSet_ConflictMerge" xml:space="preserve"><value>Fusionner</value></data>
+  <data name="Backup_LoadFailed" xml:space="preserve"><value>Impossible de charger les informations de sauvegarde</value></data>
+  <data name="Backup_IntegrityValid" xml:space="preserve"><value>Valide</value></data>
+  <data name="Backup_IntegrityInvalid" xml:space="preserve"><value>Non valide</value></data>
+  <data name="Backup_SelectDestination" xml:space="preserve"><value>Veuillez sélectionner une destination de sauvegarde</value></data>
+  <data name="Backup_PasswordRequired" xml:space="preserve"><value>Saisissez un mot de passe pour chiffrer la sauvegarde, ou désactivez le chiffrement.</value></data>
+  <data name="Backup_PhasePreparing" xml:space="preserve"><value>Préparation...</value></data>
+  <data name="Backup_Created" xml:space="preserve"><value>Sauvegarde créée ({0} Mo, {1} ms)</value></data>
+  <data name="Backup_CreatedWithWarnings" xml:space="preserve"><value>Sauvegarde créée ({0} Mo, {1} ms) avec {2} avertissement(s) : {3}</value></data>
+  <data name="Backup_Failed" xml:space="preserve"><value>Échec de la sauvegarde : {0}</value></data>
+  <data name="Backup_SelectRestoreFile" xml:space="preserve"><value>Veuillez sélectionner un fichier de sauvegarde à restaurer</value></data>
+  <data name="Backup_PhaseValidating" xml:space="preserve"><value>Validation...</value></data>
+  <data name="Backup_InvalidFile" xml:space="preserve"><value>Fichier de sauvegarde non valide ou endommagé</value></data>
+  <data name="Backup_RestorePasswordCancelled" xml:space="preserve"><value>Restauration annulée : cette sauvegarde est chiffrée et nécessite son mot de passe.</value></data>
+  <data name="Backup_RestoreSummary" xml:space="preserve"><value>{0} conversations, {1} documents et {2} workflows restaurés en {3} ms</value></data>
+  <data name="Backup_RestoreCompletedRestart" xml:space="preserve"><value>Restauration terminée. Redémarrez Agent-X maintenant pour charger les données restaurées.</value></data>
+  <data name="Backup_RestoreCompleted" xml:space="preserve"><value>Restauration terminée.</value></data>
+  <data name="Backup_RestoreWarningsHeading" xml:space="preserve"><value>Avertissements :</value></data>
+  <data name="Backup_RestoreFailed" xml:space="preserve"><value>Échec de la restauration : {0}</value></data>
+  <data name="Backup_Deleted" xml:space="preserve"><value>Sauvegarde supprimée</value></data>
+  <data name="Backup_DeleteFailed" xml:space="preserve"><value>Impossible de supprimer la sauvegarde</value></data>
   <data name="Palette_OpenHint.Text" xml:space="preserve"><value>Ouvrir</value></data>
   <data name="Palette_CloseHint.Text" xml:space="preserve"><value>Fermer</value></data>
   <data name="Palette_Actions" xml:space="preserve"><value>ACTIONS</value></data>

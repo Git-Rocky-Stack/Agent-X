@@ -2415,6 +2415,26 @@
   <data name="CalSet_ConflictRemoteWins" xml:space="preserve"><value>以远程为准</value></data>
   <data name="CalSet_ConflictLocalWins" xml:space="preserve"><value>以本地为准</value></data>
   <data name="CalSet_ConflictMerge" xml:space="preserve"><value>合并</value></data>
+  <data name="Backup_LoadFailed" xml:space="preserve"><value>无法加载备份信息</value></data>
+  <data name="Backup_IntegrityValid" xml:space="preserve"><value>有效</value></data>
+  <data name="Backup_IntegrityInvalid" xml:space="preserve"><value>无效</value></data>
+  <data name="Backup_SelectDestination" xml:space="preserve"><value>请选择备份目标位置</value></data>
+  <data name="Backup_PasswordRequired" xml:space="preserve"><value>请输入密码以加密备份，或关闭加密。</value></data>
+  <data name="Backup_PhasePreparing" xml:space="preserve"><value>正在准备...</value></data>
+  <data name="Backup_Created" xml:space="preserve"><value>备份创建成功（{0} MB，{1} ms）</value></data>
+  <data name="Backup_CreatedWithWarnings" xml:space="preserve"><value>备份创建成功（{0} MB，{1} ms），有 {2} 条警告：{3}</value></data>
+  <data name="Backup_Failed" xml:space="preserve"><value>备份失败：{0}</value></data>
+  <data name="Backup_SelectRestoreFile" xml:space="preserve"><value>请选择要还原的备份文件</value></data>
+  <data name="Backup_PhaseValidating" xml:space="preserve"><value>正在验证...</value></data>
+  <data name="Backup_InvalidFile" xml:space="preserve"><value>备份文件无效或已损坏</value></data>
+  <data name="Backup_RestorePasswordCancelled" xml:space="preserve"><value>已取消还原：此备份已加密，需要其密码。</value></data>
+  <data name="Backup_RestoreSummary" xml:space="preserve"><value>已在 {3} ms 内还原 {0} 个会话、{1} 个文档和 {2} 个工作流</value></data>
+  <data name="Backup_RestoreCompletedRestart" xml:space="preserve"><value>还原完成。请立即重启 Agent-X 以加载还原的数据。</value></data>
+  <data name="Backup_RestoreCompleted" xml:space="preserve"><value>还原成功完成。</value></data>
+  <data name="Backup_RestoreWarningsHeading" xml:space="preserve"><value>警告：</value></data>
+  <data name="Backup_RestoreFailed" xml:space="preserve"><value>还原失败：{0}</value></data>
+  <data name="Backup_Deleted" xml:space="preserve"><value>备份已删除</value></data>
+  <data name="Backup_DeleteFailed" xml:space="preserve"><value>无法删除备份</value></data>
   <data name="Palette_OpenHint.Text" xml:space="preserve"><value>打开</value></data>
   <data name="Palette_CloseHint.Text" xml:space="preserve"><value>关闭</value></data>
   <data name="Palette_Actions" xml:space="preserve"><value>操作</value></data>

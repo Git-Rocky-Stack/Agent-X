@@ -5,6 +5,7 @@ using AgentX.Core.Services.Backup.Models;
 using AgentX.Core.Services.Localization;
 using AgentX.Core.Services.Settings;
 using AgentX.Core.Validation;
+using AgentX.Tests.Helpers;
 using FluentAssertions;
 using Moq;
 using Xunit;
@@ -220,5 +221,47 @@ public sealed class BackupRestoreViewModelTests : IDisposable
 
         _settingsService.Verify(s => s.SaveSettingsAsync(_settings), Times.Once);
         sut.ScheduleStatusMessage.Should().Be("Backup_ScheduleNotApplied: boom");
+    }
+
+    [Fact]
+    public async Task CreateBackup_reports_the_size_duration_and_warnings_in_one_message()
+    {
+        _backup.Setup(b => b.CreateBackupAsync(
+                It.IsAny<BackupOptions>(), It.IsAny<IProgress<BackupProgress>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new BackupResult
+            {
+                Success = true,
+                SizeMB = 12.34,
+                DurationMs = 850,
+                WarningMessages = { "Skipped a.pdf.", "Skipped b.pdf." },
+            });
+        var sut = new BackupRestoreViewModel(_backup.Object, _settingsService.Object, EnglishResources.Create())
+        {
+            BackupDestination = Path.Combine(_root, "manual"),
+        };
+
+        await sut.CreateBackupCommand.ExecuteAsync(null);
+
+        sut.StatusMessage.Should().Be(
+            $"Backup created successfully ({12.34:F1} MB, 850ms) with 2 warning(s): Skipped a.pdf. Skipped b.pdf.");
+    }
+
+    [Fact]
+    public async Task History_rows_label_their_integrity_in_the_users_language()
+    {
+        _backup.Setup(b => b.GetBackupHistoryAsync()).ReturnsAsync(new[]
+        {
+            new BackupEntity { Id = 1, FileName = "a.agentxbak", IsValid = true },
+            new BackupEntity { Id = 2, FileName = "b.agentxbak", IsValid = false },
+        });
+        var german = ReswLocalization.For("de");
+        var sut = new BackupRestoreViewModel(_backup.Object, _settingsService.Object, german);
+
+        await sut.InitializeAsync();
+
+        sut.BackupHistory.Select(item => item.IntegrityLabel).Should().Equal(
+            german.GetString("Backup_IntegrityValid"), german.GetString("Backup_IntegrityInvalid"));
+        sut.BackupHistory[0].IntegrityLabel.Should().NotBe("Valid");
+        sut.BackupHistory.Select(item => item.IntegrityStatus).Should().Equal("completed", "failed");
     }
 }

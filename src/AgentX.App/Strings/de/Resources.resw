@@ -2415,6 +2415,26 @@
   <data name="CalSet_ConflictRemoteWins" xml:space="preserve"><value>Remote-Version hat Vorrang</value></data>
   <data name="CalSet_ConflictLocalWins" xml:space="preserve"><value>Lokale Version hat Vorrang</value></data>
   <data name="CalSet_ConflictMerge" xml:space="preserve"><value>Zusammenführen</value></data>
+  <data name="Backup_LoadFailed" xml:space="preserve"><value>Backup-Informationen konnten nicht geladen werden</value></data>
+  <data name="Backup_IntegrityValid" xml:space="preserve"><value>Gültig</value></data>
+  <data name="Backup_IntegrityInvalid" xml:space="preserve"><value>Ungültig</value></data>
+  <data name="Backup_SelectDestination" xml:space="preserve"><value>Bitte wählen Sie ein Backup-Ziel aus</value></data>
+  <data name="Backup_PasswordRequired" xml:space="preserve"><value>Geben Sie ein Passwort ein, um das Backup zu verschlüsseln, oder schalten Sie die Verschlüsselung aus.</value></data>
+  <data name="Backup_PhasePreparing" xml:space="preserve"><value>Wird vorbereitet...</value></data>
+  <data name="Backup_Created" xml:space="preserve"><value>Backup erfolgreich erstellt ({0} MB, {1} ms)</value></data>
+  <data name="Backup_CreatedWithWarnings" xml:space="preserve"><value>Backup erfolgreich erstellt ({0} MB, {1} ms) mit {2} Warnung(en): {3}</value></data>
+  <data name="Backup_Failed" xml:space="preserve"><value>Backup fehlgeschlagen: {0}</value></data>
+  <data name="Backup_SelectRestoreFile" xml:space="preserve"><value>Bitte wählen Sie eine Backup-Datei zum Wiederherstellen aus</value></data>
+  <data name="Backup_PhaseValidating" xml:space="preserve"><value>Wird geprüft...</value></data>
+  <data name="Backup_InvalidFile" xml:space="preserve"><value>Ungültige oder beschädigte Backup-Datei</value></data>
+  <data name="Backup_RestorePasswordCancelled" xml:space="preserve"><value>Wiederherstellung abgebrochen: Dieses Backup ist verschlüsselt und benötigt sein Passwort.</value></data>
+  <data name="Backup_RestoreSummary" xml:space="preserve"><value>{0} Unterhaltungen, {1} Dokumente und {2} Workflows in {3} ms wiederhergestellt</value></data>
+  <data name="Backup_RestoreCompletedRestart" xml:space="preserve"><value>Wiederherstellung abgeschlossen. Starten Sie Agent-X jetzt neu, um die wiederhergestellten Daten zu laden.</value></data>
+  <data name="Backup_RestoreCompleted" xml:space="preserve"><value>Wiederherstellung erfolgreich abgeschlossen.</value></data>
+  <data name="Backup_RestoreWarningsHeading" xml:space="preserve"><value>Warnungen:</value></data>
+  <data name="Backup_RestoreFailed" xml:space="preserve"><value>Wiederherstellung fehlgeschlagen: {0}</value></data>
+  <data name="Backup_Deleted" xml:space="preserve"><value>Backup gelöscht</value></data>
+  <data name="Backup_DeleteFailed" xml:space="preserve"><value>Backup konnte nicht gelöscht werden</value></data>
   <data name="Palette_OpenHint.Text" xml:space="preserve"><value>Öffnen</value></data>
   <data name="Palette_CloseHint.Text" xml:space="preserve"><value>Schließen</value></data>
   <data name="Palette_Actions" xml:space="preserve"><value>AKTIONEN</value></data>

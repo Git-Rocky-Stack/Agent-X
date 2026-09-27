@@ -2415,6 +2415,26 @@
   <data name="CalSet_ConflictRemoteWins" xml:space="preserve"><value>リモートを優先</value></data>
   <data name="CalSet_ConflictLocalWins" xml:space="preserve"><value>ローカルを優先</value></data>
   <data name="CalSet_ConflictMerge" xml:space="preserve"><value>マージ</value></data>
+  <data name="Backup_LoadFailed" xml:space="preserve"><value>バックアップ情報を読み込めませんでした</value></data>
+  <data name="Backup_IntegrityValid" xml:space="preserve"><value>有効</value></data>
+  <data name="Backup_IntegrityInvalid" xml:space="preserve"><value>無効</value></data>
+  <data name="Backup_SelectDestination" xml:space="preserve"><value>バックアップの保存先を選択してください</value></data>
+  <data name="Backup_PasswordRequired" xml:space="preserve"><value>バックアップを暗号化するにはパスワードを入力するか、暗号化をオフにしてください。</value></data>
+  <data name="Backup_PhasePreparing" xml:space="preserve"><value>準備しています...</value></data>
+  <data name="Backup_Created" xml:space="preserve"><value>バックアップを作成しました ({0} MB、{1} ms)</value></data>
+  <data name="Backup_CreatedWithWarnings" xml:space="preserve"><value>バックアップを作成しました ({0} MB、{1} ms)。警告 {2} 件: {3}</value></data>
+  <data name="Backup_Failed" xml:space="preserve"><value>バックアップに失敗しました: {0}</value></data>
+  <data name="Backup_SelectRestoreFile" xml:space="preserve"><value>復元するバックアップ ファイルを選択してください</value></data>
+  <data name="Backup_PhaseValidating" xml:space="preserve"><value>検証しています...</value></data>
+  <data name="Backup_InvalidFile" xml:space="preserve"><value>バックアップ ファイルが無効か破損しています</value></data>
+  <data name="Backup_RestorePasswordCancelled" xml:space="preserve"><value>復元をキャンセルしました: このバックアップは暗号化されており、パスワードが必要です。</value></data>
+  <data name="Backup_RestoreSummary" xml:space="preserve"><value>{0} 件の会話、{1} 件のドキュメント、{2} 件のワークフローを {3} ms で復元しました</value></data>
+  <data name="Backup_RestoreCompletedRestart" xml:space="preserve"><value>復元が完了しました。復元したデータを読み込むには、今すぐ Agent-X を再起動してください。</value></data>
+  <data name="Backup_RestoreCompleted" xml:space="preserve"><value>復元が完了しました。</value></data>
+  <data name="Backup_RestoreWarningsHeading" xml:space="preserve"><value>警告:</value></data>
+  <data name="Backup_RestoreFailed" xml:space="preserve"><value>復元に失敗しました: {0}</value></data>
+  <data name="Backup_Deleted" xml:space="preserve"><value>バックアップを削除しました</value></data>
+  <data name="Backup_DeleteFailed" xml:space="preserve"><value>バックアップを削除できませんでした</value></data>
   <data name="Palette_OpenHint.Text" xml:space="preserve"><value>開く</value></data>
   <data name="Palette_CloseHint.Text" xml:space="preserve"><value>閉じる</value></data>
   <data name="Palette_Actions" xml:space="preserve"><value>アクション</value></data>
