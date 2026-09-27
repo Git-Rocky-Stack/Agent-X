@@ -291,7 +291,10 @@ public sealed partial class MainWindow : Window
 
     private async Task ShowCheatsheetDialogAsync()
     {
-        var dialog = new CheatsheetDialog(new CheatsheetViewModel(_shortcutRegistry, ContentFrame.CurrentSourcePageType?.Name))
+        var dialog = new CheatsheetDialog(new CheatsheetViewModel(
+            _shortcutRegistry,
+            ContentFrame.CurrentSourcePageType?.Name,
+            App.GetService<AgentX.Core.Services.Localization.ILocalizationService>()))
         {
             XamlRoot = Content.XamlRoot,
             RequestedTheme = GetDialogTheme()
