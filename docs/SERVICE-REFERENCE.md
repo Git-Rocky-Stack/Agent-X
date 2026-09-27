@@ -859,7 +859,7 @@ Retrieval tuning and the RAG prompts, read from the app folder's `appsettings.js
 
 **Namespace**: `AgentX.Core.Data.VectorDb` | **Implementations**: `HnswVectorStore` or `SqliteVecStore`, chosen once by `VectorStoreFactory` from the `EnableHnswIndex` setting (default on)
 
-Stores one embedding per chunk in the `vec_embeddings` table of `agentx.db` in the storage folder (`StoragePath`, the app data folder by default, so the app database itself), the source of truth, opened through `IEncryptedConnectionFactory` so an encrypted database works. `SqliteVecStore` scans every vector and computes cosine similarity in C#. `HnswVectorStore` adds an in-memory HNSW index (settings `HnswM`, default 16, and `HnswEfConstruction`, default 200) and falls back to a linear scan below `HnswFallbackThreshold` (10,000) embeddings. `HnswEfSearch` (default 50) is a minimum search breadth: a query already searches at least the larger of `HnswEfConstruction` and twice the candidates it asks for, so only a larger value widens the search and the default changes nothing. Its index files are written next to the database only while the database is not encrypted, otherwise the index is rebuilt from the database at each start. [IIndexingService](#iindexingservice) initializes it.
+Stores one embedding per chunk in the `vec_embeddings` table of `agentx.db` in the storage folder (`StoragePath`, the app data folder by default, so the app database itself), the source of truth, opened through `IEncryptedConnectionFactory` so an encrypted database works. `SqliteVecStore` scans every vector and computes cosine similarity in C#. `HnswVectorStore` adds an in-memory HNSW index (settings `HnswM`, default 16, and `HnswEfConstruction`, default 200) and falls back to a linear scan below `HnswFallbackThreshold` (10,000) embeddings. `HnswEfSearch` (default 50) is a minimum search breadth: a query already searches at least the larger of `HnswEfConstruction` and twice the candidates it asks for, so only a larger value widens the search (up to 10,000) and the default changes nothing. Its index files are written next to the database only while the database is not encrypted, otherwise the index is rebuilt from the database at each start. [IIndexingService](#iindexingservice) initializes it.
 
 | Member | Description |
 |--------|-------------|
@@ -955,7 +955,7 @@ Document summaries, key points and translation with the active model (temperatur
 
 | Member | Description |
 |--------|-------------|
-| `Task<string> SummarizeDocumentAsync(long documentId, CancellationToken ct = default)` | Summary of an indexed document. Throws `InvalidOperationException` when the document does not exist or has no chunks. |
+| `Task<string> SummarizeDocumentAsync(long documentId, CancellationToken ct = default)` | Summary of an indexed document, also saved as the document's `Summary` (shown in the Knowledge Vault preview and sent by its Workflow action); a failed save is logged and the summary is still returned. Throws `InvalidOperationException` when the document does not exist or has no chunks. |
 | `Task<IReadOnlyList<string>> ExtractKeyPointsAsync(long documentId, CancellationToken ct = default)` | One-sentence key points (numbers in the text are kept). Same exceptions. |
 | `Task<string> TranslateTextAsync(string text, string targetLanguage, CancellationToken ct = default)` | Translates into the named language. Text longer than 4,000 characters is translated in parts split at paragraph, line or sentence breaks, and the parts are joined in order, so nothing is cut off. Throws `ArgumentException` for empty text or language. |
 
@@ -1865,14 +1865,14 @@ The routes, request and response shapes of the local REST API are documented in 
 
 **Namespace**: `AgentX.Core.Services.Api` | **Implementation**: `ApiHostService`
 
-An `HttpListener` on `http://localhost:9846/`. Every route except `GET /api/extension/health` requires the bearer token (compared in constant time); without a token the host fails closed. The routes are `GET /api/health`, `GET /api/documents`, `GET /api/documents/{id}`, `GET /api/conversations`, `GET /api/conversations/{id}`, `GET /api/collections`, `POST /api/search`, `POST /api/inbox/clip` (a page clipped by the browser extension, saved under the app data folder and added to the [Smart Inbox](#iinboxservice)), `GET /api/auth/check` and `GET /api/extension/health`.
+An `HttpListener` on `http://localhost:9846/`. Every route except `GET /api/extension/health` requires the bearer token (compared in constant time); without a token the host fails closed. The routes are `GET /api/health`, `GET /api/documents`, `GET /api/documents/{id}`, `GET /api/conversations`, `GET /api/conversations/{id}`, `GET /api/collections`, `POST /api/search`, `POST /api/inbox/clip` (a page clipped by the browser extension, saved under the app data folder and added to the [Smart Inbox](#iinboxservice)), `GET /api/auth/check` and `GET /api/extension/health`. A request body over 10 MB (search or clip) is answered with 413.
 
 | Member | Description |
 |--------|-------------|
 | `bool IsRunning` | Whether the listener runs. |
 | `int Port` | The bound port. |
 | `string BaseUrl` | For example `http://localhost:9846/`. |
-| `Task StartAsync(int port = 9846, string? authToken = null, CancellationToken ct = default)` | Starts listening; no-op when running. |
+| `Task StartAsync(int port = 9846, string? authToken = null, CancellationToken ct = default)` | Starts listening; no-op when running. When the port cannot be bound, the listener is released, the host stays stopped and the `HttpListenerException` is rethrown. |
 | `void SetAuthToken(string? authToken)` | Replaces the token from the next request on, so a regenerated token revokes the old one at once. Null or empty locks every data route. |
 | `Task StopAsync(CancellationToken ct = default)` | Stops, letting requests in progress finish; no-op when stopped. |
 
