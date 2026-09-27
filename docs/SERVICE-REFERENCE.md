@@ -1575,6 +1575,7 @@ Manages the background indexing pipeline: processes pending documents by chunkin
 |-------|-----------|-------------|
 | `ProgressChanged` | `IndexingProgressEventArgs` | Raised when queue state changes |
 | `DocumentIndexed` | `long` | Raised when a document is successfully indexed (document ID) |
+| `DocumentIndexingFailed` | `DocumentIndexingFailedEventArgs` | Raised when indexing a document failed, after it is saved as failed (document ID and reason) |
 
 #### Methods
 
@@ -1857,7 +1858,7 @@ Deletes a collection. Children are re-parented to the deleted collection's paren
 ##### AddDocumentToCollectionAsync
 
 ```csharp
-Task AddDocumentToCollectionAsync(long documentId, long collectionId)
+Task<bool> AddDocumentToCollectionAsync(long documentId, long collectionId)
 ```
 
 Associates a document with a collection.
@@ -1866,7 +1867,7 @@ Associates a document with a collection.
 - `documentId` (long): The document ID
 - `collectionId` (long): The collection ID
 
-**Returns**: Task
+**Returns**: `Task<bool>`: true when the document was added, false when it already belonged to the collection
 
 ##### RemoveDocumentFromCollectionAsync
 

@@ -2182,10 +2182,10 @@ Deletes a collection. Children are re-parented to the deleted collection's paren
 ##### AddDocumentToCollectionAsync
 
 ```csharp
-Task AddDocumentToCollectionAsync(long documentId, long collectionId);
+Task<bool> AddDocumentToCollectionAsync(long documentId, long collectionId);
 ```
 
-Associates a document with a collection. Creates a `DocumentCollectionEntity` join record.
+Associates a document with a collection. Creates a `DocumentCollectionEntity` join record. Returns true when the document was added and false when it already belonged to the collection.
 
 ---
 
@@ -2379,6 +2379,7 @@ Manages the background indexing pipeline: processes pending documents by chunkin
 |-------|------|-------------|
 | `ProgressChanged` | `EventHandler<IndexingProgressEventArgs>?` | Raised when the indexing queue state changes (item queued, processing, completed, etc.). |
 | `DocumentIndexed` | `EventHandler<long>?` | Raised when a document has been successfully indexed. The event argument is the document ID. |
+| `DocumentIndexingFailed` | `EventHandler<DocumentIndexingFailedEventArgs>?` | Raised when indexing a document failed, after the document is saved as failed. The arguments carry the document ID and the reason. |
 
 #### Methods
 
