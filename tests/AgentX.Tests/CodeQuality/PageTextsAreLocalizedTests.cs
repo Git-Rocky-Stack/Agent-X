@@ -47,6 +47,23 @@ public sealed class PageTextsAreLocalizedTests
         ReadView("EmailSettingsPage.xaml.cs").Should().NotContain("\"Outlook Email\"");
         ReadView("CalendarSettingsPage.xaml.cs").Should().NotContain("\"Google Calendar\"")
             .And.NotContain("\"Outlook Calendar\"");
+        ReadView("KnowledgeVaultPage.xaml.cs").Should().NotContain("\"Refresh documents\"")
+            .And.NotContain("\"Documents\")")
+            .And.NotContain("\"Drop to import\"");
+        ReadView("PluginManagerPage.xaml.cs").Should().NotContain("\"No description provided.\"");
+    }
+
+    [Fact]
+    public void Knowledge_graph_names_node_types_and_counts_in_the_users_language()
+    {
+        var source = ReadView("KnowledgeGraphPage.xaml.cs");
+
+        source.Should().NotContain("node.NodeType.ToString()", "the enum member name is English");
+        source.Should().NotContain(" connection{", "the tooltip count comes from Graph_ConnectionCount*");
+        source.Should().NotContain("} found\"", "the match count comes from Graph_MatchCount*");
+        source.Should().Contain("GetString(\"Graph_ConnectionCountOne\"")
+            .And.Contain("GetString(\"Graph_MatchCountMany\"")
+            .And.Contain("GetString(\"Graph_NodeTypeDocument\")");
     }
 
     [Fact]
@@ -84,6 +101,8 @@ public sealed class PageTextsAreLocalizedTests
             "CalSet_DisconnectConfirmMessage",
             "WfBuilder_WorkflowCopied",
             "WfBuilder_ExportStoredRunTitle",
+            "Graph_MatchCountOne",
+            "Graph_MatchCountMany",
         };
 
         foreach (var locale in Locales)

@@ -3087,6 +3087,15 @@
   <data name="Sync_HistoryDirectionImport" xml:space="preserve"><value>インポート</value></data>
   <data name="Sync_HistoryStatusSuccess" xml:space="preserve"><value>成功</value></data>
   <data name="Sync_HistoryStatusFailed" xml:space="preserve"><value>失敗</value></data>
+  <data name="Vault_ShortcutRefreshDocuments" xml:space="preserve"><value>ドキュメントを更新</value></data>
+  <data name="Vault_ShortcutCategory" xml:space="preserve"><value>ドキュメント</value></data>
+  <data name="Vault_DropToImport" xml:space="preserve"><value>ドロップしてインポート</value></data>
+  <data name="Graph_NodeTypeDocument" xml:space="preserve"><value>ドキュメント</value></data>
+  <data name="Graph_NodeTypeCollection" xml:space="preserve"><value>コレクション</value></data>
+  <data name="Graph_NodeTypeTag" xml:space="preserve"><value>タグ</value></data>
+  <data name="Graph_MatchCountOne" xml:space="preserve"><value>{0} 件一致</value></data>
+  <data name="Graph_MatchCountMany" xml:space="preserve"><value>{0} 件一致</value></data>
+  <data name="Plugin_NoDescription" xml:space="preserve"><value>説明はありません。</value></data>
   <data name="Vault_SearchScopeHint.Text" xml:space="preserve"><value>ファイル名とタグで絞り込みます。ドキュメントの内容を検索するには、「セマンティック検索」または「ファイルに質問する」を使用してください。</value></data>
   <data name="Vault_IndexingFailedReason.Text" xml:space="preserve"><value>インデックス作成に失敗した理由</value></data>
   <data name="Vault_DocumentText.Text" xml:space="preserve"><value>ドキュメントのテキスト</value></data>

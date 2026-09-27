@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using AgentX.App.Helpers;
 using AgentX.App.ViewModels;
+using AgentX.Core.Services.Localization;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -174,7 +175,7 @@ public sealed partial class PluginManagerPage : Page
         // Description
         DetailDescription.Text = !string.IsNullOrWhiteSpace(plugin.Description)
             ? plugin.Description
-            : "No description provided.";
+            : App.GetService<ILocalizationService>().GetString("Plugin_NoDescription");
 
         // Details card
         DetailInstallPath.Text = plugin.InstallPath;

@@ -1,6 +1,7 @@
 using AgentX.App.Helpers;
 using AgentX.App.ViewModels;
 using AgentX.Core.Services.Intelligence.Models;
+using AgentX.Core.Services.Localization;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -135,7 +136,7 @@ public sealed partial class KnowledgeGraphPage : Page
             return;
 
         // Node type badge
-        NodeTypeText.Text = node.NodeType.ToString().ToUpperInvariant();
+        NodeTypeText.Text = NodeTypeName(node.NodeType).ToUpperInvariant();
         var nodeBrush = NodeBrush(node.NodeType);
         NodeTypeBadge.Background = TintOf(nodeBrush, 40);
         NodeTypeText.Foreground = nodeBrush;
@@ -429,10 +430,13 @@ public sealed partial class KnowledgeGraphPage : Page
     /// </summary>
     private void ShowTooltip(GraphNode node, PointerRoutedEventArgs e)
     {
+        var localization = App.GetService<ILocalizationService>();
         TooltipLabel.Text = node.Label;
-        TooltipType.Text = node.NodeType.ToString();
+        TooltipType.Text = NodeTypeName(node.NodeType);
         TooltipTypeIndicator.Fill = NodeBrush(node.NodeType);
-        TooltipConnections.Text = $"{node.ConnectionCount} connection{(node.ConnectionCount != 1 ? "s" : "")}";
+        TooltipConnections.Text = node.ConnectionCount == 1
+            ? localization.GetString("Graph_ConnectionCountOne", node.ConnectionCount)
+            : localization.GetString("Graph_ConnectionCountMany", node.ConnectionCount);
 
         var point = e.GetCurrentPoint(GraphCanvas).Position;
         NodeTooltip.Margin = new Thickness(point.X + 16, point.Y - 8, 0, 0);
@@ -604,7 +608,26 @@ public sealed partial class KnowledgeGraphPage : Page
     public static string FormatZoom(double zoomLevel) => $"{zoomLevel:F1}x";
 
     /// <summary>
-    /// Formats the search match count for display (e.g., "3 found").
+    /// Formats the search match count for display (e.g., "3 found"), in the user's language.
     /// </summary>
-    public static string FormatMatchCount(int count) => $"{count} found";
+    public static string FormatMatchCount(int count)
+    {
+        var localization = App.GetService<ILocalizationService>();
+        return count == 1
+            ? localization.GetString("Graph_MatchCountOne", count)
+            : localization.GetString("Graph_MatchCountMany", count);
+    }
+
+    /// <summary>The name shown for a node type, in the user's language.</summary>
+    private static string NodeTypeName(GraphNodeType nodeType)
+    {
+        var localization = App.GetService<ILocalizationService>();
+        return nodeType switch
+        {
+            GraphNodeType.Document => localization.GetString("Graph_NodeTypeDocument"),
+            GraphNodeType.Collection => localization.GetString("Graph_NodeTypeCollection"),
+            GraphNodeType.Tag => localization.GetString("Graph_NodeTypeTag"),
+            _ => nodeType.ToString()
+        };
+    }
 }

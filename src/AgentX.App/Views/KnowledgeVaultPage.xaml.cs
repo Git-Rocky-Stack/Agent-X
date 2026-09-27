@@ -63,14 +63,15 @@ public sealed partial class KnowledgeVaultPage : Page
             OnImportFilesClick(this, new RoutedEventArgs());
         }
 
+        var localization = App.GetService<ILocalizationService>();
         _shortcutScope = _shortcutRegistry.RegisterShortcuts(
             new AgentX.Core.Services.Shortcuts.ShortcutDescriptor(
                 "vault.refresh",
-                "Refresh documents",
+                localization.GetString("Vault_ShortcutRefreshDocuments"),
                 new ShortcutScope(nameof(KnowledgeVaultPage)),
                 new[] { new KeyChord(KeyModifiers.None, VirtualKeyCode.F5) },
                 _ => ViewModel.RefreshCommand.ExecuteAsync(null),
-                "Documents"));
+                localization.GetString("Vault_ShortcutCategory")));
     }
 
     protected override void OnNavigatedFrom(NavigationEventArgs e)
@@ -178,7 +179,7 @@ public sealed partial class KnowledgeVaultPage : Page
     private void DropZone_DragOver(object sender, DragEventArgs e)
     {
         e.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.Copy;
-        e.DragUIOverride.Caption = "Drop to import";
+        e.DragUIOverride.Caption = App.GetService<ILocalizationService>().GetString("Vault_DropToImport");
         e.DragUIOverride.IsCaptionVisible = true;
         e.DragUIOverride.IsGlyphVisible = true;
 

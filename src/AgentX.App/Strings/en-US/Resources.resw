@@ -3426,6 +3426,15 @@
   <data name="Sync_HistoryDirectionImport" xml:space="preserve"><value>Import</value></data>
   <data name="Sync_HistoryStatusSuccess" xml:space="preserve"><value>Success</value></data>
   <data name="Sync_HistoryStatusFailed" xml:space="preserve"><value>Failed</value></data>
+  <data name="Vault_ShortcutRefreshDocuments" xml:space="preserve"><value>Refresh documents</value></data>
+  <data name="Vault_ShortcutCategory" xml:space="preserve"><value>Documents</value></data>
+  <data name="Vault_DropToImport" xml:space="preserve"><value>Drop to import</value></data>
+  <data name="Graph_NodeTypeDocument" xml:space="preserve"><value>Document</value></data>
+  <data name="Graph_NodeTypeCollection" xml:space="preserve"><value>Collection</value></data>
+  <data name="Graph_NodeTypeTag" xml:space="preserve"><value>Tag</value></data>
+  <data name="Graph_MatchCountOne" xml:space="preserve"><value>{0} found</value></data>
+  <data name="Graph_MatchCountMany" xml:space="preserve"><value>{0} found</value></data>
+  <data name="Plugin_NoDescription" xml:space="preserve"><value>No description provided.</value></data>
   <data name="Vault_SearchScopeHint.Text" xml:space="preserve"><value>Matches file names and tags. To search inside documents, use Semantic Search or Ask Your Files.</value></data>
   <data name="Vault_IndexingFailedReason.Text" xml:space="preserve"><value>WHY INDEXING FAILED</value></data>
   <data name="Vault_DocumentText.Text" xml:space="preserve"><value>DOCUMENT TEXT</value></data>

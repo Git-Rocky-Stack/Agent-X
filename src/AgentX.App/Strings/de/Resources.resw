@@ -3087,6 +3087,15 @@
   <data name="Sync_HistoryDirectionImport" xml:space="preserve"><value>Import</value></data>
   <data name="Sync_HistoryStatusSuccess" xml:space="preserve"><value>Erfolgreich</value></data>
   <data name="Sync_HistoryStatusFailed" xml:space="preserve"><value>Fehlgeschlagen</value></data>
+  <data name="Vault_ShortcutRefreshDocuments" xml:space="preserve"><value>Dokumente aktualisieren</value></data>
+  <data name="Vault_ShortcutCategory" xml:space="preserve"><value>Dokumente</value></data>
+  <data name="Vault_DropToImport" xml:space="preserve"><value>Zum Importieren ablegen</value></data>
+  <data name="Graph_NodeTypeDocument" xml:space="preserve"><value>Dokument</value></data>
+  <data name="Graph_NodeTypeCollection" xml:space="preserve"><value>Sammlung</value></data>
+  <data name="Graph_NodeTypeTag" xml:space="preserve"><value>Tag</value></data>
+  <data name="Graph_MatchCountOne" xml:space="preserve"><value>{0} gefunden</value></data>
+  <data name="Graph_MatchCountMany" xml:space="preserve"><value>{0} gefunden</value></data>
+  <data name="Plugin_NoDescription" xml:space="preserve"><value>Keine Beschreibung angegeben.</value></data>
   <data name="Vault_SearchScopeHint.Text" xml:space="preserve"><value>Durchsucht Dateinamen und Tags. Um in Dokumenten zu suchen, verwenden Sie „Semantische Suche“ oder „Fragen Sie Ihre Dateien“.</value></data>
   <data name="Vault_IndexingFailedReason.Text" xml:space="preserve"><value>WARUM DIE INDEXIERUNG FEHLSCHLUG</value></data>
   <data name="Vault_DocumentText.Text" xml:space="preserve"><value>DOKUMENTTEXT</value></data>
