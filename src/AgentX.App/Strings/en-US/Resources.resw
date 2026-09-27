@@ -1701,6 +1701,10 @@
   <data name="Chat_ExplainRecallNoConversation" xml:space="preserve"><value>Durable recall was unavailable because the response was not tied to a persisted conversation.</value></data>
   <data name="Chat_ExplainRecallNone" xml:space="preserve"><value>Durable recall was not added for this response.</value></data>
   <data name="Chat_ExplainRecallSkipped" xml:space="preserve"><value>Durable recall was not added ({0}).</value></data>
+  <data name="Settings_LocalApiDescription.Text" xml:space="preserve"><value>The local API lets the AgentX browser extension clip web pages into your Smart Inbox. It runs on http://localhost:9846 and requires the token below. Paste it into the extension popup to pair. Only the AgentX extension can use it; web pages are blocked.</value></data>
+  <data name="Settings_ThemeDark" xml:space="preserve"><value>Dark</value></data>
+  <data name="Settings_ThemeLight" xml:space="preserve"><value>Light</value></data>
+  <data name="Settings_ThemeSystemDefault" xml:space="preserve"><value>System Default</value></data>
   <data name="Chat_PrivacyLocal" xml:space="preserve"><value>{0} runs on this computer, so your messages stay on this device.</value></data>
   <data name="Chat_PrivacyLocalUnnamed" xml:space="preserve"><value>The AI model runs on this computer, so your messages stay on this device.</value></data>
   <data name="Chat_PrivacyCloud" xml:space="preserve"><value>Your messages are sent to {0} for processing.</value></data>
@@ -3235,7 +3239,7 @@
   <data name="Settings_EnableLocalApi.OffContent" xml:space="preserve"><value>Disabled</value></data>
   <data name="Settings_EnableLocalApi.OnContent" xml:space="preserve"><value>Enabled (authenticated)</value></data>
   <data name="Settings_ApiToken.Text" xml:space="preserve"><value>API Token</value></data>
-  <data name="Settings_NoTokenYetClickPh.PlaceholderText" xml:space="preserve"><value>No token yet — click Regenerate</value></data>
+  <data name="Settings_NoTokenYetClickPh.PlaceholderText" xml:space="preserve"><value>No token yet. Click Regenerate.</value></data>
   <data name="Settings_RevealApiToken.Content" xml:space="preserve"><value>Show</value></data>
   <data name="Settings_RevealApiToken.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Show API token</value></data>
   <data name="Settings_Copy.Content" xml:space="preserve"><value>Copy</value></data>

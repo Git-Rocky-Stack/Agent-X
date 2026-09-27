@@ -140,7 +140,12 @@ public partial class SettingsViewModel : ObservableObject
     /// (the built-in model first, since it is the default provider).
     /// </summary>
     public List<string> ProviderOptions { get; } = ProviderChoices.DisplayNames.ToList();
-    public List<string> ThemeOptions { get; } = new() { "Dark", "Light", "System Default" };
+
+    /// <summary>
+    /// Theme names in the user's language, in <see cref="ThemeIndex"/> order (Dark, Light,
+    /// System Default). The theme is saved by index, so the names never reach the settings.
+    /// </summary>
+    public List<string> ThemeOptions { get; }
 
     /// <summary>
     /// UI language choices: "Windows default" first, then each shipped language in its own name.
@@ -176,6 +181,12 @@ public partial class SettingsViewModel : ObservableObject
         _modelRouterService = modelRouterService;
         _databaseEncryptionManager = databaseEncryptionManager;
         _localization = localization;
+        ThemeOptions = new List<string>
+        {
+            localization.GetString("Settings_ThemeDark"),
+            localization.GetString("Settings_ThemeLight"),
+            localization.GetString("Settings_ThemeSystemDefault")
+        };
         LanguageOptions = new List<string> { localization.GetString("Settings_LanguageWindowsDefault") };
         LanguageOptions.AddRange(localization.SupportedLanguages.Select(l => l.NativeName));
         WatchFolders = new WatchFolderSettingsViewModel(fileWatcherService, settingsService, localization);

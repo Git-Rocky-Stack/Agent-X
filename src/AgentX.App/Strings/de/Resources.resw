@@ -1362,6 +1362,10 @@
   <data name="Chat_ExplainRecallNoConversation" xml:space="preserve"><value>Der dauerhafte Recall war nicht verfügbar, weil die Antwort nicht zu einer gespeicherten Unterhaltung gehörte.</value></data>
   <data name="Chat_ExplainRecallNone" xml:space="preserve"><value>Für diese Antwort wurde kein dauerhafter Recall hinzugefügt.</value></data>
   <data name="Chat_ExplainRecallSkipped" xml:space="preserve"><value>Es wurde kein dauerhafter Recall hinzugefügt ({0}).</value></data>
+  <data name="Settings_LocalApiDescription.Text" xml:space="preserve"><value>Mit der lokalen API kann die AgentX-Browser-Erweiterung Webseiten in Ihrer Smart Inbox erfassen. Sie läuft unter http://localhost:9846 und benötigt das Token unten. Fügen Sie es zum Koppeln in das Popup der Erweiterung ein. Nur die AgentX-Erweiterung kann sie verwenden; Webseiten werden blockiert.</value></data>
+  <data name="Settings_ThemeDark" xml:space="preserve"><value>Dunkel</value></data>
+  <data name="Settings_ThemeLight" xml:space="preserve"><value>Hell</value></data>
+  <data name="Settings_ThemeSystemDefault" xml:space="preserve"><value>Systemstandard</value></data>
   <data name="Chat_PrivacyLocal" xml:space="preserve"><value>{0} läuft auf diesem Computer, daher bleiben Ihre Nachrichten auf diesem Gerät.</value></data>
   <data name="Chat_PrivacyLocalUnnamed" xml:space="preserve"><value>Das KI-Modell läuft auf diesem Computer, daher bleiben Ihre Nachrichten auf diesem Gerät.</value></data>
   <data name="Chat_PrivacyCloud" xml:space="preserve"><value>Ihre Nachrichten werden zur Verarbeitung an {0} gesendet.</value></data>
@@ -2896,7 +2900,7 @@
   <data name="Settings_EnableLocalApi.OffContent" xml:space="preserve"><value>Deaktiviert</value></data>
   <data name="Settings_EnableLocalApi.OnContent" xml:space="preserve"><value>Aktiviert (authentifiziert)</value></data>
   <data name="Settings_ApiToken.Text" xml:space="preserve"><value>API-Token</value></data>
-  <data name="Settings_NoTokenYetClickPh.PlaceholderText" xml:space="preserve"><value>Noch kein Token — klicken Sie auf „Neu generieren“</value></data>
+  <data name="Settings_NoTokenYetClickPh.PlaceholderText" xml:space="preserve"><value>Noch kein Token. Klicken Sie auf „Neu generieren“.</value></data>
   <data name="Settings_RevealApiToken.Content" xml:space="preserve"><value>Anzeigen</value></data>
   <data name="Settings_RevealApiToken.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>API-Token anzeigen</value></data>
   <data name="Settings_Copy.Content" xml:space="preserve"><value>Kopieren</value></data>

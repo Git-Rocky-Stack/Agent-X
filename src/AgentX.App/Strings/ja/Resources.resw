@@ -1362,6 +1362,10 @@
   <data name="Chat_ExplainRecallNoConversation" xml:space="preserve"><value>応答が保存済みの会話に関連付けられていなかったため、永続リコールを利用できませんでした。</value></data>
   <data name="Chat_ExplainRecallNone" xml:space="preserve"><value>この応答には永続リコールは追加されませんでした。</value></data>
   <data name="Chat_ExplainRecallSkipped" xml:space="preserve"><value>永続リコールは追加されませんでした ({0})。</value></data>
+  <data name="Settings_LocalApiDescription.Text" xml:space="preserve"><value>ローカル API を使うと、AgentX ブラウザー拡張機能で Web ページを Smart Inbox にクリップできます。http://localhost:9846 で動作し、下のトークンが必要です。ペアリングするには、拡張機能のポップアップにトークンを貼り付けてください。使用できるのは AgentX 拡張機能のみで、Web ページからのアクセスはブロックされます。</value></data>
+  <data name="Settings_ThemeDark" xml:space="preserve"><value>ダーク</value></data>
+  <data name="Settings_ThemeLight" xml:space="preserve"><value>ライト</value></data>
+  <data name="Settings_ThemeSystemDefault" xml:space="preserve"><value>システム既定</value></data>
   <data name="Chat_PrivacyLocal" xml:space="preserve"><value>{0} はこの PC 上で動作するため、メッセージはこのデバイスから出ません。</value></data>
   <data name="Chat_PrivacyLocalUnnamed" xml:space="preserve"><value>AI モデルはこの PC 上で動作するため、メッセージはこのデバイスから出ません。</value></data>
   <data name="Chat_PrivacyCloud" xml:space="preserve"><value>メッセージは処理のために {0} に送信されます。</value></data>
@@ -2896,7 +2900,7 @@
   <data name="Settings_EnableLocalApi.OffContent" xml:space="preserve"><value>無効</value></data>
   <data name="Settings_EnableLocalApi.OnContent" xml:space="preserve"><value>有効 (認証あり)</value></data>
   <data name="Settings_ApiToken.Text" xml:space="preserve"><value>API トークン</value></data>
-  <data name="Settings_NoTokenYetClickPh.PlaceholderText" xml:space="preserve"><value>トークンがありません — [再生成] をクリック</value></data>
+  <data name="Settings_NoTokenYetClickPh.PlaceholderText" xml:space="preserve"><value>トークンがありません。[再生成] をクリックしてください。</value></data>
   <data name="Settings_RevealApiToken.Content" xml:space="preserve"><value>表示</value></data>
   <data name="Settings_RevealApiToken.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>API トークンを表示</value></data>
   <data name="Settings_Copy.Content" xml:space="preserve"><value>コピー</value></data>

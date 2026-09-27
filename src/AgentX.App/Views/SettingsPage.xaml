@@ -663,7 +663,8 @@
                     <TextBlock x:Uid="Settings_Connections" Text="Connections"
                                Style="{StaticResource HeadingSmallStyle}" />
 
-                    <TextBlock Text="The local API lets the AgentX browser extension clip web pages into your Smart Inbox. It runs on http://localhost:9846 and requires the token below — paste it into the extension popup to pair. Only the AgentX extension can use it; web pages are blocked."
+                    <TextBlock x:Uid="Settings_LocalApiDescription"
+                               Text="The local API lets the AgentX browser extension clip web pages into your Smart Inbox. It runs on http://localhost:9846 and requires the token below. Paste it into the extension popup to pair. Only the AgentX extension can use it; web pages are blocked."
                                Style="{StaticResource BodySecondaryStyle}"
                                TextWrapping="Wrap" />
 
@@ -691,7 +692,7 @@
                                      IsReadOnly="True"
                                      FontFamily="{StaticResource FontMono}"
                                      AutomationProperties.LabeledBy="{x:Bind ApiTokenLabel}"
-                                     x:Uid="Settings_NoTokenYetClickPh" PlaceholderText="No token yet — click Regenerate" />
+                                     x:Uid="Settings_NoTokenYetClickPh" PlaceholderText="No token yet. Click Regenerate." />
 
                             <ToggleButton Grid.Column="1"
                                           x:Uid="Settings_RevealApiToken" Content="Show"

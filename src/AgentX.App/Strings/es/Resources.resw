@@ -1362,6 +1362,10 @@
   <data name="Chat_ExplainRecallNoConversation" xml:space="preserve"><value>El recuerdo duradero no estaba disponible porque la respuesta no estaba vinculada a una conversación guardada.</value></data>
   <data name="Chat_ExplainRecallNone" xml:space="preserve"><value>No se añadió recuerdo duradero para esta respuesta.</value></data>
   <data name="Chat_ExplainRecallSkipped" xml:space="preserve"><value>No se añadió recuerdo duradero ({0}).</value></data>
+  <data name="Settings_LocalApiDescription.Text" xml:space="preserve"><value>La API local permite que la extensión de navegador AgentX capture páginas web en su Smart Inbox. Se ejecuta en http://localhost:9846 y requiere el token de abajo. Péguelo en la ventana emergente de la extensión para vincularla. Solo la extensión AgentX puede usarla; las páginas web están bloqueadas.</value></data>
+  <data name="Settings_ThemeDark" xml:space="preserve"><value>Oscuro</value></data>
+  <data name="Settings_ThemeLight" xml:space="preserve"><value>Claro</value></data>
+  <data name="Settings_ThemeSystemDefault" xml:space="preserve"><value>Predeterminado del sistema</value></data>
   <data name="Chat_PrivacyLocal" xml:space="preserve"><value>{0} se ejecuta en este equipo, así que sus mensajes permanecen en este dispositivo.</value></data>
   <data name="Chat_PrivacyLocalUnnamed" xml:space="preserve"><value>El modelo de IA se ejecuta en este equipo, así que sus mensajes permanecen en este dispositivo.</value></data>
   <data name="Chat_PrivacyCloud" xml:space="preserve"><value>Sus mensajes se envían a {0} para su procesamiento.</value></data>
@@ -2896,7 +2900,7 @@
   <data name="Settings_EnableLocalApi.OffContent" xml:space="preserve"><value>Desactivado</value></data>
   <data name="Settings_EnableLocalApi.OnContent" xml:space="preserve"><value>Activado (autenticado)</value></data>
   <data name="Settings_ApiToken.Text" xml:space="preserve"><value>Token de API</value></data>
-  <data name="Settings_NoTokenYetClickPh.PlaceholderText" xml:space="preserve"><value>Aún no hay token — haga clic en Regenerar</value></data>
+  <data name="Settings_NoTokenYetClickPh.PlaceholderText" xml:space="preserve"><value>Aún no hay token. Haga clic en Regenerar.</value></data>
   <data name="Settings_RevealApiToken.Content" xml:space="preserve"><value>Mostrar</value></data>
   <data name="Settings_RevealApiToken.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Mostrar token de API</value></data>
   <data name="Settings_Copy.Content" xml:space="preserve"><value>Copiar</value></data>

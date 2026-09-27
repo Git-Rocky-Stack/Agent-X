@@ -73,6 +73,49 @@ public sealed class PageTextsAreLocalizedTests
             .And.Contain("GetString(\"Export_FailedTitle\")");
     }
 
+    [Fact]
+    public void Settings_local_api_texts_come_from_the_resources_in_plain_ascii()
+    {
+        var xaml = ReadView("SettingsPage.xaml");
+        var english = ReswLocalization.For("en-US");
+
+        // The description had no x:Uid, so it read English in every language.
+        var description = english.GetString("Settings_LocalApiDescription.Text");
+        xaml.Should().Contain("x:Uid=\"Settings_LocalApiDescription\"")
+            .And.Contain($"Text=\"{description}\"", "the XAML fallback is the en-US text");
+
+        var placeholder = english.GetString("Settings_NoTokenYetClickPh.PlaceholderText");
+        xaml.Should().Contain($"PlaceholderText=\"{placeholder}\"", "the XAML fallback is the en-US text");
+
+        new[] { description, placeholder }.Should().OnlyContain(
+            text => text.All(c => c >= ' ' && c <= '~'), "the English texts are plain ASCII");
+
+        foreach (var locale in Locales)
+        {
+            ReswLocalization.For(locale).GetString("Settings_NoTokenYetClickPh.PlaceholderText")
+                .Should().NotContain("—", "{0} must not use an em dash", locale);
+        }
+    }
+
+    [Fact]
+    public void Theme_names_come_from_the_resources_and_match_the_caption()
+    {
+        var viewModel = File.ReadAllText(
+            Path.Combine(ResolveSourceRoot(), "AgentX.App", "ViewModels", "SettingsViewModel.cs"));
+        viewModel.Should().NotContain("\"System Default\"")
+            .And.Contain("GetString(\"Settings_ThemeDark\")")
+            .And.Contain("GetString(\"Settings_ThemeLight\")")
+            .And.Contain("GetString(\"Settings_ThemeSystemDefault\")");
+
+        // The caption under the picker quotes the System Default name, so both say the same.
+        foreach (var locale in Locales)
+        {
+            var localization = ReswLocalization.For(locale);
+            localization.GetString("Settings_ChangesApplyImmediatelySystem.Text")
+                .Should().Contain(localization.GetString("Settings_ThemeSystemDefault"), "in {0}", locale);
+        }
+    }
+
     [Theory]
     [InlineData("Export_ConversationsSavedOne")]
     [InlineData("Export_ConversationsSavedMany")]

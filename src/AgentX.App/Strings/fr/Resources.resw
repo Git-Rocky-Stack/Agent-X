@@ -1362,6 +1362,10 @@
   <data name="Chat_ExplainRecallNoConversation" xml:space="preserve"><value>Le rappel durable n'était pas disponible, car la réponse n'était pas liée à une conversation enregistrée.</value></data>
   <data name="Chat_ExplainRecallNone" xml:space="preserve"><value>Aucun rappel durable n'a été ajouté pour cette réponse.</value></data>
   <data name="Chat_ExplainRecallSkipped" xml:space="preserve"><value>Aucun rappel durable n'a été ajouté ({0}).</value></data>
+  <data name="Settings_LocalApiDescription.Text" xml:space="preserve"><value>L'API locale permet à l'extension de navigateur AgentX de capturer des pages web dans votre Smart Inbox. Elle s'exécute sur http://localhost:9846 et nécessite le jeton ci-dessous. Collez-le dans la fenêtre contextuelle de l'extension pour l'associer. Seule l'extension AgentX peut l'utiliser ; les pages web sont bloquées.</value></data>
+  <data name="Settings_ThemeDark" xml:space="preserve"><value>Sombre</value></data>
+  <data name="Settings_ThemeLight" xml:space="preserve"><value>Clair</value></data>
+  <data name="Settings_ThemeSystemDefault" xml:space="preserve"><value>Valeur système</value></data>
   <data name="Chat_PrivacyLocal" xml:space="preserve"><value>{0} s'exécute sur cet ordinateur, vos messages restent donc sur cet appareil.</value></data>
   <data name="Chat_PrivacyLocalUnnamed" xml:space="preserve"><value>Le modèle d'IA s'exécute sur cet ordinateur, vos messages restent donc sur cet appareil.</value></data>
   <data name="Chat_PrivacyCloud" xml:space="preserve"><value>Vos messages sont envoyés à {0} pour être traités.</value></data>
@@ -2896,7 +2900,7 @@
   <data name="Settings_EnableLocalApi.OffContent" xml:space="preserve"><value>Désactivé</value></data>
   <data name="Settings_EnableLocalApi.OnContent" xml:space="preserve"><value>Activé (authentifié)</value></data>
   <data name="Settings_ApiToken.Text" xml:space="preserve"><value>Jeton d'API</value></data>
-  <data name="Settings_NoTokenYetClickPh.PlaceholderText" xml:space="preserve"><value>Pas encore de jeton — cliquez sur Régénérer</value></data>
+  <data name="Settings_NoTokenYetClickPh.PlaceholderText" xml:space="preserve"><value>Pas encore de jeton. Cliquez sur Régénérer.</value></data>
   <data name="Settings_RevealApiToken.Content" xml:space="preserve"><value>Afficher</value></data>
   <data name="Settings_RevealApiToken.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Afficher le jeton d'API</value></data>
   <data name="Settings_Copy.Content" xml:space="preserve"><value>Copier</value></data>

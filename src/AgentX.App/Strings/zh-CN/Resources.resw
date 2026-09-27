@@ -1362,6 +1362,10 @@
   <data name="Chat_ExplainRecallNoConversation" xml:space="preserve"><value>由于此回复未关联到已保存的对话，无法使用持久回忆。</value></data>
   <data name="Chat_ExplainRecallNone" xml:space="preserve"><value>此回复未添加持久回忆。</value></data>
   <data name="Chat_ExplainRecallSkipped" xml:space="preserve"><value>未添加持久回忆（{0}）。</value></data>
+  <data name="Settings_LocalApiDescription.Text" xml:space="preserve"><value>本地 API 让 AgentX 浏览器扩展可以将网页剪藏到您的 Smart Inbox。它运行在 http://localhost:9846 上，需要使用下方的令牌。请将令牌粘贴到扩展的弹出窗口中完成配对。只有 AgentX 扩展可以使用它；来自网页的请求会被阻止。</value></data>
+  <data name="Settings_ThemeDark" xml:space="preserve"><value>深色</value></data>
+  <data name="Settings_ThemeLight" xml:space="preserve"><value>浅色</value></data>
+  <data name="Settings_ThemeSystemDefault" xml:space="preserve"><value>系统默认</value></data>
   <data name="Chat_PrivacyLocal" xml:space="preserve"><value>{0} 在这台电脑上运行，因此您的消息会保留在此设备上。</value></data>
   <data name="Chat_PrivacyLocalUnnamed" xml:space="preserve"><value>AI 模型在这台电脑上运行，因此您的消息会保留在此设备上。</value></data>
   <data name="Chat_PrivacyCloud" xml:space="preserve"><value>您的消息会发送到 {0} 进行处理。</value></data>
@@ -2896,7 +2900,7 @@
   <data name="Settings_EnableLocalApi.OffContent" xml:space="preserve"><value>已禁用</value></data>
   <data name="Settings_EnableLocalApi.OnContent" xml:space="preserve"><value>已启用(需身份验证)</value></data>
   <data name="Settings_ApiToken.Text" xml:space="preserve"><value>API 令牌</value></data>
-  <data name="Settings_NoTokenYetClickPh.PlaceholderText" xml:space="preserve"><value>尚无令牌 — 请点击“重新生成”</value></data>
+  <data name="Settings_NoTokenYetClickPh.PlaceholderText" xml:space="preserve"><value>尚无令牌。请点击“重新生成”。</value></data>
   <data name="Settings_RevealApiToken.Content" xml:space="preserve"><value>显示</value></data>
   <data name="Settings_RevealApiToken.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>显示 API 令牌</value></data>
   <data name="Settings_Copy.Content" xml:space="preserve"><value>复制</value></data>
