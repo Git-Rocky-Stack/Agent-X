@@ -886,6 +886,7 @@
   "Voice_PhaseLoadingModel": "Cargando el modelo...",
   "Voice_PhaseFinalizing": "Finalizando...",
   "Voice_PhaseComplete": "Completado",
+  "Cheatsheet_CurrentPage": "Página actual",
   "Chat_PrivacyLocal": "{0} se ejecuta en este equipo, así que sus mensajes permanecen en este dispositivo.",
   "Chat_PrivacyLocalUnnamed": "El modelo de IA se ejecuta en este equipo, así que sus mensajes permanecen en este dispositivo.",
   "Chat_PrivacyCloud": "Sus mensajes se envían a {0} para su procesamiento.",

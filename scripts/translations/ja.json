@@ -886,6 +886,7 @@
   "Voice_PhaseLoadingModel": "モデルを読み込んでいます...",
   "Voice_PhaseFinalizing": "最終処理をしています...",
   "Voice_PhaseComplete": "完了",
+  "Cheatsheet_CurrentPage": "現在のページ",
   "Chat_PrivacyLocal": "{0} はこの PC 上で動作するため、メッセージはこのデバイスから出ません。",
   "Chat_PrivacyLocalUnnamed": "AI モデルはこの PC 上で動作するため、メッセージはこのデバイスから出ません。",
   "Chat_PrivacyCloud": "メッセージは処理のために {0} に送信されます。",

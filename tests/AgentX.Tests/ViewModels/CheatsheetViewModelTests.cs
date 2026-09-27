@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AgentX.App.ViewModels;
 using AgentX.Core.Services.Shortcuts;
+using AgentX.Tests.Helpers;
 using FluentAssertions;
 using Xunit;
 
@@ -47,6 +48,32 @@ public class CheatsheetViewModelTests
 
         sut.Groups.Single(g => g.Header == "Documents").IsCurrentScope.Should().BeTrue();
         sut.Groups.Single(g => g.Header == "Global").IsCurrentScope.Should().BeFalse();
+    }
+
+    [Theory]
+    [InlineData("en-US", "Current page")]
+    [InlineData("de", "Aktuelle Seite")]
+    public void Marks_the_current_page_group_in_the_users_language(string locale, string expected)
+    {
+        var registry = new ShortcutRegistry();
+        registry.Register(Descriptor("settings.open", "Open Settings", ShortcutScope.Global, VirtualKeyCode.OemComma, KeyModifiers.Ctrl, "Global"));
+        registry.Register(Descriptor("docs.refresh", "Refresh Documents", new ShortcutScope("DocumentsPage"), VirtualKeyCode.F5, KeyModifiers.None, "Documents"));
+
+        var sut = new CheatsheetViewModel(registry, "DocumentsPage", ReswLocalization.For(locale));
+
+        sut.Groups.Single(g => g.Header == "Documents").CurrentScopeLabel.Should().Be(expected);
+        sut.Groups.Single(g => g.Header == "Global").CurrentScopeLabel.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Marks_the_current_page_group_in_english_without_a_localization_service()
+    {
+        var registry = new ShortcutRegistry();
+        registry.Register(Descriptor("docs.refresh", "Refresh Documents", new ShortcutScope("DocumentsPage"), VirtualKeyCode.F5, KeyModifiers.None, "Documents"));
+
+        var sut = new CheatsheetViewModel(registry, "DocumentsPage");
+
+        sut.Groups.Single().CurrentScopeLabel.Should().Be("Current page");
     }
 
     [Fact]

@@ -886,6 +886,7 @@
   "Voice_PhaseLoadingModel": "Modell wird geladen...",
   "Voice_PhaseFinalizing": "Wird abgeschlossen...",
   "Voice_PhaseComplete": "Abgeschlossen",
+  "Cheatsheet_CurrentPage": "Aktuelle Seite",
   "Chat_PrivacyLocal": "{0} läuft auf diesem Computer, daher bleiben Ihre Nachrichten auf diesem Gerät.",
   "Chat_PrivacyLocalUnnamed": "Das KI-Modell läuft auf diesem Computer, daher bleiben Ihre Nachrichten auf diesem Gerät.",
   "Chat_PrivacyCloud": "Ihre Nachrichten werden zur Verarbeitung an {0} gesendet.",

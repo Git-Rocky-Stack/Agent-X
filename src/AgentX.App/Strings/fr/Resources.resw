@@ -1253,6 +1253,7 @@
   <data name="Voice_PhaseLoadingModel" xml:space="preserve"><value>Chargement du modèle...</value></data>
   <data name="Voice_PhaseFinalizing" xml:space="preserve"><value>Finalisation...</value></data>
   <data name="Voice_PhaseComplete" xml:space="preserve"><value>Terminé</value></data>
+  <data name="Cheatsheet_CurrentPage" xml:space="preserve"><value>Page actuelle</value></data>
   <data name="Chat_PrivacyLocal" xml:space="preserve"><value>{0} s'exécute sur cet ordinateur, vos messages restent donc sur cet appareil.</value></data>
   <data name="Chat_PrivacyLocalUnnamed" xml:space="preserve"><value>Le modèle d'IA s'exécute sur cet ordinateur, vos messages restent donc sur cet appareil.</value></data>
   <data name="Chat_PrivacyCloud" xml:space="preserve"><value>Vos messages sont envoyés à {0} pour être traités.</value></data>

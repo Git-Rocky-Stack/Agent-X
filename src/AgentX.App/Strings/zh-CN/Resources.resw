@@ -1253,6 +1253,7 @@
   <data name="Voice_PhaseLoadingModel" xml:space="preserve"><value>正在加载模型...</value></data>
   <data name="Voice_PhaseFinalizing" xml:space="preserve"><value>正在完成...</value></data>
   <data name="Voice_PhaseComplete" xml:space="preserve"><value>已完成</value></data>
+  <data name="Cheatsheet_CurrentPage" xml:space="preserve"><value>当前页面</value></data>
   <data name="Chat_PrivacyLocal" xml:space="preserve"><value>{0} 在这台电脑上运行，因此您的消息会保留在此设备上。</value></data>
   <data name="Chat_PrivacyLocalUnnamed" xml:space="preserve"><value>AI 模型在这台电脑上运行，因此您的消息会保留在此设备上。</value></data>
   <data name="Chat_PrivacyCloud" xml:space="preserve"><value>您的消息会发送到 {0} 进行处理。</value></data>
