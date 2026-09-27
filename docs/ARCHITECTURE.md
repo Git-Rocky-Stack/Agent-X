@@ -82,8 +82,9 @@ The application has three layers:
 Services are singletons; views and view models are transients, registered in a
 `Microsoft.Extensions.Hosting` container.
 
-The system is local first. Out of the box, chat runs on a built-in model (Llama 3.2 3B through
-LLamaSharp), and all documents, embeddings and conversations stay on the machine. Ollama (local or
+The system is local first. The default provider is a built-in model (Llama 3.2 3B through
+LLamaSharp; the OFFLINE installer bundles it and the first-run wizard of the SLIM installer offers
+to download it), and all documents, embeddings and conversations stay on the machine. Ollama (local or
 on another computer), OpenAI and Anthropic are optional providers; the app says where messages go
 whenever one of them, model routing or Research Mode sends data off the computer.
 
@@ -419,8 +420,20 @@ picked (for example a conversation from Jump-To).
   the `INBOX`, `SYNC`, `JOBS` and `BAK` lamps.
 
 Each source fails soft (a failed query keeps the previous state). Lamps map typed states, never
-display strings. A lit lamp navigates on click: `INBOX` to Smart Inbox, `SYNC` to Collaborative
-Sync, `JOBS` to Operations, `BAK` to Backup & Restore.
+display strings:
+
+| Lamp | States | Click (lit only) |
+|---|---|---|
+| `MDL` | Go when the active provider is connected, Hold when it is not | Model Manager |
+| `LOCAL` / `NET` | `LOCAL` and Go when nothing leaves the computer, `NET` and Hold otherwise | Settings |
+| `INBOX` | Hold while items wait for triage, otherwise Off | Smart Inbox |
+| `SYNC` | Off when sync is not configured; NoGo on error, Scope while syncing, otherwise Go | Collaborative Sync |
+| `JOBS` | Scope while a workflow runs, NoGo after a failed latest run, otherwise Off | Operations |
+| `BAK` | Go when the last backup is at most 7 days old, Hold when older, Off with no backup | Backup & Restore |
+
+An unlit (Off) lamp ignores clicks. The status-strip handler also restores the navigation pane if
+it finds it hidden outside onboarding (logged as "Nav pane was hidden outside of onboarding -
+restored").
 
 **Onboarding:** on first run (`OnboardingCompleted == false`) `IOnboardingService.BeginOnboarding()`
 suppresses rail navigation, the frame shows `OnboardingPage`, and the pane is hidden. Finish calls
@@ -603,7 +616,7 @@ time.
 
 | Provider | Transport | Models | Embeddings |
 |---|---|---|---|
-| Built-in (`local`) | LLamaSharp 0.19 (CPU backend; CUDA 12 backend when the NVIDIA CUDA 12 toolkit is installed) | The configured GGUF file (`llama-3.2-3b-instruct-q4_k_m.gguf` by default), downloaded on first run by `BuiltInModelBootstrap` in SLIM installs | Yes |
+| Built-in (`local`) | LLamaSharp 0.19 (CPU backend; CUDA 12 backend when the NVIDIA CUDA 12 toolkit is installed) | The configured GGUF file (`llama-3.2-3b-instruct-q4_k_m.gguf` by default); in SLIM installs the onboarding wizard offers to download it (`BuiltInModelBootstrap`) | Yes |
 | Ollama | OllamaSharp 4.0.6; connection check times out after 3 seconds | Installed Ollama models (pull and delete supported) | Yes |
 | OpenAI | `HttpClient`, `Authorization: Bearer`, SSE; the endpoint is configurable for compatible servers | Model list from the API | Yes (`text-embedding-*` models) |
 | Anthropic | `HttpClient`, `x-api-key` and `anthropic-version: 2023-06-01`, SSE; the system prompt goes in the top-level `system` field | `GET /v1/models`, with a small fallback catalog; default `claude-sonnet-5` | No (throws `NotSupportedException`) |
@@ -1603,8 +1616,9 @@ The application is distributed as a Windows installer built with Inno Setup
 (`installer/AgentX-Setup.iss`). One script produces two profiles via the `AgentXOffline`
 preprocessor flag:
 
-- **SLIM** (default): no bundled model, small enough for a GitHub Release. The app downloads the
-  built-in Llama 3.2 3B model on first run (`BuiltInModelBootstrap`); cloud API keys work at once.
+- **SLIM** (default): no bundled model, small enough for a GitHub Release. The first-run wizard
+  offers to download the built-in Llama 3.2 3B model (`BuiltInModelBootstrap`); Ollama and cloud
+  API keys work without it.
 - **OFFLINE** (`ISCC /DAgentXOffline=1`): bundles the ~1.9 GB model for a fully offline first run.
   The model is installed to `%LocalAppData%\AgentX\Models` with `uninsneveruninstall`, so an
   uninstall leaves it in place. The installer is too large for a GitHub Release asset and is hosted

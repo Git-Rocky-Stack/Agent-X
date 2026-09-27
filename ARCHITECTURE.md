@@ -520,7 +520,7 @@ The app targets x86, x64 and ARM64; the installer ships x64.
 
 ```
 Installer (Inno Setup, installer/AgentX-Setup.iss)
-    SLIM (default)     no bundled model; the app downloads the built-in model on first run
+    SLIM (default)     no bundled model; the first-run wizard offers to download it
     OFFLINE            ISCC /DAgentXOffline=1, bundles the ~1.9 GB Llama 3.2 3B GGUF
     Installs to        {autopf}\Agent-X (per-user by default, no elevation needed)
     Executable         AgentX.App.exe (unpackaged WinUI app, Windows App SDK bundled)
