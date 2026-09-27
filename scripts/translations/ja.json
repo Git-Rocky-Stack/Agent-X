@@ -291,7 +291,7 @@
   "Inbox_AiPreviewLabel.Text": "AI プレビュー",
   "Inbox_SuggestedLabel.Text": "候補:",
   "Inbox_EmptyTitle.Text": "受信トレイは空です",
-  "Inbox_EmptyHint.Text": "監視フォルダーの新しいファイルがここに表示され、仕分けできます。",
+  "Inbox_EmptyHint.Text": "Agent-X ブラウザー拡張機能でクリップしたページがここに表示され、仕分けできます。監視フォルダーのファイルは直接 Knowledge Vault に取り込まれます。",
   "Comp_SelectTitle.Text": "ドキュメントを選択",
   "Comp_SelectedRun.Text": "件選択中",
   "Comp_FocusPlaceholder.PlaceholderText": "重点トピック(任意)...",

@@ -643,7 +643,7 @@
   <data name="Inbox_AiPreviewLabel.Text" xml:space="preserve"><value>AI 预览</value></data>
   <data name="Inbox_SuggestedLabel.Text" xml:space="preserve"><value>建议:</value></data>
   <data name="Inbox_EmptyTitle.Text" xml:space="preserve"><value>收件箱为空</value></data>
-  <data name="Inbox_EmptyHint.Text" xml:space="preserve"><value>来自监视文件夹的新文件将显示在此处以供分拣。</value></data>
+  <data name="Inbox_EmptyHint.Text" xml:space="preserve"><value>使用 Agent-X 浏览器扩展剪藏的页面将显示在此处以供分拣。监视文件夹中的文件会直接进入 Knowledge Vault。</value></data>
   <data name="Comp_SelectTitle.Text" xml:space="preserve"><value>选择文档</value></data>
   <data name="Comp_SelectedRun.Text" xml:space="preserve"><value>个已选</value></data>
   <data name="Comp_FocusPlaceholder.PlaceholderText" xml:space="preserve"><value>聚焦主题(可选)...</value></data>

@@ -291,7 +291,7 @@
   "Inbox_AiPreviewLabel.Text": "Aperçu IA",
   "Inbox_SuggestedLabel.Text": "Suggestion :",
   "Inbox_EmptyTitle.Text": "La boîte de réception est vide",
-  "Inbox_EmptyHint.Text": "Les nouveaux fichiers des dossiers surveillés apparaîtront ici pour le tri.",
+  "Inbox_EmptyHint.Text": "Les pages que vous capturez avec l’extension de navigateur Agent-X apparaissent ici pour le tri. Les fichiers des dossiers surveillés vont directement dans le Coffre-fort de Connaissances.",
   "Comp_SelectTitle.Text": "Sélectionner des documents",
   "Comp_SelectedRun.Text": "sélectionnés",
   "Comp_FocusPlaceholder.PlaceholderText": "Sujet à privilégier (facultatif)...",

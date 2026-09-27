@@ -643,7 +643,7 @@
   <data name="Inbox_AiPreviewLabel.Text" xml:space="preserve"><value>Vista previa de IA</value></data>
   <data name="Inbox_SuggestedLabel.Text" xml:space="preserve"><value>Sugerido:</value></data>
   <data name="Inbox_EmptyTitle.Text" xml:space="preserve"><value>La bandeja de entrada está vacía</value></data>
-  <data name="Inbox_EmptyHint.Text" xml:space="preserve"><value>Los archivos nuevos de las carpetas vigiladas aparecerán aquí para su clasificación.</value></data>
+  <data name="Inbox_EmptyHint.Text" xml:space="preserve"><value>Las páginas que recorte con la extensión de navegador de Agent-X aparecen aquí para su clasificación. Los archivos de las carpetas vigiladas van directamente a la Bóveda de Conocimiento.</value></data>
   <data name="Comp_SelectTitle.Text" xml:space="preserve"><value>Seleccionar documentos</value></data>
   <data name="Comp_SelectedRun.Text" xml:space="preserve"><value>seleccionados</value></data>
   <data name="Comp_FocusPlaceholder.PlaceholderText" xml:space="preserve"><value>Tema de enfoque (opcional)...</value></data>

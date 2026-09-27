@@ -291,7 +291,7 @@
   "Inbox_AiPreviewLabel.Text": "KI-Vorschau",
   "Inbox_SuggestedLabel.Text": "Vorgeschlagen:",
   "Inbox_EmptyTitle.Text": "Der Posteingang ist leer",
-  "Inbox_EmptyHint.Text": "Neue Dateien aus überwachten Ordnern erscheinen hier zur Triage.",
+  "Inbox_EmptyHint.Text": "Seiten, die Sie mit der Agent-X-Browsererweiterung ausschneiden, erscheinen hier zur Triage. Dateien aus überwachten Ordnern gelangen direkt in den Wissens-Tresor.",
   "Comp_SelectTitle.Text": "Dokumente auswählen",
   "Comp_SelectedRun.Text": "ausgewählt",
   "Comp_FocusPlaceholder.PlaceholderText": "Schwerpunktthema (optional)...",

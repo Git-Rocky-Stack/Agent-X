@@ -357,7 +357,7 @@
                         <TextBlock x:Uid="Inbox_EmptyTitle" Text="Inbox is empty"
                                    Style="{StaticResource BodySecondaryStyle}"
                                    HorizontalAlignment="Center" />
-                        <TextBlock x:Uid="Inbox_EmptyHint" Text="New files from watch folders will appear here for triage."
+                        <TextBlock x:Uid="Inbox_EmptyHint" Text="Pages you clip with the Agent-X browser extension appear here for triage. Files from watch folders go straight to the Knowledge Vault."
                                    Style="{StaticResource CaptionStyle}"
                                    HorizontalAlignment="Center" />
                     </StackPanel>

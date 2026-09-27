@@ -765,7 +765,7 @@
   <data name="Inbox_AiPreviewLabel.Text" xml:space="preserve"><value>AI Preview</value></data>
   <data name="Inbox_SuggestedLabel.Text" xml:space="preserve"><value>Suggested:</value></data>
   <data name="Inbox_EmptyTitle.Text" xml:space="preserve"><value>Inbox is empty</value></data>
-  <data name="Inbox_EmptyHint.Text" xml:space="preserve"><value>New files from watch folders will appear here for triage.</value></data>
+  <data name="Inbox_EmptyHint.Text" xml:space="preserve"><value>Pages you clip with the Agent-X browser extension appear here for triage. Files from watch folders go straight to the Knowledge Vault.</value></data>
   <data name="Comp_SelectTitle.Text" xml:space="preserve"><value>Select Documents</value></data>
   <data name="Comp_SelectedRun.Text" xml:space="preserve"><value>selected</value></data>
   <data name="Comp_FocusPlaceholder.PlaceholderText" xml:space="preserve"><value>Focus topic (optional)...</value></data>

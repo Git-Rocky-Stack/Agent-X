@@ -291,7 +291,7 @@
   "Inbox_AiPreviewLabel.Text": "AI 预览",
   "Inbox_SuggestedLabel.Text": "建议:",
   "Inbox_EmptyTitle.Text": "收件箱为空",
-  "Inbox_EmptyHint.Text": "来自监视文件夹的新文件将显示在此处以供分拣。",
+  "Inbox_EmptyHint.Text": "使用 Agent-X 浏览器扩展剪藏的页面将显示在此处以供分拣。监视文件夹中的文件会直接进入 Knowledge Vault。",
   "Comp_SelectTitle.Text": "选择文档",
   "Comp_SelectedRun.Text": "个已选",
   "Comp_FocusPlaceholder.PlaceholderText": "聚焦主题(可选)...",

@@ -643,7 +643,7 @@
   <data name="Inbox_AiPreviewLabel.Text" xml:space="preserve"><value>KI-Vorschau</value></data>
   <data name="Inbox_SuggestedLabel.Text" xml:space="preserve"><value>Vorgeschlagen:</value></data>
   <data name="Inbox_EmptyTitle.Text" xml:space="preserve"><value>Der Posteingang ist leer</value></data>
-  <data name="Inbox_EmptyHint.Text" xml:space="preserve"><value>Neue Dateien aus überwachten Ordnern erscheinen hier zur Triage.</value></data>
+  <data name="Inbox_EmptyHint.Text" xml:space="preserve"><value>Seiten, die Sie mit der Agent-X-Browsererweiterung ausschneiden, erscheinen hier zur Triage. Dateien aus überwachten Ordnern gelangen direkt in den Wissens-Tresor.</value></data>
   <data name="Comp_SelectTitle.Text" xml:space="preserve"><value>Dokumente auswählen</value></data>
   <data name="Comp_SelectedRun.Text" xml:space="preserve"><value>ausgewählt</value></data>
   <data name="Comp_FocusPlaceholder.PlaceholderText" xml:space="preserve"><value>Schwerpunktthema (optional)...</value></data>

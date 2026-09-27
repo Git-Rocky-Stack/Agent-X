@@ -643,7 +643,7 @@
   <data name="Inbox_AiPreviewLabel.Text" xml:space="preserve"><value>Aperçu IA</value></data>
   <data name="Inbox_SuggestedLabel.Text" xml:space="preserve"><value>Suggestion :</value></data>
   <data name="Inbox_EmptyTitle.Text" xml:space="preserve"><value>La boîte de réception est vide</value></data>
-  <data name="Inbox_EmptyHint.Text" xml:space="preserve"><value>Les nouveaux fichiers des dossiers surveillés apparaîtront ici pour le tri.</value></data>
+  <data name="Inbox_EmptyHint.Text" xml:space="preserve"><value>Les pages que vous capturez avec l’extension de navigateur Agent-X apparaissent ici pour le tri. Les fichiers des dossiers surveillés vont directement dans le Coffre-fort de Connaissances.</value></data>
   <data name="Comp_SelectTitle.Text" xml:space="preserve"><value>Sélectionner des documents</value></data>
   <data name="Comp_SelectedRun.Text" xml:space="preserve"><value>sélectionnés</value></data>
   <data name="Comp_FocusPlaceholder.PlaceholderText" xml:space="preserve"><value>Sujet à privilégier (facultatif)...</value></data>

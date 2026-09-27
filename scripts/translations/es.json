@@ -291,7 +291,7 @@
   "Inbox_AiPreviewLabel.Text": "Vista previa de IA",
   "Inbox_SuggestedLabel.Text": "Sugerido:",
   "Inbox_EmptyTitle.Text": "La bandeja de entrada está vacía",
-  "Inbox_EmptyHint.Text": "Los archivos nuevos de las carpetas vigiladas aparecerán aquí para su clasificación.",
+  "Inbox_EmptyHint.Text": "Las páginas que recorte con la extensión de navegador de Agent-X aparecen aquí para su clasificación. Los archivos de las carpetas vigiladas van directamente a la Bóveda de Conocimiento.",
   "Comp_SelectTitle.Text": "Seleccionar documentos",
   "Comp_SelectedRun.Text": "seleccionados",
   "Comp_FocusPlaceholder.PlaceholderText": "Tema de enfoque (opcional)...",

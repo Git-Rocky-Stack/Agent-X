@@ -643,7 +643,7 @@
   <data name="Inbox_AiPreviewLabel.Text" xml:space="preserve"><value>AI プレビュー</value></data>
   <data name="Inbox_SuggestedLabel.Text" xml:space="preserve"><value>候補:</value></data>
   <data name="Inbox_EmptyTitle.Text" xml:space="preserve"><value>受信トレイは空です</value></data>
-  <data name="Inbox_EmptyHint.Text" xml:space="preserve"><value>監視フォルダーの新しいファイルがここに表示され、仕分けできます。</value></data>
+  <data name="Inbox_EmptyHint.Text" xml:space="preserve"><value>Agent-X ブラウザー拡張機能でクリップしたページがここに表示され、仕分けできます。監視フォルダーのファイルは直接 Knowledge Vault に取り込まれます。</value></data>
   <data name="Comp_SelectTitle.Text" xml:space="preserve"><value>ドキュメントを選択</value></data>
   <data name="Comp_SelectedRun.Text" xml:space="preserve"><value>件選択中</value></data>
   <data name="Comp_FocusPlaceholder.PlaceholderText" xml:space="preserve"><value>重点トピック(任意)...</value></data>
