@@ -1863,6 +1863,84 @@
   <data name="Digest_TrendNew" xml:space="preserve"><value>今期間の新規</value></data>
   <data name="Digest_TrendChange" xml:space="preserve"><value>前期間比 {0}</value></data>
   <data name="Digest_TrendFlat" xml:space="preserve"><value>前期間から変化なし</value></data>
+  <data name="WfBuilder_NoResultToSave" xml:space="preserve"><value>保存できるワークフローの結果がありません</value></data>
+  <data name="WfBuilder_ResolvedRunBySaving" xml:space="preserve"><value>フォーカス中のワークフロー実行を「{0}」として Knowledge Vault に保存し、対応済みにしました。</value></data>
+  <data name="WfBuilder_SavedResultToVault" xml:space="preserve"><value>ワークフローの結果を「{0}」として Knowledge Vault に保存しました</value></data>
+  <data name="WfBuilder_StoredRunNothingToSave" xml:space="preserve"><value>この保存済みの実行には保存できる結果がありません</value></data>
+  <data name="WfBuilder_SavedStoredResultToVault" xml:space="preserve"><value>保存済みのワークフロー結果を「{0}」として Knowledge Vault に保存しました</value></data>
+  <data name="WfBuilder_NoResultToExport" xml:space="preserve"><value>エクスポートできるワークフローの結果がありません。</value></data>
+  <data name="WfBuilder_ResolvedRunByExporting" xml:space="preserve"><value>フォーカス中のワークフロー実行を {0} にエクスポートし、対応済みにしました。</value></data>
+  <data name="WfBuilder_ExportedResult" xml:space="preserve"><value>ワークフローの結果を {0} にエクスポートしました</value></data>
+  <data name="WfBuilder_NoRunSelectedToExport" xml:space="preserve"><value>エクスポートするワークフロー実行が選択されていません。</value></data>
+  <data name="WfBuilder_StoredRunNothingToExport" xml:space="preserve"><value>この保存済みの実行にはエクスポートできる結果がありません。</value></data>
+  <data name="WfBuilder_ExportedStoredResult" xml:space="preserve"><value>保存済みのワークフロー結果を {0} にエクスポートしました</value></data>
+  <data name="WfBuilder_LoadWorkflowsFailed" xml:space="preserve"><value>ワークフローを読み込めませんでした</value></data>
+  <data name="WfBuilder_NewWorkflowName" xml:space="preserve"><value>新しいワークフロー</value></data>
+  <data name="WfBuilder_UseTemplateToCustomize" xml:space="preserve"><value>組み込みのワークフローをカスタマイズするには [テンプレートを使用] を選択してください</value></data>
+  <data name="WfBuilder_ExportWorkflowFailed" xml:space="preserve"><value>エクスポートに失敗しました</value></data>
+  <data name="WfBuilder_CreatedFromTemplate" xml:space="preserve"><value>テンプレートからワークフロー「{0}」を作成しました</value></data>
+  <data name="WfBuilder_CreateFromTemplateFailed" xml:space="preserve"><value>テンプレートからワークフローを作成できませんでした</value></data>
+  <data name="WfBuilder_SelectedTemplate" xml:space="preserve"><value>テンプレート「{0}」を選択しました</value></data>
+  <data name="WfBuilder_WorkflowSaved" xml:space="preserve"><value>ワークフロー「{0}」を保存しました</value></data>
+  <data name="WfBuilder_SavedAsNewWorkflow" xml:space="preserve"><value>組み込みのワークフロー「{0}」は変更されていません。編集内容は新しいワークフロー「{1}」として保存されました</value></data>
+  <data name="WfBuilder_SaveWorkflowFailed" xml:space="preserve"><value>ワークフローを保存できませんでした</value></data>
+  <data name="WfBuilder_DefaultStepName" xml:space="preserve"><value>ステップ {0}</value></data>
+  <data name="WfBuilder_WorkflowDeleted" xml:space="preserve"><value>ワークフローを削除しました</value></data>
+  <data name="WfBuilder_DeleteWorkflowFailed" xml:space="preserve"><value>ワークフローを削除できませんでした</value></data>
+  <data name="WfBuilder_EnterInputToProcess" xml:space="preserve"><value>処理するテキストを入力してください</value></data>
+  <data name="WfBuilder_ShowingLatestResult" xml:space="preserve"><value>最新の実行結果を表示しています</value></data>
+  <data name="WfBuilder_StepsFailed" xml:space="preserve"><value>1 つ以上のステップが失敗しました。詳細はステップの出力を確認してください。</value></data>
+  <data name="WfBuilder_WorkflowCompleted" xml:space="preserve"><value>ワークフローが完了しました ({0} ms)</value></data>
+  <data name="WfBuilder_WorkflowFailed" xml:space="preserve"><value>ワークフローが失敗しました</value></data>
+  <data name="WfBuilder_ExecutionFailed" xml:space="preserve"><value>ワークフローの実行に失敗しました</value></data>
+  <data name="WfBuilder_ShowingFailedResult" xml:space="preserve"><value>失敗した実行の結果を表示しています</value></data>
+  <data name="WfBuilder_RunCancelledByUser" xml:space="preserve"><value>ユーザーによってキャンセルされました</value></data>
+  <data name="WfBuilder_ShowingCancelledResult" xml:space="preserve"><value>キャンセルされた実行の結果を表示しています</value></data>
+  <data name="WfBuilder_WorkflowCancelled" xml:space="preserve"><value>ワークフローをキャンセルしました</value></data>
+  <data name="WfBuilder_ImportedWorkflow" xml:space="preserve"><value>ワークフロー「{0}」をインポートしました</value></data>
+  <data name="WfBuilder_ImportInvalidJson" xml:space="preserve"><value>インポートに失敗しました — ワークフローの JSON が無効です</value></data>
+  <data name="WfBuilder_LoadRecentRunsFailed" xml:space="preserve"><value>最近のワークフロー実行を読み込めませんでした</value></data>
+  <data name="WfBuilder_RequestedRunUnavailable" xml:space="preserve"><value>要求されたワークフロー実行は利用できなくなりました。</value></data>
+  <data name="WfBuilder_RequestedRunNotInHistory" xml:space="preserve"><value>要求されたワークフロー実行は最近の履歴に含まれなくなりました。</value></data>
+  <data name="WfBuilder_GuideSummarizeActSummary" xml:space="preserve"><value>メモ、文字起こし、未整理の資料を、短い要約、要点、実行可能な次のステップに変換します。</value></data>
+  <data name="WfBuilder_GuideSummarizeActBestFor" xml:space="preserve"><value>会議メモ、通話の文字起こし、ブレインストーミングのメモ、明確なフォローアップ作業にまとめたい長いドキュメント。</value></data>
+  <data name="WfBuilder_GuideSummarizeActOutcome" xml:space="preserve"><value>簡潔な概要、要点を絞り込んだリスト、そして実行や共有ができる実践的なアクション アイテムのリスト。</value></data>
+  <data name="WfBuilder_GuideSummarizeActExample1" xml:space="preserve"><value>会議の文字起こしを貼り付けて、フォローアップのアクションを抽出します。</value></data>
+  <data name="WfBuilder_GuideSummarizeActExample2" xml:space="preserve"><value>長いメモを入力して、チーム向けの要点にまとめます。</value></data>
+  <data name="WfBuilder_GuideSummarizeActExample3" xml:space="preserve"><value>未整理のブレインストーミング メモから、優先順位付きのアクション リストを作成します。</value></data>
+  <data name="WfBuilder_GuideResearchBriefSummary" xml:space="preserve"><value>トピック、質問、初期の調査メモから、バランスの取れた知見を含む構造化されたブリーフを作成します。</value></data>
+  <data name="WfBuilder_GuideResearchBriefBestFor" xml:space="preserve"><value>新しいトピックの調査、戦略会議の準備、未整理の調査メモの整理。</value></data>
+  <data name="WfBuilder_GuideResearchBriefOutcome" xml:space="preserve"><value>エグゼクティブ サマリー、背景、主な知見、反対意見、そして次の作業の土台になる最終的なまとめ。</value></data>
+  <data name="WfBuilder_GuideResearchBriefExample1" xml:space="preserve"><value>調査の質問を貼り付けて、バランスの取れたブリーフィングを依頼します。</value></data>
+  <data name="WfBuilder_GuideResearchBriefExample2" xml:space="preserve"><value>記事のメモから、意思決定に使える要約を作成します。</value></data>
+  <data name="WfBuilder_GuideResearchBriefExample3" xml:space="preserve"><value>大まかなトピックのアウトラインを、レビュー用の構造化されたブリーフにします。</value></data>
+  <data name="WfBuilder_GuideDocumentReviewSummary" xml:space="preserve"><value>ドキュメントをレビューし、うまくいっている点を示して、次の草稿に向けた具体的な改善点を見つけます。</value></data>
+  <data name="WfBuilder_GuideDocumentReviewBestFor" xml:space="preserve"><value>提案書の草稿、顧客向けドキュメント、社内メモ、ランディング ページのコピーなど、批評が必要な文章。</value></data>
+  <data name="WfBuilder_GuideDocumentReviewOutcome" xml:space="preserve"><value>ドキュメントの要約、明確な長所と短所、優先順位付きの改善リスト。</value></data>
+  <data name="WfBuilder_GuideDocumentReviewExample1" xml:space="preserve"><value>提案書の草稿を貼り付けて、実践的な改訂のアドバイスを得ます。</value></data>
+  <data name="WfBuilder_GuideDocumentReviewExample2" xml:space="preserve"><value>社内ドキュメントを広く共有する前にレビューします。</value></data>
+  <data name="WfBuilder_GuideDocumentReviewExample3" xml:space="preserve"><value>マーケティング コピーに使って弱点を見つけ、メッセージを引き締めます。</value></data>
+  <data name="WfBuilder_GuideContentRepurposeSummary" xml:space="preserve"><value>1 つの中心となるコンテンツから、公開できる複数の形式に作り変えます。</value></data>
+  <data name="WfBuilder_GuideContentRepurposeBestFor" xml:space="preserve"><value>SNS 投稿、メール文面、長めの記事に展開したい元の資料。</value></data>
+  <data name="WfBuilder_GuideContentRepurposeOutcome" xml:space="preserve"><value>中心となるメッセージの抽出と、スレッド投稿、ビジネス メール、ブログ風の記事向けに調整した出力。</value></data>
+  <data name="WfBuilder_GuideContentRepurposeExample1" xml:space="preserve"><value>ウェビナーの文字起こしを貼り付けて、配信用の複数の形式を生成します。</value></data>
+  <data name="WfBuilder_GuideContentRepurposeExample2" xml:space="preserve"><value>創業者のメモを、SNS、メール、ブログ向けのコンテンツにします。</value></data>
+  <data name="WfBuilder_GuideContentRepurposeExample3" xml:space="preserve"><value>長文の記事を、別形式への作り変えの素材として使います。</value></data>
+  <data name="WfBuilder_ShowingStoredRun" xml:space="preserve"><value>{0} の保存済みの実行を表示しています</value></data>
+  <data name="WfBuilder_StoredRunCaptureLabel" xml:space="preserve"><value>{0} の保存済みの実行</value></data>
+  <data name="WfBuilder_DefaultCaptureLabel" xml:space="preserve"><value>ワークフローの結果</value></data>
+  <data name="WfBuilder_RunStatusSaved" xml:space="preserve"><value>保存済み</value></data>
+  <data name="WfBuilder_SaveResultToVaultFailed" xml:space="preserve"><value>ワークフローの結果を Knowledge Vault に保存できませんでした</value></data>
+  <data name="WfBuilder_ExportServiceUnavailable" xml:space="preserve"><value>エクスポート サービスを利用できません。</value></data>
+  <data name="WfBuilder_RunStatusCompleted" xml:space="preserve"><value>完了</value></data>
+  <data name="WfBuilder_RunStatusFailed" xml:space="preserve"><value>失敗</value></data>
+  <data name="WfBuilder_RunStatusCancelled" xml:space="preserve"><value>キャンセル済み</value></data>
+  <data name="WfBuilder_RunStatusRunning" xml:space="preserve"><value>実行中</value></data>
+  <data name="WfBuilder_RunStatusPending" xml:space="preserve"><value>保留中</value></data>
+  <data name="WfBuilder_RunDetailStepsOne" xml:space="preserve"><value>{0}/{1} ステップ</value></data>
+  <data name="WfBuilder_RunDetailStepsMany" xml:space="preserve"><value>{0}/{1} ステップ</value></data>
+  <data name="WfBuilder_RunDetailTokensOne" xml:space="preserve"><value>{0} トークン</value></data>
+  <data name="WfBuilder_RunDetailTokensMany" xml:space="preserve"><value>{0} トークン</value></data>
   <data name="WfBuilder_RecentRuns.Text" xml:space="preserve"><value>最近の実行</value></data>
   <data name="WfBuilder_StoredWorkflowResultsYou.Text" xml:space="preserve"><value>再実行せずに開ける、保存済みのワークフロー結果です。</value></data>
   <data name="WfBuilder_OpenedFromOperations.Text" xml:space="preserve"><value>Operations から開きました</value></data>

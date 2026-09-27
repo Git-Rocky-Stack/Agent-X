@@ -19,46 +19,23 @@ namespace AgentX.App.ViewModels;
 
 public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
 {
-    private static readonly IReadOnlyDictionary<string, WorkflowTemplateGuideContent> TemplateGuideCatalog =
-        new Dictionary<string, WorkflowTemplateGuideContent>(StringComparer.OrdinalIgnoreCase)
+    /// <summary>The built-in templates that have a guide, by their (stored, English) workflow name.</summary>
+    private static readonly IReadOnlyDictionary<string, TemplateGuideId> TemplateGuideIds =
+        new Dictionary<string, TemplateGuideId>(StringComparer.OrdinalIgnoreCase)
         {
-            ["Summarize & Act"] = new(
-                "Turn notes, transcripts, or rough source material into a short summary, key points, and actionable next steps.",
-                "Meeting notes, call transcripts, brainstorm dumps, and long documents you need to turn into clear follow-up work.",
-                "A concise overview, a distilled list of the main points, and a practical action-item list you can execute or share.",
-                [
-                    new WorkflowTemplateGuideExampleItem("Paste a meeting transcript and extract the follow-up actions."),
-                    new WorkflowTemplateGuideExampleItem("Drop in a long memo and turn it into key points for your team."),
-                    new WorkflowTemplateGuideExampleItem("Use rough brainstorming notes to produce a prioritized action list.")
-                ]),
-            ["Research Brief"] = new(
-                "Take a topic, question, or early research dump and turn it into a structured brief with balanced findings.",
-                "Exploring a new topic, preparing for a strategy discussion, or organizing a rough set of research notes.",
-                "An executive summary, background, key findings, opposing views, and a final synthesis you can build from.",
-                [
-                    new WorkflowTemplateGuideExampleItem("Paste a research question and ask for a balanced briefing."),
-                    new WorkflowTemplateGuideExampleItem("Use article notes to create a decision-ready summary."),
-                    new WorkflowTemplateGuideExampleItem("Turn a rough topic outline into a structured brief for review.")
-                ]),
-            ["Document Review"] = new(
-                "Review a document, surface what is working, and identify concrete improvements for the next draft.",
-                "Draft proposals, client documents, internal memos, landing-page copy, and other writing that needs critique.",
-                "A document summary, clear strengths and weaknesses, and a prioritized improvement list.",
-                [
-                    new WorkflowTemplateGuideExampleItem("Paste a proposal draft and get actionable revision guidance."),
-                    new WorkflowTemplateGuideExampleItem("Review internal documentation before sharing it widely."),
-                    new WorkflowTemplateGuideExampleItem("Use on marketing copy to find weak spots and tighten the message.")
-                ]),
-            ["Content Repurpose"] = new(
-                "Start from one core piece of content and reshape it into multiple publishable formats.",
-                "Source material you want to turn into social posts, email copy, and a longer written version.",
-                "A core-message extraction plus adapted outputs for a thread, a professional email, and a blog-style post.",
-                [
-                    new WorkflowTemplateGuideExampleItem("Paste a webinar transcript and generate multiple distribution formats."),
-                    new WorkflowTemplateGuideExampleItem("Turn a founder note into social, email, and blog content."),
-                    new WorkflowTemplateGuideExampleItem("Use a long-form write-up as the base for a repurposing pass.")
-                ])
+            ["Summarize & Act"] = TemplateGuideId.SummarizeAndAct,
+            ["Research Brief"] = TemplateGuideId.ResearchBrief,
+            ["Document Review"] = TemplateGuideId.DocumentReview,
+            ["Content Repurpose"] = TemplateGuideId.ContentRepurpose
         };
+
+    private enum TemplateGuideId
+    {
+        SummarizeAndAct,
+        ResearchBrief,
+        DocumentReview,
+        ContentRepurpose
+    }
 
     // ── Services ─────────────────────────────────────────────
     private readonly IWorkflowService _workflowService;
@@ -102,6 +79,14 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _runFailed;
     [ObservableProperty] private string _runErrorMessage = string.Empty;
     [ObservableProperty] private string _runResultContextText = string.Empty;
+
+    /// <summary>
+    /// True while the result surface shows a stored run (opened from Recent Runs or Operations)
+    /// rather than an execution started here. Code checks this, not the translated
+    /// <see cref="RunResultContextText"/>.
+    /// </summary>
+    [ObservableProperty] private bool _isShowingStoredRun;
+
     [ObservableProperty] private string _lastSavedWorkflowDocumentName = string.Empty;
     public ObservableCollection<StepOutputItem> StepOutputs { get; } = new();
 
@@ -144,13 +129,9 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
             .Where(workflow => workflow.IsBuiltIn)
             .Select(workflow =>
             {
-                var summary = TemplateGuideCatalog.TryGetValue(workflow.Name, out var guide)
-                    ? guide.Summary
-                    : workflow.Description;
-
-                var bestFor = TemplateGuideCatalog.TryGetValue(workflow.Name, out guide)
-                    ? guide.BestFor
-                    : workflow.Category;
+                var guide = FindTemplateGuide(workflow.Name);
+                var summary = guide?.Summary ?? workflow.Description;
+                var bestFor = guide?.BestFor ?? workflow.Category;
 
                 return new WorkflowStarterTemplateDisplayItem(
                     workflow.Id,
@@ -192,7 +173,8 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         // Falls back to the real %LOCALAPPDATA%/AgentX paths when not supplied; tests inject a
         // disposable temp root so workflow-result artifacts never land in the real profile (AX-QA-011).
         _appPaths = appPathService ?? new AppPathService();
-        // Translates the step settings texts; without it they are shown in English.
+        // Translates the page's messages and the step settings texts; without it they are
+        // shown in English.
         _localization = localization;
 
         Workflows.CollectionChanged += (_, _) =>
@@ -219,7 +201,10 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         var resultText = GetCurrentResultText();
         if (string.IsNullOrWhiteSpace(resultText))
         {
-            StatusMessage = "No workflow result available to save";
+            StatusMessage = WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_NoResultToSave"),
+                "WfBuilder_NoResultToSave",
+                "No workflow result available to save");
             return;
         }
 
@@ -232,13 +217,20 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         if (document is not null)
         {
             LastSavedWorkflowDocumentName = document.FileName;
-            if (TryResolveFocusedWorkflowRunFromCurrentContext(
-                    $"Resolved the focused workflow run by saving it to Knowledge Vault as \"{document.FileName}\"."))
+            if (TryResolveFocusedWorkflowRunFromCurrentContext(WorkflowBuilderText.Resolve(
+                    _localization?.GetString("WfBuilder_ResolvedRunBySaving", document.FileName),
+                    "WfBuilder_ResolvedRunBySaving",
+                    "Resolved the focused workflow run by saving it to Knowledge Vault as \"{0}\".",
+                    document.FileName)))
             {
                 return;
             }
 
-            StatusMessage = $"Saved workflow result to Knowledge Vault as \"{document.FileName}\"";
+            StatusMessage = WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_SavedResultToVault", document.FileName),
+                "WfBuilder_SavedResultToVault",
+                "Saved workflow result to Knowledge Vault as \"{0}\"",
+                document.FileName);
         }
     }
 
@@ -253,30 +245,41 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         var resultText = run.GetSaveableContent();
         if (string.IsNullOrWhiteSpace(resultText))
         {
-            StatusMessage = "This stored run does not have result content to save";
+            StatusMessage = WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_StoredRunNothingToSave"),
+                "WfBuilder_StoredRunNothingToSave",
+                "This stored run does not have result content to save");
             return;
         }
 
+        // The name goes into the saved document's file name, which stays as it is.
         var workflowName = !string.IsNullOrWhiteSpace(SelectedWorkflowName)
             ? SelectedWorkflowName
             : "Workflow";
 
         var document = await SaveWorkflowResultToVaultAsync(
             workflowName: workflowName,
-            captureLabel: $"Stored run from {run.StartedAtText}",
+            captureLabel: StoredRunCaptureLabel(run),
             resultText: resultText,
             capturedAt: run.StartedAt);
 
         if (document is not null)
         {
             LastSavedWorkflowDocumentName = document.FileName;
-            if (TryResolveFocusedWorkflowRun(run,
-                    $"Resolved the focused workflow run by saving it to Knowledge Vault as \"{document.FileName}\"."))
+            if (TryResolveFocusedWorkflowRun(run, WorkflowBuilderText.Resolve(
+                    _localization?.GetString("WfBuilder_ResolvedRunBySaving", document.FileName),
+                    "WfBuilder_ResolvedRunBySaving",
+                    "Resolved the focused workflow run by saving it to Knowledge Vault as \"{0}\".",
+                    document.FileName)))
             {
                 return;
             }
 
-            StatusMessage = $"Saved stored workflow result to Knowledge Vault as \"{document.FileName}\"";
+            StatusMessage = WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_SavedStoredResultToVault", document.FileName),
+                "WfBuilder_SavedStoredResultToVault",
+                "Saved stored workflow result to Knowledge Vault as \"{0}\"",
+                document.FileName);
         }
     }
 
@@ -291,20 +294,30 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         var artifact = BuildCurrentResultArtifact();
         if (artifact is null)
         {
-            return ExportResult.Fail("No workflow result available to export.");
+            return ExportResult.Fail(WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_NoResultToExport"),
+                "WfBuilder_NoResultToExport",
+                "No workflow result available to export."));
         }
 
         var result = await ExportWorkflowResultAsync(artifact, options);
         if (result.Success)
         {
-            var fileName = Path.GetFileName(result.FilePath);
-            if (TryResolveFocusedWorkflowRunFromCurrentContext(
-                    $"Resolved the focused workflow run by exporting it to {fileName}."))
+            var fileName = Path.GetFileName(result.FilePath) ?? string.Empty;
+            if (TryResolveFocusedWorkflowRunFromCurrentContext(WorkflowBuilderText.Resolve(
+                    _localization?.GetString("WfBuilder_ResolvedRunByExporting", fileName),
+                    "WfBuilder_ResolvedRunByExporting",
+                    "Resolved the focused workflow run by exporting it to {0}.",
+                    fileName)))
             {
                 return result;
             }
 
-            StatusMessage = $"Exported workflow result to {fileName}";
+            StatusMessage = WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_ExportedResult", fileName),
+                "WfBuilder_ExportedResult",
+                "Exported workflow result to {0}",
+                fileName);
         }
         else if (!string.IsNullOrWhiteSpace(result.ErrorMessage))
         {
@@ -320,26 +333,39 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
     {
         if (run is null)
         {
-            return ExportResult.Fail("No workflow run selected for export.");
+            return ExportResult.Fail(WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_NoRunSelectedToExport"),
+                "WfBuilder_NoRunSelectedToExport",
+                "No workflow run selected for export."));
         }
 
         var artifact = BuildHistoricalRunArtifact(run);
         if (artifact is null)
         {
-            return ExportResult.Fail("This stored run does not have result content to export.");
+            return ExportResult.Fail(WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_StoredRunNothingToExport"),
+                "WfBuilder_StoredRunNothingToExport",
+                "This stored run does not have result content to export."));
         }
 
         var result = await ExportWorkflowResultAsync(artifact, options);
         if (result.Success)
         {
-            var fileName = Path.GetFileName(result.FilePath);
-            if (TryResolveFocusedWorkflowRun(run,
-                    $"Resolved the focused workflow run by exporting it to {fileName}."))
+            var fileName = Path.GetFileName(result.FilePath) ?? string.Empty;
+            if (TryResolveFocusedWorkflowRun(run, WorkflowBuilderText.Resolve(
+                    _localization?.GetString("WfBuilder_ResolvedRunByExporting", fileName),
+                    "WfBuilder_ResolvedRunByExporting",
+                    "Resolved the focused workflow run by exporting it to {0}.",
+                    fileName)))
             {
                 return result;
             }
 
-            StatusMessage = $"Exported stored workflow result to {fileName}";
+            StatusMessage = WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_ExportedStoredResult", fileName),
+                "WfBuilder_ExportedStoredResult",
+                "Exported stored workflow result to {0}",
+                fileName);
         }
         else if (!string.IsNullOrWhiteSpace(result.ErrorMessage))
         {
@@ -369,7 +395,10 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to initialize WorkflowBuilderViewModel");
-            StatusMessage = "Failed to load workflows";
+            StatusMessage = WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_LoadWorkflowsFailed"),
+                "WfBuilder_LoadWorkflowsFailed",
+                "Failed to load workflows");
         }
         finally
         {
@@ -437,7 +466,12 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
     {
         try
         {
-            EditName = "New Workflow";
+            // The default names are what the new workflow and step are saved as, so they are
+            // in the UI language. The category is a stored value and stays as it is.
+            EditName = WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_NewWorkflowName"),
+                "WfBuilder_NewWorkflowName",
+                "New Workflow");
             EditDescription = string.Empty;
             EditCategory = "Custom";
             EditSteps.Clear();
@@ -446,7 +480,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
             EditSteps.Add(new WorkflowStepItem(_localization)
             {
                 StepOrder = 1,
-                Name = "Step 1",
+                Name = DefaultStepName(1),
                 StepType = "AiPrompt",
                 PromptTemplate = "{{input}}"
             });
@@ -471,7 +505,10 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
 
             if (workflow.IsBuiltIn)
             {
-                StatusMessage = "Use Template to customize built-in workflows";
+                StatusMessage = WorkflowBuilderText.Resolve(
+                    _localization?.GetString("WfBuilder_UseTemplateToCustomize"),
+                    "WfBuilder_UseTemplateToCustomize",
+                    "Use Template to customize built-in workflows");
                 return;
             }
 
@@ -517,7 +554,10 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to export workflow {Id}", workflowId);
-            StatusMessage = "Export failed";
+            StatusMessage = WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_ExportWorkflowFailed"),
+                "WfBuilder_ExportWorkflowFailed",
+                "Export failed");
             return null;
         }
     }
@@ -542,12 +582,19 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
             var clonedWorkflow = await _workflowService.CreateWorkflowFromTemplateAsync(workflowId);
             await LoadWorkflowsAsync();
             await EditWorkflowAsync(clonedWorkflow.Id);
-            StatusMessage = $"Created workflow \"{clonedWorkflow.Name}\" from template";
+            StatusMessage = WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_CreatedFromTemplate", clonedWorkflow.Name),
+                "WfBuilder_CreatedFromTemplate",
+                "Created workflow \"{0}\" from template",
+                clonedWorkflow.Name);
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to use workflow template {Id}", workflowId);
-            StatusMessage = "Failed to create workflow from template";
+            StatusMessage = WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_CreateFromTemplateFailed"),
+                "WfBuilder_CreateFromTemplateFailed",
+                "Failed to create workflow from template");
         }
     }
 
@@ -557,7 +604,11 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         SelectedWorkflow = Workflows.FirstOrDefault(workflow => workflow.Id == workflowId && workflow.IsBuiltIn);
         if (SelectedWorkflow is not null)
         {
-            StatusMessage = $"Selected template \"{SelectedWorkflow.Name}\"";
+            StatusMessage = WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_SelectedTemplate", SelectedWorkflow.Name),
+                "WfBuilder_SelectedTemplate",
+                "Selected template \"{0}\"",
+                SelectedWorkflow.Name);
         }
     }
 
@@ -653,13 +704,24 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
             IsEditing = false;
             await LoadWorkflowsAsync();
             StatusMessage = savedAsCopyOf is null
-                ? $"Workflow \"{EditName}\" saved"
-                : $"Built-in workflow \"{savedAsCopyOf}\" was not changed; your edits were saved as the new workflow \"{EditName}\"";
+                ? WorkflowBuilderText.Resolve(
+                    _localization?.GetString("WfBuilder_WorkflowSaved", EditName),
+                    "WfBuilder_WorkflowSaved",
+                    "Workflow \"{0}\" saved",
+                    EditName)
+                : WorkflowBuilderText.Resolve(
+                    _localization?.GetString("WfBuilder_SavedAsNewWorkflow", savedAsCopyOf, EditName),
+                    "WfBuilder_SavedAsNewWorkflow",
+                    "Built-in workflow \"{0}\" was not changed; your edits were saved as the new workflow \"{1}\"",
+                    savedAsCopyOf, EditName);
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to save workflow");
-            StatusMessage = "Failed to save workflow";
+            StatusMessage = WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_SaveWorkflowFailed"),
+                "WfBuilder_SaveWorkflowFailed",
+                "Failed to save workflow");
         }
     }
 
@@ -682,11 +744,18 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         EditSteps.Add(new WorkflowStepItem(_localization)
         {
             StepOrder = nextOrder,
-            Name = $"Step {nextOrder}",
+            Name = DefaultStepName(nextOrder),
             StepType = "AiPrompt",
             PromptTemplate = "{{previous_output}}"
         });
     }
+
+    /// <summary>The name a new step starts with.</summary>
+    private string DefaultStepName(int stepNumber) => WorkflowBuilderText.Resolve(
+        _localization?.GetString("WfBuilder_DefaultStepName", stepNumber),
+        "WfBuilder_DefaultStepName",
+        "Step {0}",
+        stepNumber);
 
     [RelayCommand]
     private void RemoveStep(WorkflowStepItem step)
@@ -730,12 +799,18 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         {
             await _workflowService.DeleteWorkflowAsync(workflowId);
             await LoadWorkflowsAsync();
-            StatusMessage = "Workflow deleted";
+            StatusMessage = WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_WorkflowDeleted"),
+                "WfBuilder_WorkflowDeleted",
+                "Workflow deleted");
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to delete workflow {Id}", workflowId);
-            StatusMessage = "Failed to delete workflow";
+            StatusMessage = WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_DeleteWorkflowFailed"),
+                "WfBuilder_DeleteWorkflowFailed",
+                "Failed to delete workflow");
         }
     }
 
@@ -744,7 +819,10 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
     {
         if (string.IsNullOrWhiteSpace(RunInput))
         {
-            StatusMessage = "Please enter input text to process";
+            StatusMessage = WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_EnterInputToProcess"),
+                "WfBuilder_EnterInputToProcess",
+                "Please enter input text to process");
             return;
         }
 
@@ -759,6 +837,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         RunProgress = 0;
         StepOutputs.Clear();
         RunResultContextText = string.Empty;
+        IsShowingStoredRun = false;
         _runCts = new CancellationTokenSource();
 
         try
@@ -797,41 +876,61 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
 
             if (result.WasCancelled)
             {
-                RunErrorMessage = "Cancelled by user";
-                RunResultContextText = "Showing the cancelled execution result";
-                StatusMessage = "Workflow cancelled";
+                RunErrorMessage = CancelledByUserText();
+                RunResultContextText = ShowingCancelledResultText();
+                StatusMessage = WorkflowCancelledText();
             }
             else
             {
-                RunResultContextText = "Showing latest execution result";
+                RunResultContextText = WorkflowBuilderText.Resolve(
+                    _localization?.GetString("WfBuilder_ShowingLatestResult"),
+                    "WfBuilder_ShowingLatestResult",
+                    "Showing latest execution result");
 
                 if (!result.Success)
                 {
-                    RunErrorMessage = "One or more steps failed. Check step outputs for details.";
+                    RunErrorMessage = WorkflowBuilderText.Resolve(
+                        _localization?.GetString("WfBuilder_StepsFailed"),
+                        "WfBuilder_StepsFailed",
+                        "One or more steps failed. Check step outputs for details.");
                 }
 
+                var duration = result.TotalDurationMs.ToString("F0");
                 StatusMessage = result.Success
-                    ? $"Workflow completed in {result.TotalDurationMs:F0}ms"
-                    : "Workflow failed";
+                    ? WorkflowBuilderText.Resolve(
+                        _localization?.GetString("WfBuilder_WorkflowCompleted", duration),
+                        "WfBuilder_WorkflowCompleted",
+                        "Workflow completed in {0}ms",
+                        duration)
+                    : WorkflowBuilderText.Resolve(
+                        _localization?.GetString("WfBuilder_WorkflowFailed"),
+                        "WfBuilder_WorkflowFailed",
+                        "Workflow failed");
             }
 
             await LoadWorkflowsAsync();
         }
         catch (OperationCanceledException)
         {
-            StatusMessage = "Workflow cancelled";
+            StatusMessage = WorkflowCancelledText();
             RunFailed = true;
-            RunErrorMessage = "Cancelled by user";
-            RunResultContextText = "Showing the cancelled execution result";
+            RunErrorMessage = CancelledByUserText();
+            RunResultContextText = ShowingCancelledResultText();
             await LoadWorkflowsAsync();
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Workflow execution failed");
-            StatusMessage = "Workflow execution failed";
+            StatusMessage = WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_ExecutionFailed"),
+                "WfBuilder_ExecutionFailed",
+                "Workflow execution failed");
             RunFailed = true;
             RunErrorMessage = ex.Message;
-            RunResultContextText = "Showing the failed execution result";
+            RunResultContextText = WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_ShowingFailedResult"),
+                "WfBuilder_ShowingFailedResult",
+                "Showing the failed execution result");
             await LoadWorkflowsAsync();
         }
         finally
@@ -841,6 +940,21 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
             _runCts = null;
         }
     }
+
+    private string CancelledByUserText() => WorkflowBuilderText.Resolve(
+        _localization?.GetString("WfBuilder_RunCancelledByUser"),
+        "WfBuilder_RunCancelledByUser",
+        "Cancelled by user");
+
+    private string ShowingCancelledResultText() => WorkflowBuilderText.Resolve(
+        _localization?.GetString("WfBuilder_ShowingCancelledResult"),
+        "WfBuilder_ShowingCancelledResult",
+        "Showing the cancelled execution result");
+
+    private string WorkflowCancelledText() => WorkflowBuilderText.Resolve(
+        _localization?.GetString("WfBuilder_WorkflowCancelled"),
+        "WfBuilder_WorkflowCancelled",
+        "Workflow cancelled");
 
     [RelayCommand]
     private async Task CancelRunAsync()
@@ -860,12 +974,19 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
             await LoadWorkflowsAsync();
             SelectedWorkflow = Workflows.FirstOrDefault(item => item.Id == workflow.Id);
             IsEditing = false;
-            StatusMessage = $"Imported workflow \"{workflow.Name}\"";
+            StatusMessage = WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_ImportedWorkflow", workflow.Name),
+                "WfBuilder_ImportedWorkflow",
+                "Imported workflow \"{0}\"",
+                workflow.Name);
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to import workflow");
-            StatusMessage = "Import failed — invalid workflow JSON";
+            StatusMessage = WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_ImportInvalidJson"),
+                "WfBuilder_ImportInvalidJson",
+                "Import failed — invalid workflow JSON");
         }
     }
 
@@ -885,7 +1006,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
 
         ClearFocusedWorkflowRunLanding();
         ApplyHistoricalRun(run);
-        StatusMessage = $"Showing stored run from {run.StartedAtText}";
+        StatusMessage = ShowingStoredRunText(run);
     }
 
     [RelayCommand]
@@ -968,7 +1089,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
             var runs = await _workflowService.GetRecentRunsAsync(workflow.Id);
             foreach (var run in runs)
             {
-                RecentRuns.Add(new WorkflowRunHistoryDisplayItem(run));
+                RecentRuns.Add(new WorkflowRunHistoryDisplayItem(run, _localization));
             }
 
             ApplyPendingOperationsRunFocus(workflow.Id);
@@ -976,7 +1097,10 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to load recent runs for workflow {WorkflowId}", workflow.Id);
-            StatusMessage = "Failed to load recent workflow runs";
+            StatusMessage = WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_LoadRecentRunsFailed"),
+                "WfBuilder_LoadRecentRunsFailed",
+                "Failed to load recent workflow runs");
         }
     }
 
@@ -993,6 +1117,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         RunTotalTokens = 0;
         RunDurationMs = 0;
         RunResultContextText = string.Empty;
+        IsShowingStoredRun = false;
         StepOutputs.Clear();
     }
 
@@ -1049,7 +1174,10 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         var workflow = Workflows.FirstOrDefault(item => item.Id == request.WorkflowId);
         if (workflow is null)
         {
-            StatusMessage = "The requested workflow run is no longer available.";
+            StatusMessage = WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_RequestedRunUnavailable"),
+                "WfBuilder_RequestedRunUnavailable",
+                "The requested workflow run is no longer available.");
             _pendingOperationsRunRequest = null;
             return;
         }
@@ -1073,7 +1201,10 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         if (focusedRun is null)
         {
             ClearFocusedWorkflowRunLanding();
-            StatusMessage = "The requested workflow run is no longer in recent history.";
+            StatusMessage = WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_RequestedRunNotInHistory"),
+                "WfBuilder_RequestedRunNotInHistory",
+                "The requested workflow run is no longer in recent history.");
             _pendingOperationsRunRequest = null;
             return;
         }
@@ -1119,9 +1250,9 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
 
     private bool TryResolveFocusedWorkflowRunFromCurrentContext(string resolutionMessage)
     {
-        if (!HasFocusedWorkflowRunLanding
-            || string.IsNullOrWhiteSpace(RunResultContextText)
-            || !RunResultContextText.StartsWith("Showing stored run from", StringComparison.OrdinalIgnoreCase))
+        // The stored-run state, not the context text: that text is translated, so its
+        // wording cannot say which kind of result is on screen.
+        if (!HasFocusedWorkflowRunLanding || !IsShowingStoredRun)
         {
             return false;
         }
@@ -1140,11 +1271,130 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
                 return null;
             }
 
-            return TemplateGuideCatalog.TryGetValue(SelectedWorkflow.Name, out var guide)
-                ? guide
-                : null;
+            return FindTemplateGuide(SelectedWorkflow.Name);
         }
     }
+
+    /// <summary>The guide for a built-in template, in the UI language, or null when it has none.</summary>
+    private WorkflowTemplateGuideContent? FindTemplateGuide(string workflowName) =>
+        TemplateGuideIds.TryGetValue(workflowName, out var id) ? BuildTemplateGuide(id) : null;
+
+    private WorkflowTemplateGuideContent BuildTemplateGuide(TemplateGuideId id) => id switch
+    {
+        TemplateGuideId.SummarizeAndAct => new(
+            WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_GuideSummarizeActSummary"),
+                "WfBuilder_GuideSummarizeActSummary",
+                "Turn notes, transcripts, or rough source material into a short summary, key points, and actionable next steps."),
+            WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_GuideSummarizeActBestFor"),
+                "WfBuilder_GuideSummarizeActBestFor",
+                "Meeting notes, call transcripts, brainstorm dumps, and long documents you need to turn into clear follow-up work."),
+            WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_GuideSummarizeActOutcome"),
+                "WfBuilder_GuideSummarizeActOutcome",
+                "A concise overview, a distilled list of the main points, and a practical action-item list you can execute or share."),
+            [
+                new WorkflowTemplateGuideExampleItem(WorkflowBuilderText.Resolve(
+                    _localization?.GetString("WfBuilder_GuideSummarizeActExample1"),
+                    "WfBuilder_GuideSummarizeActExample1",
+                    "Paste a meeting transcript and extract the follow-up actions.")),
+                new WorkflowTemplateGuideExampleItem(WorkflowBuilderText.Resolve(
+                    _localization?.GetString("WfBuilder_GuideSummarizeActExample2"),
+                    "WfBuilder_GuideSummarizeActExample2",
+                    "Drop in a long memo and turn it into key points for your team.")),
+                new WorkflowTemplateGuideExampleItem(WorkflowBuilderText.Resolve(
+                    _localization?.GetString("WfBuilder_GuideSummarizeActExample3"),
+                    "WfBuilder_GuideSummarizeActExample3",
+                    "Use rough brainstorming notes to produce a prioritized action list."))
+            ]),
+
+        TemplateGuideId.ResearchBrief => new(
+            WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_GuideResearchBriefSummary"),
+                "WfBuilder_GuideResearchBriefSummary",
+                "Take a topic, question, or early research dump and turn it into a structured brief with balanced findings."),
+            WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_GuideResearchBriefBestFor"),
+                "WfBuilder_GuideResearchBriefBestFor",
+                "Exploring a new topic, preparing for a strategy discussion, or organizing a rough set of research notes."),
+            WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_GuideResearchBriefOutcome"),
+                "WfBuilder_GuideResearchBriefOutcome",
+                "An executive summary, background, key findings, opposing views, and a final synthesis you can build from."),
+            [
+                new WorkflowTemplateGuideExampleItem(WorkflowBuilderText.Resolve(
+                    _localization?.GetString("WfBuilder_GuideResearchBriefExample1"),
+                    "WfBuilder_GuideResearchBriefExample1",
+                    "Paste a research question and ask for a balanced briefing.")),
+                new WorkflowTemplateGuideExampleItem(WorkflowBuilderText.Resolve(
+                    _localization?.GetString("WfBuilder_GuideResearchBriefExample2"),
+                    "WfBuilder_GuideResearchBriefExample2",
+                    "Use article notes to create a decision-ready summary.")),
+                new WorkflowTemplateGuideExampleItem(WorkflowBuilderText.Resolve(
+                    _localization?.GetString("WfBuilder_GuideResearchBriefExample3"),
+                    "WfBuilder_GuideResearchBriefExample3",
+                    "Turn a rough topic outline into a structured brief for review."))
+            ]),
+
+        TemplateGuideId.DocumentReview => new(
+            WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_GuideDocumentReviewSummary"),
+                "WfBuilder_GuideDocumentReviewSummary",
+                "Review a document, surface what is working, and identify concrete improvements for the next draft."),
+            WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_GuideDocumentReviewBestFor"),
+                "WfBuilder_GuideDocumentReviewBestFor",
+                "Draft proposals, client documents, internal memos, landing-page copy, and other writing that needs critique."),
+            WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_GuideDocumentReviewOutcome"),
+                "WfBuilder_GuideDocumentReviewOutcome",
+                "A document summary, clear strengths and weaknesses, and a prioritized improvement list."),
+            [
+                new WorkflowTemplateGuideExampleItem(WorkflowBuilderText.Resolve(
+                    _localization?.GetString("WfBuilder_GuideDocumentReviewExample1"),
+                    "WfBuilder_GuideDocumentReviewExample1",
+                    "Paste a proposal draft and get actionable revision guidance.")),
+                new WorkflowTemplateGuideExampleItem(WorkflowBuilderText.Resolve(
+                    _localization?.GetString("WfBuilder_GuideDocumentReviewExample2"),
+                    "WfBuilder_GuideDocumentReviewExample2",
+                    "Review internal documentation before sharing it widely.")),
+                new WorkflowTemplateGuideExampleItem(WorkflowBuilderText.Resolve(
+                    _localization?.GetString("WfBuilder_GuideDocumentReviewExample3"),
+                    "WfBuilder_GuideDocumentReviewExample3",
+                    "Use on marketing copy to find weak spots and tighten the message."))
+            ]),
+
+        TemplateGuideId.ContentRepurpose => new(
+            WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_GuideContentRepurposeSummary"),
+                "WfBuilder_GuideContentRepurposeSummary",
+                "Start from one core piece of content and reshape it into multiple publishable formats."),
+            WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_GuideContentRepurposeBestFor"),
+                "WfBuilder_GuideContentRepurposeBestFor",
+                "Source material you want to turn into social posts, email copy, and a longer written version."),
+            WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_GuideContentRepurposeOutcome"),
+                "WfBuilder_GuideContentRepurposeOutcome",
+                "A core-message extraction plus adapted outputs for a thread, a professional email, and a blog-style post."),
+            [
+                new WorkflowTemplateGuideExampleItem(WorkflowBuilderText.Resolve(
+                    _localization?.GetString("WfBuilder_GuideContentRepurposeExample1"),
+                    "WfBuilder_GuideContentRepurposeExample1",
+                    "Paste a webinar transcript and generate multiple distribution formats.")),
+                new WorkflowTemplateGuideExampleItem(WorkflowBuilderText.Resolve(
+                    _localization?.GetString("WfBuilder_GuideContentRepurposeExample2"),
+                    "WfBuilder_GuideContentRepurposeExample2",
+                    "Turn a founder note into social, email, and blog content.")),
+                new WorkflowTemplateGuideExampleItem(WorkflowBuilderText.Resolve(
+                    _localization?.GetString("WfBuilder_GuideContentRepurposeExample3"),
+                    "WfBuilder_GuideContentRepurposeExample3",
+                    "Use a long-form write-up as the base for a repurposing pass."))
+            ]),
+
+        _ => throw new ArgumentOutOfRangeException(nameof(id), id, null)
+    };
 
     private string GetCurrentResultText()
     {
@@ -1169,7 +1419,9 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
             captureLabel: RunResultContextText,
             resultText: resultText,
             capturedAt: DateTime.UtcNow,
-            status: RunFailed ? "Failed" : "Completed",
+            status: RunFailed
+                ? WorkflowRunHistoryDisplayItem.StatusName(_localization, "failed")
+                : WorkflowRunHistoryDisplayItem.StatusName(_localization, "completed"),
             totalTokensUsed: RunTotalTokens,
             durationMs: RunDurationMs);
     }
@@ -1182,13 +1434,14 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
             return null;
         }
 
+        // The name goes into the artifact's title and file name, which stay as they are.
         var workflowName = !string.IsNullOrWhiteSpace(SelectedWorkflowName)
             ? SelectedWorkflowName
             : "Workflow";
 
         return BuildWorkflowResultArtifact(
             workflowName: workflowName,
-            captureLabel: $"Stored run from {run.StartedAtText}",
+            captureLabel: StoredRunCaptureLabel(run),
             resultText: resultText,
             capturedAt: run.StartedAt,
             status: run.StatusText,
@@ -1196,7 +1449,25 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
             durationMs: run.DurationMs);
     }
 
-    private static TextArtifactExportItem BuildWorkflowResultArtifact(
+    /// <summary>Says a stored run is on screen, for the status line and the result context.</summary>
+    private string ShowingStoredRunText(WorkflowRunHistoryDisplayItem run) => WorkflowBuilderText.Resolve(
+        _localization?.GetString("WfBuilder_ShowingStoredRun", run.StartedAtText),
+        "WfBuilder_ShowingStoredRun",
+        "Showing stored run from {0}",
+        run.StartedAtText);
+
+    /// <summary>The context line a saved or exported stored run carries.</summary>
+    private string StoredRunCaptureLabel(WorkflowRunHistoryDisplayItem run) => WorkflowBuilderText.Resolve(
+        _localization?.GetString("WfBuilder_StoredRunCaptureLabel", run.StartedAtText),
+        "WfBuilder_StoredRunCaptureLabel",
+        "Stored run from {0}",
+        run.StartedAtText);
+
+    /// <summary>
+    /// The artifact a result is saved or exported as. Its metadata names, title and file name
+    /// stay as they are; the values shown on the page (context and status) are in the UI language.
+    /// </summary>
+    private TextArtifactExportItem BuildWorkflowResultArtifact(
         string workflowName,
         string captureLabel,
         string resultText,
@@ -1214,7 +1485,12 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         {
             ["Workflow"] = normalizedWorkflowName,
             ["Captured"] = capturedAt.ToLocalTime().ToString("yyyy-MM-dd h:mm tt"),
-            ["Context"] = string.IsNullOrWhiteSpace(captureLabel) ? "Workflow result" : captureLabel,
+            ["Context"] = string.IsNullOrWhiteSpace(captureLabel)
+                ? WorkflowBuilderText.Resolve(
+                    _localization?.GetString("WfBuilder_DefaultCaptureLabel"),
+                    "WfBuilder_DefaultCaptureLabel",
+                    "Workflow result")
+                : captureLabel,
             ["Status"] = status
         };
 
@@ -1252,7 +1528,10 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
                 captureLabel,
                 resultText,
                 capturedAt,
-                status: "Saved",
+                status: WorkflowBuilderText.Resolve(
+                    _localization?.GetString("WfBuilder_RunStatusSaved"),
+                    "WfBuilder_RunStatusSaved",
+                    "Saved"),
                 totalTokensUsed: 0,
                 durationMs: null);
 
@@ -1277,7 +1556,10 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to save workflow result to vault");
-            StatusMessage = "Failed to save workflow result to Knowledge Vault";
+            StatusMessage = WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_SaveResultToVaultFailed"),
+                "WfBuilder_SaveResultToVaultFailed",
+                "Failed to save workflow result to Knowledge Vault");
             return null;
         }
     }
@@ -1288,7 +1570,10 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
     {
         if (_exportService is null)
         {
-            return ExportResult.Fail("Export service unavailable.");
+            return ExportResult.Fail(WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_ExportServiceUnavailable"),
+                "WfBuilder_ExportServiceUnavailable",
+                "Export service unavailable."));
         }
 
         return await _exportService.ExportTextArtifactAsync(artifact, options);
@@ -1325,7 +1610,8 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         CurrentStepName = run.StepResults.LastOrDefault()?.StepName ?? string.Empty;
         RunTotalTokens = run.TotalTokensUsed;
         RunDurationMs = run.DurationMs ?? 0;
-        RunResultContextText = $"Showing stored run from {run.StartedAtText}";
+        RunResultContextText = ShowingStoredRunText(run);
+        IsShowingStoredRun = true;
 
         StepOutputs.Clear();
         foreach (var step in run.StepResults)
@@ -1565,8 +1851,13 @@ public partial class StepOutputItem : ObservableObject
 
 public sealed partial class WorkflowRunHistoryDisplayItem : ObservableObject
 {
-    public WorkflowRunHistoryDisplayItem(WorkflowRunHistoryItem run)
+    private readonly ILocalizationService? _localization;
+
+    /// <param name="run">The stored run.</param>
+    /// <param name="localization">Translates the status and details; without it they are in English.</param>
+    public WorkflowRunHistoryDisplayItem(WorkflowRunHistoryItem run, ILocalizationService? localization = null)
     {
+        _localization = localization;
         RunId = run.RunId;
         Status = run.Status;
         StartedAt = run.StartedAt;
@@ -1593,13 +1884,21 @@ public sealed partial class WorkflowRunHistoryDisplayItem : ObservableObject
     public long TotalTokensUsed { get; }
     public double? DurationMs { get; }
     public IReadOnlyList<WorkflowStepResult> StepResults { get; }
-    public string StatusText => Status switch
+    public string StatusText => StatusName(_localization, Status);
+
+    /// <summary>The name shown for a stored run status ("completed", "failed" and so on).</summary>
+    internal static string StatusName(ILocalizationService? localization, string status) => status switch
     {
-        "completed" => "Completed",
-        "failed" => "Failed",
-        "cancelled" => "Cancelled",
-        "running" => "Running",
-        _ => "Pending"
+        "completed" => WorkflowBuilderText.Resolve(
+            localization?.GetString("WfBuilder_RunStatusCompleted"), "WfBuilder_RunStatusCompleted", "Completed"),
+        "failed" => WorkflowBuilderText.Resolve(
+            localization?.GetString("WfBuilder_RunStatusFailed"), "WfBuilder_RunStatusFailed", "Failed"),
+        "cancelled" => WorkflowBuilderText.Resolve(
+            localization?.GetString("WfBuilder_RunStatusCancelled"), "WfBuilder_RunStatusCancelled", "Cancelled"),
+        "running" => WorkflowBuilderText.Resolve(
+            localization?.GetString("WfBuilder_RunStatusRunning"), "WfBuilder_RunStatusRunning", "Running"),
+        _ => WorkflowBuilderText.Resolve(
+            localization?.GetString("WfBuilder_RunStatusPending"), "WfBuilder_RunStatusPending", "Pending")
     };
 
     public string DetailText
@@ -1608,12 +1907,32 @@ public sealed partial class WorkflowRunHistoryDisplayItem : ObservableObject
         {
             var parts = new List<string>
             {
-                $"{StepsCompleted}/{TotalSteps} steps"
+                TotalSteps == 1
+                    ? WorkflowBuilderText.Resolve(
+                        _localization?.GetString("WfBuilder_RunDetailStepsOne", StepsCompleted, TotalSteps),
+                        "WfBuilder_RunDetailStepsOne",
+                        "{0}/{1} step",
+                        StepsCompleted, TotalSteps)
+                    : WorkflowBuilderText.Resolve(
+                        _localization?.GetString("WfBuilder_RunDetailStepsMany", StepsCompleted, TotalSteps),
+                        "WfBuilder_RunDetailStepsMany",
+                        "{0}/{1} steps",
+                        StepsCompleted, TotalSteps)
             };
 
             if (TotalTokensUsed > 0)
             {
-                parts.Add($"{TotalTokensUsed} tokens");
+                parts.Add(TotalTokensUsed == 1
+                    ? WorkflowBuilderText.Resolve(
+                        _localization?.GetString("WfBuilder_RunDetailTokensOne", TotalTokensUsed),
+                        "WfBuilder_RunDetailTokensOne",
+                        "{0} token",
+                        TotalTokensUsed)
+                    : WorkflowBuilderText.Resolve(
+                        _localization?.GetString("WfBuilder_RunDetailTokensMany", TotalTokensUsed),
+                        "WfBuilder_RunDetailTokensMany",
+                        "{0} tokens",
+                        TotalTokensUsed));
             }
 
             if (DurationMs is double durationMs && durationMs > 0)

@@ -1863,6 +1863,84 @@
   <data name="Digest_TrendNew" xml:space="preserve"><value>本时段新增</value></data>
   <data name="Digest_TrendChange" xml:space="preserve"><value>较上一时段 {0}</value></data>
   <data name="Digest_TrendFlat" xml:space="preserve"><value>与上一时段持平</value></data>
+  <data name="WfBuilder_NoResultToSave" xml:space="preserve"><value>没有可保存的工作流结果</value></data>
+  <data name="WfBuilder_ResolvedRunBySaving" xml:space="preserve"><value>已将聚焦的工作流运行以“{0}”保存到 Knowledge Vault，并标记为已处理。</value></data>
+  <data name="WfBuilder_SavedResultToVault" xml:space="preserve"><value>已将工作流结果以“{0}”保存到 Knowledge Vault</value></data>
+  <data name="WfBuilder_StoredRunNothingToSave" xml:space="preserve"><value>此已保存的运行没有可保存的结果内容</value></data>
+  <data name="WfBuilder_SavedStoredResultToVault" xml:space="preserve"><value>已将已保存的工作流结果以“{0}”保存到 Knowledge Vault</value></data>
+  <data name="WfBuilder_NoResultToExport" xml:space="preserve"><value>没有可导出的工作流结果。</value></data>
+  <data name="WfBuilder_ResolvedRunByExporting" xml:space="preserve"><value>已将聚焦的工作流运行导出到 {0}，并标记为已处理。</value></data>
+  <data name="WfBuilder_ExportedResult" xml:space="preserve"><value>已将工作流结果导出到 {0}</value></data>
+  <data name="WfBuilder_NoRunSelectedToExport" xml:space="preserve"><value>未选择要导出的工作流运行。</value></data>
+  <data name="WfBuilder_StoredRunNothingToExport" xml:space="preserve"><value>此已保存的运行没有可导出的结果内容。</value></data>
+  <data name="WfBuilder_ExportedStoredResult" xml:space="preserve"><value>已将已保存的工作流结果导出到 {0}</value></data>
+  <data name="WfBuilder_LoadWorkflowsFailed" xml:space="preserve"><value>无法加载工作流</value></data>
+  <data name="WfBuilder_NewWorkflowName" xml:space="preserve"><value>新建工作流</value></data>
+  <data name="WfBuilder_UseTemplateToCustomize" xml:space="preserve"><value>请使用“使用模板”来自定义内置工作流</value></data>
+  <data name="WfBuilder_ExportWorkflowFailed" xml:space="preserve"><value>导出失败</value></data>
+  <data name="WfBuilder_CreatedFromTemplate" xml:space="preserve"><value>已从模板创建工作流“{0}”</value></data>
+  <data name="WfBuilder_CreateFromTemplateFailed" xml:space="preserve"><value>无法从模板创建工作流</value></data>
+  <data name="WfBuilder_SelectedTemplate" xml:space="preserve"><value>已选择模板“{0}”</value></data>
+  <data name="WfBuilder_WorkflowSaved" xml:space="preserve"><value>工作流“{0}”已保存</value></data>
+  <data name="WfBuilder_SavedAsNewWorkflow" xml:space="preserve"><value>内置工作流“{0}”未被更改；您的编辑已保存为新工作流“{1}”</value></data>
+  <data name="WfBuilder_SaveWorkflowFailed" xml:space="preserve"><value>无法保存工作流</value></data>
+  <data name="WfBuilder_DefaultStepName" xml:space="preserve"><value>步骤 {0}</value></data>
+  <data name="WfBuilder_WorkflowDeleted" xml:space="preserve"><value>工作流已删除</value></data>
+  <data name="WfBuilder_DeleteWorkflowFailed" xml:space="preserve"><value>无法删除工作流</value></data>
+  <data name="WfBuilder_EnterInputToProcess" xml:space="preserve"><value>请输入要处理的文本</value></data>
+  <data name="WfBuilder_ShowingLatestResult" xml:space="preserve"><value>正在显示最新的运行结果</value></data>
+  <data name="WfBuilder_StepsFailed" xml:space="preserve"><value>一个或多个步骤失败。请查看步骤输出了解详情。</value></data>
+  <data name="WfBuilder_WorkflowCompleted" xml:space="preserve"><value>工作流已完成（{0} ms）</value></data>
+  <data name="WfBuilder_WorkflowFailed" xml:space="preserve"><value>工作流失败</value></data>
+  <data name="WfBuilder_ExecutionFailed" xml:space="preserve"><value>工作流运行失败</value></data>
+  <data name="WfBuilder_ShowingFailedResult" xml:space="preserve"><value>正在显示失败的运行结果</value></data>
+  <data name="WfBuilder_RunCancelledByUser" xml:space="preserve"><value>已被用户取消</value></data>
+  <data name="WfBuilder_ShowingCancelledResult" xml:space="preserve"><value>正在显示已取消的运行结果</value></data>
+  <data name="WfBuilder_WorkflowCancelled" xml:space="preserve"><value>工作流已取消</value></data>
+  <data name="WfBuilder_ImportedWorkflow" xml:space="preserve"><value>已导入工作流“{0}”</value></data>
+  <data name="WfBuilder_ImportInvalidJson" xml:space="preserve"><value>导入失败 — 工作流 JSON 无效</value></data>
+  <data name="WfBuilder_LoadRecentRunsFailed" xml:space="preserve"><value>无法加载最近的工作流运行</value></data>
+  <data name="WfBuilder_RequestedRunUnavailable" xml:space="preserve"><value>请求的工作流运行已不可用。</value></data>
+  <data name="WfBuilder_RequestedRunNotInHistory" xml:space="preserve"><value>请求的工作流运行已不在最近的历史记录中。</value></data>
+  <data name="WfBuilder_GuideSummarizeActSummary" xml:space="preserve"><value>将笔记、文字记录或粗略的原始材料转化为简短摘要、要点和可执行的后续步骤。</value></data>
+  <data name="WfBuilder_GuideSummarizeActBestFor" xml:space="preserve"><value>会议记录、通话文字稿、头脑风暴内容，以及需要整理成明确后续工作的长文档。</value></data>
+  <data name="WfBuilder_GuideSummarizeActOutcome" xml:space="preserve"><value>简明的概述、提炼后的要点列表，以及可执行或共享的实用行动项清单。</value></data>
+  <data name="WfBuilder_GuideSummarizeActExample1" xml:space="preserve"><value>粘贴会议文字稿并提取后续行动。</value></data>
+  <data name="WfBuilder_GuideSummarizeActExample2" xml:space="preserve"><value>放入一份长备忘录，将其整理成供团队使用的要点。</value></data>
+  <data name="WfBuilder_GuideSummarizeActExample3" xml:space="preserve"><value>根据粗略的头脑风暴笔记生成按优先级排列的行动清单。</value></data>
+  <data name="WfBuilder_GuideResearchBriefSummary" xml:space="preserve"><value>将一个主题、问题或初步的研究资料整理成结论平衡、结构清晰的简报。</value></data>
+  <data name="WfBuilder_GuideResearchBriefBestFor" xml:space="preserve"><value>探索新主题、准备战略讨论，或整理一组粗略的研究笔记。</value></data>
+  <data name="WfBuilder_GuideResearchBriefOutcome" xml:space="preserve"><value>执行摘要、背景、关键发现、不同观点，以及可作为后续基础的最终综合结论。</value></data>
+  <data name="WfBuilder_GuideResearchBriefExample1" xml:space="preserve"><value>粘贴一个研究问题，请求一份观点平衡的简报。</value></data>
+  <data name="WfBuilder_GuideResearchBriefExample2" xml:space="preserve"><value>利用文章笔记生成可直接用于决策的摘要。</value></data>
+  <data name="WfBuilder_GuideResearchBriefExample3" xml:space="preserve"><value>将粗略的主题大纲整理成供审阅的结构化简报。</value></data>
+  <data name="WfBuilder_GuideDocumentReviewSummary" xml:space="preserve"><value>审阅文档，找出有效之处，并为下一稿确定具体的改进点。</value></data>
+  <data name="WfBuilder_GuideDocumentReviewBestFor" xml:space="preserve"><value>提案草稿、客户文档、内部备忘录、落地页文案以及其他需要点评的文字。</value></data>
+  <data name="WfBuilder_GuideDocumentReviewOutcome" xml:space="preserve"><value>文档摘要、清晰的优缺点，以及按优先级排列的改进清单。</value></data>
+  <data name="WfBuilder_GuideDocumentReviewExample1" xml:space="preserve"><value>粘贴提案草稿，获取可执行的修改建议。</value></data>
+  <data name="WfBuilder_GuideDocumentReviewExample2" xml:space="preserve"><value>在广泛共享之前审阅内部文档。</value></data>
+  <data name="WfBuilder_GuideDocumentReviewExample3" xml:space="preserve"><value>用于营销文案，找出薄弱之处并提炼信息。</value></data>
+  <data name="WfBuilder_GuideContentRepurposeSummary" xml:space="preserve"><value>从一份核心内容出发，将其改编为多种可发布的格式。</value></data>
+  <data name="WfBuilder_GuideContentRepurposeBestFor" xml:space="preserve"><value>希望转化为社交媒体帖子、电子邮件文案和较长书面版本的原始素材。</value></data>
+  <data name="WfBuilder_GuideContentRepurposeOutcome" xml:space="preserve"><value>提炼出的核心信息，以及适配帖子串、正式邮件和博客文章的改编版本。</value></data>
+  <data name="WfBuilder_GuideContentRepurposeExample1" xml:space="preserve"><value>粘贴网络研讨会文字稿，生成多种分发格式。</value></data>
+  <data name="WfBuilder_GuideContentRepurposeExample2" xml:space="preserve"><value>将创始人随笔转化为社交媒体、电子邮件和博客内容。</value></data>
+  <data name="WfBuilder_GuideContentRepurposeExample3" xml:space="preserve"><value>以一篇长文为基础进行内容改编。</value></data>
+  <data name="WfBuilder_ShowingStoredRun" xml:space="preserve"><value>正在显示 {0} 的已保存运行</value></data>
+  <data name="WfBuilder_StoredRunCaptureLabel" xml:space="preserve"><value>{0} 的已保存运行</value></data>
+  <data name="WfBuilder_DefaultCaptureLabel" xml:space="preserve"><value>工作流结果</value></data>
+  <data name="WfBuilder_RunStatusSaved" xml:space="preserve"><value>已保存</value></data>
+  <data name="WfBuilder_SaveResultToVaultFailed" xml:space="preserve"><value>无法将工作流结果保存到 Knowledge Vault</value></data>
+  <data name="WfBuilder_ExportServiceUnavailable" xml:space="preserve"><value>导出服务不可用。</value></data>
+  <data name="WfBuilder_RunStatusCompleted" xml:space="preserve"><value>已完成</value></data>
+  <data name="WfBuilder_RunStatusFailed" xml:space="preserve"><value>失败</value></data>
+  <data name="WfBuilder_RunStatusCancelled" xml:space="preserve"><value>已取消</value></data>
+  <data name="WfBuilder_RunStatusRunning" xml:space="preserve"><value>运行中</value></data>
+  <data name="WfBuilder_RunStatusPending" xml:space="preserve"><value>等待中</value></data>
+  <data name="WfBuilder_RunDetailStepsOne" xml:space="preserve"><value>{0}/{1} 个步骤</value></data>
+  <data name="WfBuilder_RunDetailStepsMany" xml:space="preserve"><value>{0}/{1} 个步骤</value></data>
+  <data name="WfBuilder_RunDetailTokensOne" xml:space="preserve"><value>{0} 个 Token</value></data>
+  <data name="WfBuilder_RunDetailTokensMany" xml:space="preserve"><value>{0} 个 Token</value></data>
   <data name="WfBuilder_RecentRuns.Text" xml:space="preserve"><value>最近运行</value></data>
   <data name="WfBuilder_StoredWorkflowResultsYou.Text" xml:space="preserve"><value>已保存的工作流结果,无需重新运行即可再次打开。</value></data>
   <data name="WfBuilder_OpenedFromOperations.Text" xml:space="preserve"><value>从 Operations 打开</value></data>

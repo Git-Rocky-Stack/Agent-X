@@ -1863,6 +1863,84 @@
   <data name="Digest_TrendNew" xml:space="preserve"><value>nouveau sur cette période</value></data>
   <data name="Digest_TrendChange" xml:space="preserve"><value>{0} par rapport à la période précédente</value></data>
   <data name="Digest_TrendFlat" xml:space="preserve"><value>stable par rapport à la période précédente</value></data>
+  <data name="WfBuilder_NoResultToSave" xml:space="preserve"><value>Aucun résultat de flux de travail à enregistrer</value></data>
+  <data name="WfBuilder_ResolvedRunBySaving" xml:space="preserve"><value>L'exécution ciblée du flux de travail a été traitée : enregistrée dans le Coffre-fort de Connaissances sous « {0} ».</value></data>
+  <data name="WfBuilder_SavedResultToVault" xml:space="preserve"><value>Résultat du flux de travail enregistré dans le Coffre-fort de Connaissances sous « {0} »</value></data>
+  <data name="WfBuilder_StoredRunNothingToSave" xml:space="preserve"><value>Cette exécution enregistrée ne contient aucun résultat à enregistrer</value></data>
+  <data name="WfBuilder_SavedStoredResultToVault" xml:space="preserve"><value>Résultat enregistré du flux de travail ajouté au Coffre-fort de Connaissances sous « {0} »</value></data>
+  <data name="WfBuilder_NoResultToExport" xml:space="preserve"><value>Aucun résultat de flux de travail à exporter.</value></data>
+  <data name="WfBuilder_ResolvedRunByExporting" xml:space="preserve"><value>L'exécution ciblée du flux de travail a été traitée : exportée vers {0}.</value></data>
+  <data name="WfBuilder_ExportedResult" xml:space="preserve"><value>Résultat du flux de travail exporté vers {0}</value></data>
+  <data name="WfBuilder_NoRunSelectedToExport" xml:space="preserve"><value>Aucune exécution de flux de travail sélectionnée pour l'exportation.</value></data>
+  <data name="WfBuilder_StoredRunNothingToExport" xml:space="preserve"><value>Cette exécution enregistrée ne contient aucun résultat à exporter.</value></data>
+  <data name="WfBuilder_ExportedStoredResult" xml:space="preserve"><value>Résultat enregistré du flux de travail exporté vers {0}</value></data>
+  <data name="WfBuilder_LoadWorkflowsFailed" xml:space="preserve"><value>Impossible de charger les flux de travail</value></data>
+  <data name="WfBuilder_NewWorkflowName" xml:space="preserve"><value>Nouveau flux de travail</value></data>
+  <data name="WfBuilder_UseTemplateToCustomize" xml:space="preserve"><value>Utilisez « Utiliser le modèle » pour personnaliser les flux de travail intégrés</value></data>
+  <data name="WfBuilder_ExportWorkflowFailed" xml:space="preserve"><value>Échec de l'exportation</value></data>
+  <data name="WfBuilder_CreatedFromTemplate" xml:space="preserve"><value>Flux de travail « {0} » créé à partir du modèle</value></data>
+  <data name="WfBuilder_CreateFromTemplateFailed" xml:space="preserve"><value>Impossible de créer le flux de travail à partir du modèle</value></data>
+  <data name="WfBuilder_SelectedTemplate" xml:space="preserve"><value>Modèle « {0} » sélectionné</value></data>
+  <data name="WfBuilder_WorkflowSaved" xml:space="preserve"><value>Flux de travail « {0} » enregistré</value></data>
+  <data name="WfBuilder_SavedAsNewWorkflow" xml:space="preserve"><value>Le flux de travail intégré « {0} » n'a pas été modifié ; vos modifications ont été enregistrées dans le nouveau flux de travail « {1} »</value></data>
+  <data name="WfBuilder_SaveWorkflowFailed" xml:space="preserve"><value>Impossible d'enregistrer le flux de travail</value></data>
+  <data name="WfBuilder_DefaultStepName" xml:space="preserve"><value>Étape {0}</value></data>
+  <data name="WfBuilder_WorkflowDeleted" xml:space="preserve"><value>Flux de travail supprimé</value></data>
+  <data name="WfBuilder_DeleteWorkflowFailed" xml:space="preserve"><value>Impossible de supprimer le flux de travail</value></data>
+  <data name="WfBuilder_EnterInputToProcess" xml:space="preserve"><value>Saisissez le texte à traiter</value></data>
+  <data name="WfBuilder_ShowingLatestResult" xml:space="preserve"><value>Affichage du résultat de la dernière exécution</value></data>
+  <data name="WfBuilder_StepsFailed" xml:space="preserve"><value>Une ou plusieurs étapes ont échoué. Consultez les sorties des étapes pour plus de détails.</value></data>
+  <data name="WfBuilder_WorkflowCompleted" xml:space="preserve"><value>Flux de travail terminé en {0} ms</value></data>
+  <data name="WfBuilder_WorkflowFailed" xml:space="preserve"><value>Échec du flux de travail</value></data>
+  <data name="WfBuilder_ExecutionFailed" xml:space="preserve"><value>Échec de l'exécution du flux de travail</value></data>
+  <data name="WfBuilder_ShowingFailedResult" xml:space="preserve"><value>Affichage du résultat de l'exécution ayant échoué</value></data>
+  <data name="WfBuilder_RunCancelledByUser" xml:space="preserve"><value>Annulé par l'utilisateur</value></data>
+  <data name="WfBuilder_ShowingCancelledResult" xml:space="preserve"><value>Affichage du résultat de l'exécution annulée</value></data>
+  <data name="WfBuilder_WorkflowCancelled" xml:space="preserve"><value>Flux de travail annulé</value></data>
+  <data name="WfBuilder_ImportedWorkflow" xml:space="preserve"><value>Flux de travail « {0} » importé</value></data>
+  <data name="WfBuilder_ImportInvalidJson" xml:space="preserve"><value>Échec de l'importation — JSON de flux de travail non valide</value></data>
+  <data name="WfBuilder_LoadRecentRunsFailed" xml:space="preserve"><value>Impossible de charger les exécutions récentes du flux de travail</value></data>
+  <data name="WfBuilder_RequestedRunUnavailable" xml:space="preserve"><value>L'exécution de flux de travail demandée n'est plus disponible.</value></data>
+  <data name="WfBuilder_RequestedRunNotInHistory" xml:space="preserve"><value>L'exécution de flux de travail demandée ne figure plus dans l'historique récent.</value></data>
+  <data name="WfBuilder_GuideSummarizeActSummary" xml:space="preserve"><value>Transformez des notes, des transcriptions ou des documents bruts en un résumé court, des points clés et des prochaines étapes concrètes.</value></data>
+  <data name="WfBuilder_GuideSummarizeActBestFor" xml:space="preserve"><value>Notes de réunion, transcriptions d'appels, séances de brainstorming et longs documents à transformer en actions de suivi claires.</value></data>
+  <data name="WfBuilder_GuideSummarizeActOutcome" xml:space="preserve"><value>Une vue d'ensemble concise, une liste condensée des points principaux et une liste d'actions concrètes à réaliser ou à partager.</value></data>
+  <data name="WfBuilder_GuideSummarizeActExample1" xml:space="preserve"><value>Collez la transcription d'une réunion et extrayez les actions de suivi.</value></data>
+  <data name="WfBuilder_GuideSummarizeActExample2" xml:space="preserve"><value>Déposez une longue note et transformez-la en points clés pour votre équipe.</value></data>
+  <data name="WfBuilder_GuideSummarizeActExample3" xml:space="preserve"><value>Utilisez des notes de brainstorming brutes pour produire une liste d'actions priorisée.</value></data>
+  <data name="WfBuilder_GuideResearchBriefSummary" xml:space="preserve"><value>Partez d'un sujet, d'une question ou de premières recherches brutes pour en faire une note structurée aux conclusions équilibrées.</value></data>
+  <data name="WfBuilder_GuideResearchBriefBestFor" xml:space="preserve"><value>Explorer un nouveau sujet, préparer une discussion stratégique ou organiser un ensemble de notes de recherche brutes.</value></data>
+  <data name="WfBuilder_GuideResearchBriefOutcome" xml:space="preserve"><value>Une note de synthèse, le contexte, les principales conclusions, les points de vue opposés et une synthèse finale sur laquelle vous appuyer.</value></data>
+  <data name="WfBuilder_GuideResearchBriefExample1" xml:space="preserve"><value>Collez une question de recherche et demandez une note équilibrée.</value></data>
+  <data name="WfBuilder_GuideResearchBriefExample2" xml:space="preserve"><value>Utilisez des notes d'articles pour créer un résumé prêt pour la prise de décision.</value></data>
+  <data name="WfBuilder_GuideResearchBriefExample3" xml:space="preserve"><value>Transformez un plan sommaire en note structurée à relire.</value></data>
+  <data name="WfBuilder_GuideDocumentReviewSummary" xml:space="preserve"><value>Relisez un document, faites ressortir ce qui fonctionne et identifiez des améliorations concrètes pour la prochaine version.</value></data>
+  <data name="WfBuilder_GuideDocumentReviewBestFor" xml:space="preserve"><value>Projets de propositions, documents clients, notes internes, textes de pages d'accueil et autres écrits à critiquer.</value></data>
+  <data name="WfBuilder_GuideDocumentReviewOutcome" xml:space="preserve"><value>Un résumé du document, des points forts et des points faibles clairs, et une liste d'améliorations priorisée.</value></data>
+  <data name="WfBuilder_GuideDocumentReviewExample1" xml:space="preserve"><value>Collez un projet de proposition et obtenez des conseils de révision concrets.</value></data>
+  <data name="WfBuilder_GuideDocumentReviewExample2" xml:space="preserve"><value>Relisez la documentation interne avant de la diffuser largement.</value></data>
+  <data name="WfBuilder_GuideDocumentReviewExample3" xml:space="preserve"><value>Utilisez-le sur des textes marketing pour repérer les points faibles et resserrer le message.</value></data>
+  <data name="WfBuilder_GuideContentRepurposeSummary" xml:space="preserve"><value>Partez d'un contenu principal et déclinez-le en plusieurs formats publiables.</value></data>
+  <data name="WfBuilder_GuideContentRepurposeBestFor" xml:space="preserve"><value>Contenu source à transformer en publications pour les réseaux sociaux, en texte d'e-mail et en version écrite plus longue.</value></data>
+  <data name="WfBuilder_GuideContentRepurposeOutcome" xml:space="preserve"><value>L'extraction du message clé, ainsi que des déclinaisons pour un fil de discussion, un e-mail professionnel et un article de type blog.</value></data>
+  <data name="WfBuilder_GuideContentRepurposeExample1" xml:space="preserve"><value>Collez la transcription d'un webinaire et générez plusieurs formats de diffusion.</value></data>
+  <data name="WfBuilder_GuideContentRepurposeExample2" xml:space="preserve"><value>Transformez une note du fondateur en contenus pour les réseaux sociaux, l'e-mail et le blog.</value></data>
+  <data name="WfBuilder_GuideContentRepurposeExample3" xml:space="preserve"><value>Utilisez un long texte comme base d'une déclinaison de contenu.</value></data>
+  <data name="WfBuilder_ShowingStoredRun" xml:space="preserve"><value>Affichage de l'exécution enregistrée du {0}</value></data>
+  <data name="WfBuilder_StoredRunCaptureLabel" xml:space="preserve"><value>Exécution enregistrée du {0}</value></data>
+  <data name="WfBuilder_DefaultCaptureLabel" xml:space="preserve"><value>Résultat du flux de travail</value></data>
+  <data name="WfBuilder_RunStatusSaved" xml:space="preserve"><value>Enregistré</value></data>
+  <data name="WfBuilder_SaveResultToVaultFailed" xml:space="preserve"><value>Impossible d'enregistrer le résultat du flux de travail dans le Coffre-fort de Connaissances</value></data>
+  <data name="WfBuilder_ExportServiceUnavailable" xml:space="preserve"><value>Le service d'exportation est indisponible.</value></data>
+  <data name="WfBuilder_RunStatusCompleted" xml:space="preserve"><value>Terminée</value></data>
+  <data name="WfBuilder_RunStatusFailed" xml:space="preserve"><value>Échouée</value></data>
+  <data name="WfBuilder_RunStatusCancelled" xml:space="preserve"><value>Annulée</value></data>
+  <data name="WfBuilder_RunStatusRunning" xml:space="preserve"><value>En cours</value></data>
+  <data name="WfBuilder_RunStatusPending" xml:space="preserve"><value>En attente</value></data>
+  <data name="WfBuilder_RunDetailStepsOne" xml:space="preserve"><value>{0}/{1} étape</value></data>
+  <data name="WfBuilder_RunDetailStepsMany" xml:space="preserve"><value>{0}/{1} étapes</value></data>
+  <data name="WfBuilder_RunDetailTokensOne" xml:space="preserve"><value>{0} token</value></data>
+  <data name="WfBuilder_RunDetailTokensMany" xml:space="preserve"><value>{0} tokens</value></data>
   <data name="WfBuilder_RecentRuns.Text" xml:space="preserve"><value>Exécutions récentes</value></data>
   <data name="WfBuilder_StoredWorkflowResultsYou.Text" xml:space="preserve"><value>Résultats de flux de travail enregistrés que vous pouvez rouvrir sans les relancer.</value></data>
   <data name="WfBuilder_OpenedFromOperations.Text" xml:space="preserve"><value>Ouvert depuis Operations</value></data>

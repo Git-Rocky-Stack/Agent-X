@@ -2202,6 +2202,84 @@
   <data name="Digest_TrendNew" xml:space="preserve"><value>new this period</value></data>
   <data name="Digest_TrendChange" xml:space="preserve"><value>{0} vs prior period</value></data>
   <data name="Digest_TrendFlat" xml:space="preserve"><value>flat vs prior period</value></data>
+  <data name="WfBuilder_NoResultToSave" xml:space="preserve"><value>No workflow result available to save</value></data>
+  <data name="WfBuilder_ResolvedRunBySaving" xml:space="preserve"><value>Resolved the focused workflow run by saving it to Knowledge Vault as "{0}".</value></data>
+  <data name="WfBuilder_SavedResultToVault" xml:space="preserve"><value>Saved workflow result to Knowledge Vault as "{0}"</value></data>
+  <data name="WfBuilder_StoredRunNothingToSave" xml:space="preserve"><value>This stored run does not have result content to save</value></data>
+  <data name="WfBuilder_SavedStoredResultToVault" xml:space="preserve"><value>Saved stored workflow result to Knowledge Vault as "{0}"</value></data>
+  <data name="WfBuilder_NoResultToExport" xml:space="preserve"><value>No workflow result available to export.</value></data>
+  <data name="WfBuilder_ResolvedRunByExporting" xml:space="preserve"><value>Resolved the focused workflow run by exporting it to {0}.</value></data>
+  <data name="WfBuilder_ExportedResult" xml:space="preserve"><value>Exported workflow result to {0}</value></data>
+  <data name="WfBuilder_NoRunSelectedToExport" xml:space="preserve"><value>No workflow run selected for export.</value></data>
+  <data name="WfBuilder_StoredRunNothingToExport" xml:space="preserve"><value>This stored run does not have result content to export.</value></data>
+  <data name="WfBuilder_ExportedStoredResult" xml:space="preserve"><value>Exported stored workflow result to {0}</value></data>
+  <data name="WfBuilder_LoadWorkflowsFailed" xml:space="preserve"><value>Failed to load workflows</value></data>
+  <data name="WfBuilder_NewWorkflowName" xml:space="preserve"><value>New Workflow</value></data>
+  <data name="WfBuilder_UseTemplateToCustomize" xml:space="preserve"><value>Use Template to customize built-in workflows</value></data>
+  <data name="WfBuilder_ExportWorkflowFailed" xml:space="preserve"><value>Export failed</value></data>
+  <data name="WfBuilder_CreatedFromTemplate" xml:space="preserve"><value>Created workflow "{0}" from template</value></data>
+  <data name="WfBuilder_CreateFromTemplateFailed" xml:space="preserve"><value>Failed to create workflow from template</value></data>
+  <data name="WfBuilder_SelectedTemplate" xml:space="preserve"><value>Selected template "{0}"</value></data>
+  <data name="WfBuilder_WorkflowSaved" xml:space="preserve"><value>Workflow "{0}" saved</value></data>
+  <data name="WfBuilder_SavedAsNewWorkflow" xml:space="preserve"><value>Built-in workflow "{0}" was not changed; your edits were saved as the new workflow "{1}"</value></data>
+  <data name="WfBuilder_SaveWorkflowFailed" xml:space="preserve"><value>Failed to save workflow</value></data>
+  <data name="WfBuilder_DefaultStepName" xml:space="preserve"><value>Step {0}</value></data>
+  <data name="WfBuilder_WorkflowDeleted" xml:space="preserve"><value>Workflow deleted</value></data>
+  <data name="WfBuilder_DeleteWorkflowFailed" xml:space="preserve"><value>Failed to delete workflow</value></data>
+  <data name="WfBuilder_EnterInputToProcess" xml:space="preserve"><value>Please enter input text to process</value></data>
+  <data name="WfBuilder_ShowingLatestResult" xml:space="preserve"><value>Showing latest execution result</value></data>
+  <data name="WfBuilder_StepsFailed" xml:space="preserve"><value>One or more steps failed. Check step outputs for details.</value></data>
+  <data name="WfBuilder_WorkflowCompleted" xml:space="preserve"><value>Workflow completed in {0}ms</value></data>
+  <data name="WfBuilder_WorkflowFailed" xml:space="preserve"><value>Workflow failed</value></data>
+  <data name="WfBuilder_ExecutionFailed" xml:space="preserve"><value>Workflow execution failed</value></data>
+  <data name="WfBuilder_ShowingFailedResult" xml:space="preserve"><value>Showing the failed execution result</value></data>
+  <data name="WfBuilder_RunCancelledByUser" xml:space="preserve"><value>Cancelled by user</value></data>
+  <data name="WfBuilder_ShowingCancelledResult" xml:space="preserve"><value>Showing the cancelled execution result</value></data>
+  <data name="WfBuilder_WorkflowCancelled" xml:space="preserve"><value>Workflow cancelled</value></data>
+  <data name="WfBuilder_ImportedWorkflow" xml:space="preserve"><value>Imported workflow "{0}"</value></data>
+  <data name="WfBuilder_ImportInvalidJson" xml:space="preserve"><value>Import failed — invalid workflow JSON</value></data>
+  <data name="WfBuilder_LoadRecentRunsFailed" xml:space="preserve"><value>Failed to load recent workflow runs</value></data>
+  <data name="WfBuilder_RequestedRunUnavailable" xml:space="preserve"><value>The requested workflow run is no longer available.</value></data>
+  <data name="WfBuilder_RequestedRunNotInHistory" xml:space="preserve"><value>The requested workflow run is no longer in recent history.</value></data>
+  <data name="WfBuilder_GuideSummarizeActSummary" xml:space="preserve"><value>Turn notes, transcripts, or rough source material into a short summary, key points, and actionable next steps.</value></data>
+  <data name="WfBuilder_GuideSummarizeActBestFor" xml:space="preserve"><value>Meeting notes, call transcripts, brainstorm dumps, and long documents you need to turn into clear follow-up work.</value></data>
+  <data name="WfBuilder_GuideSummarizeActOutcome" xml:space="preserve"><value>A concise overview, a distilled list of the main points, and a practical action-item list you can execute or share.</value></data>
+  <data name="WfBuilder_GuideSummarizeActExample1" xml:space="preserve"><value>Paste a meeting transcript and extract the follow-up actions.</value></data>
+  <data name="WfBuilder_GuideSummarizeActExample2" xml:space="preserve"><value>Drop in a long memo and turn it into key points for your team.</value></data>
+  <data name="WfBuilder_GuideSummarizeActExample3" xml:space="preserve"><value>Use rough brainstorming notes to produce a prioritized action list.</value></data>
+  <data name="WfBuilder_GuideResearchBriefSummary" xml:space="preserve"><value>Take a topic, question, or early research dump and turn it into a structured brief with balanced findings.</value></data>
+  <data name="WfBuilder_GuideResearchBriefBestFor" xml:space="preserve"><value>Exploring a new topic, preparing for a strategy discussion, or organizing a rough set of research notes.</value></data>
+  <data name="WfBuilder_GuideResearchBriefOutcome" xml:space="preserve"><value>An executive summary, background, key findings, opposing views, and a final synthesis you can build from.</value></data>
+  <data name="WfBuilder_GuideResearchBriefExample1" xml:space="preserve"><value>Paste a research question and ask for a balanced briefing.</value></data>
+  <data name="WfBuilder_GuideResearchBriefExample2" xml:space="preserve"><value>Use article notes to create a decision-ready summary.</value></data>
+  <data name="WfBuilder_GuideResearchBriefExample3" xml:space="preserve"><value>Turn a rough topic outline into a structured brief for review.</value></data>
+  <data name="WfBuilder_GuideDocumentReviewSummary" xml:space="preserve"><value>Review a document, surface what is working, and identify concrete improvements for the next draft.</value></data>
+  <data name="WfBuilder_GuideDocumentReviewBestFor" xml:space="preserve"><value>Draft proposals, client documents, internal memos, landing-page copy, and other writing that needs critique.</value></data>
+  <data name="WfBuilder_GuideDocumentReviewOutcome" xml:space="preserve"><value>A document summary, clear strengths and weaknesses, and a prioritized improvement list.</value></data>
+  <data name="WfBuilder_GuideDocumentReviewExample1" xml:space="preserve"><value>Paste a proposal draft and get actionable revision guidance.</value></data>
+  <data name="WfBuilder_GuideDocumentReviewExample2" xml:space="preserve"><value>Review internal documentation before sharing it widely.</value></data>
+  <data name="WfBuilder_GuideDocumentReviewExample3" xml:space="preserve"><value>Use on marketing copy to find weak spots and tighten the message.</value></data>
+  <data name="WfBuilder_GuideContentRepurposeSummary" xml:space="preserve"><value>Start from one core piece of content and reshape it into multiple publishable formats.</value></data>
+  <data name="WfBuilder_GuideContentRepurposeBestFor" xml:space="preserve"><value>Source material you want to turn into social posts, email copy, and a longer written version.</value></data>
+  <data name="WfBuilder_GuideContentRepurposeOutcome" xml:space="preserve"><value>A core-message extraction plus adapted outputs for a thread, a professional email, and a blog-style post.</value></data>
+  <data name="WfBuilder_GuideContentRepurposeExample1" xml:space="preserve"><value>Paste a webinar transcript and generate multiple distribution formats.</value></data>
+  <data name="WfBuilder_GuideContentRepurposeExample2" xml:space="preserve"><value>Turn a founder note into social, email, and blog content.</value></data>
+  <data name="WfBuilder_GuideContentRepurposeExample3" xml:space="preserve"><value>Use a long-form write-up as the base for a repurposing pass.</value></data>
+  <data name="WfBuilder_ShowingStoredRun" xml:space="preserve"><value>Showing stored run from {0}</value></data>
+  <data name="WfBuilder_StoredRunCaptureLabel" xml:space="preserve"><value>Stored run from {0}</value></data>
+  <data name="WfBuilder_DefaultCaptureLabel" xml:space="preserve"><value>Workflow result</value></data>
+  <data name="WfBuilder_RunStatusSaved" xml:space="preserve"><value>Saved</value></data>
+  <data name="WfBuilder_SaveResultToVaultFailed" xml:space="preserve"><value>Failed to save workflow result to Knowledge Vault</value></data>
+  <data name="WfBuilder_ExportServiceUnavailable" xml:space="preserve"><value>Export service unavailable.</value></data>
+  <data name="WfBuilder_RunStatusCompleted" xml:space="preserve"><value>Completed</value></data>
+  <data name="WfBuilder_RunStatusFailed" xml:space="preserve"><value>Failed</value></data>
+  <data name="WfBuilder_RunStatusCancelled" xml:space="preserve"><value>Cancelled</value></data>
+  <data name="WfBuilder_RunStatusRunning" xml:space="preserve"><value>Running</value></data>
+  <data name="WfBuilder_RunStatusPending" xml:space="preserve"><value>Pending</value></data>
+  <data name="WfBuilder_RunDetailStepsOne" xml:space="preserve"><value>{0}/{1} step</value></data>
+  <data name="WfBuilder_RunDetailStepsMany" xml:space="preserve"><value>{0}/{1} steps</value></data>
+  <data name="WfBuilder_RunDetailTokensOne" xml:space="preserve"><value>{0} token</value></data>
+  <data name="WfBuilder_RunDetailTokensMany" xml:space="preserve"><value>{0} tokens</value></data>
   <data name="WfBuilder_RecentRuns.Text" xml:space="preserve"><value>Recent Runs</value></data>
   <data name="WfBuilder_StoredWorkflowResultsYou.Text" xml:space="preserve"><value>Stored workflow results you can reopen without rerunning.</value></data>
   <data name="WfBuilder_OpenedFromOperations.Text" xml:space="preserve"><value>Opened from Operations</value></data>

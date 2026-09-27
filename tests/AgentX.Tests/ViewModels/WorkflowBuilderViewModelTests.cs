@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using AgentX.App.Services;
 using AgentX.App.ViewModels;
@@ -376,6 +377,7 @@ public sealed class WorkflowBuilderViewModelTests : IDisposable
         viewModel.StepOutputs.Should().ContainSingle();
         viewModel.StepOutputs[0].StepName.Should().Be("Analyze");
         viewModel.RunResultContextText.Should().Contain("Showing stored run from");
+        viewModel.IsShowingStoredRun.Should().BeTrue();
     }
 
     [Fact]
@@ -694,6 +696,7 @@ public sealed class WorkflowBuilderViewModelTests : IDisposable
             },
             RunOutput = "stored result",
             RunResultContextText = $"Showing stored run from {run.StartedAtText}",
+            IsShowingStoredRun = true,
             FocusedWorkflowRunSourceLabel = "Opened stored workflow run for \"Research Brief\" from Operations"
         };
         viewModel.RecentRuns.Add(run);
@@ -1460,6 +1463,98 @@ public sealed class WorkflowBuilderViewModelTests : IDisposable
         var english = EnglishResources().GetString("WfBuilder_FixStepSettings", 1);
 
         english.Should().Be("Step 1 has settings that cannot be used. Fix them before saving the workflow.");
+    }
+
+    // ---- Page messages in the UI language ----
+
+    /// <summary>
+    /// A resource lookup followed by the resource key and the English the view model shows
+    /// when it has no localization service.
+    /// </summary>
+    private static readonly Regex FallbackPair = new(
+        @"Resolve\(\s*_?localization\?\.GetString\(\s*""(?<key>\w+)""(?:[^()]|\([^()]*\))*\)\s*,\s*""(?<key2>\w+)""\s*,\s*""(?<english>(?:[^""\\]|\\.)*)""");
+
+    [Fact]
+    public void Every_English_fallback_matches_its_en_US_resource()
+    {
+        // Without a localization service the page shows the English written next to each
+        // resource key. That text must be the en-US resource, or the page would read
+        // differently depending on whether the service was supplied.
+        var source = File.ReadAllText(
+            Path.Combine(ResolveSourceRoot(), "AgentX.App", "ViewModels", "WorkflowBuilderViewModel.cs"));
+        var english = EnglishResources();
+
+        var pairs = FallbackPair.Matches(source);
+
+        pairs.Count.Should().Be(Regex.Matches(source, @"GetString\(\s*""WfBuilder_").Count,
+            "every workflow builder resource lookup has an English fallback");
+        foreach (System.Text.RegularExpressions.Match pair in pairs)
+        {
+            var key = pair.Groups["key"].Value;
+            pair.Groups["key2"].Value.Should().Be(key, "a fallback belongs to the resource it replaces");
+            english.GetString(key).Should().Be(Regex.Unescape(pair.Groups["english"].Value), $"{key} falls back to its en-US text");
+        }
+    }
+
+    [Fact]
+    public void Run_history_items_name_the_status_and_counts_in_the_UI_language()
+    {
+        var single = new WorkflowRunHistoryDisplayItem(
+            new WorkflowRunHistoryItem { RunId = 1, Status = "cancelled", StepsCompleted = 0, TotalSteps = 1, TotalTokensUsed = 1 },
+            EnglishResources());
+        var several = new WorkflowRunHistoryDisplayItem(
+            new WorkflowRunHistoryItem { RunId = 2, Status = "completed", StepsCompleted = 2, TotalSteps = 3, TotalTokensUsed = 180, DurationMs = 42 });
+
+        single.StatusText.Should().Be("Cancelled");
+        single.DetailText.Should().Be("0/1 step • 1 token");
+        several.StatusText.Should().Be("Completed");
+        several.DetailText.Should().Be("2/3 steps • 180 tokens • 42 ms");
+    }
+
+    [Fact]
+    public void A_new_workflow_and_its_steps_take_their_default_names_from_the_resources()
+    {
+        var localization = new Mock<ILocalizationService>();
+        localization.Setup(service => service.GetString(It.IsAny<string>())).Returns((string key) => key);
+        localization.Setup(service => service.GetString(It.IsAny<string>(), It.IsAny<object[]>()))
+            .Returns((string key, object[] _) => key);
+        localization.Setup(service => service.GetString("WfBuilder_NewWorkflowName")).Returns("Neuer Workflow");
+        localization.Setup(service => service.GetString("WfBuilder_DefaultStepName", It.IsAny<object[]>()))
+            .Returns((string _, object[] args) => $"Schritt {args[0]}");
+        var viewModel = new WorkflowBuilderViewModel(
+            _workflowService.Object,
+            _workflowEngine.Object,
+            _modelManager.Object,
+            _documentService.Object,
+            localization: localization.Object);
+
+        viewModel.CreateWorkflowCommand.Execute(null);
+        viewModel.AddStepCommand.Execute(null);
+
+        viewModel.EditName.Should().Be("Neuer Workflow");
+        viewModel.EditSteps.Select(step => step.Name).Should().Equal("Schritt 1", "Schritt 2");
+        viewModel.EditCategory.Should().Be("Custom", "the category is a stored value, not display text");
+    }
+
+    [Fact]
+    public void Template_guides_come_from_the_resources()
+    {
+        _workflowService.Setup(service => service.GetRecentRunsAsync(1, 8, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<WorkflowRunHistoryItem>());
+        var viewModel = new WorkflowBuilderViewModel(
+            _workflowService.Object,
+            _workflowEngine.Object,
+            _modelManager.Object,
+            _documentService.Object,
+            localization: EnglishResources());
+        viewModel.Workflows.Add(new WorkflowListItem { Id = 1, Name = "Document Review", Category = "Writing", IsBuiltIn = true });
+
+        viewModel.SelectTemplateCommand.Execute(1L);
+
+        viewModel.SelectedTemplateGuideSummary.Should().StartWith("Review a document, surface what is working");
+        viewModel.SelectedTemplateGuideExamples.Should().HaveCount(3);
+        viewModel.WorkflowStarterTemplates.Single().BestFor.Should().StartWith("Draft proposals, client documents");
+        viewModel.StatusMessage.Should().Be("Selected template \"Document Review\"");
     }
 
     [Theory]
