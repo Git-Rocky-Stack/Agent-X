@@ -1,592 +1,156 @@
-# Agent-X External API Documentation
+# Agent-X API Endpoints
 
 ## Overview
 
-Agent-X integrates with multiple **external AI services, web platforms, and APIs** to provide comprehensive AI-native functionality. This document catalogs all external endpoints, authentication methods, and usage patterns.
-
----
-
-## AI Provider Integrations
-
-### OpenAI API
-
-**Provider ID:** `openai`  
-**Base URL:** `https://api.openai.com/v1/` (configurable)  
-**Documentation:** https://platform.openai.com/docs/api-reference
-
-#### Authentication
-
-```csharp
-// Bearer token in Authorization header
-_http.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
-```
-
-#### Endpoints Used
-
-| Method | Endpoint | Purpose | Notes |
-|--------|----------|---------|-------|
-| GET | `/models` | List available models | Called on startup |
-| POST | `/chat/completions` | Chat completion | Supports streaming |
-
-#### Request Format (Chat Completions)
-
-```json
-POST /chat/completions
-{
-  "model": "gpt-4o",
-  "messages": [
-    { "role": "system", "content": "You are a helpful assistant." },
-    { "role": "user", "content": "Hello!" }
-  ],
-  "stream": true,
-  "temperature": 0.7,
-  "max_tokens": 4096
-}
-```
-
-#### Streaming Response Format (Server-Sent Events)
-
-```
-data: {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1699000000,"model":"gpt-4o","choices":[{"index":0,"delta":{"content":"Hello"}}]}
-
-data: [DONE]
-```
-
-#### Supported Models
-
-| Model ID | Display Name | Context | Features |
-|----------|--------------|---------|----------|
-| `gpt-4o` | GPT-4 Omni | 128K | Vision, streaming |
-| `gpt-4o-mini` | GPT-4o Mini | 128K | Faster, lower cost |
-| `gpt-4-turbo` | GPT-4 Turbo | 128K | Legacy support |
-| `o1-preview` | o1 Preview | Variable | Chain-of-thought |
-| `o1-mini` | o1 Mini | Variable | Fast reasoning |
-
-#### Code Reference
-
-```csharp
-// src/AgentX.Core/AI/Providers/OpenAiProvider.cs
-public sealed class OpenAiProvider : IAiProvider
-{
-    public async IAsyncEnumerable<string> StreamChatAsync(
-        string modelId,
-        IReadOnlyList<ChatMessage> messages,
-        ChatOptions? options = null,
-        CancellationToken ct = default)
-    {
-        // Implementation uses HttpClient with SSE parsing
-    }
-}
-```
-
----
-
-### Anthropic Claude API
-
-**Provider ID:** `anthropic`  
-**Base URL:** `https://api.anthropic.com/v1/` (configurable)  
-**Documentation:** https://docs.anthropic.com/claude/reference/
-
-#### Authentication
-
-```csharp
-// x-api-key header (not Authorization)
-_http.DefaultRequestHeaders.Add("x-api-key", apiKey);
-_http.DefaultRequestHeaders.Add("anthropic-version", "2023-06-01");
-```
-
-#### Endpoints Used
-
-| Method | Endpoint | Purpose | Notes |
-|--------|----------|---------|-------|
-| POST | `/messages` | Chat completion | Anthropic-specific format |
-| GET | N/A | List models | No endpoint; static catalog |
-
-#### Request Format (Messages)
-
-```json
-POST /messages
-{
-  "model": "claude-sonnet-4-20250514",
-  "max_tokens": 4096,
-  "system": "You are a helpful assistant.",
-  "messages": [
-    { "role": "user", "content": "Hello!" }
-  ],
-  "stream": true
-}
-```
-
-#### Streaming Response Format
-
-```
-event: message_start
-data: {"type":"message_start","message":{"id":"msg-123","role":"assistant","content":[]}}
-
-event: content_block_delta
-data: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"Hello"}}
-
-event: message_stop
-```
-
-#### Supported Models
-
-| Model ID | Display Name | Context | Features |
-|----------|--------------|---------|----------|
-| `claude-sonnet-4-20250514` | Claude Sonnet 4 | 200K | Balanced performance |
-| `claude-haiku-4-5-20251001` | Claude Haiku 4.5 | 200K | Fast, low cost |
-| `claude-opus-4-20250514` | Claude Opus 4 | 200K | Highest quality |
-| `claude-3-5-sonnet-20241022` | Claude 3.5 Sonnet | 200K | Legacy |
-
-#### Code Reference
-
-```csharp
-// src/AgentX.Core/AI/Providers/AnthropicProvider.cs
-public sealed class AnthropicProvider : IAiProvider
-{
-    private const string AnthropicApiVersion = "2023-06-01";
-    
-    public async IAsyncEnumerable<string> StreamChatAsync(...)
-    {
-        // Implements Anthropic-specific SSE event parsing
-    }
-}
-```
-
----
-
-### Ollama API (Local LLM)
-
-**Provider ID:** `ollama`  
-**Base URL:** `http://localhost:11434` (default, configurable)  
-**Documentation:** https://github.com/ollama/ollama/blob/main/docs/api.md
-
-#### Authentication
-
-None (local API).
-
-#### Endpoints Used
-
-| Method | Endpoint | Purpose | Notes |
-|--------|----------|---------|-------|
-| GET | `/api/tags` | List local models | Equivalent to /models |
-| POST | `/api/chat` | Chat completion | Streaming supported |
-| POST | `/api/embeddings` | Generate embeddings | For local embedding models |
-
-#### Request Format (Chat)
-
-```json
-POST /api/chat
-{
-  "model": "llama3.2",
-  "messages": [
-    { "role": "user", "content": "Hello!" }
-  ],
-  "stream": true,
-  "options": {
-    "temperature": 0.7,
-    "num_ctx": 4096
-  }
-}
-```
-
-#### Streaming Response Format
-
-```
-{"model":"llama3.2","created_at":"2024-01-01T00:00:00Z","message":{"role":"assistant","content":"Hello"},"done":false}
-
-{"model":"llama3.2","done":true,"total_duration":123456789}
-```
-
-#### Supported Models
-
-Models are dynamically discovered from local Ollama installation. Common models:
-
-| Model ID | Display Name | Parameters |
-|----------|--------------|------------|
-| `llama3.2` | Llama 3.2 | 3B/70B |
-| `mistral` | Mistral 7B | 7B |
-| `codellama` | Code Llama | 7B/13B/34B |
-| `phi3` | Phi-3 | 3.8B/14B |
-| `gemma2` | Gemma 2 | 9B/27B |
-
-#### Code Reference
-
-```csharp
-// src/AgentX.Core/AI/Providers/OllamaProvider.cs
-public sealed class OllamaProvider : IAiProvider
-{
-    private readonly OllamaApiClient _client;
-    
-    public async Task<bool> CheckConnectionAsync(CancellationToken ct = default)
-    {
-        // Uses OllamaSharp library with 3s timeout
-        return await _client.IsRunningAsync(ct);
-    }
-}
-```
-
----
-
-### Local LLM (LLamaSharp)
-
-**Provider ID:** `local-llm`  
-**Base URL:** N/A (in-process)  
-**Documentation:** https://github.com/SciSharp/LLamaSharp
-
-#### Usage
-
-```csharp
-// src/AgentX.Core/AI/Providers/LocalLlmProvider.cs
-public sealed class LocalLlmProvider : IAiProvider
-{
-    // Loads GGUF model files directly
-    // Supports CPU and CUDA backends
-    // In-process inference (no HTTP API)
-}
-```
-
-#### Supported Model Formats
-
-- GGUF (primary)
-- GGML (legacy)
-
----
-
-## Embedding Services
-
-### OpenAI Embeddings
-
-**Endpoint:** `https://api.openai.com/v1/embeddings`
-
-```json
-POST /embeddings
-{
-  "model": "text-embedding-3-small",
-  "input": "Your text here",
-  "dimensions": 1536
-}
-```
-
-| Model ID | Dimensions | Cost |
-|----------|------------|------|
-| `text-embedding-3-small` | 1536 | $0.02/1M tokens |
-| `text-embedding-3-large` | 3072 | $0.13/1M tokens |
-| `text-embedding-ada-002` | 1536 | Legacy |
-
----
-
-### Ollama Embeddings
-
-**Endpoint:** `POST http://localhost:11434/api/embeddings`
-
-```json
-{
-  "model": "nomic-embed-text",
-  "prompt": "Your text here"
-}
-```
-
-| Model ID | Dimensions |
-|----------|------------|
-| `nomic-embed-text` | 768 |
-| `mxbai-embed-large` | 1024 |
-| `all-minilm` | 384 |
-
----
-
-## Web Search APIs
-
-### Tavily API (Default)
-
-**Base URL:** `https://api.tavily.com/search`  
-**Documentation:** https://docs.tavily.com/docs/tavily-api/rest-api
-
-#### Authentication
-
-API Key as query parameter or in request body.
-
-#### Request Format
-
-```json
-POST /search
-{
-  "api_key": "your-key-here",
-  "query": "search query",
-  "search_depth": "basic",
-  "max_results": 10,
-  "include_answer": true,
-  "include_raw_content": false
-}
-```
-
-#### Response Format
-
-```json
-{
-  "answer": "AI-generated answer",
-  "query": "search query",
-  "results": [
-    {
-      "title": "Page title",
-      "url": "https://example.com",
-      "content": "Page content snippet...",
-      "score": 0.95,
-      "raw_content": null
-    }
-  ]
-}
-```
-
-#### Code Reference
-
-```csharp
-// src/AgentX.Core/Search/WebSearchService.cs
-public interface IWebSearchService
-{
-    Task<WebSearchResult> SearchAsync(
-        string query,
-        int maxResults = 10,
-        CancellationToken ct = default);
-}
-```
-
----
-
-## Web Content Extraction
-
-### Built-in Web Scraper
-
-**Technology:**
-- **HtmlAgilityPack** - HTML parsing
-- **Playwright** - JavaScript rendering (optional)
-- **Readability-like** algorithm - Content extraction
-
-#### No External API
-
-The web scraper is fully local and does not call external services:
-
-```csharp
-// src/AgentX.Core/Services/Web/WebScraperService.cs
-public interface IWebScraperService
-{
-    Task<WebContent> ScrapeAsync(
-        string url,
-        bool enableJsRendering = false,
-        CancellationToken ct = default);
-}
-```
-
-#### JavaScript Rendering
-
-When enabled, Playwright launches a headless browser:
-
-```csharp
-// src/AgentX.Core/Services/Web/JsRenderingService.cs
-public interface IJsRenderingService
-{
-    Task<string> RenderWithJsAsync(
-        string url,
-        CancellationToken ct = default);
-}
-```
-
----
-
-## OAuth Integrations
-
-### Google OAuth 2.0
-
-**Provider ID:** `google`  
-**Discovery Document:** `https://accounts.google.com/.well-known/openid-configuration`
-
-#### Scopes Used
-
-| Scope | Purpose |
-|-------|---------|
-| `openid` | OpenID Connect |
-| `email` | User email |
-| `profile` | Basic profile info |
-| `https://www.googleapis.com/auth/calendar` | Calendar access |
-| `https://www.googleapis.com/auth/gmail.readonly` | Gmail read access |
-
-#### Code Reference
-
-```csharp
-// src/AgentX.Core/Services/OAuth/OAuthProviderRegistry.cs
-public static class OAuthProviderRegistry
-{
-    public static OAuthProvider Google(
-        string clientId,
-        string clientSecret,
-        string redirectUri) => new()
-    {
-        ProviderId = "google",
-        AuthorizationEndpoint = "https://accounts.google.com/o/oauth2/v2/auth",
-        TokenEndpoint = "https://oauth2.googleapis.com/token",
-        // ...
-    };
-}
-```
-
----
-
-### Microsoft Graph OAuth
-
-**Provider ID:** `microsoft`  
-**Base URL:** `https://login.microsoftonline.com/`  
-
-#### Scopes Used
-
-| Scope | Purpose |
-|-------|---------|
-| `openid` | OpenID Connect |
-| `email` | User email |
-| `profile` | Basic profile |
-| `Calendars.ReadWrite` | Calendar access |
-| `Mail.Read` | Outlook email access |
-
----
-
-## Plugin System APIs
-
-### Plugin Manifest Format
-
-**File:** `plugin.json` in plugin directory
-
-```json
-{
-  "id": "agentx-plugin-example",
-  "name": "Example Plugin",
-  "version": "1.0.0",
-  "description": "An example plugin",
-  "author": "Your Name",
-  "type": "DataConnector",
-  "entryPoint": "ExamplePlugin.Plugin, ExamplePlugin",
-  "permissions": ["read:documents", "write:documents"],
-  "settings": {
-    "apiKey": { "type": "string", "required": true }
-  }
-}
-```
-
-### Plugin API Contracts
-
-Plugins implement one or more of these interfaces:
-
-```csharp
-// Data connector plugin
-public interface IDataConnectorPlugin
-{
-    Task<IReadOnlyList<InboxItem>> FetchItemsAsync(
-        CancellationToken ct = default);
-}
-
-// AI provider plugin
-public interface IAiProviderPlugin
-{
-    IAiProvider CreateProvider(
-        string apiKey,
-        string endpoint,
-        ILogger logger);
-}
-```
+This document lists every HTTP interface Agent-X has:
+
+1. The **Local REST API** that the desktop app serves on this computer. The Agent-X browser
+   extension (AgentX Web Clipper) and the Android companion app use it.
+2. The **outside services** the desktop app calls. It calls them only for features you set up.
+
+The code is the reference. The Local REST API lives in `src/AgentX.Core/Services/Api/`
+(`ApiHostService`, `LocalApiSecurity`, `Models/ApiModels.cs`, `Models/ApiClipModels.cs`) and is
+started and stopped by `src/AgentX.App/Services/ApiHostLifecycleService.cs`.
 
 ---
 
 ## Local REST API
 
-Agent-X exposes a **local REST API** for the browser extension and the Android companion. It is an
-`HttpListener` host inside the desktop process (`src/AgentX.Core/Services/Api/ApiHostService.cs`);
-there is no separate server, no ASP.NET Core, and no native messaging host.
+`ApiHostService` is an `HttpListener` (HTTP.sys) host inside the desktop process. There is no
+separate server, no ASP.NET Core and no native messaging host.
 
-### Base URL and lifecycle
+### Base URL
 
 ```
 http://localhost:9846/
 ```
 
-- **Loopback only.** The listener is registered for the HTTP.sys prefix `http://localhost:9846/`
-  and is not reachable from the LAN. Plain HTTP, no TLS. HTTP.sys also rejects a request whose
-  `Host` header names another host (`400 Invalid Hostname`), which is why the Android client sends
+- **Loopback only.** The listener registers the HTTP.sys prefix `http://localhost:9846/` and is
+  not reachable from other machines. Plain HTTP, no TLS.
+- HTTP.sys answers a request whose `Host` header names another host with
+  `400 Bad Request - Invalid Hostname` before Agent-X sees it. This is why the Android app sends
   `Host: localhost:9846` when it connects through the emulator alias `10.0.2.2`
   (see [`docs/MOBILE-TRANSPORT.md`](docs/MOBILE-TRANSPORT.md)).
-- **Started at app launch** by `ApiHostLifecycleService` when **Settings > Connections > Enable
-  Local API** is on (the default). Saving settings applies the toggle at once (the listener stops
-  or starts), and regenerating the token applies it at once (see Authentication).
-- **Routing:** paths are matched case-insensitively and a trailing slash is ignored. An unknown
-  path, or a known path with the wrong method, returns `404`.
-- **Concurrency:** at most 16 requests are processed at the same time.
+- The port is fixed (`ApiHostLifecycleService.DefaultPort`); there is no setting for it.
+
+### Turning the API on and off
+
+- The switch is **Settings > Connections > Enable Local API** (`AppSettings.LocalApiEnabled`,
+  on by default).
+- At launch the API starts after the database migration has succeeded (`StartupOrchestrator`),
+  and only when the switch is on. If the migration fails, the API is not started. If the listener
+  cannot start, for example because another program uses port 9846, the error is written to the
+  log and the rest of the app runs without the API.
+- Changes apply without a restart. **Save Settings** calls
+  `IApiHostLifecycleService.ApplySettingsAsync`, which stops the listener when the switch is off,
+  starts it when the switch is on and the listener is not running, and otherwise hands the running
+  listener the current token. **Reset to Defaults** turns the API on and keeps the existing token.
+- The listener stops when the app shuts down.
 
 ### Authentication
 
-Every route except `GET /api/extension/health` requires a bearer token:
+Every route except `GET /api/extension/health` requires the bearer token:
 
 ```
 Authorization: Bearer <token>
 ```
 
-- The token is a per-install, 256-bit random value, hex-encoded (64 characters). It is generated
-  on first start, stored DPAPI-encrypted in `settings.json`, and shown masked in **Settings >
-  Connections** with **Show**, **Copy** and **Regenerate**.
-- **Regenerate** revokes the previous token immediately: from the next request only the new token
-  is accepted, so paired clients must be re-paired.
-- A missing or wrong token gets `401` with `WWW-Authenticate: Bearer`. If no token is provisioned,
-  every protected route returns `401` (fail closed). Tokens are compared in constant time
+- The token is a per-install random 256-bit value written as 64 uppercase hexadecimal characters
+  (`LocalApiSecurity.GenerateToken`). It is created the first time the API starts with no token
+  saved, and stored DPAPI-encrypted in `%LOCALAPPDATA%\AgentX\settings.json`
+  (`AppSettings.LocalApiToken`).
+- **Settings > Connections** shows it under **API Token**, masked until you click **Show**.
+  **Copy** copies the real token and **Regenerate** replaces it. The token row is shown only while
+  Enable Local API is on.
+- **Regenerate** saves the new token and applies it at once through
+  `IApiHostService.SetAuthToken`, without Save Settings and without a restart. Requests that arrive
+  afterwards need the new token and the old one is rejected, so paired clients have to be paired
+  again.
+- The scheme word `Bearer` is matched without regard to case and spaces around the token are
+  ignored; the token itself must match exactly. The comparison runs in constant time
   (`LocalApiSecurity.IsAuthorized`).
-- Clients validate a token with `GET /api/auth/check`. The public extension health probe accepts
-  any token and must not be used to decide that a client is paired.
+- A missing or wrong token gets `401` with the header `WWW-Authenticate: Bearer`. If no token is
+  set, every protected route returns `401` (fail closed).
+- The token check runs before routing: without a valid token, every request returns `401`,
+  unknown paths included, except a preflight `OPTIONS` request (see [CORS](#cors)) and requests
+  for `/api/extension/health`.
+- Clients check a token with `GET /api/auth/check`. The public `GET /api/extension/health`
+  answers whatever token is sent, so it must not be used to decide that a client is paired.
+
+### Requests
+
+- Paths are matched without regard to case, a trailing slash is ignored, and the query string is
+  ignored (no route takes query parameters).
+- An unknown path, or a known path with the wrong method, returns `404` with the error
+  `Route not found: <METHOD> <path>`.
+- Request bodies are JSON. Field names are camelCase and case-sensitive (`Query` is not read as
+  `query`), and unknown fields are ignored. The body is decoded with the charset named in
+  `Content-Type`, or as UTF-8 when none is named; the `Content-Type` value is not otherwise
+  checked.
+- At most 16 requests are processed at the same time; further requests wait for a free slot.
+- There is no rate limit and no size limit on request bodies.
+- Every request is logged as `<METHOD> <path> -> <status> (<n>ms)`.
 
 ### CORS
 
-`Access-Control-Allow-Origin` is echoed back only for browser-extension origins
-(`chrome-extension://`, `moz-extension://`, `ms-browser-extension://`), together with `Vary: Origin`.
-Web pages get no CORS grant, so they cannot read responses. A preflight `OPTIONS` request on any
-path returns `204`. Allowed methods: `GET, POST, OPTIONS`; allowed headers: `Content-Type,
-Authorization, Accept, X-Requested-With`; `Access-Control-Max-Age: 86400`.
+Only browser-extension origins get a CORS grant. When the `Origin` header starts with
+`chrome-extension://`, `moz-extension://` or `ms-browser-extension://`, the response echoes it
+in `Access-Control-Allow-Origin` and adds `Vary: Origin`,
+`Access-Control-Allow-Methods: GET, POST, OPTIONS`,
+`Access-Control-Allow-Headers: Content-Type, Authorization, Accept, X-Requested-With` and
+`Access-Control-Max-Age: 86400`. Web pages get none of these headers, so the browser does not let
+them read a response. A preflight `OPTIONS` request on any path returns `204` without a token.
 
 ### Response envelope
 
 Every response body, success or error, is JSON (`application/json; charset=utf-8`) with camelCase
-names, wrapped in the same envelope (`ApiResponse<T>`). Null properties are omitted, so `error` is
-absent on success and `data` is absent on error.
+names, wrapped in the same envelope (`ApiResponse<T>`). Properties whose value is null are left
+out: `error` is absent on success, `data` is absent on error, and a null field inside `data` is
+absent too.
 
 ```json
-{ "success": true, "data": { "status": "ok" }, "timestamp": "2026-09-26T10:00:00.0000000Z" }
+{ "success": true, "data": { "authenticated": true, "version": "2.2.0" }, "timestamp": "2026-09-27T10:15:30.1234567Z" }
 ```
 
 ```json
-{ "success": false, "error": "Unauthorized. A valid API token is required. Pair the client with the token from AgentX Settings.", "timestamp": "2026-09-26T10:00:00.0000000Z" }
+{ "success": false, "error": "Unauthorized. A valid API token is required. Pair the client with the token from AgentX Settings.", "timestamp": "2026-09-27T10:15:30.1234567Z" }
 ```
+
+`timestamp` is the server's UTC time. Dates inside `data` are UTC as well; a date read from the
+database can be written without a zone designator (for example `2026-09-20T08:30:00`), so read
+such values as UTC.
 
 | Status | When |
 |--------|------|
 | `200` | Success |
 | `201` | `POST /api/inbox/clip` created an inbox item |
 | `204` | CORS preflight (`OPTIONS`) |
-| `400` | Malformed JSON body, or a required field is missing or empty |
+| `400` | The body is not valid JSON for the route (including a value of the wrong type), or a required field is missing or blank |
 | `401` | Missing or wrong bearer token |
-| `404` | Unknown route, wrong method, non-numeric id, or an item that does not exist |
-| `500` | Unexpected server error (`"An internal server error occurred."`) or failed inbox ingestion |
+| `404` | Unknown route, wrong method, non-numeric id, or an id that does not exist |
+| `500` | Unexpected server error (`An internal server error occurred.`), or the Smart Inbox did not accept a clip (`Failed to add clip to inbox.`) |
 
 ### Endpoints
 
 | Method | Path | Auth | Purpose |
 |--------|------|------|---------|
-| `GET` | `/api/extension/health` | none | Liveness probe for the browser extension |
-| `GET` | `/api/auth/check` | bearer | Confirms the token (pairing) |
-| `GET` | `/api/health` | bearer | Status, version, uptime and counts (mobile connectivity check) |
+| `GET` | `/api/extension/health` | none | Tells the extension that Agent-X is running |
+| `GET` | `/api/auth/check` | bearer | Confirms a token (pairing) |
+| `GET` | `/api/health` | bearer | Status, version, uptime and counts |
 | `GET` | `/api/documents` | bearer | All documents in the Knowledge Vault |
 | `GET` | `/api/documents/{id}` | bearer | One document |
-| `GET` | `/api/conversations` | bearer | All non-archived conversations |
+| `GET` | `/api/conversations` | bearer | All conversations that are not archived |
 | `GET` | `/api/conversations/{id}` | bearer | One conversation |
 | `GET` | `/api/collections` | bearer | All collections |
 | `POST` | `/api/search` | bearer | Semantic search over indexed documents |
-| `POST` | `/api/inbox/clip` | bearer | Clip web content into the Smart Inbox |
+| `POST` | `/api/inbox/clip` | bearer | Saves clipped web content to the Smart Inbox |
+
+No other routes exist. The API has no paging, filtering, chat, import, sync or pairing routes, and
+the clip is its only write operation.
 
 #### GET /api/extension/health
 
-Public (no token). Returns no user data; lets the extension detect that Agent-X is running.
+Public (no token). Returns no user data.
 
 ```json
 {
@@ -597,21 +161,23 @@ Public (no token). Returns no user data; lets the extension detect that Agent-X 
     "inboxEnabled": true,
     "provider": "local"
   },
-  "timestamp": "2026-09-26T10:00:00.0000000Z"
+  "timestamp": "2026-09-27T10:15:30.1234567Z"
 }
 ```
 
 - `version` is the application version (`AppVersionInfo.Display`).
-- `provider` is the active provider from Settings (`local`, `ollama`, `openai` or `anthropic`).
-- `inboxEnabled` is always `true`: the Smart Inbox has no off switch, and the clip route is served
-  whenever the API runs.
+- `provider` is the provider chosen in Settings (`AppSettings.ActiveProviderId`): `local` for the
+  built-in model, `ollama`, `openai` or `anthropic`. It is the saved choice, not a check that the
+  provider is reachable.
+- `connected` and `inboxEnabled` are always `true`. The Smart Inbox has no off switch, so the clip
+  route is available whenever this probe answers.
 
 #### GET /api/auth/check
 
-Answers only when the bearer token is valid (otherwise `401`).
+Answers only when the bearer token is valid; otherwise the request gets `401`.
 
 ```json
-{ "success": true, "data": { "authenticated": true, "version": "2.2.0" }, "timestamp": "..." }
+{ "success": true, "data": { "authenticated": true, "version": "2.2.0" }, "timestamp": "2026-09-27T10:15:30.1234567Z" }
 ```
 
 #### GET /api/health
@@ -626,17 +192,18 @@ Answers only when the bearer token is valid (otherwise `401`).
     "documentCount": 42,
     "conversationCount": 7
   },
-  "timestamp": "..."
+  "timestamp": "2026-09-27T10:15:30.1234567Z"
 }
 ```
 
-`uptime` is measured since the listener started. `conversationCount` counts non-archived
-conversations.
+- `uptime` is the time since the listener last started, as `<hours>h <minutes>m <seconds>s`
+  (the hours are not wrapped at 24). Turning the API off and on starts it again.
+- `documentCount` counts every document; `conversationCount` counts conversations that are not
+  archived.
 
-#### GET /api/documents and GET /api/documents/{id}
+#### GET /api/documents
 
-The list returns every document (no paging or filters); the by-id form returns one object, or
-`404` when the id does not exist or is not a number.
+Every document in the Knowledge Vault, newest import first. No document text is returned.
 
 ```json
 {
@@ -647,17 +214,28 @@ The list returns every document (no paging or filters); the by-id form returns o
       "fileName": "report.pdf",
       "fileType": "pdf",
       "fileSizeBytes": 204800,
-      "importedAt": "2026-09-20T08:30:00Z",
+      "importedAt": "2026-09-20T08:30:00",
       "indexingStatus": "completed"
     }
   ],
-  "timestamp": "..."
+  "timestamp": "2026-09-27T10:15:30.1234567Z"
 }
 ```
 
-#### GET /api/conversations and GET /api/conversations/{id}
+- `fileType` is the lower-case file extension without the dot, or a type name such as
+  `CalendarEvent` or `EmailMessage` for items that came from the connectors.
+- `indexingStatus` is `pending`, `processing`, `completed` or `failed`.
 
-The list returns non-archived conversations; the by-id form returns one object, or `404`.
+#### GET /api/documents/{id}
+
+`{id}` is the numeric document id. Returns one object with the fields above. A missing document
+returns `404` with `Document {id} not found.`; an id that is not a number returns the route
+`404`.
+
+#### GET /api/conversations
+
+Conversations that are not archived, pinned ones first, then the most recently updated. Messages
+are not included.
 
 ```json
 {
@@ -667,31 +245,41 @@ The list returns non-archived conversations; the by-id form returns one object, 
       "id": 5,
       "title": "Planning",
       "modelId": "llama3.2",
-      "createdAt": "2026-09-20T08:30:00Z",
-      "updatedAt": "2026-09-21T10:00:00Z",
+      "createdAt": "2026-09-20T08:30:00",
+      "updatedAt": "2026-09-21T10:00:00",
       "messageCount": 12,
       "tokensUsed": 3400
     }
   ],
-  "timestamp": "..."
+  "timestamp": "2026-09-27T10:15:30.1234567Z"
 }
 ```
 
+#### GET /api/conversations/{id}
+
+One conversation with the fields above; archived conversations are returned too. A missing
+conversation returns `404` with `Conversation {id} not found.`
+
 #### GET /api/collections
+
+All collections as one flat list, nested collections included (the parent is not reported),
+ordered by their sort order and then by name. `documentCount` is refreshed before the list is
+returned, and `description` is left out when it is null.
 
 ```json
 {
   "success": true,
   "data": [
-    { "id": 1, "name": "Finance", "description": "Quarterly reports", "documentCount": 4, "createdAt": "2026-09-01T12:00:00Z" }
+    { "id": 1, "name": "Finance", "description": "Quarterly reports", "documentCount": 4, "createdAt": "2026-09-01T12:00:00" }
   ],
-  "timestamp": "..."
+  "timestamp": "2026-09-27T10:15:30.1234567Z"
 }
 ```
 
 #### POST /api/search
 
-Semantic search. Field names are camelCase.
+Semantic (vector) search over the indexed chunks. There is no keyword or hybrid mode and no
+collection, file type or date filter on this route.
 
 ```json
 { "query": "vector databases", "topK": 10, "minScore": 0.3 }
@@ -699,24 +287,31 @@ Semantic search. Field names are camelCase.
 
 | Field | Type | Default | Notes |
 |-------|------|---------|-------|
-| `query` | string | (required) | Empty or whitespace returns `400` |
-| `topK` | int | `10` | Clamped to 1-50 |
-| `minScore` | float | `0.3` | Clamped to 0.0-1.0 |
+| `query` | string | (required) | Missing, empty or whitespace returns `400` (`Request body must include a non-empty 'query' field.`) |
+| `topK` | integer | `10` | Clamped to 1-50 |
+| `minScore` | number | `0.3` | Minimum cosine similarity, clamped to 0.0-1.0 |
 
 ```json
 {
   "success": true,
   "data": [
-    { "documentId": 3, "fileName": "a.pdf", "chunkContent": "matched snippet", "score": 0.91 }
+    { "documentId": 3, "fileName": "a.pdf", "chunkContent": "The matching chunk text...", "score": 0.91 }
   ],
-  "timestamp": "..."
+  "timestamp": "2026-09-27T10:15:30.1234567Z"
 }
 ```
 
+- There is one entry per matching chunk, highest score first, so a document can appear more than
+  once. `chunkContent` is the full text of the chunk and `score` is its cosine similarity. This is
+  the only route that returns document text.
+- The query is embedded with the configured embedding model. If it cannot be embedded (for
+  example no embedding model is available) or the vector search fails, the route still returns
+  `200` with an empty list; the cause is written to the log only.
+
 #### POST /api/inbox/clip
 
-Saves clipped web content as a Markdown file and adds it to the Smart Inbox as a pending item
-(`sourceType` `browser-extension`).
+Saves clipped web content as a Markdown file and adds it to the Smart Inbox as a pending item with
+the source type `browser-extension` and the given source URL.
 
 ```json
 {
@@ -733,19 +328,57 @@ Saves clipped web content as a Markdown file and adds it to the Smart Inbox as a
 
 | Field | Type | Notes |
 |-------|------|-------|
-| `content` | string | Required and non-empty, otherwise `400` |
-| `title` | string | Optional; missing or blank becomes `Untitled` |
-| `sourceUrl` | string | Optional |
-| `author` | string | Optional |
-| `publishedDate` | string | Optional. Parsed leniently (ISO 8601 with or without the offset colon, `yyyy-MM-dd HH:mm:ss`, `yyyy-MM`, `yyyyMMdd`, RFC 1123, ...). A value that cannot be read is dropped; it never fails the clip. |
-| `clipMode` | string | `full`, `selection` (default) or `reader` |
-| `wordCount` | int | Optional |
-| `metadata` | object of strings | Optional; written as extra front matter keys. Keys that collide with the host's own keys are ignored. |
+| `content` | string | Required. Missing, empty or whitespace returns `400` (`Request body must include a non-empty 'content' field.`) |
+| `title` | string | Optional. Missing or blank becomes `Untitled` in the front matter and `untitled` in the file name |
+| `sourceUrl` | string | Optional. Stored with the inbox item and as `source_url` (empty when missing) |
+| `author` | string | Optional. Written only when it is not blank |
+| `publishedDate` | string or number | Optional. Parsed leniently (see below); a value that cannot be read is dropped and never fails the clip |
+| `clipMode` | string | `full`, `selection` (the default) or `reader`. Another value is kept, written as a quoted string |
+| `wordCount` | integer | Optional, default `0`. A negative value is written as `0` |
+| `metadata` | object of strings | Optional. Each pair becomes an extra front matter key. Blank keys, null values, keys the host writes itself (`title`, `source_url`, `author`, `published_date`, `clip_mode`, `word_count`, `clipped_at`) and repeated keys are skipped, compared without regard to case |
 
-The file is written to `%LOCALAPPDATA%\AgentX\Clips\` as
-`<title, sanitized, at most 80 characters>-<yyyyMMdd-HHmmss UTC>-<8 hex>.md`, never overwriting an
-existing file. Every value in the front matter is an escaped YAML double-quoted string, and dates
-and numbers are culture-invariant:
+A field of the wrong JSON type (for example `"wordCount": "1234"`, or a number as a `metadata`
+value) makes the body invalid and returns `400` (`Invalid JSON in request body.`). The one
+exception is `publishedDate`, which accepts a string or a number and treats any other type as no
+date.
+
+**Published date.** `ApiHostService.ParsePublishedDate` reads the value only when it is at most
+64 characters long and contains a four-digit year. It accepts the compact form `yyyyMMdd`
+(`20240305`, also as a JSON number) and whatever `DateTimeOffset.TryParse` reads with the
+invariant culture, for example:
+
+- ISO 8601 with or without the colon in the offset: `2024-03-05T10:00:00+0000`
+- date and time separated by a space: `2024-03-05 10:00:00`
+- year and month: `2024-03`, read as the first day of that month
+- RFC 1123: `Tue, 05 Mar 2024 10:00:00 GMT`
+
+The calendar date is kept as the page states it, in the page's own offset
+(`2024-03-05T23:30:00-08:00` stays `2024-03-05`); a value without an offset is read as UTC. Only
+the date is written, as `published_date: "yyyy-MM-dd"`.
+
+**Storage.** The file is written to `%LOCALAPPDATA%\AgentX\Clips\` (the app data folder from
+`IAppPathService`, not `%TEMP%`) as
+
+```
+<title stem>-<yyyyMMdd-HHmmss>-<8 hex characters>.md
+```
+
+- The title stem is the title with characters that Windows does not allow in file names, and
+  control characters, replaced by `_`; runs of `_` are collapsed and leading and trailing `_` are
+  removed. It is cut to at most 80 characters (never inside a surrogate pair), and trailing spaces,
+  dots and underscores are then trimmed. When nothing is left the stem is `untitled`.
+- The timestamp is the UTC clip time and the suffix is random, so several clips with the same
+  title in the same second (Clip All Tabs) each get their own file. The file is created with
+  `FileMode.CreateNew` and never replaces an existing file.
+- The file is UTF-8 without a byte order mark. `content` is written as sent; there is no size
+  limit.
+- Agent-X does not delete clip files. Accepting a clip in the Smart Inbox imports the file into the
+  Knowledge Vault, and neither accepting nor rejecting removes it from the folder.
+
+Every front matter value is an escaped YAML double-quoted string (backslashes, quotes, line
+breaks, tabs, control characters, U+2028, U+2029 and U+FEFF are escaped), metadata keys are quoted
+the same way, and dates and numbers use the invariant culture and the Gregorian calendar.
+`clip_mode` is written bare for the three known modes:
 
 ```yaml
 ---
@@ -755,7 +388,7 @@ author: "Jane Doe"
 published_date: "2024-03-05"
 clip_mode: reader
 word_count: 1234
-clipped_at: "2026-09-26T10:00:00.0000000Z"
+clipped_at: "2026-09-27T10:15:30.1234567Z"
 "category": "tech"
 ---
 
@@ -768,229 +401,326 @@ Response (`201`):
 {
   "success": true,
   "data": { "inboxItemId": 12, "status": "clipped", "message": "Content clipped to inbox as item #12." },
-  "timestamp": "..."
+  "timestamp": "2026-09-27T10:15:30.1234567Z"
 }
 ```
 
-If the inbox rejects the item, the file is deleted and the route returns `500`.
+If the Smart Inbox does not accept the item, the file is deleted and the route returns `500` with
+`Failed to add clip to inbox.` If the file cannot be written, the route returns `500` with
+`An internal server error occurred.`
 
 ---
 
-## Browser Extension Integration
+## Browser Extension
 
-The extension (`browser-extension/`, Manifest V3) talks to the Local REST API over HTTP from its
-service worker; there is no native messaging host.
+The extension (`browser-extension/`, Manifest V3, "AgentX Web Clipper") calls the Local REST API
+from its service worker at `http://localhost:9846` (host permission `http://localhost:9846/*`).
 
-- **Pairing:** the user pastes the token from **Settings > Connections** into the popup. The service
-  worker validates it with `GET /api/auth/check` before storing it; a token Agent-X rejects is not
-  stored.
-- **Liveness and status:** `GET /api/extension/health` (public) plus `GET /api/auth/check`, so the
-  popup distinguishes paired, "Not paired" and "Offline".
-- **Clipping:** the extractor is injected into the page on demand with `chrome.scripting` and the
-  result is posted to `POST /api/inbox/clip`. The token stays in the service worker; the injected
-  script never reads it.
+| Route | When |
+|-------|------|
+| `GET /api/extension/health` | Each time the popup opens, and after pairing, to see whether Agent-X answers |
+| `GET /api/auth/check` | To validate a pasted token before storing it, and to check the stored token each time the popup opens |
+| `POST /api/inbox/clip` | **Full Page** (`clipMode` `full`), **Selection** (`selection`), **Reader Mode** (`reader`), and **Clip All Tabs** (`reader`, one request per tab) |
 
----
-
-## Mobile Companion API
-
-The Android companion (`src/AgentX.Mobile`) uses the same routes and the same bearer token:
-`GET /api/health` (connectivity check and Settings > Test Connection), `GET /api/documents`,
-`GET /api/conversations` and `POST /api/search`; its client also wraps the by-id routes and
-`GET /api/collections`.
-
-- **Pairing:** paste the desktop token into the app's Settings. There is no QR pairing and no sync
-  API.
-- **Reaching the desktop:** the listener is loopback only, so the app connects through the Android
-  emulator alias `http://10.0.2.2:9846` or, on a device, through `adb reverse tcp:9846 tcp:9846`
-  and `http://localhost:9846`. LAN connections are not supported. See
-  [`docs/MOBILE-TRANSPORT.md`](docs/MOBILE-TRANSPORT.md).
-
-> Earlier revisions of this document described a different API (`http://localhost:5324/api/v1`,
-> chat completions, document indexing, a `com.agentx.bridge` native messaging host, and pairing
-> and sync routes). None of those exist; the routes above are the complete API.
+- **Pairing:** paste the token from **Settings > Connections** into the popup's Connection section
+  and click **Save**. A token that Agent-X rejects is not stored; when Agent-X does not answer, the
+  token is stored as not verified. Saving an empty field unpairs the extension.
+- **Status line:** the Agent-X version when the stored token is accepted, "Not paired" when Agent-X
+  answers but rejects the token, "Offline" when it does not answer.
+- **What a clip sends:** `title`, `content`, `sourceUrl`, `author`, `publishedDate`, `clipMode` and
+  `wordCount`. The extension normalizes `publishedDate` to `YYYY-MM-DD` itself, or leaves it out,
+  and never sends `metadata`.
+- The token is kept in `chrome.storage.local` and used only by the service worker. The page
+  extractor is injected on demand with `chrome.scripting` and never reads the token.
+- Clips are not queued: when Agent-X is not running, a clip fails and has to be sent again later.
 
 ---
 
-## Rate Limits & Quotas
+## Android Companion
 
-### OpenAI
+The Android app (`src/AgentX.Mobile`, client `Services/AgentXApiClient.cs`) uses the same routes
+and the same bearer token.
 
-| Tier | Rate Limit |
-|------|------------|
-| Free | 3 requests/minute |
-| Tier 1 | 10,000 TPM (tokens per minute) |
-| Tier 2 | 60,000 TPM |
-| Tier 3 | 300,000 TPM |
+| Route | Used by |
+|-------|---------|
+| `GET /api/health` | **Settings > Test Connection**, which probes the URL and token on screen with a separate client and shows the version, uptime and counts |
+| `GET /api/documents` | Documents tab |
+| `GET /api/conversations` | Conversations tab |
+| `POST /api/search` | Search tab, with `topK` 20 and `minScore` 0.3 |
 
-### Anthropic
+The client also has methods for `GET /api/documents/{id}`, `GET /api/conversations/{id}` and
+`GET /api/collections`, but no page calls them.
 
-| Tier | Rate Limit |
-|------|------------|
-| Free | 5 requests/minute |
-| Paid | 50 requests/minute (standard) |
-| Enterprise | Custom |
-
-### Ollama
-
-No rate limit (local).
-
----
-
-## Error Handling
-
-### Standard Error Response
-
-```json
-{
-  "error": {
-    "code": "rate_limit_exceeded",
-    "message": "Rate limit exceeded. Please retry after 60 seconds.",
-    "details": {
-      "retryAfter": 60,
-      "limit": 100,
-      "remaining": 0
-    }
-  }
-}
-```
-
-### Error Codes
-
-| Code | Description | Retry |
-|------|-------------|-------|
-| `rate_limit_exceeded` | API rate limit | Yes, after retry-after |
-| `invalid_api_key` | Authentication failed | No |
-| `insufficient_quota` | Quota exceeded | No |
-| `model_not_found` | Model unavailable | No |
-| `timeout` | Request timeout | Yes, send again |
-| `network_error` | Connection failed | Yes, send again |
+- **Pairing:** paste the desktop token into the app's **Settings > API Token** and tap **Save**.
+  The token is kept in Android secure storage. There is no QR pairing and no sync API.
+- **Reaching the desktop:** the listener is loopback only, so the app connects through the
+  emulator alias `http://10.0.2.2:9846` (sending `Host: localhost:9846`) or, on a phone, through
+  `adb reverse tcp:9846 tcp:9846` and `http://localhost:9846`. The client refuses plain HTTP to any
+  other host and requires HTTPS there, which the desktop does not serve, so LAN connections are not
+  supported. See [`docs/MOBILE-TRANSPORT.md`](docs/MOBILE-TRANSPORT.md).
+- Requests time out after 15 seconds. A `401` or `403` is shown as not paired, no answer as
+  "Cannot reach Agent-X", and any other error status with the envelope's `error` text.
 
 ---
 
-## Retry Policy
+## Outbound Connections
 
-Agent-X does not retry a failed provider request on its own. The error is reported where the
-request was made (for example in the chat, which keeps the prompt so it can be sent again), and
-the "Retry" column above says whether sending it again can help.
+Agent-X connects to outside services only for the features below, and only after you set them
+up. It sends no telemetry: `IAnalyticsService` only reads the local database for the Analytics
+page.
 
----
+### AI providers
 
-## Cost Tracking
+`AiService.InitializeAsync` registers the providers from the saved settings:
 
-Agent-X tracks **API usage and costs**:
+| Provider id | What it is | Default endpoint | Registered when | Authentication |
+|-------------|-----------|------------------|-----------------|----------------|
+| `local` | Built-in model (LLamaSharp, runs in the app process) | none | Always | none |
+| `ollama` | Ollama server | `http://localhost:11434` | The endpoint is an absolute `http` or `https` URL | none |
+| `openai` | OpenAI or an OpenAI-compatible server | `https://api.openai.com/v1/` | An API key is saved | `Authorization: Bearer <key>` |
+| `anthropic` | Anthropic | `https://api.anthropic.com/v1/` | An API key is saved | `x-api-key: <key>` and `anthropic-version: 2023-06-01` |
+
+The active provider is `AppSettings.ActiveProviderId` (default `local`). When that provider is not
+registered, the built-in model is used if its file is installed, otherwise Ollama, otherwise any
+registered provider. Endpoints and keys are set in **Settings > AI Providers**; the keys are
+stored DPAPI-encrypted in `settings.json`.
+
+**Built-in model (`local`).** No network traffic while it runs. Model files are GGUF files in
+`%LOCALAPPDATA%\AgentX\Models` (`AppSettings.StoragePath` + `Models`). Downloads are listed under
+[Model downloads](#model-downloads).
+
+**Ollama (`ollama`)**, through OllamaSharp 4.0.6:
+
+| Operation | Request |
+|-----------|---------|
+| Connection check (3 second timeout) | `IsRunningAsync`, a `GET` on the server root |
+| List models | `GET /api/tags` |
+| Download and delete a model | `POST /api/pull`, `DELETE /api/delete` |
+| Chat | `POST /api/chat`, streamed. A stream that ends without its final `done` chunk throws, so a cut-off answer is not reported as complete |
+| Embeddings | `POST /api/embed`, with the embedding model named in the request |
+
+Token counts from the final chunk are recorded in the cost tracker at zero cost.
+
+**OpenAI (`openai`)**, requests relative to the endpoint:
+
+| Operation | Request |
+|-----------|---------|
+| Connection check (10 second timeout) and model list | `GET models`. The list keeps chat models only |
+| Chat | `POST chat/completions`, always streamed (`"stream": true`) |
+| Embeddings | `POST embeddings` with `{ "model", "input" }`, only when the Embedding Model setting is an OpenAI `text-embedding-*` model |
+
+- Reasoning models (ids starting with `o1`, `o3`, `o4` or `gpt-5`) get `max_completion_tokens`
+  and no sampling or penalty parameters. Other models get `max_tokens` and `temperature`, and
+  `top_p`, `frequency_penalty` and `presence_penalty` only when they differ from the defaults.
+- `stream_options.include_usage` is sent only when the endpoint host is `api.openai.com`, because
+  compatible servers may reject it.
+- JSON mode sends `response_format` `json_object`, or `json_schema` with `strict: true` when the
+  caller supplies a schema.
+- Downloading or deleting a model does nothing for this provider.
+
+**Anthropic (`anthropic`)**, requests relative to the endpoint:
+
+| Operation | Request |
+|-----------|---------|
+| Connection check (10 second timeout) | `GET models?limit=1`. A `200` or a `429` counts as a working key; no tokens are generated |
+| Model list | `GET models?limit=100`, falling back to a built-in list (`claude-opus-5-5`, `claude-sonnet-5`, `claude-haiku-4-5-20251001`) when the request fails |
+| Chat | `POST messages`, always streamed |
+
+- `max_tokens` comes from the request options (default 2048). Only `temperature` is ever sent,
+  clamped to 0-1, and only to model families known to accept it; `top_p` is never sent.
+- Structured output uses forced tool use; models that reject forced tool use get JSON mode with
+  the schema in the instructions instead.
+- Anthropic has no embedding API: the provider throws `NotSupportedException` for embeddings and
+  is never chosen as the embedding provider.
+- An `event: error` that arrives after the HTTP 200 throws with the error type and message.
+
+### Embeddings
+
+The embedding provider is chosen independently of the chat provider
+(`EmbeddingTargetResolver.Resolve`, from the **Embedding Model** setting):
+
+1. An OpenAI model id (`text-embedding-*`) uses OpenAI. This is the only case in which document
+   text is sent to a cloud service for embedding.
+2. A GGUF file name uses the built-in model.
+3. Any other name except the default `all-minilm` uses Ollama with that model.
+4. The default setting uses the built-in model when its file is installed, and Ollama with
+   `all-minilm` when it is not.
+
+### Research Mode web search
+
+Used only when **Settings > Research Mode > Enable Research Mode** is on. Only the selected
+**Search Provider** is used; there is no fallback to another provider.
+
+| Provider | Request | Credential (the **API Key or Instance URL** field) |
+|----------|---------|------------------|
+| Brave (default) | `GET https://api.search.brave.com/res/v1/web/search?q=<query>&count=<n>` | API key in the `X-Subscription-Token` header |
+| Serper | `POST https://google.serper.dev/search` with `{ "q": "<query>", "num": <n> }` | API key in the `X-API-KEY` header |
+| SearXNG | `GET <instance URL>/search?q=<query>&format=json&pageno=1` | The instance URL itself (http or https) |
+
+The field is stored DPAPI-encrypted (`AppSettings.WebSearchApiKey`). **Max Search Results**
+(default 10, at most 20) caps the results, and results are cached for **Cache Duration (minutes)**
+(default 60, at most 1440). Settings changes apply to the next search
+(`SettingsAwareWebSearchService`).
+
+### Web Import
+
+Web Import fetches the pages, feeds and sitemaps you give it directly; no third-party scraping
+service is involved.
+
+- `IWebScraperService.ExtractContentAsync` downloads a page and extracts its content with
+  HtmlAgilityPack. When the download returns an empty page or a script shell with little visible
+  text, `WebContentFetcher` renders the page again with `IJsRenderingService.RenderPageAsync`, in
+  headless Chromium through Microsoft.Playwright; if Chromium cannot be started, the downloaded
+  HTML is used.
+- YouTube links: `ExtractYouTubeTranscriptAsync` reads the watch page
+  (`https://www.youtube.com/watch?v=<id>`) and downloads the caption track it lists, English
+  preferred.
+- A URL that Agent-X finds in remote content (a redirect, a feed item, a sitemap entry, a resource
+  a rendered page requests) may reach a private or local address only when that content itself came
+  from such an address, and cloud metadata addresses are never contacted (`PrivateNetworkGuard`).
+  A URL you enter yourself may point at any host.
+
+### OAuth and the Calendar and Email connectors
+
+Agent-X ships no OAuth client. You enter your own under **OAuth App Credentials** on the Calendar
+Connector and Email Connector pages; the client secrets are stored DPAPI-encrypted.
+
+| | Google | Microsoft |
+|--|--------|-----------|
+| Authorization | `https://accounts.google.com/o/oauth2/v2/auth` | `https://login.microsoftonline.com/<tenant>/oauth2/v2.0/authorize` |
+| Token and refresh | `https://oauth2.googleapis.com/token` | `https://login.microsoftonline.com/<tenant>/oauth2/v2.0/token` |
+| Revocation | `https://oauth2.googleapis.com/revoke` | none (Disconnect deletes the local tokens only) |
+| Redirect URI (default) | `http://localhost:8400/oauth/callback` | `http://localhost:8401/oauth/callback` |
+| Tenant | not used | `common` by default |
+| Extra parameters | `access_type=offline`, `prompt=consent` | `prompt=select_account` |
+
+- The sign-in opens the system browser and waits for the redirect on the loopback URI. It uses
+  PKCE (`code_challenge_method=S256`) and a one-time `state` value, and only `http://localhost:`
+  or `http://127.0.0.1:` redirect URIs are accepted.
+- `client_secret` is sent only when one is set. A Microsoft app registered as a public client has
+  no secret.
+- Tokens are stored DPAPI-encrypted in the database and refreshed 5 minutes before they expire
+  (`OAuthSettings.TokenRefreshBufferMinutes`). The browser sign-in times out after 300 seconds
+  (`OAuthSettings.AuthTimeoutSeconds`).
+
+Scopes requested by the Connect buttons:
+
+| Connector | Google | Microsoft |
+|-----------|--------|-----------|
+| Calendar | `https://www.googleapis.com/auth/calendar.readonly`, `https://www.googleapis.com/auth/userinfo.profile` | `offline_access Calendars.Read User.Read` |
+| Email | `https://www.googleapis.com/auth/gmail.readonly`, `https://www.googleapis.com/auth/userinfo.profile` | `offline_access Mail.Read User.Read` |
+
+When no scopes are passed, `OAuthProviderRegistry` uses its defaults: Google
+`openid profile email` plus `calendar.readonly` and `gmail.readonly`, Microsoft
+`openid profile email offline_access Calendars.Read Mail.Read User.Read`. All access is read-only.
+
+APIs the connectors call, each with `Authorization: Bearer <access token>`:
+
+| Connector | Service | Requests |
+|-----------|---------|----------|
+| Calendar | Google Calendar API v3 | `GET https://www.googleapis.com/calendar/v3/users/me/calendarList`, `GET https://www.googleapis.com/calendar/v3/calendars/{calendarId}/events` |
+| Calendar | Microsoft Graph v1.0 | `GET https://graph.microsoft.com/v1.0/me/calendars`, `GET .../me/calendars/{id}/calendarView` (times requested in UTC) |
+| Email | Gmail API v1 | `https://gmail.googleapis.com/gmail/v1/users/me/labels`, `.../messages`, `.../messages/{id}?format=full`, `.../profile` and `.../history` (incremental sync from the stored history id) |
+| Email | Microsoft Graph v1.0 | `GET https://graph.microsoft.com/v1.0/me/mailFolders`, `GET .../me/mailFolders/{id}/messages/delta` (incremental sync from the stored delta link) |
+
+### Model downloads
+
+Downloads start only when you ask for them (first-run setup or the Model Manager page):
+
+| Model | Source |
+|-------|--------|
+| Built-in chat model, Llama 3.2 3B Instruct Q4_K_M (default) | `https://huggingface.co/hugging-quants/Llama-3.2-3B-Instruct-Q4_K_M-GGUF/resolve/main/llama-3.2-3b-instruct-q4_k_m.gguf` |
+| Llama 3.2 1B Instruct Q4_K_M | `https://huggingface.co/hugging-quants/Llama-3.2-1B-Instruct-Q4_K_M-GGUF/resolve/main/llama-3.2-1b-instruct-q4_k_m.gguf` |
+| Speech-to-text model, Whisper base (Model Manager, **Speech-to-Text Model**) | `https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin` |
+
+`TranscriptionService` also knows the `tiny`, `small`, `medium` and `large` (`ggml-large-v3.bin`)
+files from the same repository, but the app only asks for `base`. The built-in model downloads
+are checked against a minimum size (`BuiltInModelCatalog`); no SHA-256 hash is pinned yet, and the
+URLs follow the publisher's `main` branch. Ollama models are downloaded by the Ollama server
+(`POST /api/pull`), not by Agent-X.
+
+### Errors, retries and usage costs
+
+- A provider request that fails throws: a non-success HTTP status becomes an
+  `HttpRequestException` that carries the provider's error text, and an error reported inside a
+  stream throws as well. The error is shown where the request was made, for example in the chat,
+  which keeps the prompt so it can be sent again.
+- Agent-X does not retry a failed request and does no rate limiting of its own; the provider's
+  own limits and error messages apply.
+- Token usage reported by Ollama, OpenAI and Anthropic is recorded through `ICostTracker`
+  (`src/AgentX.Core/AI/Models/CostTracker.cs`):
 
 ```csharp
-// src/AgentX.Core/AI/Models/CostTracker.cs
 public interface ICostTracker
 {
-    void RecordTokens(string modelId, int inputTokens, int outputTokens);
-    Task<CostReport> GetCostReportAsync(
-        DateTime start,
-        DateTime end);
-}
-
-public record CostReport(
-    decimal TotalCost,
-    int TotalInputTokens,
-    int TotalOutputTokens,
-    IDictionary<string, ModelCost> ByModel);
-```
-
-### Pricing Reference
-
-| Model | Input (per 1M tokens) | Output (per 1M tokens) |
-|-------|----------------------|------------------------|
-| GPT-4o | $2.50 | $10.00 |
-| GPT-4o-mini | $0.15 | $0.60 |
-| Claude Sonnet 4 | $3.00 | $15.00 |
-| Claude Haiku 4.5 | $0.80 | $4.00 |
-| Llama 3.2 (local) | $0 | $0 |
-
----
-
-## Monitoring & Logging
-
-### API Call Logging
-
-All API calls are logged via Serilog:
-
-```
-[DEBUG] Sending POST https://api.anthropic.com/v1/messages
-[DEBUG] Response 200 in 1.2s
-[INFO] Tokens: input=123, output=456, cost=$0.002
-```
-
-### Telemetry
-
-Optional telemetry sends anonymous usage data:
-
-```csharp
-// src/AgentX.Core/Services/Analytics/IAnalyticsService.cs
-public interface IAnalyticsService
-{
-    Task TrackApiCallAsync(
-        string provider,
-        string model,
-        int tokens,
-        decimal cost);
+    void RecordUsage(string modelId, string providerId, int inputTokens, int outputTokens);
+    void RecordUsage(string modelId, string providerId, int inputTokens, int outputTokens,
+        int cacheCreationInputTokens, int cacheReadInputTokens);
+    double GetTotalCostUsd();
+    double GetCostForPeriod(DateTime start, DateTime end);
+    IReadOnlyList<UsageRecord> GetUsageHistory(int limit = 50);
+    int GetTotalInputTokens();
+    int GetTotalOutputTokens();
 }
 ```
 
----
+Usage is kept in `%LOCALAPPDATA%\AgentX\usage-history.json`: each record for 90 days (at most
+20,000 records), with the totals of dropped records carried forward. Costs are estimates from a
+built-in price table, matched by the longest model id prefix, so a dated id such as
+`gpt-4o-mini-2024-07-18` is priced as `gpt-4o-mini`. The built-in model and Ollama cost nothing,
+and a model not in the table is recorded at zero cost. Prompt-cache writes cost 1.25 times the
+input price; prompt-cache reads cost the model's cache-read price, or 10% of the input price when
+none is listed.
 
-## Security Considerations
-
-### API Key Storage
-
-API keys are **encrypted at rest** using Windows DPAPI:
-
-```csharp
-// src/AgentX.Core/Services/Security/DpapiEncryptionService.cs
-public interface IDpapiEncryptionService
-{
-    string Encrypt(string plaintext);
-    string Decrypt(string ciphertext);
-}
-```
-
-### Transport Security
-
-- All external APIs use **HTTPS**
-- TLS 1.2+ required
-- Certificate validation enabled
-
-### Data in Transit
-
-- The Local REST API listens on **localhost only** (no network exposure). It is plain HTTP on
-  loopback, authenticated with a bearer token; there is no native messaging host.
+| Model id prefix | Input (USD per 1M tokens) | Output (USD per 1M tokens) |
+|-----------------|---------------------------|----------------------------|
+| `gpt-4o` | 2.50 | 10.00 |
+| `gpt-4o-mini` | 0.15 | 0.60 |
+| `gpt-4-turbo` | 10.00 | 30.00 |
+| `o1` | 15.00 | 60.00 |
+| `o1-mini` | 3.00 | 12.00 |
+| `o3-mini` | 1.10 | 4.40 |
+| `claude-fable-5-1` (cache read 0.25) | 10.00 | 50.00 |
+| `claude-fable-5` | 10.00 | 50.00 |
+| `claude-opus-5-5` (cache read 0.20) | 4.00 | 20.00 |
+| `claude-opus-5`, `claude-opus-4-8`, `claude-opus-4-7`, `claude-opus-4-6`, `claude-opus-4-5` | 5.00 | 25.00 |
+| `claude-opus-4-1`, `claude-opus-4-0`, `claude-opus-4-20250514` | 15.00 | 75.00 |
+| `claude-sonnet-5` | 2.00 | 10.00 |
+| `claude-sonnet-4-6`, `claude-sonnet-4-5`, `claude-sonnet-4-0`, `claude-sonnet-4-20250514`, `claude-3-5-sonnet-20241022` | 3.00 | 15.00 |
+| `claude-haiku-4-5` | 1.00 | 5.00 |
+| `claude-3-5-haiku-20241022` | 0.80 | 4.00 |
 
 ---
 
-## Future API Integrations
+## Logging
 
-### Planned
-
-| Service | Purpose | Status |
-|---------|---------|--------|
-| Perplexity API | Web search | Backlog |
-| Brave Search API | Web search alternative | Backlog |
-| Cohere API | Reranking | Backlog |
-| Pinecone | Cloud vector store | Backlog |
-| Weaviate Cloud | Cloud vector store | Backlog |
-
-### Contribution Guide
-
-To add a new AI provider:
-
-1. Implement `IAiProvider` interface
-2. Add provider to `AiServiceFactory`
-3. Update `OAuthProviderRegistry` if needed
-4. Add provider-specific configuration to `AppSettings`
-5. Document costs and rate limits
+The desktop app writes its log with Serilog to `%LOCALAPPDATA%\AgentX\Logs\agentx-<yyyyMMdd>.log`:
+one file per day, the last 7 kept, at Debug level and above. The Local REST API logs one line per
+request (see [Requests](#requests)); provider calls, connection checks and failures are logged by
+each provider.
 
 ---
 
-**Document Version:** 1.0  
-**Last Updated:** 2025-01-03  
-**Maintained By:** Agent-X Development Team
+## Security Summary
+
+- **Secrets at rest:** the OpenAI and Anthropic API keys, the web search key or SearXNG URL, the
+  Local API token, the OAuth client secrets and the scheduled backup password are stored
+  DPAPI-encrypted in `settings.json` (`SettingsService`, `IDpapiEncryptionService`). OAuth tokens
+  are stored DPAPI-encrypted in the database.
+- **Local REST API:** loopback only, plain HTTP, a bearer token on every route except the public
+  health probe, and CORS grants for browser-extension origins only.
+- **Outbound transport:** the cloud providers, web search APIs, OAuth endpoints, connector APIs and
+  model downloads use HTTPS at their default addresses. The Ollama endpoint, a SearXNG URL and a
+  custom OpenAI-compatible endpoint can be plain `http` when you enter them that way. The desktop
+  code does not change .NET's default certificate validation.
+
+---
+
+## Plugins
+
+Plugins are .NET assemblies loaded into the app with a `manifest.json`; they are not an HTTP
+interface. See [`docs/PLUGIN-DEVELOPMENT-GUIDE.md`](docs/PLUGIN-DEVELOPMENT-GUIDE.md).
+
+---
+
+**Last updated:** 2026-09-27
