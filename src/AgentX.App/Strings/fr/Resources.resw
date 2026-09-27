@@ -999,6 +999,10 @@
   <data name="Chat_ClearMemoriesCancel" xml:space="preserve"><value>Annuler</value></data>
   <data name="Chat_ClearMemoriesFailedTitle" xml:space="preserve"><value>Mémoires non supprimées</value></data>
   <data name="Chat_ClearMemoriesFailedBody" xml:space="preserve"><value>Les mémoires n'ont pas pu être supprimées et restent enregistrées. Réessayez.</value></data>
+  <data name="Chat_GenerationFailedTitle" xml:space="preserve"><value>Échec de la génération</value></data>
+  <data name="Chat_GenerationFailedToast" xml:space="preserve"><value>Impossible de générer une réponse. Vérifiez votre connexion d'IA dans les Paramètres.</value></data>
+  <data name="Chat_RegenerateFailedHint" xml:space="preserve"><value>Une erreur s'est produite lors de la génération d'une nouvelle réponse. La réponse précédente a été conservée.</value></data>
+  <data name="Chat_RegenerateFailedToast" xml:space="preserve"><value>Impossible de générer une nouvelle réponse : la précédente a donc été conservée. Vérifiez votre connexion d'IA dans les Paramètres.</value></data>
   <data name="Main_QuickActions.Content" xml:space="preserve"><value>Quick Actions</value></data>
   <data name="Main_Workflows.Content" xml:space="preserve"><value>Workflows</value></data>
   <data name="Main_Knowledge.Content" xml:space="preserve"><value>CONNAISSANCES</value></data>

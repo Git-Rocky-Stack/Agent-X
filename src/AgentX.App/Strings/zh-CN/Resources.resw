@@ -999,6 +999,10 @@
   <data name="Chat_ClearMemoriesCancel" xml:space="preserve"><value>取消</value></data>
   <data name="Chat_ClearMemoriesFailedTitle" xml:space="preserve"><value>未删除记忆</value></data>
   <data name="Chat_ClearMemoriesFailedBody" xml:space="preserve"><value>无法删除这些记忆，它们仍被保存。请重试。</value></data>
+  <data name="Chat_GenerationFailedTitle" xml:space="preserve"><value>生成失败</value></data>
+  <data name="Chat_GenerationFailedToast" xml:space="preserve"><value>无法生成回复。请在“设置”中检查您的 AI 连接。</value></data>
+  <data name="Chat_RegenerateFailedHint" xml:space="preserve"><value>生成新回复时出错。已保留之前的回复。</value></data>
+  <data name="Chat_RegenerateFailedToast" xml:space="preserve"><value>无法生成新回复，因此保留了之前的回复。请在“设置”中检查您的 AI 连接。</value></data>
   <data name="Main_QuickActions.Content" xml:space="preserve"><value>Quick Actions</value></data>
   <data name="Main_Workflows.Content" xml:space="preserve"><value>工作流</value></data>
   <data name="Main_Knowledge.Content" xml:space="preserve"><value>知识</value></data>

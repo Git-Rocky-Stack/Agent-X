@@ -999,6 +999,10 @@
   <data name="Chat_ClearMemoriesCancel" xml:space="preserve"><value>Abbrechen</value></data>
   <data name="Chat_ClearMemoriesFailedTitle" xml:space="preserve"><value>Erinnerungen nicht gelöscht</value></data>
   <data name="Chat_ClearMemoriesFailedBody" xml:space="preserve"><value>Die Erinnerungen konnten nicht gelöscht werden und sind weiterhin gespeichert. Versuchen Sie es erneut.</value></data>
+  <data name="Chat_GenerationFailedTitle" xml:space="preserve"><value>Erstellen fehlgeschlagen</value></data>
+  <data name="Chat_GenerationFailedToast" xml:space="preserve"><value>Es konnte keine Antwort erstellt werden. Prüfen Sie Ihre KI-Verbindung in den Einstellungen.</value></data>
+  <data name="Chat_RegenerateFailedHint" xml:space="preserve"><value>Beim Erstellen einer neuen Antwort ist ein Fehler aufgetreten. Die vorherige Antwort wurde beibehalten.</value></data>
+  <data name="Chat_RegenerateFailedToast" xml:space="preserve"><value>Es konnte keine neue Antwort erstellt werden, daher wurde die vorherige beibehalten. Prüfen Sie Ihre KI-Verbindung in den Einstellungen.</value></data>
   <data name="Main_QuickActions.Content" xml:space="preserve"><value>Quick Actions</value></data>
   <data name="Main_Workflows.Content" xml:space="preserve"><value>Workflows</value></data>
   <data name="Main_Knowledge.Content" xml:space="preserve"><value>WISSEN</value></data>

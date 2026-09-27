@@ -200,7 +200,10 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
                     "Chat_GenerationFailedHint",
                     "An error occurred while generating a response. {0}",
                     hint),
-                "Could not generate a response. Check your AI connection in Settings.",
+                ProviderStatusText.Resolve(
+                    _localization?.GetString("Chat_GenerationFailedToast"),
+                    "Chat_GenerationFailedToast",
+                    "Could not generate a response. Check your AI connection in Settings."),
                 generation);
         }
         finally
@@ -269,8 +272,14 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
                 exchange,
                 userMessageId,
                 ex,
-                "An error occurred while generating a new response. The previous response was kept.",
-                "Could not generate a new response, so the previous one was kept. Check your AI connection in Settings.",
+                ProviderStatusText.Resolve(
+                    _localization?.GetString("Chat_RegenerateFailedHint"),
+                    "Chat_RegenerateFailedHint",
+                    "An error occurred while generating a new response. The previous response was kept."),
+                ProviderStatusText.Resolve(
+                    _localization?.GetString("Chat_RegenerateFailedToast"),
+                    "Chat_RegenerateFailedToast",
+                    "Could not generate a new response, so the previous one was kept. Check your AI connection in Settings."),
                 generation);
         }
         finally
@@ -397,7 +406,10 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
         NotificationRequested?.Invoke(this, new NotificationRequestEventArgs
         {
             Level = "error",
-            Title = "Generation Failed",
+            Title = ProviderStatusText.Resolve(
+                _localization?.GetString("Chat_GenerationFailedTitle"),
+                "Chat_GenerationFailedTitle",
+                "Generation Failed"),
             Message = notificationMessage
         });
 

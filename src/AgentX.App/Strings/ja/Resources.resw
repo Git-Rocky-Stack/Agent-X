@@ -999,6 +999,10 @@
   <data name="Chat_ClearMemoriesCancel" xml:space="preserve"><value>キャンセル</value></data>
   <data name="Chat_ClearMemoriesFailedTitle" xml:space="preserve"><value>記憶を削除できませんでした</value></data>
   <data name="Chat_ClearMemoriesFailedBody" xml:space="preserve"><value>記憶を削除できなかったため、保存されたままです。もう一度お試しください。</value></data>
+  <data name="Chat_GenerationFailedTitle" xml:space="preserve"><value>生成に失敗しました</value></data>
+  <data name="Chat_GenerationFailedToast" xml:space="preserve"><value>応答を生成できませんでした。設定で AI の接続を確認してください。</value></data>
+  <data name="Chat_RegenerateFailedHint" xml:space="preserve"><value>新しい応答の生成中にエラーが発生しました。以前の応答はそのまま残っています。</value></data>
+  <data name="Chat_RegenerateFailedToast" xml:space="preserve"><value>新しい応答を生成できなかったため、以前の応答を残しました。設定で AI の接続を確認してください。</value></data>
   <data name="Main_QuickActions.Content" xml:space="preserve"><value>Quick Actions</value></data>
   <data name="Main_Workflows.Content" xml:space="preserve"><value>ワークフロー</value></data>
   <data name="Main_Knowledge.Content" xml:space="preserve"><value>ナレッジ</value></data>

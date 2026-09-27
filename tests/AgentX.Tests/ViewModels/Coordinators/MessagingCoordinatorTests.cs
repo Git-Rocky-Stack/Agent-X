@@ -286,6 +286,35 @@ public class MessagingCoordinatorTests
             .And.Contain("Check the AI provider in Settings.");
     }
 
+    [Fact]
+    public async Task SendMessageAsync_WhenTheReplyFails_TheNotificationIsInTheUsersLanguageToo()
+    {
+        _chatService
+            .Setup(s => s.SendMessageAsync(1, "fail", It.IsAny<CancellationToken>()))
+            .Throws(new Exception("AI error"));
+        var coordinator = CreateLocalizedCoordinator("fr");
+        NotificationRequestEventArgs? notification = null;
+        coordinator.NotificationRequested += (_, e) => notification = e;
+
+        await coordinator.SendMessageAsync("fail", 1, null, null, false);
+
+        notification!.Title.Should().Be("Échec de la génération");
+        notification.Message.Should().Be("Impossible de générer une réponse. Vérifiez votre connexion d'IA dans les Paramètres.");
+    }
+
+    [Fact]
+    public async Task RegenerateResponseAsync_WhenItFails_KeepsThePreviousAnswerAndSaysSoInTheUsersLanguage()
+    {
+        _provider.Setup(p => p.CheckConnectionAsync(It.IsAny<CancellationToken>())).ReturnsAsync(false);
+        var coordinator = CreateLocalizedCoordinator("de");
+
+        var result = await coordinator.RegenerateResponseAsync(1, 10, "q", null, ChatOrchestrationMode.Standard);
+
+        result.HadError.Should().BeTrue();
+        result.ResponseContent.Should().Be(
+            "Beim Erstellen einer neuen Antwort ist ein Fehler aufgetreten. Die vorherige Antwort wurde beibehalten.");
+    }
+
     private MessagingCoordinator CreateLocalizedCoordinator(string locale) =>
         new(
             _chatService.Object,

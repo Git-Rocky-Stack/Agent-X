@@ -1121,6 +1121,10 @@
   <data name="Chat_ClearMemoriesCancel" xml:space="preserve"><value>Cancel</value></data>
   <data name="Chat_ClearMemoriesFailedTitle" xml:space="preserve"><value>Memories not deleted</value></data>
   <data name="Chat_ClearMemoriesFailedBody" xml:space="preserve"><value>The memories could not be deleted and are still stored. Try again.</value></data>
+  <data name="Chat_GenerationFailedTitle" xml:space="preserve"><value>Generation Failed</value></data>
+  <data name="Chat_GenerationFailedToast" xml:space="preserve"><value>Could not generate a response. Check your AI connection in Settings.</value></data>
+  <data name="Chat_RegenerateFailedHint" xml:space="preserve"><value>An error occurred while generating a new response. The previous response was kept.</value></data>
+  <data name="Chat_RegenerateFailedToast" xml:space="preserve"><value>Could not generate a new response, so the previous one was kept. Check your AI connection in Settings.</value></data>
   <data name="Main_QuickActions.Content" xml:space="preserve"><value>Quick Actions</value></data>
   <data name="Main_Workflows.Content" xml:space="preserve"><value>Workflows</value></data>
   <data name="Main_Knowledge.Content" xml:space="preserve"><value>KNOWLEDGE</value></data>
