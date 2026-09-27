@@ -553,8 +553,9 @@ in `processing` back to `queued`.
 
 ### InboxItemEntity
 **Table:** `inbox_items`
-**Purpose:** An item waiting in the Smart Inbox: a browser clip, a file, or an item a connector
-(calendar, email) produced.
+**Purpose:** An item in the Smart Inbox: a page clipped by the browser extension, or an item a
+connector (calendar, email) produced. Connector items are created as `accepted` and imported into
+the vault right away.
 
 | Column | Type | Null | Default | Notes |
 |--------|------|------|---------|-------|
@@ -570,8 +571,8 @@ in `processing` back to `queued`.
 | `SuggestedTags` | TEXT | null | | Comma-separated tags |
 | `AddedAt` | TEXT | req | | Arrival time |
 | `ProcessedAt` | TEXT | null | | Accept, reject or defer time |
-| `WatchFolderId` | INTEGER | null | | Watch folder that found it (no FK) |
-| `SourceType` | TEXT | null | | How it arrived (for example `calendar-connector`, `email-connector`) |
+| `WatchFolderId` | INTEGER | null | | Watch folder that found it (no FK); left empty today, because watch-folder files are imported straight into the vault |
+| `SourceType` | TEXT | null | | How it arrived: `browser-extension`, `calendar-connector` or `email-connector` |
 | `SourceUrl` | TEXT | null | | Source link |
 | `SourcePluginId` | TEXT(50) | null | | Connector id (`com.agentx.calendar`, `com.agentx.email`) |
 | `SourceCategory` | TEXT(50) | null | | Category within the connector |
