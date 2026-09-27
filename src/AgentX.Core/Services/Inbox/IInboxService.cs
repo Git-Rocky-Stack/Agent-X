@@ -144,8 +144,8 @@ public interface IInboxService
     // ── Maintenance ──────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Permanently deletes all inbox rows whose status is "accepted", "rejected",
-    /// or "deferred". Pending items are not touched. Does not affect files on disk.
+    /// Permanently deletes all inbox rows whose status is "accepted" or "rejected".
+    /// Pending and deferred items are not touched. Does not affect files on disk.
     /// </summary>
     Task DeleteProcessedItemsAsync();
 

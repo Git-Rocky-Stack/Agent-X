@@ -583,10 +583,10 @@ public sealed class InboxService : IInboxService
     {
         try
         {
+            // Deferred items are decisions put off, not made: they stay until the user accepts or
+            // rejects them. Cleanup deleted them too, without asking.
             var processed = await _db.InboxItems
-                .Where(i => i.Status == "accepted"
-                         || i.Status == "rejected"
-                         || i.Status == "deferred")
+                .Where(i => i.Status == "accepted" || i.Status == "rejected")
                 .ToListAsync()
                 .ConfigureAwait(false);
 

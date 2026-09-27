@@ -678,7 +678,7 @@ Each item can show its file name, source (a **Web Clip** badge for browser clips
 | Defer | Changes the status only |
 | Reject | Changes the status only; nothing is imported |
 | Accept All Pending | Accepts every pending item, each into its suggested collection |
-| Clean Up Processed | Removes accepted, rejected, and deferred items from the list; documents already imported stay in the vault |
+| Clean Up Processed | Removes accepted and rejected items from the list and keeps deferred ones; documents already imported stay in the vault |
 | Opened from Operations | An item opened from Operations is shown in focus with this badge |
 
 ---

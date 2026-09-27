@@ -1085,8 +1085,9 @@ public sealed class InboxServiceTests : IDisposable
     // ═══════════════════════════════════════════════════════════════════════════
 
     [Fact]
-    public async Task DeleteProcessedItemsAsync_RemovesProcessedKeepsPending()
+    public async Task DeleteProcessedItemsAsync_RemovesAcceptedAndRejected_KeepsPendingAndDeferred()
     {
+        // A deferred item is a decision put off, not made; cleanup used to delete it too.
         var h = NewHarness();
         h.Seed(ctx =>
         {
@@ -1099,8 +1100,8 @@ public sealed class InboxServiceTests : IDisposable
         await h.Service.DeleteProcessedItemsAsync();
 
         using var fresh = h.Fresh();
-        (await fresh.InboxItems.CountAsync()).Should().Be(1);
-        (await fresh.InboxItems.SingleAsync()).Status.Should().Be("pending");
+        (await fresh.InboxItems.Select(i => i.Status).ToListAsync())
+            .Should().BeEquivalentTo("pending", "deferred");
     }
 
     [Fact]

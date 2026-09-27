@@ -227,7 +227,7 @@
   "UserGuide_Inbox_Feature1_Title.Text": "AI 预览",
   "UserGuide_Inbox_Feature1_Description.Text": "“生成 AI 预览”会根据每个尚无预览的待处理项文本的前 2,000 个字符，向当前 AI 提供商询问：它会写出两三句话的摘要，并建议一个合集和最多五个标签。如果建议的合集与您已有的某个合集一致，接受该项时就会使用它；建议的标签只作显示，文档在建立索引时会获得自己的标签。在您点击该按钮之前，不会生成任何内容。",
   "UserGuide_Inbox_Feature2_Title.Text": "接受、推迟或拒绝",
-  "UserGuide_Inbox_Feature2_Description.Text": "“接受”会将该项导入 Knowledge Vault，放入在“目标合集”中选择的合集，未选择时放入建议的合集。“推迟”和“拒绝”只会改变该项的状态，不会导入任何内容。“状态”列表（pending、accepted、rejected、deferred 或 all）决定显示哪些项。“接受全部待处理”会接受每个待处理项，并分别放入其建议的合集。“清理已处理项”会从列表中移除已接受、已拒绝和已推迟的项；已导入的文档仍保留在 Vault 中。",
+  "UserGuide_Inbox_Feature2_Description.Text": "“接受”会将该项导入 Knowledge Vault，放入在“目标合集”中选择的合集，未选择时放入建议的合集。“推迟”和“拒绝”只会改变该项的状态，不会导入任何内容。“状态”列表（pending、accepted、rejected、deferred 或 all）决定显示哪些项。“接受全部待处理”会接受每个待处理项，并分别放入其建议的合集。“清理已处理项”会从列表中移除已接受和已拒绝的项，并保留已推迟的项；已导入的文档仍保留在 Vault 中。",
   "UserGuide_Inbox_Feature3_Title.Text": "捕获来源",
   "UserGuide_Inbox_Feature3_Description.Text": "带“网页剪藏”标记的项来自浏览器扩展（整个页面、您的选择或阅读视图），会等待您处理。来自日历和邮件连接器，以及向收件箱推送项的数据连接器插件的项，一到达就会导入 Vault，因此显示时已是已接受状态。监视文件夹中的文件不经过 Smart Inbox。",
   "UserGuide_Analytics_Title.Text": "Analytics(分析)",
