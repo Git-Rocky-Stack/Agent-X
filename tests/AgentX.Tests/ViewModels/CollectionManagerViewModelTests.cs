@@ -221,7 +221,7 @@ public sealed class CollectionManagerViewModelTests
         viewModel.Collections.Should().ContainSingle().Which.DocumentCount.Should().Be(7);
     }
 
-    // ── Add Documents ────────────────────────────────────────────────────────
+    // --- Add Documents ---
     // Add Documents imported the picked files and added only the newly created documents: a
     // file already in the vault was dropped as a duplicate without a word, so it never
     // reached the collection, and failures were only logged.

@@ -391,9 +391,7 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // LIVE INDEXING UPDATES
-    // ═══════════════════════════════════════════════════════════════
+    // --- Live indexing updates ---
 
     private void OnDocumentIndexed(object? sender, long documentId) =>
         PostToUi(() => _ = RefreshDocumentAfterIndexingAsync(documentId, failure: null));
