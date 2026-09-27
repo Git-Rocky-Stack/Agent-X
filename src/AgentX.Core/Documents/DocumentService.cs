@@ -369,9 +369,9 @@ public sealed class DocumentService : IDocumentService
                 var entity = await ImportFileCoreAsync(filePath, collectionId, allowDuplicates, ct);
                 report.Imported.Add(entity);
             }
-            catch (DuplicateDocumentException)
+            catch (DuplicateDocumentException ex)
             {
-                report.Duplicates.Add(filePath);
+                report.Duplicates.Add(new DocumentImportDuplicate(filePath, ex.ExistingDocumentId, ex.ExistingFileName));
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {

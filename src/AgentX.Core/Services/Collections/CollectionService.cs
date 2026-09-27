@@ -389,7 +389,7 @@ public class CollectionService : ICollectionService
     }
 
     /// <inheritdoc />
-    public async Task AddDocumentToCollectionAsync(long documentId, long collectionId)
+    public async Task<bool> AddDocumentToCollectionAsync(long documentId, long collectionId)
     {
         try
         {
@@ -415,7 +415,7 @@ public class CollectionService : ICollectionService
                 _log.Debug(
                     "Document {DocumentId} is already in collection {CollectionId}, skipping",
                     documentId, collectionId);
-                return;
+                return false;
             }
 
             var association = new DocumentCollectionEntity
@@ -436,6 +436,7 @@ public class CollectionService : ICollectionService
             _log.Information(
                 "Added document {DocumentId} to collection {CollectionId} (new count: {DocumentCount})",
                 documentId, collectionId, collection.DocumentCount);
+            return true;
         }
         catch (InvalidOperationException)
         {

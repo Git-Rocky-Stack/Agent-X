@@ -440,10 +440,14 @@ public sealed class CollectionServiceTests : IDisposable
         await db.SaveChangesAsync();
 
         // Act: add twice
-        await sut.AddDocumentToCollectionAsync(doc.Id, collection.Id);
-        await sut.AddDocumentToCollectionAsync(doc.Id, collection.Id);
+        var first = await sut.AddDocumentToCollectionAsync(doc.Id, collection.Id);
+        var second = await sut.AddDocumentToCollectionAsync(doc.Id, collection.Id);
 
-        // Assert: should still only have one association
+        // Assert: the caller learns the second add found the document already there
+        // (Add Documents reports it as "already in this collection"), and there is still
+        // only one association
+        first.Should().BeTrue();
+        second.Should().BeFalse();
         var reader = CreateService();
         var updatedCollection = await reader.GetCollectionAsync(collection.Id);
         updatedCollection.Should().NotBeNull();

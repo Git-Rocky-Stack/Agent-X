@@ -1991,6 +1991,9 @@
   <data name="CollMgr_RenamePh.PlaceholderText" xml:space="preserve"><value>Nombre de la colección</value></data>
   <data name="CollMgr_RenameCancel.Content" xml:space="preserve"><value>Cancelar</value></data>
   <data name="CollMgr_RenameSave.Content" xml:space="preserve"><value>Cambiar nombre</value></data>
+  <data name="CollMgr_AddDocumentsDone" xml:space="preserve"><value>Documentos añadidos</value></data>
+  <data name="CollMgr_AddDocumentsIncomplete" xml:space="preserve"><value>Algunos documentos no se añadieron</value></data>
+  <data name="CollMgr_AddDocumentsCounts" xml:space="preserve"><value>Añadidos: {0}. Ya estaban en esta colección: {1}. Con error: {2}.</value></data>
   <data name="Dash_AcknowledgeConflictTip.ToolTipService.ToolTip" xml:space="preserve"><value>Confirmar conflicto</value></data>
   <data name="Dash_AcknowledgeConflictTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Confirmar conflicto</value></data>
   <data name="Dash_QuickActionsLabel.Text" xml:space="preserve"><value>Acciones rápidas</value></data>

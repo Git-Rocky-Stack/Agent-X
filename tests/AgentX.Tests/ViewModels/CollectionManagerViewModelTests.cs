@@ -1,7 +1,9 @@
+using AgentX.App.Services;
 using AgentX.App.ViewModels;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Documents;
 using AgentX.Core.Services.Collections;
+using AgentX.Core.Services.Localization;
 using FluentAssertions;
 using Moq;
 using Xunit;
@@ -219,6 +221,155 @@ public sealed class CollectionManagerViewModelTests
         viewModel.Collections.Should().ContainSingle().Which.DocumentCount.Should().Be(7);
     }
 
+    // ── Add Documents ────────────────────────────────────────────────────────
+    // Add Documents imported the picked files and added only the newly created documents: a
+    // file already in the vault was dropped as a duplicate without a word, so it never
+    // reached the collection, and failures were only logged.
+
+    [Fact]
+    public async Task AddFilesToCollectionCommand_AddsTheExistingDocumentForADuplicateFile()
+    {
+        var report = new DocumentImportReport();
+        report.Imported.Add(Document(5, @"C:\docs\new.md"));
+        report.Duplicates.Add(new DocumentImportDuplicate(@"C:\docs\copy.pdf", 7, "original.pdf"));
+        _documentService.Setup(s => s.ImportFilesWithReportAsync(
+                It.IsAny<IReadOnlyList<string>>(), null, false, null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(report);
+        _collectionService.Setup(s => s.AddDocumentToCollectionAsync(It.IsAny<long>(), 3)).ReturnsAsync(true);
+        var viewModel = await CreateViewModelWithSelectedCollectionAsync(3);
+
+        await viewModel.AddFilesToCollectionCommand.ExecuteAsync(new[] { @"C:\docs\new.md", @"C:\docs\copy.pdf" });
+
+        _collectionService.Verify(s => s.AddDocumentToCollectionAsync(5, 3), Times.Once);
+        _collectionService.Verify(s => s.AddDocumentToCollectionAsync(7, 3), Times.Once);
+        viewModel.LastAddOutcome.Should().NotBeNull();
+        viewModel.LastAddOutcome!.Added.Should().Be(2);
+        viewModel.LastAddOutcome.AlreadyInCollection.Should().Be(0);
+        viewModel.LastAddOutcome.Failures.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task AddFilesToCollectionCommand_CountsDocumentsThatWereAlreadyInTheCollection()
+    {
+        var report = new DocumentImportReport();
+        report.Duplicates.Add(new DocumentImportDuplicate(@"C:\docs\copy.pdf", 7, "original.pdf"));
+        _documentService.Setup(s => s.ImportFilesWithReportAsync(
+                It.IsAny<IReadOnlyList<string>>(), null, false, null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(report);
+        _collectionService.Setup(s => s.AddDocumentToCollectionAsync(7, 3)).ReturnsAsync(false);
+        var viewModel = await CreateViewModelWithSelectedCollectionAsync(3);
+
+        await viewModel.AddFilesToCollectionCommand.ExecuteAsync(new[] { @"C:\docs\copy.pdf" });
+
+        viewModel.LastAddOutcome!.Added.Should().Be(0);
+        viewModel.LastAddOutcome.AlreadyInCollection.Should().Be(1);
+        viewModel.LastAddOutcome.Failures.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task AddFilesToCollectionCommand_CountsImportAndLinkFailuresAndShowsTheFirstReason()
+    {
+        var report = new DocumentImportReport();
+        report.Imported.Add(Document(5, @"C:\docs\new.md"));
+        report.Imported.Add(Document(6, @"C:\docs\gone.md"));
+        report.Failed.Add(new DocumentImportFailure(@"C:\docs\notes.zzz", "No processor found for file type '.zzz'."));
+        _documentService.Setup(s => s.ImportFilesWithReportAsync(
+                It.IsAny<IReadOnlyList<string>>(), null, false, null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(report);
+        _collectionService.Setup(s => s.AddDocumentToCollectionAsync(5, 3)).ReturnsAsync(true);
+        _collectionService.Setup(s => s.AddDocumentToCollectionAsync(6, 3))
+            .ThrowsAsync(new InvalidOperationException("Document 6 not found."));
+        var localization = new Mock<ILocalizationService>();
+        localization.Setup(l => l.GetString(It.IsAny<string>())).Returns((string key) => $"[{key}]");
+        localization.Setup(l => l.GetString("CollMgr_AddDocumentsCounts", It.IsAny<object[]>()))
+            .Returns((string _, object[] args) => $"added {args[0]}, already {args[1]}, failed {args[2]}.");
+        var notifications = new Mock<INotificationService>();
+        var viewModel = await CreateViewModelWithSelectedCollectionAsync(3, localization.Object, notifications.Object);
+
+        await viewModel.AddFilesToCollectionCommand.ExecuteAsync(
+            new[] { @"C:\docs\new.md", @"C:\docs\gone.md", @"C:\docs\notes.zzz" });
+
+        viewModel.LastAddOutcome!.Added.Should().Be(1);
+        viewModel.LastAddOutcome.AlreadyInCollection.Should().Be(0);
+        viewModel.LastAddOutcome.Failures.Select(f => f.FilePath)
+            .Should().Equal(@"C:\docs\notes.zzz", @"C:\docs\gone.md");
+        notifications.Verify(n => n.ShowError(
+            "[CollMgr_AddDocumentsIncomplete]",
+            It.Is<string>(message => message.StartsWith("added 1, already 0, failed 2.")
+                                     && message.Contains("No processor found")),
+            It.IsAny<int>()), Times.Once);
+        notifications.Verify(n => n.ShowSuccess(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task AddFilesToCollectionCommand_ReportsACleanRunAsASuccess()
+    {
+        var report = new DocumentImportReport();
+        report.Imported.Add(Document(5, @"C:\docs\new.md"));
+        _documentService.Setup(s => s.ImportFilesWithReportAsync(
+                It.IsAny<IReadOnlyList<string>>(), null, false, null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(report);
+        _collectionService.Setup(s => s.AddDocumentToCollectionAsync(5, 3)).ReturnsAsync(true);
+        var localization = new Mock<ILocalizationService>();
+        localization.Setup(l => l.GetString(It.IsAny<string>())).Returns((string key) => $"[{key}]");
+        localization.Setup(l => l.GetString("CollMgr_AddDocumentsCounts", It.IsAny<object[]>()))
+            .Returns((string _, object[] args) => $"added {args[0]}, already {args[1]}, failed {args[2]}.");
+        var notifications = new Mock<INotificationService>();
+        var viewModel = await CreateViewModelWithSelectedCollectionAsync(3, localization.Object, notifications.Object);
+
+        await viewModel.AddFilesToCollectionCommand.ExecuteAsync(new[] { @"C:\docs\new.md" });
+
+        notifications.Verify(n => n.ShowSuccess(
+            "[CollMgr_AddDocumentsDone]", "added 1, already 0, failed 0.", It.IsAny<int>()), Times.Once);
+        notifications.Verify(n => n.ShowError(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task AddFilesToCollectionCommand_RefreshesTheCollectionsDocumentsAndCount()
+    {
+        var report = new DocumentImportReport();
+        report.Imported.Add(Document(5, @"C:\docs\new.md"));
+        _documentService.Setup(s => s.ImportFilesWithReportAsync(
+                It.IsAny<IReadOnlyList<string>>(), null, false, null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(report);
+        _collectionService.Setup(s => s.AddDocumentToCollectionAsync(5, 3)).ReturnsAsync(true);
+        var viewModel = await CreateViewModelWithSelectedCollectionAsync(3);
+        _collectionService.Setup(s => s.GetDocumentsInCollectionAsync(3))
+            .ReturnsAsync(new[] { Document(4, @"C:\docs\old.md"), Document(5, @"C:\docs\new.md") });
+
+        await viewModel.AddFilesToCollectionCommand.ExecuteAsync(new[] { @"C:\docs\new.md" });
+
+        viewModel.SelectedCollectionDocuments.Select(d => d.Id).Should().Equal(4L, 5L);
+        viewModel.SelectedCollection!.DocumentCount.Should().Be(2);
+    }
+
     private CollectionManagerViewModel CreateViewModel() =>
         new(_collectionService.Object, _documentService.Object);
+
+    private async Task<CollectionManagerViewModel> CreateViewModelWithSelectedCollectionAsync(
+        long collectionId,
+        ILocalizationService? localization = null,
+        INotificationService? notifications = null)
+    {
+        _collectionService.Setup(s => s.GetDocumentsInCollectionAsync(collectionId))
+            .ReturnsAsync(Array.Empty<DocumentEntity>());
+        var viewModel = new CollectionManagerViewModel(
+            _collectionService.Object, _documentService.Object, localization, notifications);
+        var collection = new CollectionDisplayItem { Id = collectionId, Name = "Research" };
+        viewModel.Collections.Add(collection);
+        await viewModel.SelectCollectionCommand.ExecuteAsync(collection);
+        return viewModel;
+    }
+
+    private static DocumentEntity Document(long id, string filePath) => new()
+    {
+        Id = id,
+        FileName = Path.GetFileName(filePath),
+        FilePath = filePath,
+        FileType = "md",
+        ContentHash = $"hash-{id}",
+        ImportedAt = DateTime.UtcNow,
+        FileModifiedAt = DateTime.UtcNow,
+        IndexingStatus = "pending",
+    };
 }

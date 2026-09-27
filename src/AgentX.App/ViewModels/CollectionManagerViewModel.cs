@@ -1,7 +1,9 @@
 using System.Collections.ObjectModel;
+using AgentX.App.Services;
 using AgentX.Core.Documents;
 using AgentX.Core.Helpers;
 using AgentX.Core.Services.Collections;
+using AgentX.Core.Services.Localization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Serilog;
@@ -23,6 +25,8 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
     // ── Services ──────────────────────────────────────────────
     private readonly ICollectionService _collectionService;
     private readonly IDocumentService _documentService;
+    private readonly ILocalizationService? _localization;
+    private readonly INotificationService? _notifications;
 
     // ── Page State ─────────────────────────────────────────────
     [ObservableProperty] private bool _isLoading;
@@ -60,10 +64,25 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
     public bool HasSelectedCollectionDocuments => SelectedCollectionDocuments.Count > 0;
     public bool CanCreateCollection => !string.IsNullOrWhiteSpace(NewCollectionName);
 
-    public CollectionManagerViewModel(ICollectionService collectionService, IDocumentService documentService)
+    /// <summary>
+    /// What the last "Add Documents" did, or null when it did not get as far as a result.
+    /// </summary>
+    public CollectionAddOutcome? LastAddOutcome { get; private set; }
+
+    /// <param name="collectionService">Collection reads and writes.</param>
+    /// <param name="documentService">Imports the files picked for "Add Documents".</param>
+    /// <param name="localization">Texts of the "Add Documents" summary; no summary without it.</param>
+    /// <param name="notifications">Shows the "Add Documents" summary; no summary without it.</param>
+    public CollectionManagerViewModel(
+        ICollectionService collectionService,
+        IDocumentService documentService,
+        ILocalizationService? localization = null,
+        INotificationService? notifications = null)
     {
         _collectionService = collectionService;
         _documentService = documentService;
+        _localization = localization;
+        _notifications = notifications;
         Log.Debug("CollectionManagerViewModel created with services");
     }
 
@@ -349,36 +368,106 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
-    /// Adds documents to the currently selected collection.
-    /// The actual file picker is handled by the code-behind.
-    /// This command is invoked with the selected document IDs.
+    /// Adds files to the selected collection. The file picker lives in the code-behind, which
+    /// passes the picked paths here. Files new to the vault are imported and added; a file
+    /// whose content is already in the vault adds that existing document, where it used to be
+    /// skipped without a word. <see cref="LastAddOutcome"/> records how many files were added,
+    /// were already in the collection, or failed, and the same counts are shown to the user.
     /// </summary>
     [RelayCommand]
-    private async Task AddDocumentsToCollectionAsync(IReadOnlyList<long>? documentIds)
+    private async Task AddFilesToCollectionAsync(IReadOnlyList<string>? filePaths)
     {
-        if (SelectedCollection is null || documentIds is null || documentIds.Count == 0) return;
+        LastAddOutcome = null;
+        var collection = SelectedCollection;
+        if (collection is null || filePaths is null || filePaths.Count == 0) return;
 
-        Log.Information("Adding {Count} document(s) to collection: {CollectionId}",
-            documentIds.Count, SelectedCollection.Id);
+        Log.Information("Adding {Count} file(s) to collection: {CollectionId}", filePaths.Count, collection.Id);
         ClearError();
+
+        var added = 0;
+        var alreadyInCollection = 0;
+        var failures = new List<CollectionAddFailure>();
 
         try
         {
-            foreach (var docId in documentIds)
+            var report = await _documentService.ImportFilesWithReportAsync(filePaths);
+            failures.AddRange(report.Failed.Select(failure => new CollectionAddFailure(failure.FilePath, failure.Reason)));
+
+            // New documents and the existing documents duplicates matched both go into the
+            // collection; the service says which of them were members already.
+            var documents = report.Imported
+                .Select(document => (FilePath: document.FilePath, DocumentId: document.Id))
+                .Concat(report.Duplicates.Select(duplicate => (duplicate.FilePath, DocumentId: duplicate.ExistingDocumentId)));
+
+            foreach (var (filePath, documentId) in documents)
             {
-                await _collectionService.AddDocumentToCollectionAsync(docId, SelectedCollection.Id);
+                try
+                {
+                    if (await _collectionService.AddDocumentToCollectionAsync(documentId, collection.Id))
+                    {
+                        added++;
+                    }
+                    else
+                    {
+                        alreadyInCollection++;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, "Failed to add document {DocumentId} to collection {CollectionId}", documentId, collection.Id);
+                    failures.Add(new CollectionAddFailure(filePath, ex.Message));
+                }
             }
-
-            await LoadCollectionDocumentsAsync(SelectedCollection.Id);
-            SelectedCollection.DocumentCount = SelectedCollectionDocuments.Count;
-
-            Log.Information("Documents added to collection: {CollectionId}", SelectedCollection.Id);
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to add documents to collection");
             SetError($"Failed to add documents: {ex.Message}");
+            return;
         }
+
+        if (SelectedCollection?.Id == collection.Id)
+        {
+            await LoadCollectionDocumentsAsync(collection.Id);
+            collection.DocumentCount = SelectedCollectionDocuments.Count;
+        }
+        else
+        {
+            collection.DocumentCount += added;
+        }
+
+        LastAddOutcome = new CollectionAddOutcome(added, alreadyInCollection, failures);
+        Log.Information(
+            "Add to collection {CollectionId}: {Added} added, {AlreadyInCollection} already in it, {Failed} failed",
+            collection.Id, added, alreadyInCollection, failures.Count);
+
+        ReportAddOutcome(LastAddOutcome);
+    }
+
+    /// <summary>
+    /// Shows what "Add Documents" did. A failure names the first file that failed and why.
+    /// </summary>
+    private void ReportAddOutcome(CollectionAddOutcome outcome)
+    {
+        if (_localization is null || _notifications is null)
+        {
+            return;
+        }
+
+        var counts = _localization.GetString(
+            "CollMgr_AddDocumentsCounts", outcome.Added, outcome.AlreadyInCollection, outcome.Failures.Count);
+
+        if (outcome.Failures.Count == 0)
+        {
+            _notifications.ShowSuccess(_localization.GetString("CollMgr_AddDocumentsDone"), counts, durationMs: 6000);
+            return;
+        }
+
+        var first = outcome.Failures[0];
+        _notifications.ShowError(
+            _localization.GetString("CollMgr_AddDocumentsIncomplete"),
+            $"{counts} {Path.GetFileName(first.FilePath)}: {first.Reason}",
+            durationMs: 10000);
     }
 
     [RelayCommand]
@@ -683,6 +772,15 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
         Log.Debug("CollectionManagerViewModel disposed");
     }
 }
+
+/// <summary>
+/// Outcome of "Add Documents": files whose document was added to the collection, files whose
+/// document was a member already, and files that did not end up in it.
+/// </summary>
+public sealed record CollectionAddOutcome(int Added, int AlreadyInCollection, IReadOnlyList<CollectionAddFailure> Failures);
+
+/// <summary>A file "Add Documents" could not put in the collection, and why.</summary>
+public sealed record CollectionAddFailure(string FilePath, string Reason);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // COLLECTION DISPLAY ITEM

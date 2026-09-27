@@ -117,8 +117,9 @@ public sealed partial class CollectionManagerPage : Page
     // ═══════════════════════════════════════════════════════════════
 
     /// <summary>
-    /// Opens a file picker to select files, imports them via IDocumentService,
-    /// then associates the resulting document IDs with the selected collection.
+    /// Opens a file picker and hands the picked files to the view model, which imports them,
+    /// adds them (or the documents they duplicate) to the selected collection and reports the
+    /// outcome.
     /// </summary>
     private async void OnAddDocumentsClick(object sender, RoutedEventArgs e)
     {
@@ -143,12 +144,8 @@ public sealed partial class CollectionManagerPage : Page
             var files = await picker.PickMultipleFilesAsync();
             if (files is not null && files.Count > 0)
             {
-                // Import files first, then associate with collection
-                var documentService = App.GetService<AgentX.Core.Documents.IDocumentService>();
                 var filePaths = files.Select(f => f.Path).ToList();
-                var importedDocs = await documentService.ImportFilesAsync(filePaths);
-                var docIds = importedDocs.Select(d => d.Id).ToList();
-                await ViewModel.AddDocumentsToCollectionCommand.ExecuteAsync(docIds);
+                await ViewModel.AddFilesToCollectionCommand.ExecuteAsync(filePaths);
             }
         }
         catch (Exception ex)

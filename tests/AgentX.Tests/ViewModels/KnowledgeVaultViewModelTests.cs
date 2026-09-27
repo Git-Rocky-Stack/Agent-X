@@ -514,8 +514,8 @@ public sealed class KnowledgeVaultViewModelTests
         var unreadable = CreateDocument(2, "b.pdf");
         unreadable.IndexingStatus = "failed";
         report.Imported.Add(unreadable);
-        report.Duplicates.Add("c.md");
-        report.Duplicates.Add("d.md");
+        report.Duplicates.Add(new DocumentImportDuplicate("c.md", 30, "c-original.md"));
+        report.Duplicates.Add(new DocumentImportDuplicate("d.md", 40, "d-original.md"));
         report.Failed.Add(new DocumentImportFailure("e.zzz", "No processor"));
 
         KnowledgeVaultViewModel.FormatImportSummary(report, 5, fromFolder: true).Should().Be(

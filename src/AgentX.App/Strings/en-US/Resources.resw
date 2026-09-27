@@ -2113,6 +2113,9 @@
   <data name="CollMgr_RenamePh.PlaceholderText" xml:space="preserve"><value>Collection name</value></data>
   <data name="CollMgr_RenameCancel.Content" xml:space="preserve"><value>Cancel</value></data>
   <data name="CollMgr_RenameSave.Content" xml:space="preserve"><value>Rename</value></data>
+  <data name="CollMgr_AddDocumentsDone" xml:space="preserve"><value>Documents added</value></data>
+  <data name="CollMgr_AddDocumentsIncomplete" xml:space="preserve"><value>Some documents were not added</value></data>
+  <data name="CollMgr_AddDocumentsCounts" xml:space="preserve"><value>Added: {0}. Already in this collection: {1}. Failed: {2}.</value></data>
   <data name="Dash_AcknowledgeConflictTip.ToolTipService.ToolTip" xml:space="preserve"><value>Acknowledge conflict</value></data>
   <data name="Dash_AcknowledgeConflictTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Acknowledge conflict</value></data>
   <data name="Dash_QuickActionsLabel.Text" xml:space="preserve"><value>Quick Actions</value></data>

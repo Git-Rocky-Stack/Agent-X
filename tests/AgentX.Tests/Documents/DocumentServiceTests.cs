@@ -722,7 +722,7 @@ public sealed class DocumentServiceTests : IDisposable
                 });
         var h = NewHarness(processor);
         var existing = h.WriteFile("existing.txt", "already in the vault");
-        await h.Service.ImportFileAsync(existing);
+        var existingDocument = await h.Service.ImportFileAsync(existing);
 
         var fresh = h.WriteFile("fresh.txt", "new content");
         var copy = h.WriteFile("copy.txt", "already in the vault");
@@ -738,7 +738,9 @@ public sealed class DocumentServiceTests : IDisposable
         report.Imported.Select(d => d.FileName).Should().BeEquivalentTo(new[] { "fresh.txt", "locked.pdf" });
         report.ExtractionFailedCount.Should().Be(1);
         report.Imported.Single(d => d.FileName == "locked.pdf").IndexingError.Should().Be("The PDF is password protected.");
-        report.Duplicates.Should().Equal(copy);
+        // The duplicate names the document it matched, so a caller can use that document
+        // (Collections adds it to the collection instead of skipping the file).
+        report.Duplicates.Should().Equal(new DocumentImportDuplicate(copy, existingDocument.Id, "existing.txt"));
         report.Failed.Select(f => f.FilePath).Should().BeEquivalentTo(new[] { unsupported, missing });
         report.Failed.Single(f => f.FilePath == unsupported).Reason.Should().Contain("No processor found");
         progress.Should().Equal(1, 2, 3, 4, 5);

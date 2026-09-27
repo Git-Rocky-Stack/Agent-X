@@ -554,7 +554,7 @@ Use Collections for project, client, research area, or topic groupings.
 | --- | --- |
 | Create collection | Adds a new organizational container |
 | Nest collection | Creates parent/child structure |
-| Add documents | Associates documents without duplicating files |
+| Add documents | Imports the picked files and adds them to the collection. A file already in the vault adds the existing document instead of a copy, and a summary reports how many files were added, were already in the collection, or failed |
 | Remove documents | Removes only the collection relationship |
 | Delete collection | Leaves original vault documents intact |
 

@@ -63,7 +63,11 @@ public interface ICollectionService
     /// </summary>
     /// <param name="documentId">The ID of the document.</param>
     /// <param name="collectionId">The ID of the collection.</param>
-    Task AddDocumentToCollectionAsync(long documentId, long collectionId);
+    /// <returns>
+    /// True when the document was added; false when it already belonged to the collection.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">The document or the collection does not exist.</exception>
+    Task<bool> AddDocumentToCollectionAsync(long documentId, long collectionId);
 
     /// <summary>
     /// Removes the association between a document and a collection.

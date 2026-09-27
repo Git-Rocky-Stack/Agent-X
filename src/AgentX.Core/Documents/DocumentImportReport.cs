@@ -14,8 +14,12 @@ public sealed class DocumentImportReport
     /// </summary>
     public List<DocumentEntity> Imported { get; } = new();
 
-    /// <summary>Files skipped because a document with identical content already exists.</summary>
-    public List<string> Duplicates { get; } = new();
+    /// <summary>
+    /// Files skipped because a document with identical content already exists, each with the
+    /// document it matched, so a caller can use that document instead (for example, add it to
+    /// the collection the file was meant for).
+    /// </summary>
+    public List<DocumentImportDuplicate> Duplicates { get; } = new();
 
     /// <summary>Files that could not be imported at all, with the reason.</summary>
     public List<DocumentImportFailure> Failed { get; } = new();
@@ -26,6 +30,12 @@ public sealed class DocumentImportReport
 
 /// <summary>A file that could not be imported, and why.</summary>
 public sealed record DocumentImportFailure(string FilePath, string Reason);
+
+/// <summary>A file that was not imported because an existing document has the same content.</summary>
+/// <param name="FilePath">The file that was skipped.</param>
+/// <param name="ExistingDocumentId">The document that already holds this content.</param>
+/// <param name="ExistingFileName">File name of that document.</param>
+public sealed record DocumentImportDuplicate(string FilePath, long ExistingDocumentId, string ExistingFileName);
 
 /// <summary>
 /// Thrown when an imported file has the same content as an existing document. Derives from

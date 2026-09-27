@@ -1991,6 +1991,9 @@
   <data name="CollMgr_RenamePh.PlaceholderText" xml:space="preserve"><value>合集名称</value></data>
   <data name="CollMgr_RenameCancel.Content" xml:space="preserve"><value>取消</value></data>
   <data name="CollMgr_RenameSave.Content" xml:space="preserve"><value>重命名</value></data>
+  <data name="CollMgr_AddDocumentsDone" xml:space="preserve"><value>已添加文档</value></data>
+  <data name="CollMgr_AddDocumentsIncomplete" xml:space="preserve"><value>部分文档未能添加</value></data>
+  <data name="CollMgr_AddDocumentsCounts" xml:space="preserve"><value>已添加：{0} 个。已在此合集中：{1} 个。失败：{2} 个。</value></data>
   <data name="Dash_AcknowledgeConflictTip.ToolTipService.ToolTip" xml:space="preserve"><value>确认冲突</value></data>
   <data name="Dash_AcknowledgeConflictTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>确认冲突</value></data>
   <data name="Dash_QuickActionsLabel.Text" xml:space="preserve"><value>快捷操作</value></data>

@@ -1991,6 +1991,9 @@
   <data name="CollMgr_RenamePh.PlaceholderText" xml:space="preserve"><value>コレクション名</value></data>
   <data name="CollMgr_RenameCancel.Content" xml:space="preserve"><value>キャンセル</value></data>
   <data name="CollMgr_RenameSave.Content" xml:space="preserve"><value>名前を変更</value></data>
+  <data name="CollMgr_AddDocumentsDone" xml:space="preserve"><value>ドキュメントを追加しました</value></data>
+  <data name="CollMgr_AddDocumentsIncomplete" xml:space="preserve"><value>一部のドキュメントを追加できませんでした</value></data>
+  <data name="CollMgr_AddDocumentsCounts" xml:space="preserve"><value>追加: {0} 件。このコレクションに既に存在: {1} 件。失敗: {2} 件。</value></data>
   <data name="Dash_AcknowledgeConflictTip.ToolTipService.ToolTip" xml:space="preserve"><value>矛盾を確認済みにする</value></data>
   <data name="Dash_AcknowledgeConflictTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>矛盾を確認済みにする</value></data>
   <data name="Dash_QuickActionsLabel.Text" xml:space="preserve"><value>クイックアクション</value></data>
