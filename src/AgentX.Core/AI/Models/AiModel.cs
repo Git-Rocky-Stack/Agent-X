@@ -111,8 +111,6 @@ public class HardwareCapability
         _ => "70B+"
     };
 
-    public string RecommendedMaxModelSize => $"Up to {RecommendedMaxModelParameters} parameter models";
-
     /// <summary>Whether the detected GPU is an NVIDIA GPU (CUDA-capable).</summary>
     public bool IsNvidiaGpu =>
         !string.IsNullOrEmpty(GpuName) &&
