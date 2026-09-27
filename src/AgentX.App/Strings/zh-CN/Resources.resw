@@ -2539,6 +2539,117 @@
   <data name="Dash_UnknownTopic" xml:space="preserve"><value>未知主题</value></data>
   <data name="Dash_IndexedRun.Text" xml:space="preserve"><value>% 已索引</value></data>
   <data name="Dash_IndexedMeter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>已索引百分比</value></data>
+  <data name="Chat_NoModelSelected" xml:space="preserve"><value>未选择模型</value></data>
+  <data name="Chat_NewConversationTitle" xml:space="preserve"><value>新对话</value></data>
+  <data name="Chat_ConnectionChecking" xml:space="preserve"><value>正在检查...</value></data>
+  <data name="Chat_ConnectionConnected" xml:space="preserve"><value>已连接</value></data>
+  <data name="Chat_ConnectionDisconnected" xml:space="preserve"><value>未连接</value></data>
+  <data name="Chat_ResearchModeOnTooltip" xml:space="preserve"><value>研究模式已开启：回答会加入带引用的网络搜索结果（需要在“设置”中启用研究模式并配置网络搜索提供商）</value></data>
+  <data name="Chat_ResearchModeOffTooltip" xml:space="preserve"><value>研究模式已关闭：回答仅使用您的本地知识</value></data>
+  <data name="Chat_OrchestrationParallelTooltip" xml:space="preserve"><value>多智能体并行模式：研究者、评论者和综合者共同回答</value></data>
+  <data name="Chat_OrchestrationDebateTooltip" xml:space="preserve"><value>多智能体辩论模式：各智能体在最终综合前相互质疑观点</value></data>
+  <data name="Chat_OrchestrationSoloTooltip" xml:space="preserve"><value>单一模式：标准的 Agent-X 聊天回复</value></data>
+  <data name="Chat_ContextStoryUnavailable" xml:space="preserve"><value>在 Agent-X 为此对话组装回复之前，没有可用的上下文脉络。</value></data>
+  <data name="Chat_IntelBadgeCurrent" xml:space="preserve"><value>最新</value></data>
+  <data name="Chat_IntelBadgeStale" xml:space="preserve"><value>已过时</value></data>
+  <data name="Chat_IntelBadgePending" xml:space="preserve"><value>待处理</value></data>
+  <data name="Chat_IntelBadgeUnavailable" xml:space="preserve"><value>不可用</value></data>
+  <data name="Chat_SummaryRefreshing" xml:space="preserve"><value>正在刷新持久摘要...</value></data>
+  <data name="Chat_SummaryCurrentKeyPointsOne" xml:space="preserve"><value>摘要为最新 • 1 个要点可用</value></data>
+  <data name="Chat_SummaryCurrentKeyPointsMany" xml:space="preserve"><value>摘要为最新 • {0} 个要点可用</value></data>
+  <data name="Chat_SummaryCurrentReady" xml:space="preserve"><value>摘要为最新 • 可深入查看</value></data>
+  <data name="Chat_SummaryStaleMessagesOne" xml:space="preserve"><value>摘要已过时 • 1 条较新的消息尚未纳入</value></data>
+  <data name="Chat_SummaryStaleMessagesMany" xml:space="preserve"><value>摘要已过时 • {0} 条较新的消息尚未纳入</value></data>
+  <data name="Chat_SummaryStaleWaiting" xml:space="preserve"><value>摘要已过时 • 等待下次刷新</value></data>
+  <data name="Chat_SummaryRefreshPending" xml:space="preserve"><value>摘要刷新待处理</value></data>
+  <data name="Chat_SummaryUnavailablePath" xml:space="preserve"><value>此回复路径不提供摘要</value></data>
+  <data name="Chat_ConversationContextNone" xml:space="preserve"><value>尚未捕获对话上下文</value></data>
+  <data name="Chat_SummaryRefreshingShort" xml:space="preserve"><value>正在刷新...</value></data>
+  <data name="Chat_SummaryRetry" xml:space="preserve"><value>重试摘要</value></data>
+  <data name="Chat_SummaryRefresh" xml:space="preserve"><value>刷新摘要</value></data>
+  <data name="Chat_GenerationError" xml:space="preserve"><value>生成回复时出错。</value></data>
+  <data name="Chat_ResponseKeptTitle" xml:space="preserve"><value>已保留回复</value></data>
+  <data name="Chat_ResponseKeptBody" xml:space="preserve"><value>模型没有返回新回复，因此保留了之前的回复。</value></data>
+  <data name="Chat_GenerationStopped" xml:space="preserve"><value>[已停止生成]</value></data>
+  <data name="Chat_ResponseInProgressTitle" xml:space="preserve"><value>正在生成回复</value></data>
+  <data name="Chat_ResponseInProgressBody" xml:space="preserve"><value>请停止当前回复或等待其完成，然后重试。</value></data>
+  <data name="Chat_DeleteFailedTitle" xml:space="preserve"><value>删除失败</value></data>
+  <data name="Chat_DeleteConversationFailedBody" xml:space="preserve"><value>无法删除该对话，它仍在您的历史记录中。</value></data>
+  <data name="Chat_ConversationNotFoundTitle" xml:space="preserve"><value>未找到对话</value></data>
+  <data name="Chat_ConversationNotFoundBody" xml:space="preserve"><value>无法打开该对话。它可能已被删除。</value></data>
+  <data name="Chat_PinFailedTitle" xml:space="preserve"><value>未更改固定状态</value></data>
+  <data name="Chat_PinFailedBody" xml:space="preserve"><value>无法更改该对话的固定状态。</value></data>
+  <data name="Chat_MessageRemovedTitle" xml:space="preserve"><value>已移除消息</value></data>
+  <data name="Chat_MessageRemovedBody" xml:space="preserve"><value>此消息从未保存，因此只是从屏幕上移除。</value></data>
+  <data name="Chat_DeleteMessageFailedBody" xml:space="preserve"><value>无法删除该消息，它仍在此对话中。</value></data>
+  <data name="Chat_MessageDeletedTitle" xml:space="preserve"><value>已删除消息</value></data>
+  <data name="Chat_MessageDeletedBody" xml:space="preserve"><value>该消息已被移除。</value></data>
+  <data name="Chat_RegenerateLatestOnlyTitle" xml:space="preserve"><value>只能重新生成最新的回复</value></data>
+  <data name="Chat_RegenerateLatestOnlyBody" xml:space="preserve"><value>如需探索其他回答，请在较早的消息上使用“从此处创建分支”。</value></data>
+  <data name="Chat_RegenerateFailedTitle" xml:space="preserve"><value>重新生成失败</value></data>
+  <data name="Chat_RegenerateNotRemovedBody" xml:space="preserve"><value>无法移除之前的回复，因此没有重新生成任何内容。</value></data>
+  <data name="Chat_EditNotSentTitle" xml:space="preserve"><value>未发送编辑</value></data>
+  <data name="Chat_EditNotSentBody" xml:space="preserve"><value>无法更新该对话，因此未发送编辑后的消息。请重试。</value></data>
+  <data name="Chat_CannotBranchTitle" xml:space="preserve"><value>无法在此处创建分支</value></data>
+  <data name="Chat_CannotBranchBody" xml:space="preserve"><value>此消息从未保存，因此无法从它创建分支。</value></data>
+  <data name="Chat_BranchCreatedTitle" xml:space="preserve"><value>已创建分支</value></data>
+  <data name="Chat_BranchCreatedBody" xml:space="preserve"><value>已创建分支：{0}</value></data>
+  <data name="Chat_MainThread" xml:space="preserve"><value>主线</value></data>
+  <data name="Chat_BranchFallbackTitle" xml:space="preserve"><value>分支</value></data>
+  <data name="Chat_SummaryRefreshFailed" xml:space="preserve"><value>摘要刷新失败。保留之前的摘要状态。</value></data>
+  <data name="Chat_SummaryRefreshUnavailable" xml:space="preserve"><value>此应用配置不支持刷新摘要。</value></data>
+  <data name="Chat_SummaryRefreshNoUpdate" xml:space="preserve"><value>刷新已完成，但没有可用的更新摘要。</value></data>
+  <data name="Chat_MinutesAgo" xml:space="preserve"><value>{0} 分钟前</value></data>
+  <data name="Chat_HoursAgo" xml:space="preserve"><value>{0} 小时前</value></data>
+  <data name="Chat_DayAgo" xml:space="preserve"><value>1 天前</value></data>
+  <data name="Chat_DaysAgo" xml:space="preserve"><value>{0} 天前</value></data>
+  <data name="Chat_AssemblyLimited" xml:space="preserve"><value>可见性受限</value></data>
+  <data name="Chat_AssemblyLegacy" xml:space="preserve"><value>旧版回退</value></data>
+  <data name="Chat_AssemblyLexical" xml:space="preserve"><value>词法回退</value></data>
+  <data name="Chat_AssemblyStructured" xml:space="preserve"><value>结构化上下文组装</value></data>
+  <data name="Chat_ContextSummaryMissing" xml:space="preserve"><value>此回复没有可用的持久摘要快照。</value></data>
+  <data name="Chat_ContextSummaryStale" xml:space="preserve"><value>已有持久摘要，但可能落后于最新的对话进展。</value></data>
+  <data name="Chat_ContextSummaryCurrent" xml:space="preserve"><value>组装此回复时，持久摘要是最新的。</value></data>
+  <data name="Chat_SummaryPendingOne" xml:space="preserve"><value>1 条较新的消息尚未纳入</value></data>
+  <data name="Chat_SummaryPendingMany" xml:space="preserve"><value>{0} 条较新的消息尚未纳入</value></data>
+  <data name="Chat_SummaryCapturedAt" xml:space="preserve"><value>捕获于{0}</value></data>
+  <data name="Chat_RecallRoleAssistant" xml:space="preserve"><value>助手</value></data>
+  <data name="Chat_RecallRoleUser" xml:space="preserve"><value>用户</value></data>
+  <data name="Chat_RecallSimilarity" xml:space="preserve"><value>{0}% 匹配</value></data>
+  <data name="Chat_RecallUsedOne" xml:space="preserve"><value>使用了 1 条回忆消息</value></data>
+  <data name="Chat_RecallUsedMany" xml:space="preserve"><value>使用了 {0} 条回忆消息</value></data>
+  <data name="Chat_ContextNoneCaptured" xml:space="preserve"><value>尚未捕获生成上下文。</value></data>
+  <data name="Chat_ContextNotCaptured" xml:space="preserve"><value>未捕获上下文</value></data>
+  <data name="Chat_ContextAssemblyNone" xml:space="preserve"><value>没有可用的上下文</value></data>
+  <data name="Chat_ContextSummaryNone" xml:space="preserve"><value>尚未捕获持久摘要。</value></data>
+  <data name="Chat_ContextRecallNone" xml:space="preserve"><value>尚未捕获持久回忆上下文。</value></data>
+  <data name="Chat_ContextSelectedLimited" xml:space="preserve"><value>已捕获所选助手回复的上下文（可见性受限：{0}）。</value></data>
+  <data name="Chat_ContextLimited" xml:space="preserve"><value>可见性受限：{0}</value></data>
+  <data name="Chat_ContextSelected" xml:space="preserve"><value>已捕获所选助手回复的上下文。</value></data>
+  <data name="Chat_ContextLatest" xml:space="preserve"><value>已捕获最新回复的上下文</value></data>
+  <data name="Chat_LimitedReasonDefault" xml:space="preserve"><value>精简路径</value></data>
+  <data name="Chat_LimitedReasonMultiAgent" xml:space="preserve"><value>多智能体编排</value></data>
+  <data name="Chat_LimitedReasonNoProvider" xml:space="preserve"><value>没有活动的提供商</value></data>
+  <data name="Chat_LimitedReasonDisconnected" xml:space="preserve"><value>提供商已断开连接</value></data>
+  <data name="Chat_LimitedReasonSummaryOnly" xml:space="preserve"><value>仅刷新摘要</value></data>
+  <data name="Chat_ResearchNoWebSearch" xml:space="preserve"><value>此会话中无法使用网络搜索，因此回答仅使用您的本地知识。</value></data>
+  <data name="Chat_ResearchTurnedOff" xml:space="preserve"><value>研究模式已在“设置”中关闭，因此未进行网络搜索。请在“设置”中开启它，以便为回答添加网页来源。</value></data>
+  <data name="Chat_ResearchNoProvider" xml:space="preserve"><value>未配置网络搜索提供商。请在“设置”中添加 Brave 或 Serper API 密钥，或 SearXNG 地址，以便为回答添加网页来源。</value></data>
+  <data name="Chat_ResearchNoResults" xml:space="preserve"><value>网络搜索没有返回结果，因此此回答仅使用您的本地知识。</value></data>
+  <data name="Chat_ResearchTimedOut" xml:space="preserve"><value>网络搜索超时，因此此回答仅使用您的本地知识。</value></data>
+  <data name="Chat_ResearchFailed" xml:space="preserve"><value>网络搜索失败，因此此回答仅使用您的本地知识。</value></data>
+  <data name="Chat_NoWebSourcesTitle" xml:space="preserve"><value>没有网页来源</value></data>
+  <data name="Chat_OrchestrationNoAnswerRetry" xml:space="preserve"><value>多智能体编排未返回可用的回答。请检查当前的 AI 提供商，然后重试。</value></data>
+  <data name="Chat_OrchestrationNoAnswer" xml:space="preserve"><value>多智能体编排未返回可用的回答。</value></data>
+  <data name="Chat_BranchFailedTitle" xml:space="preserve"><value>创建分支失败</value></data>
+  <data name="Chat_BranchLoadFailedTitle" xml:space="preserve"><value>加载分支失败</value></data>
+  <data name="Chat_BranchLoadFailedBody" xml:space="preserve"><value>无法加载分支：{0}</value></data>
+  <data name="Chat_MergeCompleteTitle" xml:space="preserve"><value>合并完成</value></data>
+  <data name="Chat_MergeCompleteBody" xml:space="preserve"><value>已将洞见合并到主线</value></data>
+  <data name="Chat_MergeFailedTitle" xml:space="preserve"><value>合并失败</value></data>
+  <data name="Chat_BranchDeletedTitle" xml:space="preserve"><value>分支已删除</value></data>
+  <data name="Chat_BranchDeletedBody" xml:space="preserve"><value>该分支已被移除。</value></data>
+  <data name="Chat_BranchDeleteFailedTitle" xml:space="preserve"><value>删除失败</value></data>
   <data name="PastSelf_CancelDraft.Content" xml:space="preserve"><value>取消</value></data>
   <data name="PastSelf_DraftWriting.Text" xml:space="preserve"><value>正在撰写草稿...</value></data>
   <data name="PastSelf_DraftNeedsContext" xml:space="preserve"><value>请先在“上下文”中描述您要写的内容。</value></data>

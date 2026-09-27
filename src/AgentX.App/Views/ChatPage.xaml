@@ -505,8 +505,10 @@
                                 Spacing="4"
                                 VerticalAlignment="Center"
                                 Margin="0,0,12,0">
+                        <!-- The dot is toned by the connection state, not by the status text,
+                             which is in the user's language. -->
                         <Ellipse Width="8" Height="8"
-                                 Fill="{x:Bind ViewModel.ConnectionStatus, Mode=OneWay, Converter={StaticResource StatusToColor}}" />
+                                 Fill="{x:Bind ViewModel.ConnectionState, Mode=OneWay, Converter={StaticResource StatusToColor}}" />
                         <TextBlock x:Name="ConnectionStatusText"
                                    Text="{x:Bind ViewModel.ConnectionStatus, Mode=OneWay}"
                                    Style="{StaticResource CaptionStyle}"

@@ -2539,6 +2539,117 @@
   <data name="Dash_UnknownTopic" xml:space="preserve"><value>不明なトピック</value></data>
   <data name="Dash_IndexedRun.Text" xml:space="preserve"><value>% インデックス済み</value></data>
   <data name="Dash_IndexedMeter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>インデックス済みの割合</value></data>
+  <data name="Chat_NoModelSelected" xml:space="preserve"><value>モデルが選択されていません</value></data>
+  <data name="Chat_NewConversationTitle" xml:space="preserve"><value>新しい会話</value></data>
+  <data name="Chat_ConnectionChecking" xml:space="preserve"><value>確認しています...</value></data>
+  <data name="Chat_ConnectionConnected" xml:space="preserve"><value>接続済み</value></data>
+  <data name="Chat_ConnectionDisconnected" xml:space="preserve"><value>未接続</value></data>
+  <data name="Chat_ResearchModeOnTooltip" xml:space="preserve"><value>リサーチ モード オン: 回答に出典付きの Web 検索結果が加わります (設定でリサーチ モードと Web 検索プロバイダーが必要です)</value></data>
+  <data name="Chat_ResearchModeOffTooltip" xml:space="preserve"><value>リサーチ モード オフ: 回答にはローカルの知識だけを使います</value></data>
+  <data name="Chat_OrchestrationParallelTooltip" xml:space="preserve"><value>マルチエージェント並列モード: リサーチャー、批評家、統合役が一緒に回答します</value></data>
+  <data name="Chat_OrchestrationDebateTooltip" xml:space="preserve"><value>マルチエージェント討論モード: 最終的な統合の前に、エージェント同士が主張を検証し合います</value></data>
+  <data name="Chat_OrchestrationSoloTooltip" xml:space="preserve"><value>ソロ モード: 通常の Agent-X のチャット応答</value></data>
+  <data name="Chat_ContextStoryUnavailable" xml:space="preserve"><value>Agent-X がこの会話の応答を組み立てるまで、コンテキスト ストーリーはありません。</value></data>
+  <data name="Chat_IntelBadgeCurrent" xml:space="preserve"><value>最新</value></data>
+  <data name="Chat_IntelBadgeStale" xml:space="preserve"><value>古い</value></data>
+  <data name="Chat_IntelBadgePending" xml:space="preserve"><value>保留中</value></data>
+  <data name="Chat_IntelBadgeUnavailable" xml:space="preserve"><value>利用不可</value></data>
+  <data name="Chat_SummaryRefreshing" xml:space="preserve"><value>永続的な要約を更新しています...</value></data>
+  <data name="Chat_SummaryCurrentKeyPointsOne" xml:space="preserve"><value>要約は最新 • 要点 1 件</value></data>
+  <data name="Chat_SummaryCurrentKeyPointsMany" xml:space="preserve"><value>要約は最新 • 要点 {0} 件</value></data>
+  <data name="Chat_SummaryCurrentReady" xml:space="preserve"><value>要約は最新 • 詳しく確認できます</value></data>
+  <data name="Chat_SummaryStaleMessagesOne" xml:space="preserve"><value>要約が古い • 新しいメッセージ 1 件が未反映</value></data>
+  <data name="Chat_SummaryStaleMessagesMany" xml:space="preserve"><value>要約が古い • 新しいメッセージ {0} 件が未反映</value></data>
+  <data name="Chat_SummaryStaleWaiting" xml:space="preserve"><value>要約が古い • 次の更新を待っています</value></data>
+  <data name="Chat_SummaryRefreshPending" xml:space="preserve"><value>要約の更新を待っています</value></data>
+  <data name="Chat_SummaryUnavailablePath" xml:space="preserve"><value>この応答経路では要約を利用できません</value></data>
+  <data name="Chat_ConversationContextNone" xml:space="preserve"><value>会話のコンテキストはまだ記録されていません</value></data>
+  <data name="Chat_SummaryRefreshingShort" xml:space="preserve"><value>更新しています...</value></data>
+  <data name="Chat_SummaryRetry" xml:space="preserve"><value>要約を再試行</value></data>
+  <data name="Chat_SummaryRefresh" xml:space="preserve"><value>要約を更新</value></data>
+  <data name="Chat_GenerationError" xml:space="preserve"><value>応答の生成中にエラーが発生しました。</value></data>
+  <data name="Chat_ResponseKeptTitle" xml:space="preserve"><value>応答を残しました</value></data>
+  <data name="Chat_ResponseKeptBody" xml:space="preserve"><value>モデルから新しい応答がなかったため、以前の応答を残しました。</value></data>
+  <data name="Chat_GenerationStopped" xml:space="preserve"><value>[生成を停止しました]</value></data>
+  <data name="Chat_ResponseInProgressTitle" xml:space="preserve"><value>応答を生成中です</value></data>
+  <data name="Chat_ResponseInProgressBody" xml:space="preserve"><value>現在の応答を停止するか完了するまで待ってから、もう一度お試しください。</value></data>
+  <data name="Chat_DeleteFailedTitle" xml:space="preserve"><value>削除に失敗しました</value></data>
+  <data name="Chat_DeleteConversationFailedBody" xml:space="preserve"><value>会話を削除できなかったため、履歴に残っています。</value></data>
+  <data name="Chat_ConversationNotFoundTitle" xml:space="preserve"><value>会話が見つかりません</value></data>
+  <data name="Chat_ConversationNotFoundBody" xml:space="preserve"><value>会話を開けませんでした。削除された可能性があります。</value></data>
+  <data name="Chat_PinFailedTitle" xml:space="preserve"><value>ピン留めを変更できませんでした</value></data>
+  <data name="Chat_PinFailedBody" xml:space="preserve"><value>会話のピン留めの状態を変更できませんでした。</value></data>
+  <data name="Chat_MessageRemovedTitle" xml:space="preserve"><value>メッセージを削除しました</value></data>
+  <data name="Chat_MessageRemovedBody" xml:space="preserve"><value>このメッセージは保存されていなかったため、画面から消しただけです。</value></data>
+  <data name="Chat_DeleteMessageFailedBody" xml:space="preserve"><value>メッセージを削除できなかったため、この会話に残っています。</value></data>
+  <data name="Chat_MessageDeletedTitle" xml:space="preserve"><value>メッセージを削除しました</value></data>
+  <data name="Chat_MessageDeletedBody" xml:space="preserve"><value>メッセージを削除しました。</value></data>
+  <data name="Chat_RegenerateLatestOnlyTitle" xml:space="preserve"><value>再生成できるのは最新の応答だけです</value></data>
+  <data name="Chat_RegenerateLatestOnlyBody" xml:space="preserve"><value>別の回答を試すには、前のメッセージで [ここから分岐] を使ってください。</value></data>
+  <data name="Chat_RegenerateFailedTitle" xml:space="preserve"><value>再生成に失敗しました</value></data>
+  <data name="Chat_RegenerateNotRemovedBody" xml:space="preserve"><value>以前の応答を削除できなかったため、何も再生成されませんでした。</value></data>
+  <data name="Chat_EditNotSentTitle" xml:space="preserve"><value>編集内容を送信できませんでした</value></data>
+  <data name="Chat_EditNotSentBody" xml:space="preserve"><value>会話を更新できなかったため、編集したメッセージは送信されませんでした。もう一度お試しください。</value></data>
+  <data name="Chat_CannotBranchTitle" xml:space="preserve"><value>ここからは分岐できません</value></data>
+  <data name="Chat_CannotBranchBody" xml:space="preserve"><value>このメッセージは保存されていないため、ここから分岐できません。</value></data>
+  <data name="Chat_BranchCreatedTitle" xml:space="preserve"><value>ブランチを作成しました</value></data>
+  <data name="Chat_BranchCreatedBody" xml:space="preserve"><value>ブランチを作成しました: {0}</value></data>
+  <data name="Chat_MainThread" xml:space="preserve"><value>メイン スレッド</value></data>
+  <data name="Chat_BranchFallbackTitle" xml:space="preserve"><value>ブランチ</value></data>
+  <data name="Chat_SummaryRefreshFailed" xml:space="preserve"><value>要約の更新に失敗しました。以前の要約をそのまま使います。</value></data>
+  <data name="Chat_SummaryRefreshUnavailable" xml:space="preserve"><value>このアプリの構成では要約を更新できません。</value></data>
+  <data name="Chat_SummaryRefreshNoUpdate" xml:space="preserve"><value>更新は完了しましたが、新しい要約はありませんでした。</value></data>
+  <data name="Chat_MinutesAgo" xml:space="preserve"><value>{0} 分前</value></data>
+  <data name="Chat_HoursAgo" xml:space="preserve"><value>{0} 時間前</value></data>
+  <data name="Chat_DayAgo" xml:space="preserve"><value>1 日前</value></data>
+  <data name="Chat_DaysAgo" xml:space="preserve"><value>{0} 日前</value></data>
+  <data name="Chat_AssemblyLimited" xml:space="preserve"><value>表示が制限されています</value></data>
+  <data name="Chat_AssemblyLegacy" xml:space="preserve"><value>従来方式へのフォールバック</value></data>
+  <data name="Chat_AssemblyLexical" xml:space="preserve"><value>語彙ベースのフォールバック</value></data>
+  <data name="Chat_AssemblyStructured" xml:space="preserve"><value>構造化されたコンテキストの組み立て</value></data>
+  <data name="Chat_ContextSummaryMissing" xml:space="preserve"><value>この応答には永続的な要約のスナップショットがありませんでした。</value></data>
+  <data name="Chat_ContextSummaryStale" xml:space="preserve"><value>永続的な要約はありますが、最新のスレッドに追いついていない可能性があります。</value></data>
+  <data name="Chat_ContextSummaryCurrent" xml:space="preserve"><value>この応答を組み立てた時点で、永続的な要約は最新でした。</value></data>
+  <data name="Chat_SummaryPendingOne" xml:space="preserve"><value>新しいメッセージ 1 件がまだ反映されていません</value></data>
+  <data name="Chat_SummaryPendingMany" xml:space="preserve"><value>新しいメッセージ {0} 件がまだ反映されていません</value></data>
+  <data name="Chat_SummaryCapturedAt" xml:space="preserve"><value>記録: {0}</value></data>
+  <data name="Chat_RecallRoleAssistant" xml:space="preserve"><value>アシスタント</value></data>
+  <data name="Chat_RecallRoleUser" xml:space="preserve"><value>ユーザー</value></data>
+  <data name="Chat_RecallSimilarity" xml:space="preserve"><value>{0}% 一致</value></data>
+  <data name="Chat_RecallUsedOne" xml:space="preserve"><value>リコールしたメッセージ 1 件を使用</value></data>
+  <data name="Chat_RecallUsedMany" xml:space="preserve"><value>リコールしたメッセージ {0} 件を使用</value></data>
+  <data name="Chat_ContextNoneCaptured" xml:space="preserve"><value>生成のコンテキストはまだ記録されていません。</value></data>
+  <data name="Chat_ContextNotCaptured" xml:space="preserve"><value>コンテキストは記録されていません</value></data>
+  <data name="Chat_ContextAssemblyNone" xml:space="preserve"><value>利用できるコンテキストはありません</value></data>
+  <data name="Chat_ContextSummaryNone" xml:space="preserve"><value>永続的な要約はまだ記録されていません。</value></data>
+  <data name="Chat_ContextRecallNone" xml:space="preserve"><value>永続リコールのコンテキストはまだ記録されていません。</value></data>
+  <data name="Chat_ContextSelectedLimited" xml:space="preserve"><value>選択したアシスタントの応答のコンテキストを記録しました (表示の制限: {0})。</value></data>
+  <data name="Chat_ContextLimited" xml:space="preserve"><value>表示の制限: {0}</value></data>
+  <data name="Chat_ContextSelected" xml:space="preserve"><value>選択したアシスタントの応答のコンテキストを記録しました。</value></data>
+  <data name="Chat_ContextLatest" xml:space="preserve"><value>最新の応答のコンテキストを記録しました</value></data>
+  <data name="Chat_LimitedReasonDefault" xml:space="preserve"><value>簡略化された経路</value></data>
+  <data name="Chat_LimitedReasonMultiAgent" xml:space="preserve"><value>マルチエージェント オーケストレーション</value></data>
+  <data name="Chat_LimitedReasonNoProvider" xml:space="preserve"><value>有効なプロバイダーがありません</value></data>
+  <data name="Chat_LimitedReasonDisconnected" xml:space="preserve"><value>プロバイダーに接続されていません</value></data>
+  <data name="Chat_LimitedReasonSummaryOnly" xml:space="preserve"><value>要約のみの更新</value></data>
+  <data name="Chat_ResearchNoWebSearch" xml:space="preserve"><value>このセッションでは Web 検索を利用できないため、回答にはローカルの知識だけを使います。</value></data>
+  <data name="Chat_ResearchTurnedOff" xml:space="preserve"><value>設定でリサーチ モードがオフになっているため、Web 検索は行われませんでした。回答に Web ソースを追加するには、設定でオンにしてください。</value></data>
+  <data name="Chat_ResearchNoProvider" xml:space="preserve"><value>Web 検索プロバイダーが構成されていません。回答に Web ソースを追加するには、設定で Brave または Serper の API キー、または SearXNG のアドレスを追加してください。</value></data>
+  <data name="Chat_ResearchNoResults" xml:space="preserve"><value>Web 検索で結果が見つからなかったため、この回答にはローカルの知識だけを使います。</value></data>
+  <data name="Chat_ResearchTimedOut" xml:space="preserve"><value>Web 検索がタイムアウトしたため、この回答にはローカルの知識だけを使います。</value></data>
+  <data name="Chat_ResearchFailed" xml:space="preserve"><value>Web 検索に失敗したため、この回答にはローカルの知識だけを使います。</value></data>
+  <data name="Chat_NoWebSourcesTitle" xml:space="preserve"><value>Web ソースなし</value></data>
+  <data name="Chat_OrchestrationNoAnswerRetry" xml:space="preserve"><value>マルチエージェント オーケストレーションから使用できる回答が返されませんでした。有効な AI プロバイダーを確認して、もう一度お試しください。</value></data>
+  <data name="Chat_OrchestrationNoAnswer" xml:space="preserve"><value>マルチエージェント オーケストレーションから使用できる回答が返されませんでした。</value></data>
+  <data name="Chat_BranchFailedTitle" xml:space="preserve"><value>ブランチを作成できませんでした</value></data>
+  <data name="Chat_BranchLoadFailedTitle" xml:space="preserve"><value>ブランチを読み込めませんでした</value></data>
+  <data name="Chat_BranchLoadFailedBody" xml:space="preserve"><value>ブランチを読み込めませんでした: {0}</value></data>
+  <data name="Chat_MergeCompleteTitle" xml:space="preserve"><value>マージが完了しました</value></data>
+  <data name="Chat_MergeCompleteBody" xml:space="preserve"><value>インサイトをメイン スレッドにマージしました</value></data>
+  <data name="Chat_MergeFailedTitle" xml:space="preserve"><value>マージに失敗しました</value></data>
+  <data name="Chat_BranchDeletedTitle" xml:space="preserve"><value>ブランチを削除しました</value></data>
+  <data name="Chat_BranchDeletedBody" xml:space="preserve"><value>このブランチは削除されました。</value></data>
+  <data name="Chat_BranchDeleteFailedTitle" xml:space="preserve"><value>削除に失敗しました</value></data>
   <data name="PastSelf_CancelDraft.Content" xml:space="preserve"><value>キャンセル</value></data>
   <data name="PastSelf_DraftWriting.Text" xml:space="preserve"><value>下書きを作成しています...</value></data>
   <data name="PastSelf_DraftNeedsContext" xml:space="preserve"><value>まず「コンテキスト」に書きたい内容を入力してください。</value></data>

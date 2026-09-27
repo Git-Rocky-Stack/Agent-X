@@ -2539,6 +2539,117 @@
   <data name="Dash_UnknownTopic" xml:space="preserve"><value>Tema desconocido</value></data>
   <data name="Dash_IndexedRun.Text" xml:space="preserve"><value>% indexado</value></data>
   <data name="Dash_IndexedMeter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Porcentaje indexado</value></data>
+  <data name="Chat_NoModelSelected" xml:space="preserve"><value>Ningún modelo seleccionado</value></data>
+  <data name="Chat_NewConversationTitle" xml:space="preserve"><value>Nueva conversación</value></data>
+  <data name="Chat_ConnectionChecking" xml:space="preserve"><value>Comprobando...</value></data>
+  <data name="Chat_ConnectionConnected" xml:space="preserve"><value>Conectado</value></data>
+  <data name="Chat_ConnectionDisconnected" xml:space="preserve"><value>Desconectado</value></data>
+  <data name="Chat_ResearchModeOnTooltip" xml:space="preserve"><value>Modo investigación ACTIVADO: las respuestas añaden resultados de búsqueda web citados (requiere el modo investigación y un proveedor de búsqueda web en Configuración)</value></data>
+  <data name="Chat_ResearchModeOffTooltip" xml:space="preserve"><value>Modo investigación DESACTIVADO: las respuestas solo usan su conocimiento local</value></data>
+  <data name="Chat_OrchestrationParallelTooltip" xml:space="preserve"><value>Modo multiagente en paralelo: el investigador, el crítico y el sintetizador responden juntos</value></data>
+  <data name="Chat_OrchestrationDebateTooltip" xml:space="preserve"><value>Modo multiagente en debate: los agentes cuestionan las posturas antes de la síntesis final</value></data>
+  <data name="Chat_OrchestrationSoloTooltip" xml:space="preserve"><value>Modo individual: respuesta de chat estándar de Agent-X</value></data>
+  <data name="Chat_ContextStoryUnavailable" xml:space="preserve"><value>No hay historia del contexto hasta que Agent-X ensamble una respuesta para esta conversación.</value></data>
+  <data name="Chat_IntelBadgeCurrent" xml:space="preserve"><value>Actual</value></data>
+  <data name="Chat_IntelBadgeStale" xml:space="preserve"><value>Desactualizado</value></data>
+  <data name="Chat_IntelBadgePending" xml:space="preserve"><value>Pendiente</value></data>
+  <data name="Chat_IntelBadgeUnavailable" xml:space="preserve"><value>No disponible</value></data>
+  <data name="Chat_SummaryRefreshing" xml:space="preserve"><value>Actualizando el resumen duradero...</value></data>
+  <data name="Chat_SummaryCurrentKeyPointsOne" xml:space="preserve"><value>Resumen actual • 1 punto clave disponible</value></data>
+  <data name="Chat_SummaryCurrentKeyPointsMany" xml:space="preserve"><value>Resumen actual • {0} puntos clave disponibles</value></data>
+  <data name="Chat_SummaryCurrentReady" xml:space="preserve"><value>Resumen actual • Listo para una inspección más detallada</value></data>
+  <data name="Chat_SummaryStaleMessagesOne" xml:space="preserve"><value>Resumen desactualizado • 1 mensaje más reciente sin incorporar</value></data>
+  <data name="Chat_SummaryStaleMessagesMany" xml:space="preserve"><value>Resumen desactualizado • {0} mensajes más recientes sin incorporar</value></data>
+  <data name="Chat_SummaryStaleWaiting" xml:space="preserve"><value>Resumen desactualizado • A la espera de la próxima actualización</value></data>
+  <data name="Chat_SummaryRefreshPending" xml:space="preserve"><value>Actualización del resumen pendiente</value></data>
+  <data name="Chat_SummaryUnavailablePath" xml:space="preserve"><value>Resumen no disponible para esta vía de respuesta</value></data>
+  <data name="Chat_ConversationContextNone" xml:space="preserve"><value>Aún no se ha capturado el contexto de la conversación</value></data>
+  <data name="Chat_SummaryRefreshingShort" xml:space="preserve"><value>Actualizando...</value></data>
+  <data name="Chat_SummaryRetry" xml:space="preserve"><value>Reintentar resumen</value></data>
+  <data name="Chat_SummaryRefresh" xml:space="preserve"><value>Actualizar resumen</value></data>
+  <data name="Chat_GenerationError" xml:space="preserve"><value>Se produjo un error al generar una respuesta.</value></data>
+  <data name="Chat_ResponseKeptTitle" xml:space="preserve"><value>Respuesta conservada</value></data>
+  <data name="Chat_ResponseKeptBody" xml:space="preserve"><value>El modelo no devolvió una nueva respuesta, así que se conservó la anterior.</value></data>
+  <data name="Chat_GenerationStopped" xml:space="preserve"><value>[Generación detenida]</value></data>
+  <data name="Chat_ResponseInProgressTitle" xml:space="preserve"><value>Respuesta en curso</value></data>
+  <data name="Chat_ResponseInProgressBody" xml:space="preserve"><value>Detenga la respuesta actual o espere a que termine y vuelva a intentarlo.</value></data>
+  <data name="Chat_DeleteFailedTitle" xml:space="preserve"><value>Error al eliminar</value></data>
+  <data name="Chat_DeleteConversationFailedBody" xml:space="preserve"><value>No se pudo eliminar la conversación y sigue en su historial.</value></data>
+  <data name="Chat_ConversationNotFoundTitle" xml:space="preserve"><value>Conversación no encontrada</value></data>
+  <data name="Chat_ConversationNotFoundBody" xml:space="preserve"><value>No se pudo abrir la conversación. Es posible que se haya eliminado.</value></data>
+  <data name="Chat_PinFailedTitle" xml:space="preserve"><value>Anclado sin cambios</value></data>
+  <data name="Chat_PinFailedBody" xml:space="preserve"><value>No se pudo cambiar el estado de anclado de la conversación.</value></data>
+  <data name="Chat_MessageRemovedTitle" xml:space="preserve"><value>Mensaje quitado</value></data>
+  <data name="Chat_MessageRemovedBody" xml:space="preserve"><value>Este mensaje nunca se guardó, así que solo se quitó de la pantalla.</value></data>
+  <data name="Chat_DeleteMessageFailedBody" xml:space="preserve"><value>No se pudo eliminar el mensaje y sigue en esta conversación.</value></data>
+  <data name="Chat_MessageDeletedTitle" xml:space="preserve"><value>Mensaje eliminado</value></data>
+  <data name="Chat_MessageDeletedBody" xml:space="preserve"><value>Se ha quitado el mensaje.</value></data>
+  <data name="Chat_RegenerateLatestOnlyTitle" xml:space="preserve"><value>Solo se puede regenerar la última respuesta</value></data>
+  <data name="Chat_RegenerateLatestOnlyBody" xml:space="preserve"><value>Use Crear rama desde aquí en un mensaje anterior para explorar otra respuesta.</value></data>
+  <data name="Chat_RegenerateFailedTitle" xml:space="preserve"><value>Error al regenerar</value></data>
+  <data name="Chat_RegenerateNotRemovedBody" xml:space="preserve"><value>No se pudo quitar la respuesta anterior, así que no se regeneró nada.</value></data>
+  <data name="Chat_EditNotSentTitle" xml:space="preserve"><value>Edición no enviada</value></data>
+  <data name="Chat_EditNotSentBody" xml:space="preserve"><value>No se pudo actualizar la conversación, así que no se envió el mensaje editado. Inténtelo de nuevo.</value></data>
+  <data name="Chat_CannotBranchTitle" xml:space="preserve"><value>No se puede crear una rama aquí</value></data>
+  <data name="Chat_CannotBranchBody" xml:space="preserve"><value>Este mensaje nunca se guardó, así que no puede iniciar una rama.</value></data>
+  <data name="Chat_BranchCreatedTitle" xml:space="preserve"><value>Rama creada</value></data>
+  <data name="Chat_BranchCreatedBody" xml:space="preserve"><value>Rama creada: {0}</value></data>
+  <data name="Chat_MainThread" xml:space="preserve"><value>Hilo principal</value></data>
+  <data name="Chat_BranchFallbackTitle" xml:space="preserve"><value>Rama</value></data>
+  <data name="Chat_SummaryRefreshFailed" xml:space="preserve"><value>Error al actualizar el resumen. Se mantiene el estado anterior.</value></data>
+  <data name="Chat_SummaryRefreshUnavailable" xml:space="preserve"><value>La actualización del resumen no está disponible con esta configuración de la aplicación.</value></data>
+  <data name="Chat_SummaryRefreshNoUpdate" xml:space="preserve"><value>La actualización terminó, pero no había un resumen más reciente.</value></data>
+  <data name="Chat_MinutesAgo" xml:space="preserve"><value>hace {0} min</value></data>
+  <data name="Chat_HoursAgo" xml:space="preserve"><value>hace {0} h</value></data>
+  <data name="Chat_DayAgo" xml:space="preserve"><value>hace 1 día</value></data>
+  <data name="Chat_DaysAgo" xml:space="preserve"><value>hace {0} días</value></data>
+  <data name="Chat_AssemblyLimited" xml:space="preserve"><value>Visibilidad limitada</value></data>
+  <data name="Chat_AssemblyLegacy" xml:space="preserve"><value>Alternativa heredada</value></data>
+  <data name="Chat_AssemblyLexical" xml:space="preserve"><value>Alternativa léxica</value></data>
+  <data name="Chat_AssemblyStructured" xml:space="preserve"><value>Ensamblado estructurado del contexto</value></data>
+  <data name="Chat_ContextSummaryMissing" xml:space="preserve"><value>No había ninguna instantánea del resumen duradero para esta respuesta.</value></data>
+  <data name="Chat_ContextSummaryStale" xml:space="preserve"><value>Existe un resumen duradero, pero puede ir por detrás del hilo más reciente.</value></data>
+  <data name="Chat_ContextSummaryCurrent" xml:space="preserve"><value>El resumen duradero estaba actualizado cuando se ensambló esta respuesta.</value></data>
+  <data name="Chat_SummaryPendingOne" xml:space="preserve"><value>1 mensaje más reciente aún sin incorporar</value></data>
+  <data name="Chat_SummaryPendingMany" xml:space="preserve"><value>{0} mensajes más recientes aún sin incorporar</value></data>
+  <data name="Chat_SummaryCapturedAt" xml:space="preserve"><value>Capturado {0}</value></data>
+  <data name="Chat_RecallRoleAssistant" xml:space="preserve"><value>Asistente</value></data>
+  <data name="Chat_RecallRoleUser" xml:space="preserve"><value>Usuario</value></data>
+  <data name="Chat_RecallSimilarity" xml:space="preserve"><value>{0} % de coincidencia</value></data>
+  <data name="Chat_RecallUsedOne" xml:space="preserve"><value>1 mensaje recordado usado</value></data>
+  <data name="Chat_RecallUsedMany" xml:space="preserve"><value>{0} mensajes recordados usados</value></data>
+  <data name="Chat_ContextNoneCaptured" xml:space="preserve"><value>Aún no se ha capturado ningún contexto de generación.</value></data>
+  <data name="Chat_ContextNotCaptured" xml:space="preserve"><value>Ningún contexto capturado</value></data>
+  <data name="Chat_ContextAssemblyNone" xml:space="preserve"><value>No hay contexto disponible</value></data>
+  <data name="Chat_ContextSummaryNone" xml:space="preserve"><value>Aún no se ha capturado ningún resumen duradero.</value></data>
+  <data name="Chat_ContextRecallNone" xml:space="preserve"><value>Aún no se ha capturado contexto de recuerdo duradero.</value></data>
+  <data name="Chat_ContextSelectedLimited" xml:space="preserve"><value>Contexto capturado para la respuesta del asistente seleccionada (visibilidad limitada: {0}).</value></data>
+  <data name="Chat_ContextLimited" xml:space="preserve"><value>Visibilidad limitada: {0}</value></data>
+  <data name="Chat_ContextSelected" xml:space="preserve"><value>Contexto capturado para la respuesta del asistente seleccionada.</value></data>
+  <data name="Chat_ContextLatest" xml:space="preserve"><value>Contexto de la última respuesta capturado</value></data>
+  <data name="Chat_LimitedReasonDefault" xml:space="preserve"><value>vía reducida</value></data>
+  <data name="Chat_LimitedReasonMultiAgent" xml:space="preserve"><value>orquestación multiagente</value></data>
+  <data name="Chat_LimitedReasonNoProvider" xml:space="preserve"><value>ningún proveedor activo</value></data>
+  <data name="Chat_LimitedReasonDisconnected" xml:space="preserve"><value>proveedor desconectado</value></data>
+  <data name="Chat_LimitedReasonSummaryOnly" xml:space="preserve"><value>actualización solo del resumen</value></data>
+  <data name="Chat_ResearchNoWebSearch" xml:space="preserve"><value>La búsqueda web no está disponible en esta sesión, así que las respuestas solo usan su conocimiento local.</value></data>
+  <data name="Chat_ResearchTurnedOff" xml:space="preserve"><value>El modo investigación está desactivado en Configuración, así que no se hizo ninguna búsqueda web. Actívelo en Configuración para añadir fuentes web a las respuestas.</value></data>
+  <data name="Chat_ResearchNoProvider" xml:space="preserve"><value>No hay ningún proveedor de búsqueda web configurado. Añada una clave de API de Brave o Serper, o una dirección de SearXNG, en Configuración para añadir fuentes web a las respuestas.</value></data>
+  <data name="Chat_ResearchNoResults" xml:space="preserve"><value>La búsqueda web no devolvió resultados, así que esta respuesta solo usa su conocimiento local.</value></data>
+  <data name="Chat_ResearchTimedOut" xml:space="preserve"><value>Se agotó el tiempo de espera de la búsqueda web, así que esta respuesta solo usa su conocimiento local.</value></data>
+  <data name="Chat_ResearchFailed" xml:space="preserve"><value>La búsqueda web falló, así que esta respuesta solo usa su conocimiento local.</value></data>
+  <data name="Chat_NoWebSourcesTitle" xml:space="preserve"><value>Sin fuentes web</value></data>
+  <data name="Chat_OrchestrationNoAnswerRetry" xml:space="preserve"><value>La orquestación multiagente no devolvió una respuesta utilizable. Compruebe el proveedor de IA activo y vuelva a intentarlo.</value></data>
+  <data name="Chat_OrchestrationNoAnswer" xml:space="preserve"><value>La orquestación multiagente no devolvió una respuesta utilizable.</value></data>
+  <data name="Chat_BranchFailedTitle" xml:space="preserve"><value>No se pudo crear la rama</value></data>
+  <data name="Chat_BranchLoadFailedTitle" xml:space="preserve"><value>No se pudieron cargar las ramas</value></data>
+  <data name="Chat_BranchLoadFailedBody" xml:space="preserve"><value>No se pudieron cargar las ramas: {0}</value></data>
+  <data name="Chat_MergeCompleteTitle" xml:space="preserve"><value>Fusión completada</value></data>
+  <data name="Chat_MergeCompleteBody" xml:space="preserve"><value>Ideas fusionadas con el hilo principal</value></data>
+  <data name="Chat_MergeFailedTitle" xml:space="preserve"><value>Error en la fusión</value></data>
+  <data name="Chat_BranchDeletedTitle" xml:space="preserve"><value>Rama eliminada</value></data>
+  <data name="Chat_BranchDeletedBody" xml:space="preserve"><value>Se ha quitado la rama.</value></data>
+  <data name="Chat_BranchDeleteFailedTitle" xml:space="preserve"><value>Error al eliminar</value></data>
   <data name="PastSelf_CancelDraft.Content" xml:space="preserve"><value>Cancelar</value></data>
   <data name="PastSelf_DraftWriting.Text" xml:space="preserve"><value>Escribiendo el borrador...</value></data>
   <data name="PastSelf_DraftNeedsContext" xml:space="preserve"><value>Primero describa en Contexto lo que quiere escribir.</value></data>

@@ -2,6 +2,8 @@ using AgentX.App.ViewModels.Coordinators;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Chat.Models;
+using AgentX.Core.Services.Localization;
+using AgentX.Tests.Helpers;
 using FluentAssertions;
 using Moq;
 using Xunit;
@@ -18,10 +20,11 @@ public class BranchingCoordinatorTests
     {
         _branchService = new Mock<IConversationBranchService>();
         _conversationService = new Mock<IConversationService>();
-        _coordinator = new BranchingCoordinator(
-            _branchService.Object,
-            _conversationService.Object);
+        _coordinator = CreateCoordinator(EnglishResources.Create());
     }
+
+    private BranchingCoordinator CreateCoordinator(ILocalizationService localization) =>
+        new(_branchService.Object, _conversationService.Object, localization);
 
     // ── BranchFromMessageAsync ──────────────────────────────────────
 
@@ -342,5 +345,65 @@ public class BranchingCoordinatorTests
         notification.Should().NotBeNull();
         notification!.Level.Should().Be("error");
         notification.Title.Should().Be("Delete Failed");
+    }
+
+    // --- Localization ---
+
+    [Fact]
+    public async Task LoadBranchTreeAsync_OnFailure_SaysSoInTheUsersLanguage()
+    {
+        var coordinator = CreateCoordinator(ReswLocalization.For("de"));
+        NotificationRequestEventArgs? notification = null;
+        coordinator.NotificationRequested += (_, e) => notification = e;
+        _branchService
+            .Setup(s => s.GetBranchTreeAsync(It.IsAny<long>(), default))
+            .ThrowsAsync(new Exception("DB error"));
+
+        await coordinator.LoadBranchTreeAsync(10);
+
+        notification!.Title.Should().Be("Zweige konnten nicht geladen werden");
+        notification.Message.Should().Be("Die Zweige konnten nicht geladen werden: DB error");
+    }
+
+    [Fact]
+    public async Task MergeToMainAsync_OnSuccess_SaysSoInTheUsersLanguage()
+    {
+        var coordinator = CreateCoordinator(ReswLocalization.For("fr"));
+        NotificationRequestEventArgs? notification = null;
+        coordinator.NotificationRequested += (_, e) => notification = e;
+
+        await coordinator.MergeToMainAsync(new MergeBranchRequest(20, 10, new List<long> { 1 }));
+
+        notification!.Title.Should().Be("Fusion terminée");
+        notification.Message.Should().Be("Idées fusionnées dans le fil principal");
+    }
+
+    [Fact]
+    public async Task DeleteBranchAsync_SaysSoInTheUsersLanguage()
+    {
+        var coordinator = CreateCoordinator(ReswLocalization.For("ja"));
+        NotificationRequestEventArgs? notification = null;
+        coordinator.NotificationRequested += (_, e) => notification = e;
+
+        await coordinator.DeleteBranchAsync(42);
+
+        notification!.Title.Should().Be("ブランチを削除しました");
+        notification.Message.Should().Be("このブランチは削除されました。");
+    }
+
+    [Fact]
+    public async Task BranchFromMessageAsync_OnFailure_TitlesTheNoticeInTheUsersLanguage()
+    {
+        var coordinator = CreateCoordinator(ReswLocalization.For("es"));
+        NotificationRequestEventArgs? notification = null;
+        coordinator.NotificationRequested += (_, e) => notification = e;
+        _branchService
+            .Setup(s => s.BranchAtMessageAsync(It.IsAny<long>(), It.IsAny<long>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("DB error"));
+
+        await coordinator.BranchFromMessageAsync(10, 5, null);
+
+        notification!.Title.Should().Be("No se pudo crear la rama");
+        notification.Message.Should().Be("DB error");
     }
 }

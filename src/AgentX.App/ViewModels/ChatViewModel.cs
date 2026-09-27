@@ -43,14 +43,23 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     // ── Page State ─────────────────────────────────────────────
     [ObservableProperty] private bool _isConnected;
     [ObservableProperty] private bool _isGenerating;
-    [ObservableProperty] private string _activeModelName = "No model selected";
-    [ObservableProperty] private string _connectionStatus = "Disconnected";
+    [ObservableProperty] private string _activeModelName = string.Empty;
+
+    /// <summary>The connection status in the user's language, shown beside the header dot.</summary>
+    [ObservableProperty] private string _connectionStatus = string.Empty;
+
+    /// <summary>
+    /// Where the connection check stands. The header dot takes its tone from this state (by name,
+    /// through StatusToColorConverter), never from <see cref="ConnectionStatus"/>, whose words
+    /// follow the user's language.
+    /// </summary>
+    [ObservableProperty] private ChatConnectionState _connectionState = ChatConnectionState.Disconnected;
     [ObservableProperty] private string _userInput = string.Empty;
     [ObservableProperty] private string _currentStreamingResponse = string.Empty;
 
     // ── Active Conversation ────────────────────────────────────
     [ObservableProperty] private long? _activeConversationId;
-    [ObservableProperty] private string _activeConversationTitle = "New Conversation";
+    [ObservableProperty] private string _activeConversationTitle = string.Empty;
     [ObservableProperty] private string? _activeSystemPrompt;
     [ObservableProperty] private string? _activeSystemPromptName;
     [ObservableProperty] private int _tokenCount;
@@ -79,8 +88,8 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     }
 
     public string ResearchModeTooltip => IsResearchMode
-        ? "Research Mode ON: answers add cited web search results (needs Research Mode and a web search provider in Settings)"
-        : "Research Mode OFF: answers use your local knowledge only";
+        ? _localization.GetString("Chat_ResearchModeOnTooltip")
+        : _localization.GetString("Chat_ResearchModeOffTooltip");
 
     // ── Orchestration Mode ───────────────────────────────────────
     [ObservableProperty] private ChatOrchestrationMode _orchestrationMode = ChatOrchestrationMode.Standard;
@@ -106,9 +115,9 @@ public partial class ChatViewModel : ObservableObject, IDisposable
 
     public string OrchestrationModeTooltip => OrchestrationMode switch
     {
-        ChatOrchestrationMode.MultiAgentParallel => "Multi-agent parallel mode — researcher, critic, and synthesizer respond together",
-        ChatOrchestrationMode.MultiAgentDebate => "Multi-agent debate mode — agents challenge positions before the final synthesis",
-        _ => "Solo mode — standard Agent-X chat response"
+        ChatOrchestrationMode.MultiAgentParallel => _localization.GetString("Chat_OrchestrationParallelTooltip"),
+        ChatOrchestrationMode.MultiAgentDebate => _localization.GetString("Chat_OrchestrationDebateTooltip"),
+        _ => _localization.GetString("Chat_OrchestrationSoloTooltip")
     };
 
     // ── Search ─────────────────────────────────────────────────
@@ -145,10 +154,11 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _voiceStatusMessage = string.Empty;
 
     // ── Context Inspector ─────────────────────────────────────
+    // The texts start empty; the constructor fills them in the user's language (ResetContextInspection).
     [ObservableProperty] private bool _hasContextInspection;
     [ObservableProperty] private bool _hasLimitedContextInspection;
-    [ObservableProperty] private string _contextInspectionStatus = "No generation context captured yet.";
-    [ObservableProperty] private string _contextCapturedAt = "No context captured";
+    [ObservableProperty] private string _contextInspectionStatus = string.Empty;
+    [ObservableProperty] private string _contextCapturedAt = string.Empty;
     [ObservableProperty] private string _contextStoryText = string.Empty;
     [ObservableProperty] private ObservableCollection<ChatContextStorySourceDisplayItem> _contextStorySourceChips = new();
     [ObservableProperty] private string _contextSelectedMessages = "0";
@@ -156,11 +166,11 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _contextOverflowMessages = "0";
     [ObservableProperty] private string _contextEstimatedPromptTokens = "0";
     [ObservableProperty] private string _contextEstimatedMessageTokens = "0";
-    [ObservableProperty] private string _contextAssemblyMode = "No context available";
+    [ObservableProperty] private string _contextAssemblyMode = string.Empty;
     [ObservableProperty] private string _contextAssemblyExplanation = string.Empty;
     [ObservableProperty] private string _contextCompressionExplanation = string.Empty;
     [ObservableProperty] private string _contextRecallExplanation = string.Empty;
-    [ObservableProperty] private string _contextSummaryStatus = "No durable summary captured yet.";
+    [ObservableProperty] private string _contextSummaryStatus = string.Empty;
     [ObservableProperty] private string _contextSummaryPreview = string.Empty;
     [ObservableProperty] private string _contextSummaryFreshness = string.Empty;
     [ObservableProperty] private ObservableCollection<string> _contextSummaryKeyPoints = new();
@@ -168,7 +178,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _hasContextSummaryKeyPoints;
     [ObservableProperty] private bool _isRefreshingConversationSummary;
     [ObservableProperty] private string _conversationSummaryRefreshError = string.Empty;
-    [ObservableProperty] private string _contextRecallStatus = "No durable recall context captured yet.";
+    [ObservableProperty] private string _contextRecallStatus = string.Empty;
     [ObservableProperty] private ObservableCollection<ChatContextRecallDisplayItem> _contextRecallItems = new();
     [ObservableProperty] private bool _hasContextRecallItems;
 
@@ -215,7 +225,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         !ActiveConversationId.HasValue
             ? string.Empty
             : _latestContextInspection?.ContextStoryText
-                ?? "No context story is available until Agent-X assembles a response for this conversation.";
+                ?? _localization.GetString("Chat_ContextStoryUnavailable");
     public IReadOnlyList<ChatContextStorySourceDisplayItem> ConversationIntelligenceStorySourceChips =>
         _latestContextInspection?.ContextStorySourceChips
             .Select(chip => new ChatContextStorySourceDisplayItem { Label = chip.Label })
@@ -238,20 +248,20 @@ public partial class ChatViewModel : ObservableObject, IDisposable
 
             if (ConversationIntelligenceIsCurrent)
             {
-                return "Current";
+                return _localization.GetString("Chat_IntelBadgeCurrent");
             }
 
             if (ConversationIntelligenceIsStale)
             {
-                return "Stale";
+                return _localization.GetString("Chat_IntelBadgeStale");
             }
 
             if (ConversationIntelligenceIsPending)
             {
-                return "Pending";
+                return _localization.GetString("Chat_IntelBadgePending");
             }
 
-            return "Unavailable";
+            return _localization.GetString("Chat_IntelBadgeUnavailable");
         }
     }
     public string ConversationIntelligenceStatusText
@@ -265,7 +275,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
 
             if (IsRefreshingConversationSummary)
             {
-                return "Refreshing durable summary...";
+                return _localization.GetString("Chat_SummaryRefreshing");
             }
 
             if (HasConversationSummaryRefreshError)
@@ -276,27 +286,33 @@ public partial class ChatViewModel : ObservableObject, IDisposable
             if (ConversationIntelligenceIsCurrent)
             {
                 var keyPointCount = _latestContextInspection?.Summary?.KeyPoints.Count ?? 0;
-                return keyPointCount > 0
-                    ? $"Summary current • {keyPointCount} key point{(keyPointCount == 1 ? string.Empty : "s")} available"
-                    : "Summary current • Ready for deeper inspection";
+                return keyPointCount switch
+                {
+                    <= 0 => _localization.GetString("Chat_SummaryCurrentReady"),
+                    1 => _localization.GetString("Chat_SummaryCurrentKeyPointsOne"),
+                    _ => _localization.GetString("Chat_SummaryCurrentKeyPointsMany", keyPointCount)
+                };
             }
 
             if (ConversationIntelligenceIsStale)
             {
                 var pendingMessageCount = _latestContextInspection?.Summary?.PendingMessageCount ?? 0;
-                return pendingMessageCount > 0
-                    ? $"Summary stale • {pendingMessageCount} newer message{(pendingMessageCount == 1 ? string.Empty : "s")} not folded in"
-                    : "Summary stale • Waiting for the next refresh";
+                return pendingMessageCount switch
+                {
+                    <= 0 => _localization.GetString("Chat_SummaryStaleWaiting"),
+                    1 => _localization.GetString("Chat_SummaryStaleMessagesOne"),
+                    _ => _localization.GetString("Chat_SummaryStaleMessagesMany", pendingMessageCount)
+                };
             }
 
             if (ConversationIntelligenceIsPending)
             {
-                return "Summary refresh pending";
+                return _localization.GetString("Chat_SummaryRefreshPending");
             }
 
             return _latestContextInspection?.HasLimitedVisibility == true
-                ? "Summary unavailable for this response path"
-                : "No conversation context captured yet";
+                ? _localization.GetString("Chat_SummaryUnavailablePath")
+                : _localization.GetString("Chat_ConversationContextNone");
         }
     }
     public bool ConversationIntelligenceIsCurrent =>
@@ -328,14 +344,14 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         IsRefreshingConversationSummary || HasConversationSummaryRefreshError;
     public string ConversationSummaryRefreshStatusText =>
         IsRefreshingConversationSummary
-            ? "Refreshing durable summary..."
+            ? _localization.GetString("Chat_SummaryRefreshing")
             : ConversationSummaryRefreshError;
     public string ConversationSummaryRefreshActionText =>
         IsRefreshingConversationSummary
-            ? "Refreshing..."
+            ? _localization.GetString("Chat_SummaryRefreshingShort")
             : ConversationIntelligenceIsUnavailable || HasConversationSummaryRefreshError
-                ? "Retry Summary"
-                : "Refresh Summary";
+                ? _localization.GetString("Chat_SummaryRetry")
+                : _localization.GetString("Chat_SummaryRefresh");
     public bool CanRefreshConversationSummary =>
         ActiveConversationId.HasValue && !IsRefreshingConversationSummary;
 
@@ -421,6 +437,11 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         _localization = localization;
         _conversationEngagement = new EngagementTracker(
             temporalIdentity, EngagementTargetType.Conversation, () => UtcNow());
+
+        ActiveModelName = localization.GetString("Chat_NoModelSelected");
+        ActiveConversationTitle = localization.GetString("Chat_NewConversationTitle");
+        ShowConnectionState(ChatConnectionState.Disconnected);
+        ResetContextInspection();
 
         SubscribeToCoordinatorEvents();
         Log.Debug("ChatViewModel created with coordinators");
@@ -584,18 +605,30 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         {
             var connected = await _aiService.ActiveProvider.CheckConnectionAsync();
             IsConnected = connected;
-            ConnectionStatus = connected ? "Connected" : "Disconnected";
+            ShowConnectionState(connected ? ChatConnectionState.Connected : ChatConnectionState.Disconnected);
             ActiveModelName = connected && !string.IsNullOrEmpty(_aiService.ActiveModelId)
                 ? _aiService.ActiveModelId
-                : "No model selected";
+                : _localization.GetString("Chat_NoModelSelected");
         }
         catch (Exception ex)
         {
             Log.Warning(ex, "Failed to check AI connection status");
             IsConnected = false;
-            ConnectionStatus = "Disconnected";
-            ActiveModelName = "No model selected";
+            ShowConnectionState(ChatConnectionState.Disconnected);
+            ActiveModelName = _localization.GetString("Chat_NoModelSelected");
         }
+    }
+
+    /// <summary>Sets the connection state and its text in the user's language.</summary>
+    private void ShowConnectionState(ChatConnectionState state)
+    {
+        ConnectionState = state;
+        ConnectionStatus = state switch
+        {
+            ChatConnectionState.Checking => _localization.GetString("Chat_ConnectionChecking"),
+            ChatConnectionState.Connected => _localization.GetString("Chat_ConnectionConnected"),
+            _ => _localization.GetString("Chat_ConnectionDisconnected")
+        };
     }
 
     private async Task LoadAvailableModelsAsync()
@@ -1024,7 +1057,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
             {
                 ConversationId = ActiveConversationId,
                 HadError = true,
-                ResponseContent = "An error occurred while generating a response.",
+                ResponseContent = _localization.GetString("Chat_GenerationError"),
                 ErrorMessage = ex.Message
             };
         }
@@ -1084,8 +1117,8 @@ public partial class ChatViewModel : ObservableObject, IDisposable
                     // Nothing new was saved (an empty reply), so the previous answer still stands.
                     RestoreReplacedAnswer(generation);
                     _notificationService.ShowInfo(
-                        "Response kept",
-                        "The model returned no new response, so the previous one was kept.");
+                        _localization.GetString("Chat_ResponseKeptTitle"),
+                        _localization.GetString("Chat_ResponseKeptBody"));
                 }
                 else if (replaced.MessageId > 0)
                 {
@@ -1235,10 +1268,11 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         }
     }
 
-    private static string AppendStopMarker(string content) =>
-        string.IsNullOrEmpty(content)
-            ? "[Generation stopped]"
-            : content + "\n\n[Generation stopped]";
+    private string AppendStopMarker(string content)
+    {
+        var marker = _localization.GetString("Chat_GenerationStopped");
+        return string.IsNullOrEmpty(content) ? marker : content + "\n\n" + marker;
+    }
 
     private static string PreviewOf(string? content) =>
         string.IsNullOrEmpty(content)
@@ -1299,8 +1333,8 @@ public partial class ChatViewModel : ObservableObject, IDisposable
 
     private void NotifyGenerationInProgress() =>
         _notificationService.ShowInfo(
-            "Response in progress",
-            "Stop the current response or wait for it to finish, then try again.");
+            _localization.GetString("Chat_ResponseInProgressTitle"),
+            _localization.GetString("Chat_ResponseInProgressBody"));
 
     [RelayCommand]
     private async Task StopGenerationAsync()
@@ -1319,7 +1353,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         await LeaveActiveGenerationAsync();
 
         ActiveConversationId = null;
-        ActiveConversationTitle = "New Conversation";
+        ActiveConversationTitle = _localization.GetString("Chat_NewConversationTitle");
         ActiveSystemPrompt = null;
         ActiveSystemPromptName = null;
         TokenCount = 0;
@@ -1344,8 +1378,8 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         if (!await _conversationCoordinator.DeleteConversationAsync(conversationId))
         {
             _notificationService.ShowError(
-                "Delete failed",
-                "The conversation could not be deleted and is still in your history.");
+                _localization.GetString("Chat_DeleteFailedTitle"),
+                _localization.GetString("Chat_DeleteConversationFailedBody"));
             return;
         }
 
@@ -1384,8 +1418,8 @@ public partial class ChatViewModel : ObservableObject, IDisposable
             if (summary is null)
             {
                 _notificationService.ShowInfo(
-                    "Conversation not found",
-                    "The conversation could not be opened. It may have been deleted.");
+                    _localization.GetString("Chat_ConversationNotFoundTitle"),
+                    _localization.GetString("Chat_ConversationNotFoundBody"));
                 return;
             }
 
@@ -1427,8 +1461,8 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         if (!await _conversationCoordinator.TogglePinAsync(conversationId))
         {
             _notificationService.ShowError(
-                "Pin not changed",
-                "The conversation's pinned state could not be changed.");
+                _localization.GetString("Chat_PinFailedTitle"),
+                _localization.GetString("Chat_PinFailedBody"));
             return;
         }
 
@@ -1572,23 +1606,25 @@ public partial class ChatViewModel : ObservableObject, IDisposable
             Messages.Remove(message);
             OnPropertyChanged(nameof(HasNoMessages));
             _notificationService.ShowInfo(
-                "Message removed",
-                "This message was never saved, so it was only removed from the screen.");
+                _localization.GetString("Chat_MessageRemovedTitle"),
+                _localization.GetString("Chat_MessageRemovedBody"));
             return;
         }
 
         if (!await _messagingCoordinator.DeleteMessageAsync(message.MessageId))
         {
             _notificationService.ShowError(
-                "Delete failed",
-                "The message could not be deleted and is still in this conversation.");
+                _localization.GetString("Chat_DeleteFailedTitle"),
+                _localization.GetString("Chat_DeleteMessageFailedBody"));
             return;
         }
 
         _assistantMessageContextSnapshots.Remove(message.MessageId);
         Messages.Remove(message);
         OnPropertyChanged(nameof(HasNoMessages));
-        _notificationService.ShowInfo("Message deleted", "The message has been removed.");
+        _notificationService.ShowInfo(
+            _localization.GetString("Chat_MessageDeletedTitle"),
+            _localization.GetString("Chat_MessageDeletedBody"));
     }
 
     [RelayCommand]
@@ -1629,8 +1665,8 @@ public partial class ChatViewModel : ObservableObject, IDisposable
             // A new answer can only replace the one that closes the thread: anything after an
             // earlier answer was a reply to it.
             _notificationService.ShowInfo(
-                "Only the latest response can be regenerated",
-                "Use Branch from here on an earlier message to explore a different answer.");
+                _localization.GetString("Chat_RegenerateLatestOnlyTitle"),
+                _localization.GetString("Chat_RegenerateLatestOnlyBody"));
             return;
         }
 
@@ -1664,8 +1700,8 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         if (message.MessageId > 0 && !await _messagingCoordinator.DeleteMessageAsync(message.MessageId))
         {
             _notificationService.ShowError(
-                "Regenerate failed",
-                "The previous response could not be removed, so nothing was regenerated.");
+                _localization.GetString("Chat_RegenerateFailedTitle"),
+                _localization.GetString("Chat_RegenerateNotRemovedBody"));
             return;
         }
 
@@ -1715,8 +1751,8 @@ public partial class ChatViewModel : ObservableObject, IDisposable
             !await _conversationCoordinator.DeleteMessageAndFollowingAsync(conversationId, firstSaved.MessageId))
         {
             _notificationService.ShowError(
-                "Edit not sent",
-                "The conversation could not be updated, so the edited message was not sent. Try again.");
+                _localization.GetString("Chat_EditNotSentTitle"),
+                _localization.GetString("Chat_EditNotSentBody"));
             return;
         }
 
@@ -1779,8 +1815,8 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         if (messageId <= 0)
         {
             _notificationService.ShowInfo(
-                "Cannot branch here",
-                "This message was never saved, so a branch cannot start from it.");
+                _localization.GetString("Chat_CannotBranchTitle"),
+                _localization.GetString("Chat_CannotBranchBody"));
             return;
         }
 
@@ -1788,7 +1824,9 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         if (result is not null)
         {
             await RefreshBranchTreeAsync();
-            _notificationService.ShowInfo("Branch Created", $"Created branch: {result.Title}");
+            _notificationService.ShowInfo(
+                _localization.GetString("Chat_BranchCreatedTitle"),
+                _localization.GetString("Chat_BranchCreatedBody", result.Title));
         }
     }
 
@@ -1844,7 +1882,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         ShowBranchComparison(
             thread,
             branch,
-            ReferenceEquals(thread, tree) ? "Main Thread" : BranchTitle(thread),
+            ReferenceEquals(thread, tree) ? _localization.GetString("Chat_MainThread") : BranchTitle(thread),
             BranchTitle(branch));
     }
 
@@ -1874,10 +1912,10 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         return (null, null);
     }
 
-    private static string BranchTitle(ConversationBranchTree branch) =>
+    private string BranchTitle(ConversationBranchTree branch) =>
         !string.IsNullOrWhiteSpace(branch.BranchLabel) ? branch.BranchLabel
         : !string.IsNullOrWhiteSpace(branch.Conversation?.Title) ? branch.Conversation.Title
-        : "Branch";
+        : _localization.GetString("Chat_BranchFallbackTitle");
 
     private async Task RefreshBranchTreeAsync()
     {
@@ -1979,9 +2017,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
                 return;
             }
 
-            ConversationSummaryRefreshError = string.IsNullOrWhiteSpace(result.ErrorMessage)
-                ? "Summary refresh failed. Keeping the previous summary state."
-                : result.ErrorMessage;
+            ConversationSummaryRefreshError = DescribeSummaryRefreshFailure(result.ErrorMessage);
         }
         catch (OperationCanceledException)
         {
@@ -1990,13 +2026,26 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Warning(ex, "Failed to refresh conversation summary for conversation {ConversationId}", ActiveConversationId.Value);
-            ConversationSummaryRefreshError = "Summary refresh failed. Keeping the previous summary state.";
+            ConversationSummaryRefreshError = _localization.GetString("Chat_SummaryRefreshFailed");
         }
         finally
         {
             IsRefreshingConversationSummary = false;
         }
     }
+
+    /// <summary>
+    /// Why the summary refresh failed, in the user's language. The chat service words its three
+    /// reasons in English, so those are matched here; any other reason is shown as it came.
+    /// </summary>
+    private string DescribeSummaryRefreshFailure(string? reason) => reason switch
+    {
+        _ when string.IsNullOrWhiteSpace(reason) => _localization.GetString("Chat_SummaryRefreshFailed"),
+        "Summary refresh failed. Keeping the previous summary state." => _localization.GetString("Chat_SummaryRefreshFailed"),
+        "Summary refresh is unavailable in this app configuration." => _localization.GetString("Chat_SummaryRefreshUnavailable"),
+        "Summary refresh completed, but no updated summary was available." => _localization.GetString("Chat_SummaryRefreshNoUpdate"),
+        _ => reason
+    };
 
     /// <summary>
     /// Opens a web source listed under an answer. Only http and https addresses are links
@@ -2036,7 +2085,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private async Task RefreshConnectionAsync()
     {
-        ConnectionStatus = "Checking...";
+        ShowConnectionState(ChatConnectionState.Checking);
         await CheckConnectionStatusAsync();
         await RefreshPrivacyClaimAsync();
         await LoadAvailableModelsAsync();
@@ -2119,26 +2168,30 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         message.InlineContextStorySourceChips = Array.Empty<string>();
     }
 
-    private static string BuildRelativeTimeLabel(DateTime timestamp)
+    private string BuildRelativeTimeLabel(DateTime timestamp)
     {
         var elapsed = DateTime.UtcNow - timestamp;
         if (elapsed < TimeSpan.FromMinutes(1))
         {
-            return "just now";
+            return _localization.GetString("TimeAgo_JustNow");
         }
 
         if (elapsed < TimeSpan.FromHours(1))
         {
-            return $"{Math.Max(1, (int)elapsed.TotalMinutes)} min ago";
+            var minutes = Math.Max(1, (int)elapsed.TotalMinutes);
+            return _localization.GetString("Chat_MinutesAgo", minutes);
         }
 
         if (elapsed < TimeSpan.FromDays(1))
         {
-            return $"{Math.Max(1, (int)elapsed.TotalHours)} hr ago";
+            var hours = Math.Max(1, (int)elapsed.TotalHours);
+            return _localization.GetString("Chat_HoursAgo", hours);
         }
 
         var days = Math.Max(1, (int)elapsed.TotalDays);
-        return days == 1 ? "1 day ago" : $"{days} days ago";
+        return days == 1
+            ? _localization.GetString("Chat_DayAgo")
+            : _localization.GetString("Chat_DaysAgo", days);
     }
 
     private void LoadContextInspectionForConversation(long conversationId) =>
@@ -2176,12 +2229,12 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         ContextEstimatedPromptTokens = snapshot.Diagnostics.EstimatedPromptTokens.ToString();
         ContextEstimatedMessageTokens = snapshot.Diagnostics.EstimatedMessageTokens.ToString();
         ContextAssemblyMode = snapshot.HasLimitedVisibility
-            ? "Limited visibility"
+            ? _localization.GetString("Chat_AssemblyLimited")
             : snapshot.Diagnostics.UsedLegacyFallback
-                ? "Legacy fallback"
+                ? _localization.GetString("Chat_AssemblyLegacy")
                 : snapshot.Diagnostics.UsedLexicalFallback
-                    ? "Lexical fallback"
-                    : "Structured context assembly";
+                    ? _localization.GetString("Chat_AssemblyLexical")
+                    : _localization.GetString("Chat_AssemblyStructured");
         ContextAssemblyExplanation = snapshot.AssemblyExplanation;
         ContextCompressionExplanation = snapshot.CompressionExplanation;
         ContextRecallExplanation = snapshot.RecallExplanation;
@@ -2190,7 +2243,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         {
             HasContextSummary = false;
             HasContextSummaryKeyPoints = false;
-            ContextSummaryStatus = "No durable summary snapshot was available for this response.";
+            ContextSummaryStatus = _localization.GetString("Chat_ContextSummaryMissing");
             ContextSummaryPreview = string.Empty;
             ContextSummaryFreshness = string.Empty;
             ContextSummaryKeyPoints = new ObservableCollection<string>();
@@ -2199,31 +2252,48 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         {
             HasContextSummary = true;
             ContextSummaryStatus = snapshot.Summary.IsStale
-                ? "Durable summary exists but may lag behind the latest thread."
-                : "Durable summary was current when this response was assembled.";
+                ? _localization.GetString("Chat_ContextSummaryStale")
+                : _localization.GetString("Chat_ContextSummaryCurrent");
             ContextSummaryPreview = string.IsNullOrWhiteSpace(snapshot.Summary.PreviewText)
                 ? snapshot.Summary.SummaryText
                 : snapshot.Summary.PreviewText;
-            ContextSummaryFreshness = snapshot.Summary.IsStale && snapshot.Summary.PendingMessageCount > 0
-                ? $"{snapshot.Summary.PendingMessageCount} newer message{(snapshot.Summary.PendingMessageCount == 1 ? string.Empty : "s")} not yet folded in"
-                : $"Captured {BuildRelativeTimeLabel(snapshot.Summary.GeneratedAt)}";
+            ContextSummaryFreshness = BuildSummaryFreshness(snapshot.Summary);
             ContextSummaryKeyPoints = new ObservableCollection<string>(snapshot.Summary.KeyPoints);
             HasContextSummaryKeyPoints = ContextSummaryKeyPoints.Count > 0;
         }
 
+        var assistantRole = _localization.GetString("Chat_RecallRoleAssistant");
+        var userRole = _localization.GetString("Chat_RecallRoleUser");
         ContextRecallItems = new ObservableCollection<ChatContextRecallDisplayItem>(
             snapshot.RecallMatches.Select(match => new ChatContextRecallDisplayItem
             {
-                ConversationLabel = $"{match.ConversationTitle} · {(match.Role == "assistant" ? "Assistant" : "User")}",
+                ConversationLabel = $"{match.ConversationTitle} · {(match.Role == "assistant" ? assistantRole : userRole)}",
                 PreviewText = match.ContentPreview,
-                SimilarityLabel = $"{Math.Round(match.Similarity * 100)}% match",
+                SimilarityLabel = _localization.GetString("Chat_RecallSimilarity", Math.Round(match.Similarity * 100)),
                 TimestampLabel = BuildRelativeTimeLabel(match.Timestamp)
             }));
         HasContextRecallItems = ContextRecallItems.Count > 0;
-        ContextRecallStatus = HasContextRecallItems
-            ? $"{ContextRecallItems.Count} recalled message{(ContextRecallItems.Count == 1 ? string.Empty : "s")} used"
-            : snapshot.RecallExplanation;
+        ContextRecallStatus = ContextRecallItems.Count switch
+        {
+            0 => snapshot.RecallExplanation,
+            1 => _localization.GetString("Chat_RecallUsedOne"),
+            _ => _localization.GetString("Chat_RecallUsedMany", ContextRecallItems.Count)
+        };
         NotifyConversationIntelligenceStripChanged();
+    }
+
+    /// <summary>How current the durable summary behind a response was.</summary>
+    private string BuildSummaryFreshness(ConversationSummaryInspection summary)
+    {
+        if (summary.IsStale && summary.PendingMessageCount > 0)
+        {
+            return summary.PendingMessageCount == 1
+                ? _localization.GetString("Chat_SummaryPendingOne")
+                : _localization.GetString("Chat_SummaryPendingMany", summary.PendingMessageCount);
+        }
+
+        var capturedAt = BuildRelativeTimeLabel(summary.GeneratedAt);
+        return _localization.GetString("Chat_SummaryCapturedAt", capturedAt);
     }
 
     private void ResetContextInspection(bool updateLatestContextSnapshot = true)
@@ -2235,10 +2305,10 @@ public partial class ChatViewModel : ObservableObject, IDisposable
 
         HasContextInspection = false;
         HasLimitedContextInspection = false;
-        ContextInspectionStatus = "No generation context captured yet.";
-        ContextCapturedAt = "No context captured";
+        ContextInspectionStatus = _localization.GetString("Chat_ContextNoneCaptured");
+        ContextCapturedAt = _localization.GetString("Chat_ContextNotCaptured");
         ContextStoryText = ActiveConversationId.HasValue
-            ? "No context story is available until Agent-X assembles a response for this conversation."
+            ? _localization.GetString("Chat_ContextStoryUnavailable")
             : string.Empty;
         ContextStorySourceChips = new ObservableCollection<ChatContextStorySourceDisplayItem>();
         ContextSelectedMessages = "0";
@@ -2246,39 +2316,52 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         ContextOverflowMessages = "0";
         ContextEstimatedPromptTokens = "0";
         ContextEstimatedMessageTokens = "0";
-        ContextAssemblyMode = "No context available";
+        ContextAssemblyMode = _localization.GetString("Chat_ContextAssemblyNone");
         ContextAssemblyExplanation = string.Empty;
         ContextCompressionExplanation = string.Empty;
         ContextRecallExplanation = string.Empty;
-        ContextSummaryStatus = "No durable summary captured yet.";
+        ContextSummaryStatus = _localization.GetString("Chat_ContextSummaryNone");
         ContextSummaryPreview = string.Empty;
         ContextSummaryFreshness = string.Empty;
         ContextSummaryKeyPoints = new ObservableCollection<string>();
         HasContextSummary = false;
         HasContextSummaryKeyPoints = false;
-        ContextRecallStatus = "No durable recall context captured yet.";
+        ContextRecallStatus = _localization.GetString("Chat_ContextRecallNone");
         ContextRecallItems = new ObservableCollection<ChatContextRecallDisplayItem>();
         HasContextRecallItems = false;
         NotifyConversationIntelligenceStripChanged();
     }
 
-    private static string BuildContextInspectionStatus(
+    private string BuildContextInspectionStatus(
         ChatContextInspectionSnapshot snapshot,
         bool selectedAssistantResponse)
     {
         if (snapshot.HasLimitedVisibility)
         {
-            var limitedVisibilityLabel =
-                $"limited visibility: {snapshot.LimitedVisibilityReason?.Replace('_', ' ') ?? "reduced path"}";
+            var reason = DescribeLimitedVisibilityReason(snapshot.LimitedVisibilityReason);
             return selectedAssistantResponse
-                ? $"Context captured for the selected assistant response ({limitedVisibilityLabel})."
-                : $"Limited visibility: {snapshot.LimitedVisibilityReason?.Replace('_', ' ') ?? "reduced path"}";
+                ? _localization.GetString("Chat_ContextSelectedLimited", reason)
+                : _localization.GetString("Chat_ContextLimited", reason);
         }
 
         return selectedAssistantResponse
-            ? "Context captured for the selected assistant response."
-            : "Latest response context captured";
+            ? _localization.GetString("Chat_ContextSelected")
+            : _localization.GetString("Chat_ContextLatest");
     }
+
+    /// <summary>
+    /// Why only part of the context could be inspected. The reason arrives as a code; the known
+    /// ones are worded in the user's language, any other is shown with its underscores as spaces.
+    /// </summary>
+    private string DescribeLimitedVisibilityReason(string? reason) => reason switch
+    {
+        null => _localization.GetString("Chat_LimitedReasonDefault"),
+        "multi_agent_orchestration" => _localization.GetString("Chat_LimitedReasonMultiAgent"),
+        "no_active_provider" => _localization.GetString("Chat_LimitedReasonNoProvider"),
+        "provider_disconnected" => _localization.GetString("Chat_LimitedReasonDisconnected"),
+        "summary_only_refresh" => _localization.GetString("Chat_LimitedReasonSummaryOnly"),
+        _ => reason.Replace('_', ' ')
+    };
 
     private void NotifyConversationIntelligenceStripChanged()
     {
@@ -2420,4 +2503,16 @@ public sealed class ChatMemoryItem
 {
     public long Id { get; init; }
     public string Content { get; init; } = string.Empty;
+}
+
+/// <summary>
+/// Where the chat's connection check stands. The member names double as the status words
+/// StatusToColorConverter tones by (checking is neutral, connected is GO, disconnected is a fault),
+/// so the header dot follows the state, not the translated status text.
+/// </summary>
+public enum ChatConnectionState
+{
+    Checking,
+    Connected,
+    Disconnected
 }

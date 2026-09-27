@@ -1,3 +1,4 @@
+using AgentX.App.Helpers;
 using AgentX.App.Services;
 using AgentX.App.ViewModels;
 using AgentX.App.ViewModels.Coordinators;
@@ -2279,6 +2280,114 @@ public sealed class ChatViewModelTests
         viewModel.UserInput = "How should I proceed?";
         await viewModel.SendMessageCommand.ExecuteAsync(null);
         return viewModel;
+    }
+
+    // --- Texts in the user's language ---
+    // The connection status, notifications, summary strip and context inspector were English,
+    // and the header dot took its tone from the English status word, which a translation breaks.
+
+    [Theory]
+    [InlineData(true, ChatConnectionState.Connected, "Verbunden", StatusTone.Success)]
+    [InlineData(false, ChatConnectionState.Disconnected, "Getrennt", StatusTone.Danger)]
+    public async Task RefreshConnectionCommand_ReportsAStateTheDotFollows_AndWordsItInTheUsersLanguage(
+        bool connected, ChatConnectionState expectedState, string expectedStatus, StatusTone expectedTone)
+    {
+        var provider = new Mock<IAiProvider>();
+        provider.Setup(p => p.CheckConnectionAsync(It.IsAny<CancellationToken>())).ReturnsAsync(connected);
+        _aiService.SetupGet(service => service.ActiveProvider).Returns(provider.Object);
+        var viewModel = CreateViewModel(ReswLocalization.For("de"));
+        var states = new List<ChatConnectionState>();
+        viewModel.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(ChatViewModel.ConnectionState))
+            {
+                states.Add(viewModel.ConnectionState);
+            }
+        };
+
+        await viewModel.RefreshConnectionCommand.ExecuteAsync(null);
+
+        states.Should().Equal(ChatConnectionState.Checking, expectedState);
+        viewModel.ConnectionStatus.Should().Be(expectedStatus);
+        StatusToneResolver.Resolve(viewModel.ConnectionState.ToString()).Should().Be(expectedTone);
+        StatusToneResolver.Resolve(nameof(ChatConnectionState.Checking)).Should().Be(StatusTone.Neutral);
+    }
+
+    [Fact]
+    public void ANewChat_StartsWithItsTextsInTheUsersLanguage()
+    {
+        var viewModel = CreateViewModel(ReswLocalization.For("de"));
+
+        viewModel.ActiveConversationTitle.Should().Be("Neue Unterhaltung");
+        viewModel.ConnectionStatus.Should().Be("Getrennt");
+        viewModel.ConnectionState.Should().Be(ChatConnectionState.Disconnected);
+        viewModel.ContextInspectionStatus.Should().Be("Noch kein Erstellungskontext erfasst.");
+        viewModel.ContextAssemblyMode.Should().Be("Kein Kontext verfügbar");
+        viewModel.ContextRecallStatus.Should().Be("Noch kein Kontext aus dauerhaftem Recall erfasst.");
+        viewModel.ResearchModeTooltip.Should().StartWith("Recherchemodus AUS");
+    }
+
+    [Fact]
+    public async Task DeleteMessageCommand_OnAnUnsavedMessage_SaysSoInTheUsersLanguage()
+    {
+        SetupSend("Are you there?", new SendMessageResult { ConversationId = 42, ResponseContent = "Offline help" });
+        var viewModel = CreateViewModel(ReswLocalization.For("fr"));
+        viewModel.ActiveConversationId = 42;
+        viewModel.UserInput = "Are you there?";
+        await viewModel.SendMessageCommand.ExecuteAsync(null);
+
+        await viewModel.DeleteMessageCommand.ExecuteAsync(viewModel.Messages[1]);
+
+        _notificationService.Verify(
+            service => service.ShowInfo(
+                "Message retiré",
+                "Ce message n'a jamais été enregistré : il a donc seulement été retiré de l'écran.",
+                It.IsAny<int>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task AStoppedResponseWithNoText_IsMarkedInTheUsersLanguage()
+    {
+        SetupSend("Long question", new SendMessageResult { ConversationId = 42, WasCancelled = true, ResponseContent = string.Empty });
+        var viewModel = CreateViewModel(ReswLocalization.For("es"));
+        viewModel.ActiveConversationId = 42;
+        viewModel.UserInput = "Long question";
+
+        await viewModel.SendMessageCommand.ExecuteAsync(null);
+
+        viewModel.Messages[1].Content.Should().Be("[Generación detenida]");
+    }
+
+    [Fact]
+    public async Task RefreshConversationSummaryCommand_WordsTheServicesReasonInTheUsersLanguage()
+    {
+        _chatService
+            .Setup(service => service.RefreshConversationSummaryInspectionAsync(42, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ConversationSummaryRefreshResult.Failure(
+                null, "Summary refresh is unavailable in this app configuration."));
+        var viewModel = CreateViewModel(ReswLocalization.For("ja"));
+        viewModel.ActiveConversationId = 42;
+
+        await viewModel.RefreshConversationSummaryCommand.ExecuteAsync(null);
+
+        viewModel.ConversationSummaryRefreshError.Should().Be("このアプリの構成では要約を更新できません。");
+        viewModel.ConversationSummaryRefreshActionText.Should().Be("要約を再試行");
+    }
+
+    [Fact]
+    public void AnInspectedResponse_DescribesItsContextInTheUsersLanguage()
+    {
+        var snapshot = CreateInspectionSnapshot(
+            42, limitedVisibility: true, limitedVisibilityReason: "multi_agent_orchestration");
+        _chatService.Setup(service => service.GetLatestContextInspection(42)).Returns(snapshot);
+        var viewModel = CreateViewModel(ReswLocalization.For("zh-CN"));
+        viewModel.ActiveConversationId = 42;
+
+        viewModel.ToggleContextInspectorCommand.Execute(null);
+
+        viewModel.ContextInspectionStatus.Should().Be("可见性受限：多智能体编排");
+        viewModel.ContextAssemblyMode.Should().Be("可见性受限");
     }
 
     private void SetupSend(string content, SendMessageResult result) =>

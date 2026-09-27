@@ -6,6 +6,7 @@ using AgentX.Core.Data.Entities;
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Chat.Models;
 using AgentX.Core.Services.Feedback;
+using AgentX.Core.Services.Localization;
 using AgentX.Core.Services.Search;
 using AgentX.Core.Services.Settings;
 using AgentX.Tests.Helpers;
@@ -962,8 +963,95 @@ public class MessagingCoordinatorTests
             5, "assistant", It.IsAny<string>(), It.IsAny<int?>(), It.IsAny<double?>(), null, null), Times.Once);
     }
 
+    // --- Localized notices ---
+
+    [Theory]
+    [InlineData(false, true, "Der Recherchemodus ist in den Einstellungen ausgeschaltet")]
+    [InlineData(true, false, "Es ist kein Websuchanbieter konfiguriert.")]
+    public async Task SendMessageAsync_InResearchMode_WhenWebSearchCannotRun_SaysWhyInTheUsersLanguage(
+        bool researchEnabled, bool configured, string reason)
+    {
+        var (coordinator, _, _) = CreateResearchCoordinator(
+            researchEnabled, configured, localization: ReswLocalization.For("de"));
+        _chatService
+            .Setup(s => s.SendMessageAsync(1, It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Returns(() => CreateTokenStream("Lokale Antwort"));
+        var notices = new List<NotificationRequestEventArgs>();
+        coordinator.NotificationRequested += (_, e) => notices.Add(e);
+
+        await coordinator.SendMessageAsync("Was hat sich geändert?", 1, null, null, true);
+        await coordinator.SendMessageAsync("Und jetzt?", 1, null, null, true);
+
+        var notice = notices.Should().ContainSingle().Subject;
+        notice.Title.Should().Be("Keine Webquellen");
+        notice.Message.Should().StartWith(reason);
+    }
+
+    [Fact]
+    public async Task SendMessageAsync_InResearchMode_WhenTheSearchFindsNothing_SaysSoInTheUsersLanguage()
+    {
+        var (coordinator, webSearch, _) = CreateResearchCoordinator(
+            researchEnabled: true, configured: true, localization: ReswLocalization.For("zh-CN"));
+        webSearch
+            .Setup(s => s.SearchAsync("q", It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new WebSearchResponse { Query = "q", Results = [] });
+        _chatService
+            .Setup(s => s.SendMessageAsync(1, "q", It.IsAny<CancellationToken>()))
+            .Returns(CreateTokenStream("a"));
+        NotificationRequestEventArgs? notice = null;
+        coordinator.NotificationRequested += (_, e) => notice = e;
+
+        await coordinator.SendMessageAsync("q", 1, null, null, true);
+
+        notice!.Title.Should().Be("没有网页来源");
+        notice.Message.Should().Be("网络搜索没有返回结果，因此此回答仅使用您的本地知识。");
+    }
+
+    [Fact]
+    public async Task SendMessageAsync_WhenStopped_MarksTheAnswerInTheUsersLanguage()
+    {
+        var coordinator = CreateLocalizedCoordinator("es");
+        _chatService
+            .Setup(s => s.SendMessageAsync(1, "q", It.IsAny<CancellationToken>()))
+            .Throws(new OperationCanceledException());
+
+        var result = await coordinator.SendMessageAsync("q", 1, null, null, false);
+
+        result.WasCancelled.Should().BeTrue();
+        result.ResponseContent.Should().Be("[Generación detenida]");
+    }
+
+    [Fact]
+    public async Task SendMessageAsync_FailedOrchestration_ExplainsInTheUsersLanguage()
+    {
+        var coordinator = CreateLocalizedCoordinator("fr");
+        _multiAgentOrchestrator
+            .Setup(service => service.RunAsync(
+                It.IsAny<string>(),
+                It.IsAny<IReadOnlyList<AgentRole>>(),
+                OrchestratorStrategy.Parallel,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OrchestrationResult
+            {
+                Task = "Plan launch",
+                Strategy = OrchestratorStrategy.Parallel,
+                IsSuccess = false,
+                Errors = ["Critic: timeout"]
+            });
+
+        var result = await coordinator.SendMessageAsync(
+            "Plan launch", 5, null, null, false, ChatOrchestrationMode.MultiAgentParallel);
+
+        result.ResponseContent.Should().Be(
+            "L'orchestration multi-agent n'a pas renvoyé de réponse exploitable.\n\n- Critic: timeout");
+    }
+
     private (MessagingCoordinator Coordinator, Mock<IWebSearchService> WebSearch, Mock<ISettingsService> Settings)
-        CreateResearchCoordinator(bool researchEnabled, bool configured, int maxSearchResults = 10)
+        CreateResearchCoordinator(
+            bool researchEnabled,
+            bool configured,
+            int maxSearchResults = 10,
+            ILocalizationService? localization = null)
     {
         var webSearch = new Mock<IWebSearchService>();
         webSearch.SetupGet(s => s.IsConfigured).Returns(configured);
@@ -981,7 +1069,8 @@ public class MessagingCoordinatorTests
             _feedbackService.Object,
             _multiAgentOrchestrator.Object,
             webSearch.Object,
-            settings.Object);
+            settings.Object,
+            localization);
         return (coordinator, webSearch, settings);
     }
 

@@ -24,8 +24,6 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
 {
     private static readonly TimeSpan ResearchSearchTimeout = TimeSpan.FromSeconds(15);
 
-    private const string StopMarker = "[Generation stopped]";
-
     private readonly IChatService _chatService;
     private readonly IConversationService _conversationService;
     private readonly IAiService _aiService;
@@ -39,11 +37,11 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
     // so a newer one never shares or disposes an older one's, and Stop reaches the newest.
     private CancellationTokenSource? _generationCts;
 
-    // The notice last shown because Research Mode cannot run at all (web search unavailable,
-    // switched off in Settings, or no provider configured). That lasts until the configuration
-    // changes, so it is shown once instead of on every send; a send with Research Mode off, or
-    // a configuration that lets the search run, arms it again.
-    private string? _researchUnavailableNotice;
+    // Why Research Mode last could not run at all (web search unavailable, switched off in
+    // Settings, or no provider configured). That lasts until the configuration changes, so the
+    // notice is shown once instead of on every send; a send with Research Mode off, or a
+    // configuration that lets the search run, arms it again.
+    private ResearchUnavailableReason? _researchUnavailableNotice;
 
     public event EventHandler<string>? TokenReceived;
     public event EventHandler<StreamingCompletedEventArgs>? StreamingCompleted;
@@ -372,11 +370,15 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
         // it. Reporting its id lets the chat act on that row instead of treating it as unsaved.
         var (user, _) = await ResolvePersistedExchangeAsync(exchange);
         var partial = exchange.Response.ToString();
+        var stopMarker = ProviderStatusText.Resolve(
+            _localization?.GetString("Chat_GenerationStopped"),
+            "Chat_GenerationStopped",
+            "[Generation stopped]");
 
         return new SendMessageResult
         {
             ConversationId = exchange.ConversationId,
-            ResponseContent = partial.Length == 0 ? StopMarker : partial + "\n\n" + StopMarker,
+            ResponseContent = partial.Length == 0 ? stopMarker : partial + "\n\n" + stopMarker,
             TokenCount = exchange.TokenCount,
             GenerationTimeMs = exchange.Stopwatch.Elapsed.TotalMilliseconds,
             WasCancelled = true,
@@ -630,14 +632,21 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
             ];
     }
 
-    private static string BuildOrchestrationFailureMessage(OrchestrationResult orchestration)
+    private string BuildOrchestrationFailureMessage(OrchestrationResult orchestration)
     {
         if (orchestration.Errors.Count == 0)
         {
-            return "Multi-agent orchestration did not return a usable answer. Check the active AI provider and try again.";
+            return ProviderStatusText.Resolve(
+                _localization?.GetString("Chat_OrchestrationNoAnswerRetry"),
+                "Chat_OrchestrationNoAnswerRetry",
+                "Multi-agent orchestration did not return a usable answer. Check the active AI provider and try again.");
         }
 
-        return "Multi-agent orchestration did not return a usable answer.\n\n" +
+        var noAnswer = ProviderStatusText.Resolve(
+            _localization?.GetString("Chat_OrchestrationNoAnswer"),
+            "Chat_OrchestrationNoAnswer",
+            "Multi-agent orchestration did not return a usable answer.");
+        return noAnswer + "\n\n" +
                string.Join("\n", orchestration.Errors.Select(error => $"- {error}"));
     }
 
@@ -711,20 +720,20 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
     {
         if (_webSearchService is null)
         {
-            NotifyResearchUnavailable("Web search is not available in this session, so answers use your local knowledge only.");
+            NotifyResearchUnavailable(ResearchUnavailableReason.WebSearchUnavailable);
             return null;
         }
 
         var settings = await ReadResearchSettingsAsync();
         if (settings is not { EnableResearchMode: true })
         {
-            NotifyResearchUnavailable("Research Mode is turned off in Settings, so no web search was made. Turn it on in Settings to add web sources to answers.");
+            NotifyResearchUnavailable(ResearchUnavailableReason.TurnedOff);
             return null;
         }
 
         if (!_webSearchService.IsConfigured)
         {
-            NotifyResearchUnavailable("No web search provider is configured. Add a Brave or Serper API key, or a SearXNG address, in Settings to add web sources to answers.");
+            NotifyResearchUnavailable(ResearchUnavailableReason.NoProvider);
             return null;
         }
 
@@ -747,7 +756,10 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
 
             if (results.Count == 0)
             {
-                NotifyNoWebSources("The web search returned no results, so this answer uses your local knowledge only.");
+                NotifyNoWebSources(ProviderStatusText.Resolve(
+                    _localization?.GetString("Chat_ResearchNoResults"),
+                    "Chat_ResearchNoResults",
+                    "The web search returned no results, so this answer uses your local knowledge only."));
                 return null;
             }
 
@@ -765,13 +777,19 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
         }
         catch (OperationCanceledException) when (!ct.IsCancellationRequested)
         {
-            NotifyNoWebSources("The web search timed out, so this answer uses your local knowledge only.");
+            NotifyNoWebSources(ProviderStatusText.Resolve(
+                _localization?.GetString("Chat_ResearchTimedOut"),
+                "Chat_ResearchTimedOut",
+                "The web search timed out, so this answer uses your local knowledge only."));
             return null;
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             Log.Warning(ex, "Research Mode web search failed");
-            NotifyNoWebSources("The web search failed, so this answer uses your local knowledge only.");
+            NotifyNoWebSources(ProviderStatusText.Resolve(
+                _localization?.GetString("Chat_ResearchFailed"),
+                "Chat_ResearchFailed",
+                "The web search failed, so this answer uses your local knowledge only."));
             return null;
         }
     }
@@ -823,24 +841,49 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
     /// <summary>
     /// Says why Research Mode cannot run, once: the same reason is not repeated on every send.
     /// </summary>
-    private void NotifyResearchUnavailable(string message)
+    private void NotifyResearchUnavailable(ResearchUnavailableReason reason)
     {
-        if (string.Equals(_researchUnavailableNotice, message, StringComparison.Ordinal))
+        if (_researchUnavailableNotice == reason)
         {
             return;
         }
 
-        _researchUnavailableNotice = message;
-        NotifyNoWebSources(message);
+        _researchUnavailableNotice = reason;
+        NotifyNoWebSources(reason switch
+        {
+            ResearchUnavailableReason.TurnedOff => ProviderStatusText.Resolve(
+                _localization?.GetString("Chat_ResearchTurnedOff"),
+                "Chat_ResearchTurnedOff",
+                "Research Mode is turned off in Settings, so no web search was made. Turn it on in Settings to add web sources to answers."),
+            ResearchUnavailableReason.NoProvider => ProviderStatusText.Resolve(
+                _localization?.GetString("Chat_ResearchNoProvider"),
+                "Chat_ResearchNoProvider",
+                "No web search provider is configured. Add a Brave or Serper API key, or a SearXNG address, in Settings to add web sources to answers."),
+            _ => ProviderStatusText.Resolve(
+                _localization?.GetString("Chat_ResearchNoWebSearch"),
+                "Chat_ResearchNoWebSearch",
+                "Web search is not available in this session, so answers use your local knowledge only.")
+        });
     }
 
     private void NotifyNoWebSources(string message) =>
         NotificationRequested?.Invoke(this, new NotificationRequestEventArgs
         {
             Level = "info",
-            Title = "No web sources",
+            Title = ProviderStatusText.Resolve(
+                _localization?.GetString("Chat_NoWebSourcesTitle"),
+                "Chat_NoWebSourcesTitle",
+                "No web sources"),
             Message = message
         });
+
+    /// <summary>Why Research Mode cannot run at all, until the configuration changes.</summary>
+    private enum ResearchUnavailableReason
+    {
+        WebSearchUnavailable,
+        TurnedOff,
+        NoProvider
+    }
 
     /// <inheritdoc />
     public async Task StopGenerationAsync()
