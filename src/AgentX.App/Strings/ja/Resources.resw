@@ -1188,7 +1188,7 @@
   <data name="Onb_EmbModelOverline.Text" xml:space="preserve"><value>埋め込みモデル</value></data>
   <data name="Onb_EmbModelDesc.Text" xml:space="preserve"><value>セマンティック検索とドキュメントのインデックス作成に使用するモデルを選択します。</value></data>
   <data name="Onb_NoModelsTitle.Text" xml:space="preserve"><value>利用可能なモデルがありません</value></data>
-  <data name="Onb_NoModelsDesc.Text" xml:space="preserve"><value>Ollama が接続されていないため、モデルを一覧表示できません。モデルは後から設定またはモデル マネージャーで構成できます。</value></data>
+  <data name="Onb_NoModelsDesc.Text" xml:space="preserve"><value>Ollama のモデルを一覧表示できませんでした。Ollama が接続されていないか、モデルがインストールされていません。モデルは後から設定またはモデル マネージャーで構成できます。</value></data>
   <data name="Onb_DefaultChatRun.Text" xml:space="preserve"><value>既定のチャット モデル:</value></data>
   <data name="Onb_DefaultEmbRun.Text" xml:space="preserve"><value>  |  既定の埋め込みモデル:</value></data>
   <data name="Onb_ReadyTitle.Text" xml:space="preserve"><value>AI の準備ができました</value></data>

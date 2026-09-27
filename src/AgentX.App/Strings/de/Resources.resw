@@ -1188,7 +1188,7 @@
   <data name="Onb_EmbModelOverline.Text" xml:space="preserve"><value>EMBEDDING-MODELL</value></data>
   <data name="Onb_EmbModelDesc.Text" xml:space="preserve"><value>Wählen Sie das Modell für semantische Suche und Dokumentindizierung.</value></data>
   <data name="Onb_NoModelsTitle.Text" xml:space="preserve"><value>Keine Modelle verfügbar</value></data>
-  <data name="Onb_NoModelsDesc.Text" xml:space="preserve"><value>Ollama ist nicht verbunden, daher können keine Modelle aufgelistet werden. Sie können Modelle später in den Einstellungen oder der Modellverwaltung konfigurieren.</value></data>
+  <data name="Onb_NoModelsDesc.Text" xml:space="preserve"><value>Es konnten keine Ollama-Modelle aufgelistet werden: Ollama ist nicht verbunden oder hat keine Modelle installiert. Sie können Modelle später in den Einstellungen oder der Modellverwaltung konfigurieren.</value></data>
   <data name="Onb_DefaultChatRun.Text" xml:space="preserve"><value>Standard-Chatmodell:</value></data>
   <data name="Onb_DefaultEmbRun.Text" xml:space="preserve"><value>  |  Standard-Embedding-Modell:</value></data>
   <data name="Onb_ReadyTitle.Text" xml:space="preserve"><value>Ihre KI ist bereit</value></data>

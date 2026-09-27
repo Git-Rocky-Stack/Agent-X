@@ -823,7 +823,7 @@
   "Onb_EmbModelOverline.Text": "EMBEDDING-MODELL",
   "Onb_EmbModelDesc.Text": "Wählen Sie das Modell für semantische Suche und Dokumentindizierung.",
   "Onb_NoModelsTitle.Text": "Keine Modelle verfügbar",
-  "Onb_NoModelsDesc.Text": "Ollama ist nicht verbunden, daher können keine Modelle aufgelistet werden. Sie können Modelle später in den Einstellungen oder der Modellverwaltung konfigurieren.",
+  "Onb_NoModelsDesc.Text": "Es konnten keine Ollama-Modelle aufgelistet werden: Ollama ist nicht verbunden oder hat keine Modelle installiert. Sie können Modelle später in den Einstellungen oder der Modellverwaltung konfigurieren.",
   "Onb_DefaultChatRun.Text": "Standard-Chatmodell:",
   "Onb_DefaultEmbRun.Text": "  |  Standard-Embedding-Modell:",
   "Onb_ReadyTitle.Text": "Ihre KI ist bereit",

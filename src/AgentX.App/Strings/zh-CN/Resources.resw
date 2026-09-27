@@ -1188,7 +1188,7 @@
   <data name="Onb_EmbModelOverline.Text" xml:space="preserve"><value>嵌入模型</value></data>
   <data name="Onb_EmbModelDesc.Text" xml:space="preserve"><value>选择用于语义搜索和文档索引的模型。</value></data>
   <data name="Onb_NoModelsTitle.Text" xml:space="preserve"><value>没有可用模型</value></data>
-  <data name="Onb_NoModelsDesc.Text" xml:space="preserve"><value>Ollama 未连接,无法列出模型。您可以稍后在设置或模型管理器中配置模型。</value></data>
+  <data name="Onb_NoModelsDesc.Text" xml:space="preserve"><value>无法列出 Ollama 模型：Ollama 未连接，或未安装任何模型。您可以稍后在设置或模型管理器中配置模型。</value></data>
   <data name="Onb_DefaultChatRun.Text" xml:space="preserve"><value>默认聊天模型:</value></data>
   <data name="Onb_DefaultEmbRun.Text" xml:space="preserve"><value>  |  默认嵌入模型:</value></data>
   <data name="Onb_ReadyTitle.Text" xml:space="preserve"><value>您的 AI 已就绪</value></data>

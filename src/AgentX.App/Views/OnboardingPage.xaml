@@ -414,7 +414,7 @@
                                 <TextBlock x:Uid="Onb_NoModelsTitle" Text="No models available"
                                            Style="{StaticResource HeadingSmallStyle}"
                                            HorizontalAlignment="Center" />
-                                <TextBlock x:Uid="Onb_NoModelsDesc" Text="Ollama is not connected, so models cannot be listed. You can configure models later in Settings or the Model Manager."
+                                <TextBlock x:Uid="Onb_NoModelsDesc" Text="No Ollama models could be listed: Ollama is not connected, or it has no models installed. You can configure models later in Settings or the Model Manager."
                                            Style="{StaticResource BodySecondaryStyle}"
                                            HorizontalAlignment="Center"
                                            TextAlignment="Center"

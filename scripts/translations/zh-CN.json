@@ -823,7 +823,7 @@
   "Onb_EmbModelOverline.Text": "嵌入模型",
   "Onb_EmbModelDesc.Text": "选择用于语义搜索和文档索引的模型。",
   "Onb_NoModelsTitle.Text": "没有可用模型",
-  "Onb_NoModelsDesc.Text": "Ollama 未连接,无法列出模型。您可以稍后在设置或模型管理器中配置模型。",
+  "Onb_NoModelsDesc.Text": "无法列出 Ollama 模型：Ollama 未连接，或未安装任何模型。您可以稍后在设置或模型管理器中配置模型。",
   "Onb_DefaultChatRun.Text": "默认聊天模型:",
   "Onb_DefaultEmbRun.Text": "  |  默认嵌入模型:",
   "Onb_ReadyTitle.Text": "您的 AI 已就绪",

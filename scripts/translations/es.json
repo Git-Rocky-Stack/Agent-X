@@ -823,7 +823,7 @@
   "Onb_EmbModelOverline.Text": "MODELO DE EMBEDDINGS",
   "Onb_EmbModelDesc.Text": "Seleccione el modelo usado para la búsqueda semántica y la indexación de documentos.",
   "Onb_NoModelsTitle.Text": "No hay modelos disponibles",
-  "Onb_NoModelsDesc.Text": "Ollama no está conectado, por lo que no se pueden listar modelos. Puede configurarlos más tarde en Configuración o en el Gestor de modelos.",
+  "Onb_NoModelsDesc.Text": "No se pudieron listar modelos de Ollama: Ollama no está conectado o no tiene modelos instalados. Puede configurarlos más tarde en Configuración o en el Gestor de modelos.",
   "Onb_DefaultChatRun.Text": "Modelo de chat predeterminado:",
   "Onb_DefaultEmbRun.Text": "  |  Modelo de embeddings predeterminado:",
   "Onb_ReadyTitle.Text": "Su IA está lista",

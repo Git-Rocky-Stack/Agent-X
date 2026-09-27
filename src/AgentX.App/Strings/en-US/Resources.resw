@@ -1527,7 +1527,7 @@
   <data name="Onb_EmbModelOverline.Text" xml:space="preserve"><value>EMBEDDING MODEL</value></data>
   <data name="Onb_EmbModelDesc.Text" xml:space="preserve"><value>Select the model used for semantic search and document indexing.</value></data>
   <data name="Onb_NoModelsTitle.Text" xml:space="preserve"><value>No models available</value></data>
-  <data name="Onb_NoModelsDesc.Text" xml:space="preserve"><value>Ollama is not connected, so models cannot be listed. You can configure models later in Settings or the Model Manager.</value></data>
+  <data name="Onb_NoModelsDesc.Text" xml:space="preserve"><value>No Ollama models could be listed: Ollama is not connected, or it has no models installed. You can configure models later in Settings or the Model Manager.</value></data>
   <data name="Onb_DefaultChatRun.Text" xml:space="preserve"><value>Default chat model:</value></data>
   <data name="Onb_DefaultEmbRun.Text" xml:space="preserve"><value>  |  Default embedding model:</value></data>
   <data name="Onb_ReadyTitle.Text" xml:space="preserve"><value>Your AI is Ready</value></data>
