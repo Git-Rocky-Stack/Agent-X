@@ -46,6 +46,12 @@ public partial class AnnotationsViewModel : ObservableObject
 
     public Func<AnnotationMarkdownExportRequest, Task<AnnotationMarkdownExportResult>>? SaveMarkdownExportAsync { get; set; }
 
+    /// <summary>
+    /// Asks the user to confirm a delete and answers true when they do. The page supplies it (a
+    /// ContentDialog). While it is unset, Delete deletes nothing.
+    /// </summary>
+    public Func<ConfirmationRequest, Task<bool>>? ConfirmDestructiveActionAsync { get; set; }
+
     public AnnotationsViewModel(IAnnotationService annotationService, ILocalizationService localization)
     {
         _annotationService = annotationService;
@@ -185,9 +191,26 @@ public partial class AnnotationsViewModel : ObservableObject
         IsEditing = false;
     }
 
+    /// <summary>
+    /// Deletes an annotation, its highlight and note, once the user confirms. The document it
+    /// belongs to is not changed.
+    /// </summary>
     [RelayCommand]
     private async Task DeleteAnnotationAsync(long annotationId)
     {
+        var documentName = Annotations.FirstOrDefault(a => a.Id == annotationId)?.DocumentName
+            ?? _localization.GetString("Annot_UnknownDocument");
+        var confirmed = await IsConfirmedAsync(new ConfirmationRequest(
+            _localization.GetString("Annot_DeleteConfirmTitle"),
+            _localization.GetString("Annot_DeleteConfirmMessage", documentName),
+            _localization.GetString("Annot_DeleteConfirmButton"),
+            _localization.GetString("Annot_ConfirmCancelButton")));
+        if (!confirmed)
+        {
+            Log.Information("Delete of annotation {Id} was not confirmed", annotationId);
+            return;
+        }
+
         try
         {
             await _annotationService.DeleteAnnotationAsync(annotationId);
@@ -248,6 +271,29 @@ public partial class AnnotationsViewModel : ObservableObject
     private static string CreateSuggestedExportFileName()
     {
         return $"agent-x-annotations-{DateTime.Now:yyyyMMdd-HHmmss}.md";
+    }
+
+    /// <summary>
+    /// Asks <see cref="ConfirmDestructiveActionAsync"/>. No handler, or a dialog that fails to
+    /// open, counts as "not confirmed": nothing is deleted without an answer.
+    /// </summary>
+    private async Task<bool> IsConfirmedAsync(ConfirmationRequest request)
+    {
+        if (ConfirmDestructiveActionAsync is not { } confirm)
+        {
+            Log.Warning("No confirmation handler is attached; '{Title}' was not carried out", request.Title);
+            return false;
+        }
+
+        try
+        {
+            return await confirm(request);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "The confirmation '{Title}' could not be shown", request.Title);
+            return false;
+        }
     }
 }
 

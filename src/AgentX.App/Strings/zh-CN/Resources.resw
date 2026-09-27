@@ -502,7 +502,7 @@
   <data name="UserGuide_Annotations_Description.Text" xml:space="preserve"><value>注释是对 Vault 文档文本所做的高亮和备注。要添加注释，请在 Knowledge Vault 中通过“详情”打开文档预览，在“文档文本”下显示的段落中选择文本，根据需要添加备注，然后点击“保存注释”。注释页面列出所有注释，并支持搜索、编辑、删除和导出。</value></data>
   <data name="UserGuide_Annotations_Creating_Title.Text" xml:space="preserve"><value>使用注释</value></data>
   <data name="UserGuide_Annotations_Create1.Text" xml:space="preserve"><value>搜索与筛选：在搜索框中输入内容，即可找到高亮文本或备注中包含这些词语的注释；也可以在“按颜色筛选”中选择颜色，“分布”会显示每种颜色的注释数量。</value></data>
-  <data name="UserGuide_Annotations_Create2.Text" xml:space="preserve"><value>编辑与删除：编辑注释可以更改其备注和颜色。删除会立即生效，不会先确认。不支持标签、备注中的 Markdown 以及注释之间的链接。</value></data>
+  <data name="UserGuide_Annotations_Create2.Text" xml:space="preserve"><value>编辑与删除：编辑注释可以更改其备注和颜色。删除前会先请求确认；文档本身不会更改。不支持标签、备注中的 Markdown 以及注释之间的链接。</value></data>
   <data name="UserGuide_Annotations_Create3.Text" xml:space="preserve"><value>导出：“导出为 Markdown”会将所有注释保存到您命名的 Markdown 文件中。</value></data>
   <data name="UserGuide_Annotations_Surfacing_Title.Text" xml:space="preserve"><value>注释出现的位置</value></data>
   <data name="UserGuide_Annotations_Surface1.Text" xml:space="preserve"><value>注释页面：列出每条注释及其文档名称、高亮文本、备注和颜色。Vault 预览会按从新到旧的顺序列出所显示文档的注释，每条都带有删除按钮。</value></data>
@@ -3707,4 +3707,8 @@
   <data name="Inbox_StatusRejected" xml:space="preserve"><value>已拒绝</value></data>
   <data name="Inbox_StatusDeferred" xml:space="preserve"><value>已推迟</value></data>
   <data name="Inbox_StatusAll" xml:space="preserve"><value>全部</value></data>
+  <data name="Annot_DeleteConfirmTitle" xml:space="preserve"><value>删除注释？</value></data>
+  <data name="Annot_DeleteConfirmMessage" xml:space="preserve"><value>将删除“{0}”上的高亮和备注。文档本身不会更改。此操作无法撤消。</value></data>
+  <data name="Annot_DeleteConfirmButton" xml:space="preserve"><value>删除</value></data>
+  <data name="Annot_ConfirmCancelButton" xml:space="preserve"><value>取消</value></data>
 </root>

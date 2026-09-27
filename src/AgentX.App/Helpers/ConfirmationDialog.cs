@@ -21,7 +21,12 @@ public static class ConfirmationDialog
             PrimaryButtonText = request.ConfirmText,
             CloseButtonText = request.CancelText,
             DefaultButton = ContentDialogButton.Close,
-            XamlRoot = xamlRoot
+            XamlRoot = xamlRoot,
+
+            // The dialog opens in the window's popup layer, outside the tree ThemeService sets
+            // the shift on, so it takes the window root's theme as the shell's own dialogs do.
+            // High contrast still selects the system theme dictionary whatever is requested.
+            RequestedTheme = (xamlRoot.Content as FrameworkElement)?.RequestedTheme ?? ElementTheme.Default
         };
 
         return await dialog.ShowAsync() == ContentDialogResult.Primary;

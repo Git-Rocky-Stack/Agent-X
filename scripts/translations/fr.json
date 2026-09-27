@@ -142,7 +142,7 @@
   "UserGuide_Annotations_Description.Text": "Les annotations sont des surlignages et des notes sur le texte des documents du coffre-fort. Pour en ajouter une, ouvrez l'aperçu d'un document dans le Coffre-fort de Connaissances avec Détails, sélectionnez du texte dans le passage affiché sous TEXTE DU DOCUMENT, ajoutez une note si vous le souhaitez et cliquez sur Enregistrer l'annotation. La page Annotations liste toutes les annotations et permet de les rechercher, de les modifier, de les supprimer et de les exporter.",
   "UserGuide_Annotations_Creating_Title.Text": "Travailler avec les annotations",
   "UserGuide_Annotations_Create1.Text": "Rechercher et filtrer - Tapez dans la zone de recherche pour trouver les annotations dont le texte surligné ou la note contient vos mots, ou choisissez une couleur sous FILTRER PAR COULEUR ; RÉPARTITION indique combien d'annotations compte chaque couleur.",
-  "UserGuide_Annotations_Create2.Text": "Modifier et supprimer - Modifiez une annotation pour changer sa note et sa couleur. Supprimer la retire immédiatement, sans confirmation. Les étiquettes, le Markdown dans les notes et les liens entre annotations ne sont pas pris en charge.",
+  "UserGuide_Annotations_Create2.Text": "Modifier et supprimer - Modifiez une annotation pour changer sa note et sa couleur. Supprimer demande d'abord une confirmation ; le document lui-même n'est pas modifié. Les étiquettes, le Markdown dans les notes et les liens entre annotations ne sont pas pris en charge.",
   "UserGuide_Annotations_Create3.Text": "Exporter - Exporter en Markdown enregistre toutes les annotations dans un fichier Markdown que vous nommez.",
   "UserGuide_Annotations_Surfacing_Title.Text": "Où apparaissent les annotations",
   "UserGuide_Annotations_Surface1.Text": "Page Annotations - Liste chaque annotation avec le nom du document, le texte surligné, la note et la couleur. L'aperçu du coffre-fort liste les annotations du document affiché, les plus récentes d'abord, chacune avec un bouton de suppression.",
@@ -3440,5 +3440,9 @@
   "Inbox_StatusAccepted": "Accepté",
   "Inbox_StatusRejected": "Rejeté",
   "Inbox_StatusDeferred": "Reporté",
-  "Inbox_StatusAll": "Tous"
+  "Inbox_StatusAll": "Tous",
+  "Annot_DeleteConfirmTitle": "Supprimer l'annotation ?",
+  "Annot_DeleteConfirmMessage": "Le surlignage et la note sur « {0} » seront supprimés. Le document lui-même n'est pas modifié. Cette action est irréversible.",
+  "Annot_DeleteConfirmButton": "Supprimer",
+  "Annot_ConfirmCancelButton": "Annuler"
 }

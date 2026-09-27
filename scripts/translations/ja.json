@@ -142,7 +142,7 @@
   "UserGuide_Annotations_Description.Text": "注釈は、Vault のドキュメントのテキストに付けるハイライトとメモです。注釈を追加するには、Knowledge Vault で [詳細] からドキュメントのプレビューを開き、「ドキュメントのテキスト」に表示されたパッセージのテキストを選択し、必要に応じてメモを入力して [注釈を保存] をクリックします。注釈ページにはすべての注釈が一覧表示され、検索、編集、削除、エクスポートができます。",
   "UserGuide_Annotations_Creating_Title.Text": "注釈の操作",
   "UserGuide_Annotations_Create1.Text": "検索と絞り込み：検索ボックスに入力すると、ハイライトしたテキストかメモにその語句を含む注釈が見つかります。[色でフィルター] で色を選ぶこともでき、「分布」には色ごとの注釈の数が表示されます。",
-  "UserGuide_Annotations_Create2.Text": "編集と削除：注釈を編集すると、メモと色を変更できます。削除すると確認なしですぐに消えます。タグ、メモ内の Markdown、注釈どうしのリンクには対応していません。",
+  "UserGuide_Annotations_Create2.Text": "編集と削除：注釈を編集すると、メモと色を変更できます。削除する前に確認が表示されます。ドキュメント自体は変更されません。タグ、メモ内の Markdown、注釈どうしのリンクには対応していません。",
   "UserGuide_Annotations_Create3.Text": "エクスポート：[Markdown としてエクスポート] で、すべての注釈を名前を付けた Markdown ファイルに保存します。",
   "UserGuide_Annotations_Surfacing_Title.Text": "注釈の表示場所",
   "UserGuide_Annotations_Surface1.Text": "注釈ページ：すべての注釈が、ドキュメント名、ハイライトしたテキスト、メモ、色とともに一覧表示されます。Vault のプレビューには表示中のドキュメントの注釈が新しい順に一覧表示され、それぞれに削除ボタンがあります。",
@@ -3440,5 +3440,9 @@
   "Inbox_StatusAccepted": "承認済み",
   "Inbox_StatusRejected": "却下済み",
   "Inbox_StatusDeferred": "延期",
-  "Inbox_StatusAll": "すべて"
+  "Inbox_StatusAll": "すべて",
+  "Annot_DeleteConfirmTitle": "注釈を削除しますか?",
+  "Annot_DeleteConfirmMessage": "「{0}」のハイライトとメモを削除します。ドキュメント自体は変更されません。この操作は元に戻せません。",
+  "Annot_DeleteConfirmButton": "削除",
+  "Annot_ConfirmCancelButton": "キャンセル"
 }

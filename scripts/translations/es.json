@@ -142,7 +142,7 @@
   "UserGuide_Annotations_Description.Text": "Las anotaciones son resaltados y notas sobre el texto de los documentos de la bóveda. Para añadir una, abra la vista previa de un documento en la Bóveda de Conocimiento con Detalle, seleccione texto en el pasaje que aparece en TEXTO DEL DOCUMENTO, añada una nota si quiere y haga clic en Guardar anotación. La página Anotaciones muestra todas las anotaciones y permite buscarlas, editarlas, eliminarlas y exportarlas.",
   "UserGuide_Annotations_Creating_Title.Text": "Trabajar con anotaciones",
   "UserGuide_Annotations_Create1.Text": "Buscar y filtrar - Escriba en el cuadro de búsqueda para encontrar anotaciones cuyo texto resaltado o nota contenga sus palabras, o elija un color en FILTRAR POR COLOR; DISTRIBUCIÓN muestra cuántas anotaciones tiene cada color.",
-  "UserGuide_Annotations_Create2.Text": "Editar y eliminar - Edite una anotación para cambiar su nota y su color. Eliminar la quita al instante, sin pedir confirmación. No se admiten etiquetas, Markdown en las notas ni vínculos entre anotaciones.",
+  "UserGuide_Annotations_Create2.Text": "Editar y eliminar - Edite una anotación para cambiar su nota y su color. Eliminar pide confirmación antes; el documento en sí no se modifica. No se admiten etiquetas, Markdown en las notas ni vínculos entre anotaciones.",
   "UserGuide_Annotations_Create3.Text": "Exportar - Exportar como Markdown guarda todas las anotaciones en un archivo Markdown con el nombre que usted elija.",
   "UserGuide_Annotations_Surfacing_Title.Text": "Dónde aparecen las anotaciones",
   "UserGuide_Annotations_Surface1.Text": "Página Anotaciones - Muestra cada anotación con el nombre del documento, el texto resaltado, la nota y el color. La vista previa de la bóveda muestra las anotaciones del documento que presenta, de la más reciente a la más antigua, cada una con un botón para eliminarla.",
@@ -3440,5 +3440,9 @@
   "Inbox_StatusAccepted": "Aceptado",
   "Inbox_StatusRejected": "Rechazado",
   "Inbox_StatusDeferred": "Aplazado",
-  "Inbox_StatusAll": "Todos"
+  "Inbox_StatusAll": "Todos",
+  "Annot_DeleteConfirmTitle": "¿Eliminar la anotación?",
+  "Annot_DeleteConfirmMessage": "Se eliminarán el resaltado y la nota de \"{0}\". El documento en sí no se modifica. Esta acción no se puede deshacer.",
+  "Annot_DeleteConfirmButton": "Eliminar",
+  "Annot_ConfirmCancelButton": "Cancelar"
 }

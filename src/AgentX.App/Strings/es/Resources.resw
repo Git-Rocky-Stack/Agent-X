@@ -502,7 +502,7 @@
   <data name="UserGuide_Annotations_Description.Text" xml:space="preserve"><value>Las anotaciones son resaltados y notas sobre el texto de los documentos de la bóveda. Para añadir una, abra la vista previa de un documento en la Bóveda de Conocimiento con Detalle, seleccione texto en el pasaje que aparece en TEXTO DEL DOCUMENTO, añada una nota si quiere y haga clic en Guardar anotación. La página Anotaciones muestra todas las anotaciones y permite buscarlas, editarlas, eliminarlas y exportarlas.</value></data>
   <data name="UserGuide_Annotations_Creating_Title.Text" xml:space="preserve"><value>Trabajar con anotaciones</value></data>
   <data name="UserGuide_Annotations_Create1.Text" xml:space="preserve"><value>Buscar y filtrar - Escriba en el cuadro de búsqueda para encontrar anotaciones cuyo texto resaltado o nota contenga sus palabras, o elija un color en FILTRAR POR COLOR; DISTRIBUCIÓN muestra cuántas anotaciones tiene cada color.</value></data>
-  <data name="UserGuide_Annotations_Create2.Text" xml:space="preserve"><value>Editar y eliminar - Edite una anotación para cambiar su nota y su color. Eliminar la quita al instante, sin pedir confirmación. No se admiten etiquetas, Markdown en las notas ni vínculos entre anotaciones.</value></data>
+  <data name="UserGuide_Annotations_Create2.Text" xml:space="preserve"><value>Editar y eliminar - Edite una anotación para cambiar su nota y su color. Eliminar pide confirmación antes; el documento en sí no se modifica. No se admiten etiquetas, Markdown en las notas ni vínculos entre anotaciones.</value></data>
   <data name="UserGuide_Annotations_Create3.Text" xml:space="preserve"><value>Exportar - Exportar como Markdown guarda todas las anotaciones en un archivo Markdown con el nombre que usted elija.</value></data>
   <data name="UserGuide_Annotations_Surfacing_Title.Text" xml:space="preserve"><value>Dónde aparecen las anotaciones</value></data>
   <data name="UserGuide_Annotations_Surface1.Text" xml:space="preserve"><value>Página Anotaciones - Muestra cada anotación con el nombre del documento, el texto resaltado, la nota y el color. La vista previa de la bóveda muestra las anotaciones del documento que presenta, de la más reciente a la más antigua, cada una con un botón para eliminarla.</value></data>
@@ -3707,4 +3707,8 @@
   <data name="Inbox_StatusRejected" xml:space="preserve"><value>Rechazado</value></data>
   <data name="Inbox_StatusDeferred" xml:space="preserve"><value>Aplazado</value></data>
   <data name="Inbox_StatusAll" xml:space="preserve"><value>Todos</value></data>
+  <data name="Annot_DeleteConfirmTitle" xml:space="preserve"><value>¿Eliminar la anotación?</value></data>
+  <data name="Annot_DeleteConfirmMessage" xml:space="preserve"><value>Se eliminarán el resaltado y la nota de "{0}". El documento en sí no se modifica. Esta acción no se puede deshacer.</value></data>
+  <data name="Annot_DeleteConfirmButton" xml:space="preserve"><value>Eliminar</value></data>
+  <data name="Annot_ConfirmCancelButton" xml:space="preserve"><value>Cancelar</value></data>
 </root>

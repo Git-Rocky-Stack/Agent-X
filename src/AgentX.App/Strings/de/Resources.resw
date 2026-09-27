@@ -502,7 +502,7 @@
   <data name="UserGuide_Annotations_Description.Text" xml:space="preserve"><value>Annotationen sind Hervorhebungen und Notizen zum Text von Tresor-Dokumenten. Um eine anzulegen, öffnen Sie im Wissens-Tresor mit „Details“ die Vorschau eines Dokuments, markieren Text im Abschnitt unter „DOKUMENTTEXT“, fügen bei Bedarf eine Notiz hinzu und klicken auf „Annotation speichern“. Die Seite „Annotationen“ listet alle Annotationen auf und lässt Sie sie durchsuchen, bearbeiten, löschen und exportieren.</value></data>
   <data name="UserGuide_Annotations_Creating_Title.Text" xml:space="preserve"><value>Mit Annotationen arbeiten</value></data>
   <data name="UserGuide_Annotations_Create1.Text" xml:space="preserve"><value>Suchen und filtern - Geben Sie Begriffe in das Suchfeld ein, um Annotationen zu finden, deren hervorgehobener Text oder Notiz sie enthält, oder wählen Sie unter „NACH FARBE FILTERN“ eine Farbe; „VERTEILUNG“ zeigt, wie viele Annotationen jede Farbe hat.</value></data>
-  <data name="UserGuide_Annotations_Create2.Text" xml:space="preserve"><value>Bearbeiten und löschen - Bearbeiten Sie eine Annotation, um ihre Notiz und Farbe zu ändern. „Löschen“ entfernt sie sofort und ohne Rückfrage. Tags, Markdown in Notizen und Verknüpfungen zwischen Annotationen werden nicht unterstützt.</value></data>
+  <data name="UserGuide_Annotations_Create2.Text" xml:space="preserve"><value>Bearbeiten und löschen - Bearbeiten Sie eine Annotation, um ihre Notiz und Farbe zu ändern. „Löschen“ fragt vorher nach; das Dokument selbst wird nicht geändert. Tags, Markdown in Notizen und Verknüpfungen zwischen Annotationen werden nicht unterstützt.</value></data>
   <data name="UserGuide_Annotations_Create3.Text" xml:space="preserve"><value>Exportieren - „Als Markdown exportieren“ speichert alle Annotationen in einer Markdown-Datei, deren Namen Sie festlegen.</value></data>
   <data name="UserGuide_Annotations_Surfacing_Title.Text" xml:space="preserve"><value>Wo Annotationen erscheinen</value></data>
   <data name="UserGuide_Annotations_Surface1.Text" xml:space="preserve"><value>Seite „Annotationen“ - Listet jede Annotation mit Dokumentnamen, hervorgehobenem Text, Notiz und Farbe auf. Die Tresor-Vorschau listet die Annotationen des angezeigten Dokuments auf, die neuesten zuerst, jeweils mit einer Schaltfläche zum Löschen.</value></data>
@@ -3707,4 +3707,8 @@
   <data name="Inbox_StatusRejected" xml:space="preserve"><value>Abgelehnt</value></data>
   <data name="Inbox_StatusDeferred" xml:space="preserve"><value>Zurückgestellt</value></data>
   <data name="Inbox_StatusAll" xml:space="preserve"><value>Alle</value></data>
+  <data name="Annot_DeleteConfirmTitle" xml:space="preserve"><value>Annotation löschen?</value></data>
+  <data name="Annot_DeleteConfirmMessage" xml:space="preserve"><value>Die Hervorhebung und die Notiz zu "{0}" werden gelöscht. Das Dokument selbst wird nicht geändert. Dies kann nicht rückgängig gemacht werden.</value></data>
+  <data name="Annot_DeleteConfirmButton" xml:space="preserve"><value>Löschen</value></data>
+  <data name="Annot_ConfirmCancelButton" xml:space="preserve"><value>Abbrechen</value></data>
 </root>

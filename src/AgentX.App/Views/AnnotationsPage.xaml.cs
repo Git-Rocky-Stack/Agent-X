@@ -20,6 +20,7 @@ public sealed partial class AnnotationsPage : Page
         InitializeComponent();
 
         ViewModel.SaveMarkdownExportAsync = SaveMarkdownExportAsync;
+        ViewModel.ConfirmDestructiveActionAsync = request => ConfirmationDialog.ShowAsync(XamlRoot, request);
         Loaded += OnPageLoaded;
     }
 

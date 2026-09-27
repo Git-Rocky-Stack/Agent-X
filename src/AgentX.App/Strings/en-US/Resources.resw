@@ -824,7 +824,7 @@
   <data name="UserGuide_Annotations_Description.Text" xml:space="preserve"><value>Annotations are highlights and notes on the text of vault documents. To add one, open a document's preview in the Knowledge Vault with Detail, select text in the passage shown under DOCUMENT TEXT, add a note if you like and click Save Annotation. The Annotations page lists every annotation and lets you search, edit, delete and export them.</value></data>
   <data name="UserGuide_Annotations_Creating_Title.Text" xml:space="preserve"><value>Working with Annotations</value></data>
   <data name="UserGuide_Annotations_Create1.Text" xml:space="preserve"><value>Search and filter - Type in the search box to find annotations whose highlighted text or note contains your words, or pick a color under FILTER BY COLOR; DISTRIBUTION shows how many annotations each color has.</value></data>
-  <data name="UserGuide_Annotations_Create2.Text" xml:space="preserve"><value>Edit and delete - Edit an annotation to change its note and color. Delete removes it at once, without asking. Tags, Markdown in notes and links between annotations are not supported.</value></data>
+  <data name="UserGuide_Annotations_Create2.Text" xml:space="preserve"><value>Edit and delete - Edit an annotation to change its note and color. Delete asks for confirmation first; the document itself is not changed. Tags, Markdown in notes and links between annotations are not supported.</value></data>
   <data name="UserGuide_Annotations_Create3.Text" xml:space="preserve"><value>Export - Export as Markdown saves every annotation to a Markdown file you name.</value></data>
   <data name="UserGuide_Annotations_Surfacing_Title.Text" xml:space="preserve"><value>Where Annotations Surface</value></data>
   <data name="UserGuide_Annotations_Surface1.Text" xml:space="preserve"><value>Annotations page - Lists every annotation with its document name, highlighted text, note and color. The Knowledge Vault preview lists the annotations of the document it shows, newest first, each with a delete button.</value></data>
@@ -3817,4 +3817,8 @@
   <data name="Inbox_StatusRejected" xml:space="preserve"><value>Rejected</value></data>
   <data name="Inbox_StatusDeferred" xml:space="preserve"><value>Deferred</value></data>
   <data name="Inbox_StatusAll" xml:space="preserve"><value>All</value></data>
+  <data name="Annot_DeleteConfirmTitle" xml:space="preserve"><value>Delete annotation?</value></data>
+  <data name="Annot_DeleteConfirmMessage" xml:space="preserve"><value>The highlight and note on "{0}" will be deleted. The document itself is not changed. This cannot be undone.</value></data>
+  <data name="Annot_DeleteConfirmButton" xml:space="preserve"><value>Delete</value></data>
+  <data name="Annot_ConfirmCancelButton" xml:space="preserve"><value>Cancel</value></data>
 </root>
