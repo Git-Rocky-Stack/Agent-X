@@ -30,6 +30,7 @@ public sealed class PageTextsAreLocalizedTests
     [InlineData("CalendarSettingsPage.xaml.cs")]
     [InlineData("ChatPage.xaml.cs")]
     [InlineData("CollectionManagerPage.xaml.cs")]
+    [InlineData("QuickChatWindow.xaml.cs")]
     public void Dialog_texts_come_from_the_resources(string codeBehind)
     {
         var source = ReadView(codeBehind);

@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using AgentX.App.ViewModels;
+using AgentX.Core.Services.Localization;
 using Microsoft.UI;
 using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Windowing;
@@ -36,13 +37,17 @@ public sealed class QuickChatWindow : Window
     private Button _askButton = null!;
     private Button _clearButton = null!;
 
+    private readonly ILocalizationService _localization;
+
     public QuickChatViewModel ViewModel { get; }
 
     public QuickChatWindow(QuickChatViewModel viewModel)
     {
         ViewModel = viewModel;
 
-        Title = "Quick Chat";
+        // Built in code, so there is no x:Uid: every text it shows comes from the resources.
+        _localization = App.GetService<ILocalizationService>();
+        Title = _localization.GetString("QuickChat_Title");
         BuildUI();
 
         // Apply Mica backdrop to match the main window
@@ -78,7 +83,7 @@ public sealed class QuickChatWindow : Window
 
         var titleBlock = new TextBlock
         {
-            Text = "Quick Chat",
+            Text = _localization.GetString("QuickChat_Title"),
             FontSize = 16,
             FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
             VerticalAlignment = VerticalAlignment.Center
@@ -148,7 +153,7 @@ public sealed class QuickChatWindow : Window
 
         _queryInput = new TextBox
         {
-            PlaceholderText = "Ask anything...",
+            PlaceholderText = _localization.GetString("QuickChat_Placeholder"),
             AcceptsReturn = false,
             Padding = new Thickness(12, 8, 12, 8),
             FontSize = 14,
@@ -158,7 +163,7 @@ public sealed class QuickChatWindow : Window
 
         _clearButton = new Button
         {
-            Content = "Clear",
+            Content = _localization.GetString("QuickChat_Clear"),
             Padding = new Thickness(16, 4, 16, 4),
             FontSize = 13
         };
@@ -166,7 +171,7 @@ public sealed class QuickChatWindow : Window
 
         _askButton = new Button
         {
-            Content = "Ask",
+            Content = _localization.GetString("QuickChat_Ask"),
             Padding = new Thickness(24, 4, 24, 4),
             FontSize = 13
         };

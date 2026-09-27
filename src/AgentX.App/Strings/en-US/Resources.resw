@@ -1580,6 +1580,10 @@
   <data name="Export_ConversationsSavedOne" xml:space="preserve"><value>Exported {0} conversation. Saved to {1}</value></data>
   <data name="Export_ConversationsSavedMany" xml:space="preserve"><value>Exported {0} conversations. Saved to {1}</value></data>
   <data name="Export_CollectionSaved" xml:space="preserve"><value>Collection exported to {0}. Saved to {1}</value></data>
+  <data name="QuickChat_Title" xml:space="preserve"><value>Quick Chat</value></data>
+  <data name="QuickChat_Placeholder" xml:space="preserve"><value>Ask anything...</value></data>
+  <data name="QuickChat_Clear" xml:space="preserve"><value>Clear</value></data>
+  <data name="QuickChat_Ask" xml:space="preserve"><value>Ask</value></data>
   <data name="Chat_PrivacyLocal" xml:space="preserve"><value>{0} runs on this computer, so your messages stay on this device.</value></data>
   <data name="Chat_PrivacyLocalUnnamed" xml:space="preserve"><value>The AI model runs on this computer, so your messages stay on this device.</value></data>
   <data name="Chat_PrivacyCloud" xml:space="preserve"><value>Your messages are sent to {0} for processing.</value></data>

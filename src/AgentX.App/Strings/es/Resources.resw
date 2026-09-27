@@ -1241,6 +1241,10 @@
   <data name="Export_ConversationsSavedOne" xml:space="preserve"><value>{0} conversación exportada. Se guardó en {1}</value></data>
   <data name="Export_ConversationsSavedMany" xml:space="preserve"><value>{0} conversaciones exportadas. Se guardó en {1}</value></data>
   <data name="Export_CollectionSaved" xml:space="preserve"><value>Colección exportada a {0}. Se guardó en {1}</value></data>
+  <data name="QuickChat_Title" xml:space="preserve"><value>Chat rápido</value></data>
+  <data name="QuickChat_Placeholder" xml:space="preserve"><value>Pregunte lo que quiera...</value></data>
+  <data name="QuickChat_Clear" xml:space="preserve"><value>Borrar</value></data>
+  <data name="QuickChat_Ask" xml:space="preserve"><value>Preguntar</value></data>
   <data name="Chat_PrivacyLocal" xml:space="preserve"><value>{0} se ejecuta en este equipo, así que sus mensajes permanecen en este dispositivo.</value></data>
   <data name="Chat_PrivacyLocalUnnamed" xml:space="preserve"><value>El modelo de IA se ejecuta en este equipo, así que sus mensajes permanecen en este dispositivo.</value></data>
   <data name="Chat_PrivacyCloud" xml:space="preserve"><value>Sus mensajes se envían a {0} para su procesamiento.</value></data>
