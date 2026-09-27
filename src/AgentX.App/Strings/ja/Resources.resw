@@ -232,7 +232,7 @@
   <data name="UserGuide_Settings_Group4_Description.Text" xml:space="preserve"><value>「合計支出」と「今日」(現地時間の午前 0 時から) は、アプリに組み込まれた価格表をもとに OpenAI と Anthropic の呼び出しの費用を見積もり、「合計トークン」は記録された OpenAI、Anthropic、Ollama の呼び出しのトークン数を数えます。ローカル モデルは無料です。合計は再起動しても保持され、この履歴が導入されて以降に記録されたすべての使用量を対象とします。各呼び出しの詳細は、データ フォルダーの usage-history.json に 90 日間保存されます。モデル、会話、機能ごとの内訳や予算の上限はありません。</value></data>
   <data name="UserGuide_Settings_Shortcut.Text" xml:space="preserve"><value>アプリのどこからでも Ctrl+, を押すと設定が開き、ページ上で Ctrl+S を押すと保存されます。このページに検索ボックスはないので、必要なセクションまでスクロールしてください。</value></data>
   <data name="UserGuide_KeyboardShortcuts_Title.Text" xml:space="preserve"><value>キーボード ショートカット</value></data>
-  <data name="UserGuide_KeyboardShortcuts_Description.Text" xml:space="preserve"><value>Agent-X はキーボードで操作できます。コマンド パレット (Ctrl+K) では任意のページといくつかの操作を、[ジャンプ] (Ctrl+P) ではページ、ドキュメント、会話を開けます。次のショートカットはアプリのどこでも使えます。F1 で開くショートカット一覧には、現在のページのショートカットも表示されます。</value></data>
+  <data name="UserGuide_KeyboardShortcuts_Description.Text" xml:space="preserve"><value>Agent-X はキーボードで操作できます。コマンド パレット (Ctrl+K) では任意のページといくつかの操作を、[ジャンプ] (Ctrl+P) ではページ、ドキュメント、会話を開けます。次のショートカットはアプリのどこでも使えます。F1 で開く「キーボードショートカット」の一覧には、現在のページのショートカットも表示されます。</value></data>
   <data name="UserGuide_KeyboardShortcuts_Table_Shortcut.Text" xml:space="preserve"><value>ショートカット</value></data>
   <data name="UserGuide_KeyboardShortcuts_Table_Action.Text" xml:space="preserve"><value>アクション</value></data>
   <data name="UserGuide_KeyboardShortcuts_Action1.Text" xml:space="preserve"><value>コマンド パレットを開く (ページ、いくつかの操作、現在のページのショートカット)</value></data>
@@ -287,7 +287,7 @@
   <data name="UserGuide_Privacy_Point4.Text" xml:space="preserve"><value>データはあなたのもの：Agent-X がデータをアップロードしたり、学習に使ったりすることはありません。データベースは [バックアップと復元] ページでバックアップします。ドキュメントの削除では確認が表示され、その後 Vault から削除されます (元のファイルはディスクに残ります)。会話の削除でも確認が表示されます。すべてのデータを消去するコマンドはありません。最初からやり直すには、残したいものをバックアップしてから Agent-X を閉じ、%LOCALAPPDATA% の AgentX フォルダーを削除します。</value></data>
   <data name="UserGuide_Privacy_Point5.Text" xml:space="preserve"><value>クラウド プロバイダー：OpenAI または Anthropic が有効な場合、プロンプトと会話のコンテキストはそのプロバイダーに送信され、ダッシュボードのプライバシー欄と空のチャットにその旨が表示されます。各回答は、それを書いたモデルの名前とともに保存され (エクスポートでは [モデル情報を含める] で含められます)、設定の「コスト追跡」カードは OpenAI と Anthropic の呼び出しの費用を見積もり、その合計を再起動後も保持します。プロバイダーがデータをどう保存し利用するかは、各プロバイダーの規約に従います。</value></data>
   <data name="UserGuide_GettingHelp_Title.Text" xml:space="preserve"><value>ヘルプを受ける</value></data>
-  <data name="UserGuide_GettingHelp_Description.Text" xml:space="preserve"><value>このガイドで疑問が解決しない場合は、まず「トラブルシューティング」とショートカット一覧 (F1) を確認してください。それ以外はサポートにメールでお問い合わせください。</value></data>
+  <data name="UserGuide_GettingHelp_Description.Text" xml:space="preserve"><value>このガイドで疑問が解決しない場合は、まず「トラブルシューティング」と「キーボードショートカット」の一覧 (F1) を確認してください。それ以外はサポートにメールでお問い合わせください。</value></data>
   <data name="UserGuide_GettingHelp_Email_Title.Text" xml:space="preserve"><value>メール サポート</value></data>
   <data name="UserGuide_GettingHelp_Email_Description.Text" xml:space="preserve"><value>バグ報告、機能のご要望、ご質問を受け付けています。Agent-X のバージョン (設定ページの下部とステータス バーに表示)、問題が起きるまでの手順、失敗した場合は %LOCALAPPDATA%\AgentX\Logs にあるその日のログ ファイルを添えてください。</value></data>
   <data name="UserGuide_GettingHelp_Docs_Title.Text" xml:space="preserve"><value>ドキュメント</value></data>
@@ -359,7 +359,7 @@
   <data name="UserGuide_InsightHarvesting_Managing3.Text" xml:space="preserve"><value>インサイトにスターを付ける、非表示にする、編集する、削除することはアプリではできず、フィードバックで検出が調整されることもありません。単語リストは固定です。</value></data>
 
   <!-- UserGuide Extended sections (parity restoration) -->
-  <data name="UserGuide_KeyboardShortcuts_Action8.Text" xml:space="preserve"><value>キーボード ショートカット一覧を表示(リアルタイム、検索可能)</value></data>
+  <data name="UserGuide_KeyboardShortcuts_Action8.Text" xml:space="preserve"><value>「キーボードショートカット」の一覧を表示：グローバル ショートカットと現在のページのショートカット</value></data>
   <data name="UserGuide_KeyboardShortcuts_Action9.Text" xml:space="preserve"><value>ジャンプ：ページ、ドキュメント、会話を開く</value></data>
   <data name="UserGuide_KeyboardShortcuts_Action10.Text" xml:space="preserve"><value>ダッシュボードを開く</value></data>
   <data name="UserGuide_KeyboardShortcuts_Action11.Text" xml:space="preserve"><value>ナレッジ グラフを開く</value></data>
@@ -368,7 +368,7 @@
   <data name="UserGuide_KeyboardShortcuts_Action14.Text" xml:space="preserve"><value>アナリティクスを開く</value></data>
   <data name="UserGuide_KeyboardShortcuts_Action15.Text" xml:space="preserve"><value>オペレーションを開く</value></data>
   <data name="UserGuide_KeyboardShortcuts_Action16.Text" xml:space="preserve"><value>9 つのページのいずれかを開く：1 ダッシュボード、2 AI Chat、3 ファイルに質問する、4 セマンティック検索、5 Knowledge Vault、6 コレクション、7 ワークフロー、8 モデル マネージャー、9 設定</value></data>
-  <data name="UserGuide_KeyboardShortcuts_Footer.Text" xml:space="preserve"><value>ヒント: どこからでも F1 (または Ctrl+Shift+/) を押すとチートシートが開き、グローバル ショートカットと現在のページが登録したショートカットが一覧表示されます。このリリースではショートカットは固定で、再割り当てはできません。</value></data>
+  <data name="UserGuide_KeyboardShortcuts_Footer.Text" xml:space="preserve"><value>ヒント：どこからでも F1 (または Ctrl+Shift+/) を押すと「キーボードショートカット」の一覧が開き、グローバル ショートカットと現在のページが登録したショートカットが表示されます。検索ボックスはありません。このリリースではショートカットは固定で、再割り当てはできません。</value></data>
   <data name="UserGuide_FirstChat_Title.Text" xml:space="preserve"><value>最初のチャット</value></data>
   <data name="UserGuide_FirstChat_Description.Text" xml:space="preserve"><value>この短いチュートリアルでは、インストール直後から最初の会話までを案内します。AI Chat ページのどこに何があるか、モデルの選び方、時間を節約できるキー操作を紹介します。</value></data>
   <data name="UserGuide_FirstChat_Step1_Title.Text" xml:space="preserve"><value>ステップ 1: AI Chat を開く</value></data>
@@ -585,13 +585,13 @@
   <data name="UserGuide_Comparison_Feature3_Title.Text" xml:space="preserve"><value>Markdown エクスポート</value></data>
   <data name="UserGuide_Comparison_Feature3_Description.Text" xml:space="preserve"><value>比較レポートは Markdown にエクスポートして、共有、保管、自分のドキュメントへの貼り付けに使えます。</value></data>
   <data name="UserGuide_Inbox_Title.Text" xml:space="preserve"><value>Smart Inbox</value></data>
-  <data name="UserGuide_Inbox_Description.Text" xml:space="preserve"><value>Smart Inbox は、ブラウザー拡張機能でクリップしたページが、どうするか決めるまで待機する場所です。承認するまで Knowledge Vault には入りません。コネクターからのカレンダー イベントとメールもここに表示されますが、同期時に Vault にインポートされるため、すでに承認済みになっています。監視フォルダーのファイルは Knowledge Vault に直接入ります。</value></data>
+  <data name="UserGuide_Inbox_Description.Text" xml:space="preserve"><value>Smart Inbox は、ブラウザー拡張機能でクリップしたページが、どうするか決めるまで待機する場所です。承認するまで Knowledge Vault には入りません。コネクターからのカレンダー イベントとメール、およびデータ コネクター プラグインが追加する項目もここに表示されますが、届いた時点で Vault にインポートされるため、すでに承認済みになっています。監視フォルダーのファイルは Knowledge Vault に直接入ります。</value></data>
   <data name="UserGuide_Inbox_Feature1_Title.Text" xml:space="preserve"><value>AI プレビュー</value></data>
   <data name="UserGuide_Inbox_Feature1_Description.Text" xml:space="preserve"><value>[AI プレビューを生成] は、まだプレビューのない保留中の各項目について、テキストの先頭 2,000 文字をもとに有効な AI プロバイダーに問い合わせます。2、3 文の要約を書き、コレクションと最大 5 個のタグを提案します。提案されたコレクションが既存のコレクションと一致すれば、承認時にそのコレクションが使われます。提案されたタグは表示されるだけで、ドキュメントにはインデックス作成時に独自のタグが付きます。ボタンをクリックするまで何も生成されません。</value></data>
   <data name="UserGuide_Inbox_Feature2_Title.Text" xml:space="preserve"><value>承認・保留・却下</value></data>
   <data name="UserGuide_Inbox_Feature2_Description.Text" xml:space="preserve"><value>[承認] は項目を Knowledge Vault にインポートします。インポート先は「対象コレクション」で選んだコレクション、選んでいなければ提案されたコレクションです。[保留] と [却下] は項目の状態を変えるだけで、何もインポートしません。「ステータス」の一覧 (pending、accepted、rejected、deferred、all) で、表示する項目を選びます。[保留中をすべて承認] は保留中のすべての項目を、それぞれ提案されたコレクションに承認します。[処理済みを整理] は、承認、却下、保留にした項目を一覧から削除します。インポート済みのドキュメントは Vault に残ります。</value></data>
   <data name="UserGuide_Inbox_Feature3_Title.Text" xml:space="preserve"><value>キャプチャソース</value></data>
-  <data name="UserGuide_Inbox_Feature3_Description.Text" xml:space="preserve"><value>「Web クリップ」の項目はブラウザー拡張機能から届き (ページ全体、選択範囲、リーダー ビューのいずれか)、判断を待ちます。カレンダーとメールの項目はコネクターから届き、同期時に Vault にインポートされるため、承認済みの状態で表示されます。監視フォルダーのファイルは Smart Inbox を通らず、それ以外に項目を追加するものはありません。</value></data>
+  <data name="UserGuide_Inbox_Feature3_Description.Text" xml:space="preserve"><value>「Web クリップ」の項目はブラウザー拡張機能から届き (ページ全体、選択範囲、リーダー ビューのいずれか)、判断を待ちます。カレンダーとメールのコネクター、および受信トレイに項目を送るデータ コネクター プラグインからの項目は、届いた時点で Vault にインポートされるため、承認済みの状態で表示されます。監視フォルダーのファイルは Smart Inbox を通りません。</value></data>
   <data name="UserGuide_Analytics_Title.Text" xml:space="preserve"><value>Analytics(分析)</value></data>
   <data name="UserGuide_Analytics_Description.Text" xml:space="preserve"><value>Analytics ページ (Ctrl+Shift+A) には、Agent-X の使用状況が表示されます。ページを開いたときと [更新] をクリックしたときに、この PC 上で自分のデータから計算されます。利用状況のカウンター、ワークフローと会話の統計、過去 30 日間のアクティビティ、モデルの使用状況、ドキュメントの種類、応答時間を確認できます。</value></data>
   <data name="UserGuide_Analytics_Feature1_Title.Text" xml:space="preserve"><value>利用状況の概要</value></data>

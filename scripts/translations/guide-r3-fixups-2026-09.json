@@ -1,0 +1,55 @@
+{
+  "_comment": "Guide accuracy pass 2026-09, round 3 follow-up: data connector plugins get IInboxService from PluginService and add accepted items like the calendar and email connectors; the F1 / Ctrl+Shift+/ dialog is titled Keyboard Shortcuts (Cheatsheet_Dialog) and has no search box (Views/Dialogs/CheatsheetDialog.xaml). Apply with python scripts/apply-guide-accuracy.py scripts/translations/guide-r3-fixups-2026-09.json",
+  "removePrefixes": [],
+  "update": {
+    "UserGuide_Inbox_Description.Text": {
+      "en-US": "The Smart Inbox is where pages you clip with the browser extension wait until you decide what to do with them; they reach the Knowledge Vault only when you accept them. Calendar events and emails from the connectors, and items that data connector plugins add, also appear here, already accepted, because they are imported into the vault as they arrive. Files from watch folders go straight to the Knowledge Vault.",
+      "de": "In der Smart Inbox warten Seiten, die Sie mit der Browsererweiterung ausschneiden, bis Sie entscheiden, was damit geschieht; in den Wissens-Tresor gelangen sie erst, wenn Sie sie übernehmen. Auch Kalenderereignisse und E-Mails aus den Connectors sowie Elemente, die Datenconnector-Plugins hinzufügen, erscheinen hier, bereits übernommen, weil sie schon beim Eintreffen in den Tresor importiert werden. Dateien aus überwachten Ordnern gehen direkt in den Wissens-Tresor.",
+      "es": "La Smart Inbox es donde esperan las páginas que recorta con la extensión del navegador hasta que usted decide qué hacer con ellas; solo llegan a la Bóveda de Conocimiento cuando las acepta. Los eventos de calendario y los correos de los conectores, así como los elementos que añaden los plugins conectores de datos, también aparecen aquí, ya aceptados, porque se importan en la bóveda al llegar. Los archivos de las carpetas vigiladas van directamente a la Bóveda de Conocimiento.",
+      "fr": "La Smart Inbox est l'endroit où les pages que vous capturez avec l'extension de navigateur attendent que vous décidiez quoi en faire ; elles n'entrent dans le Coffre-fort de Connaissances que lorsque vous les acceptez. Les événements d'agenda et les e-mails des connecteurs, ainsi que les éléments ajoutés par les plugins connecteurs de données, y apparaissent aussi, déjà acceptés, car ils sont importés dans le coffre-fort dès leur arrivée. Les fichiers des dossiers surveillés vont directement dans le Coffre-fort de Connaissances.",
+      "ja": "Smart Inbox は、ブラウザー拡張機能でクリップしたページが、どうするか決めるまで待機する場所です。承認するまで Knowledge Vault には入りません。コネクターからのカレンダー イベントとメール、およびデータ コネクター プラグインが追加する項目もここに表示されますが、届いた時点で Vault にインポートされるため、すでに承認済みになっています。監視フォルダーのファイルは Knowledge Vault に直接入ります。",
+      "zh-CN": "Smart Inbox 是您用浏览器扩展剪藏的页面等待您处理的地方；只有在您接受后，它们才会进入 Knowledge Vault。来自连接器的日历事件和邮件，以及数据连接器插件添加的项，也会出现在这里，并且已是已接受状态，因为它们一到达就已导入 Vault。监视文件夹中的文件会直接进入 Knowledge Vault。"
+    },
+    "UserGuide_Inbox_Feature3_Description.Text": {
+      "en-US": "Web Clip items come from the browser extension (the full page, your selection or a reader view) and wait for you. Items from the calendar and email connectors, and from any data connector plugin that pushes items into the inbox, are imported into the vault as they arrive, so they appear already accepted. Files from watch folders do not pass through the inbox.",
+      "de": "Elemente mit dem Abzeichen „Web Clip“ stammen aus der Browsererweiterung (ganze Seite, Ihre Auswahl oder Leseansicht) und warten auf Sie. Elemente aus den Kalender- und E-Mail-Connectors und aus Datenconnector-Plugins, die Elemente in die Smart Inbox schieben, werden beim Eintreffen in den Tresor importiert und erscheinen daher bereits übernommen. Dateien aus überwachten Ordnern laufen nicht über die Smart Inbox.",
+      "es": "Los elementos Web Clip proceden de la extensión del navegador (la página completa, su selección o una vista de lectura) y esperan su decisión. Los elementos de los conectores de calendario y correo, y de cualquier plugin conector de datos que envíe elementos a la bandeja, se importan en la bóveda al llegar, así que aparecen ya aceptados. Los archivos de las carpetas vigiladas no pasan por la Smart Inbox.",
+      "fr": "Les éléments Web Clip viennent de l'extension de navigateur (page entière, votre sélection ou vue lecture) et attendent votre décision. Les éléments des connecteurs d'agenda et d'e-mail, et de tout plugin connecteur de données qui envoie des éléments dans la boîte de réception, sont importés dans le coffre-fort dès leur arrivée ; ils apparaissent donc déjà acceptés. Les fichiers des dossiers surveillés ne passent pas par la Smart Inbox.",
+      "ja": "「Web クリップ」の項目はブラウザー拡張機能から届き (ページ全体、選択範囲、リーダー ビューのいずれか)、判断を待ちます。カレンダーとメールのコネクター、および受信トレイに項目を送るデータ コネクター プラグインからの項目は、届いた時点で Vault にインポートされるため、承認済みの状態で表示されます。監視フォルダーのファイルは Smart Inbox を通りません。",
+      "zh-CN": "带“网页剪藏”标记的项来自浏览器扩展（整个页面、您的选择或阅读视图），会等待您处理。来自日历和邮件连接器，以及向收件箱推送项的数据连接器插件的项，一到达就会导入 Vault，因此显示时已是已接受状态。监视文件夹中的文件不经过 Smart Inbox。"
+    },
+    "UserGuide_KeyboardShortcuts_Description.Text": {
+      "en-US": "Agent-X can be driven from the keyboard. The Command Palette (Ctrl+K) opens any page and a few actions, Jump To (Ctrl+P) opens a page, document or conversation, and the shortcuts below work anywhere in the app. F1 opens the Keyboard Shortcuts list, which also shows the shortcuts of the page you are on.",
+      "de": "Agent-X lässt sich per Tastatur bedienen. Die Befehlspalette (Strg+K) öffnet jede Seite und einige Aktionen, „Springen zu“ (Strg+P) öffnet eine Seite, ein Dokument oder eine Unterhaltung, und die folgenden Tastenkürzel funktionieren überall in der App. F1 öffnet die Liste „Tastenkombinationen“, die auch die Kürzel der aktuellen Seite zeigt.",
+      "es": "Agent-X se puede manejar con el teclado. La paleta de comandos (Ctrl+K) abre cualquier página y algunas acciones, Ir a (Ctrl+P) abre una página, un documento o una conversación, y los atajos siguientes funcionan en toda la aplicación. F1 abre la lista Atajos de teclado, que también muestra los atajos de la página en la que está.",
+      "fr": "Agent-X se pilote au clavier. La palette de commandes (Ctrl+K) ouvre n'importe quelle page et quelques actions, Accéder à (Ctrl+P) ouvre une page, un document ou une conversation, et les raccourcis ci-dessous fonctionnent partout dans l'application. F1 ouvre la liste Raccourcis clavier, qui affiche aussi ceux de la page ouverte.",
+      "ja": "Agent-X はキーボードで操作できます。コマンド パレット (Ctrl+K) では任意のページといくつかの操作を、[ジャンプ] (Ctrl+P) ではページ、ドキュメント、会話を開けます。次のショートカットはアプリのどこでも使えます。F1 で開く「キーボードショートカット」の一覧には、現在のページのショートカットも表示されます。",
+      "zh-CN": "Agent-X 可以完全用键盘操作。命令面板（Ctrl+K）可打开任意页面和少量操作，“跳转”（Ctrl+P）可打开页面、文档或对话，下面的快捷键在应用中的任何位置都有效。按 F1 打开“键盘快捷键”列表，其中还会显示当前页面的快捷键。"
+    },
+    "UserGuide_KeyboardShortcuts_Action8.Text": {
+      "en-US": "Show the Keyboard Shortcuts list: the global shortcuts plus the ones the current page registers",
+      "de": "Die Liste „Tastenkombinationen“ anzeigen: die globalen Tastenkürzel und die der aktuellen Seite",
+      "es": "Mostrar la lista Atajos de teclado: los atajos globales y los que registra la página actual",
+      "fr": "Afficher la liste Raccourcis clavier : les raccourcis globaux et ceux de la page affichée",
+      "ja": "「キーボードショートカット」の一覧を表示：グローバル ショートカットと現在のページのショートカット",
+      "zh-CN": "显示“键盘快捷键”列表：全局快捷键以及当前页面注册的快捷键"
+    },
+    "UserGuide_KeyboardShortcuts_Footer.Text": {
+      "en-US": "Tip: Press F1 (or Ctrl+Shift+/) anywhere to open the Keyboard Shortcuts list, which shows the global shortcuts plus the ones registered by the page you are on; it has no search box. Shortcuts are fixed in this release; they cannot be remapped.",
+      "de": "Tipp: Drücken Sie überall F1 (oder Strg+Umschalt+/), um die Liste „Tastenkombinationen“ zu öffnen. Sie zeigt die globalen Tastenkürzel und die der aktuellen Seite; ein Suchfeld hat sie nicht. In dieser Version sind die Tastenkürzel fest vorgegeben und lassen sich nicht neu zuweisen.",
+      "es": "Sugerencia: pulse F1 (o Ctrl+Mayús+/) en cualquier lugar para abrir la lista Atajos de teclado, que muestra los atajos globales y los que registra la página en la que se encuentra; no tiene cuadro de búsqueda. En esta versión los atajos son fijos; no se pueden reasignar.",
+      "fr": "Astuce : appuyez sur F1 (ou Ctrl+Maj+/) n'importe où pour ouvrir la liste Raccourcis clavier, qui affiche les raccourcis globaux ainsi que ceux enregistrés par la page affichée ; elle n'a pas de zone de recherche. Dans cette version, les raccourcis sont fixes ; ils ne peuvent pas être réaffectés.",
+      "ja": "ヒント：どこからでも F1 (または Ctrl+Shift+/) を押すと「キーボードショートカット」の一覧が開き、グローバル ショートカットと現在のページが登録したショートカットが表示されます。検索ボックスはありません。このリリースではショートカットは固定で、再割り当てはできません。",
+      "zh-CN": "提示：在任意位置按 F1（或 Ctrl+Shift+/）即可打开“键盘快捷键”列表，其中显示全局快捷键以及当前页面注册的快捷键；该列表没有搜索框。此版本中的快捷键是固定的，无法重新映射。"
+    },
+    "UserGuide_GettingHelp_Description.Text": {
+      "en-US": "If this guide does not answer your question, check Troubleshooting and the Keyboard Shortcuts list (F1) first. For anything else, email support.",
+      "de": "Wenn dieses Handbuch Ihre Frage nicht beantwortet, sehen Sie zuerst unter „Fehlerbehebung“ und in der Liste „Tastenkombinationen“ (F1) nach. Für alles andere schreiben Sie dem Support eine E-Mail.",
+      "es": "Si esta guía no responde a su pregunta, consulte primero Solución de problemas y la lista Atajos de teclado (F1). Para todo lo demás, escriba al soporte por correo electrónico.",
+      "fr": "Si ce guide ne répond pas à votre question, consultez d'abord Dépannage et la liste Raccourcis clavier (F1). Pour le reste, écrivez au support par e-mail.",
+      "ja": "このガイドで疑問が解決しない場合は、まず「トラブルシューティング」と「キーボードショートカット」の一覧 (F1) を確認してください。それ以外はサポートにメールでお問い合わせください。",
+      "zh-CN": "如果本指南没有解答您的问题，请先查看“故障排查”和“键盘快捷键”列表（F1）。其他问题请发送电子邮件联系支持。"
+    }
+  },
+  "add": {}
+}

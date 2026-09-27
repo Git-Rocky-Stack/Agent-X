@@ -496,7 +496,7 @@
 
   <!-- UserGuide: Keyboard Shortcuts (Row 15) -->
   <data name="UserGuide_KeyboardShortcuts_Title.Text" xml:space="preserve"><value>Keyboard Shortcuts</value></data>
-  <data name="UserGuide_KeyboardShortcuts_Description.Text" xml:space="preserve"><value>Agent-X can be driven from the keyboard. The Command Palette (Ctrl+K) opens any page and a few actions, Jump To (Ctrl+P) opens a page, document or conversation, and the shortcuts below work anywhere in the app. F1 opens the Cheatsheet, which also lists the shortcuts of the page you are on.</value></data>
+  <data name="UserGuide_KeyboardShortcuts_Description.Text" xml:space="preserve"><value>Agent-X can be driven from the keyboard. The Command Palette (Ctrl+K) opens any page and a few actions, Jump To (Ctrl+P) opens a page, document or conversation, and the shortcuts below work anywhere in the app. F1 opens the Keyboard Shortcuts list, which also shows the shortcuts of the page you are on.</value></data>
   <data name="UserGuide_KeyboardShortcuts_Table_Shortcut.Text" xml:space="preserve"><value>SHORTCUT</value></data>
   <data name="UserGuide_KeyboardShortcuts_Table_Action.Text" xml:space="preserve"><value>ACTION</value></data>
   <data name="UserGuide_KeyboardShortcuts_Action1.Text" xml:space="preserve"><value>Open the Command Palette (pages, a few actions and the current page's shortcuts)</value></data>
@@ -506,7 +506,7 @@
   <data name="UserGuide_KeyboardShortcuts_Action5.Text" xml:space="preserve"><value>Open Semantic Search (alternate)</value></data>
   <data name="UserGuide_KeyboardShortcuts_Action6.Text" xml:space="preserve"><value>Open Settings</value></data>
   <data name="UserGuide_KeyboardShortcuts_Action7.Text" xml:space="preserve"><value>Close Command Palette / dialog / dropdown</value></data>
-  <data name="UserGuide_KeyboardShortcuts_Action8.Text" xml:space="preserve"><value>Show Keyboard Cheatsheet (live, searchable)</value></data>
+  <data name="UserGuide_KeyboardShortcuts_Action8.Text" xml:space="preserve"><value>Show the Keyboard Shortcuts list: the global shortcuts plus the ones the current page registers</value></data>
   <data name="UserGuide_KeyboardShortcuts_Action9.Text" xml:space="preserve"><value>Jump To - open a page, document or conversation</value></data>
   <data name="UserGuide_KeyboardShortcuts_Action10.Text" xml:space="preserve"><value>Open Dashboard</value></data>
   <data name="UserGuide_KeyboardShortcuts_Action11.Text" xml:space="preserve"><value>Open Knowledge Graph</value></data>
@@ -515,7 +515,7 @@
   <data name="UserGuide_KeyboardShortcuts_Action14.Text" xml:space="preserve"><value>Open Analytics</value></data>
   <data name="UserGuide_KeyboardShortcuts_Action15.Text" xml:space="preserve"><value>Open Operations</value></data>
   <data name="UserGuide_KeyboardShortcuts_Action16.Text" xml:space="preserve"><value>Open one of nine pages: 1 Dashboard, 2 AI Chat, 3 Ask Your Files, 4 Semantic Search, 5 Knowledge Vault, 6 Collections, 7 Workflows, 8 Model Manager, 9 Settings</value></data>
-  <data name="UserGuide_KeyboardShortcuts_Footer.Text" xml:space="preserve"><value>Tip: Press F1 (or Ctrl+Shift+/) anywhere to open the Cheatsheet, which lists the global shortcuts plus the ones registered by the page you are on. Shortcuts are fixed in this release; they cannot be remapped.</value></data>
+  <data name="UserGuide_KeyboardShortcuts_Footer.Text" xml:space="preserve"><value>Tip: Press F1 (or Ctrl+Shift+/) anywhere to open the Keyboard Shortcuts list, which shows the global shortcuts plus the ones registered by the page you are on; it has no search box. Shortcuts are fixed in this release; they cannot be remapped.</value></data>
 
   <!-- UserGuide: Command Palette (Row 16) -->
   <data name="UserGuide_CommandPalette_Title.Text" xml:space="preserve"><value>Command Palette</value></data>
@@ -571,7 +571,7 @@
 
   <!-- UserGuide: Getting Help (Row 20) -->
   <data name="UserGuide_GettingHelp_Title.Text" xml:space="preserve"><value>Getting Help</value></data>
-  <data name="UserGuide_GettingHelp_Description.Text" xml:space="preserve"><value>If this guide does not answer your question, check Troubleshooting and the Cheatsheet (F1) first. For anything else, email support.</value></data>
+  <data name="UserGuide_GettingHelp_Description.Text" xml:space="preserve"><value>If this guide does not answer your question, check Troubleshooting and the Keyboard Shortcuts list (F1) first. For anything else, email support.</value></data>
   <data name="UserGuide_GettingHelp_Email_Title.Text" xml:space="preserve"><value>Email Support</value></data>
   <data name="UserGuide_GettingHelp_Email_Description.Text" xml:space="preserve"><value>Bug reports, feature requests and questions. Include your Agent-X version (shown at the bottom of the Settings page and in the status strip), the steps that lead to the problem, and the day's log file from %LOCALAPPDATA%\AgentX\Logs if something failed.</value></data>
   <data name="UserGuide_GettingHelp_Docs_Title.Text" xml:space="preserve"><value>Documentation</value></data>
@@ -924,13 +924,13 @@
   <data name="UserGuide_Comparison_Feature3_Title.Text" xml:space="preserve"><value>Markdown Export</value></data>
   <data name="UserGuide_Comparison_Feature3_Description.Text" xml:space="preserve"><value>Export any comparison report to Markdown for sharing, archiving, or pasting into your own documents.</value></data>
   <data name="UserGuide_Inbox_Title.Text" xml:space="preserve"><value>Smart Inbox</value></data>
-  <data name="UserGuide_Inbox_Description.Text" xml:space="preserve"><value>The Smart Inbox is where pages you clip with the browser extension wait until you decide what to do with them; they reach the Knowledge Vault only when you accept them. Calendar events and emails from the connectors also appear here, already accepted, because they are imported into the vault as they sync. Files from watch folders go straight to the Knowledge Vault.</value></data>
+  <data name="UserGuide_Inbox_Description.Text" xml:space="preserve"><value>The Smart Inbox is where pages you clip with the browser extension wait until you decide what to do with them; they reach the Knowledge Vault only when you accept them. Calendar events and emails from the connectors, and items that data connector plugins add, also appear here, already accepted, because they are imported into the vault as they arrive. Files from watch folders go straight to the Knowledge Vault.</value></data>
   <data name="UserGuide_Inbox_Feature1_Title.Text" xml:space="preserve"><value>AI Previews</value></data>
   <data name="UserGuide_Inbox_Feature1_Description.Text" xml:space="preserve"><value>Generate AI Previews asks the active AI provider about each pending item that has no preview yet, using the first 2,000 characters of its text: it writes a two- or three-sentence summary, suggests a collection and suggests up to five tags. A suggested collection that matches one of yours is used when you accept the item; the suggested tags are only shown, and the document gets its own tags when it is indexed. Nothing is generated until you click the button.</value></data>
   <data name="UserGuide_Inbox_Feature2_Title.Text" xml:space="preserve"><value>Accept, Defer, or Reject</value></data>
   <data name="UserGuide_Inbox_Feature2_Description.Text" xml:space="preserve"><value>Accept imports the item into the Knowledge Vault, in the collection chosen under TARGET COLLECTION or else the suggested one. Defer and Reject only change the item's status; nothing is imported. The STATUS list (pending, accepted, rejected, deferred or all) chooses which items are shown. Accept All Pending accepts every pending item, each into its suggested collection. Clean Up Processed removes accepted, rejected and deferred items from the list; documents already imported stay in the vault.</value></data>
   <data name="UserGuide_Inbox_Feature3_Title.Text" xml:space="preserve"><value>Capture Sources</value></data>
-  <data name="UserGuide_Inbox_Feature3_Description.Text" xml:space="preserve"><value>Web Clip items come from the browser extension (the full page, your selection or a reader view) and wait for you. Calendar and email items come from the connectors, which import them into the vault as they sync, so they arrive already accepted. Files from watch folders do not pass through the inbox, and nothing else adds items to it.</value></data>
+  <data name="UserGuide_Inbox_Feature3_Description.Text" xml:space="preserve"><value>Web Clip items come from the browser extension (the full page, your selection or a reader view) and wait for you. Items from the calendar and email connectors, and from any data connector plugin that pushes items into the inbox, are imported into the vault as they arrive, so they appear already accepted. Files from watch folders do not pass through the inbox.</value></data>
   <data name="UserGuide_Analytics_Title.Text" xml:space="preserve"><value>Analytics</value></data>
   <data name="UserGuide_Analytics_Description.Text" xml:space="preserve"><value>The Analytics page (Ctrl+Shift+A) shows how you use Agent-X, computed on this computer from your own data when the page opens and when you click Refresh: usage counters, workflow and conversation statistics, activity over the last 30 days, model usage, document types and response times.</value></data>
   <data name="UserGuide_Analytics_Feature1_Title.Text" xml:space="preserve"><value>Usage Overview</value></data>
