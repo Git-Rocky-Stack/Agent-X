@@ -141,7 +141,7 @@
 
 3. **Recover via backup**
    - If you have a database backup, restore it
-   - Location: `%LocalAppData%\AgentX\backups\`
+   - Location: the folder you chose when you created it; scheduled backups go to the folder set under Backup and Restore > Scheduled Backups (by default `%LocalAppData%\AgentX`)
 
 4. **Last resort: reset database**
    ```
@@ -532,9 +532,9 @@
 **Solutions:**
 
 1. **Restore from backup**
-   - Agent-X automatically creates backups
-   - Location: `%LocalAppData%\AgentX\backups\`
-   - Copy backup to replace corrupt database
+   - Agent-X creates backups on its own only when scheduled backups are on (Backup and Restore > Scheduled Backups)
+   - Location: the folder you chose; scheduled backups default to `%LocalAppData%\AgentX`
+   - Restore the `.agentxbak` file from Backup and Restore; do not copy it over the database file
 
 2. **Run integrity check**
    - Settings → Advanced → Database Integrity

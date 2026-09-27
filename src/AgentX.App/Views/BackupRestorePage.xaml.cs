@@ -70,6 +70,30 @@ public sealed partial class BackupRestorePage : Page
         }
     }
 
+    /// <summary>Picks the folder scheduled backups are written to (saved with Save Schedule).</summary>
+    private async void BrowseScheduleDestination(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var folderPicker = new FolderPicker();
+            folderPicker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
+            folderPicker.FileTypeFilter.Add("*");
+
+            var hwnd = WindowNative.GetWindowHandle(App.MainWindow);
+            InitializeWithWindow.Initialize(folderPicker, hwnd);
+
+            var folder = await folderPicker.PickSingleFolderAsync();
+            if (folder is not null)
+            {
+                ViewModel.ScheduledBackupDestination = folder.Path;
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Could not pick a folder for scheduled backups");
+        }
+    }
+
     /// <summary>
     /// Confirms before restoring — restore overwrites the entire knowledge base
     /// and is not reversible — then gates the existing restore command on the

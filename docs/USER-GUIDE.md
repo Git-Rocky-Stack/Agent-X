@@ -882,22 +882,14 @@ If database encryption is on, the database inside the backup stays encrypted wit
 
 ### Scheduled backups
 
-Scheduled backups are off by default, and the Backup and Restore page has no switch for them yet. To turn them on, close Agent-X and add a `backupSchedule` section to `%LocalAppData%\AgentX\settings.json`:
+Scheduled backups are off by default. To turn them on, open **Backup and Restore**, turn on **Back up automatically** under **Scheduled Backups**, adjust the fields below, and select **Save Schedule**. The schedule applies at once: saving starts it, or stops it when the switch is off. There is no need to restart Agent-X or edit a file.
 
-```json
-"backupSchedule": {
-  "enabled": true,
-  "intervalHours": 168,
-  "maxBackupsToKeep": 5,
-  "destinationPath": "D:\\AgentX Backups",
-  "encryptionPassword": null
-}
-```
+- **Interval (hours)** (1 to 720, default 168, which is weekly): a backup is due one interval after the last scheduled backup. One that is due when the schedule starts (at launch, or when you save it) runs about five minutes later. Scheduled backups run only while Agent-X is running.
+- **Scheduled backups to keep** (default 5): after each scheduled backup, the oldest scheduled backups beyond this number are deleted (0 keeps all). Manual backups are never deleted this way.
+- **Destination Folder**: leave it empty to use `%LocalAppData%\AgentX`; a folder on another drive is safer. Agent-X creates the folder when you save, and does not save a folder it cannot create.
+- **Encrypt scheduled backups**: protects every scheduled backup with the password you enter. You need it to restore those backups. It is stored in `settings.json`, encrypted with Windows DPAPI.
 
-- `intervalHours` (1 to 720): a backup is due one interval after the last scheduled backup. If one is overdue when Agent-X starts, it runs a few minutes after startup.
-- `maxBackupsToKeep`: after each scheduled backup, the oldest scheduled backups beyond this number are deleted (0 keeps all). Manual backups are never deleted this way.
-- `destinationPath`: defaults to `%LocalAppData%\AgentX` when empty; a folder on another drive is safer.
-- `encryptionPassword`: optional. Agent-X encrypts it with Windows DPAPI in `settings.json` the next time it starts.
+The schedule is kept in the `backupSchedule` section of `%LocalAppData%\AgentX\settings.json`.
 
 Backups raise no notifications; the `BAK` lamp on the instrument strip shows how old your latest backup is.
 

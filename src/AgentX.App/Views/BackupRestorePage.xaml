@@ -26,6 +26,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <!-- ═══ PAGE HEADER ═══ -->
@@ -181,8 +182,104 @@
                 </StackPanel>
             </controls:Faceplate>
 
-            <!-- ═══ RESTORE CARD ═══ -->
+            <!-- === SCHEDULED BACKUPS CARD ===
+                 AppSettings.BackupSchedule. Saving applies it at once (BackupService starts or
+                 stops the scheduled-backup loop); there is no restart and no settings.json edit. -->
             <controls:Faceplate Grid.Row="3" Padding="24" Kicker="MOD - BAK - 03">
+                <StackPanel Spacing="20">
+                    <TextBlock x:Uid="Backup_ScheduledBackups" Text="Scheduled Backups"
+                               Style="{StaticResource HeadingSmallStyle}" />
+                    <TextBlock x:Uid="Backup_ScheduleDescription"
+                               Text="While Agent-X is running, it can back up on its own. The next backup is due one interval after the last scheduled one, and one that is due runs about five minutes after the schedule starts."
+                               Style="{StaticResource BodySecondaryStyle}"
+                               TextWrapping="Wrap" />
+
+                    <ToggleSwitch x:Uid="Backup_ScheduleEnabled" Header="Back up automatically"
+                                  IsOn="{x:Bind ViewModel.ScheduledBackupEnabled, Mode=TwoWay}" />
+
+                    <StackPanel Spacing="20"
+                                Visibility="{x:Bind ViewModel.ScheduledBackupEnabled, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                        <Grid ColumnSpacing="24">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Interval -->
+                            <StackPanel Spacing="4">
+                                <TextBlock x:Name="ScheduleIntervalLabel"
+                                           x:Uid="Backup_ScheduleInterval" Text="Interval (hours)"
+                                           Style="{StaticResource LabelStyle}" />
+                                <NumberBox Value="{x:Bind ViewModel.ScheduledIntervalHours, Mode=TwoWay}"
+                                           Minimum="1" Maximum="720" SpinButtonPlacementMode="Compact"
+                                           AutomationProperties.LabeledBy="{x:Bind ScheduleIntervalLabel}" />
+                                <TextBlock x:Uid="Backup_ScheduleIntervalHint" Text="24 is daily, 168 weekly, 720 every 30 days."
+                                           Style="{StaticResource CaptionStyle}" />
+                            </StackPanel>
+
+                            <!-- Retention -->
+                            <StackPanel Grid.Column="1" Spacing="4">
+                                <TextBlock x:Name="ScheduleKeepLabel"
+                                           x:Uid="Backup_ScheduleKeep" Text="Scheduled backups to keep"
+                                           Style="{StaticResource LabelStyle}" />
+                                <NumberBox Value="{x:Bind ViewModel.MaxBackupsToKeep, Mode=TwoWay}"
+                                           Minimum="0" Maximum="1000" SpinButtonPlacementMode="Compact"
+                                           AutomationProperties.LabeledBy="{x:Bind ScheduleKeepLabel}" />
+                                <TextBlock x:Uid="Backup_ScheduleKeepHint" Text="Older scheduled backups are deleted; 0 keeps all. Manual backups are never deleted."
+                                           Style="{StaticResource CaptionStyle}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Destination -->
+                        <StackPanel Spacing="4">
+                            <TextBlock x:Name="ScheduleDestinationLabel"
+                                       x:Uid="Backup_ScheduleDestination" Text="Destination Folder"
+                                       Style="{StaticResource LabelStyle}" />
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBox Text="{x:Bind ViewModel.ScheduledBackupDestination, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         x:Uid="Backup_ScheduleDestinationPh" PlaceholderText="Empty: the Agent-X data folder"
+                                         AutomationProperties.LabeledBy="{x:Bind ScheduleDestinationLabel}"
+                                         Style="{StaticResource InputTextBoxStyle}" />
+                                <Button Grid.Column="1" x:Uid="Backup_ScheduleBrowse" Content="Browse"
+                                        Click="BrowseScheduleDestination"
+                                        Style="{StaticResource SecondaryButtonStyle}" />
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Encryption -->
+                        <StackPanel Spacing="8">
+                            <CheckBox x:Uid="Backup_ScheduleEncrypt" Content="Encrypt scheduled backups (AES-256)"
+                                      IsChecked="{x:Bind ViewModel.ScheduledBackupUseEncryption, Mode=TwoWay}" />
+                            <PasswordBox Password="{x:Bind ViewModel.ScheduledBackupPassword, Mode=TwoWay}"
+                                         x:Uid="Backup_SchedulePasswordPh" PlaceholderText="Password for scheduled backups"
+                                         Visibility="{x:Bind ViewModel.ScheduledBackupUseEncryption, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Button x:Uid="Backup_SaveSchedule" Content="Save Schedule"
+                                Command="{x:Bind ViewModel.SaveScheduleCommand}"
+                                IsEnabled="{x:Bind ViewModel.IsSavingSchedule, Mode=OneWay, Converter={StaticResource InverseBool}}"
+                                Style="{StaticResource SecondaryButtonStyle}" />
+                        <TextBlock Grid.Column="1"
+                                   Text="{x:Bind ViewModel.ScheduleStatusMessage, Mode=OneWay}"
+                                   Style="{StaticResource CaptionStyle}"
+                                   VerticalAlignment="Center"
+                                   TextWrapping="Wrap" />
+                    </Grid>
+                </StackPanel>
+            </controls:Faceplate>
+
+            <!-- ═══ RESTORE CARD ═══ -->
+            <controls:Faceplate Grid.Row="4" Padding="24" Kicker="MOD - BAK - 04">
                 <StackPanel Spacing="20">
                     <TextBlock x:Uid="Backup_RestoreFromBackup" Text="Restore from Backup"
                                Style="{StaticResource HeadingSmallStyle}" />
@@ -237,7 +334,7 @@
             </controls:Faceplate>
 
             <!-- ═══ BACKUP HISTORY ═══ -->
-            <controls:Faceplate Grid.Row="4" Padding="24" Visibility="{x:Bind ViewModel.HasHistory, Mode=OneWay, Converter={StaticResource BoolToVis}}" Kicker="MOD - BAK - 04">
+            <controls:Faceplate Grid.Row="5" Padding="24" Visibility="{x:Bind ViewModel.HasHistory, Mode=OneWay, Converter={StaticResource BoolToVis}}" Kicker="MOD - BAK - 05">
                 <StackPanel Spacing="16">
                     <TextBlock x:Uid="Backup_BackupHistory" Text="Backup History"
                                Style="{StaticResource HeadingSmallStyle}" />
@@ -323,7 +420,7 @@
             </controls:Faceplate>
 
             <!-- ═══ STATUS ═══ -->
-            <TextBlock Grid.Row="5"
+            <TextBlock Grid.Row="6"
                        Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
                        Style="{StaticResource CaptionStyle}" />
         </Grid>

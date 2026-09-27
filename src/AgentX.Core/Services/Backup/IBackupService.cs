@@ -104,7 +104,10 @@ public interface IBackupService
     /// <summary>
     /// Starts the background scheduled-backup loop using the configuration persisted in settings.
     /// This method is non-blocking; the loop runs on a background task until
-    /// <see cref="StopScheduledBackups"/> is called or <paramref name="ct"/> is cancelled.
+    /// <see cref="StopScheduledBackups"/> is called or <paramref name="ct"/> is cancelled. Calling
+    /// it again replaces a running loop with one for the schedule saved now (the Backup and
+    /// Restore page does this when a schedule is saved), and does not start one when the saved
+    /// schedule is disabled.
     /// </summary>
     /// <param name="ct">Token that stops the scheduled loop when cancelled.</param>
     Task StartScheduledBackupsAsync(CancellationToken ct = default);

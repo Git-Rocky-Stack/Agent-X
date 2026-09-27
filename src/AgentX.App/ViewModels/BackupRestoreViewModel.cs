@@ -2,6 +2,8 @@ using System.Collections.ObjectModel;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Services.Backup;
 using AgentX.Core.Services.Backup.Models;
+using AgentX.Core.Services.Localization;
+using AgentX.Core.Services.Settings;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Serilog;
@@ -11,6 +13,8 @@ namespace AgentX.App.ViewModels;
 public partial class BackupRestoreViewModel : ObservableObject
 {
     private readonly IBackupService _backupService;
+    private readonly ISettingsService _settingsService;
+    private readonly ILocalizationService _localization;
 
     // ── Page State ───────────────────────────────────────────
     [ObservableProperty] private bool _isLoading;
@@ -51,15 +55,27 @@ public partial class BackupRestoreViewModel : ObservableObject
     [ObservableProperty] private int _scheduledIntervalHours = 168;
     [ObservableProperty] private int _maxBackupsToKeep = 5;
 
+    /// <summary>Folder for scheduled backups; empty uses the Agent-X data folder.</summary>
+    [ObservableProperty] private string _scheduledBackupDestination = string.Empty;
+    [ObservableProperty] private bool _scheduledBackupUseEncryption;
+    [ObservableProperty] private string _scheduledBackupPassword = string.Empty;
+    [ObservableProperty] private bool _isSavingSchedule;
+    [ObservableProperty] private string _scheduleStatusMessage = string.Empty;
+
     /// <summary>
     /// Raised when the backup being restored is encrypted. The view asks for the password and
     /// returns it, or null when the user cancels.
     /// </summary>
     public event Func<Task<string?>>? BackupPasswordRequested;
 
-    public BackupRestoreViewModel(IBackupService backupService)
+    public BackupRestoreViewModel(
+        IBackupService backupService,
+        ISettingsService settingsService,
+        ILocalizationService localization)
     {
         _backupService = backupService;
+        _settingsService = settingsService;
+        _localization = localization;
     }
 
     public async Task InitializeAsync()
@@ -78,6 +94,9 @@ public partial class BackupRestoreViewModel : ObservableObject
 
             // Estimate backup size
             await EstimateBackupSizeAsync();
+
+            // Show the saved backup schedule
+            await LoadScheduleAsync();
         }
         catch (Exception ex)
         {
@@ -309,6 +328,120 @@ public partial class BackupRestoreViewModel : ObservableObject
     {
         RestoreFilePath = filePath;
         await RestoreFromBackupAsync();
+    }
+
+    // --- Schedule (AppSettings.BackupSchedule) ---
+
+    /// <summary>Shows the schedule saved in settings (settings.json backupSchedule).</summary>
+    private async Task LoadScheduleAsync()
+    {
+        try
+        {
+            var settings = await _settingsService.GetSettingsAsync();
+            var schedule = settings.BackupSchedule ?? new BackupScheduleConfig();
+
+            // A hand-edited file can hold values the page cannot show; BackupService clamps
+            // them the same way when it runs the schedule.
+            ScheduledBackupEnabled = schedule.Enabled;
+            ScheduledIntervalHours = Math.Clamp(schedule.IntervalHours, 1, BackupScheduleConfig.MaxIntervalHours);
+            MaxBackupsToKeep = Math.Max(0, schedule.MaxBackupsToKeep);
+            ScheduledBackupDestination = schedule.DestinationPath ?? string.Empty;
+            ScheduledBackupPassword = schedule.EncryptionPassword ?? string.Empty;
+            ScheduledBackupUseEncryption = !string.IsNullOrEmpty(schedule.EncryptionPassword);
+            ScheduleStatusMessage = string.Empty;
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to load the backup schedule");
+        }
+    }
+
+    /// <summary>
+    /// Saves the schedule through the settings service and applies it at once: an enabled
+    /// schedule (re)starts the scheduled-backup loop with the saved values, a disabled one stops
+    /// it. Nothing is saved when encryption is on without a password or the folder cannot be
+    /// created, because every scheduled backup would then fail without telling anyone.
+    /// </summary>
+    [RelayCommand]
+    private async Task SaveScheduleAsync()
+    {
+        var destination = ScheduledBackupDestination?.Trim() ?? string.Empty;
+        var usePassword = ScheduledBackupUseEncryption;
+
+        if (usePassword && string.IsNullOrWhiteSpace(ScheduledBackupPassword))
+        {
+            ScheduleStatusMessage = _localization.GetString("Backup_SchedulePasswordRequired");
+            return;
+        }
+
+        IsSavingSchedule = true;
+        try
+        {
+            if (destination.Length > 0)
+            {
+                try
+                {
+                    Directory.CreateDirectory(destination);
+                }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException)
+                {
+                    ScheduleStatusMessage = _localization.GetString("Backup_ScheduleFolderInvalid", ex.Message);
+                    return;
+                }
+            }
+
+            try
+            {
+                var settings = await _settingsService.GetSettingsAsync();
+                settings.BackupSchedule = new BackupScheduleConfig
+                {
+                    Enabled = ScheduledBackupEnabled,
+                    IntervalHours = ScheduledIntervalHours,
+                    MaxBackupsToKeep = MaxBackupsToKeep,
+                    DestinationPath = destination,
+                    EncryptionPassword = usePassword ? ScheduledBackupPassword : null,
+                };
+                await _settingsService.SaveSettingsAsync(settings);
+            }
+            catch (SettingsValidationException ex)
+            {
+                ScheduleStatusMessage = _localization.GetString(
+                    "Backup_ScheduleNotSaved", string.Join(" ", ex.Errors.Select(e => e.Message)));
+                Log.Warning(ex, "The backup schedule was not saved because a value is invalid");
+                return;
+            }
+            catch (Exception ex)
+            {
+                ScheduleStatusMessage = _localization.GetString("Backup_ScheduleNotSaved", ex.Message);
+                Log.Error(ex, "Failed to save the backup schedule");
+                return;
+            }
+
+            ScheduledBackupDestination = destination;
+
+            try
+            {
+                if (ScheduledBackupEnabled)
+                {
+                    await _backupService.StartScheduledBackupsAsync();
+                    ScheduleStatusMessage = _localization.GetString("Backup_ScheduleSavedOn");
+                }
+                else
+                {
+                    _backupService.StopScheduledBackups();
+                    ScheduleStatusMessage = _localization.GetString("Backup_ScheduleSavedOff");
+                }
+            }
+            catch (Exception ex)
+            {
+                ScheduleStatusMessage = _localization.GetString("Backup_ScheduleNotApplied", ex.Message);
+                Log.Error(ex, "The backup schedule was saved but could not be applied");
+            }
+        }
+        finally
+        {
+            IsSavingSchedule = false;
+        }
     }
 }
 

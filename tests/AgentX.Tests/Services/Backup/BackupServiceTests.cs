@@ -819,6 +819,35 @@ public sealed class BackupServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task StartScheduledBackupsAsync_TwiceAtOnce_LeavesOneLoopThatStopEnds()
+    {
+        var h = NewHarness();
+        h.Seed(ctx => ctx.Backups.Add(new BackupEntity
+        {
+            FileName = "last-week",
+            BackupType = "scheduled",
+            CreatedAt = DateTime.UtcNow.AddDays(-8),
+        }));
+        h.CurrentSettings.BackupSchedule = new BackupScheduleConfig { Enabled = true, IntervalHours = 168, DestinationPath = h.DestDir };
+        // A settings read that completes asynchronously, as reading settings.json can.
+        h.Settings.Setup(s => s.GetSettingsAsync()).Returns(async () =>
+        {
+            await Task.Delay(50);
+            return h.CurrentSettings;
+        });
+        h.Service.ScheduledStartupDelay = TimeSpan.FromMilliseconds(400);
+
+        // Startup and a schedule saved on the Backup and Restore page can start it at the same time.
+        await Task.WhenAll(h.Service.StartScheduledBackupsAsync(), h.Service.StartScheduledBackupsAsync());
+        h.Service.StopScheduledBackups();
+
+        // An overdue backup would run 400 ms after a loop starts. Both starts used to store their
+        // own loop, so the first one could no longer be stopped and kept making backups.
+        await Task.Delay(TimeSpan.FromSeconds(2));
+        Directory.EnumerateFiles(h.DestDir, "*.agentxbak").Should().BeEmpty();
+    }
+
+    [Fact]
     public async Task ScheduledBackups_RunWhenTheLastScheduledBackupIsOverdue()
     {
         var h = NewHarness();

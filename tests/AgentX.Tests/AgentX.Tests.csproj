@@ -108,6 +108,8 @@
     <Compile Include="..\..\src\AgentX.App\ViewModels\EmailSettingsViewModel.cs" Link="ViewModels\EmailSettingsViewModel.cs" />
     <Compile Include="..\..\src\AgentX.App\ViewModels\Sync\SyncLogDisplayItem.cs" Link="ViewModels\Sync\SyncLogDisplayItem.cs" />
     <Compile Include="..\..\src\AgentX.App\ViewModels\Sync\SyncHistoryItem.cs" Link="ViewModels\Sync\SyncHistoryItem.cs" />
+    <!-- BackupRestoreViewModel is pure backup orchestration/state logic; linked for the schedule tests. -->
+    <Compile Include="..\..\src\AgentX.App\ViewModels\BackupRestoreViewModel.cs" Link="ViewModels\BackupRestoreViewModel.cs" />
     <!-- ShortcutInputRouter dispatch core is pure; WinUI attach lives in a separate file. -->
     <Compile Include="..\..\src\AgentX.App\Services\ShortcutInputRouter.cs" Link="Services\ShortcutInputRouter.cs" />
     <!-- ShortcutRegistrationExtensions is pure registry composition for page-scoped shortcuts. -->

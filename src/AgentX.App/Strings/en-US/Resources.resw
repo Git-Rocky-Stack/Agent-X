@@ -674,7 +674,7 @@
   <data name="UserGuide_BackupRestore_Description.Text" xml:space="preserve"><value>Backup &amp; Restore saves your Agent-X database, and optionally the pages saved by Web Import, to a single .agentxbak file that you can protect with a password. Restore replaces the current database with a backup's contents. Settings, API keys, logs, downloaded models, and plugins are not part of a backup.</value></data>
   <data name="UserGuide_BackupRestore_Backup_Title.Text" xml:space="preserve"><value>Creating Backups</value></data>
   <data name="UserGuide_BackupRestore_Backup1.Text" xml:space="preserve"><value>Manual backup: on the Backup &amp; Restore page, choose a Destination Folder and click Create Backup. To protect the file, turn on Encrypt backup (AES-256) and enter a password. The password is needed to restore and cannot be recovered.</value></data>
-  <data name="UserGuide_BackupRestore_Backup2.Text" xml:space="preserve"><value>Scheduled backups: off by default, and this page has no switch for them yet. To turn them on, close Agent-X and add a backupSchedule section (enabled, intervalHours, maxBackupsToKeep, destinationPath, encryptionPassword) to %LocalAppData%\AgentX\settings.json. Only the oldest scheduled backups beyond the limit are deleted; manual backups are kept.</value></data>
+  <data name="UserGuide_BackupRestore_Backup2.Text" xml:space="preserve"><value>Scheduled backups: off by default. Under Scheduled Backups on this page, turn on Back up automatically, set the interval in hours, how many scheduled backups to keep, the folder, and an optional password, then select Save Schedule. The schedule applies at once, and a backup that is due runs about five minutes later. Only the oldest scheduled backups beyond the limit are deleted; manual backups are kept.</value></data>
   <data name="UserGuide_BackupRestore_Backup3.Text" xml:space="preserve"><value>What's included: the Agent-X database (document text and chunks, embeddings, conversations, workflows, collections, annotations, and history) and, with Include indexed documents on, the pages saved by Web Import. Files imported from other folders are not copied. If database encryption is on, the database inside the backup stays encrypted with this installation's key, so only this installation, on the same Windows account, can restore it.</value></data>
   <data name="UserGuide_BackupRestore_Restore_Title.Text" xml:space="preserve"><value>Restoring from a Backup</value></data>
   <data name="UserGuide_BackupRestore_Restore1.Text" xml:space="preserve"><value>Choose a backup file under Restore from Backup and click Restore. If the backup is encrypted, Agent-X asks for its password. The backup and its database are checked before anything is changed.</value></data>
@@ -692,7 +692,7 @@
   <data name="UserGuide_Export_Documents_Title.Text" xml:space="preserve"><value>Document &amp; Vault Export</value></data>
   <data name="UserGuide_Export_Documents.Text" xml:space="preserve"><value>Export the entire Knowledge Vault as a ZIP containing the original files, the extracted text per document, the chunk index, and the vector embeddings (in a portable .vec format). The bundle is bit-for-bit reloadable on another Agent-X install — perfect for moving between machines, archiving a project, or handing a vault to a collaborator. You can also export a subset (single document, single Collection, date range) when you don't need the whole thing.</value></data>
   <data name="UserGuide_Export_Backup_Title.Text" xml:space="preserve"><value>Automated Backups</value></data>
-  <data name="UserGuide_Export_Backup.Text" xml:space="preserve"><value>Scheduled backups are off by default and are set up in the backupSchedule section of settings.json (see Backup &amp; Restore). A backup holds the Agent-X database and, optionally, the pages saved by Web Import; settings, API keys, and plugins are not included. Protect a backup with a password before you store it in a cloud-synced folder.</value></data>
+  <data name="UserGuide_Export_Backup.Text" xml:space="preserve"><value>Scheduled backups are off by default and are set up under Scheduled Backups on the Backup &amp; Restore page. A backup holds the Agent-X database and, optionally, the pages saved by Web Import; settings, API keys, and plugins are not included. Protect a backup with a password before you store it in a cloud-synced folder.</value></data>
   <data name="UserGuide_Export_Restore_Title.Text" xml:space="preserve"><value>Restoring Data</value></data>
   <data name="UserGuide_Export_Restore.Text" xml:space="preserve"><value>Restore a backup on the Backup &amp; Restore page. Restore replaces the whole database; there is no merge or selective restore. A backup made by an earlier Agent-X version is upgraded the next time Agent-X starts after the restore.</value></data>
 
@@ -2170,4 +2170,25 @@
 
   <!-- Settings: web search credential hint (API key or SearXNG URL) -->
   <data name="Settings_SearchCredentialHint.Text" xml:space="preserve"><value>Brave and Serper: paste your API key. SearXNG: enter your instance URL instead, for example http://localhost:8080. Only the selected provider is used.</value></data>
+
+  <!-- Backup and Restore: scheduled backup controls and messages -->
+  <data name="Backup_ScheduledBackups.Text" xml:space="preserve"><value>Scheduled Backups</value></data>
+  <data name="Backup_ScheduleDescription.Text" xml:space="preserve"><value>While Agent-X is running, it can back up on its own. The next backup is due one interval after the last scheduled one, and one that is due runs about five minutes after the schedule starts.</value></data>
+  <data name="Backup_ScheduleEnabled.Header" xml:space="preserve"><value>Back up automatically</value></data>
+  <data name="Backup_ScheduleInterval.Text" xml:space="preserve"><value>Interval (hours)</value></data>
+  <data name="Backup_ScheduleIntervalHint.Text" xml:space="preserve"><value>24 is daily, 168 weekly, 720 every 30 days.</value></data>
+  <data name="Backup_ScheduleKeep.Text" xml:space="preserve"><value>Scheduled backups to keep</value></data>
+  <data name="Backup_ScheduleKeepHint.Text" xml:space="preserve"><value>Older scheduled backups are deleted; 0 keeps all. Manual backups are never deleted.</value></data>
+  <data name="Backup_ScheduleDestination.Text" xml:space="preserve"><value>Destination Folder</value></data>
+  <data name="Backup_ScheduleDestinationPh.PlaceholderText" xml:space="preserve"><value>Empty: the Agent-X data folder</value></data>
+  <data name="Backup_ScheduleBrowse.Content" xml:space="preserve"><value>Browse</value></data>
+  <data name="Backup_ScheduleEncrypt.Content" xml:space="preserve"><value>Encrypt scheduled backups (AES-256)</value></data>
+  <data name="Backup_SchedulePasswordPh.PlaceholderText" xml:space="preserve"><value>Password for scheduled backups</value></data>
+  <data name="Backup_SaveSchedule.Content" xml:space="preserve"><value>Save Schedule</value></data>
+  <data name="Backup_ScheduleSavedOn" xml:space="preserve"><value>Schedule saved. Scheduled backups are on; a backup that is due runs in about five minutes.</value></data>
+  <data name="Backup_ScheduleSavedOff" xml:space="preserve"><value>Schedule saved. Scheduled backups are off.</value></data>
+  <data name="Backup_SchedulePasswordRequired" xml:space="preserve"><value>Enter a password to encrypt scheduled backups, or turn their encryption off.</value></data>
+  <data name="Backup_ScheduleFolderInvalid" xml:space="preserve"><value>The schedule was not saved: the folder cannot be created ({0}).</value></data>
+  <data name="Backup_ScheduleNotSaved" xml:space="preserve"><value>The schedule was not saved: {0}</value></data>
+  <data name="Backup_ScheduleNotApplied" xml:space="preserve"><value>The schedule was saved, but scheduled backups could not be started: {0}</value></data>
 </root>

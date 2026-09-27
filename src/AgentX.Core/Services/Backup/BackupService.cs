@@ -79,9 +79,16 @@ public sealed class BackupService : IBackupService
 
     /// <summary>
     /// CancellationTokenSource used to stop the scheduled backup loop from <see cref="StopScheduledBackups"/>.
-    /// Replaced each time <see cref="StartScheduledBackupsAsync"/> is called.
+    /// Replaced each time <see cref="StartScheduledBackupsAsync"/> is called. Guarded by
+    /// <see cref="_scheduleGate"/>.
     /// </summary>
     private CancellationTokenSource? _scheduledCts;
+
+    /// <summary>
+    /// Serializes starting and stopping the schedule. Startup starts it, and saving the schedule
+    /// on the Backup and Restore page starts or stops it again, possibly at the same time.
+    /// </summary>
+    private readonly SemaphoreSlim _scheduleGate = new(1, 1);
 
     /// <summary>
     /// Shortest wait before a due scheduled backup starts after the loop starts, so it does not
@@ -746,34 +753,62 @@ public sealed class BackupService : IBackupService
     // --- IBackupService: StartScheduledBackupsAsync ---
 
     /// <inheritdoc />
+    /// <remarks>
+    /// Replaces a running loop. Starts and stops run one at a time and the schedule is read
+    /// inside that section, so overlapping starts leave exactly one loop, running the schedule
+    /// saved last. Before, a start stopped the old loop, awaited the settings, then stored its
+    /// own: two overlapping starts both stored one, and the first loop could no longer be stopped.
+    /// </remarks>
     public async Task StartScheduledBackupsAsync(CancellationToken ct = default)
     {
-        // Cancel any already-running loop
-        StopScheduledBackups();
-
-        var config = await LoadScheduleConfigAsync().ConfigureAwait(false);
-
-        if (!config.Enabled)
+        await _scheduleGate.WaitAsync(ct).ConfigureAwait(false);
+        try
         {
-            Log.Information("Scheduled backups are disabled; loop not started");
-            return;
+            // Cancel any already-running loop
+            StopScheduledLoop();
+
+            var config = await LoadScheduleConfigAsync().ConfigureAwait(false);
+
+            if (!config.Enabled)
+            {
+                Log.Information("Scheduled backups are disabled; loop not started");
+                return;
+            }
+
+            _scheduledCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            var loopCt = _scheduledCts.Token;
+
+            // Fire and forget: the loop runs on the thread pool
+            _ = Task.Run(() => RunScheduledLoopAsync(config, loopCt), loopCt);
+
+            Log.Information(
+                "Scheduled backup loop started. Interval={IntervalHours}h MaxKeep={MaxKeep}",
+                config.IntervalHours, config.MaxBackupsToKeep);
         }
-
-        _scheduledCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-        var loopCt = _scheduledCts.Token;
-
-        // Fire and forget: the loop runs on the thread pool
-        _ = Task.Run(() => RunScheduledLoopAsync(config, loopCt), loopCt);
-
-        Log.Information(
-            "Scheduled backup loop started. Interval={IntervalHours}h MaxKeep={MaxKeep}",
-            config.IntervalHours, config.MaxBackupsToKeep);
+        finally
+        {
+            _scheduleGate.Release();
+        }
     }
 
     // --- IBackupService: StopScheduledBackups ---
 
     /// <inheritdoc />
     public void StopScheduledBackups()
+    {
+        _scheduleGate.Wait();
+        try
+        {
+            StopScheduledLoop();
+        }
+        finally
+        {
+            _scheduleGate.Release();
+        }
+    }
+
+    /// <summary>Cancels the running loop, if any. The caller holds <see cref="_scheduleGate"/>.</summary>
+    private void StopScheduledLoop()
     {
         if (_scheduledCts is null)
             return;
