@@ -381,22 +381,24 @@ public partial class SettingsViewModel : ObservableObject
     {
         if (!AiService.TryParseHttpEndpoint(OllamaEndpoint, out var endpoint))
         {
-            OllamaConnectionStatus = "Invalid endpoint (use http://host:port)";
+            OllamaConnectionStatus = _localization.GetString("Settings_OllamaInvalidEndpoint");
             return;
         }
 
-        OllamaConnectionStatus = "Testing...";
+        OllamaConnectionStatus = _localization.GetString("Settings_ConnectionTesting");
         try
         {
             // Always create a temporary provider with the current endpoint value
             // (the user may have edited the endpoint but not saved yet)
             using var tempProvider = new AgentX.Core.AI.Providers.OllamaProvider(endpoint, Log.Logger);
             var connected = await tempProvider.CheckConnectionAsync();
-            OllamaConnectionStatus = connected ? "Connected" : "Not reachable";
+            OllamaConnectionStatus = connected
+                ? _localization.GetString("Settings_ConnectionConnected")
+                : _localization.GetString("Settings_ConnectionNotReachable");
         }
         catch (Exception ex)
         {
-            OllamaConnectionStatus = $"Error: {ex.Message}";
+            OllamaConnectionStatus = _localization.GetString("Settings_ConnectionError", ex.Message);
             Log.Warning(ex, "Ollama connection test failed");
         }
     }
@@ -406,21 +408,23 @@ public partial class SettingsViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(OpenAiApiKey))
         {
-            OpenAiConnectionStatus = "API key required";
+            OpenAiConnectionStatus = _localization.GetString("Settings_ConnectionApiKeyRequired");
             return;
         }
 
-        OpenAiConnectionStatus = "Testing...";
+        OpenAiConnectionStatus = _localization.GetString("Settings_ConnectionTesting");
         try
         {
             using var tempProvider = new AgentX.Core.AI.Providers.OpenAiProvider(
                 OpenAiApiKey, OpenAiEndpoint, Log.Logger);
             var connected = await tempProvider.CheckConnectionAsync();
-            OpenAiConnectionStatus = connected ? "Connected" : "Authentication failed";
+            OpenAiConnectionStatus = connected
+                ? _localization.GetString("Settings_ConnectionConnected")
+                : _localization.GetString("Settings_ConnectionAuthFailed");
         }
         catch (Exception ex)
         {
-            OpenAiConnectionStatus = $"Error: {ex.Message}";
+            OpenAiConnectionStatus = _localization.GetString("Settings_ConnectionError", ex.Message);
             Log.Warning(ex, "OpenAI connection test failed");
         }
     }
@@ -430,21 +434,23 @@ public partial class SettingsViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(AnthropicApiKey))
         {
-            AnthropicConnectionStatus = "API key required";
+            AnthropicConnectionStatus = _localization.GetString("Settings_ConnectionApiKeyRequired");
             return;
         }
 
-        AnthropicConnectionStatus = "Testing...";
+        AnthropicConnectionStatus = _localization.GetString("Settings_ConnectionTesting");
         try
         {
             using var tempProvider = new AgentX.Core.AI.Providers.AnthropicProvider(
                 AnthropicApiKey, AnthropicEndpoint, Log.Logger);
             var connected = await tempProvider.CheckConnectionAsync();
-            AnthropicConnectionStatus = connected ? "Connected" : "Authentication failed";
+            AnthropicConnectionStatus = connected
+                ? _localization.GetString("Settings_ConnectionConnected")
+                : _localization.GetString("Settings_ConnectionAuthFailed");
         }
         catch (Exception ex)
         {
-            AnthropicConnectionStatus = $"Error: {ex.Message}";
+            AnthropicConnectionStatus = _localization.GetString("Settings_ConnectionError", ex.Message);
             Log.Warning(ex, "Anthropic connection test failed");
         }
     }
@@ -717,30 +723,30 @@ public partial class SettingsViewModel : ObservableObject
         {
             // Turning encryption off in place is not supported.
             EncryptionEnabled = true;
-            EncryptionStatus = "Turning encryption off is not supported. Your database stays encrypted.";
+            EncryptionStatus = _localization.GetString("Settings_EncryptionTurnOffUnsupported");
             return;
         }
 
         if (_databaseEncryptionManager is null)
         {
             EncryptionEnabled = false;
-            EncryptionStatus = "Database encryption is not available in this build.";
+            EncryptionStatus = _localization.GetString("Settings_EncryptionUnavailable");
             return;
         }
 
         _encryptionChangeInFlight = true;
-        EncryptionStatus = "Encrypting...";
+        EncryptionStatus = _localization.GetString("Settings_EncryptionEncrypting");
         try
         {
             await _databaseEncryptionManager.EnableEncryptionAsync();
-            EncryptionStatus = "Encrypted. The key is managed automatically and tied to your Windows user account.";
+            EncryptionStatus = _localization.GetString("Settings_EncryptionOnWindowsKey");
         }
         catch (System.Exception ex)
         {
             Serilog.Log.Error(ex, "Database encryption enable failed");
             EncryptionStatus = _encryptionStateFile.Exists()
-                ? $"Encryption was applied, but the database could not be reopened: {ex.Message} Restart Agent-X."
-                : $"Encryption failed: {ex.Message} Your database was left unencrypted.";
+                ? _localization.GetString("Settings_EncryptionReopenFailed", ex.Message)
+                : _localization.GetString("Settings_EncryptionFailed", ex.Message);
         }
         finally
         {
@@ -763,13 +769,13 @@ public partial class SettingsViewModel : ObservableObject
             // describing that case accurately while new encryptions use the universal
             // DPAPI-wrapped mode below.
             EncryptionStatus = info?.StorageMode == KeyStorageMode.UserPassphrase
-                ? "Encrypted with your passphrase. You'll be prompted on next launch."
-                : "Encrypted. The key is managed automatically and tied to your Windows user account.";
+                ? _localization.GetString("Settings_EncryptionOnPassphrase")
+                : _localization.GetString("Settings_EncryptionOnWindowsKey");
         }
         else
         {
             EncryptionEnabled = false;
-            EncryptionStatus = "Encryption is not enabled.";
+            EncryptionStatus = _localization.GetString("Settings_EncryptionOff");
         }
         return System.Threading.Tasks.Task.CompletedTask;
     }

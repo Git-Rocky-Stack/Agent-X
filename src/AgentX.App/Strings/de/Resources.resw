@@ -1235,6 +1235,21 @@
   <data name="Dash_PrivacyDetailSearXng" xml:space="preserve"><value>Wenn der Recherchemodus im Chat aktiv ist, werden Ihre Fragen an die SearXNG-Instanz unter {0} gesendet, die sie an öffentliche Suchmaschinen weiterleitet.</value></data>
   <data name="Dash_PrivacyDetailCalendarSync" xml:space="preserve"><value>Die Kalendersynchronisierung tauscht Daten mit Ihrem verbundenen Google- oder Microsoft-Konto aus.</value></data>
   <data name="Dash_PrivacyDetailEmailSync" xml:space="preserve"><value>Die E-Mail-Synchronisierung tauscht Daten mit Ihrem verbundenen Gmail- oder Outlook-Konto aus.</value></data>
+  <data name="Settings_OllamaInvalidEndpoint" xml:space="preserve"><value>Ungültiger Endpunkt (verwenden Sie http://host:port)</value></data>
+  <data name="Settings_ConnectionTesting" xml:space="preserve"><value>Wird getestet...</value></data>
+  <data name="Settings_ConnectionConnected" xml:space="preserve"><value>Verbunden</value></data>
+  <data name="Settings_ConnectionNotReachable" xml:space="preserve"><value>Nicht erreichbar</value></data>
+  <data name="Settings_ConnectionAuthFailed" xml:space="preserve"><value>Authentifizierung fehlgeschlagen</value></data>
+  <data name="Settings_ConnectionApiKeyRequired" xml:space="preserve"><value>API-Schlüssel erforderlich</value></data>
+  <data name="Settings_ConnectionError" xml:space="preserve"><value>Fehler: {0}</value></data>
+  <data name="Settings_EncryptionTurnOffUnsupported" xml:space="preserve"><value>Das Ausschalten der Verschlüsselung wird nicht unterstützt. Ihre Datenbank bleibt verschlüsselt.</value></data>
+  <data name="Settings_EncryptionUnavailable" xml:space="preserve"><value>Die Datenbankverschlüsselung ist in diesem Build nicht verfügbar.</value></data>
+  <data name="Settings_EncryptionEncrypting" xml:space="preserve"><value>Wird verschlüsselt...</value></data>
+  <data name="Settings_EncryptionOnWindowsKey" xml:space="preserve"><value>Verschlüsselt. Der Schlüssel wird automatisch verwaltet und ist an Ihr Windows-Benutzerkonto gebunden.</value></data>
+  <data name="Settings_EncryptionOnPassphrase" xml:space="preserve"><value>Mit Ihrer Passphrase verschlüsselt. Sie werden beim nächsten Start danach gefragt.</value></data>
+  <data name="Settings_EncryptionReopenFailed" xml:space="preserve"><value>Die Verschlüsselung wurde angewendet, aber die Datenbank konnte nicht erneut geöffnet werden: {0} Starten Sie Agent-X neu.</value></data>
+  <data name="Settings_EncryptionFailed" xml:space="preserve"><value>Die Verschlüsselung ist fehlgeschlagen: {0} Ihre Datenbank bleibt unverschlüsselt.</value></data>
+  <data name="Settings_EncryptionOff" xml:space="preserve"><value>Die Verschlüsselung ist nicht aktiviert.</value></data>
   <data name="Chat_ShortcutNewConversation" xml:space="preserve"><value>Neue Unterhaltung</value></data>
   <data name="Chat_ShortcutToggleConversationPane" xml:space="preserve"><value>Unterhaltungsbereich ein- oder ausblenden</value></data>
   <data name="Chat_ShortcutCategory" xml:space="preserve"><value>Chat</value></data>

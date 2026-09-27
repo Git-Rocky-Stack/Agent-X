@@ -1235,6 +1235,21 @@
   <data name="Dash_PrivacyDetailSearXng" xml:space="preserve"><value>チャットでリサーチ モードがオンの間は、質問が {0} の SearXNG インスタンスに送信され、そこから公開検索エンジンに転送されます。</value></data>
   <data name="Dash_PrivacyDetailCalendarSync" xml:space="preserve"><value>カレンダー同期は、接続済みの Google または Microsoft アカウントとデータをやり取りします。</value></data>
   <data name="Dash_PrivacyDetailEmailSync" xml:space="preserve"><value>メール同期は、接続済みの Gmail または Outlook アカウントとデータをやり取りします。</value></data>
+  <data name="Settings_OllamaInvalidEndpoint" xml:space="preserve"><value>無効なエンドポイントです (http://host:port の形式で入力してください)</value></data>
+  <data name="Settings_ConnectionTesting" xml:space="preserve"><value>テストしています...</value></data>
+  <data name="Settings_ConnectionConnected" xml:space="preserve"><value>接続済み</value></data>
+  <data name="Settings_ConnectionNotReachable" xml:space="preserve"><value>接続できません</value></data>
+  <data name="Settings_ConnectionAuthFailed" xml:space="preserve"><value>認証に失敗しました</value></data>
+  <data name="Settings_ConnectionApiKeyRequired" xml:space="preserve"><value>API キーが必要です</value></data>
+  <data name="Settings_ConnectionError" xml:space="preserve"><value>エラー: {0}</value></data>
+  <data name="Settings_EncryptionTurnOffUnsupported" xml:space="preserve"><value>暗号化をオフにすることはできません。データベースは暗号化されたままです。</value></data>
+  <data name="Settings_EncryptionUnavailable" xml:space="preserve"><value>このビルドではデータベースの暗号化を利用できません。</value></data>
+  <data name="Settings_EncryptionEncrypting" xml:space="preserve"><value>暗号化しています...</value></data>
+  <data name="Settings_EncryptionOnWindowsKey" xml:space="preserve"><value>暗号化されています。キーは自動的に管理され、お使いの Windows ユーザー アカウントに紐付けられています。</value></data>
+  <data name="Settings_EncryptionOnPassphrase" xml:space="preserve"><value>パスフレーズで暗号化されています。次回の起動時に入力を求められます。</value></data>
+  <data name="Settings_EncryptionReopenFailed" xml:space="preserve"><value>暗号化は適用されましたが、データベースを再度開けませんでした: {0} Agent-X を再起動してください。</value></data>
+  <data name="Settings_EncryptionFailed" xml:space="preserve"><value>暗号化に失敗しました: {0} データベースは暗号化されていないままです。</value></data>
+  <data name="Settings_EncryptionOff" xml:space="preserve"><value>暗号化は有効になっていません。</value></data>
   <data name="Chat_ShortcutNewConversation" xml:space="preserve"><value>新しい会話</value></data>
   <data name="Chat_ShortcutToggleConversationPane" xml:space="preserve"><value>会話ペインの表示/非表示を切り替え</value></data>
   <data name="Chat_ShortcutCategory" xml:space="preserve"><value>チャット</value></data>

@@ -116,7 +116,40 @@ public sealed class PageTextsAreLocalizedTests
         }
     }
 
+    [Fact]
+    public void Settings_connection_and_encryption_statuses_come_from_the_resources()
+    {
+        // The Test Connection buttons and the database encryption switch reported "Testing...",
+        // "Connected" or "Encryption is not enabled." in English in every language.
+        var viewModel = ReadViewModel("SettingsViewModel.cs");
+
+        var assignments = Regex.Matches(
+            viewModel, @"\b\w*(?:ConnectionStatus|EncryptionStatus)\s*=(?!=)(?<value>[^;]*);");
+        assignments.Should().HaveCountGreaterThan(20, "the scan must find the status assignments");
+        foreach (Match assignment in assignments)
+        {
+            Regex.Replace(assignment.Groups["value"].Value, @"GetString\(""\w+""", "GetString(")
+                .Should().NotContain("\"", "{0} must read its text from the localization service", assignment.Value.Trim());
+        }
+
+        // The English statuses read as they did.
+        var english = ReswLocalization.For("en-US");
+        english.GetString("Settings_OllamaInvalidEndpoint").Should().Be("Invalid endpoint (use http://host:port)");
+        english.GetString("Settings_ConnectionTesting").Should().Be("Testing...");
+        english.GetString("Settings_ConnectionConnected").Should().Be("Connected");
+        english.GetString("Settings_ConnectionNotReachable").Should().Be("Not reachable");
+        english.GetString("Settings_ConnectionAuthFailed").Should().Be("Authentication failed");
+        english.GetString("Settings_ConnectionApiKeyRequired").Should().Be("API key required");
+        english.GetString("Settings_ConnectionError", "timeout").Should().Be("Error: timeout");
+        english.GetString("Settings_EncryptionOff").Should().Be("Encryption is not enabled.");
+        english.GetString("Settings_EncryptionFailed", "Disk full.")
+            .Should().Be("Encryption failed: Disk full. Your database was left unencrypted.");
+    }
+
     [Theory]
+    [InlineData("Settings_ConnectionError")]
+    [InlineData("Settings_EncryptionReopenFailed")]
+    [InlineData("Settings_EncryptionFailed")]
     [InlineData("Export_ConversationsSavedOne")]
     [InlineData("Export_ConversationsSavedMany")]
     [InlineData("Export_CollectionSaved")]
@@ -224,6 +257,9 @@ public sealed class PageTextsAreLocalizedTests
 
     private static string ReadView(string fileName) =>
         File.ReadAllText(Path.Combine(ResolveSourceRoot(), "AgentX.App", "Views", fileName));
+
+    private static string ReadViewModel(string fileName) =>
+        File.ReadAllText(Path.Combine(ResolveSourceRoot(), "AgentX.App", "ViewModels", fileName));
 
     private static string ResolveSourceRoot()
     {

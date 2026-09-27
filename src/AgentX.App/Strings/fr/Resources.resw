@@ -1235,6 +1235,21 @@
   <data name="Dash_PrivacyDetailSearXng" xml:space="preserve"><value>Lorsque le mode recherche est activé dans le chat, vos questions sont envoyées à l'instance SearXNG à l'adresse {0}, qui les transmet à des moteurs de recherche publics.</value></data>
   <data name="Dash_PrivacyDetailCalendarSync" xml:space="preserve"><value>La synchronisation du calendrier échange des données avec votre compte Google ou Microsoft connecté.</value></data>
   <data name="Dash_PrivacyDetailEmailSync" xml:space="preserve"><value>La synchronisation des e-mails échange des données avec votre compte Gmail ou Outlook connecté.</value></data>
+  <data name="Settings_OllamaInvalidEndpoint" xml:space="preserve"><value>Point de terminaison non valide (utilisez http://host:port)</value></data>
+  <data name="Settings_ConnectionTesting" xml:space="preserve"><value>Test en cours...</value></data>
+  <data name="Settings_ConnectionConnected" xml:space="preserve"><value>Connecté</value></data>
+  <data name="Settings_ConnectionNotReachable" xml:space="preserve"><value>Injoignable</value></data>
+  <data name="Settings_ConnectionAuthFailed" xml:space="preserve"><value>Échec de l'authentification</value></data>
+  <data name="Settings_ConnectionApiKeyRequired" xml:space="preserve"><value>Clé API requise</value></data>
+  <data name="Settings_ConnectionError" xml:space="preserve"><value>Erreur : {0}</value></data>
+  <data name="Settings_EncryptionTurnOffUnsupported" xml:space="preserve"><value>La désactivation du chiffrement n'est pas prise en charge. Votre base de données reste chiffrée.</value></data>
+  <data name="Settings_EncryptionUnavailable" xml:space="preserve"><value>Le chiffrement de la base de données n'est pas disponible dans cette version.</value></data>
+  <data name="Settings_EncryptionEncrypting" xml:space="preserve"><value>Chiffrement en cours...</value></data>
+  <data name="Settings_EncryptionOnWindowsKey" xml:space="preserve"><value>La base de données est chiffrée. La clé est gérée automatiquement et liée à votre compte d'utilisateur Windows.</value></data>
+  <data name="Settings_EncryptionOnPassphrase" xml:space="preserve"><value>La base de données est chiffrée avec votre phrase secrète. Elle vous sera demandée au prochain lancement.</value></data>
+  <data name="Settings_EncryptionReopenFailed" xml:space="preserve"><value>Le chiffrement a été appliqué, mais la base de données n'a pas pu être rouverte : {0} Redémarrez Agent-X.</value></data>
+  <data name="Settings_EncryptionFailed" xml:space="preserve"><value>Échec du chiffrement : {0} Votre base de données n'a pas été chiffrée.</value></data>
+  <data name="Settings_EncryptionOff" xml:space="preserve"><value>Le chiffrement n'est pas activé.</value></data>
   <data name="Chat_ShortcutNewConversation" xml:space="preserve"><value>Nouvelle conversation</value></data>
   <data name="Chat_ShortcutToggleConversationPane" xml:space="preserve"><value>Afficher ou masquer le volet des conversations</value></data>
   <data name="Chat_ShortcutCategory" xml:space="preserve"><value>Chat</value></data>

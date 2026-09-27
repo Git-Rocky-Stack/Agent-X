@@ -1235,6 +1235,21 @@
   <data name="Dash_PrivacyDetailSearXng" xml:space="preserve"><value>Cuando el modo investigación está activado en el chat, sus preguntas se envían a la instancia de SearXNG en {0}, que las reenvía a buscadores públicos.</value></data>
   <data name="Dash_PrivacyDetailCalendarSync" xml:space="preserve"><value>La sincronización de calendario intercambia datos con su cuenta de Google o Microsoft conectada.</value></data>
   <data name="Dash_PrivacyDetailEmailSync" xml:space="preserve"><value>La sincronización de correo intercambia datos con su cuenta de Gmail u Outlook conectada.</value></data>
+  <data name="Settings_OllamaInvalidEndpoint" xml:space="preserve"><value>Endpoint no válido (use http://host:port)</value></data>
+  <data name="Settings_ConnectionTesting" xml:space="preserve"><value>Probando...</value></data>
+  <data name="Settings_ConnectionConnected" xml:space="preserve"><value>Conectado</value></data>
+  <data name="Settings_ConnectionNotReachable" xml:space="preserve"><value>No accesible</value></data>
+  <data name="Settings_ConnectionAuthFailed" xml:space="preserve"><value>Error de autenticación</value></data>
+  <data name="Settings_ConnectionApiKeyRequired" xml:space="preserve"><value>Se requiere una clave de API</value></data>
+  <data name="Settings_ConnectionError" xml:space="preserve"><value>Error: {0}</value></data>
+  <data name="Settings_EncryptionTurnOffUnsupported" xml:space="preserve"><value>No se admite desactivar el cifrado. Su base de datos sigue cifrada.</value></data>
+  <data name="Settings_EncryptionUnavailable" xml:space="preserve"><value>El cifrado de la base de datos no está disponible en esta compilación.</value></data>
+  <data name="Settings_EncryptionEncrypting" xml:space="preserve"><value>Cifrando...</value></data>
+  <data name="Settings_EncryptionOnWindowsKey" xml:space="preserve"><value>La base de datos está cifrada. La clave se gestiona automáticamente y está vinculada a su cuenta de usuario de Windows.</value></data>
+  <data name="Settings_EncryptionOnPassphrase" xml:space="preserve"><value>La base de datos está cifrada con su frase de contraseña. Se le pedirá en el próximo inicio.</value></data>
+  <data name="Settings_EncryptionReopenFailed" xml:space="preserve"><value>Se aplicó el cifrado, pero no se pudo volver a abrir la base de datos: {0} Reinicie Agent-X.</value></data>
+  <data name="Settings_EncryptionFailed" xml:space="preserve"><value>Error al cifrar: {0} Su base de datos sigue sin cifrar.</value></data>
+  <data name="Settings_EncryptionOff" xml:space="preserve"><value>El cifrado no está activado.</value></data>
   <data name="Chat_ShortcutNewConversation" xml:space="preserve"><value>Nueva conversación</value></data>
   <data name="Chat_ShortcutToggleConversationPane" xml:space="preserve"><value>Mostrar u ocultar el panel de conversaciones</value></data>
   <data name="Chat_ShortcutCategory" xml:space="preserve"><value>Chat</value></data>

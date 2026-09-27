@@ -1574,6 +1574,21 @@
   <data name="Dash_PrivacyDetailSearXng" xml:space="preserve"><value>When Research Mode is on in chat, your questions are sent to the SearXNG instance at {0}, which forwards them to public search engines.</value></data>
   <data name="Dash_PrivacyDetailCalendarSync" xml:space="preserve"><value>Calendar sync exchanges data with your connected Google or Microsoft account.</value></data>
   <data name="Dash_PrivacyDetailEmailSync" xml:space="preserve"><value>Email sync exchanges data with your connected Gmail or Outlook account.</value></data>
+  <data name="Settings_OllamaInvalidEndpoint" xml:space="preserve"><value>Invalid endpoint (use http://host:port)</value></data>
+  <data name="Settings_ConnectionTesting" xml:space="preserve"><value>Testing...</value></data>
+  <data name="Settings_ConnectionConnected" xml:space="preserve"><value>Connected</value></data>
+  <data name="Settings_ConnectionNotReachable" xml:space="preserve"><value>Not reachable</value></data>
+  <data name="Settings_ConnectionAuthFailed" xml:space="preserve"><value>Authentication failed</value></data>
+  <data name="Settings_ConnectionApiKeyRequired" xml:space="preserve"><value>API key required</value></data>
+  <data name="Settings_ConnectionError" xml:space="preserve"><value>Error: {0}</value></data>
+  <data name="Settings_EncryptionTurnOffUnsupported" xml:space="preserve"><value>Turning encryption off is not supported. Your database stays encrypted.</value></data>
+  <data name="Settings_EncryptionUnavailable" xml:space="preserve"><value>Database encryption is not available in this build.</value></data>
+  <data name="Settings_EncryptionEncrypting" xml:space="preserve"><value>Encrypting...</value></data>
+  <data name="Settings_EncryptionOnWindowsKey" xml:space="preserve"><value>Encrypted. The key is managed automatically and tied to your Windows user account.</value></data>
+  <data name="Settings_EncryptionOnPassphrase" xml:space="preserve"><value>Encrypted with your passphrase. You'll be prompted on next launch.</value></data>
+  <data name="Settings_EncryptionReopenFailed" xml:space="preserve"><value>Encryption was applied, but the database could not be reopened: {0} Restart Agent-X.</value></data>
+  <data name="Settings_EncryptionFailed" xml:space="preserve"><value>Encryption failed: {0} Your database was left unencrypted.</value></data>
+  <data name="Settings_EncryptionOff" xml:space="preserve"><value>Encryption is not enabled.</value></data>
   <data name="Chat_ShortcutNewConversation" xml:space="preserve"><value>New conversation</value></data>
   <data name="Chat_ShortcutToggleConversationPane" xml:space="preserve"><value>Toggle conversation pane</value></data>
   <data name="Chat_ShortcutCategory" xml:space="preserve"><value>Chat</value></data>
