@@ -1007,7 +1007,7 @@ Each synced event or message is added to the Smart Inbox as an already-accepted 
 
 ## 26. Annotations
 
-Annotations capture highlights and notes connected to documents.
+Annotations capture highlights and notes connected to documents. Nothing in this version creates them (the vault preview has no highlighting, and no other page saves a selection), so the page shows only annotations that already exist, for example ones that arrived through Collaborative Sync.
 
 ### Annotation fields
 
@@ -1022,10 +1022,10 @@ Annotations capture highlights and notes connected to documents.
 - Search annotations.
 - Filter by color.
 - Edit note text and color.
-- Delete annotations.
-- Export annotations as Markdown.
+- Delete annotations (at once, without a confirmation).
+- Export all annotations as Markdown.
 
-Annotations are useful for turning reading notes into searchable project evidence.
+Annotations are not shown inside documents, do not affect Ask Your Files or search ranking, and are not part of the Weekly Digest or the Knowledge Graph.
 
 ---
 

@@ -499,16 +499,16 @@
   <data name="UserGuide_PerformanceTuning_Local_Title.Text" xml:space="preserve"><value>ローカル モデルのチューニング</value></data>
   <data name="UserGuide_PerformanceTuning_Local.Text" xml:space="preserve"><value>Ollama の場合: より小さい量子化(Q4_K_M)は Q8_0 より VRAM 使用量が ~50% 少なく、品質低下は通常 2〜5% — 多くの場合これが正しい妥協点です。Q&amp;A 用途ではコンテキスト長を 4K に制限し、長文 RAG では 8K〜16K のままに。GPU レイヤー オフロード(num_gpu)を CPU へのスピルが起きる直前まで最大化します。スイート スポットはスピル点の 1〜2 レイヤー下です。埋め込みでは all-minilm が mxbai-embed-large より 10 倍速く、多くのワークロードで取得品質は同等 — 大きいモデルを特に要する理由がない限りこれを使用します。スループットは Operations にログされます。理論的なモデル ランキングではなく、トークン/秒を追いかけてください。</value></data>
   <data name="UserGuide_Annotations_Title.Text" xml:space="preserve"><value>注釈とハイライト</value></data>
-  <data name="UserGuide_Annotations_Description.Text" xml:space="preserve"><value>注釈は Knowledge Vault を「保存する場所」から「考える場所」に変えます。読みながら箇所をハイライトし、メモとタグを添え、ドキュメント間で注釈をリンクし、それらを一級の検索結果、RAG コンテキスト、ダイジェスト素材として浮上させます。各注釈は正確なソース範囲に紐付き — 色、コメント、相互参照はドキュメントの再インデックスやエクスポートを越えて存続します。</value></data>
-  <data name="UserGuide_Annotations_Creating_Title.Text" xml:space="preserve"><value>注釈の作成</value></data>
-  <data name="UserGuide_Annotations_Create1.Text" xml:space="preserve"><value>読みながらハイライト — Vault プレビュー ペインで任意のドキュメントを開き、テキストを選択し、色を選びます(黄/緑/青/ピンク/紫)。各色には設定で意味を割り当てられます(例: 黄=「重要主張」、ピンク=「要検証」、緑=「同意」)。</value></data>
-  <data name="UserGuide_Annotations_Create2.Text" xml:space="preserve"><value>メモとタグを追加 — 任意のハイライトに自由形式のメモを付け、タグを追加してドキュメント間で注釈を検索可能にします。メモは Markdown をサポートし、他のドキュメント、会話、別の注釈への埋め込みリンクも使えます。</value></data>
-  <data name="UserGuide_Annotations_Create3.Text" xml:space="preserve"><value>どこからでもキャプチャ — AI Chat の引用、Web 検索結果、ブラウザー拡張、Quick Action の出力からの選択をワンクリックでソース ドキュメントの注釈として保存します。</value></data>
+  <data name="UserGuide_Annotations_Description.Text" xml:space="preserve"><value>注釈ページには、Vault のドキュメントに付けられたハイライトとメモが一覧表示されます。このバージョンでは、アプリ内で注釈を作成する手段はありません。Vault のプレビューにはハイライト機能がなく、チャット、Web 検索、ブラウザー拡張機能、Quick Actions でも選択範囲を保存できません。このページには既存の注釈 (Collaborative Sync で取り込まれたものなど) が表示され、検索、編集、削除、エクスポートができます。</value></data>
+  <data name="UserGuide_Annotations_Creating_Title.Text" xml:space="preserve"><value>注釈の操作</value></data>
+  <data name="UserGuide_Annotations_Create1.Text" xml:space="preserve"><value>検索と絞り込み：検索ボックスに入力すると、ハイライトしたテキストかメモにその語句を含む注釈が見つかります。[色でフィルター] で色を選ぶこともでき、「分布」には色ごとの注釈の数が表示されます。</value></data>
+  <data name="UserGuide_Annotations_Create2.Text" xml:space="preserve"><value>編集と削除：注釈を編集すると、メモと色を変更できます。削除すると確認なしですぐに消えます。タグ、メモ内の Markdown、注釈どうしのリンクには対応していません。</value></data>
+  <data name="UserGuide_Annotations_Create3.Text" xml:space="preserve"><value>エクスポート：[Markdown としてエクスポート] で、すべての注釈を名前を付けた Markdown ファイルに保存します。</value></data>
   <data name="UserGuide_Annotations_Surfacing_Title.Text" xml:space="preserve"><value>注釈の表示場所</value></data>
-  <data name="UserGuide_Annotations_Surface1.Text" xml:space="preserve"><value>Annotations ページ — Vault 全体のすべてのハイライトとメモを一覧する専用ワークスペース。ドキュメント、色、タグ、日付、フリーテキスト検索でフィルター可能。レビューや移行のため Markdown へ一括エクスポート。</value></data>
-  <data name="UserGuide_Annotations_Surface2.Text" xml:space="preserve"><value>ソース ドキュメント内インライン — ドキュメントを再オープンすると、すべての注釈がインラインで表示されます。ガター マークをクリックすると関連メモが開きます。同じビューを PDF へエクスポートして、注釈付きドキュメントを外部共有できます。</value></data>
-  <data name="UserGuide_Annotations_Surface3.Text" xml:space="preserve"><value>RAG コンテキスト ブースト — 根拠ある質問では、注釈済みの箇所は取得時により高く重み付けされます。モデルは「ユーザーがこれらの箇所を重要と印した」と伝えられるため、注釈の多いドキュメントでは回答品質の差が見えます。</value></data>
-  <data name="UserGuide_Annotations_Surface4.Text" xml:space="preserve"><value>週次ダイジェストと Insights — 注釈済みの箇所とメモは「今週マークした内容」セクションとして週次ダイジェストに流れ込み、insight 検出とナレッジ グラフのエッジ重み付けに貢献します。</value></data>
+  <data name="UserGuide_Annotations_Surface1.Text" xml:space="preserve"><value>注釈ページ：注釈が表示される唯一の場所です。各項目には、ドキュメント名、ハイライトしたテキスト、メモ、色が表示されます。</value></data>
+  <data name="UserGuide_Annotations_Surface2.Text" xml:space="preserve"><value>ドキュメント内には表示されない：Vault のプレビューにハイライトは表示されず、注釈付きドキュメントを PDF にエクスポートする機能もありません。</value></data>
+  <data name="UserGuide_Annotations_Surface3.Text" xml:space="preserve"><value>回答には使われない：「ファイルに質問する」と AI Chat は、注釈の付いた箇所を重視したりモデルに示したりしません。</value></data>
+  <data name="UserGuide_Annotations_Surface4.Text" xml:space="preserve"><value>インサイトのみ：注釈サービスで作成された注釈はインサイトになります (「Insight の収集」を参照)。注釈は週次ダイジェストやナレッジ グラフには含まれません。</value></data>
   <data name="UserGuide_AudioTranscription_Title.Text" xml:space="preserve"><value>音声文字起こし</value></data>
   <data name="UserGuide_AudioTranscription_Description.Text" xml:space="preserve"><value>Agent-X はローカルの Whisper モデルを使い、お使いのコンピューター上で音声を文字起こしします。音声ファイル (WAV、MP3、M4A、FLAC、OGG、WebM) を Knowledge Vault ページにドロップすると、それぞれがタイムスタンプ付きのトランスクリプトとしてインポートされ、セマンティック検索、ファイルに質問する、Quick Actions、ワークフローで他のドキュメントと同じように使えます。AI Chat では、マイク ボタンで話した内容をメッセージ ボックスにテキストとして入力できます。</value></data>
   <data name="UserGuide_AudioTranscription_HowItWorks_Title.Text" xml:space="preserve"><value>文字起こしの仕組み</value></data>

@@ -499,16 +499,16 @@
   <data name="UserGuide_PerformanceTuning_Local_Title.Text" xml:space="preserve"><value>本地模型调优</value></data>
   <data name="UserGuide_PerformanceTuning_Local.Text" xml:space="preserve"><value>对于 Ollama:更小的量化(Q4_K_M)比 Q8_0 少用约 50% 显存,质量下降通常 2–5%——多数情况下是正确权衡。问答工作负载将上下文长度限制在 4K,长文档 RAG 则保留 8K–16K。把 GPU 层卸载(num_gpu)最大化直到刚要溢到 CPU 为止;甜点在溢出点下方 1–2 层。嵌入方面,在多数工作负载下 all-minilm 比 mxbai-embed-large 快 10 倍且检索质量相当——若无特别理由,使用前者。吞吐量记录在 Operations 中;追逐 token/秒,而非理论上的模型排名。</value></data>
   <data name="UserGuide_Annotations_Title.Text" xml:space="preserve"><value>注释与高亮</value></data>
-  <data name="UserGuide_Annotations_Description.Text" xml:space="preserve"><value>注释把 Knowledge Vault 从存储之地变成思考之地。阅读时高亮片段、附加笔记与标签、跨文档关联注释,并把它们作为一等公民的搜索结果、RAG 上下文与摘要素材浮现出来。每条注释都锚定到精确的来源范围——颜色、批注与交叉引用经得起文档重建索引与导出。</value></data>
-  <data name="UserGuide_Annotations_Creating_Title.Text" xml:space="preserve"><value>创建注释</value></data>
-  <data name="UserGuide_Annotations_Create1.Text" xml:space="preserve"><value>阅读时高亮 — 在 Vault 预览窗格中打开任意文档,选中文本并选择颜色(黄/绿/蓝/粉/紫)。每种颜色可在“设置”中赋予含义(例如:黄=“关键论断”、粉=“需核实”、绿=“同意”)。</value></data>
-  <data name="UserGuide_Annotations_Create2.Text" xml:space="preserve"><value>添加笔记与标签 — 给任何高亮附加自由格式笔记;添加标签使注释在文档间可搜索。笔记支持 Markdown,包括指向其他文档、会话或其他注释的内嵌链接。</value></data>
-  <data name="UserGuide_Annotations_Create3.Text" xml:space="preserve"><value>从任意位置捕获 — 一键把 AI Chat 引用、网页搜索结果、浏览器扩展与 Quick Action 输出中的选区,作为对源文档的注释保存。</value></data>
+  <data name="UserGuide_Annotations_Description.Text" xml:space="preserve"><value>注释页面列出附加在 Vault 文档上的高亮和备注。在此版本中，应用内没有任何功能可以创建注释：Vault 预览不支持高亮，聊天、网页搜索、浏览器扩展和 Quick Actions 也无法保存所选内容。该页面显示已经存在的注释（例如通过 Collaborative Sync 同步来的注释），并支持搜索、编辑、删除和导出。</value></data>
+  <data name="UserGuide_Annotations_Creating_Title.Text" xml:space="preserve"><value>使用注释</value></data>
+  <data name="UserGuide_Annotations_Create1.Text" xml:space="preserve"><value>搜索与筛选：在搜索框中输入内容，即可找到高亮文本或备注中包含这些词语的注释；也可以在“按颜色筛选”中选择颜色，“分布”会显示每种颜色的注释数量。</value></data>
+  <data name="UserGuide_Annotations_Create2.Text" xml:space="preserve"><value>编辑与删除：编辑注释可以更改其备注和颜色。删除会立即生效，不会先确认。不支持标签、备注中的 Markdown 以及注释之间的链接。</value></data>
+  <data name="UserGuide_Annotations_Create3.Text" xml:space="preserve"><value>导出：“导出为 Markdown”会将所有注释保存到您命名的 Markdown 文件中。</value></data>
   <data name="UserGuide_Annotations_Surfacing_Title.Text" xml:space="preserve"><value>注释出现的位置</value></data>
-  <data name="UserGuide_Annotations_Surface1.Text" xml:space="preserve"><value>注释页 — 一个专门工作区,列出整个 Vault 中的每条高亮与笔记,可按文档、颜色、标签、日期与自由文本筛选。可批量导出为 Markdown,便于审阅或迁移。</value></data>
-  <data name="UserGuide_Annotations_Surface2.Text" xml:space="preserve"><value>源文档内内联 — 重新打开文档时,所有注释都会以内联方式可见;点击页边标记会打开关联笔记。同一视图可导出为 PDF,便于对外分享带注释的文档。</value></data>
-  <data name="UserGuide_Annotations_Surface3.Text" xml:space="preserve"><value>RAG 上下文加权 — 进行有据问答时,被注释的片段在检索阶段被加权;模型被告知“用户已将这些片段标为重要”——在重度注释文档上,答案质量差异肉眼可见。</value></data>
-  <data name="UserGuide_Annotations_Surface4.Text" xml:space="preserve"><value>周报与 Insights — 被注释的片段与您的笔记会进入“本周您标记的内容”章节并融入 Weekly Digest,同时参与 insight 检测与知识图谱边权重计算。</value></data>
+  <data name="UserGuide_Annotations_Surface1.Text" xml:space="preserve"><value>注释页面：注释唯一显示的地方。每个条目显示文档名称、高亮文本、备注和颜色。</value></data>
+  <data name="UserGuide_Annotations_Surface2.Text" xml:space="preserve"><value>不会显示在文档中：Vault 预览不显示高亮，也无法将带注释的文档导出为 PDF。</value></data>
+  <data name="UserGuide_Annotations_Surface3.Text" xml:space="preserve"><value>不会用于回答：“向您的文件提问”和 AI Chat 不会提高带注释段落的权重，也不会向模型特别指出它们。</value></data>
+  <data name="UserGuide_Annotations_Surface4.Text" xml:space="preserve"><value>仅作为洞见：通过注释服务创建的注释会成为洞见（参见“洞见采集”）。注释不会出现在每周摘要或知识图谱中。</value></data>
   <data name="UserGuide_AudioTranscription_Title.Text" xml:space="preserve"><value>音频转录</value></data>
   <data name="UserGuide_AudioTranscription_Description.Text" xml:space="preserve"><value>Agent-X 使用本地 Whisper 模型，在您自己的计算机上将语音转录为文本。将音频文件（WAV、MP3、M4A、FLAC、OGG、WebM）拖放到 Knowledge Vault 页面，每个文件都会作为带时间戳的转录文本导入，语义搜索、向您的文件提问、Quick Actions 和工作流都能像使用其他文档一样使用它。在 AI Chat 中，麦克风按钮可将语音转换为消息框中的文字。</value></data>
   <data name="UserGuide_AudioTranscription_HowItWorks_Title.Text" xml:space="preserve"><value>转录的工作方式</value></data>
