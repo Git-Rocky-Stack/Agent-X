@@ -15,6 +15,13 @@ namespace AgentX.Core.Services.TemporalIdentity;
 /// Mines the user's conversational and document interaction history to build
 /// a temporal model of their evolving beliefs, insights, and voice.
 /// </summary>
+/// <remarks>
+/// The context is the app-wide one, and the chat calls this service from background work after
+/// every reply. EF operations on it are serialized, but its change tracker is not safe to mutate
+/// from two threads at once. So reads here do not track, updates run as <c>ExecuteUpdate</c>
+/// statements, and each new row is saved in a short gated section and detached again: nothing
+/// this service writes stays in the shared tracker for another flow to trip over.
+/// </remarks>
 public class TemporalIdentityService : ITemporalIdentityService
 {
     private readonly AgentXDbContext _db;
@@ -29,8 +36,10 @@ public class TemporalIdentityService : ITemporalIdentityService
     public async Task ProcessMessageAsync(long messageId, CancellationToken ct = default)
     {
         var message = await _db.Messages
-            .Include(m => m.Conversation)
-            .FirstOrDefaultAsync(m => m.Id == messageId, ct);
+            .AsNoTracking()
+            .Where(m => m.Id == messageId)
+            .Select(m => new { m.Role, m.Content })
+            .FirstOrDefaultAsync(ct);
 
         if (message == null || message.Role != "user") return;
 
@@ -39,67 +48,95 @@ public class TemporalIdentityService : ITemporalIdentityService
 
         foreach (var topic in topicAnalysis.Topics)
         {
-            var now = DateTime.UtcNow;
-            var existing = await _db.Set<TemporalBeliefEntity>()
-                .FirstOrDefaultAsync(b => b.Topic == topic, ct);
-
-            if (existing == null)
+            // A topic is unique, so a concurrent pass may insert it first; the second attempt
+            // then finds the row and updates it instead.
+            for (var attempt = 0; ; attempt++)
             {
-                existing = new TemporalBeliefEntity
+                try
                 {
-                    Topic = topic,
-                    FirstDetectedAt = now,
-                    // Left at DateTime.MinValue before, so GetActiveTopicsAsync (which filters on
-                    // LastObservedAt) never listed a belief seen only once.
-                    LastObservedAt = now,
-                    SentimentScore = topicAnalysis.Sentiment,
-                    ConfidenceLevel = topicAnalysis.Confidence,
-                    CurrentStance = SummarizeStance(message.Content, topic),
-                    EvidenceJson = JsonSerializer.Serialize(new[]
-                    {
-                        new { type = "message", id = messageId, excerpt = GetExcerpt(message.Content, topic) }
-                    }),
-                };
-                _db.Set<TemporalBeliefEntity>().Add(existing);
-            }
-            else
-            {
-                var newStance = SummarizeStance(message.Content, topic);
-
-                // Check for belief evolution
-                var sentimentDelta = Math.Abs(existing.SentimentScore - topicAnalysis.Sentiment);
-                if (sentimentDelta > 0.5) // Significant shift
-                {
-                    // Record the change so the dashboard can show "you believed X, now Y" and
-                    // GetPastSelfAsync can answer with the stance held before it. Nothing
-                    // created conflict rows before, so both always came back empty.
-                    _db.Set<BeliefConflictEntity>().Add(new BeliefConflictEntity
-                    {
-                        Belief = existing,
-                        DetectedAt = now,
-                        PreviousStance = existing.CurrentStance,
-                        CurrentStance = newStance,
-                        PreviousStancePeriod = existing.StanceChangedAt ?? existing.FirstDetectedAt,
-                        StanceChangedAt = now,
-                        ConflictMagnitude = sentimentDelta,
-                    });
-
-                    existing.HasEvolved = true;
-                    existing.PreviousStance = string.Create(
-                        CultureInfo.InvariantCulture, $"{existing.SentimentScore:F2}: {existing.CurrentStance}");
-                    existing.StanceChangedAt = now;
+                    await ObserveBeliefAsync(messageId, message.Content, topic, topicAnalysis, ct);
+                    break;
                 }
-
-                existing.LastObservedAt = now;
-                existing.SentimentScore = (existing.SentimentScore * 0.7) + (topicAnalysis.Sentiment * 0.3); // EMA
-                existing.ConfidenceLevel = Math.Min(1.0, existing.ConfidenceLevel + 0.05);
-                existing.CurrentStance = newStance;
+                catch (DbUpdateException) when (attempt == 0)
+                {
+                }
             }
+        }
+    }
 
-            existing.UpdatedAt = now;
+    private async Task ObserveBeliefAsync(
+        long messageId, string content, string topic, BeliefAnalysis analysis, CancellationToken ct)
+    {
+        var now = DateTime.UtcNow;
+        var existing = await _db.Set<TemporalBeliefEntity>()
+            .AsNoTracking()
+            .FirstOrDefaultAsync(b => b.Topic == topic, ct);
+
+        if (existing == null)
+        {
+            await InsertAsync(new TemporalBeliefEntity
+            {
+                Topic = topic,
+                FirstDetectedAt = now,
+                // Left at DateTime.MinValue before, so GetActiveTopicsAsync (which filters on
+                // LastObservedAt) never listed a belief seen only once.
+                LastObservedAt = now,
+                UpdatedAt = now,
+                SentimentScore = analysis.Sentiment,
+                ConfidenceLevel = analysis.Confidence,
+                CurrentStance = SummarizeStance(content, topic),
+                EvidenceJson = JsonSerializer.Serialize(new[]
+                {
+                    new { type = "message", id = messageId, excerpt = GetExcerpt(content, topic) }
+                }),
+            }, ct);
+            return;
         }
 
-        await _db.SaveChangesAsync(ct);
+        var newStance = SummarizeStance(content, topic);
+        var hasEvolved = existing.HasEvolved;
+        var previousStance = existing.PreviousStance;
+        var stanceChangedAt = existing.StanceChangedAt;
+
+        // Check for belief evolution
+        var sentimentDelta = Math.Abs(existing.SentimentScore - analysis.Sentiment);
+        if (sentimentDelta > 0.5) // Significant shift
+        {
+            // Record the change so the dashboard can show "you believed X, now Y" and
+            // GetPastSelfAsync can answer with the stance held before it. Nothing
+            // created conflict rows before, so both always came back empty.
+            await InsertAsync(new BeliefConflictEntity
+            {
+                BeliefId = existing.Id,
+                Topic = topic,
+                DetectedAt = now,
+                PreviousStance = existing.CurrentStance,
+                CurrentStance = newStance,
+                PreviousStancePeriod = existing.StanceChangedAt ?? existing.FirstDetectedAt,
+                StanceChangedAt = now,
+                ConflictMagnitude = sentimentDelta,
+            }, ct);
+
+            hasEvolved = true;
+            previousStance = string.Create(
+                CultureInfo.InvariantCulture, $"{existing.SentimentScore:F2}: {existing.CurrentStance}");
+            stanceChangedAt = now;
+        }
+
+        var sentiment = (existing.SentimentScore * 0.7) + (analysis.Sentiment * 0.3); // EMA
+        var confidence = Math.Min(1.0, existing.ConfidenceLevel + 0.05);
+
+        await _db.Set<TemporalBeliefEntity>()
+            .Where(b => b.Id == existing.Id)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(b => b.HasEvolved, hasEvolved)
+                .SetProperty(b => b.PreviousStance, previousStance)
+                .SetProperty(b => b.StanceChangedAt, stanceChangedAt)
+                .SetProperty(b => b.LastObservedAt, now)
+                .SetProperty(b => b.SentimentScore, sentiment)
+                .SetProperty(b => b.ConfidenceLevel, confidence)
+                .SetProperty(b => b.CurrentStance, newStance)
+                .SetProperty(b => b.UpdatedAt, now), ct);
     }
 
     public async Task<PastSelfResponse?> GetPastSelfAsync(
@@ -108,6 +145,7 @@ public class TemporalIdentityService : ITemporalIdentityService
         CancellationToken ct = default)
     {
         var belief = await _db.Set<TemporalBeliefEntity>()
+            .AsNoTracking()
             .FirstOrDefaultAsync(b => b.Topic == topic, ct);
 
         if (belief == null) return null;
@@ -134,6 +172,7 @@ public class TemporalIdentityService : ITemporalIdentityService
     {
         // Include the belief: the dashboard shows Belief.Topic and fell back to "Unknown Topic".
         return await _db.Set<BeliefConflictEntity>()
+            .AsNoTracking()
             .Include(c => c.Belief)
             .Where(c => !c.HasBeenAcknowledged)
             .OrderByDescending(c => c.ConflictMagnitude)
@@ -142,18 +181,20 @@ public class TemporalIdentityService : ITemporalIdentityService
 
     public async Task<bool> AcknowledgeConflictAsync(long conflictId, CancellationToken ct = default)
     {
-        var conflict = await _db.Set<BeliefConflictEntity>()
-            .FirstOrDefaultAsync(c => c.Id == conflictId, ct);
+        var exists = await _db.Set<BeliefConflictEntity>()
+            .AsNoTracking()
+            .AnyAsync(c => c.Id == conflictId, ct);
 
-        if (conflict is null) return false;
+        if (!exists) return false;
 
         // Idempotent: only write on the first acknowledgement so the original timestamp stands.
-        if (!conflict.HasBeenAcknowledged)
-        {
-            conflict.HasBeenAcknowledged = true;
-            conflict.AcknowledgedAt = DateTime.UtcNow;
-            await _db.SaveChangesAsync(ct);
-        }
+        var now = DateTime.UtcNow;
+        await _db.Set<BeliefConflictEntity>()
+            .Where(c => c.Id == conflictId && !c.HasBeenAcknowledged)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(c => c.HasBeenAcknowledged, true)
+                .SetProperty(c => c.AcknowledgedAt, now)
+                .SetProperty(c => c.UpdatedAt, now), ct);
 
         return true;
     }
@@ -180,8 +221,7 @@ public class TemporalIdentityService : ITemporalIdentityService
             RelatedTopicsJson = JsonSerializer.Serialize(new[] { topic }),
         };
 
-        _db.Set<InsightMomentEntity>().Add(insightMoment);
-        await _db.SaveChangesAsync(ct);
+        await InsertAsync(insightMoment, ct);
     }
 
     public async Task<List<ResurfacedInsight>> GetRelevantInsightsAsync(
@@ -189,6 +229,7 @@ public class TemporalIdentityService : ITemporalIdentityService
         CancellationToken ct = default)
     {
         var allInsights = await _db.Set<InsightMomentEntity>()
+            .AsNoTracking()
             .Where(i => i.SignificanceScore > 0.5)
             .OrderByDescending(i => i.SignificanceScore)
             .ToListAsync(ct);
@@ -226,41 +267,57 @@ public class TemporalIdentityService : ITemporalIdentityService
         int secondsSpent,
         CancellationToken ct = default)
     {
-        var existing = await _db.Set<EngagementMetricsEntity>()
-            .FirstOrDefaultAsync(e => e.TargetType == targetType && e.TargetId == targetId, ct);
+        // One row per target (a unique index): add to it when it exists, otherwise create it. A
+        // concurrent first engagement can win the insert, in which case this one is added to it.
+        if (await AddToEngagementAsync(targetType, targetId, secondsSpent, ct) > 0)
+            return;
 
-        if (existing == null)
+        var now = DateTime.UtcNow;
+        try
         {
-            var now = DateTime.UtcNow;
-            existing = new EngagementMetricsEntity
+            await InsertAsync(new EngagementMetricsEntity
             {
                 FirstEngagedAt = now,
                 // Left at DateTime.MinValue before, so GetMostEngagedContentAsync (which filters
                 // on LastEngagedAt) skipped content engaged with only once.
                 LastEngagedAt = now,
+                UpdatedAt = now,
                 TargetType = targetType,
                 TargetId = targetId,
                 TotalSecondsSpent = secondsSpent,
                 RevisitCount = 0,
                 Depth = EngagementDepth.Read,
-            };
-            _db.Set<EngagementMetricsEntity>().Add(existing);
+            }, ct);
         }
-        else
+        catch (DbUpdateException)
         {
-            existing.LastEngagedAt = DateTime.UtcNow;
-            existing.TotalSecondsSpent += secondsSpent;
-            existing.RevisitCount++;
-
-            // Auto-upgrade depth based on patterns
-            if (existing.TotalSecondsSpent > 300 && existing.RevisitCount > 2)
-                existing.Depth = EngagementDepth.Deep;
-            else if (existing.TotalSecondsSpent > 60)
-                existing.Depth = EngagementDepth.Engaged;
+            if (await AddToEngagementAsync(targetType, targetId, secondsSpent, ct) == 0)
+                throw;
         }
+    }
 
-        existing.UpdatedAt = DateTime.UtcNow;
-        await _db.SaveChangesAsync(ct);
+    /// <summary>
+    /// Adds a revisit to an existing engagement row in one statement, so concurrent visits are
+    /// all counted, and upgrades its depth from the new totals. Returns the rows updated.
+    /// </summary>
+    private Task<int> AddToEngagementAsync(
+        EngagementTargetType targetType, long targetId, int secondsSpent, CancellationToken ct)
+    {
+        var now = DateTime.UtcNow;
+        return _db.Set<EngagementMetricsEntity>()
+            .Where(e => e.TargetType == targetType && e.TargetId == targetId)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(e => e.LastEngagedAt, now)
+                .SetProperty(e => e.UpdatedAt, now)
+                .SetProperty(e => e.TotalSecondsSpent, e => e.TotalSecondsSpent + secondsSpent)
+                .SetProperty(e => e.RevisitCount, e => e.RevisitCount + 1)
+                // Auto-upgrade depth based on patterns
+                .SetProperty(e => e.Depth, e =>
+                    e.TotalSecondsSpent + secondsSpent > 300 && e.RevisitCount + 1 > 2
+                        ? EngagementDepth.Deep
+                        : e.TotalSecondsSpent + secondsSpent > 60
+                            ? EngagementDepth.Engaged
+                            : e.Depth), ct);
     }
 
     public async Task<List<EngagementMetricsEntity>> GetMostEngagedContentAsync(
@@ -270,6 +327,7 @@ public class TemporalIdentityService : ITemporalIdentityService
         CancellationToken ct = default)
     {
         return await _db.Set<EngagementMetricsEntity>()
+            .AsNoTracking()
             .Where(e => e.LastEngagedAt >= start && e.LastEngagedAt <= end)
             .OrderByDescending(e => e.TotalSecondsSpent * (int)e.Depth)
             .Take(count)
@@ -280,36 +338,51 @@ public class TemporalIdentityService : ITemporalIdentityService
 
     public async Task LearnFromMessageAsync(long messageId, CancellationToken ct = default)
     {
-        var message = await _db.Messages.FindAsync(new object[] { messageId }, ct);
+        var message = await _db.Messages
+            .AsNoTracking()
+            .Where(m => m.Id == messageId)
+            .Select(m => new { m.Role, m.Content })
+            .FirstOrDefaultAsync(ct);
         if (message == null || message.Role != "user") return;
 
-        var profile = await _db.Set<VoiceProfileEntity>().FirstOrDefaultAsync(ct);
-        if (profile == null)
+        var analysis = AnalyzeVoicePattern(message.Content);
+        var now = DateTime.UtcNow;
+
+        // Update with exponential moving average, computed in the statement so concurrent
+        // samples all count.
+        var profileId = await _db.Set<VoiceProfileEntity>()
+            .AsNoTracking()
+            .OrderBy(p => p.Id)
+            .Select(p => (long?)p.Id)
+            .FirstOrDefaultAsync(ct);
+
+        if (profileId is long id)
         {
-            profile = new VoiceProfileEntity
-            {
-                FirstSampleAt = DateTime.UtcNow,
-                SampleCount = 0,
-                AvgSentenceLength = 15,
-                FormalityScore = 0.5,
-                CharacteristicPhrasesJson = "[]",
-                SentencePatternsJson = "[]",
-                BookendsJson = "{}",
-                StylisticTraitsJson = "{}",
-            };
-            _db.Set<VoiceProfileEntity>().Add(profile);
+            await _db.Set<VoiceProfileEntity>()
+                .Where(p => p.Id == id)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(p => p.SampleCount, p => p.SampleCount + 1)
+                    .SetProperty(p => p.LastSampleAt, now)
+                    .SetProperty(p => p.UpdatedAt, now)
+                    .SetProperty(p => p.AvgSentenceLength, p => (p.AvgSentenceLength * 0.9) + (analysis.AvgSentenceLength * 0.1))
+                    .SetProperty(p => p.FormalityScore, p => (p.FormalityScore * 0.95) + (analysis.Formality * 0.05)), ct);
+            return;
         }
 
-        var analysis = AnalyzeVoicePattern(message.Content);
-
-        // Update with exponential moving average
-        profile.SampleCount++;
-        profile.LastSampleAt = DateTime.UtcNow;
-        profile.UpdatedAt = profile.LastSampleAt;
-        profile.AvgSentenceLength = (profile.AvgSentenceLength * 0.9) + (analysis.AvgSentenceLength * 0.1);
-        profile.FormalityScore = (profile.FormalityScore * 0.95) + (analysis.Formality * 0.05);
-
-        await _db.SaveChangesAsync(ct);
+        // The first sample starts from the neutral baseline (15 words, 0.5 formality).
+        await InsertAsync(new VoiceProfileEntity
+        {
+            FirstSampleAt = now,
+            LastSampleAt = now,
+            UpdatedAt = now,
+            SampleCount = 1,
+            AvgSentenceLength = (15 * 0.9) + (analysis.AvgSentenceLength * 0.1),
+            FormalityScore = (0.5 * 0.95) + (analysis.Formality * 0.05),
+            CharacteristicPhrasesJson = "[]",
+            SentencePatternsJson = "[]",
+            BookendsJson = "{}",
+            StylisticTraitsJson = "{}",
+        }, ct);
     }
 
     public async Task<string> GenerateAsUserAsync(
@@ -672,8 +745,15 @@ public class TemporalIdentityService : ITemporalIdentityService
     {
         // Annotations are strong belief indicators — user chose to highlight
         var annotation = await _db.Annotations
-            .Include(a => a.Document)
-            .FirstOrDefaultAsync(a => a.Id == annotationId, ct);
+            .AsNoTracking()
+            .Where(a => a.Id == annotationId)
+            .Select(a => new
+            {
+                a.NoteText,
+                a.HighlightedText,
+                DocumentFileName = a.Document == null ? null : a.Document.FileName,
+            })
+            .FirstOrDefaultAsync(ct);
 
         if (annotation == null) return;
 
@@ -691,9 +771,9 @@ public class TemporalIdentityService : ITemporalIdentityService
             ? annotation.NoteText
             : annotation.HighlightedText;
 
-        if (annotation.Document != null && string.IsNullOrWhiteSpace(content))
+        if (annotation.DocumentFileName != null && string.IsNullOrWhiteSpace(content))
         {
-            content = $"Annotation on document: {annotation.Document.FileName}";
+            content = $"Annotation on document: {annotation.DocumentFileName}";
         }
 
         await CaptureInsightAsync(
@@ -707,6 +787,7 @@ public class TemporalIdentityService : ITemporalIdentityService
     public async Task<TemporalBeliefEntity?> GetBeliefEvolutionAsync(string topic, CancellationToken ct = default)
     {
         return await _db.Set<TemporalBeliefEntity>()
+            .AsNoTracking()
             .FirstOrDefaultAsync(b => b.Topic == topic, ct);
     }
 
@@ -784,6 +865,7 @@ public class TemporalIdentityService : ITemporalIdentityService
     {
         // Get content with engagement metrics related to the topic
         var allMetrics = await _db.Set<EngagementMetricsEntity>()
+            .AsNoTracking()
             .Where(e => e.TopicsJson != null)
             .OrderByDescending(e => e.TotalSecondsSpent)
             .ThenByDescending(e => e.Depth)
@@ -799,7 +881,28 @@ public class TemporalIdentityService : ITemporalIdentityService
     }
 
     public Task<VoiceProfileEntity?> GetVoiceProfileAsync(CancellationToken ct = default)
-        => _db.Set<VoiceProfileEntity>().FirstOrDefaultAsync(ct);
+        => _db.Set<VoiceProfileEntity>().AsNoTracking().OrderBy(p => p.Id).FirstOrDefaultAsync(ct);
+
+    /// <summary>
+    /// Saves one new row in a short section of the shared change tracker and detaches it again.
+    /// The database gate is held throughout, so no other flow's query or save walks the tracker
+    /// while the row is in it; ConfigureAwait(false) keeps a UI caller from deadlocking against
+    /// a flow waiting on that gate.
+    /// </summary>
+    private async Task InsertAsync<TEntity>(TEntity entity, CancellationToken ct)
+        where TEntity : class
+    {
+        using var gate = _db.EnterDatabaseGate();
+        var entry = _db.Set<TEntity>().Add(entity);
+        try
+        {
+            await _db.SaveChangesAsync(ct).ConfigureAwait(false);
+        }
+        finally
+        {
+            entry.State = EntityState.Detached;
+        }
+    }
 
     // ─── Internal Types ───────────────────────────────────────────────────────────
 

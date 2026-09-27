@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text;
 using AgentX.Core.Data;
 using AgentX.Core.Data.Entities;
+using AgentX.Core.Services.TemporalIdentity;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -16,6 +17,7 @@ public class AnnotationService : IAnnotationService
 {
     private readonly AgentXDbContext _db;
     private readonly ILogger _log;
+    private readonly ITemporalIdentityService? _temporalIdentity;
 
     /// <summary>
     /// Valid colour labels accepted by the annotation system.
@@ -26,11 +28,16 @@ public class AnnotationService : IAnnotationService
             "yellow", "green", "blue", "red", "purple"
         };
 
-    public AnnotationService(AgentXDbContext db, ILogger logger)
+    /// <param name="temporalIdentity">
+    /// Optional. When supplied, every new annotation is handed to Temporal Identity, which keeps
+    /// highlights as insight moments (resolved from DI when registered).
+    /// </param>
+    public AnnotationService(AgentXDbContext db, ILogger logger, ITemporalIdentityService? temporalIdentity = null)
     {
         _db = db ?? throw new ArgumentNullException(nameof(db));
         _log = logger?.ForContext<AnnotationService>()
                ?? throw new ArgumentNullException(nameof(logger));
+        _temporalIdentity = temporalIdentity;
     }
 
     /// <inheritdoc />
@@ -85,6 +92,7 @@ public class AnnotationService : IAnnotationService
                 "(offsets {Start}-{End}, color={Color})",
                 annotation.Id, documentId, startOffset, endOffset, annotation.Color);
 
+            await CaptureAsInsightAsync(annotation.Id);
             return annotation;
         }
         catch (ArgumentException)
@@ -98,6 +106,28 @@ public class AnnotationService : IAnnotationService
                 "Failed to create annotation on document {DocumentId}",
                 documentId);
             throw;
+        }
+    }
+
+    /// <summary>
+    /// A highlight is a strong belief signal (the user chose to mark it), so Temporal Identity
+    /// keeps it as an insight moment. Nothing called it before, so highlights never reached
+    /// Past Self. The annotation is already saved: a failure here is logged, never thrown.
+    /// </summary>
+    private async Task CaptureAsInsightAsync(long annotationId)
+    {
+        if (_temporalIdentity is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _temporalIdentity.ProcessAnnotationAsync(annotationId);
+        }
+        catch (Exception ex)
+        {
+            _log.Warning(ex, "Temporal identity could not process annotation {AnnotationId}", annotationId);
         }
     }
 

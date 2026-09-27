@@ -15,6 +15,7 @@ using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Chat.Models;
 using AgentX.Core.Services.Feedback;
 using AgentX.Core.Services.TemporalIdentity;
+using AgentX.Core.Services.TemporalIdentity.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using NAudio.Wave;
@@ -346,6 +347,14 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     private readonly Dictionary<long, ChatContextInspectionSnapshot> _assistantMessageContextSnapshots = new();
     private bool _disposed;
 
+    // Time the open conversation is on screen, reported to Temporal Identity as engagement when
+    // the operator moves off it. The page pauses it while Chat is not the page shown.
+    private readonly EngagementTracker _conversationEngagement;
+    private bool _isConversationViewShown = true;
+
+    /// <summary>The clock engagement is timed with (a test seam).</summary>
+    internal Func<DateTime> UtcNow { get; set; } = () => DateTime.UtcNow;
+
     public ChatViewModel(
         IConversationCoordinator conversationCoordinator,
         IMessagingCoordinator messagingCoordinator,
@@ -370,6 +379,8 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         _memoryService = memoryService;
         _notificationService = notificationService;
         _temporalIdentity = temporalIdentity;
+        _conversationEngagement = new EngagementTracker(
+            temporalIdentity, EngagementTargetType.Conversation, () => UtcNow());
 
         SubscribeToCoordinatorEvents();
         Log.Debug("ChatViewModel created with coordinators");
@@ -641,6 +652,34 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         ConversationSummaryRefreshError = string.Empty;
         NotifyConversationIntelligenceStripChanged();
         NotifyConversationSummaryRefreshStateChanged();
+
+        // Moving off a conversation records the time it was read; the next one starts timing.
+        if (_isConversationViewShown)
+        {
+            _ = value is long conversationId
+                ? _conversationEngagement.OpenAsync(conversationId)
+                : _conversationEngagement.CloseAsync();
+        }
+    }
+
+    /// <summary>
+    /// The chat page left the screen: the open conversation stops counting as read, and the
+    /// time it was shown is recorded.
+    /// </summary>
+    public Task PauseConversationEngagementAsync()
+    {
+        _isConversationViewShown = false;
+        return _conversationEngagement.CloseAsync();
+    }
+
+    /// <summary>The chat page is on screen again: the open conversation counts as read from now.</summary>
+    public void ResumeConversationEngagement()
+    {
+        _isConversationViewShown = true;
+        if (ActiveConversationId is long conversationId)
+        {
+            _ = _conversationEngagement.OpenAsync(conversationId);
+        }
     }
 
     partial void OnIsRefreshingConversationSummaryChanged(bool value)
@@ -1000,20 +1039,32 @@ public partial class ChatViewModel : ObservableObject, IDisposable
             ? string.Empty
             : content.Length > 80 ? content[..80] + "..." : content;
 
+    /// <summary>
+    /// Temporal Identity learns from the prompt: the beliefs it states (Past Self and the
+    /// dashboard's belief-conflict panel read these), the operator's voice, and insight moments
+    /// in the thread. Each step runs even when an earlier one fails. The service keeps nothing in
+    /// the shared change tracker, so this can run off the UI thread.
+    /// </summary>
     private void LearnFromPromptInBackground(long userMessageId, long conversationId)
     {
         _ = Task.Run(async () =>
         {
-            try
-            {
-                await _temporalIdentity.LearnFromMessageAsync(userMessageId);
-                await _temporalIdentity.DetectInsightsAsync(conversationId);
-            }
-            catch (Exception ex)
-            {
-                Log.Warning(ex, "Failed to process temporal identity for message {MessageId}", userMessageId);
-            }
+            await RunLearningStepAsync(() => _temporalIdentity.ProcessMessageAsync(userMessageId), "belief tracking", userMessageId);
+            await RunLearningStepAsync(() => _temporalIdentity.LearnFromMessageAsync(userMessageId), "voice learning", userMessageId);
+            await RunLearningStepAsync(() => _temporalIdentity.DetectInsightsAsync(conversationId), "insight detection", userMessageId);
         });
+    }
+
+    private static async Task RunLearningStepAsync(Func<Task> step, string stepName, long userMessageId)
+    {
+        try
+        {
+            await step();
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Temporal identity {Step} failed for message {MessageId}", stepName, userMessageId);
+        }
     }
 
     /// <summary>
@@ -1101,6 +1152,8 @@ public partial class ChatViewModel : ObservableObject, IDisposable
 
         if (isOpen)
         {
+            // Time spent in a conversation that no longer exists is not recorded against it.
+            _conversationEngagement.Discard();
             await NewConversationAsync();
         }
         else if (ActiveConversationId.HasValue)
@@ -1985,6 +2038,10 @@ public partial class ChatViewModel : ObservableObject, IDisposable
 
         UnsubscribeFromCoordinatorEvents();
         _activeGeneration = null;
+
+        // The page records the open conversation when it leaves the screen; nothing is written
+        // while the view model is being torn down.
+        _conversationEngagement.Discard();
         Log.Debug("ChatViewModel disposed");
     }
 

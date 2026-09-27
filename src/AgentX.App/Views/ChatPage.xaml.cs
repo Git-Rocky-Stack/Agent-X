@@ -51,6 +51,9 @@ public sealed partial class ChatPage : Page
     {
         base.OnNavigatedTo(e);
 
+        // The open conversation counts as read again while this page is shown.
+        ViewModel.ResumeConversationEngagement();
+
         // Honour the item the caller picked (Jump-To, command palette) rather than
         // dropping it and opening this page on whatever was last active.
         _ = ViewModel.ApplyNavigationParameterAsync(e.Parameter);
@@ -81,6 +84,9 @@ public sealed partial class ChatPage : Page
         base.OnNavigatedFrom(e);
         _shortcutScope?.Dispose();
         _shortcutScope = null;
+
+        // Leaving Chat closes the conversation viewer: record the time it was read.
+        _ = ViewModel.PauseConversationEngagementAsync();
     }
 
     // ═══════════════════════════════════════════════════════════════

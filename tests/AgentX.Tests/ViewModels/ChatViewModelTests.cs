@@ -7,6 +7,7 @@ using AgentX.Core.AI.Models;
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Chat.Models;
 using AgentX.Core.Services.TemporalIdentity;
+using AgentX.Core.Services.TemporalIdentity.Models;
 using FluentAssertions;
 using Moq;
 using Xunit;
@@ -1440,6 +1441,112 @@ public sealed class ChatViewModelTests
         _temporalIdentity.Verify(
             service => service.LearnFromMessageAsync(1001, It.IsAny<CancellationToken>()), Times.Once);
     }
+
+    [Fact]
+    public async Task SendMessageAsync_TracksThePromptsBeliefsFirst_AndOneFailedStepDoesNotStopTheRest()
+    {
+        // Belief tracking had no caller, so Past Self and the dashboard's belief-conflict panel
+        // never had data.
+        var steps = new List<string>();
+        var finished = new TaskCompletionSource();
+        _temporalIdentity
+            .Setup(service => service.ProcessMessageAsync(1001, It.IsAny<CancellationToken>()))
+            .Callback(() => { lock (steps) steps.Add("beliefs"); })
+            .ThrowsAsync(new InvalidOperationException("database is busy"));
+        _temporalIdentity
+            .Setup(service => service.LearnFromMessageAsync(1001, It.IsAny<CancellationToken>()))
+            .Callback(() => { lock (steps) steps.Add("voice"); })
+            .Returns(Task.CompletedTask);
+        _temporalIdentity
+            .Setup(service => service.DetectInsightsAsync(42, It.IsAny<CancellationToken>()))
+            .Callback(() =>
+            {
+                lock (steps) steps.Add("insights");
+                finished.TrySetResult();
+            })
+            .Returns(Task.CompletedTask);
+
+        await SendFirstExchangeAsync();
+        await finished.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+        steps.Should().Equal("beliefs", "voice", "insights");
+    }
+
+    // --- Engagement ---
+    // RecordEngagementAsync had no caller, so "what did I spend time on" never had data.
+
+    [Fact]
+    public async Task MovingOffAConversation_RecordsTheTimeItWasOpen()
+    {
+        var now = new DateTime(2026, 9, 26, 9, 0, 0, DateTimeKind.Utc);
+        var viewModel = CreateViewModelWithTwoConversations(() => now);
+
+        await viewModel.SelectConversationCommand.ExecuteAsync(42L);
+        now = now.AddSeconds(90);
+        await viewModel.SelectConversationCommand.ExecuteAsync(84L);
+        now = now.AddSeconds(20);
+        await viewModel.NewConversationCommand.ExecuteAsync(null);
+
+        VerifyEngagement(42, 90, Times.Once());
+        VerifyEngagement(84, 20, Times.Once());
+    }
+
+    [Fact]
+    public async Task LeavingTheChatPage_RecordsTheOpenConversation_AndTimeAwayDoesNotCount()
+    {
+        var now = new DateTime(2026, 9, 26, 9, 0, 0, DateTimeKind.Utc);
+        var viewModel = CreateViewModelWithTwoConversations(() => now);
+
+        await viewModel.SelectConversationCommand.ExecuteAsync(42L);
+        now = now.AddSeconds(30);
+        await viewModel.PauseConversationEngagementAsync();
+        now = now.AddMinutes(10);
+        viewModel.ResumeConversationEngagement();
+        now = now.AddSeconds(15);
+        await viewModel.SelectConversationCommand.ExecuteAsync(84L);
+
+        VerifyEngagement(42, 30, Times.Once());
+        VerifyEngagement(42, 15, Times.Once());
+        _temporalIdentity.Verify(
+            service => service.RecordEngagementAsync(
+                EngagementTargetType.Conversation, It.IsAny<long>(), It.IsAny<int>(), It.IsAny<CancellationToken>()),
+            Times.Exactly(2));
+    }
+
+    [Fact]
+    public async Task DeletingTheOpenConversation_RecordsNoTimeAgainstIt()
+    {
+        var now = new DateTime(2026, 9, 26, 9, 0, 0, DateTimeKind.Utc);
+        _conversationCoordinator.Setup(service => service.DeleteConversationAsync(42)).ReturnsAsync(true);
+        var viewModel = CreateViewModelWithTwoConversations(() => now);
+
+        await viewModel.SelectConversationCommand.ExecuteAsync(42L);
+        now = now.AddMinutes(2);
+        await viewModel.DeleteConversationCommand.ExecuteAsync(42L);
+
+        _temporalIdentity.Verify(
+            service => service.RecordEngagementAsync(
+                It.IsAny<EngagementTargetType>(), It.IsAny<long>(), It.IsAny<int>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    private ChatViewModel CreateViewModelWithTwoConversations(Func<DateTime> utcNow)
+    {
+        _conversationCoordinator
+            .Setup(service => service.LoadMessagesAsync(It.IsAny<long>()))
+            .ReturnsAsync(Array.Empty<MessageSummary>());
+        var viewModel = CreateViewModel();
+        viewModel.UtcNow = utcNow;
+        viewModel.Conversations.Add(new ConversationListItem { Id = 42, Title = "First" });
+        viewModel.Conversations.Add(new ConversationListItem { Id = 84, Title = "Second" });
+        return viewModel;
+    }
+
+    private void VerifyEngagement(long conversationId, int seconds, Times times) =>
+        _temporalIdentity.Verify(
+            service => service.RecordEngagementAsync(
+                EngagementTargetType.Conversation, conversationId, seconds, It.IsAny<CancellationToken>()),
+            times);
 
     // --- Opening conversations ---
 

@@ -398,19 +398,21 @@ public sealed class TemporalIdentityServiceTests : IDisposable
         using var db = _dbFactory.CreateContext();
         var svc = new TemporalIdentityService(db);
 
+        // The service updates rows with ExecuteUpdate, so the checks read the database rather than
+        // an instance an earlier tracked read left in this shared context.
         await svc.RecordEngagementAsync(EngagementTargetType.Document, 5, 50);
-        var created = await db.Set<EngagementMetricsEntity>().SingleAsync();
+        var created = await db.Set<EngagementMetricsEntity>().AsNoTracking().SingleAsync();
         created.Depth.Should().Be(EngagementDepth.Read);
         created.RevisitCount.Should().Be(0);
         created.TotalSecondsSpent.Should().Be(50);
         created.FirstEngagedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromMinutes(1));
 
         await svc.RecordEngagementAsync(EngagementTargetType.Document, 5, 20); // 70s -> Engaged
-        (await db.Set<EngagementMetricsEntity>().SingleAsync()).Depth.Should().Be(EngagementDepth.Engaged);
+        (await db.Set<EngagementMetricsEntity>().AsNoTracking().SingleAsync()).Depth.Should().Be(EngagementDepth.Engaged);
 
         await svc.RecordEngagementAsync(EngagementTargetType.Document, 5, 200); // 270s, revisit 2
         await svc.RecordEngagementAsync(EngagementTargetType.Document, 5, 100); // 370s, revisit 3 -> Deep
-        var final = await db.Set<EngagementMetricsEntity>().SingleAsync();
+        var final = await db.Set<EngagementMetricsEntity>().AsNoTracking().SingleAsync();
         final.TotalSecondsSpent.Should().Be(370);
         final.RevisitCount.Should().Be(3);
         final.Depth.Should().Be(EngagementDepth.Deep);
@@ -829,6 +831,7 @@ public sealed class TemporalIdentityServiceTests : IDisposable
         using var fresh = _dbFactory.CreateContext();
         var conflict = (await new TemporalIdentityService(fresh).GetBeliefConflictsAsync()).Should().ContainSingle().Subject;
         conflict.Belief!.Topic.Should().Be("Microservices rock");
+        conflict.Topic.Should().Be("Microservices rock");
         conflict.PreviousStance.Should().Be("I believe that microservices rock");
         conflict.CurrentStance.Should().Be("Microservices rock was a wrong and bad slogan full of problems");
         conflict.ConflictMagnitude.Should().BeApproximately(0.8, 0.001);
@@ -893,6 +896,44 @@ public sealed class TemporalIdentityServiceTests : IDisposable
             .Should().Be("monoliths never scale");
         (await svc.GetPastSelfAsync("monoliths", DateTime.UtcNow.AddDays(-5)))!.Stance
             .Should().Be("monoliths are fine at small scale");
+    }
+
+    [Fact]
+    public async Task Learning_passes_leave_nothing_in_the_shared_change_tracker()
+    {
+        // The chat runs these after every reply, off the UI thread, on the app-wide context. The
+        // messages, conversations and rows they used to leave tracked were exposed to other
+        // flows' saves and to cross-thread tracker mutation.
+        long firstPromptId, secondPromptId, answerConversationId, annotationId;
+        using (var seed = _dbFactory.CreateContext())
+        {
+            firstPromptId = (await SeedMessageAsync(seed, "user", PositiveMicroservices)).Id;
+            secondPromptId = (await SeedMessageAsync(seed, "user", NegativeMicroservices)).Id;
+            answerConversationId = (await SeedMessageAsync(seed, "assistant", "That is the key insight!")).ConversationId;
+            annotationId = (await SeedAnnotationAsync(seed, "Latency budgets matter", note: null)).Id;
+        }
+
+        using var db = _dbFactory.CreateContext();
+        var svc = new TemporalIdentityService(db);
+
+        await svc.ProcessMessageAsync(firstPromptId);
+        await svc.ProcessMessageAsync(secondPromptId); // updates the belief and records a conflict
+        await svc.LearnFromMessageAsync(firstPromptId);
+        await svc.LearnFromMessageAsync(secondPromptId); // updates the profile
+        await svc.DetectInsightsAsync(answerConversationId);
+        await svc.RecordEngagementAsync(EngagementTargetType.Conversation, answerConversationId, 30);
+        await svc.RecordEngagementAsync(EngagementTargetType.Conversation, answerConversationId, 45);
+        await svc.ProcessAnnotationAsync(annotationId);
+
+        db.ChangeTracker.Entries().Should().BeEmpty();
+        (await db.Set<TemporalBeliefEntity>().CountAsync()).Should().Be(1);
+        (await db.Set<BeliefConflictEntity>().CountAsync()).Should().Be(1);
+        (await db.Set<InsightMomentEntity>().CountAsync()).Should().Be(2);
+        (await svc.GetVoiceProfileAsync())!.SampleCount.Should().Be(2);
+        var engagement = (await svc.GetMostEngagedContentAsync(DateTime.UtcNow.AddDays(-1), DateTime.UtcNow.AddMinutes(1))).Single();
+        engagement.TotalSecondsSpent.Should().Be(75);
+        engagement.RevisitCount.Should().Be(1);
+        engagement.Depth.Should().Be(EngagementDepth.Engaged);
     }
 
     public void Dispose()
