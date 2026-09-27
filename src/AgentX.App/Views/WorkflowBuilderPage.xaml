@@ -349,6 +349,37 @@
                                                          MaxHeight="200"
                                                          Header="Prompt Template"
                                                          Style="{StaticResource InputTextBoxStyle}" />
+
+                                                <!-- Step Settings: the JSON the step type reads, checked as it is typed -->
+                                                <StackPanel Spacing="4"
+                                                            Visibility="{x:Bind HasSettings, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                                                    <TextBlock x:Uid="WfBuilder_StepSettingsLabel" Text="Step settings (JSON)"
+                                                               Style="{StaticResource LabelStyle}" />
+                                                    <Grid>
+                                                        <TextBox x:Uid="WfBuilder_StepSettingsBox"
+                                                                 AutomationProperties.Name="Step settings (JSON)"
+                                                                 Text="{x:Bind ConfigText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                 PlaceholderText="{x:Bind ConfigExample, Mode=OneWay}"
+                                                                 AcceptsReturn="True"
+                                                                 TextWrapping="Wrap"
+                                                                 MaxHeight="160"
+                                                                 FontFamily="{StaticResource FontMono}"
+                                                                 FontSize="13"
+                                                                 Style="{StaticResource InputTextBoxStyle}" />
+                                                        <!-- NO-GO edge while the settings cannot be used -->
+                                                        <Border BorderBrush="{ThemeResource ErrorBrush}"
+                                                                BorderThickness="1"
+                                                                CornerRadius="{StaticResource RCard}"
+                                                                IsHitTestVisible="False"
+                                                                Visibility="{x:Bind HasConfigError, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+                                                    </Grid>
+                                                    <TextBlock Text="{x:Bind ConfigHint, Mode=OneWay}"
+                                                               Style="{StaticResource CaptionStyle}" />
+                                                    <TextBlock Text="{x:Bind ConfigError, Mode=OneWay}"
+                                                               Style="{StaticResource CaptionStyle}"
+                                                               Foreground="{ThemeResource LedNoGoTextBrush}"
+                                                               Visibility="{x:Bind HasConfigError, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+                                                </StackPanel>
                                             </StackPanel>
                                         </Border>
                                     </DataTemplate>

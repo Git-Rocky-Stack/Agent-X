@@ -713,10 +713,21 @@ Workflows run only when you click Run. There are no schedules, event triggers, o
 
 1. Create or select a workflow.
 2. Add ordered steps.
-3. Choose each step's type and write its prompt template.
+3. Choose each step's type, write its prompt template, and fill in the step's settings when its type has them (see Step types and settings below).
 4. Save and run the workflow against the input you paste or type.
 
 The editor has no per-step model, temperature, or token-limit fields. Steps use the active model; some built-in template steps carry a temperature, and an exported workflow JSON file keeps any per-step overrides when you bring it back with Import Workflow.
+
+### Step types and settings
+
+The prompt template is what a step works on: the prompt for AI Prompt, the search query for Document Lookup, and the text for Text Transform and Output Format, which use the previous step's output when the template is empty. Conditional Branch does not use the template; it tests the previous step's output.
+
+Every type except AI Prompt has a settings box that takes a small JSON object. The empty box shows an example, the line under the box lists what the type reads, and a mistake is described under the box as you type. A workflow is not saved while any step's settings have a problem. Setting names are case-sensitive, and text values go in double quotes.
+
+- **Document Lookup** (optional): `{"collectionId": 3}` searches only the collection with that ID. Without settings, every document is searched.
+- **Text Transform** (optional): `{"transform": "lowercase"}`. The transforms are uppercase, lowercase, titlecase, trim, extract_lines, word_count, char_count, reverse_lines, deduplicate_lines, sort_lines, and number_lines. Without settings, the text is made uppercase.
+- **Conditional Branch** (required): `{"condition": "contains", "value": "urgent", "trueBranch": "Urgent: {{previous_output}}", "falseBranch": "{{previous_output}}"}`. The conditions are contains, not_contains, starts_with, ends_with, equals, matches (a regular expression), and length_greater_than (a whole number in quotes, such as "100"); comparisons ignore letter case. The step outputs trueBranch or falseBranch, which can use {{input}} and {{previous_output}}; a branch that is left out passes the previous output through.
+- **Output Format** (optional): `{"format": "bullet_list"}`. The formats are json, markdown, html, bullet_list, and numbered_list; prefix and suffix add text before and after the output.
 
 ### Run inspection
 

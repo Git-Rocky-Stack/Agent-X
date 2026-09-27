@@ -1544,6 +1544,21 @@
   <data name="WfBuilder_StepType.Header" xml:space="preserve"><value>Tipo de paso</value></data>
   <data name="WfBuilder_EnterPromptUseInputPh.PlaceholderText" xml:space="preserve"><value>Escriba el prompt... Use {{input}} para la entrada original y {{previous_output}} para la salida del paso anterior</value></data>
   <data name="WfBuilder_EnterPromptUseInputPh.Header" xml:space="preserve"><value>Plantilla de prompt</value></data>
+  <data name="WfBuilder_StepSettingsLabel.Text" xml:space="preserve"><value>Configuración del paso (JSON)</value></data>
+  <data name="WfBuilder_StepSettingsBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Configuración del paso (JSON)</value></data>
+  <data name="WfBuilder_StepSettingsHintDocumentLookup" xml:space="preserve"><value>Opcional. {"collectionId": 3} busca solo en la colección con ese ID; sin configuración, se busca en todos los documentos. La plantilla de prompt es la consulta de búsqueda.</value></data>
+  <data name="WfBuilder_StepSettingsHintTextTransform" xml:space="preserve"><value>Opcional. "transform" es uno de estos valores: {0}. Sin configuración, el texto se convierte a mayúsculas.</value></data>
+  <data name="WfBuilder_StepSettingsHintConditionalBranch" xml:space="preserve"><value>Obligatorio. "condition" es uno de estos valores: {0}. Compara la salida del paso anterior con "value", y el paso devuelve "trueBranch" o "falseBranch" (la salida anterior si se omite esa rama).</value></data>
+  <data name="WfBuilder_StepSettingsHintOutputFormat" xml:space="preserve"><value>Opcional. "format" es uno de estos valores: {0}. "prefix" y "suffix" añaden texto antes y después de la salida.</value></data>
+  <data name="WfBuilder_StepSettingsRequired" xml:space="preserve"><value>Este tipo de paso necesita configuración. El cuadro vacío muestra un ejemplo para empezar.</value></data>
+  <data name="WfBuilder_StepSettingsInvalidJson" xml:space="preserve"><value>La configuración no es JSON válido. Revise la línea {0}, cerca de la posición {1}.</value></data>
+  <data name="WfBuilder_StepSettingsNotAnObject" xml:space="preserve"><value>La configuración debe ser un único objeto JSON entre llaves, por ejemplo: {0}</value></data>
+  <data name="WfBuilder_StepSettingsUnknownSetting" xml:space="preserve"><value>Este tipo de paso no tiene ninguna opción llamada "{0}" (se distingue entre mayúsculas y minúsculas). Sus opciones son: {1}.</value></data>
+  <data name="WfBuilder_StepSettingsNotText" xml:space="preserve"><value>"{0}" debe ser texto entre comillas dobles.</value></data>
+  <data name="WfBuilder_StepSettingsNotAWholeNumber" xml:space="preserve"><value>"{0}" debe ser un número entero, por ejemplo {1}.</value></data>
+  <data name="WfBuilder_StepSettingsUnknownChoice" xml:space="preserve"><value>"{0}" no puede ser "{1}". Use uno de estos valores: {2}.</value></data>
+  <data name="WfBuilder_StepSettingsInvalidPattern" xml:space="preserve"><value>"{0}" no es una expresión regular válida para la condición matches.</value></data>
+  <data name="WfBuilder_FixStepSettings" xml:space="preserve"><value>El paso {0} tiene una configuración que no se puede usar. Corríjala antes de guardar el flujo de trabajo.</value></data>
   <data name="WfBuilder_Cancel.Content" xml:space="preserve"><value>Cancelar</value></data>
   <data name="WfBuilder_SaveWorkflow.Content" xml:space="preserve"><value>Guardar flujo de trabajo</value></data>
   <data name="WfBuilder_FocusedWorkflowRun.Text" xml:space="preserve"><value>Ejecución de flujo de trabajo enfocada</value></data>

@@ -1666,6 +1666,21 @@
   <data name="WfBuilder_StepType.Header" xml:space="preserve"><value>Step Type</value></data>
   <data name="WfBuilder_EnterPromptUseInputPh.PlaceholderText" xml:space="preserve"><value>Enter prompt... Use {{input}} for original input, {{previous_output}} for last step's output</value></data>
   <data name="WfBuilder_EnterPromptUseInputPh.Header" xml:space="preserve"><value>Prompt Template</value></data>
+  <data name="WfBuilder_StepSettingsLabel.Text" xml:space="preserve"><value>Step settings (JSON)</value></data>
+  <data name="WfBuilder_StepSettingsBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Step settings (JSON)</value></data>
+  <data name="WfBuilder_StepSettingsHintDocumentLookup" xml:space="preserve"><value>Optional. {"collectionId": 3} searches only the collection with that ID; without settings, every document is searched. The prompt template is the search query.</value></data>
+  <data name="WfBuilder_StepSettingsHintTextTransform" xml:space="preserve"><value>Optional. "transform" is one of: {0}. Without settings, the text is made uppercase.</value></data>
+  <data name="WfBuilder_StepSettingsHintConditionalBranch" xml:space="preserve"><value>Required. "condition" is one of: {0}. It tests the previous step's output against "value", and the step outputs "trueBranch" or "falseBranch" (the previous output when that one is left out).</value></data>
+  <data name="WfBuilder_StepSettingsHintOutputFormat" xml:space="preserve"><value>Optional. "format" is one of: {0}. "prefix" and "suffix" add text before and after the output.</value></data>
+  <data name="WfBuilder_StepSettingsRequired" xml:space="preserve"><value>This step type needs settings. The empty box shows an example to start from.</value></data>
+  <data name="WfBuilder_StepSettingsInvalidJson" xml:space="preserve"><value>The settings are not valid JSON. Check line {0}, near position {1}.</value></data>
+  <data name="WfBuilder_StepSettingsNotAnObject" xml:space="preserve"><value>The settings must be one JSON object in braces, for example: {0}</value></data>
+  <data name="WfBuilder_StepSettingsUnknownSetting" xml:space="preserve"><value>This step type has no setting named "{0}" (names are case-sensitive). Its settings are: {1}.</value></data>
+  <data name="WfBuilder_StepSettingsNotText" xml:space="preserve"><value>"{0}" must be text in double quotes.</value></data>
+  <data name="WfBuilder_StepSettingsNotAWholeNumber" xml:space="preserve"><value>"{0}" must be a whole number, for example {1}.</value></data>
+  <data name="WfBuilder_StepSettingsUnknownChoice" xml:space="preserve"><value>"{0}" cannot be "{1}". Use one of: {2}.</value></data>
+  <data name="WfBuilder_StepSettingsInvalidPattern" xml:space="preserve"><value>"{0}" is not a valid regular expression for the matches condition.</value></data>
+  <data name="WfBuilder_FixStepSettings" xml:space="preserve"><value>Step {0} has settings that cannot be used. Fix them before saving the workflow.</value></data>
   <data name="WfBuilder_Cancel.Content" xml:space="preserve"><value>Cancel</value></data>
   <data name="WfBuilder_SaveWorkflow.Content" xml:space="preserve"><value>Save Workflow</value></data>
   <data name="WfBuilder_FocusedWorkflowRun.Text" xml:space="preserve"><value>Focused Workflow Run</value></data>

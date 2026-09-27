@@ -1544,6 +1544,21 @@
   <data name="WfBuilder_StepType.Header" xml:space="preserve"><value>Type d'étape</value></data>
   <data name="WfBuilder_EnterPromptUseInputPh.PlaceholderText" xml:space="preserve"><value>Saisissez le prompt... Utilisez {{input}} pour l'entrée d'origine, {{previous_output}} pour la sortie de la dernière étape</value></data>
   <data name="WfBuilder_EnterPromptUseInputPh.Header" xml:space="preserve"><value>Modèle de prompt</value></data>
+  <data name="WfBuilder_StepSettingsLabel.Text" xml:space="preserve"><value>Paramètres de l'étape (JSON)</value></data>
+  <data name="WfBuilder_StepSettingsBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Paramètres de l'étape (JSON)</value></data>
+  <data name="WfBuilder_StepSettingsHintDocumentLookup" xml:space="preserve"><value>Facultatif. {"collectionId": 3} ne recherche que dans la collection portant cet ID ; sans paramètres, tous les documents sont recherchés. Le modèle de prompt sert de requête de recherche.</value></data>
+  <data name="WfBuilder_StepSettingsHintTextTransform" xml:space="preserve"><value>Facultatif. "transform" prend l'une de ces valeurs : {0}. Sans paramètres, le texte est mis en majuscules.</value></data>
+  <data name="WfBuilder_StepSettingsHintConditionalBranch" xml:space="preserve"><value>Obligatoire. "condition" prend l'une de ces valeurs : {0}. Elle compare la sortie de l'étape précédente à "value", et l'étape renvoie "trueBranch" ou "falseBranch" (la sortie précédente si cette branche est omise).</value></data>
+  <data name="WfBuilder_StepSettingsHintOutputFormat" xml:space="preserve"><value>Facultatif. "format" prend l'une de ces valeurs : {0}. "prefix" et "suffix" ajoutent du texte avant et après la sortie.</value></data>
+  <data name="WfBuilder_StepSettingsRequired" xml:space="preserve"><value>Ce type d'étape nécessite des paramètres. Le champ vide affiche un exemple pour commencer.</value></data>
+  <data name="WfBuilder_StepSettingsInvalidJson" xml:space="preserve"><value>Les paramètres ne sont pas du JSON valide. Vérifiez la ligne {0}, vers la position {1}.</value></data>
+  <data name="WfBuilder_StepSettingsNotAnObject" xml:space="preserve"><value>Les paramètres doivent former un seul objet JSON entre accolades, par exemple : {0}</value></data>
+  <data name="WfBuilder_StepSettingsUnknownSetting" xml:space="preserve"><value>Ce type d'étape n'a aucun paramètre nommé "{0}" (les noms respectent la casse). Ses paramètres sont : {1}.</value></data>
+  <data name="WfBuilder_StepSettingsNotText" xml:space="preserve"><value>"{0}" doit être un texte entre guillemets doubles.</value></data>
+  <data name="WfBuilder_StepSettingsNotAWholeNumber" xml:space="preserve"><value>"{0}" doit être un nombre entier, par exemple {1}.</value></data>
+  <data name="WfBuilder_StepSettingsUnknownChoice" xml:space="preserve"><value>"{0}" ne peut pas valoir "{1}". Utilisez l'une de ces valeurs : {2}.</value></data>
+  <data name="WfBuilder_StepSettingsInvalidPattern" xml:space="preserve"><value>"{0}" n'est pas une expression régulière valide pour la condition matches.</value></data>
+  <data name="WfBuilder_FixStepSettings" xml:space="preserve"><value>L'étape {0} a des paramètres inutilisables. Corrigez-les avant d'enregistrer le flux de travail.</value></data>
   <data name="WfBuilder_Cancel.Content" xml:space="preserve"><value>Annuler</value></data>
   <data name="WfBuilder_SaveWorkflow.Content" xml:space="preserve"><value>Enregistrer le flux de travail</value></data>
   <data name="WfBuilder_FocusedWorkflowRun.Text" xml:space="preserve"><value>Exécution de flux de travail ciblée</value></data>

@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Globalization;
 using AgentX.App.Services;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
@@ -7,6 +8,7 @@ using AgentX.Core.Documents;
 using AgentX.Core.Helpers;
 using AgentX.Core.Services.Export;
 using AgentX.Core.Services.Export.Models;
+using AgentX.Core.Services.Localization;
 using AgentX.Core.Services.Workflows;
 using AgentX.Core.Services.Workflows.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -67,6 +69,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
     private readonly IWorkflowLaunchService? _workflowLaunchService;
     private readonly IOperationsDrillInService? _operationsDrillInService;
     private readonly IAppPathService _appPaths;
+    private readonly ILocalizationService? _localization;
 
     // ── Page State ───────────────────────────────────────────
     [ObservableProperty] private bool _isLoading;
@@ -108,7 +111,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
 
     // ── Category Options ─────────────────────────────────────
     public List<string> Categories { get; } = new() { "Custom", "Research", "Writing", "Analysis", "Productivity" };
-    public List<string> StepTypes { get; } = new() { "AiPrompt", "DocumentLookup", "TextTransform" };
+    public List<string> StepTypes { get; } = [.. WorkflowStepSettings.StepTypes];
     public bool HasSelectedWorkflow => SelectedWorkflow is not null;
     public long SelectedWorkflowId => SelectedWorkflow?.Id ?? 0;
     public string SelectedWorkflowName => SelectedWorkflow?.Name ?? string.Empty;
@@ -176,7 +179,8 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         IExportService? exportService = null,
         IWorkflowLaunchService? workflowLaunchService = null,
         IOperationsDrillInService? operationsDrillInService = null,
-        IAppPathService? appPathService = null)
+        IAppPathService? appPathService = null,
+        ILocalizationService? localization = null)
     {
         _workflowService = workflowService;
         _workflowEngine = workflowEngine;
@@ -188,6 +192,8 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         // Falls back to the real %LOCALAPPDATA%/AgentX paths when not supplied; tests inject a
         // disposable temp root so workflow-result artifacts never land in the real profile (AX-QA-011).
         _appPaths = appPathService ?? new AppPathService();
+        // Translates the step settings texts; without it they are shown in English.
+        _localization = localization;
 
         Workflows.CollectionChanged += (_, _) =>
         {
@@ -437,7 +443,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
             EditSteps.Clear();
 
             // Add a default first step
-            EditSteps.Add(new WorkflowStepItem
+            EditSteps.Add(new WorkflowStepItem(_localization)
             {
                 StepOrder = 1,
                 Name = "Step 1",
@@ -476,7 +482,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
 
             foreach (var step in workflow.Steps.OrderBy(s => s.StepOrder))
             {
-                EditSteps.Add(new WorkflowStepItem
+                EditSteps.Add(new WorkflowStepItem(_localization)
                 {
                     Id = step.Id,
                     StepOrder = step.StepOrder,
@@ -560,6 +566,20 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
     {
         if (string.IsNullOrWhiteSpace(EditName)) return;
 
+        // Settings the engine cannot use are reported at their step; saving them would only
+        // move the failure to the next run.
+        var stepWithBadSettings = EditSteps.FirstOrDefault(step => step.HasConfigError);
+        if (stepWithBadSettings is not null)
+        {
+            var stepNumber = stepWithBadSettings.StepOrder;
+            StatusMessage = WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_FixStepSettings", stepNumber),
+                "WfBuilder_FixStepSettings",
+                "Step {0} has settings that cannot be used. Fix them before saving the workflow.",
+                stepNumber);
+            return;
+        }
+
         try
         {
             WorkflowEntity workflow;
@@ -602,7 +622,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
                         ModelOverride = step.ModelOverride,
                         TemperatureOverride = step.TemperatureOverride,
                         MaxTokensOverride = step.MaxTokensOverride,
-                        ConfigJson = step.ConfigJson
+                        ConfigJson = SavedConfigJson(step)
                     });
                 }
             }
@@ -624,7 +644,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
                         ModelOverride = step.ModelOverride,
                         TemperatureOverride = step.TemperatureOverride,
                         MaxTokensOverride = step.MaxTokensOverride,
-                        ConfigJson = step.ConfigJson
+                        ConfigJson = SavedConfigJson(step)
                     });
                 }
             }
@@ -643,6 +663,10 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         }
     }
 
+    /// <summary>The settings a step is saved with: a cleared settings box saves no settings.</summary>
+    private static string? SavedConfigJson(WorkflowStepItem step) =>
+        string.IsNullOrWhiteSpace(step.ConfigJson) ? null : step.ConfigJson;
+
     [RelayCommand]
     private void CancelEdit()
     {
@@ -655,7 +679,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
     private void AddStep()
     {
         var nextOrder = EditSteps.Count + 1;
-        EditSteps.Add(new WorkflowStepItem
+        EditSteps.Add(new WorkflowStepItem(_localization)
         {
             StepOrder = nextOrder,
             Name = $"Step {nextOrder}",
@@ -1339,20 +1363,192 @@ public partial class WorkflowListItem : ObservableObject
 
 public partial class WorkflowStepItem : ObservableObject
 {
+    private readonly ILocalizationService? _localization;
+    private WorkflowStepSettingsProblem? _configProblem;
+    private string _configError = string.Empty;
+
+    /// <param name="localization">Translates the settings hint and error; without it they are in English.</param>
+    public WorkflowStepItem(ILocalizationService? localization = null)
+    {
+        _localization = localization;
+    }
+
     [ObservableProperty] private long _id;
     [ObservableProperty] private int _stepOrder;
     [ObservableProperty] private string _name = string.Empty;
-    [ObservableProperty] private string _stepType = "AiPrompt";
+    [ObservableProperty] private string _stepType = WorkflowStepSettings.AiPrompt;
     [ObservableProperty] private string _promptTemplate = string.Empty;
     [ObservableProperty] private string? _modelOverride;
     [ObservableProperty] private double? _temperatureOverride;
     [ObservableProperty] private int? _maxTokensOverride;
 
     /// <summary>
-    /// Step-specific settings (transform type, lookup collection, branch condition). Not edited
-    /// on this page yet, but carried through edit and save so they are not erased.
+    /// Step-specific settings as JSON (lookup collection, transform, branch condition, output
+    /// format), edited in the step's settings box and checked by <see cref="WorkflowStepSettings"/>.
     /// </summary>
     [ObservableProperty] private string? _configJson;
+
+    /// <summary>The settings box's text: <see cref="ConfigJson"/>, with no settings as empty text.</summary>
+    public string ConfigText
+    {
+        get => ConfigJson ?? string.Empty;
+        set => ConfigJson = value;
+    }
+
+    /// <summary>True when the step's type reads settings, which is when the settings box is shown.</summary>
+    public bool HasSettings => WorkflowStepSettings.HasSettings(StepType);
+
+    /// <summary>Settings that work for the step's type, shown in the empty settings box.</summary>
+    public string ConfigExample => WorkflowStepSettings.Example(StepType);
+
+    /// <summary>What the step's type reads from its settings.</summary>
+    public string ConfigHint => DescribeSettings(StepType);
+
+    /// <summary>What is wrong with the settings, or empty when the step can use them.</summary>
+    public string ConfigError => _configError;
+
+    /// <summary>True when the engine cannot use the settings as written; the workflow is then not saved.</summary>
+    public bool HasConfigError => _configProblem is not null;
+
+    partial void OnStepTypeChanged(string value)
+    {
+        OnPropertyChanged(nameof(HasSettings));
+        OnPropertyChanged(nameof(ConfigExample));
+        OnPropertyChanged(nameof(ConfigHint));
+        CheckSettings();
+    }
+
+    partial void OnConfigJsonChanged(string? value)
+    {
+        OnPropertyChanged(nameof(ConfigText));
+        CheckSettings();
+    }
+
+    private void CheckSettings()
+    {
+        _configProblem = WorkflowStepSettings.Validate(StepType, ConfigJson);
+        _configError = _configProblem is null ? string.Empty : DescribeProblem(_configProblem);
+        OnPropertyChanged(nameof(ConfigError));
+        OnPropertyChanged(nameof(HasConfigError));
+    }
+
+    private string DescribeSettings(string? stepType)
+    {
+        switch (stepType)
+        {
+            case WorkflowStepSettings.DocumentLookup:
+                return WorkflowBuilderText.Resolve(
+                    _localization?.GetString("WfBuilder_StepSettingsHintDocumentLookup"),
+                    "WfBuilder_StepSettingsHintDocumentLookup",
+                    "Optional. {\"collectionId\": 3} searches only the collection with that ID; without settings, every document is searched. The prompt template is the search query.");
+
+            case WorkflowStepSettings.TextTransform:
+                var transforms = string.Join(", ", WorkflowStepSettings.TextTransforms);
+                return WorkflowBuilderText.Resolve(
+                    _localization?.GetString("WfBuilder_StepSettingsHintTextTransform", transforms),
+                    "WfBuilder_StepSettingsHintTextTransform",
+                    "Optional. \"transform\" is one of: {0}. Without settings, the text is made uppercase.",
+                    transforms);
+
+            case WorkflowStepSettings.ConditionalBranch:
+                var conditions = string.Join(", ", WorkflowStepSettings.Conditions);
+                return WorkflowBuilderText.Resolve(
+                    _localization?.GetString("WfBuilder_StepSettingsHintConditionalBranch", conditions),
+                    "WfBuilder_StepSettingsHintConditionalBranch",
+                    "Required. \"condition\" is one of: {0}. It tests the previous step's output against \"value\", and the step outputs \"trueBranch\" or \"falseBranch\" (the previous output when that one is left out).",
+                    conditions);
+
+            case WorkflowStepSettings.OutputFormat:
+                var formats = string.Join(", ", WorkflowStepSettings.OutputFormats);
+                return WorkflowBuilderText.Resolve(
+                    _localization?.GetString("WfBuilder_StepSettingsHintOutputFormat", formats),
+                    "WfBuilder_StepSettingsHintOutputFormat",
+                    "Optional. \"format\" is one of: {0}. \"prefix\" and \"suffix\" add text before and after the output.",
+                    formats);
+
+            default:
+                return string.Empty;
+        }
+    }
+
+    private string DescribeProblem(WorkflowStepSettingsProblem problem)
+    {
+        var setting = problem.Setting ?? string.Empty;
+        var value = problem.Value ?? string.Empty;
+        var choices = string.Join(", ", problem.Choices);
+        var example = problem.Example ?? string.Empty;
+
+        return problem.Kind switch
+        {
+            WorkflowStepSettingsProblemKind.Required => WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_StepSettingsRequired"),
+                "WfBuilder_StepSettingsRequired",
+                "This step type needs settings. The empty box shows an example to start from."),
+
+            WorkflowStepSettingsProblemKind.InvalidJson => WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_StepSettingsInvalidJson", problem.Line, problem.Position),
+                "WfBuilder_StepSettingsInvalidJson",
+                "The settings are not valid JSON. Check line {0}, near position {1}.",
+                problem.Line, problem.Position),
+
+            WorkflowStepSettingsProblemKind.NotAnObject => WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_StepSettingsNotAnObject", example),
+                "WfBuilder_StepSettingsNotAnObject",
+                "The settings must be one JSON object in braces, for example: {0}",
+                example),
+
+            WorkflowStepSettingsProblemKind.UnknownSetting => WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_StepSettingsUnknownSetting", setting, choices),
+                "WfBuilder_StepSettingsUnknownSetting",
+                "This step type has no setting named \"{0}\" (names are case-sensitive). Its settings are: {1}.",
+                setting, choices),
+
+            WorkflowStepSettingsProblemKind.NotText => WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_StepSettingsNotText", setting),
+                "WfBuilder_StepSettingsNotText",
+                "\"{0}\" must be text in double quotes.",
+                setting),
+
+            WorkflowStepSettingsProblemKind.NotAWholeNumber => WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_StepSettingsNotAWholeNumber", setting, example),
+                "WfBuilder_StepSettingsNotAWholeNumber",
+                "\"{0}\" must be a whole number, for example {1}.",
+                setting, example),
+
+            WorkflowStepSettingsProblemKind.UnknownChoice => WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_StepSettingsUnknownChoice", setting, value, choices),
+                "WfBuilder_StepSettingsUnknownChoice",
+                "\"{0}\" cannot be \"{1}\". Use one of: {2}.",
+                setting, value, choices),
+
+            WorkflowStepSettingsProblemKind.InvalidPattern => WorkflowBuilderText.Resolve(
+                _localization?.GetString("WfBuilder_StepSettingsInvalidPattern", setting),
+                "WfBuilder_StepSettingsInvalidPattern",
+                "\"{0}\" is not a valid regular expression for the matches condition.",
+                setting),
+
+            _ => string.Empty,
+        };
+    }
+}
+
+/// <summary>Picks the text of a workflow builder message.</summary>
+internal static class WorkflowBuilderText
+{
+    /// <summary>
+    /// Returns <paramref name="localized"/>, the text the localization service found, unless
+    /// there was no service or it found no resource (it then answers with the key itself); in
+    /// that case returns <paramref name="english"/>, formatted with <paramref name="args"/>.
+    /// </summary>
+    public static string Resolve(string? localized, string key, string english, params object[] args)
+    {
+        if (!string.IsNullOrEmpty(localized) && !string.Equals(localized, key, StringComparison.Ordinal))
+        {
+            return localized;
+        }
+
+        return args.Length == 0 ? english : string.Format(CultureInfo.CurrentCulture, english, args);
+    }
 }
 
 public partial class StepOutputItem : ObservableObject

@@ -1544,6 +1544,21 @@
   <data name="WfBuilder_StepType.Header" xml:space="preserve"><value>Schritttyp</value></data>
   <data name="WfBuilder_EnterPromptUseInputPh.PlaceholderText" xml:space="preserve"><value>Prompt eingeben... Verwenden Sie {{input}} für die ursprüngliche Eingabe, {{previous_output}} für die Ausgabe des letzten Schritts</value></data>
   <data name="WfBuilder_EnterPromptUseInputPh.Header" xml:space="preserve"><value>Prompt-Vorlage</value></data>
+  <data name="WfBuilder_StepSettingsLabel.Text" xml:space="preserve"><value>Schritteinstellungen (JSON)</value></data>
+  <data name="WfBuilder_StepSettingsBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Schritteinstellungen (JSON)</value></data>
+  <data name="WfBuilder_StepSettingsHintDocumentLookup" xml:space="preserve"><value>Optional. {"collectionId": 3} durchsucht nur die Sammlung mit dieser ID; ohne Einstellungen werden alle Dokumente durchsucht. Die Prompt-Vorlage ist die Suchanfrage.</value></data>
+  <data name="WfBuilder_StepSettingsHintTextTransform" xml:space="preserve"><value>Optional. "transform" ist einer dieser Werte: {0}. Ohne Einstellungen wird der Text in Großbuchstaben umgewandelt.</value></data>
+  <data name="WfBuilder_StepSettingsHintConditionalBranch" xml:space="preserve"><value>Erforderlich. "condition" ist einer dieser Werte: {0}. Die Bedingung prüft die Ausgabe des vorherigen Schritts gegen "value", und der Schritt gibt "trueBranch" oder "falseBranch" aus (die vorherige Ausgabe, wenn dieser Zweig fehlt).</value></data>
+  <data name="WfBuilder_StepSettingsHintOutputFormat" xml:space="preserve"><value>Optional. "format" ist einer dieser Werte: {0}. "prefix" und "suffix" fügen Text vor und nach der Ausgabe ein.</value></data>
+  <data name="WfBuilder_StepSettingsRequired" xml:space="preserve"><value>Dieser Schritttyp benötigt Einstellungen. Das leere Feld zeigt ein Beispiel als Ausgangspunkt.</value></data>
+  <data name="WfBuilder_StepSettingsInvalidJson" xml:space="preserve"><value>Die Einstellungen sind kein gültiges JSON. Prüfen Sie Zeile {0}, nahe Position {1}.</value></data>
+  <data name="WfBuilder_StepSettingsNotAnObject" xml:space="preserve"><value>Die Einstellungen müssen ein einzelnes JSON-Objekt in geschweiften Klammern sein, zum Beispiel: {0}</value></data>
+  <data name="WfBuilder_StepSettingsUnknownSetting" xml:space="preserve"><value>Dieser Schritttyp hat keine Einstellung namens "{0}" (Groß- und Kleinschreibung wird beachtet). Seine Einstellungen sind: {1}.</value></data>
+  <data name="WfBuilder_StepSettingsNotText" xml:space="preserve"><value>"{0}" muss Text in doppelten Anführungszeichen sein.</value></data>
+  <data name="WfBuilder_StepSettingsNotAWholeNumber" xml:space="preserve"><value>"{0}" muss eine ganze Zahl sein, zum Beispiel {1}.</value></data>
+  <data name="WfBuilder_StepSettingsUnknownChoice" xml:space="preserve"><value>"{0}" kann nicht "{1}" sein. Verwenden Sie einen dieser Werte: {2}.</value></data>
+  <data name="WfBuilder_StepSettingsInvalidPattern" xml:space="preserve"><value>"{0}" ist kein gültiger regulärer Ausdruck für die Bedingung matches.</value></data>
+  <data name="WfBuilder_FixStepSettings" xml:space="preserve"><value>Schritt {0} hat Einstellungen, die nicht verwendet werden können. Korrigieren Sie sie, bevor Sie den Workflow speichern.</value></data>
   <data name="WfBuilder_Cancel.Content" xml:space="preserve"><value>Abbrechen</value></data>
   <data name="WfBuilder_SaveWorkflow.Content" xml:space="preserve"><value>Workflow speichern</value></data>
   <data name="WfBuilder_FocusedWorkflowRun.Text" xml:space="preserve"><value>Fokussierte Workflow-Ausführung</value></data>

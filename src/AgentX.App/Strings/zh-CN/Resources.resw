@@ -1544,6 +1544,21 @@
   <data name="WfBuilder_StepType.Header" xml:space="preserve"><value>步骤类型</value></data>
   <data name="WfBuilder_EnterPromptUseInputPh.PlaceholderText" xml:space="preserve"><value>输入提示词... 使用 {{input}} 表示原始输入,{{previous_output}} 表示上一步的输出</value></data>
   <data name="WfBuilder_EnterPromptUseInputPh.Header" xml:space="preserve"><value>提示词模板</value></data>
+  <data name="WfBuilder_StepSettingsLabel.Text" xml:space="preserve"><value>步骤设置 (JSON)</value></data>
+  <data name="WfBuilder_StepSettingsBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>步骤设置 (JSON)</value></data>
+  <data name="WfBuilder_StepSettingsHintDocumentLookup" xml:space="preserve"><value>可选。{"collectionId": 3} 表示只搜索该 ID 对应的合集；不设置时搜索所有文档。提示词模板即为搜索查询。</value></data>
+  <data name="WfBuilder_StepSettingsHintTextTransform" xml:space="preserve"><value>可选。"transform" 取以下值之一：{0}。不设置时，文本将转换为大写。</value></data>
+  <data name="WfBuilder_StepSettingsHintConditionalBranch" xml:space="preserve"><value>必填。"condition" 取以下值之一：{0}。它将上一步的输出与 "value" 进行比较，此步骤随后输出 "trueBranch" 或 "falseBranch"（省略该分支时输出上一步的结果）。</value></data>
+  <data name="WfBuilder_StepSettingsHintOutputFormat" xml:space="preserve"><value>可选。"format" 取以下值之一：{0}。"prefix" 和 "suffix" 会在输出前后添加文本。</value></data>
+  <data name="WfBuilder_StepSettingsRequired" xml:space="preserve"><value>此步骤类型需要设置。空白框中显示了一个可供参考的示例。</value></data>
+  <data name="WfBuilder_StepSettingsInvalidJson" xml:space="preserve"><value>设置不是有效的 JSON。请检查第 {0} 行第 {1} 个位置附近。</value></data>
+  <data name="WfBuilder_StepSettingsNotAnObject" xml:space="preserve"><value>设置必须是用大括号括起来的单个 JSON 对象，例如：{0}</value></data>
+  <data name="WfBuilder_StepSettingsUnknownSetting" xml:space="preserve"><value>此步骤类型没有名为 "{0}" 的设置（名称区分大小写）。可用的设置：{1}。</value></data>
+  <data name="WfBuilder_StepSettingsNotText" xml:space="preserve"><value>"{0}" 必须是用双引号括起来的文本。</value></data>
+  <data name="WfBuilder_StepSettingsNotAWholeNumber" xml:space="preserve"><value>"{0}" 必须是整数，例如 {1}。</value></data>
+  <data name="WfBuilder_StepSettingsUnknownChoice" xml:space="preserve"><value>"{0}" 不能为 "{1}"。请使用以下值之一：{2}。</value></data>
+  <data name="WfBuilder_StepSettingsInvalidPattern" xml:space="preserve"><value>"{0}" 不是 matches 条件可用的有效正则表达式。</value></data>
+  <data name="WfBuilder_FixStepSettings" xml:space="preserve"><value>步骤 {0} 的设置无法使用。请先修正再保存工作流。</value></data>
   <data name="WfBuilder_Cancel.Content" xml:space="preserve"><value>取消</value></data>
   <data name="WfBuilder_SaveWorkflow.Content" xml:space="preserve"><value>保存工作流</value></data>
   <data name="WfBuilder_FocusedWorkflowRun.Text" xml:space="preserve"><value>聚焦的工作流运行</value></data>

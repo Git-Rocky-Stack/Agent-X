@@ -1217,4 +1217,119 @@ public sealed class WorkflowEngineTests
             .Should().NotThrowAsync();
         harness.Engine.IsRunning.Should().BeFalse();
     }
+
+    // ---- Agreement with the settings check the workflow builder runs (WorkflowStepSettings) ----
+
+    /// <summary>
+    /// Runs <paramref name="stepType"/> with <paramref name="configJson"/> after a seed step that
+    /// outputs the input, so a conditional branch has a previous output to test.
+    /// </summary>
+    private static async Task<WorkflowRunResult> RunCheckedStepAsync(string stepType, string configJson, string input)
+    {
+        using var harness = new WorkflowEngineHarness();
+        var id = harness.ConfigureWorkflow("wf",
+            Step("OutputFormat", order: 0, name: "Seed", template: "{{input}}"),
+            Step(stepType, order: 1, name: "Checked", template: "{{input}}", config: configJson));
+
+        return await harness.Engine.ExecuteWorkflowAsync(id, input);
+    }
+
+    [Fact]
+    public async Task Every_transform_the_settings_check_accepts_is_applied_by_the_engine()
+    {
+        foreach (var transform in WorkflowStepSettings.TextTransforms)
+        {
+            var config = JsonSerializer.Serialize(new { transform });
+            WorkflowStepSettings.Validate("TextTransform", config).Should().BeNull();
+
+            var result = await RunCheckedStepAsync("TextTransform", config, "b\na\na");
+
+            result.Success.Should().BeTrue(transform);
+        }
+
+        // And the engine supports no transform the check would reject: its refusal lists them all.
+        var refused = await RunCheckedStepAsync("TextTransform", "{\"transform\": \"rot13\"}", "abc");
+        var supported = refused.Steps[^1].ErrorMessage!.Split("Supported: ")[1].TrimEnd('.').Split(", ");
+        supported.Should().BeEquivalentTo(WorkflowStepSettings.TextTransforms);
+    }
+
+    [Fact]
+    public async Task Every_condition_the_settings_check_accepts_is_evaluated_by_the_engine()
+    {
+        // For each condition, a value that makes it true for the previous output "abc".
+        var metBy = new Dictionary<string, string>
+        {
+            ["contains"] = "b",
+            ["not_contains"] = "z",
+            ["starts_with"] = "a",
+            ["ends_with"] = "c",
+            ["equals"] = "ABC",
+            ["matches"] = "^a.c$",
+            ["length_greater_than"] = "2",
+        };
+        metBy.Keys.Should().BeEquivalentTo(WorkflowStepSettings.Conditions);
+
+        foreach (var (condition, value) in metBy)
+        {
+            var config = JsonSerializer.Serialize(new { condition, value, trueBranch = "YES", falseBranch = "NO" });
+            WorkflowStepSettings.Validate("ConditionalBranch", config).Should().BeNull();
+
+            var result = await RunCheckedStepAsync("ConditionalBranch", config, "abc");
+
+            result.FinalOutput.Should().Be("YES", condition);
+        }
+    }
+
+    [Fact]
+    public async Task Every_format_the_settings_check_accepts_is_applied_by_the_engine()
+    {
+        const string input = "line one\nline two";
+        foreach (var format in WorkflowStepSettings.OutputFormats)
+        {
+            var config = JsonSerializer.Serialize(new { format });
+            WorkflowStepSettings.Validate("OutputFormat", config).Should().BeNull();
+
+            var result = await RunCheckedStepAsync("OutputFormat", config, input);
+
+            result.Success.Should().BeTrue(format);
+            result.FinalOutput.Should().NotBe(input, format);
+        }
+    }
+
+    [Theory]
+    [InlineData("DocumentLookup", "[1]")]
+    [InlineData("DocumentLookup", "{\"collectionId\": \"3\"}")]
+    [InlineData("TextTransform", "\"lowercase\"")]
+    [InlineData("TextTransform", "{\"transform\": 5}")]
+    [InlineData("TextTransform", "{\"transform\": \"rot13\"}")]
+    [InlineData("ConditionalBranch", "")]
+    [InlineData("ConditionalBranch", "{\"condition\": \"length_greater_than\", \"value\": 100}")]
+    [InlineData("ConditionalBranch", "{\"condition\": \"matches\", \"value\": \"(unclosed\"}")]
+    [InlineData("OutputFormat", "[]")]
+    [InlineData("OutputFormat", "{\"prefix\": 1}")]
+    public async Task Settings_the_check_rejects_fail_the_step_when_run(string stepType, string configJson)
+    {
+        WorkflowStepSettings.Validate(stepType, configJson).Should().NotBeNull();
+
+        var result = await RunCheckedStepAsync(stepType, configJson, "abc");
+
+        result.Success.Should().BeFalse();
+        result.Steps[^1].Success.Should().BeFalse();
+    }
+
+    [Theory]
+    [InlineData("TextTransform", "{ \"transform\": \"lowercase\"", "ABC")]
+    [InlineData("TextTransform", "{\"Transform\": \"lowercase\"}", "ABC")]
+    [InlineData("OutputFormat", "{\"format\": \"JSON\"}", "abc")]
+    [InlineData("ConditionalBranch", "{\"condition\": \"has\", \"value\": \"a\", \"trueBranch\": \"YES\", \"falseBranch\": \"NO\"}", "NO")]
+    public async Task Settings_the_check_rejects_are_otherwise_ignored_when_run(string stepType, string configJson, string output)
+    {
+        // Not a failure, which is the trouble: the run succeeds as if the settings were not there.
+        WorkflowStepSettings.Validate(stepType, configJson).Should().NotBeNull();
+
+        var result = await RunCheckedStepAsync(stepType, configJson, "abc");
+
+        result.Success.Should().BeTrue();
+        result.FinalOutput.Should().Be(output);
+    }
 }

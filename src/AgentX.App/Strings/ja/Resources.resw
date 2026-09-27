@@ -1544,6 +1544,21 @@
   <data name="WfBuilder_StepType.Header" xml:space="preserve"><value>ステップの種類</value></data>
   <data name="WfBuilder_EnterPromptUseInputPh.PlaceholderText" xml:space="preserve"><value>プロンプトを入力... 元の入力には {{input}}、直前のステップの出力には {{previous_output}} を使用します</value></data>
   <data name="WfBuilder_EnterPromptUseInputPh.Header" xml:space="preserve"><value>プロンプト テンプレート</value></data>
+  <data name="WfBuilder_StepSettingsLabel.Text" xml:space="preserve"><value>ステップの設定 (JSON)</value></data>
+  <data name="WfBuilder_StepSettingsBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>ステップの設定 (JSON)</value></data>
+  <data name="WfBuilder_StepSettingsHintDocumentLookup" xml:space="preserve"><value>省略可能。{"collectionId": 3} と指定すると、その ID のコレクションだけを検索します。設定しない場合はすべてのドキュメントを検索します。プロンプト テンプレートが検索クエリになります。</value></data>
+  <data name="WfBuilder_StepSettingsHintTextTransform" xml:space="preserve"><value>省略可能。"transform" には次のいずれかを指定します: {0}。設定しない場合、テキストは大文字に変換されます。</value></data>
+  <data name="WfBuilder_StepSettingsHintConditionalBranch" xml:space="preserve"><value>必須。"condition" には次のいずれかを指定します: {0}。前のステップの出力を "value" と比較し、ステップは "trueBranch" または "falseBranch" を出力します (その分岐を省略した場合は前の出力をそのまま出力します)。</value></data>
+  <data name="WfBuilder_StepSettingsHintOutputFormat" xml:space="preserve"><value>省略可能。"format" には次のいずれかを指定します: {0}。"prefix" と "suffix" は出力の前後にテキストを追加します。</value></data>
+  <data name="WfBuilder_StepSettingsRequired" xml:space="preserve"><value>この種類のステップには設定が必要です。空の欄に表示される例を参考にしてください。</value></data>
+  <data name="WfBuilder_StepSettingsInvalidJson" xml:space="preserve"><value>設定が有効な JSON ではありません。{0} 行目の {1} 文字目付近を確認してください。</value></data>
+  <data name="WfBuilder_StepSettingsNotAnObject" xml:space="preserve"><value>設定は波かっこで囲んだ 1 つの JSON オブジェクトにしてください。例: {0}</value></data>
+  <data name="WfBuilder_StepSettingsUnknownSetting" xml:space="preserve"><value>この種類のステップには "{0}" という設定はありません (名前の大文字と小文字は区別されます)。使用できる設定: {1}。</value></data>
+  <data name="WfBuilder_StepSettingsNotText" xml:space="preserve"><value>"{0}" は二重引用符で囲んだテキストにしてください。</value></data>
+  <data name="WfBuilder_StepSettingsNotAWholeNumber" xml:space="preserve"><value>"{0}" は整数にしてください (例: {1})。</value></data>
+  <data name="WfBuilder_StepSettingsUnknownChoice" xml:space="preserve"><value>"{0}" に "{1}" は使用できません。次のいずれかを使用してください: {2}。</value></data>
+  <data name="WfBuilder_StepSettingsInvalidPattern" xml:space="preserve"><value>"{0}" は matches 条件に使用できる正規表現ではありません。</value></data>
+  <data name="WfBuilder_FixStepSettings" xml:space="preserve"><value>ステップ {0} の設定は使用できません。ワークフローを保存する前に修正してください。</value></data>
   <data name="WfBuilder_Cancel.Content" xml:space="preserve"><value>キャンセル</value></data>
   <data name="WfBuilder_SaveWorkflow.Content" xml:space="preserve"><value>ワークフローを保存</value></data>
   <data name="WfBuilder_FocusedWorkflowRun.Text" xml:space="preserve"><value>フォーカス中のワークフロー実行</value></data>

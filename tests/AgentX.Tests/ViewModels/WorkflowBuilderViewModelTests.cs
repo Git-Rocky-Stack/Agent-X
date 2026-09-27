@@ -1,3 +1,4 @@
+using System.Xml.Linq;
 using AgentX.App.Services;
 using AgentX.App.ViewModels;
 using AgentX.Core.AI;
@@ -7,6 +8,8 @@ using AgentX.Core.Documents;
 using AgentX.Core.Helpers;
 using AgentX.Core.Services.Export;
 using AgentX.Core.Services.Export.Models;
+using AgentX.Core.Services.Localization;
+using AgentX.Core.Services.Settings;
 using AgentX.Core.Services.Workflows;
 using AgentX.Core.Services.Workflows.Models;
 using FluentAssertions;
@@ -1284,5 +1287,248 @@ public sealed class WorkflowBuilderViewModelTests : IDisposable
         viewModel.StatusMessage.Should().Be("Workflow cancelled");
         viewModel.RunErrorMessage.Should().Be("Cancelled by user");
         viewModel.RunResultContextText.Should().Be("Showing the cancelled execution result");
+    }
+
+    // ---- Step settings editor ----
+
+    [Fact]
+    public void The_step_type_list_offers_every_type_the_engine_runs()
+    {
+        var viewModel = new WorkflowBuilderViewModel(
+            _workflowService.Object,
+            _workflowEngine.Object,
+            _modelManager.Object,
+            _documentService.Object);
+
+        viewModel.StepTypes.Should().Equal("AiPrompt", "DocumentLookup", "TextTransform", "ConditionalBranch", "OutputFormat");
+    }
+
+    [Fact]
+    public void The_settings_box_is_offered_for_the_step_types_that_read_settings()
+    {
+        var step = new WorkflowStepItem();
+        var changed = new List<string?>();
+        step.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+
+        step.HasSettings.Should().BeFalse();
+        step.ConfigExample.Should().BeEmpty();
+        step.ConfigHint.Should().BeEmpty();
+
+        step.StepType = "OutputFormat";
+
+        step.HasSettings.Should().BeTrue();
+        step.ConfigExample.Should().Be("{\"format\": \"bullet_list\"}");
+        step.ConfigHint.Should().Be(
+            "Optional. \"format\" is one of: json, markdown, html, bullet_list, numbered_list. \"prefix\" and \"suffix\" add text before and after the output.");
+        changed.Should().Contain(new[]
+        {
+            nameof(WorkflowStepItem.HasSettings),
+            nameof(WorkflowStepItem.ConfigExample),
+            nameof(WorkflowStepItem.ConfigHint),
+        });
+    }
+
+    [Fact]
+    public void Settings_are_checked_as_they_are_typed()
+    {
+        var step = new WorkflowStepItem { StepType = "TextTransform" };
+        var changed = new List<string?>();
+        step.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+
+        step.ConfigText = "{\"transform\": \"upper\"}";
+
+        step.ConfigJson.Should().Be("{\"transform\": \"upper\"}");
+        step.HasConfigError.Should().BeTrue();
+        step.ConfigError.Should().Be(
+            "\"transform\" cannot be \"upper\". Use one of: uppercase, lowercase, titlecase, trim, extract_lines, word_count, char_count, reverse_lines, deduplicate_lines, sort_lines, number_lines.");
+        changed.Should().Contain(new[]
+        {
+            nameof(WorkflowStepItem.ConfigText),
+            nameof(WorkflowStepItem.ConfigError),
+            nameof(WorkflowStepItem.HasConfigError),
+        });
+
+        step.ConfigText = "{\"transform\": \"uppercase\"}";
+
+        step.HasConfigError.Should().BeFalse();
+        step.ConfigError.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Changing_the_step_type_checks_the_settings_again()
+    {
+        var step = new WorkflowStepItem { StepType = "TextTransform", ConfigJson = "{\"transform\": \"lowercase\"}" };
+        step.HasConfigError.Should().BeFalse();
+
+        step.StepType = "ConditionalBranch";
+
+        step.HasConfigError.Should().BeTrue();
+        step.ConfigError.Should().StartWith("This step type has no setting named \"transform\"");
+
+        // A prompt step reads no settings, so what is left in them is not an error.
+        step.StepType = "AiPrompt";
+
+        step.HasSettings.Should().BeFalse();
+        step.HasConfigError.Should().BeFalse();
+        step.ConfigError.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void A_new_conditional_branch_says_it_needs_settings()
+    {
+        var step = new WorkflowStepItem { StepType = "ConditionalBranch" };
+
+        step.ConfigText.Should().BeEmpty();
+        step.HasConfigError.Should().BeTrue();
+        step.ConfigError.Should().Be("This step type needs settings. The empty box shows an example to start from.");
+    }
+
+    [Theory]
+    [InlineData("ConditionalBranch", "")]
+    [InlineData("DocumentLookup", "{\"collectionId\": 3,}")]
+    [InlineData("DocumentLookup", "[3]")]
+    [InlineData("DocumentLookup", "{\"collection\": 3}")]
+    [InlineData("TextTransform", "{\"transform\": 1}")]
+    [InlineData("DocumentLookup", "{\"collectionId\": \"3\"}")]
+    [InlineData("OutputFormat", "{\"format\": \"table\"}")]
+    [InlineData("ConditionalBranch", "{\"condition\": \"matches\", \"value\": \"(\"}")]
+    public void Settings_texts_without_a_localization_service_match_the_English_resources(string stepType, string configJson)
+    {
+        var fallback = new WorkflowStepItem { StepType = stepType, ConfigJson = configJson };
+        var resources = new WorkflowStepItem(EnglishResources()) { StepType = stepType, ConfigJson = configJson };
+
+        fallback.HasConfigError.Should().BeTrue();
+        fallback.ConfigError.Should().NotBeEmpty().And.Be(resources.ConfigError);
+        fallback.ConfigHint.Should().NotBeEmpty().And.Be(resources.ConfigHint);
+    }
+
+    [Fact]
+    public void Steps_use_the_view_models_localization_and_fall_back_to_English_for_a_missing_resource()
+    {
+        var localization = new Mock<ILocalizationService>();
+        // The service answers a resource it does not have with the key itself.
+        localization.Setup(service => service.GetString(It.IsAny<string>()))
+            .Returns((string key) => key);
+        localization.Setup(service => service.GetString(It.IsAny<string>(), It.IsAny<object[]>()))
+            .Returns((string key, object[] _) => key);
+        localization.Setup(service => service.GetString("WfBuilder_StepSettingsNotText", It.IsAny<object[]>()))
+            .Returns((string _, object[] args) => $"L10N {args[0]}");
+
+        var viewModel = new WorkflowBuilderViewModel(
+            _workflowService.Object,
+            _workflowEngine.Object,
+            _modelManager.Object,
+            _documentService.Object,
+            localization: localization.Object);
+        viewModel.CreateWorkflowCommand.Execute(null);
+        viewModel.AddStepCommand.Execute(null);
+
+        var step = viewModel.EditSteps.Last();
+        step.StepType = "OutputFormat";
+        step.ConfigText = "{\"suffix\": 2}";
+
+        step.ConfigError.Should().Be("L10N suffix");
+        step.ConfigHint.Should().StartWith("Optional. \"format\" is one of: json,");
+    }
+
+    [Fact]
+    public async Task SaveWorkflowAsync_refuses_settings_the_engine_cannot_use_until_they_are_fixed()
+    {
+        var viewModel = CreateEditingViewModel(14, configJson: "{\"transform\": \"shout\"}");
+        await viewModel.EditWorkflowCommand.ExecuteAsync(14L);
+        viewModel.EditSteps.Single().HasConfigError.Should().BeTrue();
+
+        await viewModel.SaveWorkflowCommand.ExecuteAsync(null);
+
+        _workflowService.Verify(service => service.UpdateWorkflowAsync(It.IsAny<WorkflowEntity>()), Times.Never);
+        _workflowService.Verify(service => service.AddStepAsync(It.IsAny<long>(), It.IsAny<WorkflowStepEntity>()), Times.Never);
+        viewModel.IsEditing.Should().BeTrue();
+        viewModel.StatusMessage.Should().Be("Step 1 has settings that cannot be used. Fix them before saving the workflow.");
+
+        viewModel.EditSteps.Single().ConfigText = "{\"transform\": \"uppercase\"}";
+        await viewModel.SaveWorkflowCommand.ExecuteAsync(null);
+
+        _workflowService.Verify(
+            service => service.AddStepAsync(14, It.Is<WorkflowStepEntity>(step => step.ConfigJson == "{\"transform\": \"uppercase\"}")),
+            Times.Once);
+        viewModel.IsEditing.Should().BeFalse();
+    }
+
+    [Fact]
+    public void The_save_refusal_matches_its_English_resource()
+    {
+        var english = EnglishResources().GetString("WfBuilder_FixStepSettings", 1);
+
+        english.Should().Be("Step 1 has settings that cannot be used. Fix them before saving the workflow.");
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("  \n ")]
+    public async Task SaveWorkflowAsync_saves_a_cleared_settings_box_as_no_settings(string cleared)
+    {
+        var viewModel = CreateEditingViewModel(15, configJson: "{\"transform\":\"lowercase\"}");
+        await viewModel.EditWorkflowCommand.ExecuteAsync(15L);
+
+        viewModel.EditSteps.Single().ConfigText = cleared;
+        await viewModel.SaveWorkflowCommand.ExecuteAsync(null);
+
+        _workflowService.Verify(
+            service => service.AddStepAsync(15, It.Is<WorkflowStepEntity>(step => step.ConfigJson == null)),
+            Times.Once);
+    }
+
+    /// <summary>A localization service serving the en-US resources the app ships.</summary>
+    private static ILocalizationService EnglishResources()
+    {
+        var resw = Path.Combine(ResolveSourceRoot(), "AgentX.App", "Strings", "en-US", "Resources.resw");
+        var values = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var data in XDocument.Load(resw).Root!.Elements("data"))
+        {
+            values[(string)data.Attribute("name")!] = (string?)data.Element("value") ?? string.Empty;
+        }
+
+        return new LocalizationService(
+            Mock.Of<ISettingsService>(),
+            Mock.Of<IPluralRuleProvider>(),
+            new DictionaryResourceLoader(values));
+    }
+
+    private static string ResolveSourceRoot()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null)
+        {
+            var candidate = Path.Combine(directory.FullName, "src");
+            if (Directory.Exists(Path.Combine(candidate, "AgentX.App")) &&
+                Directory.Exists(Path.Combine(candidate, "AgentX.Core")))
+            {
+                return candidate;
+            }
+
+            directory = directory.Parent;
+        }
+
+        throw new DirectoryNotFoundException("Could not locate Agent-X source root from test output directory.");
+    }
+
+    /// <summary>Serves resources from a dictionary, answering a missing one with null as MRT Core does.</summary>
+    private sealed class DictionaryResourceLoader : IResourceLoaderAdapter
+    {
+        private readonly IReadOnlyDictionary<string, string> _values;
+
+        public DictionaryResourceLoader(IReadOnlyDictionary<string, string> values) => _values = values;
+
+        public void SetLanguageOverride(string? languageCode)
+        {
+        }
+
+        public string GetActiveLanguage() => "en-US";
+
+        public void Initialize()
+        {
+        }
+
+        public string? GetString(string key) => _values.TryGetValue(key, out var value) ? value : null;
     }
 }
