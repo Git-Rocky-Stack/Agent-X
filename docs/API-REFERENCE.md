@@ -52,7 +52,6 @@ in [`API_ENDPOINTS.md`](../API_ENDPOINTS.md).
    - [IAutoTagService](#iautotagservice)
 8. [Indexing Services](#8-indexing-services)
    - [IIndexingService](#iindexingservice)
-   - [IIndexingQueueService](#iindexingqueueservice)
    - [IFileWatcherService](#ifilewatcherservice)
    - [Indexing Event Data](#indexing-event-data)
 9. [Settings](#9-settings)
@@ -1774,31 +1773,6 @@ chunks, stores the vectors and writes the keyword (FTS5) rows.
 
 ---
 
-### IIndexingQueueService
-
-```csharp
-namespace AgentX.Core.Services.Indexing;
-
-public interface IIndexingQueueService
-```
-
-Job operations on the `IndexingJobEntity` table.
-
-**Implementation:** `IndexingQueueService`. It is registered in DI, but nothing in the app calls
-it: `IndexingService` keeps its queue in memory and writes the job history rows itself.
-
-| Member | Description |
-|--------|-------------|
-| `Task EnqueueAsync(long documentId)` | Adds a job with `Status = "queued"`. |
-| `Task EnqueueBatchAsync(IReadOnlyList<long> documentIds)` | Adds several jobs. |
-| `Task<IndexingJobEntity?> DequeueAsync(CancellationToken ct = default)` | Takes the oldest queued job, sets it to `"processing"` and records the start time; `null` when none is queued. |
-| `Task MarkCompletedAsync(long jobId, int chunksProcessed, int embeddingsGenerated, double processingTimeMs)` | Marks a job completed with its metrics. |
-| `Task MarkFailedAsync(long jobId, string errorMessage)` | Marks a job failed with the error. |
-| `Task<int> GetPendingCountAsync()` | Jobs that are queued or processing. |
-| `Task<IReadOnlyList<IndexingJobEntity>> GetRecentJobsAsync(int limit = 50)` | Most recent jobs by `QueuedAt`. |
-
----
-
 ### IFileWatcherService
 
 ```csharp
@@ -1941,11 +1915,11 @@ The contents of `settings.json`.
 | `EnableHnswIndex` | `bool` | `true` | Use the HNSW vector store. |
 | `HnswM` | `int` | `16` | HNSW graph degree. |
 | `HnswEfConstruction` | `int` | `200` | HNSW build parameter. |
-| `HnswEfSearch` | `int` | `50` | Not read by the vector store. |
+| `HnswEfSearch` | `int` | `50` | Minimum HNSW search breadth (ef). A query already searches at least max(`HnswEfConstruction`, 2 x candidates), so only a larger value widens the search (better recall, slower queries). |
 | `HnswFallbackThreshold` | `int` | `10000` | Below this many vectors the HNSW store scans linearly. |
 | `OAuth` | `OAuthSettings` | `new()` | `Google` (`ClientId`, `ClientSecret`, `RedirectUri` default `http://localhost:8400/oauth/callback`), `Microsoft` (`ClientId`, `ClientSecret`, `TenantId` default `common`, `RedirectUri` default `http://localhost:8401/oauth/callback`), `TokenRefreshBufferMinutes` (5) and `AuthTimeoutSeconds` (300). |
 | `CalendarConnector` | `CalendarSettings` | `new()` | `EnableCalendarSync` (false), `SyncIntervalMinutes` (15), `DaysPastToSync` (90), `DaysFutureToSync` (30), `ConflictResolution` (`"RemoteWins"`), `IncludeAttendeeDetails` (true), `IncludeDescriptions` (true). |
-| `EmailConnector` | `EmailSettings` | `new()` | `EnableEmailSync` (false), `SyncIntervalMinutes` (10), `MessagesPerSync` (50), `DaysBackToSync` (30), `EnableAiCategorization` (true), `IncludeBodyContent` (true), `IncludeAttachmentMetadata` (false). |
+| `EmailConnector` | `EmailSettings` | `new()` | `EnableEmailSync` (false), `SyncIntervalMinutes` (10), `MessagesPerSync` (50), `DaysBackToSync` (30), `EnableAiCategorization` (true, not applied: messages are categorized by rules), `IncludeBodyContent` (true, not applied: the connector's own `EmailSyncSettings.IncludeHtmlBody` decides whether bodies are kept), `IncludeAttachmentMetadata` (false). |
 | `BackupSchedule` | `BackupScheduleConfig` | `new()` | `Enabled` (false), `IntervalHours` (168, at most 720), `MaxBackupsToKeep` (5, 0 keeps all), `DestinationPath`, `EncryptionPassword` (encrypted on disk). |
 | `StoragePath` | `string` | `%LOCALAPPDATA%\AgentX` | Folder for the built-in models, the vector store, web imports and exports. Shown read-only in Settings > Storage. |
 

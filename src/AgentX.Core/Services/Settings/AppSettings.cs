@@ -79,6 +79,8 @@ public class AppSettings
     public bool EnableHnswIndex { get; set; } = true;
     public int HnswM { get; set; } = 16;
     public int HnswEfConstruction { get; set; } = 200;
+    // Minimum search breadth (ef). Queries already search at least max(EfConstruction, 2 x
+    // candidates), so only a value above that widens the search (better recall, slower).
     public int HnswEfSearch { get; set; } = 50;
     public int HnswFallbackThreshold { get; set; } = 10000;
 
@@ -226,14 +228,16 @@ public class EmailSettings
     public int DaysBackToSync { get; set; } = 30;
 
     /// <summary>
-    /// Whether to use AI-based categorization to automatically tag
-    /// and prioritize incoming email messages.
+    /// Not applied. Synced messages are categorized by rules, not by AI (see
+    /// <c>EmailSyncSettings.EnableAiCategorization</c>); the property is kept so existing
+    /// settings files still load.
     /// </summary>
     public bool EnableAiCategorization { get; set; } = true;
 
     /// <summary>
-    /// Whether to include the full email body content when syncing messages.
-    /// When disabled, only metadata (sender, subject, date) is stored.
+    /// Not applied. Whether a message body is kept is the email connector's own
+    /// <c>EmailSyncSettings.IncludeHtmlBody</c> setting; the property is kept so existing
+    /// settings files still load.
     /// </summary>
     public bool IncludeBodyContent { get; set; } = true;
 
