@@ -763,21 +763,57 @@ public sealed class MigrationRunner : IMigrationRunner
         if (baselineId is null) return;
         if (!await MigrationStampedAsync(baselineId, cancellationToken)) return;
 
-        var missingSet = new HashSet<string>(missing, StringComparer.OrdinalIgnoreCase);
-        var sqlGenerator = _context.GetService<IMigrationsSqlGenerator>();
-
-        await CreateMissingBaselineTablesAsync(allMigrations, missingSet, sqlGenerator, cancellationToken);
-
         var applied = (await _context.Database.GetAppliedMigrationsAsync(cancellationToken))
             .ToHashSet(StringComparer.Ordinal);
         var appliedInOrder = allMigrations.Where(applied.Contains).ToList();
+
+        // A baseline table that an applied migration dropped ("licenses", by DropLicensesTable)
+        // is absent on purpose. Treating it as missing recreated it on every later launch.
+        var dropped = TablesDroppedByMigrations(appliedInOrder);
+        var missingSet = new HashSet<string>(missing.Where(table => !dropped.Contains(table)), StringComparer.OrdinalIgnoreCase);
+        if (missingSet.Count == 0) return;
+
+        var sqlGenerator = _context.GetService<IMigrationsSqlGenerator>();
+
+        await CreateMissingBaselineTablesAsync(allMigrations, missingSet, sqlGenerator, cancellationToken);
         await HealPostBaselineColumnsForTablesAsync(appliedInOrder, missingSet, sqlGenerator, cancellationToken);
 
-        var stillMissing = await GetMissingBaselineTablesAsync(cancellationToken);
+        var stillMissing = (await GetMissingBaselineTablesAsync(cancellationToken))
+            .Where(table => !dropped.Contains(table))
+            .ToList();
         if (stillMissing.Count > 0)
         {
             throw new BaselineSchemaIncompleteException(stillMissing);
         }
+    }
+
+    /// <summary>
+    /// The tables the given migrations, in order, leave dropped: dropped by one of them and not
+    /// created again by a later one.
+    /// </summary>
+    private HashSet<string> TablesDroppedByMigrations(IEnumerable<string> migrationsInOrder)
+    {
+        var dropped = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var migrationId in migrationsInOrder)
+        {
+            var migration = InstantiateMigrationById(migrationId);
+            if (migration is null) continue;
+
+            foreach (var operation in migration.UpOperations)
+            {
+                switch (operation)
+                {
+                    case DropTableOperation dropTable:
+                        dropped.Add(dropTable.Name);
+                        break;
+                    case CreateTableOperation createTable:
+                        dropped.Remove(createTable.Name);
+                        break;
+                }
+            }
+        }
+
+        return dropped;
     }
 
     /// <summary>

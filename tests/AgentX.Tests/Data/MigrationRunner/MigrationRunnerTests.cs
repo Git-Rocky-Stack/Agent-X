@@ -172,6 +172,31 @@ public class MigrationRunnerTests
     }
 
     [Fact]
+    public async Task RunAsync_on_a_later_launch_does_not_bring_the_dropped_licenses_table_back()
+    {
+        // The stamped-baseline heal treated "licenses" as a missing baseline table on every
+        // launch after DropLicensesTable had run, and recreated it.
+        var (ctx, dbPath) = CreateContextAtTempPath();
+        try
+        {
+            IMigrationRunner runner = new Core.Data.MigrationRunner.MigrationRunner(ctx);
+            await runner.RunAsync();
+
+            var secondLaunch = await runner.RunAsync();
+
+            secondLaunch.AppliedMigrations.Should().BeEmpty();
+            (await TableExistsAsync(ctx, "licenses")).Should().BeFalse(
+                "a table an applied migration dropped is absent on purpose, not missing");
+        }
+        finally
+        {
+            await ctx.DisposeAsync();
+            SqliteConnection.ClearAllPools();
+            if (File.Exists(dbPath)) File.Delete(dbPath);
+        }
+    }
+
+    [Fact]
     public async Task RunAsync_on_up_to_date_database_applies_nothing()
     {
         var (ctx, dbPath) = CreateContextAtTempPath();
