@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text;
+using AgentX.App.Services;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Agents;
 using AgentX.Core.AI.Models;
@@ -7,7 +8,6 @@ using AgentX.Core.Data.Entities;
 using AgentX.Core.Search.Models;
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Chat.Models;
-using AgentX.App.Services;
 using AgentX.Core.Services.Feedback;
 using AgentX.Core.Services.Localization;
 using AgentX.Core.Services.Search;
