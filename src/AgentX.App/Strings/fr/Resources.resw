@@ -1223,6 +1223,24 @@
   <data name="Main_PastSelf.Content" xml:space="preserve"><value>Moi d'avant</value></data>
   <data name="Main_AiChat.Content" xml:space="preserve"><value>AI Chat</value></data>
   <data name="Main_AskYourFiles.Content" xml:space="preserve"><value>Interroger vos fichiers</value></data>
+  <data name="Chat_ShortcutNewConversation" xml:space="preserve"><value>Nouvelle conversation</value></data>
+  <data name="Chat_ShortcutToggleConversationPane" xml:space="preserve"><value>Afficher ou masquer le volet des conversations</value></data>
+  <data name="Chat_ShortcutCategory" xml:space="preserve"><value>Chat</value></data>
+  <data name="Chat_CreateBranchTitle" xml:space="preserve"><value>Créer une branche</value></data>
+  <data name="Chat_CreateBranchPrompt" xml:space="preserve"><value>Donnez à cette branche un libellé facultatif :</value></data>
+  <data name="Chat_CreateBranchPlaceholder" xml:space="preserve"><value>Libellé de la branche (facultatif)</value></data>
+  <data name="Chat_CreateBranchConfirm" xml:space="preserve"><value>Créer la branche</value></data>
+  <data name="Chat_DeleteBranchTitle" xml:space="preserve"><value>Supprimer la branche</value></data>
+  <data name="Chat_DeleteBranchBody" xml:space="preserve"><value>Supprimer cette branche et toutes ses sous-branches ?</value></data>
+  <data name="Chat_MergeBranchTitle" xml:space="preserve"><value>Fusionner dans le fil principal</value></data>
+  <data name="Chat_MergeBranchBody" xml:space="preserve"><value>Fusionner tous les messages de cette branche dans la conversation principale ?</value></data>
+  <data name="Chat_MergeBranchConfirm" xml:space="preserve"><value>Fusionner</value></data>
+  <data name="Chat_ExportUntitledConversation" xml:space="preserve"><value>Conversation</value></data>
+  <data name="Export_CompleteTitle" xml:space="preserve"><value>Exportation terminée</value></data>
+  <data name="Export_FailedTitle" xml:space="preserve"><value>Échec de l'exportation</value></data>
+  <data name="Export_ConversationsSavedOne" xml:space="preserve"><value>{0} conversation exportée. Fichier enregistré dans {1}</value></data>
+  <data name="Export_ConversationsSavedMany" xml:space="preserve"><value>{0} conversations exportées. Fichier enregistré dans {1}</value></data>
+  <data name="Export_CollectionSaved" xml:space="preserve"><value>Collection exportée vers {0}. Fichier enregistré dans {1}</value></data>
   <data name="Chat_PrivacyLocal" xml:space="preserve"><value>{0} s'exécute sur cet ordinateur, vos messages restent donc sur cet appareil.</value></data>
   <data name="Chat_PrivacyLocalUnnamed" xml:space="preserve"><value>Le modèle d'IA s'exécute sur cet ordinateur, vos messages restent donc sur cet appareil.</value></data>
   <data name="Chat_PrivacyCloud" xml:space="preserve"><value>Vos messages sont envoyés à {0} pour être traités.</value></data>

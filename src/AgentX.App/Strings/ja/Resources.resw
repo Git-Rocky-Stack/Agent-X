@@ -1223,6 +1223,24 @@
   <data name="Main_PastSelf.Content" xml:space="preserve"><value>Past Self</value></data>
   <data name="Main_AiChat.Content" xml:space="preserve"><value>AI Chat</value></data>
   <data name="Main_AskYourFiles.Content" xml:space="preserve"><value>ファイルに質問する</value></data>
+  <data name="Chat_ShortcutNewConversation" xml:space="preserve"><value>新しい会話</value></data>
+  <data name="Chat_ShortcutToggleConversationPane" xml:space="preserve"><value>会話ペインの表示/非表示を切り替え</value></data>
+  <data name="Chat_ShortcutCategory" xml:space="preserve"><value>チャット</value></data>
+  <data name="Chat_CreateBranchTitle" xml:space="preserve"><value>ブランチを作成</value></data>
+  <data name="Chat_CreateBranchPrompt" xml:space="preserve"><value>このブランチに付けるラベルを入力します (省略可):</value></data>
+  <data name="Chat_CreateBranchPlaceholder" xml:space="preserve"><value>ブランチのラベル (省略可)</value></data>
+  <data name="Chat_CreateBranchConfirm" xml:space="preserve"><value>分岐</value></data>
+  <data name="Chat_DeleteBranchTitle" xml:space="preserve"><value>ブランチを削除</value></data>
+  <data name="Chat_DeleteBranchBody" xml:space="preserve"><value>このブランチとそのすべてのサブブランチを削除しますか?</value></data>
+  <data name="Chat_MergeBranchTitle" xml:space="preserve"><value>メイン スレッドにマージ</value></data>
+  <data name="Chat_MergeBranchBody" xml:space="preserve"><value>このブランチのすべてのメッセージをメインの会話にマージしますか?</value></data>
+  <data name="Chat_MergeBranchConfirm" xml:space="preserve"><value>マージ</value></data>
+  <data name="Chat_ExportUntitledConversation" xml:space="preserve"><value>会話</value></data>
+  <data name="Export_CompleteTitle" xml:space="preserve"><value>エクスポートが完了しました</value></data>
+  <data name="Export_FailedTitle" xml:space="preserve"><value>エクスポートに失敗しました</value></data>
+  <data name="Export_ConversationsSavedOne" xml:space="preserve"><value>{0} 件の会話をエクスポートしました。保存先: {1}</value></data>
+  <data name="Export_ConversationsSavedMany" xml:space="preserve"><value>{0} 件の会話をエクスポートしました。保存先: {1}</value></data>
+  <data name="Export_CollectionSaved" xml:space="preserve"><value>コレクションを {0} にエクスポートしました。保存先: {1}</value></data>
   <data name="Chat_PrivacyLocal" xml:space="preserve"><value>{0} はこの PC 上で動作するため、メッセージはこのデバイスから出ません。</value></data>
   <data name="Chat_PrivacyLocalUnnamed" xml:space="preserve"><value>AI モデルはこの PC 上で動作するため、メッセージはこのデバイスから出ません。</value></data>
   <data name="Chat_PrivacyCloud" xml:space="preserve"><value>メッセージは処理のために {0} に送信されます。</value></data>

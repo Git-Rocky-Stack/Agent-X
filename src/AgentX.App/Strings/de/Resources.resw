@@ -1223,6 +1223,24 @@
   <data name="Main_PastSelf.Content" xml:space="preserve"><value>Vergangenes Ich</value></data>
   <data name="Main_AiChat.Content" xml:space="preserve"><value>AI Chat</value></data>
   <data name="Main_AskYourFiles.Content" xml:space="preserve"><value>Fragen Sie Ihre Dateien</value></data>
+  <data name="Chat_ShortcutNewConversation" xml:space="preserve"><value>Neue Unterhaltung</value></data>
+  <data name="Chat_ShortcutToggleConversationPane" xml:space="preserve"><value>Unterhaltungsbereich ein- oder ausblenden</value></data>
+  <data name="Chat_ShortcutCategory" xml:space="preserve"><value>Chat</value></data>
+  <data name="Chat_CreateBranchTitle" xml:space="preserve"><value>Zweig erstellen</value></data>
+  <data name="Chat_CreateBranchPrompt" xml:space="preserve"><value>Geben Sie diesem Zweig optional eine Bezeichnung:</value></data>
+  <data name="Chat_CreateBranchPlaceholder" xml:space="preserve"><value>Bezeichnung des Zweigs (optional)</value></data>
+  <data name="Chat_CreateBranchConfirm" xml:space="preserve"><value>Verzweigen</value></data>
+  <data name="Chat_DeleteBranchTitle" xml:space="preserve"><value>Zweig löschen</value></data>
+  <data name="Chat_DeleteBranchBody" xml:space="preserve"><value>Diesen Zweig und alle seine Unterzweige löschen?</value></data>
+  <data name="Chat_MergeBranchTitle" xml:space="preserve"><value>In Hauptzweig zusammenführen</value></data>
+  <data name="Chat_MergeBranchBody" xml:space="preserve"><value>Alle Nachrichten dieses Zweigs mit der Hauptunterhaltung zusammenführen?</value></data>
+  <data name="Chat_MergeBranchConfirm" xml:space="preserve"><value>Zusammenführen</value></data>
+  <data name="Chat_ExportUntitledConversation" xml:space="preserve"><value>Unterhaltung</value></data>
+  <data name="Export_CompleteTitle" xml:space="preserve"><value>Export abgeschlossen</value></data>
+  <data name="Export_FailedTitle" xml:space="preserve"><value>Export fehlgeschlagen</value></data>
+  <data name="Export_ConversationsSavedOne" xml:space="preserve"><value>{0} Konversation exportiert. Gespeichert unter {1}</value></data>
+  <data name="Export_ConversationsSavedMany" xml:space="preserve"><value>{0} Konversationen exportiert. Gespeichert unter {1}</value></data>
+  <data name="Export_CollectionSaved" xml:space="preserve"><value>Sammlung exportiert nach {0}. Gespeichert unter {1}</value></data>
   <data name="Chat_PrivacyLocal" xml:space="preserve"><value>{0} läuft auf diesem Computer, daher bleiben Ihre Nachrichten auf diesem Gerät.</value></data>
   <data name="Chat_PrivacyLocalUnnamed" xml:space="preserve"><value>Das KI-Modell läuft auf diesem Computer, daher bleiben Ihre Nachrichten auf diesem Gerät.</value></data>
   <data name="Chat_PrivacyCloud" xml:space="preserve"><value>Ihre Nachrichten werden zur Verarbeitung an {0} gesendet.</value></data>

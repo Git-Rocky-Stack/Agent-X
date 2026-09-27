@@ -28,6 +28,8 @@ public sealed class PageTextsAreLocalizedTests
     [InlineData("SettingsPage.xaml.cs")]
     [InlineData("EmailSettingsPage.xaml.cs")]
     [InlineData("CalendarSettingsPage.xaml.cs")]
+    [InlineData("ChatPage.xaml.cs")]
+    [InlineData("CollectionManagerPage.xaml.cs")]
     public void Dialog_texts_come_from_the_resources(string codeBehind)
     {
         var source = ReadView(codeBehind);
@@ -51,7 +53,43 @@ public sealed class PageTextsAreLocalizedTests
             .And.NotContain("\"Documents\")")
             .And.NotContain("\"Drop to import\"");
         ReadView("PluginManagerPage.xaml.cs").Should().NotContain("\"No description provided.\"");
+        ReadView("ChatPage.xaml.cs").Should().NotContain("\"New conversation\"")
+            .And.NotContain("\"Toggle conversation pane\"")
+            .And.NotContain("\"Chat\")")
+            .And.NotContain("\"Conversation\")");
     }
+
+    [Theory]
+    [InlineData("ChatPage.xaml.cs")]
+    [InlineData("CollectionManagerPage.xaml.cs")]
+    public void Export_notices_are_one_sentence_from_the_resources(string codeBehind)
+    {
+        // They appended an English ". Saved to {path}" to the translated export status.
+        ReadView(codeBehind).Should().NotContain("Saved to")
+            .And.NotContain("\"Export complete\"")
+            .And.NotContain("\"Export failed\"")
+            .And.Contain("GetString(\"Export_CompleteTitle\")")
+            .And.Contain("GetString(\"Export_FailedTitle\")");
+    }
+
+    [Theory]
+    [InlineData("Export_ConversationsSavedOne")]
+    [InlineData("Export_ConversationsSavedMany")]
+    [InlineData("Export_CollectionSaved")]
+    public void Templates_keep_every_placeholder_in_every_language(string key)
+    {
+        var english = Placeholders(ReswLocalization.For("en-US").GetString(key));
+        english.Should().NotBeEmpty("{0} is a template", key);
+
+        foreach (var locale in Locales)
+        {
+            Placeholders(ReswLocalization.For(locale).GetString(key))
+                .Should().BeEquivalentTo(english, "{0} in {1} must fill the same values", key, locale);
+        }
+    }
+
+    private static IReadOnlyList<string> Placeholders(string template) =>
+        Regex.Matches(template, @"\{\d+\}").Select(match => match.Value).Distinct().ToList();
 
     [Fact]
     public void Knowledge_graph_names_node_types_and_counts_in_the_users_language()

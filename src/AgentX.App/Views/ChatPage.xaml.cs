@@ -59,17 +59,19 @@ public sealed partial class ChatPage : Page
         // dropping it and opening this page on whatever was last active.
         _ = ViewModel.ApplyNavigationParameterAsync(e.Parameter);
 
+        var localization = App.GetService<ILocalizationService>();
+        var category = localization.GetString("Chat_ShortcutCategory");
         _shortcutScope = _shortcutRegistry.RegisterShortcuts(
             new AgentX.Core.Services.Shortcuts.ShortcutDescriptor(
                 "chat.new",
-                "New conversation",
+                localization.GetString("Chat_ShortcutNewConversation"),
                 new ShortcutScope(nameof(ChatPage)),
                 new[] { new KeyChord(KeyModifiers.Ctrl | KeyModifiers.Shift, VirtualKeyCode.N) },
                 _ => ViewModel.NewConversationCommand.ExecuteAsync(null),
-                "Chat"),
+                category),
             new AgentX.Core.Services.Shortcuts.ShortcutDescriptor(
                 "chat.toggle-pane",
-                "Toggle conversation pane",
+                localization.GetString("Chat_ShortcutToggleConversationPane"),
                 new ShortcutScope(nameof(ChatPage)),
                 new[] { new KeyChord(KeyModifiers.Ctrl, VirtualKeyCode.B) },
                 _ =>
@@ -77,7 +79,7 @@ public sealed partial class ChatPage : Page
                     ViewModel.ToggleConversationPaneCommand.Execute(null);
                     return Task.CompletedTask;
                 },
-                "Chat"));
+                category));
     }
 
     protected override void OnNavigatedFrom(NavigationEventArgs e)
@@ -453,20 +455,21 @@ public sealed partial class ChatPage : Page
     {
         if (sender is Button btn && btn.Tag is ChatMessageItem msg)
         {
-            var input = new TextBox { PlaceholderText = "Branch label (optional)", Width = 300 };
+            var localization = App.GetService<ILocalizationService>();
+            var input = new TextBox { PlaceholderText = localization.GetString("Chat_CreateBranchPlaceholder"), Width = 300 };
             var dialog = new ContentDialog
             {
-                Title = "Create Branch",
+                Title = localization.GetString("Chat_CreateBranchTitle"),
                 Content = new StackPanel
                 {
                     Children =
                     {
-                        new TextBlock { Text = "Give this branch an optional label:", Margin = new(0, 0, 0, 8) },
+                        new TextBlock { Text = localization.GetString("Chat_CreateBranchPrompt"), Margin = new(0, 0, 0, 8) },
                         input
                     }
                 },
-                PrimaryButtonText = "Branch",
-                CloseButtonText = "Cancel",
+                PrimaryButtonText = localization.GetString("Chat_CreateBranchConfirm"),
+                CloseButtonText = localization.GetString("Chat_DeleteConversationCancel"),
                 DefaultButton = ContentDialogButton.Primary,
                 XamlRoot = this.XamlRoot
             };
@@ -492,12 +495,13 @@ public sealed partial class ChatPage : Page
     {
         if (sender is FrameworkElement fe && fe.Tag is long branchId)
         {
+            var localization = App.GetService<ILocalizationService>();
             var dialog = new ContentDialog
             {
-                Title = "Delete Branch",
-                Content = "Delete this branch and all its sub-branches?",
-                PrimaryButtonText = "Delete",
-                CloseButtonText = "Cancel",
+                Title = localization.GetString("Chat_DeleteBranchTitle"),
+                Content = localization.GetString("Chat_DeleteBranchBody"),
+                PrimaryButtonText = localization.GetString("Chat_DeleteConversationConfirm"),
+                CloseButtonText = localization.GetString("Chat_DeleteConversationCancel"),
                 DefaultButton = ContentDialogButton.Close,
                 XamlRoot = this.XamlRoot
             };
@@ -516,12 +520,13 @@ public sealed partial class ChatPage : Page
             var rootId = ViewModel.BranchTree?.Conversation.Id;
             if (rootId == null) return;
 
+            var localization = App.GetService<ILocalizationService>();
             var dialog = new ContentDialog
             {
-                Title = "Merge to Main Thread",
-                Content = "Merge all messages from this branch into the main conversation?",
-                PrimaryButtonText = "Merge",
-                CloseButtonText = "Cancel",
+                Title = localization.GetString("Chat_MergeBranchTitle"),
+                Content = localization.GetString("Chat_MergeBranchBody"),
+                PrimaryButtonText = localization.GetString("Chat_MergeBranchConfirm"),
+                CloseButtonText = localization.GetString("Chat_DeleteConversationCancel"),
                 DefaultButton = ContentDialogButton.Primary,
                 XamlRoot = this.XamlRoot
             };
@@ -565,18 +570,23 @@ public sealed partial class ChatPage : Page
             exportViewModel.StatusMessage);
 
         // The outcome used to reach only the log: tell the user where the file went, or why
-        // there is none.
+        // there is none. The success text is one sentence in the resources, so each language
+        // words the count and the path together.
         var notifications = App.GetService<AgentX.App.Services.INotificationService>();
+        var localization = App.GetService<ILocalizationService>();
         if (exportViewModel.LastExportSucceeded)
         {
+            var savedPath = exportViewModel.LastExportPath ?? string.Empty;
             notifications.ShowSuccess(
-                "Export complete",
-                $"{exportViewModel.StatusMessage}. Saved to {exportViewModel.LastExportPath}",
+                localization.GetString("Export_CompleteTitle"),
+                conversationIds.Count == 1
+                    ? localization.GetString("Export_ConversationsSavedOne", conversationIds.Count, savedPath)
+                    : localization.GetString("Export_ConversationsSavedMany", conversationIds.Count, savedPath),
                 durationMs: 8000);
         }
         else
         {
-            notifications.ShowError("Export failed", exportViewModel.StatusMessage);
+            notifications.ShowError(localization.GetString("Export_FailedTitle"), exportViewModel.StatusMessage);
         }
     }
 
@@ -585,10 +595,11 @@ public sealed partial class ChatPage : Page
         if (ViewModel.ActiveConversationId is null) return;
 
         var exportVm = App.GetService<ExportViewModel>();
+        var localization = App.GetService<ILocalizationService>();
         var dialog = new ExportDialog(exportVm);
         dialog.SetConversation(
             ViewModel.ActiveConversationId.Value,
-            ViewModel.ActiveConversationTitle ?? "Conversation");
+            ViewModel.ActiveConversationTitle ?? localization.GetString("Chat_ExportUntitledConversation"));
         dialog.XamlRoot = this.XamlRoot;
 
         await dialog.ShowAsync();

@@ -1,5 +1,6 @@
 using AgentX.App.Helpers;
 using AgentX.App.ViewModels;
+using AgentX.Core.Services.Localization;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -80,18 +81,21 @@ public sealed partial class CollectionManagerPage : Page
             collectionId, exportViewModel.StatusMessage);
 
         // The outcome used to reach only the log: tell the user where the file went, or why
-        // there is none.
+        // there is none. The success text is one sentence in the resources, so each language
+        // words the file name and the path together.
         var notifications = App.GetService<AgentX.App.Services.INotificationService>();
+        var localization = App.GetService<ILocalizationService>();
         if (exportViewModel.LastExportSucceeded)
         {
+            var savedPath = exportViewModel.LastExportPath ?? string.Empty;
             notifications.ShowSuccess(
-                "Export complete",
-                $"{exportViewModel.StatusMessage}. Saved to {exportViewModel.LastExportPath}",
+                localization.GetString("Export_CompleteTitle"),
+                localization.GetString("Export_CollectionSaved", Path.GetFileName(savedPath), savedPath),
                 durationMs: 8000);
         }
         else
         {
-            notifications.ShowError("Export failed", exportViewModel.StatusMessage);
+            notifications.ShowError(localization.GetString("Export_FailedTitle"), exportViewModel.StatusMessage);
         }
     }
 

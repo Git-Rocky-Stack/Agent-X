@@ -1562,6 +1562,24 @@
   <data name="Main_PastSelf.Content" xml:space="preserve"><value>Past Self</value></data>
   <data name="Main_AiChat.Content" xml:space="preserve"><value>AI Chat</value></data>
   <data name="Main_AskYourFiles.Content" xml:space="preserve"><value>Ask Your Files</value></data>
+  <data name="Chat_ShortcutNewConversation" xml:space="preserve"><value>New conversation</value></data>
+  <data name="Chat_ShortcutToggleConversationPane" xml:space="preserve"><value>Toggle conversation pane</value></data>
+  <data name="Chat_ShortcutCategory" xml:space="preserve"><value>Chat</value></data>
+  <data name="Chat_CreateBranchTitle" xml:space="preserve"><value>Create Branch</value></data>
+  <data name="Chat_CreateBranchPrompt" xml:space="preserve"><value>Give this branch an optional label:</value></data>
+  <data name="Chat_CreateBranchPlaceholder" xml:space="preserve"><value>Branch label (optional)</value></data>
+  <data name="Chat_CreateBranchConfirm" xml:space="preserve"><value>Branch</value></data>
+  <data name="Chat_DeleteBranchTitle" xml:space="preserve"><value>Delete Branch</value></data>
+  <data name="Chat_DeleteBranchBody" xml:space="preserve"><value>Delete this branch and all its sub-branches?</value></data>
+  <data name="Chat_MergeBranchTitle" xml:space="preserve"><value>Merge to Main Thread</value></data>
+  <data name="Chat_MergeBranchBody" xml:space="preserve"><value>Merge all messages from this branch into the main conversation?</value></data>
+  <data name="Chat_MergeBranchConfirm" xml:space="preserve"><value>Merge</value></data>
+  <data name="Chat_ExportUntitledConversation" xml:space="preserve"><value>Conversation</value></data>
+  <data name="Export_CompleteTitle" xml:space="preserve"><value>Export complete</value></data>
+  <data name="Export_FailedTitle" xml:space="preserve"><value>Export failed</value></data>
+  <data name="Export_ConversationsSavedOne" xml:space="preserve"><value>Exported {0} conversation. Saved to {1}</value></data>
+  <data name="Export_ConversationsSavedMany" xml:space="preserve"><value>Exported {0} conversations. Saved to {1}</value></data>
+  <data name="Export_CollectionSaved" xml:space="preserve"><value>Collection exported to {0}. Saved to {1}</value></data>
   <data name="Chat_PrivacyLocal" xml:space="preserve"><value>{0} runs on this computer, so your messages stay on this device.</value></data>
   <data name="Chat_PrivacyLocalUnnamed" xml:space="preserve"><value>The AI model runs on this computer, so your messages stay on this device.</value></data>
   <data name="Chat_PrivacyCloud" xml:space="preserve"><value>Your messages are sent to {0} for processing.</value></data>

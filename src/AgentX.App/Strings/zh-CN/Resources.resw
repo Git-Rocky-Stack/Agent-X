@@ -1223,6 +1223,24 @@
   <data name="Main_PastSelf.Content" xml:space="preserve"><value>过往的自己</value></data>
   <data name="Main_AiChat.Content" xml:space="preserve"><value>AI Chat</value></data>
   <data name="Main_AskYourFiles.Content" xml:space="preserve"><value>向您的文件提问</value></data>
+  <data name="Chat_ShortcutNewConversation" xml:space="preserve"><value>新对话</value></data>
+  <data name="Chat_ShortcutToggleConversationPane" xml:space="preserve"><value>显示或隐藏对话窗格</value></data>
+  <data name="Chat_ShortcutCategory" xml:space="preserve"><value>聊天</value></data>
+  <data name="Chat_CreateBranchTitle" xml:space="preserve"><value>创建分支</value></data>
+  <data name="Chat_CreateBranchPrompt" xml:space="preserve"><value>为此分支添加一个可选标签：</value></data>
+  <data name="Chat_CreateBranchPlaceholder" xml:space="preserve"><value>分支标签（可选）</value></data>
+  <data name="Chat_CreateBranchConfirm" xml:space="preserve"><value>创建分支</value></data>
+  <data name="Chat_DeleteBranchTitle" xml:space="preserve"><value>删除分支</value></data>
+  <data name="Chat_DeleteBranchBody" xml:space="preserve"><value>要删除此分支及其所有子分支吗？</value></data>
+  <data name="Chat_MergeBranchTitle" xml:space="preserve"><value>合并到主线</value></data>
+  <data name="Chat_MergeBranchBody" xml:space="preserve"><value>要将此分支中的所有消息合并到主对话吗？</value></data>
+  <data name="Chat_MergeBranchConfirm" xml:space="preserve"><value>合并</value></data>
+  <data name="Chat_ExportUntitledConversation" xml:space="preserve"><value>对话</value></data>
+  <data name="Export_CompleteTitle" xml:space="preserve"><value>导出完成</value></data>
+  <data name="Export_FailedTitle" xml:space="preserve"><value>导出失败</value></data>
+  <data name="Export_ConversationsSavedOne" xml:space="preserve"><value>已导出 {0} 个会话。已保存到 {1}</value></data>
+  <data name="Export_ConversationsSavedMany" xml:space="preserve"><value>已导出 {0} 个会话。已保存到 {1}</value></data>
+  <data name="Export_CollectionSaved" xml:space="preserve"><value>合集已导出到 {0}。已保存到 {1}</value></data>
   <data name="Chat_PrivacyLocal" xml:space="preserve"><value>{0} 在这台电脑上运行，因此您的消息会保留在此设备上。</value></data>
   <data name="Chat_PrivacyLocalUnnamed" xml:space="preserve"><value>AI 模型在这台电脑上运行，因此您的消息会保留在此设备上。</value></data>
   <data name="Chat_PrivacyCloud" xml:space="preserve"><value>您的消息会发送到 {0} 进行处理。</value></data>

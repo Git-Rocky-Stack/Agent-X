@@ -1223,6 +1223,24 @@
   <data name="Main_PastSelf.Content" xml:space="preserve"><value>Tu yo del pasado</value></data>
   <data name="Main_AiChat.Content" xml:space="preserve"><value>AI Chat</value></data>
   <data name="Main_AskYourFiles.Content" xml:space="preserve"><value>Pregunta a tus archivos</value></data>
+  <data name="Chat_ShortcutNewConversation" xml:space="preserve"><value>Nueva conversación</value></data>
+  <data name="Chat_ShortcutToggleConversationPane" xml:space="preserve"><value>Mostrar u ocultar el panel de conversaciones</value></data>
+  <data name="Chat_ShortcutCategory" xml:space="preserve"><value>Chat</value></data>
+  <data name="Chat_CreateBranchTitle" xml:space="preserve"><value>Crear rama</value></data>
+  <data name="Chat_CreateBranchPrompt" xml:space="preserve"><value>Asigne a esta rama una etiqueta opcional:</value></data>
+  <data name="Chat_CreateBranchPlaceholder" xml:space="preserve"><value>Etiqueta de la rama (opcional)</value></data>
+  <data name="Chat_CreateBranchConfirm" xml:space="preserve"><value>Crear rama</value></data>
+  <data name="Chat_DeleteBranchTitle" xml:space="preserve"><value>Eliminar rama</value></data>
+  <data name="Chat_DeleteBranchBody" xml:space="preserve"><value>¿Eliminar esta rama y todas sus subramas?</value></data>
+  <data name="Chat_MergeBranchTitle" xml:space="preserve"><value>Fusionar con el hilo principal</value></data>
+  <data name="Chat_MergeBranchBody" xml:space="preserve"><value>¿Fusionar todos los mensajes de esta rama con la conversación principal?</value></data>
+  <data name="Chat_MergeBranchConfirm" xml:space="preserve"><value>Fusionar</value></data>
+  <data name="Chat_ExportUntitledConversation" xml:space="preserve"><value>Conversación</value></data>
+  <data name="Export_CompleteTitle" xml:space="preserve"><value>Exportación completada</value></data>
+  <data name="Export_FailedTitle" xml:space="preserve"><value>Error al exportar</value></data>
+  <data name="Export_ConversationsSavedOne" xml:space="preserve"><value>{0} conversación exportada. Se guardó en {1}</value></data>
+  <data name="Export_ConversationsSavedMany" xml:space="preserve"><value>{0} conversaciones exportadas. Se guardó en {1}</value></data>
+  <data name="Export_CollectionSaved" xml:space="preserve"><value>Colección exportada a {0}. Se guardó en {1}</value></data>
   <data name="Chat_PrivacyLocal" xml:space="preserve"><value>{0} se ejecuta en este equipo, así que sus mensajes permanecen en este dispositivo.</value></data>
   <data name="Chat_PrivacyLocalUnnamed" xml:space="preserve"><value>El modelo de IA se ejecuta en este equipo, así que sus mensajes permanecen en este dispositivo.</value></data>
   <data name="Chat_PrivacyCloud" xml:space="preserve"><value>Sus mensajes se envían a {0} para su procesamiento.</value></data>
