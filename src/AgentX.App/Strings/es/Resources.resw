@@ -2807,12 +2807,12 @@
   <data name="Chat_LimitedReasonNoProvider" xml:space="preserve"><value>ningún proveedor activo</value></data>
   <data name="Chat_LimitedReasonDisconnected" xml:space="preserve"><value>proveedor desconectado</value></data>
   <data name="Chat_LimitedReasonSummaryOnly" xml:space="preserve"><value>actualización solo del resumen</value></data>
-  <data name="Chat_ResearchNoWebSearch" xml:space="preserve"><value>La búsqueda web no está disponible en esta sesión, así que las respuestas solo usan su conocimiento local.</value></data>
+  <data name="Chat_ResearchNoWebSearch" xml:space="preserve"><value>La búsqueda web no está disponible en esta sesión, así que las respuestas solo provienen del modelo de IA y de la conversación.</value></data>
   <data name="Chat_ResearchTurnedOff" xml:space="preserve"><value>El modo investigación está desactivado en Configuración, así que no se hizo ninguna búsqueda web. Actívelo en Configuración para añadir fuentes web a las respuestas.</value></data>
   <data name="Chat_ResearchNoProvider" xml:space="preserve"><value>No hay ningún proveedor de búsqueda web configurado. Añada una clave de API de Brave o Serper, o una dirección de SearXNG, en Configuración para añadir fuentes web a las respuestas.</value></data>
-  <data name="Chat_ResearchNoResults" xml:space="preserve"><value>La búsqueda web no devolvió resultados, así que esta respuesta solo usa su conocimiento local.</value></data>
-  <data name="Chat_ResearchTimedOut" xml:space="preserve"><value>Se agotó el tiempo de espera de la búsqueda web, así que esta respuesta solo usa su conocimiento local.</value></data>
-  <data name="Chat_ResearchFailed" xml:space="preserve"><value>La búsqueda web falló, así que esta respuesta solo usa su conocimiento local.</value></data>
+  <data name="Chat_ResearchNoResults" xml:space="preserve"><value>La búsqueda web no devolvió resultados, así que esta respuesta solo proviene del modelo de IA y de la conversación.</value></data>
+  <data name="Chat_ResearchTimedOut" xml:space="preserve"><value>Se agotó el tiempo de espera de la búsqueda web, así que esta respuesta solo proviene del modelo de IA y de la conversación.</value></data>
+  <data name="Chat_ResearchFailed" xml:space="preserve"><value>La búsqueda web falló, así que esta respuesta solo proviene del modelo de IA y de la conversación.</value></data>
   <data name="Chat_NoWebSourcesTitle" xml:space="preserve"><value>Sin fuentes web</value></data>
   <data name="Chat_OrchestrationNoAnswerRetry" xml:space="preserve"><value>La orquestación multiagente no devolvió una respuesta utilizable. Compruebe el proveedor de IA activo y vuelva a intentarlo.</value></data>
   <data name="Chat_OrchestrationNoAnswer" xml:space="preserve"><value>La orquestación multiagente no devolvió una respuesta utilizable.</value></data>

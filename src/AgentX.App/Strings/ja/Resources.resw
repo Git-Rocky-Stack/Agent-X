@@ -2807,12 +2807,12 @@
   <data name="Chat_LimitedReasonNoProvider" xml:space="preserve"><value>有効なプロバイダーがありません</value></data>
   <data name="Chat_LimitedReasonDisconnected" xml:space="preserve"><value>プロバイダーに接続されていません</value></data>
   <data name="Chat_LimitedReasonSummaryOnly" xml:space="preserve"><value>要約のみの更新</value></data>
-  <data name="Chat_ResearchNoWebSearch" xml:space="preserve"><value>このセッションでは Web 検索を利用できないため、回答にはローカルの知識だけを使います。</value></data>
+  <data name="Chat_ResearchNoWebSearch" xml:space="preserve"><value>このセッションでは Web 検索を利用できないため、回答は AI モデルと会話だけをもとに作られます。</value></data>
   <data name="Chat_ResearchTurnedOff" xml:space="preserve"><value>設定でリサーチ モードがオフになっているため、Web 検索は行われませんでした。回答に Web ソースを追加するには、設定でオンにしてください。</value></data>
   <data name="Chat_ResearchNoProvider" xml:space="preserve"><value>Web 検索プロバイダーが構成されていません。回答に Web ソースを追加するには、設定で Brave または Serper の API キー、または SearXNG のアドレスを追加してください。</value></data>
-  <data name="Chat_ResearchNoResults" xml:space="preserve"><value>Web 検索で結果が見つからなかったため、この回答にはローカルの知識だけを使います。</value></data>
-  <data name="Chat_ResearchTimedOut" xml:space="preserve"><value>Web 検索がタイムアウトしたため、この回答にはローカルの知識だけを使います。</value></data>
-  <data name="Chat_ResearchFailed" xml:space="preserve"><value>Web 検索に失敗したため、この回答にはローカルの知識だけを使います。</value></data>
+  <data name="Chat_ResearchNoResults" xml:space="preserve"><value>Web 検索で結果が見つからなかったため、この回答は AI モデルと会話だけをもとに作られます。</value></data>
+  <data name="Chat_ResearchTimedOut" xml:space="preserve"><value>Web 検索がタイムアウトしたため、この回答は AI モデルと会話だけをもとに作られます。</value></data>
+  <data name="Chat_ResearchFailed" xml:space="preserve"><value>Web 検索に失敗したため、この回答は AI モデルと会話だけをもとに作られます。</value></data>
   <data name="Chat_NoWebSourcesTitle" xml:space="preserve"><value>Web ソースなし</value></data>
   <data name="Chat_OrchestrationNoAnswerRetry" xml:space="preserve"><value>マルチエージェント オーケストレーションから使用できる回答が返されませんでした。有効な AI プロバイダーを確認して、もう一度お試しください。</value></data>
   <data name="Chat_OrchestrationNoAnswer" xml:space="preserve"><value>マルチエージェント オーケストレーションから使用できる回答が返されませんでした。</value></data>

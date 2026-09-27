@@ -2807,12 +2807,12 @@
   <data name="Chat_LimitedReasonNoProvider" xml:space="preserve"><value>aucun fournisseur actif</value></data>
   <data name="Chat_LimitedReasonDisconnected" xml:space="preserve"><value>fournisseur déconnecté</value></data>
   <data name="Chat_LimitedReasonSummaryOnly" xml:space="preserve"><value>actualisation du résumé seul</value></data>
-  <data name="Chat_ResearchNoWebSearch" xml:space="preserve"><value>La recherche web n'est pas disponible dans cette session : les réponses n'utilisent donc que vos connaissances locales.</value></data>
+  <data name="Chat_ResearchNoWebSearch" xml:space="preserve"><value>La recherche web n'est pas disponible dans cette session : les réponses proviennent donc uniquement du modèle d'IA et de la conversation.</value></data>
   <data name="Chat_ResearchTurnedOff" xml:space="preserve"><value>Le mode recherche est désactivé dans les Paramètres : aucune recherche web n'a donc été effectuée. Activez-le dans les Paramètres pour ajouter des sources web aux réponses.</value></data>
   <data name="Chat_ResearchNoProvider" xml:space="preserve"><value>Aucun fournisseur de recherche web n'est configuré. Ajoutez une clé API Brave ou Serper, ou une adresse SearXNG, dans les Paramètres pour ajouter des sources web aux réponses.</value></data>
-  <data name="Chat_ResearchNoResults" xml:space="preserve"><value>La recherche web n'a renvoyé aucun résultat : cette réponse n'utilise donc que vos connaissances locales.</value></data>
-  <data name="Chat_ResearchTimedOut" xml:space="preserve"><value>La recherche web a expiré : cette réponse n'utilise donc que vos connaissances locales.</value></data>
-  <data name="Chat_ResearchFailed" xml:space="preserve"><value>La recherche web a échoué : cette réponse n'utilise donc que vos connaissances locales.</value></data>
+  <data name="Chat_ResearchNoResults" xml:space="preserve"><value>La recherche web n'a renvoyé aucun résultat : cette réponse provient donc uniquement du modèle d'IA et de la conversation.</value></data>
+  <data name="Chat_ResearchTimedOut" xml:space="preserve"><value>La recherche web a expiré : cette réponse provient donc uniquement du modèle d'IA et de la conversation.</value></data>
+  <data name="Chat_ResearchFailed" xml:space="preserve"><value>La recherche web a échoué : cette réponse provient donc uniquement du modèle d'IA et de la conversation.</value></data>
   <data name="Chat_NoWebSourcesTitle" xml:space="preserve"><value>Aucune source web</value></data>
   <data name="Chat_OrchestrationNoAnswerRetry" xml:space="preserve"><value>L'orchestration multi-agent n'a pas renvoyé de réponse exploitable. Vérifiez le fournisseur d'IA actif, puis réessayez.</value></data>
   <data name="Chat_OrchestrationNoAnswer" xml:space="preserve"><value>L'orchestration multi-agent n'a pas renvoyé de réponse exploitable.</value></data>

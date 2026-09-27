@@ -2807,12 +2807,12 @@
   <data name="Chat_LimitedReasonNoProvider" xml:space="preserve"><value>没有活动的提供商</value></data>
   <data name="Chat_LimitedReasonDisconnected" xml:space="preserve"><value>提供商已断开连接</value></data>
   <data name="Chat_LimitedReasonSummaryOnly" xml:space="preserve"><value>仅刷新摘要</value></data>
-  <data name="Chat_ResearchNoWebSearch" xml:space="preserve"><value>此会话中无法使用网络搜索，因此回答仅使用您的本地知识。</value></data>
+  <data name="Chat_ResearchNoWebSearch" xml:space="preserve"><value>此会话中无法使用网络搜索，因此回答仅来自 AI 模型和对话内容。</value></data>
   <data name="Chat_ResearchTurnedOff" xml:space="preserve"><value>研究模式已在“设置”中关闭，因此未进行网络搜索。请在“设置”中开启它，以便为回答添加网页来源。</value></data>
   <data name="Chat_ResearchNoProvider" xml:space="preserve"><value>未配置网络搜索提供商。请在“设置”中添加 Brave 或 Serper API 密钥，或 SearXNG 地址，以便为回答添加网页来源。</value></data>
-  <data name="Chat_ResearchNoResults" xml:space="preserve"><value>网络搜索没有返回结果，因此此回答仅使用您的本地知识。</value></data>
-  <data name="Chat_ResearchTimedOut" xml:space="preserve"><value>网络搜索超时，因此此回答仅使用您的本地知识。</value></data>
-  <data name="Chat_ResearchFailed" xml:space="preserve"><value>网络搜索失败，因此此回答仅使用您的本地知识。</value></data>
+  <data name="Chat_ResearchNoResults" xml:space="preserve"><value>网络搜索没有返回结果，因此此回答仅来自 AI 模型和对话内容。</value></data>
+  <data name="Chat_ResearchTimedOut" xml:space="preserve"><value>网络搜索超时，因此此回答仅来自 AI 模型和对话内容。</value></data>
+  <data name="Chat_ResearchFailed" xml:space="preserve"><value>网络搜索失败，因此此回答仅来自 AI 模型和对话内容。</value></data>
   <data name="Chat_NoWebSourcesTitle" xml:space="preserve"><value>没有网页来源</value></data>
   <data name="Chat_OrchestrationNoAnswerRetry" xml:space="preserve"><value>多智能体编排未返回可用的回答。请检查当前的 AI 提供商，然后重试。</value></data>
   <data name="Chat_OrchestrationNoAnswer" xml:space="preserve"><value>多智能体编排未返回可用的回答。</value></data>

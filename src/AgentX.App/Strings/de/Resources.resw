@@ -2807,12 +2807,12 @@
   <data name="Chat_LimitedReasonNoProvider" xml:space="preserve"><value>kein aktiver Anbieter</value></data>
   <data name="Chat_LimitedReasonDisconnected" xml:space="preserve"><value>Anbieter getrennt</value></data>
   <data name="Chat_LimitedReasonSummaryOnly" xml:space="preserve"><value>nur Zusammenfassung aktualisiert</value></data>
-  <data name="Chat_ResearchNoWebSearch" xml:space="preserve"><value>Die Websuche ist in dieser Sitzung nicht verfügbar, daher nutzen Antworten nur Ihr lokales Wissen.</value></data>
+  <data name="Chat_ResearchNoWebSearch" xml:space="preserve"><value>Die Websuche ist in dieser Sitzung nicht verfügbar, daher stammen Antworten nur aus dem KI-Modell und der Unterhaltung.</value></data>
   <data name="Chat_ResearchTurnedOff" xml:space="preserve"><value>Der Recherchemodus ist in den Einstellungen ausgeschaltet, daher wurde keine Websuche durchgeführt. Schalten Sie ihn in den Einstellungen ein, um Antworten mit Webquellen zu ergänzen.</value></data>
   <data name="Chat_ResearchNoProvider" xml:space="preserve"><value>Es ist kein Websuchanbieter konfiguriert. Fügen Sie in den Einstellungen einen Brave- oder Serper-API-Schlüssel oder eine SearXNG-Adresse hinzu, um Antworten mit Webquellen zu ergänzen.</value></data>
-  <data name="Chat_ResearchNoResults" xml:space="preserve"><value>Die Websuche hat keine Ergebnisse geliefert, daher nutzt diese Antwort nur Ihr lokales Wissen.</value></data>
-  <data name="Chat_ResearchTimedOut" xml:space="preserve"><value>Bei der Websuche ist eine Zeitüberschreitung aufgetreten, daher nutzt diese Antwort nur Ihr lokales Wissen.</value></data>
-  <data name="Chat_ResearchFailed" xml:space="preserve"><value>Die Websuche ist fehlgeschlagen, daher nutzt diese Antwort nur Ihr lokales Wissen.</value></data>
+  <data name="Chat_ResearchNoResults" xml:space="preserve"><value>Die Websuche hat keine Ergebnisse geliefert, daher stammt diese Antwort nur aus dem KI-Modell und der Unterhaltung.</value></data>
+  <data name="Chat_ResearchTimedOut" xml:space="preserve"><value>Bei der Websuche ist eine Zeitüberschreitung aufgetreten, daher stammt diese Antwort nur aus dem KI-Modell und der Unterhaltung.</value></data>
+  <data name="Chat_ResearchFailed" xml:space="preserve"><value>Die Websuche ist fehlgeschlagen, daher stammt diese Antwort nur aus dem KI-Modell und der Unterhaltung.</value></data>
   <data name="Chat_NoWebSourcesTitle" xml:space="preserve"><value>Keine Webquellen</value></data>
   <data name="Chat_OrchestrationNoAnswerRetry" xml:space="preserve"><value>Die Multi-Agent-Orchestrierung hat keine brauchbare Antwort geliefert. Prüfen Sie den aktiven KI-Anbieter und versuchen Sie es erneut.</value></data>
   <data name="Chat_OrchestrationNoAnswer" xml:space="preserve"><value>Die Multi-Agent-Orchestrierung hat keine brauchbare Antwort geliefert.</value></data>

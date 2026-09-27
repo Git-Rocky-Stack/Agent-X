@@ -1004,7 +1004,7 @@ public class MessagingCoordinatorTests
         await coordinator.SendMessageAsync("q", 1, null, null, true);
 
         notice!.Title.Should().Be("没有网页来源");
-        notice.Message.Should().Be("网络搜索没有返回结果，因此此回答仅使用您的本地知识。");
+        notice.Message.Should().Be("网络搜索没有返回结果，因此此回答仅来自 AI 模型和对话内容。");
     }
 
     [Fact]

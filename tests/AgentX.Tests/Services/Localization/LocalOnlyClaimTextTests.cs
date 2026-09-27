@@ -8,19 +8,38 @@ namespace AgentX.Tests.Services.Localization;
 /// Texts that say what stays on this computer, or where an answer comes from, have to hold
 /// whatever is set up. The Dashboard subtitle said "Everything runs on your machine", which is
 /// false once a cloud AI provider or web search is in use, and the Research Mode OFF tooltip
-/// said answers use "your local knowledge", although AI Chat never searches the Knowledge Vault
-/// (Ask Your Files does).
+/// and the notices for a web search that added nothing said answers use "your local
+/// knowledge", although AI Chat never searches the Knowledge Vault (Ask Your Files does).
 /// </summary>
 public sealed class LocalOnlyClaimTextTests
 {
-    [Fact]
-    public void Research_mode_off_says_answers_come_from_the_model_and_the_conversation()
+    [Theory]
+    [InlineData("Chat_ResearchModeOffTooltip")]
+    [InlineData("Chat_ResearchNoWebSearch")]
+    [InlineData("Chat_ResearchNoResults")]
+    [InlineData("Chat_ResearchTimedOut")]
+    [InlineData("Chat_ResearchFailed")]
+    public void Without_web_results_answers_come_from_the_model_and_the_conversation(string key)
     {
-        var tooltip = ReswLocalization.For("en-US").GetString("Chat_ResearchModeOffTooltip");
+        var text = ReswLocalization.For("en-US").GetString(key);
 
-        tooltip.Should().NotContainEquivalentOf("local knowledge")
+        text.Should().NotContainEquivalentOf("local knowledge")
             .And.Contain("AI model")
             .And.Contain("conversation");
+    }
+
+    [Theory]
+    [InlineData("Chat_ResearchNoWebSearch")]
+    [InlineData("Chat_ResearchNoResults")]
+    [InlineData("Chat_ResearchTimedOut")]
+    [InlineData("Chat_ResearchFailed")]
+    public void The_chat_notices_english_fallback_is_the_english_resource(string key)
+    {
+        // Without a localization service the coordinator shows its English fallback instead.
+        var coordinator = File.ReadAllText(Path.Combine(
+            ResolveSourceRoot(), "AgentX.App", "ViewModels", "Coordinators", "MessagingCoordinator.cs"));
+
+        coordinator.Should().Contain($"\"{ReswLocalization.For("en-US").GetString(key)}\"");
     }
 
     [Fact]

@@ -3143,12 +3143,12 @@
   <data name="Chat_LimitedReasonNoProvider" xml:space="preserve"><value>no active provider</value></data>
   <data name="Chat_LimitedReasonDisconnected" xml:space="preserve"><value>provider disconnected</value></data>
   <data name="Chat_LimitedReasonSummaryOnly" xml:space="preserve"><value>summary only refresh</value></data>
-  <data name="Chat_ResearchNoWebSearch" xml:space="preserve"><value>Web search is not available in this session, so answers use your local knowledge only.</value></data>
+  <data name="Chat_ResearchNoWebSearch" xml:space="preserve"><value>Web search is not available in this session, so answers come from the AI model and the conversation only.</value></data>
   <data name="Chat_ResearchTurnedOff" xml:space="preserve"><value>Research Mode is turned off in Settings, so no web search was made. Turn it on in Settings to add web sources to answers.</value></data>
   <data name="Chat_ResearchNoProvider" xml:space="preserve"><value>No web search provider is configured. Add a Brave or Serper API key, or a SearXNG address, in Settings to add web sources to answers.</value></data>
-  <data name="Chat_ResearchNoResults" xml:space="preserve"><value>The web search returned no results, so this answer uses your local knowledge only.</value></data>
-  <data name="Chat_ResearchTimedOut" xml:space="preserve"><value>The web search timed out, so this answer uses your local knowledge only.</value></data>
-  <data name="Chat_ResearchFailed" xml:space="preserve"><value>The web search failed, so this answer uses your local knowledge only.</value></data>
+  <data name="Chat_ResearchNoResults" xml:space="preserve"><value>The web search returned no results, so this answer comes from the AI model and the conversation only.</value></data>
+  <data name="Chat_ResearchTimedOut" xml:space="preserve"><value>The web search timed out, so this answer comes from the AI model and the conversation only.</value></data>
+  <data name="Chat_ResearchFailed" xml:space="preserve"><value>The web search failed, so this answer comes from the AI model and the conversation only.</value></data>
   <data name="Chat_NoWebSourcesTitle" xml:space="preserve"><value>No web sources</value></data>
   <data name="Chat_OrchestrationNoAnswerRetry" xml:space="preserve"><value>Multi-agent orchestration did not return a usable answer. Check the active AI provider and try again.</value></data>
   <data name="Chat_OrchestrationNoAnswer" xml:space="preserve"><value>Multi-agent orchestration did not return a usable answer.</value></data>

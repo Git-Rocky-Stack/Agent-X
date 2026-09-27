@@ -759,7 +759,7 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
                 NotifyNoWebSources(ProviderStatusText.Resolve(
                     _localization?.GetString("Chat_ResearchNoResults"),
                     "Chat_ResearchNoResults",
-                    "The web search returned no results, so this answer uses your local knowledge only."));
+                    "The web search returned no results, so this answer comes from the AI model and the conversation only."));
                 return null;
             }
 
@@ -780,7 +780,7 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
             NotifyNoWebSources(ProviderStatusText.Resolve(
                 _localization?.GetString("Chat_ResearchTimedOut"),
                 "Chat_ResearchTimedOut",
-                "The web search timed out, so this answer uses your local knowledge only."));
+                "The web search timed out, so this answer comes from the AI model and the conversation only."));
             return null;
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
@@ -789,7 +789,7 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
             NotifyNoWebSources(ProviderStatusText.Resolve(
                 _localization?.GetString("Chat_ResearchFailed"),
                 "Chat_ResearchFailed",
-                "The web search failed, so this answer uses your local knowledge only."));
+                "The web search failed, so this answer comes from the AI model and the conversation only."));
             return null;
         }
     }
@@ -862,7 +862,7 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
             _ => ProviderStatusText.Resolve(
                 _localization?.GetString("Chat_ResearchNoWebSearch"),
                 "Chat_ResearchNoWebSearch",
-                "Web search is not available in this session, so answers use your local knowledge only.")
+                "Web search is not available in this session, so answers come from the AI model and the conversation only.")
         });
     }
 
