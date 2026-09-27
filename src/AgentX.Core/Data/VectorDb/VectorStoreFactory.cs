@@ -53,8 +53,8 @@ public static class VectorStoreFactory
         }
 
         logger.Information(
-            "HNSW index enabled; creating HnswVectorStore (M={M}, EfConstruction={EfConstruction}, FallbackThreshold={Threshold})",
-            settings.HnswM, settings.HnswEfConstruction, settings.HnswFallbackThreshold);
+            "HNSW index enabled; creating HnswVectorStore (M={M}, EfConstruction={EfConstruction}, EfSearch={EfSearch}, FallbackThreshold={Threshold})",
+            settings.HnswM, settings.HnswEfConstruction, settings.HnswEfSearch, settings.HnswFallbackThreshold);
 
         // The embedding size is read lazily: at construction time the AI service is not yet
         // initialized, so the embedding service cannot know the current model's vector size.
@@ -65,6 +65,9 @@ public static class VectorStoreFactory
             efConstruction: settings.HnswEfConstruction,
             dimensionsProvider: () => embeddingService.Dimensions,
             fallbackThreshold: settings.HnswFallbackThreshold,
-            connectionFactory: connectionFactory);
+            connectionFactory: connectionFactory)
+        {
+            EfSearch = settings.HnswEfSearch,
+        };
     }
 }

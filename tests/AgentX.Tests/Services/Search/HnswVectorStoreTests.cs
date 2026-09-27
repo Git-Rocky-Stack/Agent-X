@@ -98,6 +98,17 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
             connectionFactory: CreatePlainFactory());
     }
 
+    [Theory]
+    [InlineData(50, 200, 50, null)] // the default setting never narrows the library's breadth
+    [InlineData(200, 200, 50, null)] // equal to the library default: leave it to the library
+    [InlineData(150, 200, 150, null)] // 2 x candidates (300) is already wider
+    [InlineData(400, 200, 50, 400)] // a wider setting is honored
+    [InlineData(50_000, 200, 50, 10_000)] // clamped to the largest breadth HnswLite accepts
+    public void ResolveSearchEf_OnlyWidensTheLibraryDefault(int efSearch, int efConstruction, int candidates, int? expected)
+    {
+        HnswVectorStore.ResolveSearchEf(efSearch, efConstruction, candidates).Should().Be(expected);
+    }
+
     // ── 1. InitializeAsync_EmptyStore_CreatesIndex ───────────────────────
 
     [Fact]

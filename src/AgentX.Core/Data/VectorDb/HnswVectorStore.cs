@@ -51,6 +51,9 @@ public sealed class HnswVectorStore : IVectorStore
     // linear scan only.
     private const int MaxHnswDimensions = 4096;
 
+    // Largest search breadth (ef) HnswLite accepts.
+    private const int MaxHnswEf = 10_000;
+
     // ── Fields ──────────────────────────────────────────────────────────
 
     private readonly ISettingsService _settingsService;
@@ -179,6 +182,14 @@ public sealed class HnswVectorStore : IVectorStore
         _logger.Information("HnswVectorStore created (M={M}, EfConstruction={EfConstruction}, Threshold={Threshold})",
             _m, _efConstruction, _fallbackThreshold);
     }
+
+    /// <summary>
+    /// Smallest HNSW search breadth (ef) a query uses, from <c>AppSettings.HnswEfSearch</c>.
+    /// A query never searches narrower than HnswLite's own default, max(EfConstruction,
+    /// 2 x candidates), so this setting can only widen the search: raise it above that default
+    /// for better recall on a very large vault, at the cost of slower queries.
+    /// </summary>
+    public int EfSearch { get; init; }
 
     // ── IVectorStore implementation ─────────────────────────────────────
 
@@ -665,6 +676,16 @@ public sealed class HnswVectorStore : IVectorStore
     // ── HNSW search ─────────────────────────────────────────────────────
 
     /// <summary>
+    /// The search breadth to pass to HnswLite: null (its default, max(EfConstruction,
+    /// 2 x candidates)) unless the configured <paramref name="efSearch"/> is wider.
+    /// </summary>
+    internal static int? ResolveSearchEf(int efSearch, int efConstruction, int candidates)
+    {
+        var libraryDefault = Math.Max(efConstruction, candidates * 2);
+        return efSearch > libraryDefault ? Math.Min(efSearch, MaxHnswEf) : null;
+    }
+
+    /// <summary>
     /// Performs approximate nearest neighbor search using the HNSW index.
     /// </summary>
     private async Task<IReadOnlyList<VectorSearchResult>> SearchHnswAsync(
@@ -682,7 +703,8 @@ public sealed class HnswVectorStore : IVectorStore
         IEnumerable<VectorResult> hnswResults;
         try
         {
-            hnswResults = await _hnswIndex!.GetTopKAsync(queryList, searchK, ef: null, ct).ConfigureAwait(false);
+            hnswResults = await _hnswIndex!.GetTopKAsync(
+                queryList, searchK, ResolveSearchEf(EfSearch, _efConstruction, searchK), ct).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
