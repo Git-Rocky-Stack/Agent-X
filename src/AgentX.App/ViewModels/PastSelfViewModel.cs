@@ -177,6 +177,9 @@ public partial class PastSelfViewModel : ObservableObject
                     Found = true,
                     HasEvolved = belief.HasEvolved,
                     Stance = belief.CurrentStance,
+                    // The page's Confidence bar showed 0 for every belief here: the stored
+                    // confidence was never copied onto the result.
+                    Confidence = belief.ConfidenceLevel,
                     EvolutionStart = belief.FirstDetectedAt,
                     EvolutionChanged = belief.StanceChangedAt,
                     PreviousStance = belief.PreviousStance,

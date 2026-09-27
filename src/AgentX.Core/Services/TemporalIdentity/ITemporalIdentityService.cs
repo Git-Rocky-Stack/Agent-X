@@ -36,6 +36,7 @@ public interface ITemporalIdentityService
     /// Core of "Past Self" mode. <see cref="PastSelfResponse.Stance"/> is the stance held at
     /// <paramref name="at"/> (the earliest recorded stance when <paramref name="at"/> is null);
     /// <see cref="PastSelfResponse.CurrentStance"/> is today's stance when the belief has evolved.
+    /// Returns null when the topic is unknown, or was first recorded after <paramref name="at"/>.
     /// </summary>
     Task<PastSelfResponse?> GetPastSelfAsync(
         string topic,

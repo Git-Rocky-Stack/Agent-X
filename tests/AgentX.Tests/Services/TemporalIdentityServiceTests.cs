@@ -899,6 +899,30 @@ public sealed class TemporalIdentityServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task GetPastSelf_before_the_topic_was_first_recorded_finds_no_stance()
+    {
+        // Asked about a month ago, a belief first recorded last week came back with that stance,
+        // so the page said "Here's what you thought about it about a month ago".
+        using var db = _dbFactory.CreateContext();
+        db.Set<TemporalBeliefEntity>().Add(new TemporalBeliefEntity
+        {
+            Topic = "Remote work is better for focus",
+            FirstDetectedAt = DateTime.UtcNow.AddDays(-7),
+            LastObservedAt = DateTime.UtcNow.AddDays(-7),
+            CurrentStance = "I think that remote work is better for focus",
+        });
+        await db.SaveChangesAsync();
+        var svc = new TemporalIdentityService(db);
+
+        (await svc.GetPastSelfAsync("Remote work is better for focus", DateTime.UtcNow.AddMonths(-1)))
+            .Should().BeNull();
+        (await svc.GetPastSelfAsync("Remote work is better for focus", DateTime.UtcNow.AddDays(-1)))!.Stance
+            .Should().Be("I think that remote work is better for focus");
+        (await svc.GetPastSelfAsync("Remote work is better for focus"))!.Stance
+            .Should().Be("I think that remote work is better for focus", "no time asks for the earliest stance");
+    }
+
+    [Fact]
     public async Task Learning_passes_leave_nothing_in_the_shared_change_tracker()
     {
         // The chat runs these after every reply, off the UI thread, on the app-wide context. The

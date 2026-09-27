@@ -150,6 +150,10 @@ public class TemporalIdentityService : ITemporalIdentityService
 
         if (belief == null) return null;
 
+        // Nothing was recorded on the topic by then. The stance recorded later used to come back
+        // as what the user had thought at that time.
+        if (at < belief.FirstDetectedAt) return null;
+
         // If no time specified, return earliest recorded stance
         var targetTime = at ?? belief.FirstDetectedAt;
 

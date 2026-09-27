@@ -152,4 +152,26 @@ public sealed class PastSelfViewModelTests
         new VoiceProfileDisplay { SampleCount = 40, FormalityScore = 0.9 }
             .FormalityLabel.Should().Be("Formal");
     }
+
+    // --- Belief evolution ---
+
+    [Fact]
+    public async Task ShowBeliefEvolutionAsync_ShowsTheRecordedConfidence()
+    {
+        // The result carried no confidence, so the page's Confidence bar read 0 for every belief.
+        _temporalIdentity
+            .Setup(service => service.GetBeliefEvolutionAsync("remote work", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new AgentX.Core.Services.TemporalIdentity.Models.TemporalBeliefEntity
+            {
+                Topic = "remote work",
+                CurrentStance = "in favour",
+                ConfidenceLevel = 0.8,
+                FirstDetectedAt = new DateTime(2026, 1, 5, 0, 0, 0, DateTimeKind.Utc),
+            });
+        var viewModel = new PastSelfViewModel(_temporalIdentity.Object) { SearchQuery = "remote work" };
+
+        await viewModel.ShowBeliefEvolutionCommand.ExecuteAsync(null);
+
+        viewModel.CurrentResult!.Confidence.Should().Be(0.8);
+    }
 }
