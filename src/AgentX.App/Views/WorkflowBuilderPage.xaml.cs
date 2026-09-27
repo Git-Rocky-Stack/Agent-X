@@ -1,3 +1,4 @@
+using AgentX.App.Helpers;
 using AgentX.App.ViewModels;
 using AgentX.Core.Services.Export.Models;
 using Microsoft.UI.Xaml;
@@ -21,7 +22,7 @@ public sealed partial class WorkflowBuilderPage : Page
 
     public WorkflowBuilderPage()
     {
-        ViewModel = App.GetService<WorkflowBuilderViewModel>();
+        ViewModel = PageViewModelFactory.Create<WorkflowBuilderViewModel>();
         ViewModel.NavigateRequested = NavigateToPage;
         InitializeComponent();
 

@@ -14,17 +14,11 @@ namespace AgentX.Tests.CodeQuality;
 public sealed class PagesCreateDisposableViewModelsUntrackedTests
 {
     /// <summary>
-    /// Pages owned by other workstreams when the helper landed. Each still resolves its
-    /// disposable view model through App.GetService and needs the same one-line switch to
-    /// PageViewModelFactory.Create. An entry here is skipped, not required: removing it
-    /// once the page is switched is tidy but never breaks the build.
+    /// Pages allowed to resolve their disposable view model through App.GetService for now.
+    /// Every page has been switched to PageViewModelFactory.Create, so the set is empty; park a
+    /// page here only while its switch is in progress. An entry is skipped, not required.
     /// </summary>
-    private static readonly HashSet<string> PendingPages = new(StringComparer.Ordinal)
-    {
-        "PluginManagerPage.xaml.cs",
-        "SyncSettingsPage.xaml.cs",
-        "WorkflowBuilderPage.xaml.cs",
-    };
+    private static readonly HashSet<string> PendingPages = new(StringComparer.Ordinal);
 
     private static readonly Regex DisposableViewModelDeclaration = new(
         @"\bclass\s+(?<name>\w+ViewModel)\b[^{;]*\bIDisposable\b",

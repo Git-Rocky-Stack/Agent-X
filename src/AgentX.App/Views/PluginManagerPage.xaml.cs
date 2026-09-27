@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using AgentX.App.Helpers;
 using AgentX.App.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -26,7 +27,7 @@ public sealed partial class PluginManagerPage : Page
 
     public PluginManagerPage()
     {
-        ViewModel = App.GetService<PluginManagerViewModel>();
+        ViewModel = PageViewModelFactory.Create<PluginManagerViewModel>();
         InitializeComponent();
 
         // The page is cached, so Loaded runs on every visit while the constructor runs once.
