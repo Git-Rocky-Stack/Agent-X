@@ -95,35 +95,35 @@
   <data name="UserGuide_Dashboard_Title.Text" xml:space="preserve"><value>仪表板</value></data>
   <data name="UserGuide_Dashboard_Description.Text" xml:space="preserve"><value>仪表板是 Agent-X 启动时打开的页面，按 Ctrl+D 可随时返回。它在一个可滚动的页面上显示 AI 提供商、Knowledge Vault 以及近期工作的状态，并提供按钮跳转到各项数据对应的页面。</value></data>
   <data name="UserGuide_Dashboard_Features_Title.Text" xml:space="preserve"><value>您将在仪表板上看到：</value></data>
-  <data name="UserGuide_Dashboard_Feature1.Text" xml:space="preserve"><value>AI 状态与快速搜索：顶部卡片显示当前的 AI 提供商（默认为内置模型）、是否可以连接以及当前模型；“设置 AI”会打开设置。在其下方的搜索框中输入内容并按 Enter，即可用该查询打开语义搜索。</value></data>
+  <data name="UserGuide_Dashboard_Feature1.Text" xml:space="preserve"><value>AI 状态与快速搜索：顶部卡片显示当前的 AI 提供商（默认为内置模型）、是否可以连接以及当前模型；无法连接提供商时，卡片会说明针对该提供商需要检查什么。“设置 AI”会打开设置。在其下方的搜索框中输入内容并按 Enter，即可用该查询打开语义搜索。</value></data>
   <data name="UserGuide_Dashboard_Feature2.Text" xml:space="preserve"><value>Vault 与系统数据：四张卡片分别显示文档和合集的数量、文档占用的存储空间及已索引的比例、对话数和已用 Token 数，以及 GPU、内存和显存。“文件类型分布”和“热门合集”进一步细分 Vault，底部状态条显示可用内存、Vault 存储空间，以及是否有服务设置为将数据发送到您的电脑之外。</value></data>
   <data name="UserGuide_Dashboard_Feature3.Text" xml:space="preserve"><value>近期工作与运行状况：“最近的文档”和“最近的会话”列出您最新的导入和聊天；“查看全部”会打开 Knowledge Vault 或 AI Chat。“运行状况概览”汇总了对话智能、同步健康状况、连接器和插件、Smart Inbox 积压以及工作流活动，每项都有按钮可跳转到对应页面。</value></data>
-  <data name="UserGuide_Dashboard_Feature4.Text" xml:space="preserve"><value>观点演变与后续步骤：“您的观点演变”列出最多五个记录的立场发生变化的主题，并显示之前和当前的立场以及变化幅度；确认某一项即可将其永久隐藏，也可以打开“过往的自己”。“建议的后续步骤”会提示接下来要做的事，例如完成 AI 设置、为等待中的文档建立索引、分拣 Smart Inbox 或创建工作流。</value></data>
+  <data name="UserGuide_Dashboard_Feature4.Text" xml:space="preserve"><value>观点演变与后续步骤：“您的观点演变”列出最多五个记录的立场发生变化的主题，并显示之前和当前的立场以及变化幅度；确认某一项即可将其永久隐藏，也可以打开“过往的自己”。在尚未记录任何观点时，卡片显示“尚无可比较的观点”；确认最后一个冲突后，显示“没有未处理的冲突”。“建议的后续步骤”会提示接下来要做的事，例如完成 AI 设置、为等待中的文档建立索引、分拣 Smart Inbox 或创建工作流。</value></data>
   <data name="UserGuide_Dashboard_QuickActions_Title.Text" xml:space="preserve"><value>快捷操作按钮</value></data>
   <data name="UserGuide_Dashboard_QuickActions_Description.Text" xml:space="preserve"><value>仪表板顶部的“设置 AI”按钮和底部的一排磁贴（“新建聊天”“导入文件”“搜索”“文件问答”“快捷操作”）涵盖了最常用的任务：</value></data>
   <data name="UserGuide_Dashboard_QuickAction1_Title.Text" xml:space="preserve"><value>设置 AI</value></data>
   <data name="UserGuide_Dashboard_QuickAction1_Description.Text" xml:space="preserve"><value>打开设置，以重新配置 AI 提供商、Ollama 和模型。</value></data>
-  <data name="UserGuide_Dashboard_QuickAction2_Title.Text" xml:space="preserve"><value>导入文档</value></data>
-  <data name="UserGuide_Dashboard_QuickAction2_Description.Text" xml:space="preserve"><value>将文件添加到您的 Knowledge Vault，以进行 AI 驱动的分析。</value></data>
-  <data name="UserGuide_Dashboard_QuickAction3_Title.Text" xml:space="preserve"><value>开始对话</value></data>
-  <data name="UserGuide_Dashboard_QuickAction3_Description.Text" xml:space="preserve"><value>使用当前模型打开 AI Chat。它会回到您上次打开的对话；要开始新对话，请按 Ctrl+N。</value></data>
-  <data name="UserGuide_Dashboard_QuickAction4_Title.Text" xml:space="preserve"><value>语义搜索</value></data>
-  <data name="UserGuide_Dashboard_QuickAction4_Description.Text" xml:space="preserve"><value>按含义而非仅凭关键词搜索您的文档。</value></data>
+  <data name="UserGuide_Dashboard_QuickAction2_Title.Text" xml:space="preserve"><value>导入文件</value></data>
+  <data name="UserGuide_Dashboard_QuickAction2_Description.Text" xml:space="preserve"><value>打开 Knowledge Vault，在其中使用“导入文件”和“导入文件夹”添加文档。</value></data>
+  <data name="UserGuide_Dashboard_QuickAction3_Title.Text" xml:space="preserve"><value>新建聊天</value></data>
+  <data name="UserGuide_Dashboard_QuickAction3_Description.Text" xml:space="preserve"><value>在 AI Chat 中开始新对话，与按 Ctrl+N 相同。</value></data>
+  <data name="UserGuide_Dashboard_QuickAction4_Title.Text" xml:space="preserve"><value>搜索</value></data>
+  <data name="UserGuide_Dashboard_QuickAction4_Description.Text" xml:space="preserve"><value>打开语义搜索，按含义、关键词或两者结合查找段落。</value></data>
   <data name="UserGuide_AiChat_Title.Text" xml:space="preserve"><value>AI Chat</value></data>
-  <data name="UserGuide_AiChat_Description.Text" xml:space="preserve"><value>AI Chat 是您与模型对话的地方。它使用在“设置”中选择的提供商：内置本地模型（默认）、您在 Ollama 中运行的模型，或添加 API 密钥后的 OpenAI 或 Anthropic。回复会在生成的同时逐步显示，并以基本 Markdown 呈现（标题、列表、粗体、行内代码以及带语法高亮的代码块），每个对话都保存在本地数据库中。</value></data>
+  <data name="UserGuide_AiChat_Description.Text" xml:space="preserve"><value>AI Chat 是您与模型对话的地方。它使用在“设置”中选择的提供商：内置本地模型（默认）、您在 Ollama 中运行的模型，或添加 API 密钥后的 OpenAI 或 Anthropic。回复会在生成的同时逐步显示，并以基本 Markdown 呈现（标题、列表、粗体、行内代码以及带语法高亮的代码块），每个对话都保存在本地数据库中。空对话会说明您的消息发往何处：使用内置模型或本机上的 Ollama 时，会说明消息留在本设备上，并显示“100% 私密”标志；使用 OpenAI 或 Anthropic、其他电脑上的 Ollama、路由到云端密钥的模型路由或研究模式的网页搜索时，会说明消息发送到哪里，且不显示该标志。</value></data>
   <data name="UserGuide_AiChat_Using_Title.Text" xml:space="preserve"><value>使用 AI Chat</value></data>
   <data name="UserGuide_AiChat_Step1.Text" xml:space="preserve"><value>选择模型：聊天顶部的模型框按名称列出当前提供商的模型，选择一个即可切换到该模型。要使用其他提供商，请在“设置”中更改。如果之前无法连接提供商，顶部栏中的“刷新连接”按钮会重新检查并重新加载列表。</value></data>
-  <data name="UserGuide_AiChat_Step2.Text" xml:space="preserve"><value>输入消息：在底部的输入框中书写。按 Enter 发送消息，按 Shift+Enter 换行。麦克风按钮可录制语音，并将转录文字放入输入框，方便您在发送前检查（参见“音频转录”）。</value></data>
-  <data name="UserGuide_AiChat_Step3.Text" xml:space="preserve"><value>查看流式回复：回复会在生成的同时显示；“停止生成”可提前结束，并保留已生成的内容。每条回复都有评价、复制、重新生成和删除按钮，您自己的消息可以复制、编辑（“保存并重新发送”会发送新文本）或删除。</value></data>
+  <data name="UserGuide_AiChat_Step2.Text" xml:space="preserve"><value>输入消息：在底部的输入框中书写。按 Enter 发送消息，按 Shift+Enter 换行。麦克风按钮可录制语音，并将转录文字放入输入框，方便您在发送前检查；此功能需要“模型管理器”页面上的语音转文字模型（参见“音频转录”）。</value></data>
+  <data name="UserGuide_AiChat_Step3.Text" xml:space="preserve"><value>查看流式回复：回复会在生成的同时显示；“停止生成”可提前结束，并保留已生成的内容。每条回复都有评价、复制和删除按钮，最新的回复还可以重新生成；您自己的消息可以复制、编辑（“保存并重新发送”会发送新文本）或删除。</value></data>
   <data name="UserGuide_AiChat_Conversation_Title.Text" xml:space="preserve"><value>对话管理</value></data>
   <data name="UserGuide_AiChat_Conversation1.Text" xml:space="preserve"><value>对话会自动保存到本地 SQLite 数据库中（只有在“设置”中开启了数据库加密时才会加密）。侧边栏先列出已固定的对话，然后按时间从新到旧列出其他对话。搜索框可在标题和消息正文中查找字词，文件夹按钮（“全部”以及每个正在使用的文件夹）可筛选列表。</value></data>
   <data name="UserGuide_AiChat_Conversation2.Text" xml:space="preserve"><value>在任意位置按 Ctrl+N，或在聊天页面按 Ctrl+Shift+N，即可开始新对话；按 Ctrl+B 可显示或隐藏对话列表。每个对话都保留自己的历史记录，因此模型可以引用该对话中之前说过的内容。</value></data>
   <data name="UserGuide_AiChat_Conversation3.Text" xml:space="preserve"><value>在列表中右键点击对话，可将其固定、取消固定或删除；删除前 Agent-X 会先确认。顶部栏的文件夹按钮可将当前对话移到“工作”“研究”“个人”“归档”或您命名的文件夹。顶部栏的“导出会话”和侧边栏的“导出所有对话”可将对话保存为文件（参见“导出与数据可携性”）。对话无法重命名，也没有清除全部历史记录的命令。</value></data>
   <data name="UserGuide_AiChat_Advanced_Title.Text" xml:space="preserve"><value>进阶对话功能</value></data>
-  <data name="UserGuide_AiChat_Advanced1.Text" xml:space="preserve"><value>对话分支：在您自己的某条消息上选择“从此处创建分支”，即可从该处在单独的分支中继续；原始对话保持不变。当对话有分支时，对话列表下方会出现“分支”列表：选择某个分支即可打开，也可以用它的按钮将其合并到主线（Agent-X 会先确认）或删除。顶部栏的“对比分支”会在新窗口中并排显示主线和第一个分支。</value></data>
+  <data name="UserGuide_AiChat_Advanced1.Text" xml:space="preserve"><value>对话分支：在您自己的某条消息上选择“从此处创建分支”，即可从该处在单独的分支中继续；原始对话保持不变。当对话有分支时，对话列表下方会出现“分支”列表：选择某个分支即可打开，也可以用它的按钮将其合并到主线（Agent-X 会先确认）或删除。顶部栏的“对比分支”会打开一个窗口，将当前显示的分支与其所分出的对话并排显示，列出两者的标题、标签、分支点和子分支数量，但不显示消息。在有多个分支的主线上，请先从“分支”列表打开要对比的分支。</value></data>
   <data name="UserGuide_AiChat_Advanced2.Text" xml:space="preserve"><value>系统提示词与代码块：顶部栏的提示词按钮可将十个内置系统提示词之一（例如 Code Helper、Summarizer 或 Socratic Teacher）应用于您发送的消息；新对话开始时不使用任何提示词，目前也无法添加您自己的提示词。回复中的代码块会显示语言名称、语法高亮和“Copy”按钮。</value></data>
-  <data name="UserGuide_AiChat_Advanced3.Text" xml:space="preserve"><value>记忆与上下文：每次回复后，Agent-X 都会在后台让模型记下值得保留的事实（偏好、项目细节、指示），并将其保存在您的电脑上。当您发送消息时，最多八条与之高度相关的已保存事实会被加入模型的上下文，无论它们来自哪个对话；应用目前还无法列出或删除这些事实。使用云提供商时，这意味着每次回复多一次计费调用。“检查上下文”会显示为某条回复组装的内容，包括该对话的“持久摘要”（可在此处刷新）以及从之前的对话中召回的消息。</value></data>
-  <data name="UserGuide_AiChat_Advanced4.Text" xml:space="preserve"><value>建议的追问与 Token 计数：每次回复后，Agent-X 会让模型生成最多三个追问，并以标签形式显示；单击其中一个即可将其放入消息框。这是一次额外的模型调用，云提供商会像其他调用一样计费。聊天标题栏中的计数器会累计您生成的回复所用的 Token，“设置”中的“成本跟踪”卡片会根据应用内置的价格表估算 OpenAI 和 Anthropic 的花费（总计和今日）；本地模型不产生费用。</value></data>
+  <data name="UserGuide_AiChat_Advanced3.Text" xml:space="preserve"><value>记忆与上下文：每次回复后，Agent-X 都会在后台让模型记下值得保留的事实（偏好、项目细节、指示），并将其保存在您的电脑上。当您发送消息时，最多八条与之高度相关的已保存事实会被加入模型的上下文，无论它们来自哪个对话。使用云提供商时，这意味着每次回复多一次计费调用。“检查上下文”会显示为某条回复组装的内容，包括该对话的“持久摘要”（可在此处刷新）以及从之前的对话中召回的消息。其中的“记忆”卡片列出所有已记下的事实及其数量：删除按钮会永久删除一条，“全部清除”会先确认，然后全部删除。您的对话会保留，因此之后仍可能从新消息中重新记下事实。</value></data>
+  <data name="UserGuide_AiChat_Advanced4.Text" xml:space="preserve"><value>建议的追问与 Token 计数：每次回复后，Agent-X 会让模型生成最多三个追问，并以标签形式显示；单击其中一个即可将其放入消息框。这是一次额外的模型调用，云提供商会像其他调用一样计费。聊天标题栏中的计数器会累计您生成的回复所用的 Token，“设置”中的“成本跟踪”卡片会根据应用内置的价格表估算 OpenAI 和 Anthropic 的花费（总计和今日），并在重启后保留；本地模型不产生费用。</value></data>
   <data name="UserGuide_AskYourFiles_Title.Text" xml:space="preserve"><value>向您的文件提问（RAG）</value></data>
   <data name="UserGuide_AskYourFiles_Description.Text" xml:space="preserve"><value>“向您的文件提问”是 Agent-X 的检索增强生成（RAG）页面。用自然语言提出问题，Agent-X 会从您已编入索引的文档中检索最相关的段落，将其作为上下文提供给当前的聊天模型，并以流式方式输出带有 [1] 这类编号引用、指向来源文档的回答。模型被要求只依据这些段落作答，并在信息不足时说明；但对于重要内容，仍请核对所引用的来源。</value></data>
   <data name="UserGuide_AskYourFiles_HowItWorks_Title.Text" xml:space="preserve"><value>工作原理</value></data>
@@ -141,7 +141,7 @@
   <data name="UserGuide_QuickActions_Action2_Title.Text" xml:space="preserve"><value>提取要点</value></data>
   <data name="UserGuide_QuickActions_Action2_Description.Text" xml:space="preserve"><value>基于对已编入索引的块进行的同一分层处理，将所选文档的主要事实、数字和要点整理成项目符号列表。这些要点是可以选择和复制的普通文本。</value></data>
   <data name="UserGuide_QuickActions_Action3_Title.Text" xml:space="preserve"><value>翻译</value></data>
-  <data name="UserGuide_QuickActions_Action3_Description.Text" xml:space="preserve"><value>将您粘贴到“输入文本”框中的文本（最多 4,000 个字符，超出部分会被截断）翻译为十种语言之一：西班牙语、法语、德语、中文、日语、韩语、葡萄牙语、意大利语、俄语或阿拉伯语。翻译使用当前的聊天模型，不会翻译 Vault 中的文档。</value></data>
+  <data name="UserGuide_QuickActions_Action3_Description.Text" xml:space="preserve"><value>将您粘贴到“输入文本”框中的文本翻译为十种语言之一：西班牙语、法语、德语、中文、日语、韩语、葡萄牙语、意大利语、俄语或阿拉伯语。较长的文本会在段落、换行或句子处拆分后分段翻译，再按原顺序拼接。翻译使用当前的聊天模型，不会翻译 Vault 中的文档。</value></data>
   <data name="UserGuide_QuickActions_Action4_Title.Text" xml:space="preserve"><value>查找重复项</value></data>
   <data name="UserGuide_QuickActions_Action4_Description.Text" xml:space="preserve"><value>“扫描完全重复项”会把文件内容完全相同（SHA-256 哈希相同）的文档归为一组，并显示副本占用的空间。“扫描语义近似重复项”会比较已存储的嵌入，把内容几乎相同的文档归为一组，并给出置信度。两种扫描都只报告结果，不会删除或合并任何内容。</value></data>
   <data name="UserGuide_QuickActions_Action5_Title.Text" xml:space="preserve"><value>整理</value></data>
@@ -157,24 +157,24 @@
   <data name="UserGuide_KnowledgeVault_Import2.Text" xml:space="preserve"><value>导入文件：点击“导入文件”并选择一个或多个文件，同样会进行重复检查。选择器只提供文档、数据和代码格式，因此图片和音频需要通过拖放或“导入文件夹”导入。网页则通过“网页导入”页面或浏览器扩展导入。</value></data>
   <data name="UserGuide_KnowledgeVault_Import3.Text" xml:space="preserve"><value>文件夹导入 - 单击“导入文件夹”，一次性导入文件夹及其子文件夹中所有受支持的文件。若要持续从某个文件夹导入，请在“设置”&gt;“Knowledge Vault”的“监视文件夹”中添加它：“自动索引监视文件夹”打开时，Agent-X 会导入其中已有的受支持文件，并在运行期间导入新增和更改的文件。</value></data>
   <data name="UserGuide_KnowledgeVault_Managing_Title.Text" xml:space="preserve"><value>管理文档</value></data>
-  <data name="UserGuide_KnowledgeVault_Managing_Description.Text" xml:space="preserve"><value>每一行显示文件名、类型、索引状态、提取或生成的标题、页数、字数和分块数、大小、导入日期以及标签。可以按文件名搜索，按文件类型、状态、标签、合集或导入日期筛选，并按名称、日期、大小或类型排序。对每个文档，您可以：</value></data>
-  <data name="UserGuide_KnowledgeVault_Manage1.Text" xml:space="preserve"><value>查看详情：选择一行或点击“详情”，即可打开“文档预览”面板，其中显示文件类型和索引状态、标题、页数、字数和分块数、大小、导入日期以及标签。“在文件资源管理器中打开”会显示原始文件，“工作流”会带着该文档打开工作流页面。</value></data>
+  <data name="UserGuide_KnowledgeVault_Managing_Description.Text" xml:space="preserve"><value>每一行显示文件名、类型、索引状态、提取或生成的标题、页数、字数和分块数、大小、导入日期以及标签；失败的行还会显示索引失败的原因（将指针悬停其上可查看全文）。搜索框按文件名或标签的一部分筛选，不区分大小写；它不搜索文档内容，内容搜索由语义搜索和“向您的文件提问”完成。您还可以按文件类型、状态、标签、合集或导入日期筛选，并按名称、日期、大小或类型排序。对每个文档，您可以：</value></data>
+  <data name="UserGuide_KnowledgeVault_Manage1.Text" xml:space="preserve"><value>查看详情：选择一行或点击“详情”，即可打开“文档预览”面板，其中显示文件类型和索引状态、索引失败的原因（在“索引失败原因”下）、标题、页数、字数和分块数、大小、导入日期以及标签。“在文件资源管理器中打开”会显示原始文件，“工作流”会带着该文档打开工作流页面。</value></data>
   <data name="UserGuide_KnowledgeVault_Manage2.Text" xml:space="preserve"><value>重新索引：“重新索引”（可在行中、预览面板中或对多个所选文档使用）会删除文档的分块、嵌入和关键词条目，并从原始文件重新建立索引；原始文件必须仍位于导入时的路径。在“设置”中更改嵌入模型、分块大小或重叠后，请重新索引。</value></data>
-  <data name="UserGuide_KnowledgeVault_Manage3.Text" xml:space="preserve"><value>删除：“删除”（可在行中或对多个所选文档使用）会立即从 Vault 中移除文档，不会先确认：包括其文本、分块、嵌入、关键词条目、标签和合集归属。磁盘上的原始文件不受影响。要一起重新索引或删除多个文档，请开启多选模式或使用“全选”。</value></data>
+  <data name="UserGuide_KnowledgeVault_Manage3.Text" xml:space="preserve"><value>删除：行中的“删除文档”或对多个所选文档使用的“删除”会先请求确认，并说明文档名称或数量；默认选中“取消”。删除会将文档连同其文本、分块、嵌入、关键词条目、标签、合集归属和注释一起从 Vault 中移除，且无法撤消；磁盘上的原始文件不受影响。删除预览中显示的文档会关闭预览。要一起重新索引或删除多个文档，请开启多选模式或使用“全选”。</value></data>
   <data name="UserGuide_KnowledgeVault_Advanced_Title.Text" xml:space="preserve"><value>进阶功能</value></data>
-  <data name="UserGuide_KnowledgeVault_Advanced1.Text" xml:space="preserve"><value>自动打标签 — 导入文档时，AI 会自动生成语义标签，按主题、领域和核心概念对内容分类，无需任何手动操作。</value></data>
+  <data name="UserGuide_KnowledgeVault_Advanced1.Text" xml:space="preserve"><value>自动打标签：文档索引完成后，系统会请当前的 AI 模型给出最多五个描述该文档的标签；标签显示在文档行和预览中，“标签”筛选器和搜索框都能找到它们。每个文档因此多一次模型调用，云提供商会对此计费。标签无法手动添加或编辑。</value></data>
   <data name="UserGuide_KnowledgeVault_Advanced2.Text" xml:space="preserve"><value>重复检测：导入前，内容与 Vault 中已有文档完全相同的文件会被标出，以便您跳过。导入时不会检查近似重复；可在 Quick Actions &gt;“重复项”中查找，它只会报告结果。</value></data>
   <data name="UserGuide_KnowledgeVault_Advanced3.Text" xml:space="preserve"><value>批量操作：开启多选模式选择多个文档，或使用“全选”，然后一步完成重新索引或删除。没有批量打标签的功能；标签来自自动打标签。</value></data>
-  <data name="UserGuide_KnowledgeVault_Advanced4.Text" xml:space="preserve"><value>高级筛选 — 按 Collection、日期范围筛选文档，并按名称、日期、大小或文件类型排序，快速定位 Vault 中的特定文件。</value></data>
-  <data name="UserGuide_KnowledgeVault_Advanced5.Text" xml:space="preserve"><value>文档预览面板 — 侧边面板可一目了然地展示文档详情、标签、分块和元数据，无需离开文档列表。</value></data>
+  <data name="UserGuide_KnowledgeVault_Advanced4.Text" xml:space="preserve"><value>筛选：可按文件类型（PDF、文档、文本、代码或图片）、状态、标签、合集和导入日期（“导入于之后”“导入于之前”）筛选，并按日期、名称、大小或类型排序；“全部清除”会重置筛选条件。</value></data>
+  <data name="UserGuide_KnowledgeVault_Advanced5.Text" xml:space="preserve"><value>文档文本与注释：在文档预览中，“文档文本”逐段显示已索引的文本（“段落 N / M”，并有“上一段”和“下一段”）。在段落中选择文本即可打开包含所选内容的“新注释”，根据需要添加备注，然后点击“保存注释”；注释以黄色保存，切换到其他段落或文档时，未保存的选择会被丢弃。“注释”按从新到旧的顺序列出该文档的注释，每条都有删除按钮，点击后不经确认直接删除。尚未索引的文档没有可供注释的文本。</value></data>
   <data name="UserGuide_KnowledgeVault_Advanced6.Text" xml:space="preserve"><value>AI 生成标题：“AI 标题”（预览面板中为“生成标题”）会让模型根据文档开头生成一个简短标题，并显示在文件名下方。文件名本身不会改变。</value></data>
   <data name="UserGuide_Collections_Title.Text" xml:space="preserve"><value>合集</value></data>
-  <data name="UserGuide_Collections_Description.Text" xml:space="preserve"><value>合集用于将 Knowledge Vault 中的文档分组。一个文档可以同时属于多个合集，删除合集绝不会删除其中的文档。语义搜索和“向您的文件提问”可以限定在一个合集内，Knowledge Vault 可以按合集筛选，知识图谱则将每个合集显示为连接其文档的中心节点。</value></data>
+  <data name="UserGuide_Collections_Description.Text" xml:space="preserve"><value>合集用于将 Knowledge Vault 中的文档分组。一个文档可以同时属于多个合集，合集可以包含一层子合集，删除合集绝不会删除其中的文档。语义搜索和“向您的文件提问”可以限定在一个合集内，Knowledge Vault 可以按合集筛选，知识图谱则将每个合集显示为连接其文档的中心节点。</value></data>
   <data name="UserGuide_Collections_Working_Title.Text" xml:space="preserve"><value>使用合集</value></data>
   <data name="UserGuide_Collections_Working1.Text" xml:space="preserve"><value>创建：在合集页面输入名称和可选的描述，然后点击“创建合集”。Quick Actions &gt;“整理”可以为不属于任何合集的文档推荐合集，但不会替您创建。</value></data>
   <data name="UserGuide_Collections_Working2.Text" xml:space="preserve"><value>添加文档：选择一个合集，点击“添加文档”并选择文件（PDF、Word、文本、Markdown、CSV、JSON 或 HTML）。新文件会被导入 Vault 并添加到合集；如果某个文件的内容已在 Vault 中，则会添加已有的文档，而不是副本。随后会显示摘要，说明有多少文件已添加、已在合集中或添加失败。网页导入也可以将导入的页面放入合集。</value></data>
   <data name="UserGuide_Collections_Working3.Text" xml:space="preserve"><value>限定检索范围：在语义搜索和“向您的文件提问”中选择一个合集，即可只搜索其中的文档；在 Knowledge Vault 中，合集筛选器只显示该合集的成员。一次只能选择一个合集，无法用 AND 或 OR 组合多个合集。</value></data>
-  <data name="UserGuide_Collections_Working4.Text" xml:space="preserve"><value>管理：可以重命名合集、导出合集，或从中移除单个文档。删除单个合集会立即执行，不会先确认；在多选模式下选择多个合集，确认后即可一起删除。无论哪种方式，文档都会保留在 Vault 中。</value></data>
+  <data name="UserGuide_Collections_Working4.Text" xml:space="preserve"><value>管理：可以重命名合集、导出合集，或从中移除单个文档。所选合集标题栏中的“移动到...”会打开“移动合集”，其“目标位置”列表提供“顶层”（针对子合集）和其他顶层合集；点击“移动”即可应用。自身含有子合集的合集只能留在顶层。合集的删除按钮会先确认并说明合集名称：其中的文档保留在 Vault 中，其子合集上移一级。多选模式下的“删除所选”会对多个合集进行同样的确认。默认选中“取消”。</value></data>
   <data name="UserGuide_KnowledgeGraph_Title.Text" xml:space="preserve"><value>知识图谱</value></data>
   <data name="UserGuide_KnowledgeGraph_Description.Text" xml:space="preserve"><value>知识图谱将您的 Knowledge Vault 绘制为一张网络。文档、合集和标签都是节点；每个文档与其所属的合集和标签之间以线相连，至少共享一个合集或标签的两个文档之间也会相连。可从导航栏或按 Ctrl+G 打开它，查看哪些文档聚集在一起、哪些孤立存在。</value></data>
   <data name="UserGuide_KnowledgeGraph_Elements_Title.Text" xml:space="preserve"><value>图谱元素</value></data>
