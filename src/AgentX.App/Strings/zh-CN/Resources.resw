@@ -1260,7 +1260,7 @@
   <data name="Vault_Name.Content" xml:space="preserve"><value>名称</value></data>
   <data name="Vault_Size.Content" xml:space="preserve"><value>大小</value></data>
   <data name="Vault_Type.Content" xml:space="preserve"><value>类型</value></data>
-  <data name="Vault_SearchDocumentsByNamePh.PlaceholderText" xml:space="preserve"><value>按名称、内容或标签搜索文档...</value></data>
+  <data name="Vault_SearchDocumentsByNamePh.PlaceholderText" xml:space="preserve"><value>按文件名或标签筛选...</value></data>
   <data name="Vault_ClearAllFiltersTip.ToolTipService.ToolTip" xml:space="preserve"><value>清除所有筛选器</value></data>
   <data name="Vault_ClearAllFiltersTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>清除所有筛选器</value></data>
   <data name="Vault_ClearAll.Text" xml:space="preserve"><value>全部清除</value></data>
@@ -2059,6 +2059,7 @@
   <data name="Terms_YourViolationOfThese.Text" xml:space="preserve"><value>您违反本条款的行为</value></data>
   <data name="Terms_YourViolationOfAny.Text" xml:space="preserve"><value>您侵犯任何第三方权利(包括知识产权)的行为</value></data>
   <data name="Terms_ContentYouProcessImport.Text" xml:space="preserve"><value>您通过应用程序处理、导入或生成的内容</value></data>
+  <data name="Vault_SearchScopeHint.Text" xml:space="preserve"><value>匹配文件名和标签。要搜索文档内容，请使用“语义搜索”或“向您的文件提问”。</value></data>
   <data name="Terms_12Termination.Text" xml:space="preserve"><value>12. 终止</value></data>
   <data name="Terms_TheRightsGrantedTo.Text" xml:space="preserve"><value>根据 MIT 许可证授予您的权利是永久且不可撤销的,不受本条款影响。无论本条款有任何其他规定,您对 Agent-X 源代码和软件的使用均受 MIT 许可证约束。</value></data>
   <data name="Terms_YouMayStopUsing.Text" xml:space="preserve"><value>您可以随时通过卸载应用并从设备中删除所有相关数据来停止使用 Agent-X。</value></data>

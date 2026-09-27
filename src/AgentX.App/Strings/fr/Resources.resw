@@ -1260,7 +1260,7 @@
   <data name="Vault_Name.Content" xml:space="preserve"><value>Nom</value></data>
   <data name="Vault_Size.Content" xml:space="preserve"><value>Taille</value></data>
   <data name="Vault_Type.Content" xml:space="preserve"><value>Type</value></data>
-  <data name="Vault_SearchDocumentsByNamePh.PlaceholderText" xml:space="preserve"><value>Rechercher des documents par nom, contenu ou tags...</value></data>
+  <data name="Vault_SearchDocumentsByNamePh.PlaceholderText" xml:space="preserve"><value>Filtrer par nom de fichier ou tag...</value></data>
   <data name="Vault_ClearAllFiltersTip.ToolTipService.ToolTip" xml:space="preserve"><value>Effacer tous les filtres</value></data>
   <data name="Vault_ClearAllFiltersTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Effacer tous les filtres</value></data>
   <data name="Vault_ClearAll.Text" xml:space="preserve"><value>Tout effacer</value></data>
@@ -2059,6 +2059,7 @@
   <data name="Terms_YourViolationOfThese.Text" xml:space="preserve"><value>Votre violation de ces Conditions</value></data>
   <data name="Terms_YourViolationOfAny.Text" xml:space="preserve"><value>Votre violation de droits de tiers, y compris les droits de propriété intellectuelle</value></data>
   <data name="Terms_ContentYouProcessImport.Text" xml:space="preserve"><value>Le contenu que vous traitez, importez ou générez via l'application</value></data>
+  <data name="Vault_SearchScopeHint.Text" xml:space="preserve"><value>Porte sur les noms de fichiers et les tags. Pour chercher dans le contenu des documents, utilisez « Recherche sémantique » ou « Interroger vos fichiers ».</value></data>
   <data name="Terms_12Termination.Text" xml:space="preserve"><value>12. Résiliation</value></data>
   <data name="Terms_TheRightsGrantedTo.Text" xml:space="preserve"><value>Les droits qui vous sont accordés sous licence MIT sont perpétuels et irrévocables, et ne sont pas affectés par ces Conditions. La licence MIT régit votre utilisation du code source et du logiciel Agent-X indépendamment de toute autre disposition des présentes.</value></data>
   <data name="Terms_YouMayStopUsing.Text" xml:space="preserve"><value>Vous pouvez cesser d'utiliser Agent-X à tout moment en désinstallant l'application et en supprimant toutes les données associées de votre appareil.</value></data>

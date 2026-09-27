@@ -1260,7 +1260,7 @@
   <data name="Vault_Name.Content" xml:space="preserve"><value>名前</value></data>
   <data name="Vault_Size.Content" xml:space="preserve"><value>サイズ</value></data>
   <data name="Vault_Type.Content" xml:space="preserve"><value>種類</value></data>
-  <data name="Vault_SearchDocumentsByNamePh.PlaceholderText" xml:space="preserve"><value>名前、内容、タグでドキュメントを検索...</value></data>
+  <data name="Vault_SearchDocumentsByNamePh.PlaceholderText" xml:space="preserve"><value>ファイル名またはタグで絞り込み...</value></data>
   <data name="Vault_ClearAllFiltersTip.ToolTipService.ToolTip" xml:space="preserve"><value>すべてのフィルターをクリア</value></data>
   <data name="Vault_ClearAllFiltersTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>すべてのフィルターをクリア</value></data>
   <data name="Vault_ClearAll.Text" xml:space="preserve"><value>すべてクリア</value></data>
@@ -2059,6 +2059,7 @@
   <data name="Terms_YourViolationOfThese.Text" xml:space="preserve"><value>本規約への違反</value></data>
   <data name="Terms_YourViolationOfAny.Text" xml:space="preserve"><value>知的財産権を含む第三者の権利の侵害</value></data>
   <data name="Terms_ContentYouProcessImport.Text" xml:space="preserve"><value>アプリケーションを通じて処理、インポート、または生成したコンテンツ</value></data>
+  <data name="Vault_SearchScopeHint.Text" xml:space="preserve"><value>ファイル名とタグで絞り込みます。ドキュメントの内容を検索するには、「セマンティック検索」または「ファイルに質問する」を使用してください。</value></data>
   <data name="Terms_12Termination.Text" xml:space="preserve"><value>12. 終了</value></data>
   <data name="Terms_TheRightsGrantedTo.Text" xml:space="preserve"><value>MIT ライセンスに基づきお客様に付与される権利は永続的かつ取消不能であり、本規約の影響を受けません。本規約の他の規定にかかわらず、Agent-X のソース コードおよびソフトウェアの使用には MIT ライセンスが適用されます。</value></data>
   <data name="Terms_YouMayStopUsing.Text" xml:space="preserve"><value>アプリケーションをアンインストールし、関連するすべてのデータをデバイスから削除することで、いつでも Agent-X の利用を終了できます。</value></data>

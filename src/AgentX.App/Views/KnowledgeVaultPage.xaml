@@ -453,7 +453,7 @@
 
                         <TextBox Grid.Column="1"
                                  Style="{StaticResource SearchInputStyle}"
-                                 x:Uid="Vault_SearchDocumentsByNamePh" PlaceholderText="Search documents by name, content, or tags..."
+                                 x:Uid="Vault_SearchDocumentsByNamePh" PlaceholderText="Filter by file name or tag..."
                                  Text="{x:Bind ViewModel.SearchQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                  BorderThickness="0"
                                  Background="Transparent" />
@@ -473,6 +473,13 @@
                             </StackPanel>
                         </Button>
                     </Grid>
+
+                    <!-- What the box matches while a query is typed: names and tags, not text -->
+                    <TextBlock x:Uid="Vault_SearchScopeHint"
+                               Text="Matches file names and tags. To search inside documents, use Semantic Search or Ask Your Files."
+                               Style="{StaticResource CaptionStyle}"
+                               TextWrapping="Wrap"
+                               Visibility="{x:Bind ViewModel.SearchQuery, Mode=OneWay, Converter={StaticResource StringToVis}}" />
                 </StackPanel>
             </Border>
 

@@ -858,6 +858,56 @@ public sealed class KnowledgeVaultViewModelTests
         viewModel.PauseDocumentEngagementAsync().IsCompletedSuccessfully.Should().BeTrue();
     }
 
+    // Search box
+    // The placeholder promised a search by name, content and tags, but only file names were
+    // matched. The box now matches file names and tag names; content search lives on the
+    // Semantic Search and Ask Your Files pages.
+
+    [Fact]
+    public async Task SearchQuery_MatchesTagNamesAsWellAsFileNames()
+    {
+        SetupVault(CreateDocument(1, "alpha.md"), CreateDocument(2, "beta.pdf"), CreateDocument(3, "gamma.txt"));
+        _autoTagService.Setup(service => service.GetTagsForDocumentsAsync(It.IsAny<IReadOnlyList<long>>()))
+            .ReturnsAsync(new Dictionary<long, IReadOnlyList<TagEntity>>
+            {
+                [1] = [new TagEntity { Id = 11, Name = "Research" }],
+                [2] = [new TagEntity { Id = 12, Name = "policy" }],
+            });
+        var viewModel = CreateViewModel();
+
+        viewModel.SearchQuery = "resea";
+        await viewModel.RefreshCommand.ExecuteAsync(null);
+        viewModel.Documents.Select(d => d.FileName).Should().Equal("alpha.md");
+        viewModel.Documents.Single().Tags.Should().Equal("Research");
+
+        viewModel.SearchQuery = "BETA";
+        await viewModel.RefreshCommand.ExecuteAsync(null);
+        viewModel.Documents.Select(d => d.FileName).Should().Equal("beta.pdf");
+
+        viewModel.SearchQuery = "summary text that only the content has";
+        await viewModel.RefreshCommand.ExecuteAsync(null);
+        viewModel.Documents.Should().BeEmpty();
+
+        // The tags of every listed document are read, not only of those whose name matched.
+        _autoTagService.Verify(
+            service => service.GetTagsForDocumentsAsync(It.Is<IReadOnlyList<long>>(ids => ids.Count == 3)),
+            Times.AtLeastOnce);
+    }
+
+    [Theory]
+    [InlineData("", true)]
+    [InlineData("   ", true)]
+    [InlineData("QUARTER", true)]
+    [InlineData(" plan ", true)]
+    [InlineData("finance", true)]
+    [InlineData("legal", false)]
+    public void MatchesSearch_LooksAtTheFileNameAndTheTagNames(string query, bool expected)
+    {
+        var tags = new[] { new TagEntity { Name = "Finance" } };
+
+        KnowledgeVaultViewModel.MatchesSearch("quarterly-plan.pdf", tags, query).Should().Be(expected);
+    }
+
     private KnowledgeVaultViewModel CreateViewModel(ITemporalIdentityService? temporalIdentity = null) =>
         new(
             _documentService.Object,

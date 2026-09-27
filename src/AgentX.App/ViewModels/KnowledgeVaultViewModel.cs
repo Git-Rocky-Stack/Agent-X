@@ -213,26 +213,15 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
                 importedBefore: DateBeforeFilter.HasValue ? LocalDayRange.EndUtc(DateBeforeFilter.Value) : null,
                 sortBy: SortBy);
 
-            var filteredDocs = new List<AgentX.Core.Data.Entities.DocumentEntity>();
-            foreach (var doc in docs)
-            {
-                // If a search query is active, filter locally by file name
-                if (!string.IsNullOrEmpty(SearchQuery) &&
-                    !doc.FileName.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                filteredDocs.Add(doc);
-            }
-
+            // The search box matches tag names as well as file names, so the tags of every
+            // document the filters return are loaded (in one batch) before the search applies.
             IReadOnlyDictionary<long, IReadOnlyList<TagEntity>> tagMap = new Dictionary<long, IReadOnlyList<TagEntity>>();
-            if (filteredDocs.Count > 0)
+            if (docs.Count > 0)
             {
                 try
                 {
                     tagMap = await _autoTagService.GetTagsForDocumentsAsync(
-                        filteredDocs.Select(doc => doc.Id).ToArray());
+                        docs.Select(doc => doc.Id).ToArray());
                 }
                 catch (Exception ex)
                 {
@@ -240,17 +229,22 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
                 }
             }
 
-            loaded = new List<DocumentDisplayItem>(filteredDocs.Count);
-            foreach (var doc in filteredDocs)
+            loaded = new List<DocumentDisplayItem>(docs.Count);
+            foreach (var doc in docs)
             {
-                var displayItem = MapDocumentToDisplay(doc);
+                var tags = tagMap.TryGetValue(doc.Id, out var documentTags)
+                    ? documentTags
+                    : Array.Empty<TagEntity>();
 
-                if (tagMap.TryGetValue(doc.Id, out var tags))
+                if (!MatchesSearch(doc.FileName, tags, SearchQuery))
                 {
-                    foreach (var tag in tags)
-                    {
-                        displayItem.Tags.Add(tag.Name);
-                    }
+                    continue;
+                }
+
+                var displayItem = MapDocumentToDisplay(doc);
+                foreach (var tag in tags)
+                {
+                    displayItem.Tags.Add(tag.Name);
                 }
 
                 loaded.Add(displayItem);
@@ -283,6 +277,23 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         SyncSelectionWithDocuments();
         OnPropertyChanged(nameof(HasDocuments));
         UpdateDropZoneVisibility();
+    }
+
+    /// <summary>
+    /// Whether a document matches the vault's search box: the query occurs in its file name or
+    /// in one of its tag names, ignoring case. The box does not look inside documents; Semantic
+    /// Search and Ask Your Files search their content.
+    /// </summary>
+    internal static bool MatchesSearch(string fileName, IEnumerable<TagEntity> tags, string? query)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return true;
+        }
+
+        var term = query.Trim();
+        return fileName.Contains(term, StringComparison.OrdinalIgnoreCase)
+            || tags.Any(tag => tag.Name.Contains(term, StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>

@@ -1382,7 +1382,7 @@
   <data name="Vault_Name.Content" xml:space="preserve"><value>Name</value></data>
   <data name="Vault_Size.Content" xml:space="preserve"><value>Size</value></data>
   <data name="Vault_Type.Content" xml:space="preserve"><value>Type</value></data>
-  <data name="Vault_SearchDocumentsByNamePh.PlaceholderText" xml:space="preserve"><value>Search documents by name, content, or tags...</value></data>
+  <data name="Vault_SearchDocumentsByNamePh.PlaceholderText" xml:space="preserve"><value>Filter by file name or tag...</value></data>
   <data name="Vault_ClearAllFiltersTip.ToolTipService.ToolTip" xml:space="preserve"><value>Clear all filters</value></data>
   <data name="Vault_ClearAllFiltersTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Clear all filters</value></data>
   <data name="Vault_ClearAll.Text" xml:space="preserve"><value>Clear All</value></data>
@@ -2181,6 +2181,7 @@
   <data name="Terms_YourViolationOfThese.Text" xml:space="preserve"><value>Your violation of these Terms</value></data>
   <data name="Terms_YourViolationOfAny.Text" xml:space="preserve"><value>Your violation of any third-party rights, including intellectual property rights</value></data>
   <data name="Terms_ContentYouProcessImport.Text" xml:space="preserve"><value>Content you process, import, or generate through the application</value></data>
+  <data name="Vault_SearchScopeHint.Text" xml:space="preserve"><value>Matches file names and tags. To search inside documents, use Semantic Search or Ask Your Files.</value></data>
   <data name="Terms_12Termination.Text" xml:space="preserve"><value>12. Termination</value></data>
   <data name="Terms_TheRightsGrantedTo.Text" xml:space="preserve"><value>The rights granted to you under the MIT License are perpetual and irrevocable, and are not affected by these Terms. The MIT License governs your use of the Agent-X source code and software regardless of any other provision here.</value></data>
   <data name="Terms_YouMayStopUsing.Text" xml:space="preserve"><value>You may stop using Agent-X at any time by uninstalling the application and deleting all associated data from your device.</value></data>
