@@ -40,6 +40,11 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
         _log = (logger ?? throw new ArgumentNullException(nameof(logger))).ForContext<EmailSettingsViewModel>();
         _localization = localization ?? throw new ArgumentNullException(nameof(localization));
 
+        var notConnected = DescribeConnection(null, _localization).StatusText;
+        _googleStatusText = notConnected;
+        _microsoftStatusText = notConnected;
+        _syncStatusText = _localization.GetString("EmailSet_NotSyncedYet");
+
         Folders.CollectionChanged += (_, _) =>
         {
             OnPropertyChanged(nameof(HasFolders));
@@ -57,16 +62,16 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
     private bool _isMicrosoftConnected;
 
     [ObservableProperty]
-    private string _googleStatusText = "Not connected";
+    private string _googleStatusText;
 
     [ObservableProperty]
-    private string _microsoftStatusText = "Not connected";
+    private string _microsoftStatusText;
 
     [ObservableProperty]
     private bool _isSyncing;
 
     [ObservableProperty]
-    private string _syncStatusText = "Not synced yet";
+    private string _syncStatusText;
 
     [ObservableProperty]
     private string _lastSyncTime = "—";
@@ -159,7 +164,7 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
         {
             _log.Error(ex, "Failed to initialize EmailSettingsViewModel");
             HasError = true;
-            ErrorMessage = $"Failed to load settings: {ex.Message}";
+            ErrorMessage = _localization.GetString("EmailSet_LoadFailed", ex.Message);
         }
         finally
         {
@@ -189,7 +194,7 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
         {
             _log.Warning("Gmail OAuth2 flow cancelled by user");
             HasError = true;
-            ErrorMessage = "Connection cancelled.";
+            ErrorMessage = _localization.GetString("EmailSet_ConnectionCancelled");
         }
         catch (OAuthProviderNotConfiguredException ex)
         {
@@ -201,7 +206,7 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
         {
             _log.Error(ex, "Failed to connect Gmail");
             HasError = true;
-            ErrorMessage = $"Failed to connect: {ex.Message}";
+            ErrorMessage = _localization.GetString("EmailSet_ConnectFailed", ex.Message);
         }
         finally
         {
@@ -231,7 +236,7 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
         {
             _log.Warning("Outlook Email OAuth2 flow cancelled by user");
             HasError = true;
-            ErrorMessage = "Connection cancelled.";
+            ErrorMessage = _localization.GetString("EmailSet_ConnectionCancelled");
         }
         catch (OAuthProviderNotConfiguredException ex)
         {
@@ -243,7 +248,7 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
         {
             _log.Error(ex, "Failed to connect Outlook Email");
             HasError = true;
-            ErrorMessage = $"Failed to connect: {ex.Message}";
+            ErrorMessage = _localization.GetString("EmailSet_ConnectFailed", ex.Message);
         }
         finally
         {
@@ -268,7 +273,7 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
         {
             _log.Error(ex, "Failed to disconnect Gmail");
             HasError = true;
-            ErrorMessage = $"Failed to disconnect: {ex.Message}";
+            ErrorMessage = _localization.GetString("EmailSet_DisconnectFailed", ex.Message);
         }
         finally
         {
@@ -293,7 +298,7 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
         {
             _log.Error(ex, "Failed to disconnect Outlook Email");
             HasError = true;
-            ErrorMessage = $"Failed to disconnect: {ex.Message}";
+            ErrorMessage = _localization.GetString("EmailSet_DisconnectFailed", ex.Message);
         }
         finally
         {
@@ -316,7 +321,7 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
         {
             _log.Error(ex, "Failed to save email settings");
             HasError = true;
-            ErrorMessage = $"Failed to save: {ex.Message}";
+            ErrorMessage = _localization.GetString("EmailSet_SaveFailed", ex.Message);
         }
         finally
         {
@@ -333,7 +338,7 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
         IsSyncing = true;
         IsLoading = true;
         HasError = false;
-        SyncStatusText = "Syncing...";
+        SyncStatusText = _localization.GetString("EmailSet_Syncing");
 
         try
         {
@@ -354,8 +359,8 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
         {
             _log.Error(ex, "Failed to run email sync");
             HasError = true;
-            ErrorMessage = $"Failed to sync: {ex.Message}";
-            SyncStatusText = "Sync failed";
+            ErrorMessage = _localization.GetString("EmailSet_SyncFailed", ex.Message);
+            SyncStatusText = _localization.GetString("EmailSet_SyncFailedStatus");
         }
         finally
         {
@@ -486,10 +491,10 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
     private async Task CheckConnectionStatusAsync()
     {
         var googleCred = await _oauthService.GetCredentialAsync("google");
-        (IsGoogleConnected, GoogleStatusText) = DescribeConnection(googleCred);
+        (IsGoogleConnected, GoogleStatusText) = DescribeConnection(googleCred, _localization);
 
         var msCred = await _oauthService.GetCredentialAsync("microsoft");
-        (IsMicrosoftConnected, MicrosoftStatusText) = DescribeConnection(msCred);
+        (IsMicrosoftConnected, MicrosoftStatusText) = DescribeConnection(msCred, _localization);
     }
 
     /// <summary>
@@ -497,12 +502,13 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
     /// expires, so it is reported as needing a reconnect (the Connect button stays offered)
     /// rather than as connected.
     /// </summary>
-    internal static (bool IsConnected, string StatusText) DescribeConnection(OAuthCredential? credential) =>
+    internal static (bool IsConnected, string StatusText) DescribeConnection(
+        OAuthCredential? credential, ILocalizationService localization) =>
         credential switch
         {
-            null => (false, "Not connected"),
-            { RequiresReauthorization: true } => (false, "Reconnect required"),
-            _ => (true, "Connected"),
+            null => (false, localization.GetString("EmailSet_StatusNotConnected")),
+            { RequiresReauthorization: true } => (false, localization.GetString("EmailSet_StatusReconnectRequired")),
+            _ => (true, localization.GetString("EmailSet_StatusConnected")),
         };
 
     // ── Reactive property changes ──────────────────────────────────────────────
@@ -522,7 +528,7 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
 
     private void UpdateNextSyncTime()
     {
-        NextSyncTime = $"Every {SyncIntervalMinutes} min";
+        NextSyncTime = _localization.GetString("EmailSet_EveryMinutes", SyncIntervalMinutes);
     }
 
     private static string FormatSyncTime(DateTime completedAt)
@@ -531,9 +537,10 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
         return timestamp.ToLocalTime().ToString("g");
     }
 
-    private static string FormatSyncResult(SyncResult result)
+    private string FormatSyncResult(SyncResult result)
     {
-        return $"Added {result.ItemsAdded}, updated {result.ItemsUpdated}, skipped {result.ItemsSkipped}, failed {result.ItemsFailed}";
+        return _localization.GetString(
+            "EmailSet_SyncResult", result.ItemsAdded, result.ItemsUpdated, result.ItemsSkipped, result.ItemsFailed);
     }
 }
 

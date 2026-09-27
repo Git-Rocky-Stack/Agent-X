@@ -102,6 +102,37 @@
   <data name="Sync_StateUnknown" xml:space="preserve"><value>Unknown</value></data>
   <data name="Sync_FocusedEntryMissing" xml:space="preserve"><value>The requested sync history entry is no longer available.</value></data>
   <data name="Sync_FocusedEntryResolved" xml:space="preserve"><value>Resolved the focused sync history entry by running a fresh sync pass.</value></data>
+  <data name="EmailSet_NotSyncedYet" xml:space="preserve"><value>Not synced yet</value></data>
+  <data name="EmailSet_LoadFailed" xml:space="preserve"><value>Failed to load settings: {0}</value></data>
+  <data name="EmailSet_ConnectionCancelled" xml:space="preserve"><value>Connection cancelled.</value></data>
+  <data name="EmailSet_ConnectFailed" xml:space="preserve"><value>Failed to connect: {0}</value></data>
+  <data name="EmailSet_DisconnectFailed" xml:space="preserve"><value>Failed to disconnect: {0}</value></data>
+  <data name="EmailSet_SaveFailed" xml:space="preserve"><value>Failed to save: {0}</value></data>
+  <data name="EmailSet_Syncing" xml:space="preserve"><value>Syncing...</value></data>
+  <data name="EmailSet_SyncFailed" xml:space="preserve"><value>Failed to sync: {0}</value></data>
+  <data name="EmailSet_SyncFailedStatus" xml:space="preserve"><value>Sync failed</value></data>
+  <data name="EmailSet_StatusNotConnected" xml:space="preserve"><value>Not connected</value></data>
+  <data name="EmailSet_StatusReconnectRequired" xml:space="preserve"><value>Reconnect required</value></data>
+  <data name="EmailSet_StatusConnected" xml:space="preserve"><value>Connected</value></data>
+  <data name="EmailSet_EveryMinutes" xml:space="preserve"><value>Every {0} min</value></data>
+  <data name="EmailSet_SyncResult" xml:space="preserve"><value>Added {0}, updated {1}, skipped {2}, failed {3}</value></data>
+  <data name="CalSet_NotSyncedYet" xml:space="preserve"><value>Not synced yet</value></data>
+  <data name="CalSet_LoadFailed" xml:space="preserve"><value>Failed to load settings: {0}</value></data>
+  <data name="CalSet_ConnectionCancelled" xml:space="preserve"><value>Connection cancelled.</value></data>
+  <data name="CalSet_ConnectFailed" xml:space="preserve"><value>Failed to connect: {0}</value></data>
+  <data name="CalSet_DisconnectFailed" xml:space="preserve"><value>Failed to disconnect: {0}</value></data>
+  <data name="CalSet_SaveFailed" xml:space="preserve"><value>Failed to save: {0}</value></data>
+  <data name="CalSet_Syncing" xml:space="preserve"><value>Syncing...</value></data>
+  <data name="CalSet_SyncFailed" xml:space="preserve"><value>Failed to sync: {0}</value></data>
+  <data name="CalSet_SyncFailedStatus" xml:space="preserve"><value>Sync failed</value></data>
+  <data name="CalSet_StatusNotConnected" xml:space="preserve"><value>Not connected</value></data>
+  <data name="CalSet_StatusReconnectRequired" xml:space="preserve"><value>Reconnect required</value></data>
+  <data name="CalSet_StatusConnected" xml:space="preserve"><value>Connected</value></data>
+  <data name="CalSet_EveryMinutes" xml:space="preserve"><value>Every {0} min</value></data>
+  <data name="CalSet_SyncResult" xml:space="preserve"><value>Added {0}, updated {1}, skipped {2}, failed {3}</value></data>
+  <data name="CalSet_ConflictRemoteWins" xml:space="preserve"><value>Remote wins</value></data>
+  <data name="CalSet_ConflictLocalWins" xml:space="preserve"><value>Local wins</value></data>
+  <data name="CalSet_ConflictMerge" xml:space="preserve"><value>Merge</value></data>
   <data name="Palette_OpenHint.Text" xml:space="preserve"><value>Open</value></data>
   <data name="Palette_CloseHint.Text" xml:space="preserve"><value>Close</value></data>
   <data name="Palette_Actions" xml:space="preserve"><value>ACTIONS</value></data>

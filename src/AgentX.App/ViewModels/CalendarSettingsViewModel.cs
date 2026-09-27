@@ -37,6 +37,17 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
         _connectorLifecycle = connectorLifecycle ?? throw new ArgumentNullException(nameof(connectorLifecycle));
         _log = (logger ?? throw new ArgumentNullException(nameof(logger))).ForContext<CalendarSettingsViewModel>();
         _localization = localization ?? throw new ArgumentNullException(nameof(localization));
+
+        var notConnected = DescribeConnection(null, _localization).StatusText;
+        _googleStatusText = notConnected;
+        _microsoftStatusText = notConnected;
+        _syncStatusText = _localization.GetString("CalSet_NotSyncedYet");
+        ConflictResolutionOptions =
+        [
+            _localization.GetString("CalSet_ConflictRemoteWins"),
+            _localization.GetString("CalSet_ConflictLocalWins"),
+            _localization.GetString("CalSet_ConflictMerge"),
+        ];
     }
 
     // ── Observable properties ──────────────────────────────────────────────────
@@ -48,16 +59,16 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
     private bool _isMicrosoftConnected;
 
     [ObservableProperty]
-    private string _googleStatusText = "Not connected";
+    private string _googleStatusText;
 
     [ObservableProperty]
-    private string _microsoftStatusText = "Not connected";
+    private string _microsoftStatusText;
 
     [ObservableProperty]
     private bool _isSyncing;
 
     [ObservableProperty]
-    private string _syncStatusText = "Not synced yet";
+    private string _syncStatusText;
 
     [ObservableProperty]
     private string _lastSyncTime = "—";
@@ -108,9 +119,15 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
     private bool _hasError;
 
     /// <summary>
-    /// Available conflict resolution options for the ComboBox.
+    /// The stored conflict resolution values, in the order of <see cref="ConflictResolutionOptions"/>.
     /// </summary>
-    public List<string> ConflictResolutionOptions { get; } = ["RemoteWins", "LocalWins", "Merge"];
+    private static readonly string[] ConflictResolutionValues = ["RemoteWins", "LocalWins", "Merge"];
+
+    /// <summary>
+    /// Conflict resolution options for the ComboBox, in the user's language: one label per entry of
+    /// <see cref="ConflictResolutionValues"/>, selected by <see cref="ConflictResolutionIndex"/>.
+    /// </summary>
+    public List<string> ConflictResolutionOptions { get; }
 
     /// <summary>
     /// Available sync interval options for the ComboBox.
@@ -144,7 +161,7 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
             // Set ComboBox selected indices.
             SyncIntervalIndex = SyncIntervalOptions.IndexOf(SyncIntervalMinutes);
             if (SyncIntervalIndex < 0) SyncIntervalIndex = 2; // default to 15 min
-            ConflictResolutionIndex = ConflictResolutionOptions.IndexOf(ConflictResolution);
+            ConflictResolutionIndex = Array.IndexOf(ConflictResolutionValues, ConflictResolution);
             if (ConflictResolutionIndex < 0) ConflictResolutionIndex = 0;
 
             // Check OAuth connection status.
@@ -154,7 +171,7 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
         {
             _log.Error(ex, "Failed to initialize CalendarSettingsViewModel");
             HasError = true;
-            ErrorMessage = $"Failed to load settings: {ex.Message}";
+            ErrorMessage = _localization.GetString("CalSet_LoadFailed", ex.Message);
         }
         finally
         {
@@ -183,7 +200,7 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
         {
             _log.Warning("Google Calendar OAuth2 flow cancelled by user");
             HasError = true;
-            ErrorMessage = "Connection cancelled.";
+            ErrorMessage = _localization.GetString("CalSet_ConnectionCancelled");
         }
         catch (OAuthProviderNotConfiguredException ex)
         {
@@ -195,7 +212,7 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
         {
             _log.Error(ex, "Failed to connect Google Calendar");
             HasError = true;
-            ErrorMessage = $"Failed to connect: {ex.Message}";
+            ErrorMessage = _localization.GetString("CalSet_ConnectFailed", ex.Message);
         }
         finally
         {
@@ -224,7 +241,7 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
         {
             _log.Warning("Microsoft Outlook OAuth2 flow cancelled by user");
             HasError = true;
-            ErrorMessage = "Connection cancelled.";
+            ErrorMessage = _localization.GetString("CalSet_ConnectionCancelled");
         }
         catch (OAuthProviderNotConfiguredException ex)
         {
@@ -236,7 +253,7 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
         {
             _log.Error(ex, "Failed to connect Microsoft Outlook Calendar");
             HasError = true;
-            ErrorMessage = $"Failed to connect: {ex.Message}";
+            ErrorMessage = _localization.GetString("CalSet_ConnectFailed", ex.Message);
         }
         finally
         {
@@ -260,7 +277,7 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
         {
             _log.Error(ex, "Failed to disconnect Google Calendar");
             HasError = true;
-            ErrorMessage = $"Failed to disconnect: {ex.Message}";
+            ErrorMessage = _localization.GetString("CalSet_DisconnectFailed", ex.Message);
         }
         finally
         {
@@ -284,7 +301,7 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
         {
             _log.Error(ex, "Failed to disconnect Microsoft Outlook Calendar");
             HasError = true;
-            ErrorMessage = $"Failed to disconnect: {ex.Message}";
+            ErrorMessage = _localization.GetString("CalSet_DisconnectFailed", ex.Message);
         }
         finally
         {
@@ -307,7 +324,7 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
         {
             _log.Error(ex, "Failed to save calendar settings");
             HasError = true;
-            ErrorMessage = $"Failed to save: {ex.Message}";
+            ErrorMessage = _localization.GetString("CalSet_SaveFailed", ex.Message);
         }
         finally
         {
@@ -324,7 +341,7 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
         IsSyncing = true;
         IsLoading = true;
         HasError = false;
-        SyncStatusText = "Syncing...";
+        SyncStatusText = _localization.GetString("CalSet_Syncing");
 
         try
         {
@@ -345,8 +362,8 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
         {
             _log.Error(ex, "Failed to run calendar sync");
             HasError = true;
-            ErrorMessage = $"Failed to sync: {ex.Message}";
-            SyncStatusText = "Sync failed";
+            ErrorMessage = _localization.GetString("CalSet_SyncFailed", ex.Message);
+            SyncStatusText = _localization.GetString("CalSet_SyncFailedStatus");
         }
         finally
         {
@@ -399,10 +416,10 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
     private async Task CheckConnectionStatusAsync()
     {
         var googleCred = await _oauthService.GetCredentialAsync("google");
-        (IsGoogleConnected, GoogleStatusText) = DescribeConnection(googleCred);
+        (IsGoogleConnected, GoogleStatusText) = DescribeConnection(googleCred, _localization);
 
         var msCred = await _oauthService.GetCredentialAsync("microsoft");
-        (IsMicrosoftConnected, MicrosoftStatusText) = DescribeConnection(msCred);
+        (IsMicrosoftConnected, MicrosoftStatusText) = DescribeConnection(msCred, _localization);
     }
 
     /// <summary>
@@ -410,12 +427,13 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
     /// expires, so it is reported as needing a reconnect (the Connect button stays offered)
     /// rather than as connected.
     /// </summary>
-    internal static (bool IsConnected, string StatusText) DescribeConnection(OAuthCredential? credential) =>
+    internal static (bool IsConnected, string StatusText) DescribeConnection(
+        OAuthCredential? credential, ILocalizationService localization) =>
         credential switch
         {
-            null => (false, "Not connected"),
-            { RequiresReauthorization: true } => (false, "Reconnect required"),
-            _ => (true, "Connected"),
+            null => (false, localization.GetString("CalSet_StatusNotConnected")),
+            { RequiresReauthorization: true } => (false, localization.GetString("CalSet_StatusReconnectRequired")),
+            _ => (true, localization.GetString("CalSet_StatusConnected")),
         };
 
     // ── Reactive property changes ──────────────────────────────────────────────
@@ -433,13 +451,13 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
 
     partial void OnConflictResolutionIndexChanged(int value)
     {
-        if (value >= 0 && value < ConflictResolutionOptions.Count)
-            ConflictResolution = ConflictResolutionOptions[value];
+        if (value >= 0 && value < ConflictResolutionValues.Length)
+            ConflictResolution = ConflictResolutionValues[value];
     }
 
     private void UpdateNextSyncTime()
     {
-        NextSyncTime = $"Every {SyncIntervalMinutes} min";
+        NextSyncTime = _localization.GetString("CalSet_EveryMinutes", SyncIntervalMinutes);
     }
 
     private static string FormatSyncTime(DateTime completedAt)
@@ -448,8 +466,9 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
         return timestamp.ToLocalTime().ToString("g");
     }
 
-    private static string FormatSyncResult(SyncResult result)
+    private string FormatSyncResult(SyncResult result)
     {
-        return $"Added {result.ItemsAdded}, updated {result.ItemsUpdated}, skipped {result.ItemsSkipped}, failed {result.ItemsFailed}";
+        return _localization.GetString(
+            "CalSet_SyncResult", result.ItemsAdded, result.ItemsUpdated, result.ItemsSkipped, result.ItemsFailed);
     }
 }

@@ -22,6 +22,7 @@ public sealed class EmailSettingsViewModelTests
     {
         var localization = new Mock<ILocalizationService>();
         localization.Setup(l => l.GetString(It.IsAny<string>())).Returns((string key) => key);
+        localization.Setup(l => l.GetString(It.IsAny<string>(), It.IsAny<object[]>())).Returns((string key, object[] _) => key);
         return localization.Object;
     }
 
@@ -95,7 +96,7 @@ public sealed class EmailSettingsViewModelTests
             Mock.Of<IOAuthService>(),
             email.Object,
             lifecycle.Object,
-            Logger.None, Keys())
+            Logger.None, EnglishResources.Create())
         {
             EnableEmailSync = true,
         };
@@ -158,7 +159,7 @@ public sealed class EmailSettingsViewModelTests
 
         var vm = new EmailSettingsViewModel(
             settings.Object, oauth.Object, email.Object,
-            Mock.Of<IBuiltinConnectorLifecycleService>(), Logger.None, Keys());
+            Mock.Of<IBuiltinConnectorLifecycleService>(), Logger.None, EnglishResources.Create());
 
         using var ui = new SingleThreadSynchronizationContext();
         var offThreadWrites = new ConcurrentQueue<string>();
@@ -181,12 +182,38 @@ public sealed class EmailSettingsViewModelTests
     [Fact]
     public void DescribeConnection_ACredentialWithoutRefreshToken_NeedsAReconnect()
     {
-        EmailSettingsViewModel.DescribeConnection(null)
+        var english = EnglishResources.Create();
+        EmailSettingsViewModel.DescribeConnection(null, english)
             .Should().Be((false, "Not connected"));
-        EmailSettingsViewModel.DescribeConnection(new OAuthCredential { AccessToken = "a", RefreshToken = "" })
+        EmailSettingsViewModel.DescribeConnection(new OAuthCredential { AccessToken = "a", RefreshToken = "" }, english)
             .Should().Be((false, "Reconnect required"));
-        EmailSettingsViewModel.DescribeConnection(new OAuthCredential { AccessToken = "a", RefreshToken = "r" })
+        EmailSettingsViewModel.DescribeConnection(new OAuthCredential { AccessToken = "a", RefreshToken = "r" }, english)
             .Should().Be((true, "Connected"));
+    }
+
+    [Fact]
+    public async Task StatusTexts_AreShownInTheUsersLanguage()
+    {
+        var german = ReswLocalization.For("de");
+        var settings = new Mock<ISettingsService>();
+        settings.Setup(s => s.GetSettingsAsync()).ReturnsAsync(new AppSettings());
+        var email = new Mock<IEmailService>();
+        email.Setup(e => e.GetSyncSettingsAsync()).ReturnsAsync(new EmailSyncSettings());
+        email.Setup(e => e.SyncMessagesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new HttpRequestException("offline"));
+        var vm = new EmailSettingsViewModel(
+            settings.Object, Mock.Of<IOAuthService>(), email.Object,
+            Mock.Of<IBuiltinConnectorLifecycleService>(), Logger.None, german);
+
+        vm.GoogleStatusText.Should().Be(german.GetString("EmailSet_StatusNotConnected")).And.NotBe("Not connected");
+        vm.SyncStatusText.Should().Be(german.GetString("EmailSet_NotSyncedYet"));
+
+        vm.SyncIntervalMinutes = 30;
+        await vm.SyncNowCommand.ExecuteAsync(null);
+
+        vm.NextSyncTime.Should().Be(german.GetString("EmailSet_EveryMinutes", 30));
+        vm.SyncStatusText.Should().Be(german.GetString("EmailSet_SyncFailedStatus"));
+        vm.ErrorMessage.Should().Be(german.GetString("EmailSet_SyncFailed", "offline"));
     }
 
     // -- Folder selection -----------------------------------------------------------

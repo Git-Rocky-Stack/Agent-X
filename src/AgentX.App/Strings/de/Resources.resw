@@ -2384,6 +2384,37 @@
   <data name="Sync_StateUnknown" xml:space="preserve"><value>Unbekannt</value></data>
   <data name="Sync_FocusedEntryMissing" xml:space="preserve"><value>Der angeforderte Eintrag im Sync-Verlauf ist nicht mehr vorhanden.</value></data>
   <data name="Sync_FocusedEntryResolved" xml:space="preserve"><value>Der fokussierte Sync-Verlaufseintrag wurde durch einen neuen Sync-Durchlauf erledigt.</value></data>
+  <data name="EmailSet_NotSyncedYet" xml:space="preserve"><value>Noch nicht synchronisiert</value></data>
+  <data name="EmailSet_LoadFailed" xml:space="preserve"><value>Die Einstellungen konnten nicht geladen werden: {0}</value></data>
+  <data name="EmailSet_ConnectionCancelled" xml:space="preserve"><value>Verbindung abgebrochen.</value></data>
+  <data name="EmailSet_ConnectFailed" xml:space="preserve"><value>Verbindung fehlgeschlagen: {0}</value></data>
+  <data name="EmailSet_DisconnectFailed" xml:space="preserve"><value>Trennen fehlgeschlagen: {0}</value></data>
+  <data name="EmailSet_SaveFailed" xml:space="preserve"><value>Speichern fehlgeschlagen: {0}</value></data>
+  <data name="EmailSet_Syncing" xml:space="preserve"><value>Wird synchronisiert...</value></data>
+  <data name="EmailSet_SyncFailed" xml:space="preserve"><value>Synchronisierung fehlgeschlagen: {0}</value></data>
+  <data name="EmailSet_SyncFailedStatus" xml:space="preserve"><value>Synchronisierung fehlgeschlagen</value></data>
+  <data name="EmailSet_StatusNotConnected" xml:space="preserve"><value>Nicht verbunden</value></data>
+  <data name="EmailSet_StatusReconnectRequired" xml:space="preserve"><value>Erneute Verbindung erforderlich</value></data>
+  <data name="EmailSet_StatusConnected" xml:space="preserve"><value>Verbunden</value></data>
+  <data name="EmailSet_EveryMinutes" xml:space="preserve"><value>Alle {0} Min.</value></data>
+  <data name="EmailSet_SyncResult" xml:space="preserve"><value>{0} hinzugefügt, {1} aktualisiert, {2} übersprungen, {3} fehlgeschlagen</value></data>
+  <data name="CalSet_NotSyncedYet" xml:space="preserve"><value>Noch nicht synchronisiert</value></data>
+  <data name="CalSet_LoadFailed" xml:space="preserve"><value>Die Einstellungen konnten nicht geladen werden: {0}</value></data>
+  <data name="CalSet_ConnectionCancelled" xml:space="preserve"><value>Verbindung abgebrochen.</value></data>
+  <data name="CalSet_ConnectFailed" xml:space="preserve"><value>Verbindung fehlgeschlagen: {0}</value></data>
+  <data name="CalSet_DisconnectFailed" xml:space="preserve"><value>Trennen fehlgeschlagen: {0}</value></data>
+  <data name="CalSet_SaveFailed" xml:space="preserve"><value>Speichern fehlgeschlagen: {0}</value></data>
+  <data name="CalSet_Syncing" xml:space="preserve"><value>Wird synchronisiert...</value></data>
+  <data name="CalSet_SyncFailed" xml:space="preserve"><value>Synchronisierung fehlgeschlagen: {0}</value></data>
+  <data name="CalSet_SyncFailedStatus" xml:space="preserve"><value>Synchronisierung fehlgeschlagen</value></data>
+  <data name="CalSet_StatusNotConnected" xml:space="preserve"><value>Nicht verbunden</value></data>
+  <data name="CalSet_StatusReconnectRequired" xml:space="preserve"><value>Erneute Verbindung erforderlich</value></data>
+  <data name="CalSet_StatusConnected" xml:space="preserve"><value>Verbunden</value></data>
+  <data name="CalSet_EveryMinutes" xml:space="preserve"><value>Alle {0} Min.</value></data>
+  <data name="CalSet_SyncResult" xml:space="preserve"><value>{0} hinzugefügt, {1} aktualisiert, {2} übersprungen, {3} fehlgeschlagen</value></data>
+  <data name="CalSet_ConflictRemoteWins" xml:space="preserve"><value>Remote-Version hat Vorrang</value></data>
+  <data name="CalSet_ConflictLocalWins" xml:space="preserve"><value>Lokale Version hat Vorrang</value></data>
+  <data name="CalSet_ConflictMerge" xml:space="preserve"><value>Zusammenführen</value></data>
   <data name="Palette_OpenHint.Text" xml:space="preserve"><value>Öffnen</value></data>
   <data name="Palette_CloseHint.Text" xml:space="preserve"><value>Schließen</value></data>
   <data name="Palette_Actions" xml:space="preserve"><value>AKTIONEN</value></data>

@@ -2384,6 +2384,37 @@
   <data name="Sync_StateUnknown" xml:space="preserve"><value>不明</value></data>
   <data name="Sync_FocusedEntryMissing" xml:space="preserve"><value>要求された同期履歴エントリはもう利用できません。</value></data>
   <data name="Sync_FocusedEntryResolved" xml:space="preserve"><value>新しい同期を実行して、フォーカス中の同期履歴エントリを解決しました。</value></data>
+  <data name="EmailSet_NotSyncedYet" xml:space="preserve"><value>まだ同期していません</value></data>
+  <data name="EmailSet_LoadFailed" xml:space="preserve"><value>設定を読み込めませんでした: {0}</value></data>
+  <data name="EmailSet_ConnectionCancelled" xml:space="preserve"><value>接続がキャンセルされました。</value></data>
+  <data name="EmailSet_ConnectFailed" xml:space="preserve"><value>接続できませんでした: {0}</value></data>
+  <data name="EmailSet_DisconnectFailed" xml:space="preserve"><value>切断できませんでした: {0}</value></data>
+  <data name="EmailSet_SaveFailed" xml:space="preserve"><value>保存できませんでした: {0}</value></data>
+  <data name="EmailSet_Syncing" xml:space="preserve"><value>同期しています...</value></data>
+  <data name="EmailSet_SyncFailed" xml:space="preserve"><value>同期できませんでした: {0}</value></data>
+  <data name="EmailSet_SyncFailedStatus" xml:space="preserve"><value>同期に失敗しました</value></data>
+  <data name="EmailSet_StatusNotConnected" xml:space="preserve"><value>未接続</value></data>
+  <data name="EmailSet_StatusReconnectRequired" xml:space="preserve"><value>再接続が必要です</value></data>
+  <data name="EmailSet_StatusConnected" xml:space="preserve"><value>接続済み</value></data>
+  <data name="EmailSet_EveryMinutes" xml:space="preserve"><value>{0} 分ごと</value></data>
+  <data name="EmailSet_SyncResult" xml:space="preserve"><value>追加 {0} 件、更新 {1} 件、スキップ {2} 件、失敗 {3} 件</value></data>
+  <data name="CalSet_NotSyncedYet" xml:space="preserve"><value>まだ同期していません</value></data>
+  <data name="CalSet_LoadFailed" xml:space="preserve"><value>設定を読み込めませんでした: {0}</value></data>
+  <data name="CalSet_ConnectionCancelled" xml:space="preserve"><value>接続がキャンセルされました。</value></data>
+  <data name="CalSet_ConnectFailed" xml:space="preserve"><value>接続できませんでした: {0}</value></data>
+  <data name="CalSet_DisconnectFailed" xml:space="preserve"><value>切断できませんでした: {0}</value></data>
+  <data name="CalSet_SaveFailed" xml:space="preserve"><value>保存できませんでした: {0}</value></data>
+  <data name="CalSet_Syncing" xml:space="preserve"><value>同期しています...</value></data>
+  <data name="CalSet_SyncFailed" xml:space="preserve"><value>同期できませんでした: {0}</value></data>
+  <data name="CalSet_SyncFailedStatus" xml:space="preserve"><value>同期に失敗しました</value></data>
+  <data name="CalSet_StatusNotConnected" xml:space="preserve"><value>未接続</value></data>
+  <data name="CalSet_StatusReconnectRequired" xml:space="preserve"><value>再接続が必要です</value></data>
+  <data name="CalSet_StatusConnected" xml:space="preserve"><value>接続済み</value></data>
+  <data name="CalSet_EveryMinutes" xml:space="preserve"><value>{0} 分ごと</value></data>
+  <data name="CalSet_SyncResult" xml:space="preserve"><value>追加 {0} 件、更新 {1} 件、スキップ {2} 件、失敗 {3} 件</value></data>
+  <data name="CalSet_ConflictRemoteWins" xml:space="preserve"><value>リモートを優先</value></data>
+  <data name="CalSet_ConflictLocalWins" xml:space="preserve"><value>ローカルを優先</value></data>
+  <data name="CalSet_ConflictMerge" xml:space="preserve"><value>マージ</value></data>
   <data name="Palette_OpenHint.Text" xml:space="preserve"><value>開く</value></data>
   <data name="Palette_CloseHint.Text" xml:space="preserve"><value>閉じる</value></data>
   <data name="Palette_Actions" xml:space="preserve"><value>アクション</value></data>

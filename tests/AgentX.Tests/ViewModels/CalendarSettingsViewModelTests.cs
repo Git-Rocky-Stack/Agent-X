@@ -21,6 +21,7 @@ public sealed class CalendarSettingsViewModelTests
     {
         var localization = new Mock<ILocalizationService>();
         localization.Setup(l => l.GetString(It.IsAny<string>())).Returns((string key) => key);
+        localization.Setup(l => l.GetString(It.IsAny<string>(), It.IsAny<object[]>())).Returns((string key, object[] _) => key);
         return localization.Object;
     }
 
@@ -103,7 +104,7 @@ public sealed class CalendarSettingsViewModelTests
             Mock.Of<IOAuthService>(),
             calendar.Object,
             lifecycle.Object,
-            Logger.None, Keys())
+            Logger.None, EnglishResources.Create())
         {
             EnableCalendarSync = true,
         };
@@ -167,7 +168,7 @@ public sealed class CalendarSettingsViewModelTests
 
         var vm = new CalendarSettingsViewModel(
             settings.Object, oauth.Object, calendar.Object,
-            Mock.Of<IBuiltinConnectorLifecycleService>(), Logger.None, Keys());
+            Mock.Of<IBuiltinConnectorLifecycleService>(), Logger.None, EnglishResources.Create());
 
         using var ui = new SingleThreadSynchronizationContext();
         var offThreadWrites = new ConcurrentQueue<string>();
@@ -189,12 +190,37 @@ public sealed class CalendarSettingsViewModelTests
     [Fact]
     public void DescribeConnection_ACredentialWithoutRefreshToken_NeedsAReconnect()
     {
-        CalendarSettingsViewModel.DescribeConnection(null)
+        var english = EnglishResources.Create();
+        CalendarSettingsViewModel.DescribeConnection(null, english)
             .Should().Be((false, "Not connected"));
-        CalendarSettingsViewModel.DescribeConnection(new OAuthCredential { AccessToken = "a", RefreshToken = "" })
+        CalendarSettingsViewModel.DescribeConnection(new OAuthCredential { AccessToken = "a", RefreshToken = "" }, english)
             .Should().Be((false, "Reconnect required"));
-        CalendarSettingsViewModel.DescribeConnection(new OAuthCredential { AccessToken = "a", RefreshToken = "r" })
+        CalendarSettingsViewModel.DescribeConnection(new OAuthCredential { AccessToken = "a", RefreshToken = "r" }, english)
             .Should().Be((true, "Connected"));
+    }
+
+    [Fact]
+    public async Task ConflictResolutionOptions_AreLabels_WhileTheSavedValueStaysTheSettingKey()
+    {
+        // The dropdown listed the raw setting values ("RemoteWins"); it now shows labels in the
+        // user's language and maps the selected index back to the value that is saved.
+        var appSettings = new AppSettings();
+        appSettings.CalendarConnector.ConflictResolution = "LocalWins";
+        var settings = new Mock<ISettingsService>();
+        settings.Setup(s => s.GetSettingsAsync()).ReturnsAsync(appSettings);
+        var vm = new CalendarSettingsViewModel(
+            settings.Object, Mock.Of<IOAuthService>(), Mock.Of<ICalendarService>(),
+            Mock.Of<IBuiltinConnectorLifecycleService>(), Logger.None, EnglishResources.Create());
+
+        await vm.InitializeAsync();
+
+        vm.ConflictResolutionOptions.Should().Equal("Remote wins", "Local wins", "Merge");
+        vm.ConflictResolutionIndex.Should().Be(1);
+        vm.ConflictResolution.Should().Be("LocalWins");
+
+        vm.ConflictResolutionIndex = 2;
+
+        vm.ConflictResolution.Should().Be("Merge");
     }
 
     [Fact]

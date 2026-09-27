@@ -2384,6 +2384,37 @@
   <data name="Sync_StateUnknown" xml:space="preserve"><value>Inconnu</value></data>
   <data name="Sync_FocusedEntryMissing" xml:space="preserve"><value>L'entrée d'historique de synchronisation demandée n'est plus disponible.</value></data>
   <data name="Sync_FocusedEntryResolved" xml:space="preserve"><value>L'entrée d'historique ciblée a été résolue en lançant une nouvelle synchronisation.</value></data>
+  <data name="EmailSet_NotSyncedYet" xml:space="preserve"><value>Pas encore synchronisé</value></data>
+  <data name="EmailSet_LoadFailed" xml:space="preserve"><value>Impossible de charger les paramètres : {0}</value></data>
+  <data name="EmailSet_ConnectionCancelled" xml:space="preserve"><value>Connexion annulée.</value></data>
+  <data name="EmailSet_ConnectFailed" xml:space="preserve"><value>Échec de la connexion : {0}</value></data>
+  <data name="EmailSet_DisconnectFailed" xml:space="preserve"><value>Échec de la déconnexion : {0}</value></data>
+  <data name="EmailSet_SaveFailed" xml:space="preserve"><value>Échec de l'enregistrement : {0}</value></data>
+  <data name="EmailSet_Syncing" xml:space="preserve"><value>Synchronisation...</value></data>
+  <data name="EmailSet_SyncFailed" xml:space="preserve"><value>Échec de la synchronisation : {0}</value></data>
+  <data name="EmailSet_SyncFailedStatus" xml:space="preserve"><value>Échec de la synchronisation</value></data>
+  <data name="EmailSet_StatusNotConnected" xml:space="preserve"><value>Non connecté</value></data>
+  <data name="EmailSet_StatusReconnectRequired" xml:space="preserve"><value>Reconnexion requise</value></data>
+  <data name="EmailSet_StatusConnected" xml:space="preserve"><value>Connecté</value></data>
+  <data name="EmailSet_EveryMinutes" xml:space="preserve"><value>Toutes les {0} min</value></data>
+  <data name="EmailSet_SyncResult" xml:space="preserve"><value>{0} ajouté(s), {1} mis à jour, {2} ignoré(s), {3} en échec</value></data>
+  <data name="CalSet_NotSyncedYet" xml:space="preserve"><value>Pas encore synchronisé</value></data>
+  <data name="CalSet_LoadFailed" xml:space="preserve"><value>Impossible de charger les paramètres : {0}</value></data>
+  <data name="CalSet_ConnectionCancelled" xml:space="preserve"><value>Connexion annulée.</value></data>
+  <data name="CalSet_ConnectFailed" xml:space="preserve"><value>Échec de la connexion : {0}</value></data>
+  <data name="CalSet_DisconnectFailed" xml:space="preserve"><value>Échec de la déconnexion : {0}</value></data>
+  <data name="CalSet_SaveFailed" xml:space="preserve"><value>Échec de l'enregistrement : {0}</value></data>
+  <data name="CalSet_Syncing" xml:space="preserve"><value>Synchronisation...</value></data>
+  <data name="CalSet_SyncFailed" xml:space="preserve"><value>Échec de la synchronisation : {0}</value></data>
+  <data name="CalSet_SyncFailedStatus" xml:space="preserve"><value>Échec de la synchronisation</value></data>
+  <data name="CalSet_StatusNotConnected" xml:space="preserve"><value>Non connecté</value></data>
+  <data name="CalSet_StatusReconnectRequired" xml:space="preserve"><value>Reconnexion requise</value></data>
+  <data name="CalSet_StatusConnected" xml:space="preserve"><value>Connecté</value></data>
+  <data name="CalSet_EveryMinutes" xml:space="preserve"><value>Toutes les {0} min</value></data>
+  <data name="CalSet_SyncResult" xml:space="preserve"><value>{0} ajouté(s), {1} mis à jour, {2} ignoré(s), {3} en échec</value></data>
+  <data name="CalSet_ConflictRemoteWins" xml:space="preserve"><value>La version distante l'emporte</value></data>
+  <data name="CalSet_ConflictLocalWins" xml:space="preserve"><value>La version locale l'emporte</value></data>
+  <data name="CalSet_ConflictMerge" xml:space="preserve"><value>Fusionner</value></data>
   <data name="Palette_OpenHint.Text" xml:space="preserve"><value>Ouvrir</value></data>
   <data name="Palette_CloseHint.Text" xml:space="preserve"><value>Fermer</value></data>
   <data name="Palette_Actions" xml:space="preserve"><value>ACTIONS</value></data>
