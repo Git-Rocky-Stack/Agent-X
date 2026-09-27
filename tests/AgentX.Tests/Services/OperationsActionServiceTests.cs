@@ -3,9 +3,11 @@ using AgentX.Core.Data.Entities;
 using AgentX.Core.Documents;
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Inbox;
+using AgentX.Core.Services.Localization;
 using AgentX.Core.Services.Plugins;
 using AgentX.Core.Services.Sync;
 using AgentX.Core.Services.Sync.Models;
+using AgentX.Tests.Helpers;
 using FluentAssertions;
 using Moq;
 using Serilog;
@@ -214,13 +216,51 @@ public sealed class OperationsActionServiceTests
         result.Message.Should().StartWith("Sync finished with problems: 1 file(s) will be retried.");
     }
 
-    private OperationsActionService CreateService() =>
+    [Fact]
+    public async Task RefreshConversationSummariesAsync_counts_a_single_summary()
+    {
+        _conversationSummaryService
+            .Setup(service => service.RefreshStaleSummariesAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(1);
+
+        var result = await CreateService().RefreshConversationSummariesAsync();
+
+        result.Message.Should().Be("Refreshed 1 conversation summary.");
+    }
+
+    [Fact]
+    public async Task Messages_come_from_the_resources()
+    {
+        // The Operations page shows these messages as they are, so each is read by key.
+        var localization = new Mock<ILocalizationService>();
+        localization.Setup(l => l.GetString(It.IsAny<string>())).Returns((string key) => $"<{key}>");
+        localization.Setup(l => l.GetString(It.IsAny<string>(), It.IsAny<object[]>()))
+            .Returns((string key, object[] args) => $"<{key}:{string.Join("|", args)}>");
+        _pluginService
+            .Setup(service => service.GetInstalledPluginsAsync())
+            .ReturnsAsync([CreatePlugin(41, "Email Connector", "DataConnector", enabled: true)]);
+        _syncService
+            .Setup(service => service.GetConfigurationAsync())
+            .ReturnsAsync(new SyncConfiguration { SyncFolderPath = "/sync", EncryptionKey = "secret" });
+        _syncService
+            .Setup(service => service.SyncNowAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new SyncRunResult { PeerFilesFound = 2, PeerFilesUnreadable = 1 });
+        var sut = CreateService(localization.Object);
+
+        (await sut.EnableConnectorAsync(41)).Message.Should().Be("<Ops_ActionAlreadyEnabled:Email Connector>");
+        (await sut.EnableConnectorAsync(0)).Message.Should().Be("<Ops_ActionSelectConnector>");
+        (await sut.RunManualSyncAsync()).Message.Should().Be(
+            "<Ops_ActionSyncProblems:<Ops_ActionSyncUnreadable:1>|<Ops_ActionSyncSummary:0|0|2|0>>");
+    }
+
+    private OperationsActionService CreateService(ILocalizationService? localization = null) =>
         new(
             _conversationSummaryService.Object,
             _documentService.Object,
             _inboxService.Object,
             _pluginService.Object,
             _syncService.Object,
+            localization ?? EnglishResources.Create(),
             Log.ForContext<OperationsActionServiceTests>());
 
     private static PluginEntity CreatePlugin(long id, string name, string pluginType, bool enabled) =>

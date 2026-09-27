@@ -847,6 +847,33 @@
   <data name="Ops_DurationMinutes" xml:space="preserve"><value>{0} min</value></data>
   <data name="Ops_DurationSeconds" xml:space="preserve"><value>{0} s</value></data>
   <data name="Ops_DurationMilliseconds" xml:space="preserve"><value>{0} ms</value></data>
+  <data name="Ops_ActionSelectConnector" xml:space="preserve"><value>Seleccione un conector antes de activarlo.</value></data>
+  <data name="Ops_ActionConnectorGone" xml:space="preserve"><value>Ese conector ya no está instalado.</value></data>
+  <data name="Ops_ActionEnableInPluginManager" xml:space="preserve"><value>{0} solo se puede activar desde el Gestor de plugins.</value></data>
+  <data name="Ops_ActionAlreadyEnabled" xml:space="preserve"><value>{0} ya está activado.</value></data>
+  <data name="Ops_ActionEnabled" xml:space="preserve"><value>{0} activado.</value></data>
+  <data name="Ops_ActionEnableFailed" xml:space="preserve"><value>No se pudo activar el conector: {0}</value></data>
+  <data name="Ops_ActionNoPreviewsNeeded" xml:space="preserve"><value>Ningún elemento pendiente de la bandeja de entrada necesita una vista previa.</value></data>
+  <data name="Ops_ActionPreviewsGenerated" xml:space="preserve"><value>Se generaron vistas previas con IA para los elementos pendientes de la bandeja de entrada.</value></data>
+  <data name="Ops_ActionPreviewsTimedOut" xml:space="preserve"><value>Se agotó el tiempo para generar las vistas previas de la bandeja de entrada.</value></data>
+  <data name="Ops_ActionPreviewsFailed" xml:space="preserve"><value>Error al generar las vistas previas: {0}</value></data>
+  <data name="Ops_ActionSelectDocument" xml:space="preserve"><value>Seleccione un documento importado antes de reintentar la indexación.</value></data>
+  <data name="Ops_ActionReindexQueued" xml:space="preserve"><value>Documento importado en cola para reindexar.</value></data>
+  <data name="Ops_ActionReindexFailed" xml:space="preserve"><value>Error al reindexar: {0}</value></data>
+  <data name="Ops_ActionSummariesRefreshedMany" xml:space="preserve"><value>Se actualizaron {0} resúmenes de conversaciones.</value></data>
+  <data name="Ops_ActionSummaryRefreshedOne" xml:space="preserve"><value>Se actualizó 1 resumen de conversación.</value></data>
+  <data name="Ops_ActionNoSummariesToRefresh" xml:space="preserve"><value>No había resúmenes de conversación desactualizados que actualizar.</value></data>
+  <data name="Ops_ActionSummariesTimedOut" xml:space="preserve"><value>Se agotó el tiempo para actualizar los resúmenes de conversación.</value></data>
+  <data name="Ops_ActionSummariesFailed" xml:space="preserve"><value>Error al actualizar los resúmenes: {0}</value></data>
+  <data name="Ops_ActionSyncNotConfigured" xml:space="preserve"><value>Guarde una configuración de sincronización antes de sincronizar desde Operations.</value></data>
+  <data name="Ops_ActionSyncTimedOut" xml:space="preserve"><value>La sincronización superó el límite de 10 minutos. Compruebe la conexión con la carpeta de sincronización e inténtelo de nuevo.</value></data>
+  <data name="Ops_ActionSyncFailed" xml:space="preserve"><value>Error de sincronización: {0}</value></data>
+  <data name="Ops_ActionSyncSummary" xml:space="preserve"><value>Se exportaron {0} cambio(s); se importaron {1} de {2} archivo(s) de otros equipos y se aplicaron {3} cambio(s).</value></data>
+  <data name="Ops_ActionSyncComplete" xml:space="preserve"><value>Sincronización completada. {0}</value></data>
+  <data name="Ops_ActionSyncRetry" xml:space="preserve"><value>{0} archivo(s) se volverán a intentar</value></data>
+  <data name="Ops_ActionSyncUnreadable" xml:space="preserve"><value>{0} archivo(s) no se pudieron leer</value></data>
+  <data name="Ops_ActionSyncSkipped" xml:space="preserve"><value>se omitieron {0} cambio(s)</value></data>
+  <data name="Ops_ActionSyncProblems" xml:space="preserve"><value>La sincronización terminó con problemas: {0}. {1}</value></data>
   <data name="Inbox_TargetCollectionOverline.Text" xml:space="preserve"><value>COLECCIÓN DE DESTINO</value></data>
   <data name="Inbox_AutoSuggestPlaceholder.PlaceholderText" xml:space="preserve"><value>Sugerencia automática</value></data>
   <data name="Inbox_ActionsOverline.Text" xml:space="preserve"><value>ACCIONES</value></data>

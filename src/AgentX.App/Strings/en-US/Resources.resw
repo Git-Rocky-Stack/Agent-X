@@ -1186,6 +1186,33 @@
   <data name="Ops_DurationMinutes" xml:space="preserve"><value>{0} min</value></data>
   <data name="Ops_DurationSeconds" xml:space="preserve"><value>{0}s</value></data>
   <data name="Ops_DurationMilliseconds" xml:space="preserve"><value>{0} ms</value></data>
+  <data name="Ops_ActionSelectConnector" xml:space="preserve"><value>Select a connector before enabling it.</value></data>
+  <data name="Ops_ActionConnectorGone" xml:space="preserve"><value>That connector is no longer installed.</value></data>
+  <data name="Ops_ActionEnableInPluginManager" xml:space="preserve"><value>{0} can only be enabled from Plugin Manager.</value></data>
+  <data name="Ops_ActionAlreadyEnabled" xml:space="preserve"><value>{0} is already enabled.</value></data>
+  <data name="Ops_ActionEnabled" xml:space="preserve"><value>Enabled {0}.</value></data>
+  <data name="Ops_ActionEnableFailed" xml:space="preserve"><value>Connector enable failed: {0}</value></data>
+  <data name="Ops_ActionNoPreviewsNeeded" xml:space="preserve"><value>No pending inbox items need preview generation.</value></data>
+  <data name="Ops_ActionPreviewsGenerated" xml:space="preserve"><value>Generated AI previews for pending inbox items.</value></data>
+  <data name="Ops_ActionPreviewsTimedOut" xml:space="preserve"><value>Inbox preview generation timed out.</value></data>
+  <data name="Ops_ActionPreviewsFailed" xml:space="preserve"><value>Preview generation failed: {0}</value></data>
+  <data name="Ops_ActionSelectDocument" xml:space="preserve"><value>Select an imported document before retrying indexing.</value></data>
+  <data name="Ops_ActionReindexQueued" xml:space="preserve"><value>Queued imported document for re-indexing.</value></data>
+  <data name="Ops_ActionReindexFailed" xml:space="preserve"><value>Re-index failed: {0}</value></data>
+  <data name="Ops_ActionSummariesRefreshedMany" xml:space="preserve"><value>Refreshed {0} conversation summaries.</value></data>
+  <data name="Ops_ActionSummaryRefreshedOne" xml:space="preserve"><value>Refreshed 1 conversation summary.</value></data>
+  <data name="Ops_ActionNoSummariesToRefresh" xml:space="preserve"><value>No stale conversation summaries needed refresh.</value></data>
+  <data name="Ops_ActionSummariesTimedOut" xml:space="preserve"><value>Conversation summary refresh timed out.</value></data>
+  <data name="Ops_ActionSummariesFailed" xml:space="preserve"><value>Summary refresh failed: {0}</value></data>
+  <data name="Ops_ActionSyncNotConfigured" xml:space="preserve"><value>Save a sync configuration before running sync from Operations.</value></data>
+  <data name="Ops_ActionSyncTimedOut" xml:space="preserve"><value>Sync timed out after 10 minutes. Check sync folder connectivity and try again.</value></data>
+  <data name="Ops_ActionSyncFailed" xml:space="preserve"><value>Sync failed: {0}</value></data>
+  <data name="Ops_ActionSyncSummary" xml:space="preserve"><value>Exported {0} change(s); imported {1} of {2} peer file(s), {3} change(s) applied.</value></data>
+  <data name="Ops_ActionSyncComplete" xml:space="preserve"><value>Sync complete. {0}</value></data>
+  <data name="Ops_ActionSyncRetry" xml:space="preserve"><value>{0} file(s) will be retried</value></data>
+  <data name="Ops_ActionSyncUnreadable" xml:space="preserve"><value>{0} file(s) could not be read</value></data>
+  <data name="Ops_ActionSyncSkipped" xml:space="preserve"><value>{0} change(s) were skipped</value></data>
+  <data name="Ops_ActionSyncProblems" xml:space="preserve"><value>Sync finished with problems: {0}. {1}</value></data>
   <data name="Inbox_TargetCollectionOverline.Text" xml:space="preserve"><value>TARGET COLLECTION</value></data>
   <data name="Inbox_AutoSuggestPlaceholder.PlaceholderText" xml:space="preserve"><value>Auto-suggest</value></data>
   <data name="Inbox_ActionsOverline.Text" xml:space="preserve"><value>ACTIONS</value></data>
