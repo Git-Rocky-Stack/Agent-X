@@ -1134,8 +1134,9 @@ Use the tray when Agent-X should stay available without occupying the main windo
 
 ### Local-first security model
 
-- No telemetry is required for core functionality.
-- Local AI is the default architecture.
+- Agent-X sends no telemetry: no usage analytics, crash reports, or logs of AI calls.
+- The built-in local model is the default AI provider.
+- The local API used by the browser extension and the Android app listens on `localhost:9846` only and requires its token.
 - The vault, settings, logs, embeddings, and conversations stay in the user's profile directory.
 - Optional SQLCipher encryption protects the database at rest.
 - DPAPI is used where Windows user-bound secrets are required.
@@ -1169,9 +1170,9 @@ Agent-X is free and open-source software released under the MIT License. Every c
 
 ### Documents remain pending
 
-1. Check that an embedding model is selected.
-2. Confirm Ollama is running.
-3. Review Knowledge Vault indexing errors.
+1. Check that an embedding model is available: with the default Embedding Model setting, the built-in model must be installed or Ollama must be running with `all-minilm` pulled.
+2. Confirm the original file is still where it was imported from; indexing reads it again.
+3. Review the indexing error in the Recent imported documents list on the Operations page (the Knowledge Vault shows only the status).
 4. Re-index the document.
 5. Check Operations for imported-document health.
 
@@ -1185,7 +1186,7 @@ Agent-X is free and open-source software released under the MIT License. Every c
 
 ### Ask Your Files gives weak citations
 
-1. Narrow the collection or selected documents.
+1. Narrow the collection scope (single documents cannot be selected).
 2. Use a more specific question.
 3. Re-index source documents.
 4. Confirm chunk size/top-K settings are reasonable.
@@ -1207,6 +1208,12 @@ Agent-X is free and open-source software released under the MIT License. Every c
 4. Run manual sync once.
 5. Resolve focused Operations sync items before enabling auto-sync again.
 
+### Responses are slow
+
+1. Use a smaller or quantized model; the Hardware Advisor suggests sizes for your GPU memory or RAM.
+2. Lower Context Window or Max Tokens under Settings > Inference.
+3. The built-in model runs on the CPU unless `localGpuLayers` is raised in `settings.json` while Agent-X is closed; there is no GPU setting in the app. Ollama uses a supported GPU on its own.
+
 ### High memory usage
 
 1. Use a smaller model.
@@ -1225,7 +1232,7 @@ Check `%LocalAppData%\AgentX\settings.json`. If `"onboardingCompleted"` is missi
 
 **Does Agent-X send my data to the cloud?**
 
-Not by default. Local Ollama workflows keep documents and prompts on your machine. Data is sent externally only when you explicitly use a configured cloud provider, connector, or web feature.
+Not by default. The built-in model (the default provider) and an Ollama server on the same machine keep documents and prompts on your machine. Data is sent externally only when you explicitly use a configured cloud provider, connector, or web feature.
 
 **Can I use Agent-X without a GPU?**
 
@@ -1237,7 +1244,7 @@ Chat models generate text. Embedding models convert text into vectors used by Se
 
 **What happens when I delete a document?**
 
-Agent-X removes the vault record, chunks, embeddings, and relationships. The original source file is not necessarily deleted unless a specific workflow says so.
+Agent-X removes the vault record, chunks, embeddings, keyword entries, tags, and collection memberships at once, without a confirmation. The original source file on disk is never deleted.
 
 **Where is my data?**
 
@@ -1263,9 +1270,9 @@ Use Quick Actions for one-off document tasks. Use Workflows when the same multi-
 
 | Extension | Type | Processing |
 | --- | --- | --- |
-| `.pdf` | PDF | Text extraction with document metadata |
-| `.docx` | Word document | OpenXML text extraction |
-| `.doc` | Legacy Word | Legacy document extraction where supported |
+| `.pdf` | PDF | Text layer, page by page, with document metadata; scanned PDFs without a text layer are rejected (no OCR) |
+| `.docx` | Word document | OpenXML paragraph text, including tables |
+| `.doc` | Legacy Word | Not supported; save the file as `.docx` first |
 
 ### Text and data
 
@@ -1285,16 +1292,24 @@ Use Quick Actions for one-off document tasks. Use Workflows when the same multi-
 | Extension | Type | Processing |
 | --- | --- | --- |
 | `.md` | Markdown | Markdown-aware text extraction |
-| `.markdown` | Markdown | Markdown-aware text extraction |
+| `.markdown`, `.mdx` | Markdown | Markdown-aware text extraction |
 
 ### Images
 
 | Extension | Type | Processing |
 | --- | --- | --- |
-| `.png` | Image | Metadata/OCR path where enabled |
-| `.jpg`, `.jpeg` | Image | Metadata/OCR path where enabled |
-| `.bmp` | Image | Metadata/OCR path where enabled |
-| `.tiff` | Image | Metadata/OCR path where enabled |
+| `.png` | Image | Windows OCR in the languages of your Windows profile |
+| `.jpg`, `.jpeg` | Image | Windows OCR in the languages of your Windows profile |
+| `.bmp` | Image | Windows OCR in the languages of your Windows profile |
+| `.tiff` | Image | Windows OCR in the languages of your Windows profile |
+
+An image without text is kept with nothing to search; with no OCR language installed, the import fails with a message. Images are not sent to a vision model.
+
+### Web shortcuts
+
+| Extension | Type | Processing |
+| --- | --- | --- |
+| `.url`, `.webloc` | Web shortcut | Imports the page the shortcut points to (public internet addresses only) |
 
 ### Code
 
@@ -1311,7 +1326,7 @@ Use Quick Actions for one-off document tasks. Use Workflows when the same multi-
 | `.kt` | Kotlin |
 | `.rb` | Ruby |
 | `.php` | PHP |
-| `.html`, `.css`, `.scss` | Web source |
+| `.html`, `.htm`, `.css`, `.scss` | Web source |
 | `.sql` | SQL |
 | `.sh` | Shell |
 | `.xaml` | XAML |
