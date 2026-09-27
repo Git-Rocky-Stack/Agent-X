@@ -10,6 +10,8 @@ using AgentX.Core.Search.Models;
 using AgentX.Core.Services.Collections;
 using AgentX.Core.Services.Indexing;
 using AgentX.Core.Services.Tagging;
+using AgentX.Core.Services.TemporalIdentity;
+using AgentX.Core.Services.TemporalIdentity.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Serilog;
@@ -38,11 +40,22 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     private readonly IOperationsDrillInService? _operationsDrillInService;
     private bool _suppressFilterRefresh;
 
+    // Times how long a document stays open in the preview, for Temporal Identity. Null when
+    // the service is not available.
+    private readonly EngagementTracker? _documentEngagement;
+
+    /// <summary>The clock the engagement timing reads; tests replace it.</summary>
+    internal Func<DateTime> UtcNow { get; set; } = () => DateTime.UtcNow;
+
     // The indexing service raises its events on its background thread, while the rows are
     // bound to the view: updates are posted to the context the view model was created on
     // (the UI thread, since the page builds it).
     private readonly SynchronizationContext? _uiContext;
     private volatile bool _disposed;
+
+    // True while the vault page is on screen, so a preview left open behind another page
+    // does not keep counting as read.
+    private bool _isPreviewShown;
 
     // Monotonic load token. Every document reload claims the next value; only the most
     // recent load is allowed to mutate the UI-bound Documents collection, so overlapping
@@ -123,7 +136,8 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         IAutoTagService autoTagService,
         ICollectionService collectionService,
         IWorkflowLaunchService? workflowLaunchService = null,
-        IOperationsDrillInService? operationsDrillInService = null)
+        IOperationsDrillInService? operationsDrillInService = null,
+        ITemporalIdentityService? temporalIdentity = null)
     {
         _documentService = documentService;
         _indexingService = indexingService;
@@ -132,6 +146,9 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         _collectionService = collectionService;
         _workflowLaunchService = workflowLaunchService;
         _operationsDrillInService = operationsDrillInService;
+        _documentEngagement = temporalIdentity is null
+            ? null
+            : new EngagementTracker(temporalIdentity, EngagementTargetType.Document, () => UtcNow());
 
         // Rows showed the status they were loaded with until the next refresh, so a document
         // imported as "pending" never turned "Indexed" (or "Failed") on screen.
@@ -577,6 +594,14 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
 
     partial void OnSelectedDocumentChanged(DocumentDisplayItem? value)
     {
+        // Moving off a document records the time it was open; the next one starts timing.
+        if (_isPreviewShown && _documentEngagement is not null)
+        {
+            _ = value is null
+                ? _documentEngagement.CloseAsync()
+                : _documentEngagement.OpenAsync(value.Id);
+        }
+
         IsPreviewOpen = value is not null;
         OnPropertyChanged(nameof(HasSelectedDocument));
 
@@ -775,6 +800,12 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         try
         {
             await _documentService.DeleteDocumentAsync(id);
+
+            // A deleted document no longer exists, so the time it was open is not recorded.
+            if (_documentEngagement?.OpenTargetId == id)
+            {
+                _documentEngagement.Discard();
+            }
 
             var item = Documents.FirstOrDefault(d => d.Id == id);
             if (item is not null)
@@ -1563,6 +1594,26 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     // ═══════════════════════════════════════════════════════════════
     // DISPOSAL
     // ═══════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// The vault page left the screen: the previewed document stops counting as read, and the
+    /// time it was shown is recorded.
+    /// </summary>
+    public Task PauseDocumentEngagementAsync()
+    {
+        _isPreviewShown = false;
+        return _documentEngagement?.CloseAsync() ?? Task.CompletedTask;
+    }
+
+    /// <summary>The vault page is on screen again: the previewed document counts as read from now.</summary>
+    public void ResumeDocumentEngagement()
+    {
+        _isPreviewShown = true;
+        if (SelectedDocument is { } open && _documentEngagement is not null)
+        {
+            _ = _documentEngagement.OpenAsync(open.Id);
+        }
+    }
 
     /// <summary>
     /// Stops the live row updates. The indexing service is a singleton, so without this every

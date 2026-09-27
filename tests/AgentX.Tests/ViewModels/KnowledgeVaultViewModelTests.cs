@@ -8,6 +8,8 @@ using AgentX.Core.Search.Models;
 using AgentX.Core.Services.Collections;
 using AgentX.Core.Services.Indexing;
 using AgentX.Core.Services.Tagging;
+using AgentX.Core.Services.TemporalIdentity;
+using AgentX.Core.Services.TemporalIdentity.Models;
 using FluentAssertions;
 using Moq;
 using Xunit;
@@ -768,7 +770,95 @@ public sealed class KnowledgeVaultViewModelTests
         item.WordCountFormatted.Should().Be(4.2.ToString("F1") + "K");
     }
 
-    private KnowledgeVaultViewModel CreateViewModel() =>
+    [Fact]
+    public void SelectedDocument_MovingToAnotherDocument_RecordsTheTimeTheFirstWasOpen()
+    {
+        var temporalIdentity = new Mock<ITemporalIdentityService>();
+        var now = new DateTime(2026, 9, 27, 8, 0, 0, DateTimeKind.Utc);
+        var viewModel = CreateViewModel(temporalIdentity.Object);
+        viewModel.UtcNow = () => now;
+        viewModel.ResumeDocumentEngagement();
+
+        viewModel.SelectedDocument = new DocumentDisplayItem { Id = 7 };
+        now = now.AddSeconds(42);
+        viewModel.SelectedDocument = new DocumentDisplayItem { Id = 8 };
+
+        temporalIdentity.Verify(
+            service => service.RecordEngagementAsync(EngagementTargetType.Document, 7, 42, It.IsAny<CancellationToken>()),
+            Times.Once);
+        temporalIdentity.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public void SelectedDocument_WhileThePageIsOffScreen_RecordsNothing()
+    {
+        var temporalIdentity = new Mock<ITemporalIdentityService>();
+        var now = new DateTime(2026, 9, 27, 8, 0, 0, DateTimeKind.Utc);
+        var viewModel = CreateViewModel(temporalIdentity.Object);
+        viewModel.UtcNow = () => now;
+
+        viewModel.SelectedDocument = new DocumentDisplayItem { Id = 7 };
+        now = now.AddSeconds(42);
+        viewModel.SelectedDocument = null;
+
+        temporalIdentity.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task PauseDocumentEngagementAsync_RecordsThePreviewedDocument()
+    {
+        var temporalIdentity = new Mock<ITemporalIdentityService>();
+        var now = new DateTime(2026, 9, 27, 8, 0, 0, DateTimeKind.Utc);
+        var viewModel = CreateViewModel(temporalIdentity.Object);
+        viewModel.UtcNow = () => now;
+        viewModel.ResumeDocumentEngagement();
+        viewModel.SelectedDocument = new DocumentDisplayItem { Id = 7 };
+
+        now = now.AddSeconds(90);
+        await viewModel.PauseDocumentEngagementAsync();
+
+        temporalIdentity.Verify(
+            service => service.RecordEngagementAsync(EngagementTargetType.Document, 7, 90, It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        // Once paused, closing the preview adds nothing.
+        now = now.AddSeconds(30);
+        viewModel.SelectedDocument = null;
+        temporalIdentity.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task DeleteDocumentAsync_OfThePreviewedDocument_RecordsNothingForIt()
+    {
+        var temporalIdentity = new Mock<ITemporalIdentityService>();
+        _documentService.Setup(service => service.DeleteDocumentAsync(7)).Returns(Task.CompletedTask);
+        _documentService.Setup(service => service.GetTotalDocumentCountAsync()).ReturnsAsync(0);
+        var now = new DateTime(2026, 9, 27, 8, 0, 0, DateTimeKind.Utc);
+        var viewModel = CreateViewModel(temporalIdentity.Object);
+        viewModel.UtcNow = () => now;
+        viewModel.ResumeDocumentEngagement();
+        viewModel.SelectedDocument = new DocumentDisplayItem { Id = 7 };
+
+        now = now.AddSeconds(60);
+        await viewModel.DeleteDocumentCommand.ExecuteAsync(7L);
+        viewModel.SelectedDocument = null;
+
+        temporalIdentity.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public void Constructor_WithoutTemporalIdentity_StillPreviewsDocuments()
+    {
+        var viewModel = CreateViewModel();
+        viewModel.ResumeDocumentEngagement();
+
+        viewModel.SelectedDocument = new DocumentDisplayItem { Id = 7 };
+
+        viewModel.IsPreviewOpen.Should().BeTrue();
+        viewModel.PauseDocumentEngagementAsync().IsCompletedSuccessfully.Should().BeTrue();
+    }
+
+    private KnowledgeVaultViewModel CreateViewModel(ITemporalIdentityService? temporalIdentity = null) =>
         new(
             _documentService.Object,
             _indexingService.Object,
@@ -776,7 +866,8 @@ public sealed class KnowledgeVaultViewModelTests
             _autoTagService.Object,
             _collectionService.Object,
             _workflowLaunchService.Object,
-            _operationsDrillInService.Object);
+            _operationsDrillInService.Object,
+            temporalIdentity);
 
     /// <summary>Creates the view model with <paramref name="context"/> as its UI context.</summary>
     private KnowledgeVaultViewModel CreateViewModelOn(SynchronizationContext context)

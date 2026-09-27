@@ -43,6 +43,10 @@ public sealed partial class KnowledgeVaultPage : Page
     {
         base.OnNavigatedTo(e);
 
+        // The previewed document counts as read while the page is on screen. Resume before the
+        // navigation parameter can open another document, so that one is timed too.
+        ViewModel.ResumeDocumentEngagement();
+
         // Honour the item the caller picked (Jump-To, command palette) rather than
         // dropping it and opening this page on whatever was last active.
         _ = ViewModel.ApplyNavigationParameterAsync(e.Parameter);
@@ -69,6 +73,7 @@ public sealed partial class KnowledgeVaultPage : Page
         base.OnNavigatedFrom(e);
         _shortcutScope?.Dispose();
         _shortcutScope = null;
+        _ = ViewModel.PauseDocumentEngagementAsync();
     }
 
     private void NavigateToPage(string pageTag, object? parameter = null)
