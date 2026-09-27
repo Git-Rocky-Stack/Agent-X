@@ -2094,6 +2094,18 @@
   <data name="WfBuilder_Run.Content" xml:space="preserve"><value>Run</value></data>
   <data name="WfBuilder_Cancel2.Content" xml:space="preserve"><value>Cancel</value></data>
   <data name="WfBuilder_Running.Text" xml:space="preserve"><value>Running:</value></data>
+  <data name="Export_ExportingConversation" xml:space="preserve"><value>Exporting conversation...</value></data>
+  <data name="Export_ExportedTo" xml:space="preserve"><value>Exported to {0}</value></data>
+  <data name="Export_Failed" xml:space="preserve"><value>Export failed: {0}</value></data>
+  <data name="Export_ExportingConversationsOne" xml:space="preserve"><value>Exporting {0} conversation...</value></data>
+  <data name="Export_ExportingConversationsMany" xml:space="preserve"><value>Exporting {0} conversations...</value></data>
+  <data name="Export_ExportedConversationsOne" xml:space="preserve"><value>Exported {0} conversation</value></data>
+  <data name="Export_ExportedConversationsMany" xml:space="preserve"><value>Exported {0} conversations</value></data>
+  <data name="Export_ExportingCollection" xml:space="preserve"><value>Exporting collection...</value></data>
+  <data name="Export_CollectionExportedTo" xml:space="preserve"><value>Collection exported to {0}</value></data>
+  <data name="Export_CopyFailedNotFound" xml:space="preserve"><value>Copy failed: the conversation could not be found</value></data>
+  <data name="Export_CopiedAsMarkdown" xml:space="preserve"><value>Conversation copied to clipboard as Markdown</value></data>
+  <data name="Export_CopyFailed" xml:space="preserve"><value>Copy failed: {0}</value></data>
   <data name="WfBuilder_RecentRuns.Text" xml:space="preserve"><value>Recent Runs</value></data>
   <data name="WfBuilder_StoredWorkflowResultsYou.Text" xml:space="preserve"><value>Stored workflow results you can reopen without rerunning.</value></data>
   <data name="WfBuilder_OpenedFromOperations.Text" xml:space="preserve"><value>Opened from Operations</value></data>

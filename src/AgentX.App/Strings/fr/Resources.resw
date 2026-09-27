@@ -1755,6 +1755,18 @@
   <data name="WfBuilder_Run.Content" xml:space="preserve"><value>Exécuter</value></data>
   <data name="WfBuilder_Cancel2.Content" xml:space="preserve"><value>Annuler</value></data>
   <data name="WfBuilder_Running.Text" xml:space="preserve"><value>En cours :</value></data>
+  <data name="Export_ExportingConversation" xml:space="preserve"><value>Exportation de la conversation...</value></data>
+  <data name="Export_ExportedTo" xml:space="preserve"><value>Exporté vers {0}</value></data>
+  <data name="Export_Failed" xml:space="preserve"><value>Échec de l'exportation : {0}</value></data>
+  <data name="Export_ExportingConversationsOne" xml:space="preserve"><value>Exportation de {0} conversation...</value></data>
+  <data name="Export_ExportingConversationsMany" xml:space="preserve"><value>Exportation de {0} conversations...</value></data>
+  <data name="Export_ExportedConversationsOne" xml:space="preserve"><value>{0} conversation exportée</value></data>
+  <data name="Export_ExportedConversationsMany" xml:space="preserve"><value>{0} conversations exportées</value></data>
+  <data name="Export_ExportingCollection" xml:space="preserve"><value>Exportation de la collection...</value></data>
+  <data name="Export_CollectionExportedTo" xml:space="preserve"><value>Collection exportée vers {0}</value></data>
+  <data name="Export_CopyFailedNotFound" xml:space="preserve"><value>Échec de la copie : la conversation est introuvable</value></data>
+  <data name="Export_CopiedAsMarkdown" xml:space="preserve"><value>Conversation copiée dans le presse-papiers au format Markdown</value></data>
+  <data name="Export_CopyFailed" xml:space="preserve"><value>Échec de la copie : {0}</value></data>
   <data name="WfBuilder_RecentRuns.Text" xml:space="preserve"><value>Exécutions récentes</value></data>
   <data name="WfBuilder_StoredWorkflowResultsYou.Text" xml:space="preserve"><value>Résultats de flux de travail enregistrés que vous pouvez rouvrir sans les relancer.</value></data>
   <data name="WfBuilder_OpenedFromOperations.Text" xml:space="preserve"><value>Ouvert depuis Operations</value></data>

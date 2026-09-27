@@ -102,6 +102,9 @@
     <Compile Include="..\..\src\AgentX.App\ViewModels\WorkspaceProfileViewModel.cs" Link="ViewModels\WorkspaceProfileViewModel.cs" />
     <!-- WorkflowBuilderViewModel is pure workflow orchestration/state logic. -->
     <Compile Include="..\..\src\AgentX.App\ViewModels\WorkflowBuilderViewModel.cs" Link="ViewModels\WorkflowBuilderViewModel.cs" />
+    <!-- ExportViewModel is linked for its outcome and message tests; its clipboard copy is the
+         only Windows call, and no test runs it. -->
+    <Compile Include="..\..\src\AgentX.App\ViewModels\ExportViewModel.cs" Link="ViewModels\ExportViewModel.cs" />
     <!-- ChatViewModel is linked for context-inspector state tests; test stubs cover the small remaining window seam. -->
     <Compile Include="..\..\src\AgentX.App\ViewModels\ChatViewModel.cs" Link="ViewModels\ChatViewModel.cs" />
     <Compile Include="..\..\src\AgentX.App\ViewModels\ChatMessageItem.cs" Link="ViewModels\ChatMessageItem.cs" />

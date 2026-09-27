@@ -1755,6 +1755,18 @@
   <data name="WfBuilder_Run.Content" xml:space="preserve"><value>Ejecutar</value></data>
   <data name="WfBuilder_Cancel2.Content" xml:space="preserve"><value>Cancelar</value></data>
   <data name="WfBuilder_Running.Text" xml:space="preserve"><value>Ejecutando:</value></data>
+  <data name="Export_ExportingConversation" xml:space="preserve"><value>Exportando conversación...</value></data>
+  <data name="Export_ExportedTo" xml:space="preserve"><value>Exportado a {0}</value></data>
+  <data name="Export_Failed" xml:space="preserve"><value>Error al exportar: {0}</value></data>
+  <data name="Export_ExportingConversationsOne" xml:space="preserve"><value>Exportando {0} conversación...</value></data>
+  <data name="Export_ExportingConversationsMany" xml:space="preserve"><value>Exportando {0} conversaciones...</value></data>
+  <data name="Export_ExportedConversationsOne" xml:space="preserve"><value>{0} conversación exportada</value></data>
+  <data name="Export_ExportedConversationsMany" xml:space="preserve"><value>{0} conversaciones exportadas</value></data>
+  <data name="Export_ExportingCollection" xml:space="preserve"><value>Exportando colección...</value></data>
+  <data name="Export_CollectionExportedTo" xml:space="preserve"><value>Colección exportada a {0}</value></data>
+  <data name="Export_CopyFailedNotFound" xml:space="preserve"><value>Error al copiar: no se encontró la conversación</value></data>
+  <data name="Export_CopiedAsMarkdown" xml:space="preserve"><value>Conversación copiada al portapapeles como Markdown</value></data>
+  <data name="Export_CopyFailed" xml:space="preserve"><value>Error al copiar: {0}</value></data>
   <data name="WfBuilder_RecentRuns.Text" xml:space="preserve"><value>Ejecuciones recientes</value></data>
   <data name="WfBuilder_StoredWorkflowResultsYou.Text" xml:space="preserve"><value>Resultados de flujos de trabajo guardados que puede reabrir sin volver a ejecutarlos.</value></data>
   <data name="WfBuilder_OpenedFromOperations.Text" xml:space="preserve"><value>Abierto desde Operations</value></data>

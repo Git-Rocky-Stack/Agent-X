@@ -109,10 +109,12 @@ public sealed partial class ExportDialog : ContentDialog
     {
         await _viewModel.CopyConversationAsMarkdownCommand.ExecuteAsync(_conversationId);
 
+        // The outcome comes from the view model's state: the message is translated, so its
+        // wording cannot tell a failure from a success.
         StatusInfoBar.Message = _viewModel.StatusMessage;
-        StatusInfoBar.Severity = _viewModel.StatusMessage.StartsWith("Copy failed", StringComparison.Ordinal)
-            ? InfoBarSeverity.Error
-            : InfoBarSeverity.Success;
+        StatusInfoBar.Severity = _viewModel.LastExportSucceeded
+            ? InfoBarSeverity.Success
+            : InfoBarSeverity.Error;
         StatusInfoBar.IsOpen = true;
     }
 
@@ -155,7 +157,7 @@ public sealed partial class ExportDialog : ContentDialog
                 }
                 else
                 {
-                    var failed = _viewModel.StatusMessage.StartsWith("Export failed");
+                    var failed = !_viewModel.LastExportSucceeded;
                     StatusInfoBar.Severity = failed
                         ? InfoBarSeverity.Error
                         : InfoBarSeverity.Success;

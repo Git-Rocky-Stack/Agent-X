@@ -1755,6 +1755,18 @@
   <data name="WfBuilder_Run.Content" xml:space="preserve"><value>Ausführen</value></data>
   <data name="WfBuilder_Cancel2.Content" xml:space="preserve"><value>Abbrechen</value></data>
   <data name="WfBuilder_Running.Text" xml:space="preserve"><value>Läuft:</value></data>
+  <data name="Export_ExportingConversation" xml:space="preserve"><value>Konversation wird exportiert...</value></data>
+  <data name="Export_ExportedTo" xml:space="preserve"><value>Exportiert nach {0}</value></data>
+  <data name="Export_Failed" xml:space="preserve"><value>Export fehlgeschlagen: {0}</value></data>
+  <data name="Export_ExportingConversationsOne" xml:space="preserve"><value>{0} Konversation wird exportiert...</value></data>
+  <data name="Export_ExportingConversationsMany" xml:space="preserve"><value>{0} Konversationen werden exportiert...</value></data>
+  <data name="Export_ExportedConversationsOne" xml:space="preserve"><value>{0} Konversation exportiert</value></data>
+  <data name="Export_ExportedConversationsMany" xml:space="preserve"><value>{0} Konversationen exportiert</value></data>
+  <data name="Export_ExportingCollection" xml:space="preserve"><value>Sammlung wird exportiert...</value></data>
+  <data name="Export_CollectionExportedTo" xml:space="preserve"><value>Sammlung exportiert nach {0}</value></data>
+  <data name="Export_CopyFailedNotFound" xml:space="preserve"><value>Kopieren fehlgeschlagen: Die Konversation wurde nicht gefunden</value></data>
+  <data name="Export_CopiedAsMarkdown" xml:space="preserve"><value>Konversation als Markdown in die Zwischenablage kopiert</value></data>
+  <data name="Export_CopyFailed" xml:space="preserve"><value>Kopieren fehlgeschlagen: {0}</value></data>
   <data name="WfBuilder_RecentRuns.Text" xml:space="preserve"><value>Letzte Ausführungen</value></data>
   <data name="WfBuilder_StoredWorkflowResultsYou.Text" xml:space="preserve"><value>Gespeicherte Workflow-Ergebnisse, die Sie ohne erneute Ausführung öffnen können.</value></data>
   <data name="WfBuilder_OpenedFromOperations.Text" xml:space="preserve"><value>Aus Operations geöffnet</value></data>

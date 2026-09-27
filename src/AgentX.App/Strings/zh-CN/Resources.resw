@@ -1755,6 +1755,18 @@
   <data name="WfBuilder_Run.Content" xml:space="preserve"><value>运行</value></data>
   <data name="WfBuilder_Cancel2.Content" xml:space="preserve"><value>取消</value></data>
   <data name="WfBuilder_Running.Text" xml:space="preserve"><value>正在运行:</value></data>
+  <data name="Export_ExportingConversation" xml:space="preserve"><value>正在导出会话...</value></data>
+  <data name="Export_ExportedTo" xml:space="preserve"><value>已导出到 {0}</value></data>
+  <data name="Export_Failed" xml:space="preserve"><value>导出失败：{0}</value></data>
+  <data name="Export_ExportingConversationsOne" xml:space="preserve"><value>正在导出 {0} 个会话...</value></data>
+  <data name="Export_ExportingConversationsMany" xml:space="preserve"><value>正在导出 {0} 个会话...</value></data>
+  <data name="Export_ExportedConversationsOne" xml:space="preserve"><value>已导出 {0} 个会话</value></data>
+  <data name="Export_ExportedConversationsMany" xml:space="preserve"><value>已导出 {0} 个会话</value></data>
+  <data name="Export_ExportingCollection" xml:space="preserve"><value>正在导出合集...</value></data>
+  <data name="Export_CollectionExportedTo" xml:space="preserve"><value>合集已导出到 {0}</value></data>
+  <data name="Export_CopyFailedNotFound" xml:space="preserve"><value>复制失败：找不到该会话</value></data>
+  <data name="Export_CopiedAsMarkdown" xml:space="preserve"><value>已将会话以 Markdown 格式复制到剪贴板</value></data>
+  <data name="Export_CopyFailed" xml:space="preserve"><value>复制失败：{0}</value></data>
   <data name="WfBuilder_RecentRuns.Text" xml:space="preserve"><value>最近运行</value></data>
   <data name="WfBuilder_StoredWorkflowResultsYou.Text" xml:space="preserve"><value>已保存的工作流结果,无需重新运行即可再次打开。</value></data>
   <data name="WfBuilder_OpenedFromOperations.Text" xml:space="preserve"><value>从 Operations 打开</value></data>

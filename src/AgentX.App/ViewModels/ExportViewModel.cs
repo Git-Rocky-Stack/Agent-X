@@ -1,5 +1,6 @@
 using AgentX.Core.Services.Export;
 using AgentX.Core.Services.Export.Models;
+using AgentX.Core.Services.Localization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Serilog;
@@ -14,6 +15,7 @@ namespace AgentX.App.ViewModels;
 public partial class ExportViewModel : ObservableObject
 {
     private readonly IExportService _exportService;
+    private readonly ILocalizationService _localization;
 
     [ObservableProperty] private bool _isExporting;
     [ObservableProperty] private string _statusMessage = string.Empty;
@@ -40,9 +42,10 @@ public partial class ExportViewModel : ObservableObject
         ExportFormat.Csv
     };
 
-    public ExportViewModel(IExportService exportService)
+    public ExportViewModel(IExportService exportService, ILocalizationService localization)
     {
         _exportService = exportService;
+        _localization = localization;
     }
 
     [RelayCommand]
@@ -52,7 +55,7 @@ public partial class ExportViewModel : ObservableObject
 
         IsExporting = true;
         LastExportSucceeded = false;
-        StatusMessage = "Exporting conversation...";
+        StatusMessage = _localization.GetString("Export_ExportingConversation");
 
         try
         {
@@ -64,17 +67,17 @@ public partial class ExportViewModel : ObservableObject
             {
                 LastExportPath = result.FilePath;
                 LastExportSucceeded = true;
-                StatusMessage = $"Exported to {Path.GetFileName(result.FilePath)}";
+                StatusMessage = _localization.GetString("Export_ExportedTo", Path.GetFileName(result.FilePath) ?? string.Empty);
             }
             else
             {
-                StatusMessage = $"Export failed: {result.ErrorMessage}";
+                StatusMessage = _localization.GetString("Export_Failed", result.ErrorMessage ?? string.Empty);
             }
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to export conversation {Id}", request.ConversationId);
-            StatusMessage = $"Export failed: {ex.Message}";
+            StatusMessage = _localization.GetString("Export_Failed", ex.Message);
         }
         finally
         {
@@ -87,9 +90,12 @@ public partial class ExportViewModel : ObservableObject
     {
         if (request is null || request.ConversationIds.Count == 0) return;
 
+        var count = request.ConversationIds.Count;
         IsExporting = true;
         LastExportSucceeded = false;
-        StatusMessage = $"Exporting {request.ConversationIds.Count} conversations...";
+        StatusMessage = count == 1
+            ? _localization.GetString("Export_ExportingConversationsOne", count)
+            : _localization.GetString("Export_ExportingConversationsMany", count);
 
         try
         {
@@ -101,17 +107,19 @@ public partial class ExportViewModel : ObservableObject
             {
                 LastExportPath = result.FilePath;
                 LastExportSucceeded = true;
-                StatusMessage = $"Exported {request.ConversationIds.Count} conversations";
+                StatusMessage = count == 1
+                    ? _localization.GetString("Export_ExportedConversationsOne", count)
+                    : _localization.GetString("Export_ExportedConversationsMany", count);
             }
             else
             {
-                StatusMessage = $"Export failed: {result.ErrorMessage}";
+                StatusMessage = _localization.GetString("Export_Failed", result.ErrorMessage ?? string.Empty);
             }
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Batch conversation export failed");
-            StatusMessage = $"Export failed: {ex.Message}";
+            StatusMessage = _localization.GetString("Export_Failed", ex.Message);
         }
         finally
         {
@@ -126,7 +134,7 @@ public partial class ExportViewModel : ObservableObject
 
         IsExporting = true;
         LastExportSucceeded = false;
-        StatusMessage = "Exporting collection...";
+        StatusMessage = _localization.GetString("Export_ExportingCollection");
 
         try
         {
@@ -138,17 +146,17 @@ public partial class ExportViewModel : ObservableObject
             {
                 LastExportPath = result.FilePath;
                 LastExportSucceeded = true;
-                StatusMessage = $"Collection exported to {Path.GetFileName(result.FilePath)}";
+                StatusMessage = _localization.GetString("Export_CollectionExportedTo", Path.GetFileName(result.FilePath) ?? string.Empty);
             }
             else
             {
-                StatusMessage = $"Export failed: {result.ErrorMessage}";
+                StatusMessage = _localization.GetString("Export_Failed", result.ErrorMessage ?? string.Empty);
             }
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to export collection {Id}", request.CollectionId);
-            StatusMessage = $"Export failed: {ex.Message}";
+            StatusMessage = _localization.GetString("Export_Failed", ex.Message);
         }
         finally
         {
@@ -171,7 +179,7 @@ public partial class ExportViewModel : ObservableObject
             {
                 // Nothing was formatted (the conversation no longer exists): say so rather
                 // than report a copy and leave the clipboard as it was.
-                StatusMessage = "Copy failed: the conversation could not be found";
+                StatusMessage = _localization.GetString("Export_CopyFailedNotFound");
                 return;
             }
 
@@ -179,12 +187,12 @@ public partial class ExportViewModel : ObservableObject
             dataPackage.SetText(markdown);
             Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
             LastExportSucceeded = true;
-            StatusMessage = "Conversation copied to clipboard as Markdown";
+            StatusMessage = _localization.GetString("Export_CopiedAsMarkdown");
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to copy conversation as Markdown");
-            StatusMessage = $"Copy failed: {ex.Message}";
+            StatusMessage = _localization.GetString("Export_CopyFailed", ex.Message);
         }
     }
 
