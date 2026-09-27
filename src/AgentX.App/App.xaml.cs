@@ -17,7 +17,6 @@ using AgentX.Core.Services.Api;
 using AgentX.Core.Services.Audio;
 using AgentX.Core.Services.Backup;
 using AgentX.Core.Services.Chat;
-using AgentX.Core.Services.Collaboration;
 using AgentX.Core.Services.Collections;
 using AgentX.Core.Services.Export;
 using AgentX.Core.Services.FeatureFlags;
@@ -524,7 +523,6 @@ public partial class App : Application
         services.AddSingleton<ISemanticContextSelector, SemanticContextSelector>();
         services.AddSingleton<IConversationCompressionService, ConversationCompressionService>();
         services.AddSingleton<IContextAssemblyService, ContextAssemblyService>();
-        services.AddSingleton<IRetryPolicy, ExponentialBackoffRetryPolicy>();
 
         // ── AI Routing ────────────────────────────────────────
         services.AddSingleton<ITaskTypeDetector, TaskTypeDetector>();
@@ -553,10 +551,6 @@ public partial class App : Application
         services.AddSingleton<IChatService, ChatService>();
 
         // ── Agent Orchestration (Phase 3) ───────────────────────
-        services.AddSingleton<IToolRegistry, ToolRegistry>();
-        services.AddSingleton<IReActAgent, ReActAgent>();
-        services.AddSingleton<IReflectionService, ReflectionService>();
-        services.AddSingleton<IReasoningService, ReasoningService>();
         services.AddSingleton<IMultiAgentOrchestrator, MultiAgentOrchestrator>();
 
         // ── Chat Coordinators (orchestrate chat operations for ChatViewModel) ──
@@ -784,9 +778,6 @@ public partial class App : Application
 
         // ── User Feedback ────────────────────────────────────────
         services.AddSingleton<IFeedbackService, FeedbackService>();
-
-        // ── Collaboration ────────────────────────────────────────
-        services.AddSingleton<ICollaborationService, CollaborationService>();
 
         // ── REST API ─────────────────────────────────────────────
         services.AddSingleton<IApiHostService, ApiHostService>();
