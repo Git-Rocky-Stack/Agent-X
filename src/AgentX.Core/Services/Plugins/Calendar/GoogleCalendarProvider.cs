@@ -177,12 +177,13 @@ public sealed class GoogleCalendarProvider : ICalendarProvider
             {
                 if (item.Status == "cancelled")
                 {
-                    // An incremental sync reports a deleted single event as a bare stub (id and
-                    // status only); there is nothing to show, so the vault keeps the last copy.
-                    // A cancelled occurrence of a series still carries its details and is
-                    // passed on so the vault shows the cancellation.
-                    if (item.Start is null)
-                        continue;
+                    // Google marks a deleted event, and an occurrence removed from a series, as
+                    // "cancelled": the API says neither is to be shown any more, and a deleted
+                    // event may arrive as a bare stub with nothing but its id. Each is passed on
+                    // as a deletion notice so the sync retires the stored copy.
+                    if (!string.IsNullOrEmpty(item.Id))
+                        events.Add(CreateDeletionNotice(item.Id, calendarId));
+                    continue;
                 }
 
                 events.Add(MapToCalEvent(item, calendarId));
@@ -200,7 +201,9 @@ public sealed class GoogleCalendarProvider : ICalendarProvider
             "Fetched {EventCount} Google Calendar events for CalendarId={CalendarId}",
             events.Count, calendarId);
 
-        return (events, nextSyncToken);
+        // A read without a sync token lists every event in the window; one with a token lists
+        // only the changes since it.
+        return (new CalendarEventBatch(events, isCompleteWindow: !incremental), nextSyncToken);
     }
 
     // ── Private: HTTP request helper ────────────────────────────────────────────
@@ -253,7 +256,6 @@ public sealed class GoogleCalendarProvider : ICalendarProvider
             Location = item.Location,
             IsAllDay = isAllDay,
             IsRecurring = item.RecurringEventId is not null,
-            IsCancelled = item.Status == "cancelled",
             Attendees = attendees,
             Organizer = organizer,
             CalendarName = null, // Filled later by sync service
@@ -262,6 +264,15 @@ public sealed class GoogleCalendarProvider : ICalendarProvider
             CalendarId = calendarId,
         };
     }
+
+    /// <summary>The deletion notice for an event an incremental sync reported as deleted.</summary>
+    private static CalEvent CreateDeletionNotice(string eventId, string calendarId) => new()
+    {
+        Id = eventId,
+        IsDeleted = true,
+        SourceProvider = ProviderIdValue,
+        CalendarId = calendarId,
+    };
 
     /// <summary>
     /// Parses a Google Calendar start or end, which has either a "dateTime" (a timed event,

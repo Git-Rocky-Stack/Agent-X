@@ -1,6 +1,7 @@
 using System.Net;
 using AgentX.Core.Services.OAuth;
 using AgentX.Core.Services.Plugins.Calendar;
+using AgentX.Core.Services.Plugins.Calendar.Models;
 using AgentX.Tests.Helpers;
 using FluentAssertions;
 using Moq;
@@ -166,8 +167,10 @@ public sealed class CalendarProviderHttpTests : IDisposable
     }
 
     [Fact]
-    public async Task Google_CancelledOccurrence_IsMarked_AndBareDeletionStubIsSkipped()
+    public async Task Google_CancelledEntries_BecomeDeletionNotices()
     {
+        // A deleted event arrives as a bare stub; a removed occurrence of a series may still
+        // carry details. Google says neither is to be shown, so both retire the stored copy.
         const string changes = """
             {
               "items": [
@@ -175,7 +178,10 @@ public sealed class CalendarProviderHttpTests : IDisposable
                 { "id": "series-1_20260415", "status": "cancelled", "summary": "Standup",
                   "recurringEventId": "series-1",
                   "start": { "dateTime": "2026-04-15T15:00:00Z" },
-                  "end": { "dateTime": "2026-04-15T15:15:00Z" } }
+                  "end": { "dateTime": "2026-04-15T15:15:00Z" } },
+                { "id": "evt-9", "status": "confirmed", "summary": "Still on",
+                  "start": { "dateTime": "2026-04-16T15:00:00Z" },
+                  "end": { "dateTime": "2026-04-16T16:00:00Z" } }
               ],
               "nextSyncToken": "sync-3"
             }
@@ -183,12 +189,34 @@ public sealed class CalendarProviderHttpTests : IDisposable
         var handler = StubHttpMessageHandler.Sequence(() => StubHttpMessageHandler.Json(changes));
         var provider = new GoogleCalendarProvider(_oauth.Object, _logger, handler);
 
-        var (events, _) = await provider.GetEventsAsync("primary", WindowStart, WindowEnd, deltaToken: "sync-2");
+        var (events, token) = await provider.GetEventsAsync("primary", WindowStart, WindowEnd, deltaToken: "sync-2");
 
-        var occurrence = events.Should().ContainSingle().Subject;
-        occurrence.Id.Should().Be("series-1_20260415");
-        occurrence.IsCancelled.Should().BeTrue();
-        occurrence.IsRecurring.Should().BeTrue();
+        token.Should().Be("sync-3");
+        events.Select(e => (e.Id, e.IsDeleted)).Should().Equal(
+            ("gone-1", true), ("series-1_20260415", true), ("evt-9", false));
+        foreach (var notice in events.Where(e => e.IsDeleted))
+        {
+            notice.CalendarId.Should().Be("primary");
+            notice.SourceProvider.Should().Be("google");
+        }
+
+        events.Should().BeOfType<CalendarEventBatch>()
+            .Which.IsCompleteWindow.Should().BeFalse("an incremental read lists only what changed");
+    }
+
+    [Fact]
+    public async Task Google_FullRead_IsTheCompleteContentsOfTheWindow()
+    {
+        var handler = StubHttpMessageHandler.Sequence(
+            () => StubHttpMessageHandler.Status(HttpStatusCode.Gone),
+            () => StubHttpMessageHandler.Json(GoogleFullPage1),
+            () => StubHttpMessageHandler.Json(GoogleFullPage2));
+        var provider = new GoogleCalendarProvider(_oauth.Object, _logger, handler);
+
+        // A rejected token falls back to a full read, which is complete too.
+        var (events, _) = await provider.GetEventsAsync("primary", WindowStart, WindowEnd, deltaToken: "expired");
+
+        events.Should().BeOfType<CalendarEventBatch>().Which.IsCompleteWindow.Should().BeTrue();
     }
 
     // -- Outlook -------------------------------------------------------------
@@ -243,6 +271,36 @@ public sealed class CalendarProviderHttpTests : IDisposable
             request.Header("Prefer").Should().Contain("outlook.timezone=\"UTC\"");
 
         events.Select(e => e.Id).Should().Equal("uid-occ-1", "uid-occ-2", "uid-single-1");
+        events.Should().BeOfType<CalendarEventBatch>()
+            .Which.IsCompleteWindow.Should().BeTrue("the calendar view lists every event in the window");
+    }
+
+    [Fact]
+    public async Task Outlook_DeltaRead_SkipsRemovedEntries_AndIsNotACompleteWindow()
+    {
+        // A delta link stored by an older build reports a deletion as an id without an iCalUId,
+        // which used to be stored as an untitled event dated 0001-01-01.
+        const string deltaPage = """
+            {
+              "value": [
+                { "id": "AAMkDeleted", "@removed": { "reason": "deleted" } },
+                { "id": "evt-2", "iCalUId": "uid-evt-2", "subject": "Moved", "isAllDay": false,
+                  "start": { "dateTime": "2026-04-18T10:00:00.0000000", "timeZone": "UTC" },
+                  "end": { "dateTime": "2026-04-18T11:00:00.0000000", "timeZone": "UTC" } }
+              ],
+              "@odata.deltaLink": "https://graph.microsoft.com/v1.0/me/calendars/cal-1/events/delta?$deltatoken=next"
+            }
+            """;
+        var handler = StubHttpMessageHandler.Sequence(() => StubHttpMessageHandler.Json(deltaPage));
+        var provider = new OutlookCalendarProvider(_oauth.Object, _logger, handler);
+
+        var (events, token) = await provider.GetEventsAsync(
+            "cal-1", WindowStart, WindowEnd,
+            deltaToken: "https://graph.microsoft.com/v1.0/me/calendars/cal-1/events/delta?$deltatoken=old");
+
+        events.Select(e => e.Id).Should().Equal("uid-evt-2");
+        token.Should().EndWith("$deltatoken=next");
+        events.Should().BeOfType<CalendarEventBatch>().Which.IsCompleteWindow.Should().BeFalse();
     }
 
     [Fact]

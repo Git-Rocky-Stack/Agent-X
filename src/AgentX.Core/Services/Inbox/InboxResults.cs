@@ -28,6 +28,45 @@ public enum ExternalTriageOutcome
 public sealed record ExternalTriageResult(InboxItemEntity Item, ExternalTriageOutcome Outcome);
 
 /// <summary>
+/// The name, preview and indexed text of an external item, as the inbox holds them. Used to
+/// hand the stored copy to the connector that rewrites it when the item is gone at the source.
+/// </summary>
+/// <param name="FileName">Display name of the row (and of its vault document).</param>
+/// <param name="Preview">Short preview shown in the inbox, if any.</param>
+/// <param name="ContentText">The text that is indexed; empty when the content file is gone.</param>
+public sealed record ExternalItemContent(string FileName, string? Preview, string ContentText);
+
+/// <summary>
+/// What <see cref="IInboxService.RemoveExternalAsync"/> did with an item that is gone at its
+/// source.
+/// </summary>
+public enum ExternalRemovalOutcome
+{
+    /// <summary>The inbox holds no row for the item; nothing was changed.</summary>
+    NotFound,
+
+    /// <summary>
+    /// The item never reached the vault (no document, or the user deleted it), so the inbox row
+    /// and its content file were deleted.
+    /// </summary>
+    Deleted,
+
+    /// <summary>
+    /// The item has a document in the vault, which is kept: the row, the content and (for an
+    /// accepted row) the document now say the item was removed at the source.
+    /// </summary>
+    Marked,
+
+    /// <summary>The item was already marked as removed; nothing was written.</summary>
+    AlreadyMarked,
+}
+
+/// <summary>Result of <see cref="IInboxService.RemoveExternalAsync"/>.</summary>
+/// <param name="Outcome">What the call did.</param>
+/// <param name="DocumentId">The vault document that was kept, for <see cref="ExternalRemovalOutcome.Marked"/> and <see cref="ExternalRemovalOutcome.AlreadyMarked"/>.</param>
+public sealed record ExternalRemovalResult(ExternalRemovalOutcome Outcome, long? DocumentId = null);
+
+/// <summary>
 /// What accepting a single inbox item did.
 /// </summary>
 public enum InboxAcceptOutcome

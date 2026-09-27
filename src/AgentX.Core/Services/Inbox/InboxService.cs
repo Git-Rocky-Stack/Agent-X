@@ -670,6 +670,98 @@ public sealed class InboxService : IInboxService
             sourceCategory, contentPreview, contentText).ConfigureAwait(false);
     }
 
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<InboxItemEntity>> GetExternalItemsAsync(string sourcePluginId, string externalIdPrefix)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(sourcePluginId);
+        ArgumentNullException.ThrowIfNull(externalIdPrefix);
+
+        var rows = await _db.InboxItems
+            .AsNoTracking()
+            .Where(i => i.SourcePluginId == sourcePluginId
+                        && i.ExternalId != null
+                        && i.ExternalId.StartsWith(externalIdPrefix))
+            .ToListAsync()
+            .ConfigureAwait(false);
+
+        // The prefix is an exact, ordinal one whatever the database comparison did with case or
+        // with LIKE wildcards such as '_' (common in provider IDs).
+        return rows
+            .Where(i => i.ExternalId!.StartsWith(externalIdPrefix, StringComparison.Ordinal))
+            .ToList();
+    }
+
+    /// <inheritdoc />
+    public async Task<ExternalRemovalResult> RemoveExternalAsync(
+        string sourcePluginId,
+        string externalId,
+        Func<ExternalItemContent, ExternalItemContent> markRemoved)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(sourcePluginId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(externalId);
+        ArgumentNullException.ThrowIfNull(markRemoved);
+
+        var existing = await _db.InboxItems
+            .FirstOrDefaultAsync(i =>
+                i.ExternalId == externalId &&
+                i.SourcePluginId == sourcePluginId)
+            .ConfigureAwait(false);
+
+        if (existing is null)
+        {
+            return new ExternalRemovalResult(ExternalRemovalOutcome.NotFound);
+        }
+
+        var contentPath = BuildExternalContentPath(GetInboxStoreRoot(), sourcePluginId, externalId);
+        var documentId = existing.DocumentId;
+        var inVault = documentId is { } linkedId
+            && await _db.Documents.AsNoTracking().AnyAsync(d => d.Id == linkedId).ConfigureAwait(false);
+
+        if (!inVault)
+        {
+            // Nothing in the vault to keep, so the inbox stops listing an item its source no
+            // longer has.
+            _db.InboxItems.Remove(existing);
+            await _db.SaveChangesAsync().ConfigureAwait(false);
+
+            TryDeleteStoreFile(contentPath);
+            if (!string.Equals(existing.FilePath, contentPath, StringComparison.Ordinal))
+            {
+                TryDeleteStoreFile(existing.FilePath);
+            }
+
+            Log.Information(
+                "InboxService: RemoveExternal - deleted row {ItemId} '{FileName}' (Plugin={PluginId}, ExternalId={ExternalId}); it had no vault document",
+                existing.Id, existing.FileName, sourcePluginId, externalId);
+
+            return new ExternalRemovalResult(ExternalRemovalOutcome.Deleted);
+        }
+
+        // The document stays: it may be filed in collections, annotated or cited. Its name and
+        // text say the item is gone, so search and chat do not present it as current.
+        var storedText = await TryReadStoreTextAsync(existing.FilePath).ConfigureAwait(false);
+        var marked = markRemoved(new ExternalItemContent(existing.FileName, existing.Preview, storedText ?? string.Empty))
+                     ?? throw new InvalidOperationException("The removal notice callback returned no content.");
+
+        // Without the stored text (a row from an older build whose temp file was cleaned up) only
+        // the name and preview are marked: rewriting the content would replace the text the
+        // vault indexed with the notice alone.
+        var update = await UpdateExternalItemAsync(
+            existing, contentPath, marked.FileName, existing.FileType, existing.SourceType,
+            existing.SourceUrl, existing.SourceCategory, marked.Preview,
+            storedText is null ? null : marked.ContentText).ConfigureAwait(false);
+
+        var outcome = update.Outcome == ExternalTriageOutcome.Unchanged
+            ? ExternalRemovalOutcome.AlreadyMarked
+            : ExternalRemovalOutcome.Marked;
+
+        Log.Information(
+            "InboxService: RemoveExternal - {Outcome} '{FileName}' (Plugin={PluginId}, ExternalId={ExternalId}); vault document {DocumentId} kept",
+            outcome, existing.FileName, sourcePluginId, externalId, documentId);
+
+        return new ExternalRemovalResult(outcome, documentId);
+    }
+
     /// <summary>
     /// Writes the content file for a new external item, creates its accepted row, and
     /// bridges it into the document library when <see cref="IDocumentService"/> is available.
@@ -721,20 +813,22 @@ public sealed class InboxService : IInboxService
     /// <summary>
     /// Refreshes an existing external row when the provider item changed. The content file
     /// is compared with the new text; metadata (title, preview, link, category) is compared
-    /// field by field. Nothing is written when both match.
+    /// field by field. Nothing is written when both match. A null <paramref name="contentText"/>
+    /// leaves the content as it is.
     /// </summary>
     private async Task<ExternalTriageResult> UpdateExternalItemAsync(
         InboxItemEntity existing,
         string contentPath,
         string fileName,
         string fileType,
-        string sourceType,
+        string? sourceType,
         string? sourceUrl,
         string? sourceCategory,
         string? contentPreview,
-        string contentText)
+        string? contentText)
     {
-        var contentChanged = !await ContentFileMatchesAsync(existing.FilePath, contentText).ConfigureAwait(false);
+        var contentChanged = contentText is not null
+            && !await ContentFileMatchesAsync(existing.FilePath, contentText).ConfigureAwait(false);
         var nameChanged = !string.Equals(existing.FileName, fileName, StringComparison.Ordinal);
         var metadataChanged = nameChanged
             || !string.Equals(existing.FileType, fileType, StringComparison.Ordinal)
@@ -755,7 +849,7 @@ public sealed class InboxService : IInboxService
         {
             // Rewrite at the stable hashed path; a row created by an older build may still
             // point at a temp-folder file, which is migrated here.
-            await WriteContentFileAsync(contentPath, contentText).ConfigureAwait(false);
+            await WriteContentFileAsync(contentPath, contentText!).ConfigureAwait(false);
             existing.FilePath = contentPath;
             existing.FileSizeBytes = new FileInfo(contentPath).Length;
         }
@@ -936,6 +1030,43 @@ public sealed class InboxService : IInboxService
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException)
         {
             return false;
+        }
+    }
+
+    /// <summary>The text of a stored content file, or null when it is missing or unreadable.</summary>
+    private static async Task<string?> TryReadStoreTextAsync(string path)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+                return null;
+
+            return await File.ReadAllTextAsync(path).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException)
+        {
+            Log.Warning(ex, "InboxService: Could not read the stored content at '{Path}'", path);
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Deletes a file the inbox wrote under its own store. A path outside the store (a row from
+    /// an older build pointing into %TEMP%, or anything unexpected) is left alone.
+    /// </summary>
+    private void TryDeleteStoreFile(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path) || !PathHelper.IsPathContained(GetInboxStoreRoot(), path))
+            return;
+
+        try
+        {
+            if (File.Exists(path))
+                File.Delete(path);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException)
+        {
+            Log.Warning(ex, "InboxService: Could not delete the stored content at '{Path}'", path);
         }
     }
 

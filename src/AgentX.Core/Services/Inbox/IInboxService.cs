@@ -205,4 +205,43 @@ public interface IInboxService
         string externalId,
         string? contentPreview,
         string contentText);
+
+    /// <summary>
+    /// Returns, untracked, the rows a connector created whose external ID starts with
+    /// <paramref name="externalIdPrefix"/> (for a calendar, every stored event of one calendar),
+    /// so the connector can compare them with what the provider still lists.
+    /// </summary>
+    /// <param name="sourcePluginId">Plugin ID that created the rows.</param>
+    /// <param name="externalIdPrefix">Leading part of the external IDs, compared ordinally.</param>
+    Task<IReadOnlyList<InboxItemEntity>> GetExternalItemsAsync(string sourcePluginId, string externalIdPrefix);
+
+    /// <summary>
+    /// Retires the row of an external item that is gone at its source (a deleted calendar event).
+    /// </summary>
+    /// <remarks>
+    /// A vault document is never deleted by a connector, because the user may have filed,
+    /// annotated or cited it:
+    /// <list type="bullet">
+    ///   <item>No row: nothing happens. Outcome <see cref="ExternalRemovalOutcome.NotFound"/>.</item>
+    ///   <item>The row has no document in the vault (it was never imported, or the user deleted
+    ///   the document): the row and its content file are deleted, so the inbox stops showing the
+    ///   item. Outcome <see cref="ExternalRemovalOutcome.Deleted"/>.</item>
+    ///   <item>The row has a vault document: <paramref name="markRemoved"/> rewrites the stored
+    ///   name, preview and text, and the change is applied the way a provider update is (the
+    ///   content file and row are rewritten; for an accepted row the document is renamed and
+    ///   re-indexed). When the stored text cannot be read, only the name and preview change, so
+    ///   the text the vault indexed is not replaced by the notice. The document stays in the
+    ///   vault and in its collections. Outcome <see cref="ExternalRemovalOutcome.Marked"/>, or
+    ///   <see cref="ExternalRemovalOutcome.AlreadyMarked"/> when nothing changed.</item>
+    /// </list>
+    /// If the provider lists the item again later, <see cref="UpsertExternalAsync"/> replaces the
+    /// marked copy with the current one.
+    /// </remarks>
+    /// <param name="sourcePluginId">Plugin ID that created the row.</param>
+    /// <param name="externalId">Provider-specific ID of the item.</param>
+    /// <param name="markRemoved">Returns the stored copy with the connector's removal notice.</param>
+    Task<ExternalRemovalResult> RemoveExternalAsync(
+        string sourcePluginId,
+        string externalId,
+        Func<ExternalItemContent, ExternalItemContent> markRemoved);
 }

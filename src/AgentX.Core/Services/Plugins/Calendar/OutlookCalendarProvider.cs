@@ -165,6 +165,13 @@ public sealed class OutlookCalendarProvider : ICalendarProvider
 
             foreach (var item in result?.Value ?? [])
             {
+                // A delta read reports a deleted event as {"id": ..., "@removed": {...}}, with no
+                // iCalUId to match the vault copy by; it is skipped rather than stored as an
+                // empty event. A full read never contains these: the sync retires what it no
+                // longer lists instead.
+                if (item.Removed is not null)
+                    continue;
+
                 // Cancelled meetings are passed on (marked) so the vault copy says so.
                 events.Add(MapToCalEvent(item, calendarId));
             }
@@ -180,7 +187,9 @@ public sealed class OutlookCalendarProvider : ICalendarProvider
             "Fetched {EventCount} Microsoft Outlook events for CalendarId={CalendarId}",
             events.Count, calendarId);
 
-        return (events, deltaLink);
+        // The calendar view lists every event in the window; a delta link read lists only the
+        // changes since it.
+        return (new CalendarEventBatch(events, isCompleteWindow: !incremental), deltaLink);
     }
 
     // -- Private: HTTP request helper -----------------------------------------------
@@ -434,6 +443,18 @@ public sealed class OutlookCalendarProvider : ICalendarProvider
         public List<GraphEventAttendee>? Attendees { get; set; }
         public GraphEventOrganizer? Organizer { get; set; }
         public string? WebLink { get; set; }
+
+        /// <summary>
+        /// Present (an object such as <c>{"reason": "deleted"}</c>) on a delta read's entry for
+        /// an event that was deleted.
+        /// </summary>
+        [JsonPropertyName("@removed")]
+        public GraphRemoved? Removed { get; set; }
+    }
+
+    private sealed class GraphRemoved
+    {
+        public string? Reason { get; set; }
     }
 
     private sealed class GraphEventBody

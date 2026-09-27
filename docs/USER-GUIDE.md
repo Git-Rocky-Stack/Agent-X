@@ -965,6 +965,8 @@ Calendar sync supports:
 - Conflict resolution: remote wins, local wins, or merge.
 - Last sync and next sync indicators.
 
+An event that is deleted at the source (or, for Google, cancelled), or that no longer appears in the synced date range, is retired on the next sync. If it never reached the vault, it leaves the Smart Inbox. If it did, its vault document is kept, never deleted, and is marked instead: its name ends in "removed" and its text says why. An event that only aged out past the start of the range is left as it is.
+
 ### Email
 
 Email sync supports:
