@@ -1679,5 +1679,18 @@
   "Settings_WatchFolderRemoved": "{0} n’est plus surveillé. Les documents déjà importés depuis ce dossier restent dans le coffre-fort.",
   "Settings_WatchFolderRemoveFailed": "Impossible de supprimer le dossier : {0}",
   "Settings_WatchFolderWithSubfolders": "Sous-dossiers inclus. Fichiers importés : {0}",
-  "Settings_WatchFolderTopLevelOnly": "Ce dossier uniquement. Fichiers importés : {0}"
+  "Settings_WatchFolderTopLevelOnly": "Ce dossier uniquement. Fichiers importés : {0}",
+  "ExportDlg_FormatMarkdown": "Markdown (.md)",
+  "ExportDlg_FormatHtml": "Page web HTML (.html)",
+  "ExportDlg_FormatPdf": "Document PDF (.pdf)",
+  "ExportDlg_FormatJson": "Données JSON (.json)",
+  "ExportDlg_FormatPlainText": "Texte brut (.txt)",
+  "ExportDlg_FormatCsv": "Feuille de calcul CSV (.csv)",
+  "ExportDlg_FormatDocx": "Document Word (.docx)",
+  "ExportDlg_FormatPptx": "Présentation PowerPoint (.pptx)",
+  "ExportDlg_TemplateNone": "(Aucun)",
+  "ExportDlg_TemplateResearchReport": "Rapport de recherche",
+  "ExportDlg_TemplateExecutiveSummary": "Note de synthèse",
+  "ExportDlg_TemplateAnnotatedBibliography": "Bibliographie commentée",
+  "ExportDlg_TitleFormat": "Exporter : {0}"
 }

@@ -1679,5 +1679,18 @@
   "Settings_WatchFolderRemoved": "Se dejó de vigilar {0}. Los documentos ya importados desde ella permanecen en la bóveda.",
   "Settings_WatchFolderRemoveFailed": "No se pudo quitar la carpeta: {0}",
   "Settings_WatchFolderWithSubfolders": "Incluye subcarpetas. Archivos importados: {0}",
-  "Settings_WatchFolderTopLevelOnly": "Solo esta carpeta. Archivos importados: {0}"
+  "Settings_WatchFolderTopLevelOnly": "Solo esta carpeta. Archivos importados: {0}",
+  "ExportDlg_FormatMarkdown": "Markdown (.md)",
+  "ExportDlg_FormatHtml": "Página web HTML (.html)",
+  "ExportDlg_FormatPdf": "Documento PDF (.pdf)",
+  "ExportDlg_FormatJson": "Datos JSON (.json)",
+  "ExportDlg_FormatPlainText": "Texto sin formato (.txt)",
+  "ExportDlg_FormatCsv": "Hoja de cálculo CSV (.csv)",
+  "ExportDlg_FormatDocx": "Documento de Word (.docx)",
+  "ExportDlg_FormatPptx": "Presentación de PowerPoint (.pptx)",
+  "ExportDlg_TemplateNone": "(Ninguna)",
+  "ExportDlg_TemplateResearchReport": "Informe de investigación",
+  "ExportDlg_TemplateExecutiveSummary": "Resumen ejecutivo",
+  "ExportDlg_TemplateAnnotatedBibliography": "Bibliografía comentada",
+  "ExportDlg_TitleFormat": "Exportar: {0}"
 }

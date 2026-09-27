@@ -2107,4 +2107,17 @@
   <data name="Settings_LanguagePicker.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>表示言語</value></data>
   <data name="Settings_LanguageWindowsDefault" xml:space="preserve"><value>Windows の既定値</value></data>
   <data name="Settings_LanguageRestartHint.Text" xml:space="preserve"><value>すぐに保存されます。すべてのページを新しい言語で表示するには、Agent-X を再起動してください。「Windows の既定値」は Windows の表示言語に従います。</value></data>
+  <data name="ExportDlg_FormatMarkdown" xml:space="preserve"><value>Markdown (.md)</value></data>
+  <data name="ExportDlg_FormatHtml" xml:space="preserve"><value>HTML Web ページ (.html)</value></data>
+  <data name="ExportDlg_FormatPdf" xml:space="preserve"><value>PDF ドキュメント (.pdf)</value></data>
+  <data name="ExportDlg_FormatJson" xml:space="preserve"><value>JSON データ (.json)</value></data>
+  <data name="ExportDlg_FormatPlainText" xml:space="preserve"><value>プレーン テキスト (.txt)</value></data>
+  <data name="ExportDlg_FormatCsv" xml:space="preserve"><value>CSV スプレッドシート (.csv)</value></data>
+  <data name="ExportDlg_FormatDocx" xml:space="preserve"><value>Word 文書 (.docx)</value></data>
+  <data name="ExportDlg_FormatPptx" xml:space="preserve"><value>PowerPoint プレゼンテーション (.pptx)</value></data>
+  <data name="ExportDlg_TemplateNone" xml:space="preserve"><value>(なし)</value></data>
+  <data name="ExportDlg_TemplateResearchReport" xml:space="preserve"><value>研究レポート</value></data>
+  <data name="ExportDlg_TemplateExecutiveSummary" xml:space="preserve"><value>エグゼクティブ サマリー</value></data>
+  <data name="ExportDlg_TemplateAnnotatedBibliography" xml:space="preserve"><value>注釈付き参考文献</value></data>
+  <data name="ExportDlg_TitleFormat" xml:space="preserve"><value>エクスポート: {0}</value></data>
 </root>

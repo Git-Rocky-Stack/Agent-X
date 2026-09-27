@@ -1679,5 +1679,18 @@
   "Settings_WatchFolderRemoved": "已停止监视 {0}。已从中导入的文档会保留在 Knowledge Vault 中。",
   "Settings_WatchFolderRemoveFailed": "无法移除该文件夹：{0}",
   "Settings_WatchFolderWithSubfolders": "包括子文件夹。已导入文件：{0}",
-  "Settings_WatchFolderTopLevelOnly": "仅此文件夹。已导入文件：{0}"
+  "Settings_WatchFolderTopLevelOnly": "仅此文件夹。已导入文件：{0}",
+  "ExportDlg_FormatMarkdown": "Markdown (.md)",
+  "ExportDlg_FormatHtml": "HTML 网页 (.html)",
+  "ExportDlg_FormatPdf": "PDF 文档 (.pdf)",
+  "ExportDlg_FormatJson": "JSON 数据 (.json)",
+  "ExportDlg_FormatPlainText": "纯文本 (.txt)",
+  "ExportDlg_FormatCsv": "CSV 电子表格 (.csv)",
+  "ExportDlg_FormatDocx": "Word 文档 (.docx)",
+  "ExportDlg_FormatPptx": "PowerPoint 演示文稿 (.pptx)",
+  "ExportDlg_TemplateNone": "(无)",
+  "ExportDlg_TemplateResearchReport": "研究报告",
+  "ExportDlg_TemplateExecutiveSummary": "执行摘要",
+  "ExportDlg_TemplateAnnotatedBibliography": "注释书目",
+  "ExportDlg_TitleFormat": "导出：{0}"
 }

@@ -1679,5 +1679,18 @@
   "Settings_WatchFolderRemoved": "{0} の監視を停止しました。既にインポートされたドキュメントは Knowledge Vault に残ります。",
   "Settings_WatchFolderRemoveFailed": "フォルダーを削除できませんでした: {0}",
   "Settings_WatchFolderWithSubfolders": "サブフォルダーを含む。インポートしたファイル: {0}",
-  "Settings_WatchFolderTopLevelOnly": "このフォルダーのみ。インポートしたファイル: {0}"
+  "Settings_WatchFolderTopLevelOnly": "このフォルダーのみ。インポートしたファイル: {0}",
+  "ExportDlg_FormatMarkdown": "Markdown (.md)",
+  "ExportDlg_FormatHtml": "HTML Web ページ (.html)",
+  "ExportDlg_FormatPdf": "PDF ドキュメント (.pdf)",
+  "ExportDlg_FormatJson": "JSON データ (.json)",
+  "ExportDlg_FormatPlainText": "プレーン テキスト (.txt)",
+  "ExportDlg_FormatCsv": "CSV スプレッドシート (.csv)",
+  "ExportDlg_FormatDocx": "Word 文書 (.docx)",
+  "ExportDlg_FormatPptx": "PowerPoint プレゼンテーション (.pptx)",
+  "ExportDlg_TemplateNone": "(なし)",
+  "ExportDlg_TemplateResearchReport": "研究レポート",
+  "ExportDlg_TemplateExecutiveSummary": "エグゼクティブ サマリー",
+  "ExportDlg_TemplateAnnotatedBibliography": "注釈付き参考文献",
+  "ExportDlg_TitleFormat": "エクスポート: {0}"
 }

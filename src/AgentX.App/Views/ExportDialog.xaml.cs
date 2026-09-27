@@ -25,13 +25,20 @@ public sealed partial class ExportDialog : ContentDialog
         _viewModel = viewModel;
         InitializeComponent();
 
-        // Populate format combo with all ExportFormat values
-        FormatCombo.ItemsSource = Enum.GetValues<ExportFormat>();
+        // The combos showed the enum member names ("PlainText", "ResearchReport") and an
+        // English "(None)"; each choice now carries its localized name and file extension.
+        var localization = App.GetService<ILocalizationService>();
+        FormatCombo.ItemsSource = Enum.GetValues<ExportFormat>()
+            .Select(format => new Choice<ExportFormat>(format, FormatLabel(localization, format)))
+            .ToList();
         FormatCombo.SelectedIndex = 0;
 
-        // Populate template combo: "(None)" + template names
-        var templates = new List<string> { "(None)" };
-        templates.AddRange(Enum.GetNames<ExportTemplateId>());
+        var templates = new List<Choice<ExportTemplateId?>>
+        {
+            new(null, localization.GetString("ExportDlg_TemplateNone"))
+        };
+        templates.AddRange(Enum.GetValues<ExportTemplateId>()
+            .Select(template => new Choice<ExportTemplateId?>(template, TemplateLabel(localization, template))));
         TemplateCombo.ItemsSource = templates;
         TemplateCombo.SelectedIndex = 0;
 
@@ -39,7 +46,7 @@ public sealed partial class ExportDialog : ContentDialog
         // service rejects a template with any other format rather than ignoring it).
         FormatCombo.SelectionChanged += (s, e) =>
         {
-            var fmt = (ExportFormat)FormatCombo.SelectedItem!;
+            var fmt = SelectedFormat;
             TemplateCombo.IsEnabled = fmt is ExportFormat.Markdown;
             if (!TemplateCombo.IsEnabled)
             {
@@ -54,7 +61,43 @@ public sealed partial class ExportDialog : ContentDialog
     public void SetConversation(long conversationId, string title)
     {
         _conversationId = conversationId;
-        Title = $"Export: {title}";
+        Title = string.Format(
+            System.Globalization.CultureInfo.CurrentCulture,
+            App.GetService<ILocalizationService>().GetString("ExportDlg_TitleFormat"),
+            title);
+    }
+
+    private ExportFormat SelectedFormat =>
+        FormatCombo.SelectedItem is Choice<ExportFormat> choice ? choice.Value : ExportFormat.Markdown;
+
+    private ExportTemplateId? SelectedTemplate =>
+        TemplateCombo.SelectedItem is Choice<ExportTemplateId?> choice ? choice.Value : null;
+
+    private static string FormatLabel(ILocalizationService localization, ExportFormat format) => format switch
+    {
+        ExportFormat.Markdown => localization.GetString("ExportDlg_FormatMarkdown"),
+        ExportFormat.Html => localization.GetString("ExportDlg_FormatHtml"),
+        ExportFormat.Pdf => localization.GetString("ExportDlg_FormatPdf"),
+        ExportFormat.Json => localization.GetString("ExportDlg_FormatJson"),
+        ExportFormat.PlainText => localization.GetString("ExportDlg_FormatPlainText"),
+        ExportFormat.Csv => localization.GetString("ExportDlg_FormatCsv"),
+        ExportFormat.Docx => localization.GetString("ExportDlg_FormatDocx"),
+        ExportFormat.Pptx => localization.GetString("ExportDlg_FormatPptx"),
+        _ => format.ToString()
+    };
+
+    private static string TemplateLabel(ILocalizationService localization, ExportTemplateId template) => template switch
+    {
+        ExportTemplateId.ResearchReport => localization.GetString("ExportDlg_TemplateResearchReport"),
+        ExportTemplateId.ExecutiveSummary => localization.GetString("ExportDlg_TemplateExecutiveSummary"),
+        ExportTemplateId.AnnotatedBibliography => localization.GetString("ExportDlg_TemplateAnnotatedBibliography"),
+        _ => template.ToString()
+    };
+
+    /// <summary>A combo entry: the value it stands for and the name shown for it.</summary>
+    private sealed record Choice<T>(T Value, string Label)
+    {
+        public override string ToString() => Label;
     }
 
     /// <summary>
@@ -83,9 +126,8 @@ public sealed partial class ExportDialog : ContentDialog
         IsPrimaryButtonEnabled = false;
         try
         {
-            var format = (ExportFormat)FormatCombo.SelectedItem!;
-            var templateIdx = TemplateCombo.SelectedIndex - 1; // -1 because index 0 is "(None)"
-            var template = templateIdx >= 0 ? (ExportTemplateId?)templateIdx : null;
+            var format = SelectedFormat;
+            var template = SelectedTemplate;
 
             var options = new ExportOptions
             {

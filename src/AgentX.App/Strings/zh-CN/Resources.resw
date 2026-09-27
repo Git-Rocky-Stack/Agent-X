@@ -2107,4 +2107,17 @@
   <data name="Settings_LanguagePicker.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>显示语言</value></data>
   <data name="Settings_LanguageWindowsDefault" xml:space="preserve"><value>Windows 默认</value></data>
   <data name="Settings_LanguageRestartHint.Text" xml:space="preserve"><value>立即保存。重新启动 Agent-X 后，所有页面都会以新语言显示。“Windows 默认”跟随 Windows 显示语言。</value></data>
+  <data name="ExportDlg_FormatMarkdown" xml:space="preserve"><value>Markdown (.md)</value></data>
+  <data name="ExportDlg_FormatHtml" xml:space="preserve"><value>HTML 网页 (.html)</value></data>
+  <data name="ExportDlg_FormatPdf" xml:space="preserve"><value>PDF 文档 (.pdf)</value></data>
+  <data name="ExportDlg_FormatJson" xml:space="preserve"><value>JSON 数据 (.json)</value></data>
+  <data name="ExportDlg_FormatPlainText" xml:space="preserve"><value>纯文本 (.txt)</value></data>
+  <data name="ExportDlg_FormatCsv" xml:space="preserve"><value>CSV 电子表格 (.csv)</value></data>
+  <data name="ExportDlg_FormatDocx" xml:space="preserve"><value>Word 文档 (.docx)</value></data>
+  <data name="ExportDlg_FormatPptx" xml:space="preserve"><value>PowerPoint 演示文稿 (.pptx)</value></data>
+  <data name="ExportDlg_TemplateNone" xml:space="preserve"><value>(无)</value></data>
+  <data name="ExportDlg_TemplateResearchReport" xml:space="preserve"><value>研究报告</value></data>
+  <data name="ExportDlg_TemplateExecutiveSummary" xml:space="preserve"><value>执行摘要</value></data>
+  <data name="ExportDlg_TemplateAnnotatedBibliography" xml:space="preserve"><value>注释书目</value></data>
+  <data name="ExportDlg_TitleFormat" xml:space="preserve"><value>导出：{0}</value></data>
 </root>

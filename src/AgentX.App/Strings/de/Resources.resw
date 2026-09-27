@@ -2107,4 +2107,17 @@
   <data name="Settings_LanguagePicker.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Anzeigesprache</value></data>
   <data name="Settings_LanguageWindowsDefault" xml:space="preserve"><value>Windows-Standard</value></data>
   <data name="Settings_LanguageRestartHint.Text" xml:space="preserve"><value>Wird sofort gespeichert. Starten Sie Agent-X neu, um alle Seiten in der neuen Sprache zu sehen. „Windows-Standard“ folgt der Anzeigesprache von Windows.</value></data>
+  <data name="ExportDlg_FormatMarkdown" xml:space="preserve"><value>Markdown (.md)</value></data>
+  <data name="ExportDlg_FormatHtml" xml:space="preserve"><value>HTML-Webseite (.html)</value></data>
+  <data name="ExportDlg_FormatPdf" xml:space="preserve"><value>PDF-Dokument (.pdf)</value></data>
+  <data name="ExportDlg_FormatJson" xml:space="preserve"><value>JSON-Daten (.json)</value></data>
+  <data name="ExportDlg_FormatPlainText" xml:space="preserve"><value>Nur-Text (.txt)</value></data>
+  <data name="ExportDlg_FormatCsv" xml:space="preserve"><value>CSV-Tabelle (.csv)</value></data>
+  <data name="ExportDlg_FormatDocx" xml:space="preserve"><value>Word-Dokument (.docx)</value></data>
+  <data name="ExportDlg_FormatPptx" xml:space="preserve"><value>PowerPoint-Präsentation (.pptx)</value></data>
+  <data name="ExportDlg_TemplateNone" xml:space="preserve"><value>(Keine)</value></data>
+  <data name="ExportDlg_TemplateResearchReport" xml:space="preserve"><value>Forschungsbericht</value></data>
+  <data name="ExportDlg_TemplateExecutiveSummary" xml:space="preserve"><value>Management-Zusammenfassung</value></data>
+  <data name="ExportDlg_TemplateAnnotatedBibliography" xml:space="preserve"><value>Kommentierte Bibliografie</value></data>
+  <data name="ExportDlg_TitleFormat" xml:space="preserve"><value>Exportieren: {0}</value></data>
 </root>

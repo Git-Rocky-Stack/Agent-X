@@ -1679,5 +1679,18 @@
   "Settings_WatchFolderRemoved": "{0} wird nicht mehr überwacht. Bereits daraus importierte Dokumente bleiben im Tresor.",
   "Settings_WatchFolderRemoveFailed": "Der Ordner konnte nicht entfernt werden: {0}",
   "Settings_WatchFolderWithSubfolders": "Mit Unterordnern. Importierte Dateien: {0}",
-  "Settings_WatchFolderTopLevelOnly": "Nur dieser Ordner. Importierte Dateien: {0}"
+  "Settings_WatchFolderTopLevelOnly": "Nur dieser Ordner. Importierte Dateien: {0}",
+  "ExportDlg_FormatMarkdown": "Markdown (.md)",
+  "ExportDlg_FormatHtml": "HTML-Webseite (.html)",
+  "ExportDlg_FormatPdf": "PDF-Dokument (.pdf)",
+  "ExportDlg_FormatJson": "JSON-Daten (.json)",
+  "ExportDlg_FormatPlainText": "Nur-Text (.txt)",
+  "ExportDlg_FormatCsv": "CSV-Tabelle (.csv)",
+  "ExportDlg_FormatDocx": "Word-Dokument (.docx)",
+  "ExportDlg_FormatPptx": "PowerPoint-Präsentation (.pptx)",
+  "ExportDlg_TemplateNone": "(Keine)",
+  "ExportDlg_TemplateResearchReport": "Forschungsbericht",
+  "ExportDlg_TemplateExecutiveSummary": "Management-Zusammenfassung",
+  "ExportDlg_TemplateAnnotatedBibliography": "Kommentierte Bibliografie",
+  "ExportDlg_TitleFormat": "Exportieren: {0}"
 }
