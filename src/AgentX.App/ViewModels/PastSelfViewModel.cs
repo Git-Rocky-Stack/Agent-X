@@ -340,7 +340,6 @@ public partial class PastSelfViewModel : ObservableObject
             return;
 
         DraftStatus = string.Empty;
-        DraftBasis = string.Empty;
         if (string.IsNullOrWhiteSpace(DraftContext))
         {
             // Said beside the button. It used to be put in the draft itself, so it showed (and
@@ -351,6 +350,7 @@ public partial class PastSelfViewModel : ObservableObject
 
         DraftErrorMessage = null;
         DraftContent = string.Empty;
+        DraftBasis = string.Empty;
         IsGeneratingDraft = true;
         var cts = new CancellationTokenSource();
         _draftCts = cts;

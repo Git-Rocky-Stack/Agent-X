@@ -205,7 +205,7 @@ public sealed class VoiceDraftService : IVoiceDraftService
 
     /// <summary>
     /// The system prompt: how the person writes, what they had said on related topics and what
-    /// they had saved by the chosen time, and the rules, first among them not to invent facts.
+    /// they had saved by the chosen time, and the rules, among them not to invent facts.
     /// </summary>
     internal static string BuildInstructions(VoiceDraftBasis basis)
     {

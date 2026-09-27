@@ -447,6 +447,24 @@ public sealed class PastSelfViewModelTests
     }
 
     [Fact]
+    public async Task GenerateDraftAsMe_WithoutContext_LeavesThePreviousDraftAsItWas()
+    {
+        SetUpRecords(Profile(samples: 24), topics: []);
+        SetUpProvider(_ => Pieces("First draft."));
+        var viewModel = CreateViewModel();
+        viewModel.DraftContext = "A greeting";
+        await viewModel.GenerateDraftAsMeCommand.ExecuteAsync(null);
+        var basis = viewModel.DraftBasis;
+
+        viewModel.DraftContext = string.Empty;
+        await viewModel.GenerateDraftAsMeCommand.ExecuteAsync(null);
+
+        viewModel.DraftErrorMessage.Should().Be("PastSelf_DraftNeedsContext");
+        viewModel.DraftContent.Should().Be("First draft.");
+        viewModel.DraftBasis.Should().Be(basis).And.NotBeEmpty();
+    }
+
+    [Fact]
     public async Task CancelDraft_WhileTheDraftIsBeingWritten_StopsItAndKeepsNothing()
     {
         SetUpRecords(Profile(samples: 24), topics: []);
