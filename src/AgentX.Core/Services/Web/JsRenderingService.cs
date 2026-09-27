@@ -49,7 +49,7 @@ public sealed class JsRenderingService : IJsRenderingService, IDisposable, IAsyn
 
         var page = await browser.NewPageAsync(new BrowserNewPageOptions
         {
-            UserAgent = "Agent-X/1.5.0 (Knowledge Vault Web Clipper)",
+            UserAgent = $"Agent-X/{AppVersionInfo.Display} (Knowledge Vault Web Clipper)",
             // Requests answered by a service worker would bypass the routing below
             ServiceWorkers = ServiceWorkerPolicy.Block,
         });
