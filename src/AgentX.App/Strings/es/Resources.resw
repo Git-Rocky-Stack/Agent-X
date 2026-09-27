@@ -1122,7 +1122,7 @@
   <data name="Sync_SyncNowLabel.Text" xml:space="preserve"><value>Sincronizar ahora</value></data>
   <data name="Sync_LoadingSettings.Text" xml:space="preserve"><value>Cargando ajustes de sincronización...</value></data>
   <data name="Sync_NotConfiguredTitle.Text" xml:space="preserve"><value>Sincronización sin configurar</value></data>
-  <data name="Sync_NotConfiguredHint.Text" xml:space="preserve"><value>Configure una carpeta de sincronización compartida y una clave de cifrado para sincronizar de forma segura su bóveda de conocimiento, colecciones y ajustes entre instalaciones de Agent-X.</value></data>
+  <data name="Sync_NotConfiguredHint.Text" xml:space="preserve"><value>Configure una carpeta de sincronización compartida y una clave de cifrado para sincronizar su lista de documentos, colecciones, etiquetas, anotaciones, conversaciones y prompts del sistema entre instalaciones de Agent-X. Los archivos de los documentos, los mensajes del chat y los ajustes no se sincronizan.</value></data>
   <data name="Sync_E2ENote.Text" xml:space="preserve"><value>Todos los datos de sincronización se cifran de extremo a extremo con su clave.</value></data>
   <data name="Sync_ConfigTitle.Text" xml:space="preserve"><value>Configuración</value></data>
   <data name="Sync_ConfigSubtitle.Text" xml:space="preserve"><value>Establezca la ruta de la carpeta compartida y la clave de cifrado usadas para sincronizar datos entre dispositivos.</value></data>

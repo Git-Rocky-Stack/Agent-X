@@ -1122,7 +1122,7 @@
   <data name="Sync_SyncNowLabel.Text" xml:space="preserve"><value>Synchroniser maintenant</value></data>
   <data name="Sync_LoadingSettings.Text" xml:space="preserve"><value>Chargement des paramètres de synchronisation...</value></data>
   <data name="Sync_NotConfiguredTitle.Text" xml:space="preserve"><value>Synchronisation non configurée</value></data>
-  <data name="Sync_NotConfiguredHint.Text" xml:space="preserve"><value>Configurez un dossier de synchronisation partagé et une clé de chiffrement pour synchroniser en toute sécurité votre coffre-fort de connaissances, vos collections et vos paramètres entre installations Agent-X.</value></data>
+  <data name="Sync_NotConfiguredHint.Text" xml:space="preserve"><value>Configurez un dossier de synchronisation partagé et une clé de chiffrement pour synchroniser votre liste de documents, vos collections, tags, annotations, conversations et prompts système entre installations Agent-X. Les fichiers des documents, les messages du chat et les paramètres ne sont pas synchronisés.</value></data>
   <data name="Sync_E2ENote.Text" xml:space="preserve"><value>Toutes les données de synchronisation sont chiffrées de bout en bout avec votre clé.</value></data>
   <data name="Sync_ConfigTitle.Text" xml:space="preserve"><value>Configuration</value></data>
   <data name="Sync_ConfigSubtitle.Text" xml:space="preserve"><value>Définissez le chemin du dossier partagé et la clé de chiffrement utilisés pour synchroniser les données entre appareils.</value></data>

@@ -168,6 +168,16 @@ public sealed class PageTextsAreLocalizedTests
             .And.Contain("Your theme, language, watch folders, Local API token and database encryption stay as they are.");
     }
 
+    [Fact]
+    public void Sync_not_configured_hint_falls_back_to_the_english_resource()
+    {
+        var hint = ReswLocalization.For("en-US").GetString("Sync_NotConfiguredHint.Text");
+
+        ReadView("SyncSettingsPage.xaml").Should().Contain(
+            $"x:Uid=\"Sync_NotConfiguredHint\" Text=\"{hint}\"", "the XAML fallback is the en-US text");
+        hint.Should().NotContain("synchronize your knowledge vault, collections, and settings");
+    }
+
     [Theory]
     [InlineData("Settings_ConnectionError")]
     [InlineData("Settings_EncryptionReopenFailed")]

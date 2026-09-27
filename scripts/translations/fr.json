@@ -757,7 +757,7 @@
   "Sync_SyncNowLabel.Text": "Synchroniser maintenant",
   "Sync_LoadingSettings.Text": "Chargement des paramètres de synchronisation...",
   "Sync_NotConfiguredTitle.Text": "Synchronisation non configurée",
-  "Sync_NotConfiguredHint.Text": "Configurez un dossier de synchronisation partagé et une clé de chiffrement pour synchroniser en toute sécurité votre coffre-fort de connaissances, vos collections et vos paramètres entre installations Agent-X.",
+  "Sync_NotConfiguredHint.Text": "Configurez un dossier de synchronisation partagé et une clé de chiffrement pour synchroniser votre liste de documents, vos collections, tags, annotations, conversations et prompts système entre installations Agent-X. Les fichiers des documents, les messages du chat et les paramètres ne sont pas synchronisés.",
   "Sync_E2ENote.Text": "Toutes les données de synchronisation sont chiffrées de bout en bout avec votre clé.",
   "Sync_ConfigTitle.Text": "Configuration",
   "Sync_ConfigSubtitle.Text": "Définissez le chemin du dossier partagé et la clé de chiffrement utilisés pour synchroniser les données entre appareils.",

@@ -1122,7 +1122,7 @@
   <data name="Sync_SyncNowLabel.Text" xml:space="preserve"><value>立即同步</value></data>
   <data name="Sync_LoadingSettings.Text" xml:space="preserve"><value>正在加载同步设置...</value></data>
   <data name="Sync_NotConfiguredTitle.Text" xml:space="preserve"><value>尚未配置同步</value></data>
-  <data name="Sync_NotConfiguredHint.Text" xml:space="preserve"><value>设置共享同步文件夹和加密密钥,即可在 Agent-X 安装实例之间安全同步 Knowledge Vault、合集与设置。</value></data>
+  <data name="Sync_NotConfiguredHint.Text" xml:space="preserve"><value>设置共享同步文件夹和加密密钥，即可在 Agent-X 安装实例之间同步文档列表、合集、标签、注释、对话和系统提示词。文档文件、聊天消息和设置不会同步。</value></data>
   <data name="Sync_E2ENote.Text" xml:space="preserve"><value>所有同步数据均使用您的密钥进行端到端加密。</value></data>
   <data name="Sync_ConfigTitle.Text" xml:space="preserve"><value>配置</value></data>
   <data name="Sync_ConfigSubtitle.Text" xml:space="preserve"><value>设置用于在设备间同步数据的共享文件夹路径和加密密钥。</value></data>

@@ -472,6 +472,34 @@ public sealed class SyncServiceTests
     }
 
     [Fact]
+    public async Task ExportChangesAsync_CarriesNoMessagesOrSettings_AsTheSyncPageSays()
+    {
+        // The Sync page promised to synchronize "settings" when nothing exports them, and chat
+        // messages and document files do not travel either. The hint now says what an export
+        // carries, and this pins that to the export.
+        using var h = new SyncHarness();
+        await h.Service.ConfigureAsync(ValidConfig());
+        h.SetupExportPipeline();
+
+        var now = DateTime.UtcNow;
+        h.Seed(ctx =>
+        {
+            ctx.Conversations.Add(new ConversationEntity { Id = 1, Title = "t", ModelId = "m", CreatedAt = now, UpdatedAt = now });
+            ctx.Messages.Add(new MessageEntity { Id = 1, ConversationId = 1, Role = "user", Content = "private question", Timestamp = now });
+            ctx.UserSettings.Add(new UserSettingsEntity { Id = 100, Key = "Theme", Value = "Light", UpdatedAt = now });
+        });
+
+        var result = await h.Service.ExportChangesAsync();
+
+        result.Changes.Select(c => c.EntityType).Should().Equal(nameof(ConversationEntity));
+        result.Changes.Single().SerializedData.Should().NotContain("private question");
+
+        var hint = ReswLocalization.For("en-US").GetString("Sync_NotConfiguredHint.Text");
+        hint.Should().Contain("document list, collections, tags, annotations, conversations and system prompts")
+            .And.EndWith("Document files, chat messages and settings are not synced.");
+    }
+
+    [Fact]
     public async Task ExportChangesAsync_Incremental_OnlyCollectsChangesAfterSince()
     {
         using var h = new SyncHarness();

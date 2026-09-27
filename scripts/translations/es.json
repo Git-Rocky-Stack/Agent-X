@@ -757,7 +757,7 @@
   "Sync_SyncNowLabel.Text": "Sincronizar ahora",
   "Sync_LoadingSettings.Text": "Cargando ajustes de sincronización...",
   "Sync_NotConfiguredTitle.Text": "Sincronización sin configurar",
-  "Sync_NotConfiguredHint.Text": "Configure una carpeta de sincronización compartida y una clave de cifrado para sincronizar de forma segura su bóveda de conocimiento, colecciones y ajustes entre instalaciones de Agent-X.",
+  "Sync_NotConfiguredHint.Text": "Configure una carpeta de sincronización compartida y una clave de cifrado para sincronizar su lista de documentos, colecciones, etiquetas, anotaciones, conversaciones y prompts del sistema entre instalaciones de Agent-X. Los archivos de los documentos, los mensajes del chat y los ajustes no se sincronizan.",
   "Sync_E2ENote.Text": "Todos los datos de sincronización se cifran de extremo a extremo con su clave.",
   "Sync_ConfigTitle.Text": "Configuración",
   "Sync_ConfigSubtitle.Text": "Establezca la ruta de la carpeta compartida y la clave de cifrado usadas para sincronizar datos entre dispositivos.",

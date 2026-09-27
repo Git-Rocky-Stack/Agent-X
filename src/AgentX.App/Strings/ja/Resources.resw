@@ -1122,7 +1122,7 @@
   <data name="Sync_SyncNowLabel.Text" xml:space="preserve"><value>今すぐ同期</value></data>
   <data name="Sync_LoadingSettings.Text" xml:space="preserve"><value>同期設定を読み込んでいます...</value></data>
   <data name="Sync_NotConfiguredTitle.Text" xml:space="preserve"><value>同期は未設定です</value></data>
-  <data name="Sync_NotConfiguredHint.Text" xml:space="preserve"><value>共有同期フォルダーと暗号化キーを設定すると、Agent-X インストール間で Knowledge Vault、コレクション、設定を安全に同期できます。</value></data>
+  <data name="Sync_NotConfiguredHint.Text" xml:space="preserve"><value>共有同期フォルダーと暗号化キーを設定すると、Agent-X インストール間でドキュメントの一覧、コレクション、タグ、注釈、会話、システム プロンプトを同期できます。ドキュメントのファイル、チャットのメッセージ、設定は同期されません。</value></data>
   <data name="Sync_E2ENote.Text" xml:space="preserve"><value>すべての同期データは、お客様のキーでエンドツーエンド暗号化されます。</value></data>
   <data name="Sync_ConfigTitle.Text" xml:space="preserve"><value>構成</value></data>
   <data name="Sync_ConfigSubtitle.Text" xml:space="preserve"><value>デバイス間のデータ同期に使用する共有フォルダーのパスと暗号化キーを設定します。</value></data>

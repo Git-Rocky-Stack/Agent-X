@@ -224,7 +224,7 @@
                                Style="{StaticResource HeadingSmallStyle}"
                                HorizontalAlignment="Center"
                                Foreground="{ThemeResource TextSecondaryBrush}" />
-                    <TextBlock x:Uid="Sync_NotConfiguredHint" Text="Set up a shared sync folder and encryption key to securely synchronize your knowledge vault, collections, and settings between Agent-X installations."
+                    <TextBlock x:Uid="Sync_NotConfiguredHint" Text="Set up a shared sync folder and encryption key to sync your document list, collections, tags, annotations, conversations and system prompts between Agent-X installations. Document files, chat messages and settings are not synced."
                                Style="{StaticResource BodySecondaryStyle}"
                                TextAlignment="Center"
                                MaxWidth="460"

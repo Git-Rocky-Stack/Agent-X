@@ -757,7 +757,7 @@
   "Sync_SyncNowLabel.Text": "今すぐ同期",
   "Sync_LoadingSettings.Text": "同期設定を読み込んでいます...",
   "Sync_NotConfiguredTitle.Text": "同期は未設定です",
-  "Sync_NotConfiguredHint.Text": "共有同期フォルダーと暗号化キーを設定すると、Agent-X インストール間で Knowledge Vault、コレクション、設定を安全に同期できます。",
+  "Sync_NotConfiguredHint.Text": "共有同期フォルダーと暗号化キーを設定すると、Agent-X インストール間でドキュメントの一覧、コレクション、タグ、注釈、会話、システム プロンプトを同期できます。ドキュメントのファイル、チャットのメッセージ、設定は同期されません。",
   "Sync_E2ENote.Text": "すべての同期データは、お客様のキーでエンドツーエンド暗号化されます。",
   "Sync_ConfigTitle.Text": "構成",
   "Sync_ConfigSubtitle.Text": "デバイス間のデータ同期に使用する共有フォルダーのパスと暗号化キーを設定します。",

@@ -757,7 +757,7 @@
   "Sync_SyncNowLabel.Text": "Jetzt synchronisieren",
   "Sync_LoadingSettings.Text": "Sync-Einstellungen werden geladen...",
   "Sync_NotConfiguredTitle.Text": "Synchronisierung nicht konfiguriert",
-  "Sync_NotConfiguredHint.Text": "Richten Sie einen gemeinsamen Sync-Ordner und einen Verschlüsselungsschlüssel ein, um Wissens-Tresor, Sammlungen und Einstellungen sicher zwischen Agent-X-Installationen zu synchronisieren.",
+  "Sync_NotConfiguredHint.Text": "Richten Sie einen gemeinsamen Sync-Ordner und einen Verschlüsselungsschlüssel ein, um Ihre Dokumentliste, Sammlungen, Tags, Annotationen, Unterhaltungen und Systemprompts zwischen Agent-X-Installationen zu synchronisieren. Dokumentdateien, Chatnachrichten und Einstellungen werden nicht synchronisiert.",
   "Sync_E2ENote.Text": "Alle Sync-Daten werden mit Ihrem Schlüssel Ende-zu-Ende verschlüsselt.",
   "Sync_ConfigTitle.Text": "Konfiguration",
   "Sync_ConfigSubtitle.Text": "Legen Sie den Pfad des gemeinsamen Ordners und den Verschlüsselungsschlüssel für die Synchronisierung zwischen Geräten fest.",
