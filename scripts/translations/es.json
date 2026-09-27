@@ -1697,6 +1697,7 @@
   "Terms_YourViolationOfAny.Text": "Su violación de derechos de terceros, incluidos los derechos de propiedad intelectual",
   "Terms_ContentYouProcessImport.Text": "El contenido que procese, importe o genere a través de la aplicación",
   "Vault_SearchScopeHint.Text": "Busca en nombres de archivo y etiquetas. Para buscar dentro de los documentos, use «Búsqueda semántica» o «Pregunta a tus archivos».",
+  "Vault_IndexingFailedReason.Text": "POR QUÉ FALLÓ LA INDEXACIÓN",
   "Vault_DeleteDocumentTitle": "¿Eliminar el documento?",
   "Vault_DeleteDocumentBody": "\"{0}\" se quitará de la Bóveda de Conocimiento, junto con su índice y sus anotaciones. El archivo del disco no se elimina. Esta acción no se puede deshacer.",
   "Vault_DeleteDocumentsTitle": "¿Eliminar los documentos?",

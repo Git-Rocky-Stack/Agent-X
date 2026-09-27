@@ -1697,6 +1697,7 @@
   "Terms_YourViolationOfAny.Text": "Ihrer Verletzung von Rechten Dritter, einschließlich geistiger Eigentumsrechte",
   "Terms_ContentYouProcessImport.Text": "Inhalten, die Sie mit der Anwendung verarbeiten, importieren oder erzeugen",
   "Vault_SearchScopeHint.Text": "Durchsucht Dateinamen und Tags. Um in Dokumenten zu suchen, verwenden Sie „Semantische Suche“ oder „Fragen Sie Ihre Dateien“.",
+  "Vault_IndexingFailedReason.Text": "WARUM DIE INDEXIERUNG FEHLSCHLUG",
   "Vault_DeleteDocumentTitle": "Dokument löschen?",
   "Vault_DeleteDocumentBody": "\"{0}\" wird zusammen mit seinem Index und seinen Annotationen aus dem Wissens-Tresor entfernt. Die Datei auf dem Datenträger wird nicht gelöscht. Dies kann nicht rückgängig gemacht werden.",
   "Vault_DeleteDocumentsTitle": "Dokumente löschen?",

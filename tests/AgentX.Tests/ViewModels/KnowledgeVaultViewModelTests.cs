@@ -724,6 +724,8 @@ public sealed class KnowledgeVaultViewModelTests
         row.IndexingStatus.Should().Be("failed");
         row.IndexingStatusLabel.Should().Be("Failed");
         row.IndexingError.Should().Be("The vector store is not available (disk full).");
+        row.HasIndexingFailureReason.Should().BeTrue();
+        row.IndexingFailureReason.Should().Be("The vector store is not available (disk full).");
         row.StatusColor.Should().Be("#C8453E");
     }
 
@@ -1055,6 +1057,61 @@ public sealed class KnowledgeVaultViewModelTests
         await viewModel.BulkDeleteCommand.ExecuteAsync(null);
 
         viewModel.IsPreviewOpen.Should().BeFalse();
+    }
+
+    // Indexing failure reason
+    // A row said "Failed" and nothing else; the reason was only on the Operations page.
+
+    [Fact]
+    public void DocumentDisplayItem_ShowsTheStoredReasonOnlyWhileTheDocumentIsFailed()
+    {
+        var item = new DocumentDisplayItem { IndexingStatus = "failed", IndexingError = "  No text could be extracted.  " };
+        var changed = new List<string?>();
+        item.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+
+        item.HasIndexingFailureReason.Should().BeTrue();
+        item.IndexingFailureReason.Should().Be("No text could be extracted.");
+
+        item.IndexingStatus = "processing";
+
+        item.HasIndexingFailureReason.Should().BeFalse();
+        item.IndexingFailureReason.Should().BeEmpty();
+        changed.Should().Contain(new[]
+        {
+            nameof(DocumentDisplayItem.HasIndexingFailureReason),
+            nameof(DocumentDisplayItem.IndexingFailureReason),
+        });
+    }
+
+    [Fact]
+    public void DocumentDisplayItem_FailedWithoutAStoredReason_ShowsNone()
+    {
+        var item = new DocumentDisplayItem { IndexingStatus = "failed", IndexingError = " " };
+
+        item.HasIndexingFailureReason.Should().BeFalse();
+        item.IndexingFailureReason.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task SelectDocumentCommand_BringsTheStoredFailureReasonIntoThePreview()
+    {
+        // Opening the preview refreshed the status but not the error, so a document that had
+        // failed since the list was loaded showed "Failed" with no reason.
+        var listed = CreateDocument(4, "scan.pdf");
+        listed.IndexingStatus = "pending";
+        SetupVault(listed);
+        var stored = CreateDocument(4, "scan.pdf");
+        stored.IndexingStatus = "failed";
+        stored.IndexingError = "No text could be extracted from this file.";
+        _documentService.Setup(service => service.GetDocumentAsync(4)).ReturnsAsync(stored);
+        var viewModel = CreateViewModel();
+        await viewModel.InitializeAsync();
+
+        await viewModel.SelectDocumentCommand.ExecuteAsync(4L);
+
+        viewModel.SelectedDocument!.IndexingStatusLabel.Should().Be("Failed");
+        viewModel.SelectedDocument.IndexingFailureReason.Should().Be("No text could be extracted from this file.");
+        viewModel.SelectedDocument.StatusColor.Should().Be("#C8453E");
     }
 
     private KnowledgeVaultViewModel CreateViewModel(ITemporalIdentityService? temporalIdentity = null) =>

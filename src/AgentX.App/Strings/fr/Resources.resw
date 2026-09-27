@@ -2060,6 +2060,7 @@
   <data name="Terms_YourViolationOfAny.Text" xml:space="preserve"><value>Votre violation de droits de tiers, y compris les droits de propriété intellectuelle</value></data>
   <data name="Terms_ContentYouProcessImport.Text" xml:space="preserve"><value>Le contenu que vous traitez, importez ou générez via l'application</value></data>
   <data name="Vault_SearchScopeHint.Text" xml:space="preserve"><value>Porte sur les noms de fichiers et les tags. Pour chercher dans le contenu des documents, utilisez « Recherche sémantique » ou « Interroger vos fichiers ».</value></data>
+  <data name="Vault_IndexingFailedReason.Text" xml:space="preserve"><value>POURQUOI L'INDEXATION A ÉCHOUÉ</value></data>
   <data name="Vault_DeleteDocumentTitle" xml:space="preserve"><value>Supprimer le document ?</value></data>
   <data name="Vault_DeleteDocumentBody" xml:space="preserve"><value>« {0} » sera retiré du Coffre-fort de Connaissances, avec son index et ses annotations. Le fichier sur le disque n'est pas supprimé. Cette action est irréversible.</value></data>
   <data name="Vault_DeleteDocumentsTitle" xml:space="preserve"><value>Supprimer les documents ?</value></data>

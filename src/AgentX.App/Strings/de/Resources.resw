@@ -2060,6 +2060,7 @@
   <data name="Terms_YourViolationOfAny.Text" xml:space="preserve"><value>Ihrer Verletzung von Rechten Dritter, einschließlich geistiger Eigentumsrechte</value></data>
   <data name="Terms_ContentYouProcessImport.Text" xml:space="preserve"><value>Inhalten, die Sie mit der Anwendung verarbeiten, importieren oder erzeugen</value></data>
   <data name="Vault_SearchScopeHint.Text" xml:space="preserve"><value>Durchsucht Dateinamen und Tags. Um in Dokumenten zu suchen, verwenden Sie „Semantische Suche“ oder „Fragen Sie Ihre Dateien“.</value></data>
+  <data name="Vault_IndexingFailedReason.Text" xml:space="preserve"><value>WARUM DIE INDEXIERUNG FEHLSCHLUG</value></data>
   <data name="Vault_DeleteDocumentTitle" xml:space="preserve"><value>Dokument löschen?</value></data>
   <data name="Vault_DeleteDocumentBody" xml:space="preserve"><value>"{0}" wird zusammen mit seinem Index und seinen Annotationen aus dem Wissens-Tresor entfernt. Die Datei auf dem Datenträger wird nicht gelöscht. Dies kann nicht rückgängig gemacht werden.</value></data>
   <data name="Vault_DeleteDocumentsTitle" xml:space="preserve"><value>Dokumente löschen?</value></data>

@@ -726,6 +726,17 @@
                                                                Foreground="{ThemeResource TextAccentBrush}" />
                                                 </Border>
                                             </StackPanel>
+
+                                            <!-- Why indexing failed, as the pipeline stored it: one
+                                                 line here, the whole reason in the tooltip and the
+                                                 preview. Updates live with the status. -->
+                                            <TextBlock Text="{x:Bind IndexingFailureReason, Mode=OneWay}"
+                                                       Visibility="{x:Bind HasIndexingFailureReason, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                                                       ToolTipService.ToolTip="{x:Bind IndexingFailureReason, Mode=OneWay}"
+                                                       Style="{StaticResource CaptionStyle}"
+                                                       Foreground="{ThemeResource ErrorBrush}"
+                                                       MaxLines="1"
+                                                       TextTrimming="CharacterEllipsis" />
                                         </StackPanel>
                                     </Grid>
 
@@ -1093,23 +1104,36 @@
                                                Foreground="{ThemeResource TextAccentBrush}"
                                                CharacterSpacing="40" />
                                 </Border>
-                                <Border CornerRadius="{StaticResource RControl}"
-                                        Padding="8,3,8,3">
-                                    <Border.Background>
-                                        <SolidColorBrush Color="{StaticResource StatusSuccess}" Opacity="0.1" />
-                                    </Border.Background>
-                                    <TextBlock Text="{x:Bind ViewModel.SelectedDocument.IndexingStatusLabel, Mode=OneWay}"
-                                               FontSize="10"
-                                               FontWeight="Bold"
-                                               CharacterSpacing="40">
-                                        <TextBlock.Foreground>
-                                            <SolidColorBrush Color="{StaticResource StatusSuccess}" />
-                                        </TextBlock.Foreground>
-                                    </TextBlock>
-                                </Border>
+                                <!-- Status badge: the same status tones as the rows. It was
+                                     hardcoded green, so a failed document read "Failed" in GO. -->
+                                <Grid>
+                                    <Border CornerRadius="{StaticResource RControl}"
+                                            Opacity="0.1"
+                                            Background="{x:Bind ViewModel.SelectedDocument.IndexingStatus, Mode=OneWay, Converter={StaticResource StatusToColor}}" />
+                                    <Border CornerRadius="{StaticResource RControl}"
+                                            Padding="8,3,8,3">
+                                        <TextBlock Text="{x:Bind ViewModel.SelectedDocument.IndexingStatusLabel, Mode=OneWay}"
+                                                   FontSize="10"
+                                                   FontWeight="Bold"
+                                                   CharacterSpacing="40"
+                                                   Foreground="{x:Bind ViewModel.SelectedDocument.IndexingStatus, Mode=OneWay, Converter={StaticResource StatusToColor}}" />
+                                    </Border>
+                                </Grid>
                             </StackPanel>
                         </StackPanel>
                     </Grid>
+
+                    <!-- WHY INDEXING FAILED (failed documents with a stored reason) -->
+                    <StackPanel Spacing="4" Margin="0,0,0,16"
+                                Visibility="{x:Bind ViewModel.SelectedDocument.HasIndexingFailureReason, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                        <TextBlock x:Uid="Vault_IndexingFailedReason" Text="WHY INDEXING FAILED"
+                                   Style="{StaticResource OverlineStyle}" />
+                        <TextBlock Text="{x:Bind ViewModel.SelectedDocument.IndexingFailureReason, Mode=OneWay}"
+                                   Style="{StaticResource BodySmallStyle}"
+                                   Foreground="{ThemeResource ErrorBrush}"
+                                   TextWrapping="Wrap"
+                                   IsTextSelectionEnabled="True" />
+                    </StackPanel>
 
                     <!-- ── EXTRACTED TITLE (if available) ── -->
                     <StackPanel Spacing="4" Margin="0,0,0,16"

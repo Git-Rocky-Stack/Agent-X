@@ -903,13 +903,10 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
                 var entity = await _documentService.GetDocumentAsync(id);
                 if (entity is not null)
                 {
+                    // The failure reason comes along with the status, so the preview never
+                    // shows a "Failed" document without its reason, or a stale reason.
                     item.Summary = entity.Summary;
-                    item.ExtractedTitle = entity.ExtractedTitle;
-                    item.ChunkCount = entity.ChunkCount;
-                    item.WordCount = entity.WordCount;
-                    item.PageCount = entity.PageCount;
-                    item.IndexingStatus = entity.IndexingStatus;
-                    item.StatusColor = GetStatusColor(entity.IndexingStatus);
+                    ApplyIndexingState(item, entity);
                 }
             }
             catch (Exception ex)
@@ -1803,6 +1800,8 @@ public class DocumentDisplayItem : ObservableObject
             {
                 // The status badge binds the derived label, not the raw status.
                 OnPropertyChanged(nameof(IndexingStatusLabel));
+                OnPropertyChanged(nameof(HasIndexingFailureReason));
+                OnPropertyChanged(nameof(IndexingFailureReason));
             }
         }
     }
@@ -1810,8 +1809,25 @@ public class DocumentDisplayItem : ObservableObject
     public string? IndexingError
     {
         get => _indexingError;
-        set => SetProperty(ref _indexingError, value);
+        set
+        {
+            if (SetProperty(ref _indexingError, value))
+            {
+                OnPropertyChanged(nameof(HasIndexingFailureReason));
+                OnPropertyChanged(nameof(IndexingFailureReason));
+            }
+        }
     }
+
+    /// <summary>
+    /// True while the document is marked failed and the pipeline stored why. The status badge
+    /// only says "Failed"; the row and the preview show this reason with it.
+    /// </summary>
+    public bool HasIndexingFailureReason =>
+        IndexingStatus == "failed" && !string.IsNullOrWhiteSpace(IndexingError);
+
+    /// <summary>Why indexing failed, while <see cref="HasIndexingFailureReason"/>; empty otherwise.</summary>
+    public string IndexingFailureReason => HasIndexingFailureReason ? IndexingError!.Trim() : string.Empty;
 
     private string? _summary;
     private string? _extractedTitle;

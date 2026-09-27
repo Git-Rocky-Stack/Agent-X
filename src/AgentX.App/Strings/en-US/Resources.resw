@@ -2182,6 +2182,7 @@
   <data name="Terms_YourViolationOfAny.Text" xml:space="preserve"><value>Your violation of any third-party rights, including intellectual property rights</value></data>
   <data name="Terms_ContentYouProcessImport.Text" xml:space="preserve"><value>Content you process, import, or generate through the application</value></data>
   <data name="Vault_SearchScopeHint.Text" xml:space="preserve"><value>Matches file names and tags. To search inside documents, use Semantic Search or Ask Your Files.</value></data>
+  <data name="Vault_IndexingFailedReason.Text" xml:space="preserve"><value>WHY INDEXING FAILED</value></data>
   <data name="Vault_DeleteDocumentTitle" xml:space="preserve"><value>Delete document?</value></data>
   <data name="Vault_DeleteDocumentBody" xml:space="preserve"><value>"{0}" will be removed from the Knowledge Vault, together with its index and annotations. The file on disk is not deleted. This cannot be undone.</value></data>
   <data name="Vault_DeleteDocumentsTitle" xml:space="preserve"><value>Delete documents?</value></data>

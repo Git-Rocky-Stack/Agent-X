@@ -1697,6 +1697,7 @@
   "Terms_YourViolationOfAny.Text": "您侵犯任何第三方权利(包括知识产权)的行为",
   "Terms_ContentYouProcessImport.Text": "您通过应用程序处理、导入或生成的内容",
   "Vault_SearchScopeHint.Text": "匹配文件名和标签。要搜索文档内容，请使用“语义搜索”或“向您的文件提问”。",
+  "Vault_IndexingFailedReason.Text": "索引失败原因",
   "Vault_DeleteDocumentTitle": "删除文档？",
   "Vault_DeleteDocumentBody": "“{0}”将连同其索引和注释一起从 Knowledge Vault 中移除。磁盘上的文件不会被删除。此操作无法撤消。",
   "Vault_DeleteDocumentsTitle": "删除所选文档？",

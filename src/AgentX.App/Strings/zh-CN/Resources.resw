@@ -2060,6 +2060,7 @@
   <data name="Terms_YourViolationOfAny.Text" xml:space="preserve"><value>您侵犯任何第三方权利(包括知识产权)的行为</value></data>
   <data name="Terms_ContentYouProcessImport.Text" xml:space="preserve"><value>您通过应用程序处理、导入或生成的内容</value></data>
   <data name="Vault_SearchScopeHint.Text" xml:space="preserve"><value>匹配文件名和标签。要搜索文档内容，请使用“语义搜索”或“向您的文件提问”。</value></data>
+  <data name="Vault_IndexingFailedReason.Text" xml:space="preserve"><value>索引失败原因</value></data>
   <data name="Vault_DeleteDocumentTitle" xml:space="preserve"><value>删除文档？</value></data>
   <data name="Vault_DeleteDocumentBody" xml:space="preserve"><value>“{0}”将连同其索引和注释一起从 Knowledge Vault 中移除。磁盘上的文件不会被删除。此操作无法撤消。</value></data>
   <data name="Vault_DeleteDocumentsTitle" xml:space="preserve"><value>删除所选文档？</value></data>

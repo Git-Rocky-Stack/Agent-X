@@ -1697,6 +1697,7 @@
   "Terms_YourViolationOfAny.Text": "Votre violation de droits de tiers, y compris les droits de propriété intellectuelle",
   "Terms_ContentYouProcessImport.Text": "Le contenu que vous traitez, importez ou générez via l'application",
   "Vault_SearchScopeHint.Text": "Porte sur les noms de fichiers et les tags. Pour chercher dans le contenu des documents, utilisez « Recherche sémantique » ou « Interroger vos fichiers ».",
+  "Vault_IndexingFailedReason.Text": "POURQUOI L'INDEXATION A ÉCHOUÉ",
   "Vault_DeleteDocumentTitle": "Supprimer le document ?",
   "Vault_DeleteDocumentBody": "« {0} » sera retiré du Coffre-fort de Connaissances, avec son index et ses annotations. Le fichier sur le disque n'est pas supprimé. Cette action est irréversible.",
   "Vault_DeleteDocumentsTitle": "Supprimer les documents ?",

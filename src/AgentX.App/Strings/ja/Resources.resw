@@ -2060,6 +2060,7 @@
   <data name="Terms_YourViolationOfAny.Text" xml:space="preserve"><value>知的財産権を含む第三者の権利の侵害</value></data>
   <data name="Terms_ContentYouProcessImport.Text" xml:space="preserve"><value>アプリケーションを通じて処理、インポート、または生成したコンテンツ</value></data>
   <data name="Vault_SearchScopeHint.Text" xml:space="preserve"><value>ファイル名とタグで絞り込みます。ドキュメントの内容を検索するには、「セマンティック検索」または「ファイルに質問する」を使用してください。</value></data>
+  <data name="Vault_IndexingFailedReason.Text" xml:space="preserve"><value>インデックス作成に失敗した理由</value></data>
   <data name="Vault_DeleteDocumentTitle" xml:space="preserve"><value>ドキュメントを削除しますか?</value></data>
   <data name="Vault_DeleteDocumentBody" xml:space="preserve"><value>「{0}」は、インデックスと注釈とともに Knowledge Vault から削除されます。ディスク上のファイルは削除されません。この操作は元に戻せません。</value></data>
   <data name="Vault_DeleteDocumentsTitle" xml:space="preserve"><value>選択したドキュメントを削除しますか?</value></data>

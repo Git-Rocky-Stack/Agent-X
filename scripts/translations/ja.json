@@ -1697,6 +1697,7 @@
   "Terms_YourViolationOfAny.Text": "知的財産権を含む第三者の権利の侵害",
   "Terms_ContentYouProcessImport.Text": "アプリケーションを通じて処理、インポート、または生成したコンテンツ",
   "Vault_SearchScopeHint.Text": "ファイル名とタグで絞り込みます。ドキュメントの内容を検索するには、「セマンティック検索」または「ファイルに質問する」を使用してください。",
+  "Vault_IndexingFailedReason.Text": "インデックス作成に失敗した理由",
   "Vault_DeleteDocumentTitle": "ドキュメントを削除しますか?",
   "Vault_DeleteDocumentBody": "「{0}」は、インデックスと注釈とともに Knowledge Vault から削除されます。ディスク上のファイルは削除されません。この操作は元に戻せません。",
   "Vault_DeleteDocumentsTitle": "選択したドキュメントを削除しますか?",

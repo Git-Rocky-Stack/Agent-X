@@ -2060,6 +2060,7 @@
   <data name="Terms_YourViolationOfAny.Text" xml:space="preserve"><value>Su violación de derechos de terceros, incluidos los derechos de propiedad intelectual</value></data>
   <data name="Terms_ContentYouProcessImport.Text" xml:space="preserve"><value>El contenido que procese, importe o genere a través de la aplicación</value></data>
   <data name="Vault_SearchScopeHint.Text" xml:space="preserve"><value>Busca en nombres de archivo y etiquetas. Para buscar dentro de los documentos, use «Búsqueda semántica» o «Pregunta a tus archivos».</value></data>
+  <data name="Vault_IndexingFailedReason.Text" xml:space="preserve"><value>POR QUÉ FALLÓ LA INDEXACIÓN</value></data>
   <data name="Vault_DeleteDocumentTitle" xml:space="preserve"><value>¿Eliminar el documento?</value></data>
   <data name="Vault_DeleteDocumentBody" xml:space="preserve"><value>"{0}" se quitará de la Bóveda de Conocimiento, junto con su índice y sus anotaciones. El archivo del disco no se elimina. Esta acción no se puede deshacer.</value></data>
   <data name="Vault_DeleteDocumentsTitle" xml:space="preserve"><value>¿Eliminar los documentos?</value></data>
