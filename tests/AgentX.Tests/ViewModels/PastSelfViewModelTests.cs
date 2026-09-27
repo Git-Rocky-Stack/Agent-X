@@ -168,6 +168,11 @@ public sealed class PastSelfViewModelTests
             .Setup(service => service.GetPastSelfAsync(It.IsAny<string>(), It.IsAny<DateTime?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
+    private void SetUpActiveTopics(params ActiveTopic[] topics) =>
+        _temporalIdentity
+            .Setup(service => service.GetActiveTopicDetailsAsync(30, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(topics.ToList());
+
     private void SetupInsights(string insight) =>
         _temporalIdentity
             .Setup(service => service.GetRelevantInsightsAsync(It.IsAny<string[]>(), It.IsAny<CancellationToken>()))
@@ -228,9 +233,9 @@ public sealed class PastSelfViewModelTests
                 HasEvolved = true,
                 FirstDetectedAt = new DateTime(2026, 1, 5, 0, 0, 0, DateTimeKind.Utc),
             });
-        _temporalIdentity
-            .Setup(service => service.GetActiveTopicsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(["Remote work", "Async standups"]);
+        SetUpActiveTopics(
+            new ActiveTopic("Remote work", DateTime.UtcNow.AddDays(-9), DateTime.UtcNow.AddDays(-2)),
+            new ActiveTopic("Async standups", DateTime.UtcNow.AddDays(-1), DateTime.UtcNow.AddDays(-1)));
         _temporalIdentity
             .Setup(service => service.GetVoiceProfileAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new VoiceProfileEntity { SampleCount = 40, FormalityScore = 0.9 });
@@ -248,9 +253,9 @@ public sealed class PastSelfViewModelTests
         viewModel.CurrentResult!.RelevantInsights!.Single().RelevanceReason
             .Should().Be("PastSelf_InsightRelatedTo: remote work, team rituals", "the first two topics are named");
 
-        viewModel.CurrentResult = null;
         await viewModel.GetActiveTopicsCommand.ExecuteAsync(null);
-        viewModel.CurrentResult!.Message.Should().Be("PastSelf_ActiveTopicsFound: 2");
+        viewModel.ActiveTopicsStatus.Should().Be("PastSelf_ActiveTopicsFound: 2");
+        viewModel.ActiveTopics[1].Recorded.Should().StartWith("PastSelf_TopicRecorded: ");
 
         await viewModel.LoadVoiceProfileCommand.ExecuteAsync(null);
         viewModel.VoiceProfile!.FormalityLabel.Should().Be("PastSelf_StyleFormal");
@@ -403,6 +408,65 @@ public sealed class PastSelfViewModelTests
         await viewModel.SearchPastSelfCommand.ExecuteAsync(null);
 
         viewModel.CurrentResult!.HasRelatedItems.Should().BeTrue();
+    }
+
+    // --- Active topics ---
+    // Get Active Topics published its topics as a belief result called "Active Topics", so the
+    // page showed an empty stance and a Confidence bar at 0 for something that is not a belief.
+
+    [Fact]
+    public async Task GetActiveTopicsAsync_ListsTheTopicsAsRecordedWithWhen_AndPublishesNoBeliefResult()
+    {
+        var now = DateTime.UtcNow;
+        SetUpActiveTopics(
+            new ActiveTopic("Remote work is better for focus", now.AddDays(-20).AddMinutes(-1), now.AddDays(-3).AddMinutes(-1)),
+            new ActiveTopic("Ai safety matters", now.AddHours(-5).AddMinutes(-1), now.AddHours(-5).AddMinutes(-1)));
+        var viewModel = CreateViewModel(EnglishResources.Create());
+
+        await viewModel.GetActiveTopicsCommand.ExecuteAsync(null);
+
+        viewModel.CurrentResult.Should().BeNull("a topic list has no stance and no confidence");
+        viewModel.ActiveTopicsStatus.Should().Be("Topics explored recently: 2");
+        viewModel.ActiveTopics.Select(topic => topic.Topic)
+            .Should().Equal(["Remote work is better for focus", "Ai safety matters"], "the recorded wording is what a search finds");
+        viewModel.ActiveTopics[0].Recorded.Should().Be("First recorded 20d ago; last recorded 3d ago");
+        viewModel.ActiveTopics[1].Recorded.Should().Be("Recorded 5h ago", "one time when both read the same");
+    }
+
+    [Fact]
+    public async Task GetActiveTopicsAsync_AfterASearch_LeavesTheSearchResultAsItWas()
+    {
+        SetUpLookup(new PastSelfResponse
+        {
+            Topic = "Monoliths",
+            Stance = "Monoliths are fine at small scale",
+            EvidenceExcerpts = [],
+            RelatedConversations = [],
+            RelatedDocuments = []
+        });
+        SetUpActiveTopics(new ActiveTopic("Monoliths", DateTime.UtcNow.AddDays(-2), DateTime.UtcNow.AddDays(-1)));
+        var viewModel = CreateViewModel();
+        viewModel.SearchQuery = "monoliths";
+        await viewModel.SearchPastSelfCommand.ExecuteAsync(null);
+        var searchResult = viewModel.CurrentResult;
+
+        await viewModel.GetActiveTopicsCommand.ExecuteAsync(null);
+
+        viewModel.CurrentResult.Should().BeSameAs(searchResult);
+        viewModel.ActiveTopics.Should().ContainSingle(topic => topic.Topic == "Monoliths");
+    }
+
+    [Fact]
+    public async Task GetActiveTopicsAsync_WithNone_SaysSoInTheTopicsPanel()
+    {
+        SetUpActiveTopics();
+        var viewModel = CreateViewModel(EnglishResources.Create());
+
+        await viewModel.GetActiveTopicsCommand.ExecuteAsync(null);
+
+        viewModel.ActiveTopics.Should().BeEmpty();
+        viewModel.ActiveTopicsStatus.Should().Be("No active topics detected in the past 30 days.");
+        viewModel.CurrentResult.Should().BeNull();
     }
 
     // --- Draft as Me ---

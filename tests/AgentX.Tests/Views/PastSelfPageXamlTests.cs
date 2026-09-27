@@ -70,6 +70,22 @@ public sealed class PastSelfPageXamlTests
         section.Descendants(Presentation + "ProgressBar").Should().ContainSingle("the Confidence bar belongs to the stance");
     }
 
+    [Fact]
+    public void ActiveTopics_AreListedFromTheViewModel_WithWhenEachWasRecorded()
+    {
+        // The list used to be filled from code-behind, beside a belief result made up for it.
+        var panel = Named(LoadPastSelfPage(), "ActiveTopicsPanel");
+        var list = panel.Descendants(Presentation + "ItemsControl").Single();
+        var template = list.Descendants(Presentation + "DataTemplate").Single();
+
+        panel.Attribute("Visibility")!.Value.Should().Contain("ViewModel.ActiveTopicsStatus");
+        list.Attribute("ItemsSource")!.Value.Should().Be("{x:Bind ViewModel.ActiveTopics, Mode=OneWay}");
+        template.Attribute(Xaml + "DataType")!.Value.Should().Be("viewmodels:ActiveTopicDisplay");
+        template.Descendants(Presentation + "TextBlock").Select(text => (string?)text.Attribute("Text"))
+            .Should().Equal("{x:Bind Topic}", "{x:Bind Recorded}");
+        ReadPastSelfPageCodeBehind().Should().NotContain("ActiveTopicsList");
+    }
+
     private static XElement Named(XDocument page, string name) =>
         page.Descendants().Single(element => (string?)element.Attribute(Xaml + "Name") == name);
 

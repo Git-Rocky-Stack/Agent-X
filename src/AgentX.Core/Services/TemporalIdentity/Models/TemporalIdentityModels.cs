@@ -401,6 +401,12 @@ public class PastSelfResponse
 }
 
 /// <summary>
+/// A topic the user has stated a view on recently: the wording it was recorded under, and when
+/// it was first and most recently recorded.
+/// </summary>
+public sealed record ActiveTopic(string Topic, DateTime FirstRecordedAt, DateTime LastRecordedAt);
+
+/// <summary>
 /// Response for temporal queries about problem-solving patterns.
 /// "How did I solve similar problems before?"
 /// </summary>

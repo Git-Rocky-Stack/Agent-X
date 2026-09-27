@@ -458,15 +458,22 @@ public class TemporalIdentityService : ITemporalIdentityService
         int days = 30,
         CancellationToken ct = default)
     {
+        var topics = await GetActiveTopicDetailsAsync(days, ct);
+        return topics.Select(t => t.Topic).ToList();
+    }
+
+    public Task<List<ActiveTopic>> GetActiveTopicDetailsAsync(
+        int days = 30,
+        CancellationToken ct = default)
+    {
         var since = DateTime.UtcNow.AddDays(-days);
-        var beliefs = await _db.Set<TemporalBeliefEntity>()
+        return _db.Set<TemporalBeliefEntity>()
+            .AsNoTracking()
             .Where(b => b.LastObservedAt >= since)
             .OrderByDescending(b => b.ConfidenceLevel * b.LastObservedAt.Ticks)
             .Take(15)
-            .Select(b => b.Topic)
+            .Select(b => new ActiveTopic(b.Topic, b.FirstDetectedAt, b.LastObservedAt))
             .ToListAsync(ct);
-
-        return beliefs;
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────────────────

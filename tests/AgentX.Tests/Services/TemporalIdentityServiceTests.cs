@@ -580,6 +580,38 @@ public sealed class TemporalIdentityServiceTests : IDisposable
         topics.Should().Equal("strong-recent", "weak-recent"); // stale excluded, weighted order
     }
 
+    [Fact]
+    public async Task GetActiveTopicDetails_lists_the_same_topics_with_when_each_was_recorded()
+    {
+        using var db = _dbFactory.CreateContext();
+        var now = DateTime.UtcNow;
+        db.Set<TemporalBeliefEntity>().AddRange(
+            new TemporalBeliefEntity
+            {
+                Topic = "Remote work is better for focus",
+                FirstDetectedAt = now.AddDays(-20),
+                LastObservedAt = now.AddDays(-1),
+                ConfidenceLevel = 0.9,
+            },
+            new TemporalBeliefEntity
+            {
+                Topic = "Ai safety matters",
+                FirstDetectedAt = now.AddDays(-2),
+                LastObservedAt = now.AddDays(-2),
+                ConfidenceLevel = 0.5,
+            },
+            new TemporalBeliefEntity { Topic = "stale", FirstDetectedAt = now.AddDays(-99), LastObservedAt = now.AddDays(-90) });
+        await db.SaveChangesAsync();
+        var svc = new TemporalIdentityService(db);
+
+        var details = await svc.GetActiveTopicDetailsAsync(days: 30);
+
+        details.Should().Equal(
+            new ActiveTopic("Remote work is better for focus", now.AddDays(-20), now.AddDays(-1)),
+            new ActiveTopic("Ai safety matters", now.AddDays(-2), now.AddDays(-2)));
+        details.Select(topic => topic.Topic).Should().Equal(await svc.GetActiveTopicsAsync(days: 30));
+    }
+
     // ─── Annotations & auto-detected insights ───────────────────────────────────
 
     private async Task<AnnotationEntity> SeedAnnotationAsync(

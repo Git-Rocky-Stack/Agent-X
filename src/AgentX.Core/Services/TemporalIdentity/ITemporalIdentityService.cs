@@ -182,4 +182,12 @@ public interface ITemporalIdentityService
     Task<List<string>> GetActiveTopicsAsync(
         int days = 30,
         CancellationToken ct = default);
+
+    /// <summary>
+    /// The topics <see cref="GetActiveTopicsAsync"/> lists, in the same order, each with when it
+    /// was first and most recently recorded.
+    /// </summary>
+    Task<List<ActiveTopic>> GetActiveTopicDetailsAsync(
+        int days = 30,
+        CancellationToken ct = default);
 }

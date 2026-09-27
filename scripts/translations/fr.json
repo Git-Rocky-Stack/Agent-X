@@ -1685,6 +1685,8 @@
   "TimeAgo_MonthsAgo": "il y a {0} mois",
   "TimeAgo_DateFormat": "d MMM yyyy",
   "PastSelf_ViewSince": "Votre point de vue depuis le {0}",
+  "PastSelf_TopicRecorded": "Enregistré : {0}",
+  "PastSelf_TopicRecordedSpan": "Enregistré pour la première fois : {0} ; dernière fois : {1}",
   "Privacy_AgentXIsDesigned.Text": "Agent-X est conçu avec la confidentialité comme principe fondamental. Toutes vos données — documents, conversations, embeddings et paramètres — sont stockées localement sur votre appareil. Nous n'exploitons aucun serveur cloud qui traite ou stocke vos données personnelles.",
   "Privacy_OurLocalFirstArchitecture.Text": "Notre architecture locale d'abord signifie que vous conservez la pleine propriété et le contrôle de chaque information que vous créez ou importez dans Agent-X. Aucun compte à créer, aucune synchronisation de données, aucune télémétrie transmise.",
   "Privacy_InformationWeCollect.Text": "Informations que nous collectons",

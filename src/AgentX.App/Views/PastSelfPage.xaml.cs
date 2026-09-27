@@ -30,8 +30,6 @@ public sealed partial class PastSelfPage : Page, INotifyPropertyChanged
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasEvidence)));
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasInsights)));
             }
-            if (e.PropertyName == nameof(ViewModel.ActiveTopics))
-                UpdateActiveTopicsPanel();
         };
     }
 
@@ -120,20 +118,6 @@ public sealed partial class PastSelfPage : Page, INotifyPropertyChanged
     /// </summary>
     public bool HasInsights => ViewModel.CurrentResult?.RelevantInsights != null
         && ViewModel.CurrentResult.RelevantInsights.Count > 0;
-
-    // ─── Active Topics Panel ────────────────────────────────────────────────────
-
-    private void UpdateActiveTopicsPanel()
-    {
-        if (ViewModel.ActiveTopics == null || !ViewModel.ActiveTopics.Any())
-        {
-            ActiveTopicsPanel.Visibility = Visibility.Collapsed;
-            return;
-        }
-
-        ActiveTopicsPanel.Visibility = Visibility.Visible;
-        ActiveTopicsList.ItemsSource = ViewModel.ActiveTopics;
-    }
 
     // ─── Generative Identity: "Draft as Me" Panel ────────────────────────────────────
 

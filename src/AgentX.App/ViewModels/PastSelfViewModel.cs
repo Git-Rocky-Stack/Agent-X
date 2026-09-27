@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using AgentX.Core.Helpers;
 using AgentX.Core.Services.Localization;
 using AgentX.Core.Services.TemporalIdentity;
 using AgentX.Core.Services.TemporalIdentity.Models;
@@ -265,8 +266,8 @@ public partial class PastSelfViewModel : ObservableObject
         recordedAt.ToLocalTime().ToString("d", CultureInfo.CurrentCulture);
 
     /// <summary>
-    /// Get topics the user has been exploring recently.
-    /// Displays in the Active Topics panel.
+    /// Lists, in the Active Topics panel, the topics the user stated views on in the last 30
+    /// days: in the wording they were recorded under, with when each was recorded.
     /// </summary>
     [RelayCommand]
     public async Task GetActiveTopicsAsync()
@@ -276,23 +277,14 @@ public partial class PastSelfViewModel : ObservableObject
 
         try
         {
-            var topics = await _temporalIdentity.GetActiveTopicsAsync(days: 30);
+            var topics = await _temporalIdentity.GetActiveTopicDetailsAsync(days: 30);
 
-            if (CurrentResult == null)
-            {
-                CurrentResult = new PastSelfResult
-                {
-                    Topic = "Active Topics",
-                    Found = true,
-                    Message = topics.Any()
-                        ? _localization.GetString("PastSelf_ActiveTopicsFound", topics.Count)
-                        : _localization.GetString("PastSelf_NoActiveTopics")
-                };
-            }
-
-            // Store topics for display in the ActiveTopicsPanel
-            // The view will bind to this through the panel's ItemsControl
-            ActiveTopics = topics;
+            // The topics have their own panel. They used to be published as a belief result
+            // too, which showed an empty stance and a Confidence bar at 0 for no belief at all.
+            ActiveTopics = topics.Select(ToTopicDisplay).ToList();
+            ActiveTopicsStatus = topics.Count > 0
+                ? _localization.GetString("PastSelf_ActiveTopicsFound", topics.Count)
+                : _localization.GetString("PastSelf_NoActiveTopics");
         }
         catch (Exception ex)
         {
@@ -304,8 +296,32 @@ public partial class PastSelfViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// The topics Get Active Topics found, as recorded. Empty until it runs, and when it finds none.
+    /// </summary>
     [ObservableProperty]
-    private List<string>? _activeTopics;
+    private IReadOnlyList<ActiveTopicDisplay> _activeTopics = [];
+
+    /// <summary>What Get Active Topics found: how many topics, or that there were none. Empty until it runs.</summary>
+    [ObservableProperty]
+    private string _activeTopicsStatus = string.Empty;
+
+    /// <summary>
+    /// A topic as the panel lists it. When its first and latest recording read the same, as for
+    /// a topic recorded once, the time is given once.
+    /// </summary>
+    private ActiveTopicDisplay ToTopicDisplay(ActiveTopic topic)
+    {
+        var first = FormatHelper.TimeAgo(topic.FirstRecordedAt);
+        var last = FormatHelper.TimeAgo(topic.LastRecordedAt);
+        return new ActiveTopicDisplay
+        {
+            Topic = topic.Topic,
+            Recorded = first == last
+                ? _localization.GetString("PastSelf_TopicRecorded", last)
+                : _localization.GetString("PastSelf_TopicRecordedSpan", first, last),
+        };
+    }
 
     // ─── Generative Identity: "Draft as Me" ─────────────────────────────────────────────
 
@@ -559,6 +575,15 @@ public class PastSelfResult
         copy.RelevantInsights = insights;
         return copy;
     }
+}
+
+/// <summary>A topic in the Active Topics panel: the wording it was recorded under, and when.</summary>
+public class ActiveTopicDisplay
+{
+    public string Topic { get; set; } = string.Empty;
+
+    /// <summary>When the topic was first and most recently recorded, in the user's language.</summary>
+    public string Recorded { get; set; } = string.Empty;
 }
 
 public class InsightDisplay

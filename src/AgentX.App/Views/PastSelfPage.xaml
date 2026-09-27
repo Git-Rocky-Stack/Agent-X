@@ -316,21 +316,32 @@
             </controls:Faceplate>
 
             <!-- ==========================================================
-                 ROW 6: ACTIVE TOPICS (filled dynamically)
+                 ROW 6: ACTIVE TOPICS (shown once Get Active Topics has run)
                  ========================================================== -->
-            <controls:Faceplate Grid.Row="6" x:Name="ActiveTopicsPanel" Visibility="Collapsed" Kicker="MOD - PAST - 05">
+            <controls:Faceplate Grid.Row="6" x:Name="ActiveTopicsPanel"
+                                Visibility="{x:Bind ViewModel.ActiveTopicsStatus, Mode=OneWay, Converter={StaticResource StringEmptyToVisibilityConverter}}"
+                                Kicker="MOD - PAST - 05">
                 <StackPanel Spacing="12">
                     <TextBlock x:Uid="PastSelf_TopicsYouVeBeen" Text="Topics You've Been Exploring"
                                Style="{StaticResource HeadingSmallStyle}"
                                AutomationProperties.HeadingLevel="Level2"/>
-                    <ItemsControl x:Name="ActiveTopicsList">
+                    <TextBlock Text="{x:Bind ViewModel.ActiveTopicsStatus, Mode=OneWay}"
+                               Style="{StaticResource BodySecondaryStyle}"
+                               TextWrapping="Wrap"/>
+                    <!-- Each topic in the wording it was recorded under, which is what Search
+                         Past Self looks up, with when it was recorded -->
+                    <ItemsControl ItemsSource="{x:Bind ViewModel.ActiveTopics, Mode=OneWay}">
                         <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="x:String">
-                                <Border Style="{StaticResource BadgeDefaultStyle}"
-                                        Margin="0,0,8,8">
-                                    <TextBlock Text="{x:Bind}"
-                                               Style="{StaticResource BodySmallStyle}"
-                                               Foreground="{ThemeResource TextPrimaryBrush}"/>
+                            <DataTemplate x:DataType="viewmodels:ActiveTopicDisplay">
+                                <Border Style="{StaticResource CardInsetStyle}"
+                                        Margin="0,0,0,8">
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="{x:Bind Topic}"
+                                                   Style="{StaticResource BodyStyle}"
+                                                   TextWrapping="Wrap"/>
+                                        <TextBlock Text="{x:Bind Recorded}"
+                                                   Style="{StaticResource CaptionStyle}"/>
+                                    </StackPanel>
                                 </Border>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>

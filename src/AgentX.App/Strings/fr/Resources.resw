@@ -2048,6 +2048,8 @@
   <data name="TimeAgo_MonthsAgo" xml:space="preserve"><value>il y a {0} mois</value></data>
   <data name="TimeAgo_DateFormat" xml:space="preserve"><value>d MMM yyyy</value></data>
   <data name="PastSelf_ViewSince" xml:space="preserve"><value>Votre point de vue depuis le {0}</value></data>
+  <data name="PastSelf_TopicRecorded" xml:space="preserve"><value>Enregistré : {0}</value></data>
+  <data name="PastSelf_TopicRecordedSpan" xml:space="preserve"><value>Enregistré pour la première fois : {0} ; dernière fois : {1}</value></data>
   <data name="Privacy_AgentXIsDesigned.Text" xml:space="preserve"><value>Agent-X est conçu avec la confidentialité comme principe fondamental. Toutes vos données — documents, conversations, embeddings et paramètres — sont stockées localement sur votre appareil. Nous n'exploitons aucun serveur cloud qui traite ou stocke vos données personnelles.</value></data>
   <data name="Privacy_OurLocalFirstArchitecture.Text" xml:space="preserve"><value>Notre architecture locale d'abord signifie que vous conservez la pleine propriété et le contrôle de chaque information que vous créez ou importez dans Agent-X. Aucun compte à créer, aucune synchronisation de données, aucune télémétrie transmise.</value></data>
   <data name="Privacy_InformationWeCollect.Text" xml:space="preserve"><value>Informations que nous collectons</value></data>
