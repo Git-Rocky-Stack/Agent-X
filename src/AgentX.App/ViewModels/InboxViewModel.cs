@@ -3,6 +3,7 @@ using AgentX.App.Services;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Services.Collections;
 using AgentX.Core.Services.Inbox;
+using AgentX.Core.Services.Localization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Serilog;
@@ -14,6 +15,7 @@ public partial class InboxViewModel : ObservableObject
     private readonly IOperationsDrillInService? _operationsDrillInService;
     private readonly IInboxService _inboxService;
     private readonly ICollectionService _collectionService;
+    private readonly ILocalizationService _localization;
 
     // ── Page State ───────────────────────────────────────────
     [ObservableProperty] private bool _isLoading;
@@ -42,10 +44,12 @@ public partial class InboxViewModel : ObservableObject
     public InboxViewModel(
         IInboxService inboxService,
         ICollectionService collectionService,
+        ILocalizationService localization,
         IOperationsDrillInService? operationsDrillInService = null)
     {
         _inboxService = inboxService;
         _collectionService = collectionService;
+        _localization = localization ?? throw new ArgumentNullException(nameof(localization));
         _operationsDrillInService = operationsDrillInService;
     }
 
@@ -62,7 +66,7 @@ public partial class InboxViewModel : ObservableObject
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to initialize InboxViewModel");
-            StatusMessage = "Failed to load inbox";
+            StatusMessage = _localization.GetString("Inbox_LoadFailed");
         }
         finally
         {
@@ -142,13 +146,13 @@ public partial class InboxViewModel : ObservableObject
             focusedItem = InboxItems.FirstOrDefault(item => item.Id == request.ItemId);
             if (focusedItem is not null)
             {
-                visibilityHint = "Status filter widened to show the requested inbox item.";
+                visibilityHint = _localization.GetString("Inbox_FilterWidened");
             }
         }
 
         if (focusedItem is null)
         {
-            StatusMessage = "The requested inbox item is no longer available.";
+            StatusMessage = _localization.GetString("Inbox_RequestedItemGone");
             return;
         }
 
@@ -230,7 +234,7 @@ public partial class InboxViewModel : ObservableObject
             var resolvedFocusedItemMessage = BuildFocusedInboxResolutionMessage(
                 itemId,
                 target?.FileName,
-                DescribeAcceptResolution(result.Outcome));
+                result.Outcome);
 
             await LoadInboxItemsAsync();
             if (resolvedFocusedItemMessage is not null)
@@ -246,7 +250,7 @@ public partial class InboxViewModel : ObservableObject
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to accept inbox item {Id}", itemId);
-            StatusMessage = $"Failed to accept item: {ex.Message}";
+            StatusMessage = _localization.GetString("Inbox_AcceptFailed", ex.Message);
         }
     }
 
@@ -257,12 +261,12 @@ public partial class InboxViewModel : ObservableObject
         {
             await _inboxService.RejectItemAsync(itemId);
             await LoadInboxItemsAsync();
-            StatusMessage = "Item rejected";
+            StatusMessage = _localization.GetString("Inbox_ItemRejected");
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to reject inbox item {Id}", itemId);
-            StatusMessage = "Failed to reject item";
+            StatusMessage = _localization.GetString("Inbox_RejectFailed");
         }
     }
 
@@ -273,12 +277,12 @@ public partial class InboxViewModel : ObservableObject
         {
             await _inboxService.DeferItemAsync(itemId);
             await LoadInboxItemsAsync();
-            StatusMessage = "Item deferred";
+            StatusMessage = _localization.GetString("Inbox_ItemDeferred");
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to defer inbox item {Id}", itemId);
-            StatusMessage = "Failed to defer item";
+            StatusMessage = _localization.GetString("Inbox_DeferFailed");
         }
     }
 
@@ -295,7 +299,7 @@ public partial class InboxViewModel : ObservableObject
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to accept all items");
-            StatusMessage = "Failed to accept all";
+            StatusMessage = _localization.GetString("Inbox_AcceptAllFailed");
         }
         finally
         {
@@ -313,16 +317,16 @@ public partial class InboxViewModel : ObservableObject
         {
             await _inboxService.GenerateAllPreviewsAsync(_previewCts.Token);
             await LoadInboxItemsAsync();
-            StatusMessage = "AI previews generated";
+            StatusMessage = _localization.GetString("Inbox_PreviewsGenerated");
         }
         catch (OperationCanceledException)
         {
-            StatusMessage = "Preview generation cancelled";
+            StatusMessage = _localization.GetString("Inbox_PreviewsCancelled");
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to generate previews");
-            StatusMessage = "Failed to generate previews";
+            StatusMessage = _localization.GetString("Inbox_PreviewsFailed");
         }
         finally
         {
@@ -339,12 +343,12 @@ public partial class InboxViewModel : ObservableObject
         {
             await _inboxService.DeleteProcessedItemsAsync();
             await LoadInboxItemsAsync();
-            StatusMessage = "Processed items cleaned up";
+            StatusMessage = _localization.GetString("Inbox_CleanedUp");
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to cleanup processed items");
-            StatusMessage = "Cleanup failed";
+            StatusMessage = _localization.GetString("Inbox_CleanupFailed");
         }
     }
 
@@ -367,57 +371,70 @@ public partial class InboxViewModel : ObservableObject
     }
 
     /// <summary>Status line for a single accept, worded after what actually happened.</summary>
-    internal static string DescribeAcceptStatus(InboxAcceptOutcome outcome) => outcome switch
+    internal string DescribeAcceptStatus(InboxAcceptOutcome outcome) => outcome switch
     {
-        InboxAcceptOutcome.Imported => "Item accepted and queued for indexing",
-        InboxAcceptOutcome.AlreadyInVault => "Item accepted; identical content was already in the vault, so it was linked instead of imported again",
-        _ => "Item was already accepted",
-    };
-
-    private static string DescribeAcceptResolution(InboxAcceptOutcome outcome) => outcome switch
-    {
-        InboxAcceptOutcome.Imported => "accepting it and queuing it for indexing.",
-        InboxAcceptOutcome.AlreadyInVault => "accepting it and linking it to the identical document already in the vault.",
-        _ => "confirming it was already accepted.",
+        InboxAcceptOutcome.Imported => _localization.GetString("Inbox_AcceptedQueued"),
+        InboxAcceptOutcome.AlreadyInVault => _localization.GetString("Inbox_AcceptedLinked"),
+        _ => _localization.GetString("Inbox_AlreadyAccepted"),
     };
 
     /// <summary>Status line for accept-all: counts what was imported, linked, and failed.</summary>
-    internal static string DescribeBatchAccept(InboxBatchAcceptResult result)
+    internal string DescribeBatchAccept(InboxBatchAcceptResult result)
     {
         if (result.Accepted == 0 && result.Failed == 0)
         {
-            return "No pending items to accept";
+            return _localization.GetString("Inbox_NothingToAccept");
         }
 
-        var message = $"Accepted {result.Accepted} item{(result.Accepted == 1 ? "" : "s")}";
+        var message = result.Accepted == 1
+            ? _localization.GetString("Inbox_AcceptedCountOne")
+            : _localization.GetString("Inbox_AcceptedCountMany", result.Accepted);
         if (result.AlreadyInVault > 0)
         {
-            message += $" ({result.AlreadyInVault} already in the vault)";
+            message = _localization.GetString("Inbox_AcceptedWithVault", message, result.AlreadyInVault);
         }
 
         if (result.Failed > 0)
         {
-            message += $"; {result.Failed} failed and stayed pending";
+            message = result.Failed == 1
+                ? _localization.GetString("Inbox_AcceptedWithFailureOne", message)
+                : _localization.GetString("Inbox_AcceptedWithFailuresMany", message, result.Failed);
             if (result.Errors.Count > 0)
             {
-                message += $": {result.Errors[0]}";
+                message = _localization.GetString("Inbox_AcceptedFirstError", message, result.Errors[0]);
             }
         }
 
         return message;
     }
 
-    private string? BuildFocusedInboxResolutionMessage(long itemId, string? fileName, string resolutionText)
+    /// <summary>
+    /// The status line that replaces the Operations landing once its item is accepted: the item
+    /// by name when it has one, and what accepting it did. Null when another item was accepted.
+    /// </summary>
+    private string? BuildFocusedInboxResolutionMessage(long itemId, string? fileName, InboxAcceptOutcome outcome)
     {
         if (FocusedInboxItemId != itemId || string.IsNullOrWhiteSpace(FocusedInboxSourceLabel))
         {
             return null;
         }
 
-        var resolvedLabel = !string.IsNullOrWhiteSpace(fileName)
-            ? $"\"{fileName}\""
-            : "the focused inbox item";
-        return $"Resolved {resolvedLabel} by {resolutionText}";
+        if (string.IsNullOrWhiteSpace(fileName))
+        {
+            return outcome switch
+            {
+                InboxAcceptOutcome.Imported => _localization.GetString("Inbox_ResolvedFocusedQueued"),
+                InboxAcceptOutcome.AlreadyInVault => _localization.GetString("Inbox_ResolvedFocusedLinked"),
+                _ => _localization.GetString("Inbox_ResolvedFocusedAlreadyAccepted"),
+            };
+        }
+
+        return outcome switch
+        {
+            InboxAcceptOutcome.Imported => _localization.GetString("Inbox_ResolvedQueued", fileName),
+            InboxAcceptOutcome.AlreadyInVault => _localization.GetString("Inbox_ResolvedLinked", fileName),
+            _ => _localization.GetString("Inbox_ResolvedAlreadyAccepted", fileName),
+        };
     }
 
     partial void OnFocusedInboxSourceLabelChanged(string value) =>

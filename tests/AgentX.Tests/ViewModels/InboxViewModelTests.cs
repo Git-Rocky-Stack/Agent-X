@@ -3,6 +3,8 @@ using AgentX.App.ViewModels;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Services.Collections;
 using AgentX.Core.Services.Inbox;
+using AgentX.Core.Services.Localization;
+using AgentX.Tests.Helpers;
 using FluentAssertions;
 using Moq;
 using Xunit;
@@ -48,6 +50,7 @@ public sealed class InboxViewModelTests
         var viewModel = new InboxViewModel(
             _inboxService.Object,
             _collectionService.Object,
+            EnglishResources.Create(),
             _operationsDrillInService.Object);
 
         await viewModel.InitializeAsync();
@@ -107,6 +110,7 @@ public sealed class InboxViewModelTests
         var viewModel = new InboxViewModel(
             _inboxService.Object,
             _collectionService.Object,
+            EnglishResources.Create(),
             _operationsDrillInService.Object);
 
         await viewModel.InitializeAsync();
@@ -149,6 +153,7 @@ public sealed class InboxViewModelTests
         var viewModel = new InboxViewModel(
             _inboxService.Object,
             _collectionService.Object,
+            EnglishResources.Create(),
             _operationsDrillInService.Object);
 
         await viewModel.InitializeAsync();
@@ -193,6 +198,7 @@ public sealed class InboxViewModelTests
         var viewModel = new InboxViewModel(
             _inboxService.Object,
             _collectionService.Object,
+            EnglishResources.Create(),
             _operationsDrillInService.Object);
 
         await viewModel.InitializeAsync();
@@ -253,6 +259,7 @@ public sealed class InboxViewModelTests
         var viewModel = new InboxViewModel(
             _inboxService.Object,
             _collectionService.Object,
+            EnglishResources.Create(),
             _operationsDrillInService.Object);
 
         await viewModel.InitializeAsync();
@@ -272,7 +279,7 @@ public sealed class InboxViewModelTests
             .ReturnsAsync(Array.Empty<InboxItemEntity>());
         _inboxService.Setup(service => service.AcceptItemAsync(3, null))
             .ReturnsAsync(new InboxAcceptResult(3, InboxAcceptOutcome.AlreadyInVault, 12));
-        var viewModel = new InboxViewModel(_inboxService.Object, _collectionService.Object);
+        var viewModel = new InboxViewModel(_inboxService.Object, _collectionService.Object, EnglishResources.Create());
 
         await viewModel.AcceptItemCommand.ExecuteAsync(3L);
 
@@ -285,7 +292,7 @@ public sealed class InboxViewModelTests
     {
         _inboxService.Setup(service => service.AcceptItemAsync(4, null))
             .ThrowsAsync(new FileNotFoundException("The file for 'clip.md' no longer exists."));
-        var viewModel = new InboxViewModel(_inboxService.Object, _collectionService.Object);
+        var viewModel = new InboxViewModel(_inboxService.Object, _collectionService.Object, EnglishResources.Create());
 
         await viewModel.AcceptItemCommand.ExecuteAsync(4L);
 
@@ -299,12 +306,48 @@ public sealed class InboxViewModelTests
             .ReturnsAsync(Array.Empty<InboxItemEntity>());
         _inboxService.Setup(service => service.AcceptAllPendingAsync())
             .ReturnsAsync(new InboxBatchAcceptResult(2, 1, 0, 1, new[] { "gone.md: file no longer exists" }));
-        var viewModel = new InboxViewModel(_inboxService.Object, _collectionService.Object);
+        var viewModel = new InboxViewModel(_inboxService.Object, _collectionService.Object, EnglishResources.Create());
 
         await viewModel.AcceptAllCommand.ExecuteAsync(null);
 
         viewModel.StatusMessage.Should().Be(
             "Accepted 3 items (1 already in the vault); 1 failed and stayed pending: gone.md: file no longer exists");
+    }
+
+    [Fact]
+    public async Task AcceptAllCommand_counts_one_item_and_several_failures()
+    {
+        _inboxService.Setup(service => service.GetAllItemsAsync("pending", 0, 100))
+            .ReturnsAsync(Array.Empty<InboxItemEntity>());
+        _inboxService.Setup(service => service.AcceptAllPendingAsync())
+            .ReturnsAsync(new InboxBatchAcceptResult(1, 0, 0, 2, Array.Empty<string>()));
+        var viewModel = new InboxViewModel(_inboxService.Object, _collectionService.Object, EnglishResources.Create());
+
+        await viewModel.AcceptAllCommand.ExecuteAsync(null);
+
+        viewModel.StatusMessage.Should().Be("Accepted 1 item; 2 failed and stayed pending");
+    }
+
+    [Fact]
+    public async Task Status_messages_come_from_the_resources()
+    {
+        // Every status line is read by key, so another language never shows English here.
+        var localization = new Mock<ILocalizationService>();
+        localization.Setup(l => l.GetString("Inbox_ItemRejected")).Returns("Element abgelehnt");
+        localization.Setup(l => l.GetString("Inbox_AcceptedCountOne")).Returns("1 Element übernommen");
+        localization.Setup(l => l.GetString("Inbox_AcceptedWithVault", It.IsAny<object[]>()))
+            .Returns((string _, object[] args) => $"{args[0]} ({args[1]} bereits im Wissens-Tresor)");
+        _inboxService.Setup(service => service.GetAllItemsAsync("pending", 0, 100))
+            .ReturnsAsync(Array.Empty<InboxItemEntity>());
+        _inboxService.Setup(service => service.AcceptAllPendingAsync())
+            .ReturnsAsync(new InboxBatchAcceptResult(0, 1, 0, 0, Array.Empty<string>()));
+        var viewModel = new InboxViewModel(_inboxService.Object, _collectionService.Object, localization.Object);
+
+        await viewModel.RejectItemCommand.ExecuteAsync(5L);
+        viewModel.StatusMessage.Should().Be("Element abgelehnt");
+
+        await viewModel.AcceptAllCommand.ExecuteAsync(null);
+        viewModel.StatusMessage.Should().Be("1 Element übernommen (1 bereits im Wissens-Tresor)");
     }
 
     [Fact]
@@ -319,7 +362,7 @@ public sealed class InboxViewModelTests
         _inboxService.Setup(service => service.GetPendingCountAsync()).ReturnsAsync(1);
         _collectionService.Setup(service => service.GetAllCollectionsAsync())
             .ReturnsAsync(Array.Empty<CollectionEntity>());
-        var viewModel = new InboxViewModel(_inboxService.Object, _collectionService.Object);
+        var viewModel = new InboxViewModel(_inboxService.Object, _collectionService.Object, EnglishResources.Create());
         await viewModel.InitializeAsync();
         viewModel.HasItems.Should().BeFalse();
 
