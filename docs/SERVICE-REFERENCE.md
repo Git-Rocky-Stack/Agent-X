@@ -3364,10 +3364,12 @@ Unified email message DTO.
 | `SyncIntervalMinutes` | `int` | `10` | Polling interval |
 | `MaxMessagesPerSync` | `int` | `50` | Max messages per cycle |
 | `SyncDaysBack` | `int` | `30` | Initial sync lookback |
-| `EnableAiCategorization` | `bool` | `true` | AI email categorization |
-| `CategorizationPrompt` | `string?` | `null` | Custom AI prompt |
+| `EnableAiCategorization` | `bool` | `true` | Not applied (no AI categorizes email; kept so old settings files load) |
+| `CategorizationPrompt` | `string?` | `null` | Not applied |
 | `IncludeHtmlBody` | `bool` | `false` | Include HTML in index |
 | `IncludeAttachmentNames` | `bool` | `true` | Include attachment names |
+
+Email triage is rule-based: `EmailTriageProcessor.Classify` assigns each message one `EmailCategory` (`ActionRequired`, `Meeting`, `Financial`, `Social`, `Promotion`, `Newsletter`, `Notification`, otherwise `Other`) from ordered keyword and sender rules, first match wins, and the name is stored on `InboxItemEntity.SourceCategory`. No model is called and there is no switch to turn it off.
 
 ---
 

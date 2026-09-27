@@ -1575,7 +1575,7 @@ Credentials are stored in SQLite (`oauth_credentials` table) with DPAPI encrypti
 | `GmailProvider.cs` | Gmail API v1: labels, messages (list+get), history delta sync |
 | `OutlookEmailProvider.cs` | Microsoft Graph API v1.0: mailFolders, messages/delta, OData pagination |
 | `EmailSyncService.cs` | Orchestration: providers → EmailTriageProcessor → IInboxService |
-| `EmailTriageProcessor.cs` | Converts `EmailMessage` → `TriageExternalAsync` parameters |
+| `EmailTriageProcessor.cs` | Converts `EmailMessage` to `TriageExternalAsync` parameters and assigns the rule-based triage category |
 | `IEmailService.cs` | Service interface: `SyncMessagesAsync`, `IsConnectedAsync` |
 
 **Sync flow:**
@@ -1589,7 +1589,9 @@ Credentials are stored in SQLite (`oauth_credentials` table) with DPAPI encrypti
 
 **Email triage content:** `EmailTriageProcessor.ExtractSearchableContent()` builds a full-text representation including Subject, From (formatted), To, Cc, Date, Folder, Flags (Starred, HasAttachments), Attachment names, Source provider, and Body (text preferred, HTML fallback with `StripHtmlTags`).
 
-**Settings page:** `EmailSettingsPage.xaml` with `EmailSettingsViewModel` — connect/disconnect Gmail/Outlook, sync interval, max messages per sync, days back, AI categorization toggle, attachment names toggle.
+**Email triage category:** `EmailTriageProcessor.Classify()` gives each message one `EmailCategory` from ordered keyword and sender rules (first match wins): `ActionRequired`, `Meeting`, `Financial`, `Social`, `Promotion`, `Newsletter`, `Notification`, otherwise `Other`. The category travels as the inbox item's `sourceCategory`. It is rule-based: no model is called, and there is no AI categorization setting. `EmailSyncSettings.EnableAiCategorization` and `CategorizationPrompt` are still read from old settings files but are not applied.
+
+**Settings page:** `EmailSettingsPage.xaml` with `EmailSettingsViewModel`: connect/disconnect Gmail/Outlook, email sync on/off, sync interval, max messages per sync, days back, attachment names toggle, Sync Now.
 
 ### 9.5 External ID Format
 
