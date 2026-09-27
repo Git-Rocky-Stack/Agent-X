@@ -464,7 +464,7 @@ Ask Your Files is Agent-X's RAG workflow. It searches indexed document chunks, a
 
 1. Select a collection or source scope.
 2. Ask a natural-language question.
-3. Agent-X embeds the query and retrieves matching chunks.
+3. Agent-X embeds the query (and a few model-written rephrasings), runs hybrid semantic and keyword retrieval, and keeps the number of passages set by Top-K Results in Settings (5 by default).
 4. Optional reranking improves source ordering.
 5. The model generates an answer grounded in retrieved passages.
 6. Citations connect answer claims back to documents and chunks.
@@ -601,16 +601,16 @@ Semantic Search finds meaning, not just exact words. It can search by vector sim
 | Keyword | Exact names, codes, invoice numbers, quoted phrases |
 | Hybrid | Broad discovery where both meaning and exact terms matter |
 
-Hybrid search merges semantic and keyword results using Reciprocal Rank Fusion so strong candidates from either backend can rank well.
+Hybrid search merges semantic and keyword results using Reciprocal Rank Fusion so strong candidates from either backend can rank well. The Search page opens in Semantic mode; Ask Your Files always retrieves in hybrid mode.
 
 ### Result tools
 
-- Relevance score.
-- Source document and chunk preview.
-- Search history chips for repeated queries.
-- Saved filters where configured.
-- Collection and file-type filtering.
-- Direct open into source context.
+- Relevance score (one score per result; no semantic or keyword sub-scores).
+- Source document, excerpt, page number where the format has pages, and chunk number.
+- Search history list for repeating recent queries.
+- Saved filters (query, mode, advanced filters, and sort order).
+- Collection, file-type, minimum-relevance (30% by default), maximum-results (20 by default), and import-date filters.
+- Open shows the file in File Explorer; Workflow sends the result to the Workflows page.
 
 ### Search quality tips
 

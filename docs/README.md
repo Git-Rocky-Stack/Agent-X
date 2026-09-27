@@ -301,7 +301,8 @@ Key settings fields include:
 | `anthropicApiKey` | (empty) | Anthropic API key (stored locally, never transmitted by Agent-X) |
 | `storagePath` | `%LocalAppData%\AgentX` | Root path for the SQLite database and vector store |
 | `chunkSize` | `512` | Target token count per document chunk |
-| `chunkOverlap` | `64` | Token overlap between consecutive chunks |
+| `chunkOverlap` | `50` | Token overlap between consecutive chunks |
+| `topKResults` | `5` | Passages Ask Your Files keeps for an answer (Top-K Results in Settings) |
 | `maxSearchResults` | `10` | Default number of results returned by search |
 | `onboardingCompleted` | `false` | Set to `true` after the onboarding wizard is dismissed |
 | `theme` | `dark` | UI theme: `dark` or `light` |
