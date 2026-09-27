@@ -101,6 +101,10 @@ public sealed class ChunkingService : IChunkingService
                         "size {Original} → {Adaptive}",
                         info.ContentType, document.FileName, chunkSize, info.RecommendedChunkSize);
                     chunkSize = info.RecommendedChunkSize;
+
+                    // The recommended size can be smaller than the caller's valid overlap; keep
+                    // the overlap below the new size, or ChunkText rejects the document.
+                    chunkOverlap = Math.Min(chunkOverlap, chunkSize - 1);
                 }
                 else
                 {

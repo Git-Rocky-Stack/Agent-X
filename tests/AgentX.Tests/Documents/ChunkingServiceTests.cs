@@ -383,6 +383,20 @@ public sealed class ChunkingServiceTests
     }
 
     [Fact]
+    public void ChunkDocument_AdaptiveSizeBelowTheCallersOverlap_ClampsTheOverlapInsteadOfThrowing()
+    {
+        // A saved overlap of 10 is valid for a chunk size of 40, but not for the analyzer's
+        // recommended 4; the document must still be chunked.
+        var adaptive = Analyzer(ContentType.Code, recommended: 4);
+
+        var chunks = new ChunkingService(null, adaptive.Object, Silent)
+            .ChunkDocument(Doc(Words(40)), chunkSize: 40, chunkOverlap: 10);
+
+        chunks.Should().HaveCountGreaterThan(1);
+        chunks.Should().OnlyContain(c => c.TokenCount <= 4);
+    }
+
+    [Fact]
     public void ChunkDocument_AdaptiveRecommendationMatchesTheCaller_ChangesNothing()
     {
         var adaptive = Analyzer(ContentType.Code, recommended: 40);
