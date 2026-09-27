@@ -525,7 +525,9 @@ Supported file types and their processors:
 | `fact` | Factual statements made by the user | 0.5 |
 | `topic` | Topics of interest surfaced in conversation | 0.5 |
 
-Duplicate detection uses a substring match on the first 30 characters of the memory content. When a near-duplicate is found, the existing record's importance is incremented by 0.1 (capped at 1.0) rather than creating a new record. The top 10 memories ranked by importance and recency are injected into every system prompt as a `[User Memory Context]` block.
+Duplicate detection uses a substring match on the first 30 characters of the memory content. When a near-duplicate is found, the existing record's importance is incremented by 0.1 (capped at 1.0) rather than creating a new record. When it is the active memory service, `ChatService` injects the top 8 memories ranked by importance and recency into the context as a `[User Memory Context]` block.
+
+The desktop app registers `SemanticMemoryService`, and `ChatService` prefers it over `ConversationMemoryService`. After each completed reply it extracts memories with a background model call (about 20 categories such as `user_preference`, `project_context`, and `technical_preference`, each with a confidence), and for each new message it retrieves up to 8 memories whose embedding similarity to the message is at least 0.65. There is no UI that lists or deletes memories.
 
 ### Knowledge Graph Construction
 

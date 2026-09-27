@@ -80,49 +80,49 @@
   <data name="UserGuide_PageHeaderTitle.Text" xml:space="preserve"><value>用户指南</value></data>
   <data name="UserGuide_PageHeaderDescription.Text" xml:space="preserve"><value>充分用好 Agent-X 所需了解的一切。</value></data>
   <data name="UserGuide_Welcome_Title.Text" xml:space="preserve"><value>欢迎使用 Agent-X</value></data>
-  <data name="UserGuide_Welcome_Description1.Text" xml:space="preserve"><value>Agent-X is your local-first AI personal intelligence hub. All processing happens on your machine — your data never leaves your device.</value></data>
-  <data name="UserGuide_Welcome_Description2.Text" xml:space="preserve"><value>Agent-X supports multiple AI providers: Ollama for local inference with open-source models, and optional cloud providers including OpenAI and Anthropic Claude for users who want access to frontier models. Chat with AI models, ask questions about your own documents using Retrieval-Augmented Generation (RAG), manage a local knowledge vault, run pre-built AI actions, and search your files using semantic vector search — all with a local-first architecture that keeps your data on your device.</value></data>
-  <data name="UserGuide_Welcome_Description3.Text" xml:space="preserve"><value>This guide covers every feature in detail so you can unlock the full power of your local AI setup.</value></data>
+  <data name="UserGuide_Welcome_Description1.Text" xml:space="preserve"><value>Agent-X 是一个本地优先的 AI 工作区，用于借助您自己的文档进行思考、研究和写作。默认情况下，它使用在您电脑上运行的内置模型进行对话，并将您的文档和对话保存在本地 SQLite 数据库中，您可以在“设置”中为该数据库加密。除非您选择云端 AI 提供商、设置网页搜索或日历、邮件连接器，或从网页导入页面，否则任何数据都不会离开您的电脑；仪表板底部会列出已开启的服务。</value></data>
+  <data name="UserGuide_Welcome_Description2.Text" xml:space="preserve"><value>在一个应用中，您可以与内置模型、在 Ollama 中运行的模型，或在添加 API 密钥后与 OpenAI 和 Anthropic 的模型对话；就您自己的文档提问，并获得基于文档内容的回答（检索增强生成，RAG）；构建带有自动标记、重复检测和知识图谱的 Knowledge Vault；按含义、关键词或两者结合进行搜索（混合搜索通过 Reciprocal Rank Fusion 合并 FTS5 关键词匹配和语义结果）；使用浏览器扩展或网页导入获取网页；转录音频文件；运行多步骤工作流；并通过插件、日历和邮件连接器，以及可浏览和搜索 Vault 的 Android 配套应用来扩展 Agent-X。</value></data>
+  <data name="UserGuide_Welcome_Description3.Text" xml:space="preserve"><value>本指南在一个可滚动的单列中介绍 Agent-X 的各个页面。要在应用中的任何位置快速跳转，请按 Ctrl+K 打开命令面板（页面和少量操作），或按 Ctrl+P 打开“跳转”（页面、文档和对话）。</value></data>
   <data name="UserGuide_GettingStarted_Title.Text" xml:space="preserve"><value>快速上手</value></data>
   <data name="UserGuide_GettingStarted_Prerequisites_Title.Text" xml:space="preserve"><value>前置条件</value></data>
-  <data name="UserGuide_GettingStarted_Prereq1.Text" xml:space="preserve"><value>Install Ollama — Download and install Ollama from ollama.com. Ollama is the local AI runtime that powers all inference in Agent-X.</value></data>
+  <data name="UserGuide_GettingStarted_Prereq1.Text" xml:space="preserve"><value>安装 Ollama（可选）：Agent-X 默认使用内置的本地模型，只有当您想在电脑上运行其他开放模型时才需要 Ollama。可从 ollama.com 下载。OpenAI 和 Anthropic 只需要 API 密钥。</value></data>
   <data name="UserGuide_GettingStarted_Prereq2_Title.Text" xml:space="preserve"><value>至少拉取一个聊天模型 —— 打开终端并运行</value></data>
-  <data name="UserGuide_GettingStarted_Prereq2_Description.Text" xml:space="preserve"><value>This downloads a chat model. For document embeddings, also pull an embedding model:</value></data>
-  <data name="UserGuide_GettingStarted_Prereq3_Title.Text" xml:space="preserve"><value>Ensure Ollama is running — Ollama must be actively serving before launching Agent-X. You can verify by running</value></data>
+  <data name="UserGuide_GettingStarted_Prereq2_Description.Text" xml:space="preserve"><value>llama3.2 是一款出色的通用聊天模型，在 8 GB 显存上运行良好。索引、语义搜索和“向您的文件提问”还需要嵌入：在嵌入模型设置保持默认值（all-minilm）时，如果已安装内置模型，Agent-X 会使用它，否则会向 Ollama 请求 all-minilm。all-minilm 是一个小型嵌入模型（约 46 MB），可以用以下命令拉取：</value></data>
+  <data name="UserGuide_GettingStarted_Prereq3_Title.Text" xml:space="preserve"><value>保持 Ollama 运行：当 Agent-X 使用 Ollama 时，Ollama 必须在 http://localhost:11434（默认地址）上提供服务。如果它尚未在后台运行，请使用以下命令启动</value></data>
   <data name="UserGuide_GettingStarted_FirstLaunch_Title.Text" xml:space="preserve"><value>首次启动与初始引导</value></data>
   <data name="UserGuide_GettingStarted_FirstLaunch_Description.Text" xml:space="preserve"><value>首次打开 Agent-X 时，初始引导向导会接管界面。它会测试与 Ollama 端点的连接（此步骤可跳过），列出本地已安装的 Ollama 模型供您选择默认聊天模型和默认嵌入模型，检查内置本地模型和 GPU 加速（如果安装程序未包含该模型，会提供下载），并在最终摘要之前接收可选的 OpenAI 和 Anthropic API 密钥。文档随后在 Knowledge Vault 中导入。</value></data>
   <data name="UserGuide_GettingStarted_FirstLaunch_Tip.Text" xml:space="preserve"><value>仪表板上的“设置 AI”按钮会打开设置，您可以随时在其中更改 AI 提供商、模型和 API 密钥。要再次运行向导，请按 Ctrl+P 并选择 Onboarding。如果在最后的“启动 Agent-X”步骤之前离开向导（通过快捷键、命令面板或 Jump To），则视为跳过，下次启动时不会再出现。</value></data>
   <data name="UserGuide_Dashboard_Title.Text" xml:space="preserve"><value>仪表板</value></data>
-  <data name="UserGuide_Dashboard_Description.Text" xml:space="preserve"><value>The Dashboard is your home base in Agent-X. It provides a high-level overview of your entire system at a glance.</value></data>
+  <data name="UserGuide_Dashboard_Description.Text" xml:space="preserve"><value>仪表板是 Agent-X 启动时打开的页面，按 Ctrl+D 可随时返回。它在一个可滚动的页面上显示 AI 提供商、Knowledge Vault 以及近期工作的状态，并提供按钮跳转到各项数据对应的页面。</value></data>
   <data name="UserGuide_Dashboard_Features_Title.Text" xml:space="preserve"><value>您将在仪表板上看到：</value></data>
-  <data name="UserGuide_Dashboard_Feature1.Text" xml:space="preserve"><value>System Status Cards — Live indicators showing whether Ollama is connected, your active chat and embedding models, and total indexed documents.</value></data>
-  <data name="UserGuide_Dashboard_Feature2.Text" xml:space="preserve"><value>Document Statistics — Total documents imported, total chunks indexed, and storage usage metrics for your Knowledge Vault.</value></data>
-  <data name="UserGuide_Dashboard_Feature3.Text" xml:space="preserve"><value>Recent Activity — A timeline of your latest actions: recent chats, document imports, search queries, and quick action results.</value></data>
-  <data name="UserGuide_Dashboard_Feature4.Text" xml:space="preserve"><value>AI Connection Status — A real-time health check showing Ollama connectivity, the loaded model, and response latency.</value></data>
+  <data name="UserGuide_Dashboard_Feature1.Text" xml:space="preserve"><value>AI 状态与快速搜索：顶部卡片显示当前的 AI 提供商（默认为内置模型）、是否可以连接以及当前模型；“设置 AI”会打开设置。在其下方的搜索框中输入内容并按 Enter，即可用该查询打开语义搜索。</value></data>
+  <data name="UserGuide_Dashboard_Feature2.Text" xml:space="preserve"><value>Vault 与系统数据：四张卡片分别显示文档和合集的数量、文档占用的存储空间及已索引的比例、对话数和已用 Token 数，以及 GPU、内存和显存。“文件类型分布”和“热门合集”进一步细分 Vault，底部状态条显示可用内存、Vault 存储空间，以及是否有服务设置为将数据发送到您的电脑之外。</value></data>
+  <data name="UserGuide_Dashboard_Feature3.Text" xml:space="preserve"><value>近期工作与运行状况：“最近的文档”和“最近的会话”列出您最新的导入和聊天；“查看全部”会打开 Knowledge Vault 或 AI Chat。“运行状况概览”汇总了对话智能、同步健康状况、连接器和插件、Smart Inbox 积压以及工作流活动，每项都有按钮可跳转到对应页面。</value></data>
+  <data name="UserGuide_Dashboard_Feature4.Text" xml:space="preserve"><value>观点演变与后续步骤：“您的观点演变”列出最多五个记录的立场发生变化的主题，并显示之前和当前的立场以及变化幅度；确认某一项即可将其永久隐藏，也可以打开“过往的自己”。“建议的后续步骤”会提示接下来要做的事，例如完成 AI 设置、为等待中的文档建立索引、分拣 Smart Inbox 或创建工作流。</value></data>
   <data name="UserGuide_Dashboard_QuickActions_Title.Text" xml:space="preserve"><value>快捷操作按钮</value></data>
-  <data name="UserGuide_Dashboard_QuickActions_Description.Text" xml:space="preserve"><value>仪表板针对最常用的工作流提供了四个醒目的快捷操作按钮：</value></data>
+  <data name="UserGuide_Dashboard_QuickActions_Description.Text" xml:space="preserve"><value>仪表板顶部的“设置 AI”按钮和底部的一排磁贴（“新建聊天”“导入文件”“搜索”“文件问答”“快捷操作”）涵盖了最常用的任务：</value></data>
   <data name="UserGuide_Dashboard_QuickAction1_Title.Text" xml:space="preserve"><value>设置 AI</value></data>
   <data name="UserGuide_Dashboard_QuickAction1_Description.Text" xml:space="preserve"><value>打开设置，以重新配置 AI 提供商、Ollama 和模型。</value></data>
   <data name="UserGuide_Dashboard_QuickAction2_Title.Text" xml:space="preserve"><value>导入文档</value></data>
   <data name="UserGuide_Dashboard_QuickAction2_Description.Text" xml:space="preserve"><value>将文件添加到您的 Knowledge Vault，以进行 AI 驱动的分析。</value></data>
   <data name="UserGuide_Dashboard_QuickAction3_Title.Text" xml:space="preserve"><value>开始对话</value></data>
-  <data name="UserGuide_Dashboard_QuickAction3_Description.Text" xml:space="preserve"><value>使用您选定的模型开启一个新的 AI 对话。</value></data>
+  <data name="UserGuide_Dashboard_QuickAction3_Description.Text" xml:space="preserve"><value>使用当前模型打开 AI Chat。它会回到您上次打开的对话；要开始新对话，请按 Ctrl+N。</value></data>
   <data name="UserGuide_Dashboard_QuickAction4_Title.Text" xml:space="preserve"><value>语义搜索</value></data>
   <data name="UserGuide_Dashboard_QuickAction4_Description.Text" xml:space="preserve"><value>按含义而非仅凭关键词搜索您的文档。</value></data>
   <data name="UserGuide_AiChat_Title.Text" xml:space="preserve"><value>AI Chat</value></data>
-  <data name="UserGuide_AiChat_Description.Text" xml:space="preserve"><value>The AI Chat page lets you have natural language conversations with locally-running open-source language models. It functions like a private, offline version of ChatGPT.</value></data>
+  <data name="UserGuide_AiChat_Description.Text" xml:space="preserve"><value>AI Chat 是您与模型对话的地方。它使用在“设置”中选择的提供商：内置本地模型（默认）、您在 Ollama 中运行的模型，或添加 API 密钥后的 OpenAI 或 Anthropic。回复会在生成的同时逐步显示，并以基本 Markdown 呈现（标题、列表、粗体、行内代码以及带语法高亮的代码块），每个对话都保存在本地数据库中。</value></data>
   <data name="UserGuide_AiChat_Using_Title.Text" xml:space="preserve"><value>使用 AI Chat</value></data>
-  <data name="UserGuide_AiChat_Step1.Text" xml:space="preserve"><value>Select a model — Choose from your installed Ollama models using the model selector dropdown at the top of the chat. Different models have different capabilities and sizes.</value></data>
-  <data name="UserGuide_AiChat_Step2.Text" xml:space="preserve"><value>Type your message — Enter your prompt in the input field at the bottom. Press Enter to send, or Shift+Enter for a new line.</value></data>
-  <data name="UserGuide_AiChat_Step3.Text" xml:space="preserve"><value>Watch the response stream — Responses stream in token-by-token in real time, rendered with full Markdown formatting including headings, lists, code blocks, and inline code.</value></data>
+  <data name="UserGuide_AiChat_Step1.Text" xml:space="preserve"><value>选择模型：聊天顶部的模型框按名称列出当前提供商的模型，选择一个即可切换到该模型。要使用其他提供商，请在“设置”中更改。如果之前无法连接提供商，顶部栏中的“刷新连接”按钮会重新检查并重新加载列表。</value></data>
+  <data name="UserGuide_AiChat_Step2.Text" xml:space="preserve"><value>输入消息：在底部的输入框中书写。按 Enter 发送消息，按 Shift+Enter 换行。麦克风按钮可录制语音，并将转录文字放入输入框，方便您在发送前检查（参见“音频转录”）。</value></data>
+  <data name="UserGuide_AiChat_Step3.Text" xml:space="preserve"><value>查看流式回复：回复会在生成的同时显示；“停止生成”可提前结束，并保留已生成的内容。每条回复都有评价、复制、重新生成和删除按钮，您自己的消息可以复制、编辑（“保存并重新发送”会发送新文本）或删除。</value></data>
   <data name="UserGuide_AiChat_Conversation_Title.Text" xml:space="preserve"><value>对话管理</value></data>
-  <data name="UserGuide_AiChat_Conversation1.Text" xml:space="preserve"><value>Conversations are automatically saved to a local SQLite database on your device. You can return to any previous conversation from the sidebar history.</value></data>
-  <data name="UserGuide_AiChat_Conversation2.Text" xml:space="preserve"><value>Use Ctrl+N to start a new chat at any time. Each conversation maintains its own context window, so the AI remembers what was discussed within the same session.</value></data>
-  <data name="UserGuide_AiChat_Conversation3.Text" xml:space="preserve"><value>You can delete individual conversations or clear your entire chat history from the conversation sidebar.</value></data>
+  <data name="UserGuide_AiChat_Conversation1.Text" xml:space="preserve"><value>对话会自动保存到本地 SQLite 数据库中（只有在“设置”中开启了数据库加密时才会加密）。侧边栏先列出已固定的对话，然后按时间从新到旧列出其他对话。搜索框可在标题和消息正文中查找字词，文件夹按钮（“全部”以及每个正在使用的文件夹）可筛选列表。</value></data>
+  <data name="UserGuide_AiChat_Conversation2.Text" xml:space="preserve"><value>在任意位置按 Ctrl+N，或在聊天页面按 Ctrl+Shift+N，即可开始新对话；按 Ctrl+B 可显示或隐藏对话列表。每个对话都保留自己的历史记录，因此模型可以引用该对话中之前说过的内容。</value></data>
+  <data name="UserGuide_AiChat_Conversation3.Text" xml:space="preserve"><value>在列表中右键点击对话，可将其固定、取消固定或删除；删除前 Agent-X 会先确认。顶部栏的文件夹按钮可将当前对话移到“工作”“研究”“个人”“归档”或您命名的文件夹。顶部栏的“导出会话”和侧边栏的“导出所有对话”可将对话保存为文件（参见“导出与数据可携性”）。对话无法重命名，也没有清除全部历史记录的命令。</value></data>
   <data name="UserGuide_AiChat_Advanced_Title.Text" xml:space="preserve"><value>进阶对话功能</value></data>
-  <data name="UserGuide_AiChat_Advanced1.Text" xml:space="preserve"><value>Conversation Export — Export chat conversations to text or markdown files for archiving, sharing, or reference outside of Agent-X.</value></data>
-  <data name="UserGuide_AiChat_Advanced2.Text" xml:space="preserve"><value>Rich Code Rendering — Code blocks are rendered with syntax highlighting and include a copy-to-clipboard button for easy code extraction from AI responses.</value></data>
-  <data name="UserGuide_AiChat_Advanced3.Text" xml:space="preserve"><value>Conversation Memory — The AI remembers key facts across conversations, including people, projects, preferences, decisions, and technical notes, building a persistent understanding of your context over time.</value></data>
+  <data name="UserGuide_AiChat_Advanced1.Text" xml:space="preserve"><value>对话分支：在您自己的某条消息上选择“从此处创建分支”，即可从该处在单独的分支中继续；原始对话保持不变。当对话有分支时，对话列表下方会出现“分支”列表：选择某个分支即可打开，也可以用它的按钮将其合并到主线（Agent-X 会先确认）或删除。顶部栏的“对比分支”会在新窗口中并排显示主线和第一个分支。</value></data>
+  <data name="UserGuide_AiChat_Advanced2.Text" xml:space="preserve"><value>系统提示词与代码块：顶部栏的提示词按钮可将十个内置系统提示词之一（例如 Code Helper、Summarizer 或 Socratic Teacher）应用于您发送的消息；新对话开始时不使用任何提示词，目前也无法添加您自己的提示词。回复中的代码块会显示语言名称、语法高亮和“Copy”按钮。</value></data>
+  <data name="UserGuide_AiChat_Advanced3.Text" xml:space="preserve"><value>记忆与上下文：每次回复后，Agent-X 都会在后台让模型记下值得保留的事实（偏好、项目细节、指示），并将其保存在您的电脑上。当您发送消息时，最多八条与之高度相关的已保存事实会被加入模型的上下文，无论它们来自哪个对话；应用目前还无法列出或删除这些事实。使用云提供商时，这意味着每次回复多一次计费调用。“检查上下文”会显示为某条回复组装的内容，包括该对话的“持久摘要”（可在此处刷新）以及从之前的对话中召回的消息。</value></data>
   <data name="UserGuide_AiChat_Advanced4.Text" xml:space="preserve"><value>建议的追问与 Token 计数：每次回复后，Agent-X 会让模型生成最多三个追问，并以标签形式显示；单击其中一个即可将其放入消息框。这是一次额外的模型调用，云提供商会像其他调用一样计费。聊天标题栏中的计数器会累计您生成的回复所用的 Token，“设置”中的“成本跟踪”卡片会根据应用内置的价格表估算 OpenAI 和 Anthropic 的花费（总计和今日）；本地模型不产生费用。</value></data>
   <data name="UserGuide_AskYourFiles_Title.Text" xml:space="preserve"><value>向您的文件提问（RAG）</value></data>
   <data name="UserGuide_AskYourFiles_Description.Text" xml:space="preserve"><value>“向您的文件提问”是 Agent-X 的检索增强生成（RAG）页面。用自然语言提出问题，Agent-X 会从您已编入索引的文档中检索最相关的段落，将其作为上下文提供给当前的聊天模型，并以流式方式输出带有 [1] 这类编号引用、指向来源文档的回答。模型被要求只依据这些段落作答，并在信息不足时说明；但对于重要内容，仍请核对所引用的来源。</value></data>

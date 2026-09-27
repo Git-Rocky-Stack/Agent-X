@@ -51,7 +51,8 @@ Agent-X turns a Windows machine into a local AI intelligence hub. It imports doc
 ### What stays local by default
 
 - Documents, text chunks, embeddings, conversations, memories, workflow runs, sync logs, annotations, and settings are stored under `%LocalAppData%\AgentX\`.
-- Ollama-backed chat, embedding, RAG, summaries, document analysis, and workflow runs execute on the user's machine.
+- With the built-in local model (the default AI provider) or an Ollama server on the same machine, chat, embeddings, RAG, summaries, document analysis, and workflow runs execute on the user's machine.
+- The database is encrypted only after the user turns on database encryption in Settings (see [Database encryption](#database-encryption)).
 - Search indexes live in SQLite and the local vector store. The app does not need an internet connection for already-installed local models.
 
 ### Optional external connections
@@ -63,7 +64,7 @@ Agent-X can connect to services the user explicitly configures:
 - **Web import and web search providers** when the user imports URLs or enables provider-backed search.
 - **Collaborative sync folders** on local, network, or shared drives.
 
-When a cloud provider is active, prompts and selected context are sent to that provider. Keep sensitive documents on local Ollama models when data residency matters.
+When a cloud provider is active, prompts and selected context are sent to that provider. Keep sensitive documents on the built-in model or a local Ollama model when data residency matters. The strip at the bottom of the Dashboard reads "100% Private" when nothing is configured to send data off the machine, and otherwise lists the services that do (cloud AI provider, a remote Ollama server, model routing with a cloud key, web search, calendar sync, email sync).
 
 ---
 
@@ -78,7 +79,7 @@ When a cloud provider is active, prompts and selected context are sent to that p
 | Runtime | Self-contained installer bundles app runtime dependencies |
 | RAM | 8 GB minimum |
 | Storage | 500 MB for the app, plus space for models, documents, indexes, backups, and sync packages |
-| AI runtime | Ollama for local model features |
+| AI runtime | The built-in local model (Llama 3.2 3B); Ollama is optional, for running other local models |
 
 ### Recommended
 
@@ -103,7 +104,9 @@ Agent-X works on CPU-only systems. CPU inference is slower, so the Hardware Advi
 
 The installer creates the local data directories under `%LocalAppData%\AgentX\` and preserves user data during uninstall.
 
-### Install Ollama
+### Install Ollama (optional)
+
+Agent-X chats with its built-in local model by default, and OpenAI and Anthropic need only an API key. Install Ollama if you want to run other open models on your machine.
 
 1. Download Ollama for Windows from `https://ollama.com/download`.
 2. Install and start Ollama.
@@ -115,14 +118,14 @@ ollama list
 
 ### Pull practical starter models
 
-Use at least one chat model and one embedding model:
+If you use Ollama, pull at least one chat model. Embeddings come from the Embedding Model setting: with its default value (`all-minilm`), Agent-X embeds with the built-in model when that model is installed and otherwise asks Ollama for `all-minilm`, so pull it too when the built-in model is not installed:
 
 ```powershell
 ollama pull llama3.2
 ollama pull all-minilm
 ```
 
-Other strong embedding options include `nomic-embed-text`, `mxbai-embed-large`, and local models recommended by the Hardware Advisor.
+Any other Ollama embedding model name in the Embedding Model setting (for example `nomic-embed-text` or `mxbai-embed-large`) is used through Ollama, and a `text-embedding-*` name uses OpenAI.
 
 ---
 
@@ -171,9 +174,11 @@ Agent-X auto-detects installed Ollama models and presents the bundled model stat
 
 **Advanced RAG Pipeline Configuration**: Your embedding model choice directly impacts retrieval quality:
 
-- **all-minilm** (330 MB): Fastest, good for English-only vaults under 10K documents
-- **nomic-embed-text** (275 MB): Strong multilingual support, recommended default
-- **mxbai-embed-large** (668 MB): Highest retrieval accuracy for technical/legal content
+- **all-minilm** (about 46 MB, 384 dimensions): the default Embedding Model setting. With this default, Agent-X embeds with the built-in model when it is installed and uses Ollama `all-minilm` otherwise.
+- **nomic-embed-text** (about 274 MB, 768 dimensions): a mid-size Ollama embedding model.
+- **mxbai-embed-large** (about 670 MB, 1024 dimensions): a larger Ollama embedding model, usually more accurate and slower.
+
+Changing the embedding model changes the vector space, so re-index existing documents from the Knowledge Vault afterwards.
 
 **GPU Acceleration**: When Agent-X detects an NVIDIA GPU, it enables **CUDA 12 layer offloading** automatically:
 - **2-4 GB VRAM**: 20-30% layers → 2-3x speedup
@@ -352,25 +357,28 @@ The command palette and Jump To dialog expose many of the same destinations with
 
 ## 6. Dashboard
 
-The Dashboard is the first operational surface after onboarding. It summarizes system health, recent work, and recommended next actions.
+The Dashboard is the page Agent-X opens on at startup (after onboarding), and `Ctrl+D` returns to it. It summarizes system health, recent work, and recommended next actions.
 
 ### What to check first
 
-- **AI connection status:** Confirms whether the selected provider is reachable.
-- **Model status:** Shows active chat and embedding model readiness.
-- **Document and storage metrics:** Tracks vault growth and indexed material.
-- **Recent documents:** Opens recently imported material without returning to the vault.
-- **Recent conversations:** Resumes prior AI sessions.
-- **Recommended actions:** Prioritizes setup, remediation, and useful next steps such as configuring AI, importing documents, reviewing sync, or running workflows.
+- **AI connection status:** Names the active provider (the built-in model by default), whether it is reachable, and the current model. **Setup AI** opens Settings.
+- **Quick search:** Type a query and press Enter to open Semantic Search with it.
+- **Document and storage metrics:** Document and Collection counts, the storage documents use and the share already indexed, conversations and tokens used, and GPU, RAM, and video memory.
+- **Recent documents and recent conversations:** The latest imports and chats. The entries are a list only; **View All** opens the Knowledge Vault or AI Chat.
+- **Operations Overview:** Conversation intelligence, sync health, connectors and plugins, the Smart Inbox backlog, and workflow activity, each with a button to its page.
+- **Your Belief Evolution:** Up to five topics whose recorded stance changed; acknowledge one to dismiss it, or open Past Self.
+- **Recommended actions:** Prioritizes setup, remediation, and useful next steps such as finishing AI setup, indexing waiting documents, triaging the inbox, configuring sync, or creating a workflow.
+- **Status strip:** Available RAM, vault storage, and the privacy line ("100% Private" or the list of services that send data off the machine).
 
 ### Common dashboard flows
 
 | Goal | Action |
 | --- | --- |
-| Start a clean conversation | Use **New Chat** |
-| Add source material | Use **Import Documents** |
-| Search the vault | Use **Search** |
+| Continue chatting | Use **New Chat** (it reopens the conversation that was open; press `Ctrl+N` for a new one) |
+| Add source material | Use **Import Files** (opens the Knowledge Vault) |
+| Search the vault | Use **Search** or the quick search box |
 | Ask grounded questions | Use **Ask Files** |
+| Run a document task | Use **Quick Actions** |
 | Repair setup | Use **Setup AI** or follow the recommended action |
 
 Use **Refresh** when another page has changed documents, models, conversations, sync, or indexing state.
@@ -424,8 +432,10 @@ AI Chat is the full conversational workspace. Quick Chat is the tray/shortcut-st
 
 ### Conversation management
 
-- Conversations are stored locally.
-- The sidebar supports history review, search, pinning, and deletion.
+- Conversations are stored in the local SQLite database (encrypted only when database encryption is on).
+- The sidebar lists pinned conversations first, then the most recent. Search matches titles and message text; folder buttons (All plus each folder in use) filter the list.
+- Right-click a conversation to pin, unpin, or delete it (deletion asks first). The folder button in the top bar moves the open conversation to Work, Research, Personal, Archive, or a named folder. Conversations cannot be renamed, and there is no clear-all command.
+- `Ctrl+N` (anywhere) or `Ctrl+Shift+N` (on the chat page) starts a new conversation; `Ctrl+B` shows or hides the conversation list.
 - Each conversation has its own message list and model context.
 - Export saves selected conversations as portable text/Markdown artifacts.
 - Every answer is saved with the name of the model that wrote it, and a Research Mode answer with the web pages it was given. In the export dialog, **Include citations** lists each answer's sources under it (numbered as its [n] markers) and **Include model info** names its model.
@@ -434,18 +444,18 @@ AI Chat is the full conversational workspace. Quick Chat is the tray/shortcut-st
 
 | Feature | Use |
 | --- | --- |
-| System prompts | Shape the assistant's role for a conversation |
-| Conversation memory | Reuses durable facts, preferences, instructions, and topics |
+| System prompts | Apply one of ten built-in prompts (such as Code Helper or Socratic Teacher) to the messages you send; custom prompts cannot be added yet |
+| Conversation memory | After each reply a background model call extracts facts worth keeping; up to eight that closely match a new message are added to its context. There is no UI to list or delete them yet |
 | Context story | Shows which prior context influenced a reply |
 | Context inspection | Helps explain what Agent-X assembled before sending a prompt |
-| Branching | Explore alternate responses without losing the original path |
+| Branching | **Branch from here** on one of your own messages continues in a separate branch; the Branches list opens, merges, or deletes branches, and **Compare branches** shows the main thread next to the first branch |
 | Suggested questions | Continue a thread with relevant follow-ups |
 | Research Mode | The Research mode toggle beside the message box adds web search results to your next answers (Research Mode must also be enabled in Settings, with a web search provider configured); the pages an answer used are listed under it as numbered sources, and clicking one opens it in your browser |
 | Voice input | Click the microphone to dictate into the message box, or right-click it to transcribe an audio file; uses the local Whisper base model (see [Audio](#audio)) |
 
 ### Message behavior
 
-AI responses can render Markdown, lists, tables, and code blocks. Code blocks include copy actions when the message renderer recognizes them.
+AI responses render basic Markdown: headings, lists, bold, inline code, and code blocks with a language label, syntax highlighting, and a Copy button. Tables, block quotes, and math are not rendered. Enter sends a message and Shift+Enter starts a new line; **Stop generation** ends a reply early and keeps the text written so far. Replies can be rated, copied, regenerated, or deleted; your own messages can be copied, edited (**Save & Resend**), or deleted.
 
 ---
 
