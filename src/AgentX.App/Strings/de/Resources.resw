@@ -3036,6 +3036,18 @@
   <data name="Terms_YourViolationOfThese.Text" xml:space="preserve"><value>Ihrem Verstoß gegen diese Bedingungen</value></data>
   <data name="Terms_YourViolationOfAny.Text" xml:space="preserve"><value>Ihrer Verletzung von Rechten Dritter, einschließlich geistiger Eigentumsrechte</value></data>
   <data name="Terms_ContentYouProcessImport.Text" xml:space="preserve"><value>Inhalten, die Sie mit der Anwendung verarbeiten, importieren oder erzeugen</value></data>
+  <data name="Backup_PasswordPromptTitle" xml:space="preserve"><value>Verschlüsseltes Backup</value></data>
+  <data name="Backup_PasswordPromptHeader" xml:space="preserve"><value>Backup-Passwort</value></data>
+  <data name="Backup_PasswordPromptPlaceholder" xml:space="preserve"><value>Beim Erstellen des Backups verwendetes Passwort</value></data>
+  <data name="Backup_RestoreButton" xml:space="preserve"><value>Wiederherstellen</value></data>
+  <data name="Backup_CancelButton" xml:space="preserve"><value>Abbrechen</value></data>
+  <data name="Backup_RestoreConfirmTitle" xml:space="preserve"><value>Aus Backup wiederherstellen?</value></data>
+  <data name="Backup_RestoreConfirmMessage" xml:space="preserve"><value>Beim Wiederherstellen wird Ihre aktuelle Wissensbasis überschrieben: Dokumente, Unterhaltungen und Workflows werden durch den Inhalt des Backups ersetzt. Dies kann nicht rückgängig gemacht werden, und Agent-X muss danach neu gestartet werden. Fortfahren?</value></data>
+  <data name="Backup_DeleteConfirmTitle" xml:space="preserve"><value>Backup löschen?</value></data>
+  <data name="Backup_DeleteConfirmMessage" xml:space="preserve"><value>Die ausgewählte Backup-Datei wird endgültig gelöscht. Dies kann nicht rückgängig gemacht werden. Fortfahren?</value></data>
+  <data name="Backup_DeleteButton" xml:space="preserve"><value>Löschen</value></data>
+  <data name="Backup_TypeManual" xml:space="preserve"><value>Manuell</value></data>
+  <data name="Backup_TypeScheduled" xml:space="preserve"><value>Geplant</value></data>
   <data name="Vault_SearchScopeHint.Text" xml:space="preserve"><value>Durchsucht Dateinamen und Tags. Um in Dokumenten zu suchen, verwenden Sie „Semantische Suche“ oder „Fragen Sie Ihre Dateien“.</value></data>
   <data name="Vault_IndexingFailedReason.Text" xml:space="preserve"><value>WARUM DIE INDEXIERUNG FEHLSCHLUG</value></data>
   <data name="Vault_DocumentText.Text" xml:space="preserve"><value>DOKUMENTTEXT</value></data>

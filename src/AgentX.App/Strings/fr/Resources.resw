@@ -3036,6 +3036,18 @@
   <data name="Terms_YourViolationOfThese.Text" xml:space="preserve"><value>Votre violation de ces Conditions</value></data>
   <data name="Terms_YourViolationOfAny.Text" xml:space="preserve"><value>Votre violation de droits de tiers, y compris les droits de propriété intellectuelle</value></data>
   <data name="Terms_ContentYouProcessImport.Text" xml:space="preserve"><value>Le contenu que vous traitez, importez ou générez via l'application</value></data>
+  <data name="Backup_PasswordPromptTitle" xml:space="preserve"><value>Sauvegarde chiffrée</value></data>
+  <data name="Backup_PasswordPromptHeader" xml:space="preserve"><value>Mot de passe de la sauvegarde</value></data>
+  <data name="Backup_PasswordPromptPlaceholder" xml:space="preserve"><value>Mot de passe utilisé lors de la création de la sauvegarde</value></data>
+  <data name="Backup_RestoreButton" xml:space="preserve"><value>Restaurer</value></data>
+  <data name="Backup_CancelButton" xml:space="preserve"><value>Annuler</value></data>
+  <data name="Backup_RestoreConfirmTitle" xml:space="preserve"><value>Restaurer depuis la sauvegarde ?</value></data>
+  <data name="Backup_RestoreConfirmMessage" xml:space="preserve"><value>La restauration écrasera votre base de connaissances actuelle : les documents, les conversations et les workflows seront remplacés par le contenu de la sauvegarde. Cette action est irréversible, et Agent-X devra ensuite être redémarré. Continuer ?</value></data>
+  <data name="Backup_DeleteConfirmTitle" xml:space="preserve"><value>Supprimer la sauvegarde ?</value></data>
+  <data name="Backup_DeleteConfirmMessage" xml:space="preserve"><value>Le fichier de sauvegarde sélectionné sera définitivement supprimé. Cette action est irréversible. Continuer ?</value></data>
+  <data name="Backup_DeleteButton" xml:space="preserve"><value>Supprimer</value></data>
+  <data name="Backup_TypeManual" xml:space="preserve"><value>Manuelle</value></data>
+  <data name="Backup_TypeScheduled" xml:space="preserve"><value>Planifiée</value></data>
   <data name="Vault_SearchScopeHint.Text" xml:space="preserve"><value>Porte sur les noms de fichiers et les tags. Pour chercher dans le contenu des documents, utilisez « Recherche sémantique » ou « Interroger vos fichiers ».</value></data>
   <data name="Vault_IndexingFailedReason.Text" xml:space="preserve"><value>POURQUOI L'INDEXATION A ÉCHOUÉ</value></data>
   <data name="Vault_DocumentText.Text" xml:space="preserve"><value>TEXTE DU DOCUMENT</value></data>

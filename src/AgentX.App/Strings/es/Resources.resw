@@ -3036,6 +3036,18 @@
   <data name="Terms_YourViolationOfThese.Text" xml:space="preserve"><value>Su incumplimiento de estos Términos</value></data>
   <data name="Terms_YourViolationOfAny.Text" xml:space="preserve"><value>Su violación de derechos de terceros, incluidos los derechos de propiedad intelectual</value></data>
   <data name="Terms_ContentYouProcessImport.Text" xml:space="preserve"><value>El contenido que procese, importe o genere a través de la aplicación</value></data>
+  <data name="Backup_PasswordPromptTitle" xml:space="preserve"><value>Copia de seguridad cifrada</value></data>
+  <data name="Backup_PasswordPromptHeader" xml:space="preserve"><value>Contraseña de la copia de seguridad</value></data>
+  <data name="Backup_PasswordPromptPlaceholder" xml:space="preserve"><value>Contraseña usada al crear la copia de seguridad</value></data>
+  <data name="Backup_RestoreButton" xml:space="preserve"><value>Restaurar</value></data>
+  <data name="Backup_CancelButton" xml:space="preserve"><value>Cancelar</value></data>
+  <data name="Backup_RestoreConfirmTitle" xml:space="preserve"><value>¿Restaurar desde la copia de seguridad?</value></data>
+  <data name="Backup_RestoreConfirmMessage" xml:space="preserve"><value>La restauración sobrescribirá su base de conocimiento actual: los documentos, las conversaciones y los workflows se reemplazarán por el contenido de la copia de seguridad. Esta acción no se puede deshacer y después habrá que reiniciar Agent-X. ¿Desea continuar?</value></data>
+  <data name="Backup_DeleteConfirmTitle" xml:space="preserve"><value>¿Eliminar la copia de seguridad?</value></data>
+  <data name="Backup_DeleteConfirmMessage" xml:space="preserve"><value>Se eliminará de forma permanente el archivo de copia de seguridad seleccionado. Esta acción no se puede deshacer. ¿Desea continuar?</value></data>
+  <data name="Backup_DeleteButton" xml:space="preserve"><value>Eliminar</value></data>
+  <data name="Backup_TypeManual" xml:space="preserve"><value>Manual</value></data>
+  <data name="Backup_TypeScheduled" xml:space="preserve"><value>Programada</value></data>
   <data name="Vault_SearchScopeHint.Text" xml:space="preserve"><value>Busca en nombres de archivo y etiquetas. Para buscar dentro de los documentos, use «Búsqueda semántica» o «Pregunta a tus archivos».</value></data>
   <data name="Vault_IndexingFailedReason.Text" xml:space="preserve"><value>POR QUÉ FALLÓ LA INDEXACIÓN</value></data>
   <data name="Vault_DocumentText.Text" xml:space="preserve"><value>TEXTO DEL DOCUMENTO</value></data>

@@ -264,4 +264,40 @@ public sealed class BackupRestoreViewModelTests : IDisposable
         sut.BackupHistory[0].IntegrityLabel.Should().NotBe("Valid");
         sut.BackupHistory.Select(item => item.IntegrityStatus).Should().Equal("completed", "failed");
     }
+
+    [Fact]
+    public async Task History_rows_name_the_backup_type_in_the_users_language()
+    {
+        // The rows showed the stored type token ("manual", "scheduled") as it is.
+        _backup.Setup(b => b.GetBackupHistoryAsync()).ReturnsAsync(new[]
+        {
+            new BackupEntity { Id = 1, FileName = "a.agentxbak", BackupType = "manual" },
+            new BackupEntity { Id = 2, FileName = "b.agentxbak", BackupType = "scheduled" },
+            new BackupEntity { Id = 3, FileName = "c.agentxbak", BackupType = "imported" },
+        });
+        var german = ReswLocalization.For("de");
+        var sut = new BackupRestoreViewModel(_backup.Object, _settingsService.Object, german);
+
+        await sut.InitializeAsync();
+
+        sut.BackupHistory.Select(item => item.BackupTypeLabel).Should().Equal(
+            german.GetString("Backup_TypeManual"), german.GetString("Backup_TypeScheduled"), "imported");
+        sut.BackupHistory[0].BackupTypeLabel.Should().NotBe("manual").And.NotBe("Manual");
+        sut.BackupHistory.Select(item => item.BackupType).Should().Equal("manual", "scheduled", "imported");
+    }
+
+    [Fact]
+    public async Task History_rows_name_the_backup_type_in_English_from_the_resources()
+    {
+        _backup.Setup(b => b.GetBackupHistoryAsync()).ReturnsAsync(new[]
+        {
+            new BackupEntity { Id = 1, FileName = "a.agentxbak", BackupType = "manual" },
+            new BackupEntity { Id = 2, FileName = "b.agentxbak", BackupType = "scheduled" },
+        });
+        var sut = new BackupRestoreViewModel(_backup.Object, _settingsService.Object, EnglishResources.Create());
+
+        await sut.InitializeAsync();
+
+        sut.BackupHistory.Select(item => item.BackupTypeLabel).Should().Equal("Manual", "Scheduled");
+    }
 }

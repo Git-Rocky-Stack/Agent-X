@@ -3375,6 +3375,18 @@
   <data name="Terms_YourViolationOfThese.Text" xml:space="preserve"><value>Your violation of these Terms</value></data>
   <data name="Terms_YourViolationOfAny.Text" xml:space="preserve"><value>Your violation of any third-party rights, including intellectual property rights</value></data>
   <data name="Terms_ContentYouProcessImport.Text" xml:space="preserve"><value>Content you process, import, or generate through the application</value></data>
+  <data name="Backup_PasswordPromptTitle" xml:space="preserve"><value>Encrypted Backup</value></data>
+  <data name="Backup_PasswordPromptHeader" xml:space="preserve"><value>Backup password</value></data>
+  <data name="Backup_PasswordPromptPlaceholder" xml:space="preserve"><value>Password used when the backup was created</value></data>
+  <data name="Backup_RestoreButton" xml:space="preserve"><value>Restore</value></data>
+  <data name="Backup_CancelButton" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Backup_RestoreConfirmTitle" xml:space="preserve"><value>Restore from Backup?</value></data>
+  <data name="Backup_RestoreConfirmMessage" xml:space="preserve"><value>Restoring will overwrite your current knowledge base — documents, conversations, and workflows will be replaced with the backup's contents. This cannot be undone, and Agent-X must be restarted afterwards. Continue?</value></data>
+  <data name="Backup_DeleteConfirmTitle" xml:space="preserve"><value>Delete Backup?</value></data>
+  <data name="Backup_DeleteConfirmMessage" xml:space="preserve"><value>This permanently deletes the selected backup file. This cannot be undone. Continue?</value></data>
+  <data name="Backup_DeleteButton" xml:space="preserve"><value>Delete</value></data>
+  <data name="Backup_TypeManual" xml:space="preserve"><value>Manual</value></data>
+  <data name="Backup_TypeScheduled" xml:space="preserve"><value>Scheduled</value></data>
   <data name="Vault_SearchScopeHint.Text" xml:space="preserve"><value>Matches file names and tags. To search inside documents, use Semantic Search or Ask Your Files.</value></data>
   <data name="Vault_IndexingFailedReason.Text" xml:space="preserve"><value>WHY INDEXING FAILED</value></data>
   <data name="Vault_DocumentText.Text" xml:space="preserve"><value>DOCUMENT TEXT</value></data>

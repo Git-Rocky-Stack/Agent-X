@@ -3036,6 +3036,18 @@
   <data name="Terms_YourViolationOfThese.Text" xml:space="preserve"><value>本規約への違反</value></data>
   <data name="Terms_YourViolationOfAny.Text" xml:space="preserve"><value>知的財産権を含む第三者の権利の侵害</value></data>
   <data name="Terms_ContentYouProcessImport.Text" xml:space="preserve"><value>アプリケーションを通じて処理、インポート、または生成したコンテンツ</value></data>
+  <data name="Backup_PasswordPromptTitle" xml:space="preserve"><value>暗号化されたバックアップ</value></data>
+  <data name="Backup_PasswordPromptHeader" xml:space="preserve"><value>バックアップのパスワード</value></data>
+  <data name="Backup_PasswordPromptPlaceholder" xml:space="preserve"><value>バックアップの作成時に使用したパスワード</value></data>
+  <data name="Backup_RestoreButton" xml:space="preserve"><value>復元</value></data>
+  <data name="Backup_CancelButton" xml:space="preserve"><value>キャンセル</value></data>
+  <data name="Backup_RestoreConfirmTitle" xml:space="preserve"><value>バックアップから復元しますか?</value></data>
+  <data name="Backup_RestoreConfirmMessage" xml:space="preserve"><value>復元すると、現在のナレッジ ベースが上書きされ、ドキュメント、会話、ワークフローはバックアップの内容に置き換えられます。この操作は元に戻せません。また、復元後に Agent-X を再起動する必要があります。続行しますか?</value></data>
+  <data name="Backup_DeleteConfirmTitle" xml:space="preserve"><value>バックアップを削除しますか?</value></data>
+  <data name="Backup_DeleteConfirmMessage" xml:space="preserve"><value>選択したバックアップ ファイルを完全に削除します。この操作は元に戻せません。続行しますか?</value></data>
+  <data name="Backup_DeleteButton" xml:space="preserve"><value>削除</value></data>
+  <data name="Backup_TypeManual" xml:space="preserve"><value>手動</value></data>
+  <data name="Backup_TypeScheduled" xml:space="preserve"><value>スケジュール</value></data>
   <data name="Vault_SearchScopeHint.Text" xml:space="preserve"><value>ファイル名とタグで絞り込みます。ドキュメントの内容を検索するには、「セマンティック検索」または「ファイルに質問する」を使用してください。</value></data>
   <data name="Vault_IndexingFailedReason.Text" xml:space="preserve"><value>インデックス作成に失敗した理由</value></data>
   <data name="Vault_DocumentText.Text" xml:space="preserve"><value>ドキュメントのテキスト</value></data>

@@ -1,4 +1,5 @@
 using AgentX.App.ViewModels;
+using AgentX.Core.Services.Localization;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Serilog;
@@ -35,18 +36,19 @@ public sealed partial class BackupRestorePage : Page
     /// </summary>
     private async Task<string?> PromptForBackupPasswordAsync()
     {
+        var localization = App.GetService<ILocalizationService>();
         var box = new PasswordBox
         {
-            Header = "Backup password",
-            PlaceholderText = "Password used when the backup was created"
+            Header = localization.GetString("Backup_PasswordPromptHeader"),
+            PlaceholderText = localization.GetString("Backup_PasswordPromptPlaceholder")
         };
 
         var dialog = new ContentDialog
         {
-            Title = "Encrypted Backup",
+            Title = localization.GetString("Backup_PasswordPromptTitle"),
             Content = box,
-            PrimaryButtonText = "Restore",
-            CloseButtonText = "Cancel",
+            PrimaryButtonText = localization.GetString("Backup_RestoreButton"),
+            CloseButtonText = localization.GetString("Backup_CancelButton"),
             DefaultButton = ContentDialogButton.Primary,
             XamlRoot = this.XamlRoot
         };
@@ -103,24 +105,11 @@ public sealed partial class BackupRestorePage : Page
     {
         if (string.IsNullOrWhiteSpace(ViewModel.RestoreFilePath))
         {
-            ViewModel.StatusMessage = "Please select a backup file to restore";
+            ViewModel.StatusMessage = App.GetService<ILocalizationService>().GetString("Backup_SelectRestoreFile");
             return;
         }
 
-        var dialog = new ContentDialog
-        {
-            Title = "Restore from Backup?",
-            Content = "Restoring will overwrite your current knowledge base — " +
-                      "documents, conversations, and workflows will be replaced with the " +
-                      "backup's contents. This cannot be undone, and Agent-X must be restarted " +
-                      "afterwards. Continue?",
-            PrimaryButtonText = "Restore",
-            CloseButtonText = "Cancel",
-            DefaultButton = ContentDialogButton.Close,
-            XamlRoot = this.XamlRoot
-        };
-
-        if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+        if (await ConfirmRestoreAsync())
         {
             await ViewModel.RestoreFromBackupCommand.ExecuteAsync(null);
         }
@@ -138,23 +127,30 @@ public sealed partial class BackupRestorePage : Page
             return;
         }
 
+        if (await ConfirmRestoreAsync())
+        {
+            await ViewModel.RestoreFromHistoryCommand.ExecuteAsync(filePath);
+        }
+    }
+
+    /// <summary>
+    /// Asks before a restore replaces the knowledge base. Cancel is the default button, so Enter
+    /// never starts a restore by accident. True when the user chose Restore.
+    /// </summary>
+    private async Task<bool> ConfirmRestoreAsync()
+    {
+        var localization = App.GetService<ILocalizationService>();
         var dialog = new ContentDialog
         {
-            Title = "Restore from Backup?",
-            Content = "Restoring will overwrite your current knowledge base — " +
-                      "documents, conversations, and workflows will be replaced with the " +
-                      "backup's contents. This cannot be undone, and Agent-X must be restarted " +
-                      "afterwards. Continue?",
-            PrimaryButtonText = "Restore",
-            CloseButtonText = "Cancel",
+            Title = localization.GetString("Backup_RestoreConfirmTitle"),
+            Content = localization.GetString("Backup_RestoreConfirmMessage"),
+            PrimaryButtonText = localization.GetString("Backup_RestoreButton"),
+            CloseButtonText = localization.GetString("Backup_CancelButton"),
             DefaultButton = ContentDialogButton.Close,
             XamlRoot = this.XamlRoot
         };
 
-        if (await dialog.ShowAsync() == ContentDialogResult.Primary)
-        {
-            await ViewModel.RestoreFromHistoryCommand.ExecuteAsync(filePath);
-        }
+        return await dialog.ShowAsync() == ContentDialogResult.Primary;
     }
 
     /// <summary>
@@ -168,13 +164,13 @@ public sealed partial class BackupRestorePage : Page
             return;
         }
 
+        var localization = App.GetService<ILocalizationService>();
         var dialog = new ContentDialog
         {
-            Title = "Delete Backup?",
-            Content = "This permanently deletes the selected backup file. " +
-                      "This cannot be undone. Continue?",
-            PrimaryButtonText = "Delete",
-            CloseButtonText = "Cancel",
+            Title = localization.GetString("Backup_DeleteConfirmTitle"),
+            Content = localization.GetString("Backup_DeleteConfirmMessage"),
+            PrimaryButtonText = localization.GetString("Backup_DeleteButton"),
+            CloseButtonText = localization.GetString("Backup_CancelButton"),
             DefaultButton = ContentDialogButton.Close,
             XamlRoot = this.XamlRoot
         };

@@ -125,6 +125,7 @@ public partial class BackupRestoreViewModel : ObservableObject
                     FileName = backup.FileName,
                     FilePath = backup.FilePath,
                     BackupType = backup.BackupType,
+                    BackupTypeLabel = DescribeBackupType(backup.BackupType),
                     SizeMB = backup.SizeMB,
                     CreatedAt = backup.CreatedAt,
                     Notes = backup.Notes ?? string.Empty,
@@ -140,6 +141,17 @@ public partial class BackupRestoreViewModel : ObservableObject
             Log.Error(ex, "Failed to load backup history");
         }
     }
+
+    /// <summary>
+    /// The name shown for a stored backup type ("manual" or "scheduled"). Any other type is
+    /// shown as stored.
+    /// </summary>
+    private string DescribeBackupType(string backupType) => backupType switch
+    {
+        "manual" => _localization.GetString("Backup_TypeManual"),
+        "scheduled" => _localization.GetString("Backup_TypeScheduled"),
+        _ => backupType
+    };
 
     [RelayCommand]
     private async Task EstimateBackupSizeAsync()
@@ -464,6 +476,13 @@ public partial class BackupHistoryItem : ObservableObject
     [ObservableProperty] private string _fileName = string.Empty;
     [ObservableProperty] private string _filePath = string.Empty;
     [ObservableProperty] private string _backupType = "manual";
+
+    /// <summary>
+    /// The backup type as shown in the history row, in the user's language. <see cref="BackupType"/>
+    /// keeps the stored value.
+    /// </summary>
+    public string BackupTypeLabel { get; init; } = string.Empty;
+
     [ObservableProperty] private double _sizeMB;
     [ObservableProperty] private DateTime _createdAt;
     [ObservableProperty] private string _notes = string.Empty;

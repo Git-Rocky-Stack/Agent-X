@@ -373,7 +373,7 @@
                                                 <TextBlock Style="{StaticResource CaptionStyle}">
                                                     <Run Text="{x:Bind SizeMB}" /><Run Text=" MB" />
                                                 </TextBlock>
-                                                <TextBlock Text="{x:Bind BackupType}"
+                                                <TextBlock Text="{x:Bind BackupTypeLabel}"
                                                            Style="{StaticResource CaptionStyle}" />
                                             </StackPanel>
                                         </StackPanel>
