@@ -1717,6 +1717,35 @@
   <data name="PastSelf_DraftBasisViews" xml:space="preserve"><value>{0} までに記録された見方のうち使用したもの: {1}</value></data>
   <data name="PastSelf_DraftBasisNoViews" xml:space="preserve"><value>{0} までに記録された見方に、この下書きに関係するものはありません。</value></data>
   <data name="PastSelf_DraftBasisInsights" xml:space="preserve"><value>背景として使用した保存済みインサイト: {0}</value></data>
+  <data name="PastSelf_NoRecords" xml:space="preserve"><value>選択した期間に「{0}」の記録は見つかりませんでした。</value></data>
+  <data name="PastSelf_ThoughtAbout" xml:space="preserve"><value>{0} についてのあなたの考えは次のとおりです。</value></data>
+  <data name="PastSelf_ThoughtAboutWhen" xml:space="preserve"><value>{1}の {0} についてのあなたの考えは次のとおりです。</value></data>
+  <data name="PastSelf_TimeToday" xml:space="preserve"><value>今日</value></data>
+  <data name="PastSelf_TimeYesterday" xml:space="preserve"><value>昨日</value></data>
+  <data name="PastSelf_TimeDaysAgo" xml:space="preserve"><value>{0} 日前</value></data>
+  <data name="PastSelf_TimeAboutAWeekAgo" xml:space="preserve"><value>約 1 週間前</value></data>
+  <data name="PastSelf_TimeWeeksAgo" xml:space="preserve"><value>約 {0} 週間前</value></data>
+  <data name="PastSelf_TimeAboutAMonthAgo" xml:space="preserve"><value>約 1 か月前</value></data>
+  <data name="PastSelf_TimeMonthsAgo" xml:space="preserve"><value>約 {0} か月前</value></data>
+  <data name="PastSelf_TimeAboutAYearAgo" xml:space="preserve"><value>約 1 年前</value></data>
+  <data name="PastSelf_TimeYearsAgo" xml:space="preserve"><value>約 {0} 年前</value></data>
+  <data name="PastSelf_SearchFailed" xml:space="preserve"><value>検索できませんでした: {0}</value></data>
+  <data name="PastSelf_InsightsFound" xml:space="preserve"><value>見つかった関連インサイト: {0} 件</value></data>
+  <data name="PastSelf_NoInsights" xml:space="preserve"><value>関連するインサイトは見つかりませんでした。</value></data>
+  <data name="PastSelf_InsightRelatedTo" xml:space="preserve"><value>関連: {0}</value></data>
+  <data name="PastSelf_InsightsFailed" xml:space="preserve"><value>インサイトを取得できませんでした: {0}</value></data>
+  <data name="PastSelf_NoEvolution" xml:space="preserve"><value>「{0}」の考えの変遷はまだ記録されていません。</value></data>
+  <data name="PastSelf_BeliefEvolved" xml:space="preserve"><value>{0} についての考えは {1} 以降に変化しています。</value></data>
+  <data name="PastSelf_BeliefConsistent" xml:space="preserve"><value>{0} についての考えは {1} 以降変わっていません。</value></data>
+  <data name="PastSelf_EvolutionFailed" xml:space="preserve"><value>考えの変遷を取得できませんでした: {0}</value></data>
+  <data name="PastSelf_ActiveTopicsFound" xml:space="preserve"><value>最近取り上げたトピック: {0} 件</value></data>
+  <data name="PastSelf_NoActiveTopics" xml:space="preserve"><value>過去 30 日間にアクティブなトピックは検出されませんでした。</value></data>
+  <data name="PastSelf_ActiveTopicsFailed" xml:space="preserve"><value>アクティブなトピックを取得できませんでした: {0}</value></data>
+  <data name="PastSelf_VoiceProfileFailed" xml:space="preserve"><value>文体プロファイルを読み込めませんでした: {0}</value></data>
+  <data name="PastSelf_StyleNotEnoughData" xml:space="preserve"><value>データ不足</value></data>
+  <data name="PastSelf_StyleCasual" xml:space="preserve"><value>カジュアル</value></data>
+  <data name="PastSelf_StyleBalanced" xml:space="preserve"><value>バランス</value></data>
+  <data name="PastSelf_StyleFormal" xml:space="preserve"><value>フォーマル</value></data>
   <data name="Settings_ApiKey2.Text" xml:space="preserve"><value>API キー</value></data>
   <data name="Settings_Endpoint3.Text" xml:space="preserve"><value>エンドポイント</value></data>
   <data name="Settings_DefaultModel2.Text" xml:space="preserve"><value>既定のモデル</value></data>

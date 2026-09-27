@@ -33,11 +33,15 @@ public sealed class PastSelfViewModelTests
             .Returns((string key, object[] args) => $"{key}: {string.Join(" | ", args)}");
     }
 
-    /// <summary>The view model over the real draft service, whose AI provider and records are mocked.</summary>
-    private PastSelfViewModel CreateViewModel() => new(
+    /// <summary>
+    /// The view model over the real draft service, whose AI provider and records are mocked. The
+    /// resources come back as their keys and arguments unless <paramref name="localization"/>
+    /// (such as <see cref="EnglishResources"/>) is given.
+    /// </summary>
+    private PastSelfViewModel CreateViewModel(ILocalizationService? localization = null) => new(
         _temporalIdentity.Object,
         new VoiceDraftService(_temporalIdentity.Object, _ai.Object, Logger.None),
-        _localization.Object);
+        localization ?? _localization.Object);
 
     // ── Voice profile ────────────────────────────────────────────────────────
     // With no captured samples the panel used to show an invented 15-word average and a
@@ -51,7 +55,7 @@ public sealed class PastSelfViewModelTests
             .Setup(service => service.GetVoiceProfileAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync((AgentX.Core.Services.TemporalIdentity.Models.VoiceProfileEntity?)null);
 
-        var viewModel = CreateViewModel();
+        var viewModel = CreateViewModel(EnglishResources.Create());
 
         await viewModel.LoadVoiceProfileCommand.ExecuteAsync(null);
 
@@ -126,7 +130,7 @@ public sealed class PastSelfViewModelTests
     {
         var now = new DateTime(2026, 9, 26, 12, 0, 0, DateTimeKind.Utc);
 
-        PastSelfViewModel.FormatTimeAgo(now.AddDays(-daysAgo), now).Should().Be(expected);
+        PastSelfViewModel.FormatTimeAgo(EnglishResources.Create(), now.AddDays(-daysAgo), now).Should().Be(expected);
     }
 
     [Fact]
@@ -141,7 +145,7 @@ public sealed class PastSelfViewModelTests
                 RelatedConversations = [],
                 RelatedDocuments = []
             });
-        var viewModel = CreateViewModel();
+        var viewModel = CreateViewModel(EnglishResources.Create());
         viewModel.SearchQuery = "remote work";
         viewModel.SelectedTimeRange = 0;
 
@@ -166,20 +170,106 @@ public sealed class PastSelfViewModelTests
                 new AgentX.Core.Services.TemporalIdentity.Models.ResurfacedInsight
                 {
                     Insight = insight,
-                    RelevanceReason = "same topic",
+                    RelatedTopics = ["remote work", "team rituals", "third topic"],
                     Context = "chat"
                 }
             ]);
 
-    [Fact]
-    public void FormalityLabel_WithSamples_DescribesTheMeasuredStyle()
+    [Theory]
+    [InlineData(0.1, "Casual")]
+    [InlineData(0.5, "Balanced")]
+    [InlineData(0.9, "Formal")]
+    public async Task LoadVoiceProfileAsync_WithSamples_DescribesTheMeasuredStyle(double formality, string expected)
     {
-        new VoiceProfileDisplay { SampleCount = 40, FormalityScore = 0.1 }
-            .FormalityLabel.Should().Be("Casual");
-        new VoiceProfileDisplay { SampleCount = 40, FormalityScore = 0.5 }
-            .FormalityLabel.Should().Be("Balanced");
-        new VoiceProfileDisplay { SampleCount = 40, FormalityScore = 0.9 }
-            .FormalityLabel.Should().Be("Formal");
+        _temporalIdentity
+            .Setup(service => service.GetVoiceProfileAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new VoiceProfileEntity { SampleCount = 40, FormalityScore = formality });
+        var viewModel = CreateViewModel(EnglishResources.Create());
+
+        await viewModel.LoadVoiceProfileCommand.ExecuteAsync(null);
+
+        viewModel.VoiceProfile!.FormalityLabel.Should().Be(expected);
+    }
+
+    // --- Messages in the user's language ---
+    // The page's messages, the style labels and the insight reasons were English literals in the
+    // view model and in Core; they are resources now.
+
+    [Fact]
+    public async Task PageMessages_AreReadFromTheResources()
+    {
+        _temporalIdentity
+            .Setup(service => service.GetPastSelfAsync(It.IsAny<string>(), It.IsAny<DateTime?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((PastSelfResponse?)null);
+        _temporalIdentity
+            .Setup(service => service.GetBeliefEvolutionAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new TemporalBeliefEntity
+            {
+                Topic = "Remote work",
+                HasEvolved = true,
+                FirstDetectedAt = new DateTime(2026, 1, 5, 0, 0, 0, DateTimeKind.Utc),
+            });
+        _temporalIdentity
+            .Setup(service => service.GetActiveTopicsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(["Remote work", "Async standups"]);
+        _temporalIdentity
+            .Setup(service => service.GetVoiceProfileAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new VoiceProfileEntity { SampleCount = 40, FormalityScore = 0.9 });
+        SetupInsights("Async standups beat meetings");
+        var viewModel = CreateViewModel();
+        viewModel.SearchQuery = "remote work";
+
+        await viewModel.SearchPastSelfCommand.ExecuteAsync(null);
+        viewModel.CurrentResult!.Message.Should().Be("PastSelf_NoRecords: remote work");
+
+        await viewModel.ShowBeliefEvolutionCommand.ExecuteAsync(null);
+        viewModel.CurrentResult!.Message.Should().StartWith("PastSelf_BeliefEvolved: Remote work | ");
+
+        await viewModel.GetRelevantInsightsCommand.ExecuteAsync(null);
+        viewModel.CurrentResult!.RelevantInsights!.Single().RelevanceReason
+            .Should().Be("PastSelf_InsightRelatedTo: remote work, team rituals", "the first two topics are named");
+
+        viewModel.CurrentResult = null;
+        await viewModel.GetActiveTopicsCommand.ExecuteAsync(null);
+        viewModel.CurrentResult!.Message.Should().Be("PastSelf_ActiveTopicsFound: 2");
+
+        await viewModel.LoadVoiceProfileCommand.ExecuteAsync(null);
+        viewModel.VoiceProfile!.FormalityLabel.Should().Be("PastSelf_StyleFormal");
+    }
+
+    [Fact]
+    public async Task SearchPastSelfAsync_ForAPastPeriod_SaysWhenInEnglishToo()
+    {
+        _temporalIdentity
+            .Setup(service => service.GetPastSelfAsync("remote work", It.IsAny<DateTime?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new PastSelfResponse
+            {
+                Topic = "Remote work",
+                EvidenceExcerpts = [],
+                RelatedConversations = [],
+                RelatedDocuments = []
+            });
+        var viewModel = CreateViewModel(EnglishResources.Create());
+        viewModel.SearchQuery = "remote work";
+        viewModel.SelectedTimeRange = 1;
+
+        await viewModel.SearchPastSelfCommand.ExecuteAsync(null);
+
+        viewModel.CurrentResult!.Message.Should().Be("Here's what you thought about Remote work about a week ago.");
+    }
+
+    [Fact]
+    public async Task SearchPastSelfAsync_Failing_ReportsTheErrorFromTheResources()
+    {
+        _temporalIdentity
+            .Setup(service => service.GetPastSelfAsync(It.IsAny<string>(), It.IsAny<DateTime?>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("database is locked"));
+        var viewModel = CreateViewModel(EnglishResources.Create());
+        viewModel.SearchQuery = "remote work";
+
+        await viewModel.SearchPastSelfCommand.ExecuteAsync(null);
+
+        viewModel.ErrorMessage.Should().Be("Could not search Past Self: database is locked");
     }
 
     // --- Belief evolution ---
@@ -267,7 +357,7 @@ public sealed class PastSelfViewModelTests
         _instructions.Should().Contain("No writing samples from them have been measured yet");
         viewModel.DraftBasis.Should().Contain("PastSelf_DraftBasisNoVoice").And.Contain("PastSelf_DraftBasisNoViews");
         viewModel.VoiceProfile!.SampleCount.Should().Be(0);
-        viewModel.VoiceProfile.FormalityLabel.Should().Be("Not enough data");
+        viewModel.VoiceProfile.FormalityLabel.Should().Be("PastSelf_StyleNotEnoughData");
     }
 
     [Theory]

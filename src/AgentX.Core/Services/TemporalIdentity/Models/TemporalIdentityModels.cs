@@ -410,7 +410,13 @@ public class ResurfacedInsight
     public long Id { get; set; }
     public required string Insight { get; set; }
     public DateTime OriginalDate { get; set; }
-    public required string RelevanceReason { get; set; }
+
+    /// <summary>
+    /// The topics the insight was saved under: why it is shown. The page words the reason in
+    /// the user's language; this used to be a finished English sentence ("Related to ...").
+    /// </summary>
+    public IReadOnlyList<string> RelatedTopics { get; set; } = [];
+
     public double Significance { get; set; }
     public required string Context { get; set; }
 }

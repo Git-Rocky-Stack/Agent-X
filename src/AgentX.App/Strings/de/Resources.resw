@@ -1717,6 +1717,35 @@
   <data name="PastSelf_DraftBasisViews" xml:space="preserve"><value>Verwendete Sichtweisen, erfasst bis {0}: {1}</value></data>
   <data name="PastSelf_DraftBasisNoViews" xml:space="preserve"><value>Keine Ihrer bis {0} erfassten Sichtweisen betrifft diesen Entwurf.</value></data>
   <data name="PastSelf_DraftBasisInsights" xml:space="preserve"><value>Als Hintergrund verwendete gespeicherte Erkenntnisse: {0}</value></data>
+  <data name="PastSelf_NoRecords" xml:space="preserve"><value>Keine Einträge zu „{0}“ aus dem gewählten Zeitraum gefunden.</value></data>
+  <data name="PastSelf_ThoughtAbout" xml:space="preserve"><value>So haben Sie über {0} gedacht.</value></data>
+  <data name="PastSelf_ThoughtAboutWhen" xml:space="preserve"><value>So haben Sie {1} über {0} gedacht.</value></data>
+  <data name="PastSelf_TimeToday" xml:space="preserve"><value>heute</value></data>
+  <data name="PastSelf_TimeYesterday" xml:space="preserve"><value>gestern</value></data>
+  <data name="PastSelf_TimeDaysAgo" xml:space="preserve"><value>vor {0} Tagen</value></data>
+  <data name="PastSelf_TimeAboutAWeekAgo" xml:space="preserve"><value>vor etwa einer Woche</value></data>
+  <data name="PastSelf_TimeWeeksAgo" xml:space="preserve"><value>vor etwa {0} Wochen</value></data>
+  <data name="PastSelf_TimeAboutAMonthAgo" xml:space="preserve"><value>vor etwa einem Monat</value></data>
+  <data name="PastSelf_TimeMonthsAgo" xml:space="preserve"><value>vor etwa {0} Monaten</value></data>
+  <data name="PastSelf_TimeAboutAYearAgo" xml:space="preserve"><value>vor etwa einem Jahr</value></data>
+  <data name="PastSelf_TimeYearsAgo" xml:space="preserve"><value>vor etwa {0} Jahren</value></data>
+  <data name="PastSelf_SearchFailed" xml:space="preserve"><value>Die Suche ist fehlgeschlagen: {0}</value></data>
+  <data name="PastSelf_InsightsFound" xml:space="preserve"><value>Gefundene relevante Erkenntnisse: {0}</value></data>
+  <data name="PastSelf_NoInsights" xml:space="preserve"><value>Keine relevanten Erkenntnisse gefunden.</value></data>
+  <data name="PastSelf_InsightRelatedTo" xml:space="preserve"><value>Bezieht sich auf {0}</value></data>
+  <data name="PastSelf_InsightsFailed" xml:space="preserve"><value>Die Erkenntnisse konnten nicht abgerufen werden: {0}</value></data>
+  <data name="PastSelf_NoEvolution" xml:space="preserve"><value>Für „{0}“ wurde noch keine Entwicklung einer Überzeugung erfasst.</value></data>
+  <data name="PastSelf_BeliefEvolved" xml:space="preserve"><value>Ihre Überzeugung zu {0} hat sich seit {1} weiterentwickelt.</value></data>
+  <data name="PastSelf_BeliefConsistent" xml:space="preserve"><value>Ihre Überzeugung zu {0} ist seit {1} unverändert.</value></data>
+  <data name="PastSelf_EvolutionFailed" xml:space="preserve"><value>Die Entwicklung der Überzeugung konnte nicht abgerufen werden: {0}</value></data>
+  <data name="PastSelf_ActiveTopicsFound" xml:space="preserve"><value>Kürzlich behandelte Themen: {0}</value></data>
+  <data name="PastSelf_NoActiveTopics" xml:space="preserve"><value>In den letzten 30 Tagen wurden keine aktiven Themen erkannt.</value></data>
+  <data name="PastSelf_ActiveTopicsFailed" xml:space="preserve"><value>Die aktiven Themen konnten nicht abgerufen werden: {0}</value></data>
+  <data name="PastSelf_VoiceProfileFailed" xml:space="preserve"><value>Das Stilprofil konnte nicht geladen werden: {0}</value></data>
+  <data name="PastSelf_StyleNotEnoughData" xml:space="preserve"><value>Nicht genug Daten</value></data>
+  <data name="PastSelf_StyleCasual" xml:space="preserve"><value>Locker</value></data>
+  <data name="PastSelf_StyleBalanced" xml:space="preserve"><value>Ausgewogen</value></data>
+  <data name="PastSelf_StyleFormal" xml:space="preserve"><value>Förmlich</value></data>
   <data name="Settings_ApiKey2.Text" xml:space="preserve"><value>API-Schlüssel</value></data>
   <data name="Settings_Endpoint3.Text" xml:space="preserve"><value>Endpunkt</value></data>
   <data name="Settings_DefaultModel2.Text" xml:space="preserve"><value>Standardmodell</value></data>

@@ -341,7 +341,7 @@ public sealed class TemporalIdentityServiceTests : IDisposable
         relevant.Select(r => r.Significance).Should().BeInDescendingOrder();
         relevant.Should().NotContain(r => r.Insight == "php memories");
         relevant.Should().NotContain(r => r.Insight == "docker but insignificant");
-        relevant[0].RelevanceReason.Should().StartWith("Related to");
+        relevant[0].RelatedTopics.Should().Equal("docker");
         relevant[0].Context.Should().Contain("From ");
     }
 

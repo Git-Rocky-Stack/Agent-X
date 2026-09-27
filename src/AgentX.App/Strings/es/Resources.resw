@@ -1717,6 +1717,35 @@
   <data name="PastSelf_DraftBasisViews" xml:space="preserve"><value>Puntos de vista usados, registrados hasta el {0}: {1}</value></data>
   <data name="PastSelf_DraftBasisNoViews" xml:space="preserve"><value>Ninguno de sus puntos de vista registrados hasta el {0} tiene relación con este borrador.</value></data>
   <data name="PastSelf_DraftBasisInsights" xml:space="preserve"><value>Ideas guardadas usadas como contexto: {0}</value></data>
+  <data name="PastSelf_NoRecords" xml:space="preserve"><value>No se encontraron registros sobre "{0}" del período seleccionado.</value></data>
+  <data name="PastSelf_ThoughtAbout" xml:space="preserve"><value>Esto es lo que pensaba sobre {0}.</value></data>
+  <data name="PastSelf_ThoughtAboutWhen" xml:space="preserve"><value>Esto es lo que pensaba sobre {0} {1}.</value></data>
+  <data name="PastSelf_TimeToday" xml:space="preserve"><value>hoy</value></data>
+  <data name="PastSelf_TimeYesterday" xml:space="preserve"><value>ayer</value></data>
+  <data name="PastSelf_TimeDaysAgo" xml:space="preserve"><value>hace {0} días</value></data>
+  <data name="PastSelf_TimeAboutAWeekAgo" xml:space="preserve"><value>hace aproximadamente una semana</value></data>
+  <data name="PastSelf_TimeWeeksAgo" xml:space="preserve"><value>hace aproximadamente {0} semanas</value></data>
+  <data name="PastSelf_TimeAboutAMonthAgo" xml:space="preserve"><value>hace aproximadamente un mes</value></data>
+  <data name="PastSelf_TimeMonthsAgo" xml:space="preserve"><value>hace aproximadamente {0} meses</value></data>
+  <data name="PastSelf_TimeAboutAYearAgo" xml:space="preserve"><value>hace aproximadamente un año</value></data>
+  <data name="PastSelf_TimeYearsAgo" xml:space="preserve"><value>hace aproximadamente {0} años</value></data>
+  <data name="PastSelf_SearchFailed" xml:space="preserve"><value>No se pudo completar la búsqueda: {0}</value></data>
+  <data name="PastSelf_InsightsFound" xml:space="preserve"><value>Ideas relevantes encontradas: {0}</value></data>
+  <data name="PastSelf_NoInsights" xml:space="preserve"><value>No se encontraron ideas relevantes.</value></data>
+  <data name="PastSelf_InsightRelatedTo" xml:space="preserve"><value>Relacionada con {0}</value></data>
+  <data name="PastSelf_InsightsFailed" xml:space="preserve"><value>No se pudieron obtener las ideas: {0}</value></data>
+  <data name="PastSelf_NoEvolution" xml:space="preserve"><value>Todavía no se ha registrado ninguna evolución de creencias para "{0}".</value></data>
+  <data name="PastSelf_BeliefEvolved" xml:space="preserve"><value>Su creencia sobre {0} ha evolucionado desde {1}.</value></data>
+  <data name="PastSelf_BeliefConsistent" xml:space="preserve"><value>Su creencia sobre {0} se ha mantenido igual desde {1}.</value></data>
+  <data name="PastSelf_EvolutionFailed" xml:space="preserve"><value>No se pudo obtener la evolución de la creencia: {0}</value></data>
+  <data name="PastSelf_ActiveTopicsFound" xml:space="preserve"><value>Temas explorados recientemente: {0}</value></data>
+  <data name="PastSelf_NoActiveTopics" xml:space="preserve"><value>No se detectaron temas activos en los últimos 30 días.</value></data>
+  <data name="PastSelf_ActiveTopicsFailed" xml:space="preserve"><value>No se pudieron obtener los temas activos: {0}</value></data>
+  <data name="PastSelf_VoiceProfileFailed" xml:space="preserve"><value>No se pudo cargar el perfil de voz: {0}</value></data>
+  <data name="PastSelf_StyleNotEnoughData" xml:space="preserve"><value>No hay suficientes datos</value></data>
+  <data name="PastSelf_StyleCasual" xml:space="preserve"><value>Informal</value></data>
+  <data name="PastSelf_StyleBalanced" xml:space="preserve"><value>Equilibrado</value></data>
+  <data name="PastSelf_StyleFormal" xml:space="preserve"><value>Formal</value></data>
   <data name="Settings_ApiKey2.Text" xml:space="preserve"><value>Clave de API</value></data>
   <data name="Settings_Endpoint3.Text" xml:space="preserve"><value>Endpoint</value></data>
   <data name="Settings_DefaultModel2.Text" xml:space="preserve"><value>Modelo predeterminado</value></data>

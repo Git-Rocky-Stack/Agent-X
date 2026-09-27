@@ -75,12 +75,12 @@ public partial class PastSelfViewModel : ObservableObject
                 {
                     Topic = SearchQuery,
                     Found = false,
-                    Message = $"No records found about \"{SearchQuery}\" from the selected time period."
+                    Message = _localization.GetString("PastSelf_NoRecords", SearchQuery)
                 };
             }
             else
             {
-                var timeAgo = FormatTimeAgo(targetDate);
+                var timeAgo = FormatTimeAgo(_localization, targetDate, DateTime.UtcNow);
                 CurrentResult = new PastSelfResult
                 {
                     Topic = result.Topic,
@@ -94,14 +94,14 @@ public partial class PastSelfViewModel : ObservableObject
                     HasEvolved = result.HasEvolved,
                     CurrentStance = result.CurrentStance,
                     Message = string.IsNullOrEmpty(timeAgo)
-                        ? $"Here's what you thought about {result.Topic}."
-                        : $"Here's what you thought about {result.Topic} {timeAgo}."
+                        ? _localization.GetString("PastSelf_ThoughtAbout", result.Topic)
+                        : _localization.GetString("PastSelf_ThoughtAboutWhen", result.Topic, timeAgo)
                 };
             }
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Failed to search past self: {ex.Message}";
+            ErrorMessage = _localization.GetString("PastSelf_SearchFailed", ex.Message);
         }
         finally
         {
@@ -130,7 +130,9 @@ public partial class PastSelfViewModel : ObservableObject
             {
                 Insight = i.Insight,
                 OriginalDate = i.OriginalDate,
-                RelevanceReason = i.RelevanceReason,
+                RelevanceReason = i.RelatedTopics.Count == 0
+                    ? string.Empty
+                    : _localization.GetString("PastSelf_InsightRelatedTo", string.Join(", ", i.RelatedTopics.Take(2))),
                 Significance = i.Significance
             }).ToList();
 
@@ -142,8 +144,8 @@ public partial class PastSelfViewModel : ObservableObject
                 Topic = SearchQuery,
                 Found = false,
                 Message = insights.Any()
-                    ? $"Found {insights.Count} relevant insights from your past."
-                    : "No relevant insights found.",
+                    ? _localization.GetString("PastSelf_InsightsFound", insights.Count)
+                    : _localization.GetString("PastSelf_NoInsights"),
                 RelevantInsights = insightItems
             };
 
@@ -151,7 +153,7 @@ public partial class PastSelfViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Failed to get insights: {ex.Message}";
+            ErrorMessage = _localization.GetString("PastSelf_InsightsFailed", ex.Message);
         }
         finally
         {
@@ -181,11 +183,12 @@ public partial class PastSelfViewModel : ObservableObject
                 {
                     Topic = SearchQuery,
                     Found = false,
-                    Message = $"No belief evolution tracked for \"{SearchQuery}\" yet."
+                    Message = _localization.GetString("PastSelf_NoEvolution", SearchQuery)
                 };
             }
             else
             {
+                var since = belief.FirstDetectedAt.ToString("Y", CultureInfo.CurrentCulture);
                 CurrentResult = new PastSelfResult
                 {
                     Topic = belief.Topic,
@@ -199,14 +202,14 @@ public partial class PastSelfViewModel : ObservableObject
                     EvolutionChanged = belief.StanceChangedAt,
                     PreviousStance = belief.PreviousStance,
                     Message = belief.HasEvolved
-                        ? $"Your belief about {belief.Topic} has evolved since {belief.FirstDetectedAt:yyyy-MM}."
-                        : $"Your belief about {belief.Topic} has been consistent since {belief.FirstDetectedAt:yyyy-MM}."
+                        ? _localization.GetString("PastSelf_BeliefEvolved", belief.Topic, since)
+                        : _localization.GetString("PastSelf_BeliefConsistent", belief.Topic, since)
                 };
             }
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Failed to get belief evolution: {ex.Message}";
+            ErrorMessage = _localization.GetString("PastSelf_EvolutionFailed", ex.Message);
         }
         finally
         {
@@ -229,26 +232,25 @@ public partial class PastSelfViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Describes how long ago <paramref name="date"/> was. The past week used to read "about a
-    /// month ago" and the past year "about 1 years ago".
+    /// Describes how long before <paramref name="now"/> the <paramref name="date"/> was, as the
+    /// phrase that completes "Here's what you thought about X ...", in the user's language. The
+    /// past week used to read "about a month ago" and the past year "about 1 years ago".
     /// </summary>
-    internal static string FormatTimeAgo(DateTime? date) => FormatTimeAgo(date, DateTime.UtcNow);
-
-    internal static string FormatTimeAgo(DateTime? date, DateTime now)
+    internal static string FormatTimeAgo(ILocalizationService localization, DateTime? date, DateTime now)
     {
         if (!date.HasValue) return "";
 
         var days = (now - date.Value).TotalDays;
         if (days < 0) return "";
-        if (days < 1) return "today";
-        if (days < 2) return "yesterday";
-        if (days < 7) return $"{(int)days} days ago";
-        if (days < 14) return "about a week ago";
-        if (days < 28) return $"about {(int)(days / 7)} weeks ago";
-        if (days < 60) return "about a month ago";
-        if (days < 365) return $"about {(int)(days / 30)} months ago";
-        if (days < 730) return "about a year ago";
-        return $"about {(int)(days / 365)} years ago";
+        if (days < 1) return localization.GetString("PastSelf_TimeToday");
+        if (days < 2) return localization.GetString("PastSelf_TimeYesterday");
+        if (days < 7) return localization.GetString("PastSelf_TimeDaysAgo", (int)days);
+        if (days < 14) return localization.GetString("PastSelf_TimeAboutAWeekAgo");
+        if (days < 28) return localization.GetString("PastSelf_TimeWeeksAgo", (int)(days / 7));
+        if (days < 60) return localization.GetString("PastSelf_TimeAboutAMonthAgo");
+        if (days < 365) return localization.GetString("PastSelf_TimeMonthsAgo", (int)(days / 30));
+        if (days < 730) return localization.GetString("PastSelf_TimeAboutAYearAgo");
+        return localization.GetString("PastSelf_TimeYearsAgo", (int)(days / 365));
     }
 
     /// <summary>
@@ -272,8 +274,8 @@ public partial class PastSelfViewModel : ObservableObject
                     Topic = "Active Topics",
                     Found = true,
                     Message = topics.Any()
-                        ? $"You've been exploring {topics.Count} topics recently."
-                        : "No active topics detected in the past month."
+                        ? _localization.GetString("PastSelf_ActiveTopicsFound", topics.Count)
+                        : _localization.GetString("PastSelf_NoActiveTopics")
                 };
             }
 
@@ -283,7 +285,7 @@ public partial class PastSelfViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Failed to get active topics: {ex.Message}";
+            ErrorMessage = _localization.GetString("PastSelf_ActiveTopicsFailed", ex.Message);
         }
         finally
         {
@@ -456,7 +458,7 @@ public partial class PastSelfViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Failed to load voice profile: {ex.Message}";
+            ErrorMessage = _localization.GetString("PastSelf_VoiceProfileFailed", ex.Message);
         }
     }
 
@@ -465,14 +467,15 @@ public partial class PastSelfViewModel : ObservableObject
     /// absence is reported rather than plausible-looking numbers, since a 15-word average and a
     /// "Balanced" style read as measurements of the user's writing when nothing was measured.
     /// </summary>
-    private static VoiceProfileDisplay ToDisplay(VoiceProfileEntity? profile) => profile is null
+    private VoiceProfileDisplay ToDisplay(VoiceProfileEntity? profile) => profile is null
         ? new VoiceProfileDisplay
         {
             SampleCount = 0,
             AvgSentenceLength = 0,
             FormalityScore = 0,
             FirstSampleAt = DateTime.MinValue,
-            LastSampleAt = DateTime.MinValue
+            LastSampleAt = DateTime.MinValue,
+            FormalityLabel = DescribeFormality(sampleCount: 0, score: 0)
         }
         : new VoiceProfileDisplay
         {
@@ -480,7 +483,22 @@ public partial class PastSelfViewModel : ObservableObject
             AvgSentenceLength = profile.AvgSentenceLength,
             FormalityScore = profile.FormalityScore,
             FirstSampleAt = profile.FirstSampleAt,
-            LastSampleAt = profile.LastSampleAt
+            LastSampleAt = profile.LastSampleAt,
+            FormalityLabel = DescribeFormality(profile.SampleCount, profile.FormalityScore)
+        };
+
+    /// <summary>
+    /// The measured writing style, or plainly that nothing has been measured. Without the
+    /// sample-count guard a profile with no data reads "Casual", which is indistinguishable from
+    /// a real reading.
+    /// </summary>
+    private string DescribeFormality(int sampleCount, double score) => sampleCount == 0
+        ? _localization.GetString("PastSelf_StyleNotEnoughData")
+        : score switch
+        {
+            < 0.3 => _localization.GetString("PastSelf_StyleCasual"),
+            < 0.6 => _localization.GetString("PastSelf_StyleBalanced"),
+            _ => _localization.GetString("PastSelf_StyleFormal")
         };
 }
 
@@ -532,21 +550,6 @@ public class VoiceProfileDisplay
     public DateTime FirstSampleAt { get; set; }
     public DateTime LastSampleAt { get; set; }
 
-    /// <summary>
-    /// Describes the measured writing style, or says so plainly when nothing has been
-    /// measured. Without the sample-count guard a profile with no data reports "Casual",
-    /// which is indistinguishable from a real reading.
-    /// </summary>
-    public string FormalityLabel => SampleCount == 0
-        ? "Not enough data"
-        : FormalityScore switch
-        {
-            < 0.3 => "Casual",
-            < 0.6 => "Balanced",
-            _ => "Formal"
-        };
-
-    public string StyleDescription => SampleCount < 10
-        ? "Still learning your voice..."
-        : $"Based on {SampleCount} of your messages";
+    /// <summary>The measured writing style in the user's language (Casual, Balanced, Formal), or "Not enough data".</summary>
+    public string FormalityLabel { get; set; } = string.Empty;
 }

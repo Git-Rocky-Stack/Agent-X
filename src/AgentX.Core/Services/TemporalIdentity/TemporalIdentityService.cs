@@ -249,7 +249,7 @@ public class TemporalIdentityService : ITemporalIdentityService
                     Id = insight.Id,
                     Insight = insight.InsightText,
                     OriginalDate = insight.CapturedAt,
-                    RelevanceReason = $"Related to {string.Join(", ", insightTopics.Take(2))}",
+                    RelatedTopics = insightTopics,
                     Significance = insight.SignificanceScore,
                     Context = string.Create(
                         CultureInfo.InvariantCulture, $"From {insight.SourceType} on {insight.CapturedAt:yyyy-MM-dd}"),

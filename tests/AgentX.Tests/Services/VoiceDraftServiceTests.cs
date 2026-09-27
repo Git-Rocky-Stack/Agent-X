@@ -374,7 +374,6 @@ public sealed class VoiceDraftServiceTests
     {
         Insight = text,
         OriginalDate = savedAt,
-        RelevanceReason = "related",
         Context = "From UserExplicitSave",
     };
 

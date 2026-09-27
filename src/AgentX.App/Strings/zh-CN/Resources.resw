@@ -1717,6 +1717,35 @@
   <data name="PastSelf_DraftBasisViews" xml:space="preserve"><value>使用的观点（截至 {0} 的记录）：{1}</value></data>
   <data name="PastSelf_DraftBasisNoViews" xml:space="preserve"><value>截至 {0} 记录的观点均与此草稿无关。</value></data>
   <data name="PastSelf_DraftBasisInsights" xml:space="preserve"><value>作为背景使用的已保存洞见：{0}</value></data>
+  <data name="PastSelf_NoRecords" xml:space="preserve"><value>在所选时间范围内未找到关于“{0}”的记录。</value></data>
+  <data name="PastSelf_ThoughtAbout" xml:space="preserve"><value>以下是您对 {0} 的看法。</value></data>
+  <data name="PastSelf_ThoughtAboutWhen" xml:space="preserve"><value>以下是您{1}对 {0} 的看法。</value></data>
+  <data name="PastSelf_TimeToday" xml:space="preserve"><value>今天</value></data>
+  <data name="PastSelf_TimeYesterday" xml:space="preserve"><value>昨天</value></data>
+  <data name="PastSelf_TimeDaysAgo" xml:space="preserve"><value>{0} 天前</value></data>
+  <data name="PastSelf_TimeAboutAWeekAgo" xml:space="preserve"><value>大约一周前</value></data>
+  <data name="PastSelf_TimeWeeksAgo" xml:space="preserve"><value>大约 {0} 周前</value></data>
+  <data name="PastSelf_TimeAboutAMonthAgo" xml:space="preserve"><value>大约一个月前</value></data>
+  <data name="PastSelf_TimeMonthsAgo" xml:space="preserve"><value>大约 {0} 个月前</value></data>
+  <data name="PastSelf_TimeAboutAYearAgo" xml:space="preserve"><value>大约一年前</value></data>
+  <data name="PastSelf_TimeYearsAgo" xml:space="preserve"><value>大约 {0} 年前</value></data>
+  <data name="PastSelf_SearchFailed" xml:space="preserve"><value>搜索失败：{0}</value></data>
+  <data name="PastSelf_InsightsFound" xml:space="preserve"><value>找到的相关洞见：{0}</value></data>
+  <data name="PastSelf_NoInsights" xml:space="preserve"><value>未找到相关洞见。</value></data>
+  <data name="PastSelf_InsightRelatedTo" xml:space="preserve"><value>相关主题：{0}</value></data>
+  <data name="PastSelf_InsightsFailed" xml:space="preserve"><value>无法获取洞见：{0}</value></data>
+  <data name="PastSelf_NoEvolution" xml:space="preserve"><value>尚未记录“{0}”的观点演变。</value></data>
+  <data name="PastSelf_BeliefEvolved" xml:space="preserve"><value>自 {1} 以来，您对 {0} 的观点已发生演变。</value></data>
+  <data name="PastSelf_BeliefConsistent" xml:space="preserve"><value>自 {1} 以来，您对 {0} 的观点一直未变。</value></data>
+  <data name="PastSelf_EvolutionFailed" xml:space="preserve"><value>无法获取观点演变：{0}</value></data>
+  <data name="PastSelf_ActiveTopicsFound" xml:space="preserve"><value>近期探索的主题：{0}</value></data>
+  <data name="PastSelf_NoActiveTopics" xml:space="preserve"><value>过去 30 天内未检测到活跃主题。</value></data>
+  <data name="PastSelf_ActiveTopicsFailed" xml:space="preserve"><value>无法获取活跃主题：{0}</value></data>
+  <data name="PastSelf_VoiceProfileFailed" xml:space="preserve"><value>无法加载写作画像：{0}</value></data>
+  <data name="PastSelf_StyleNotEnoughData" xml:space="preserve"><value>数据不足</value></data>
+  <data name="PastSelf_StyleCasual" xml:space="preserve"><value>随意</value></data>
+  <data name="PastSelf_StyleBalanced" xml:space="preserve"><value>适中</value></data>
+  <data name="PastSelf_StyleFormal" xml:space="preserve"><value>正式</value></data>
   <data name="Settings_ApiKey2.Text" xml:space="preserve"><value>API 密钥</value></data>
   <data name="Settings_Endpoint3.Text" xml:space="preserve"><value>端点</value></data>
   <data name="Settings_DefaultModel2.Text" xml:space="preserve"><value>默认模型</value></data>
