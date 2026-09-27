@@ -1418,6 +1418,99 @@
                                     </TextBlock>
                                 </StackPanel>
                             </Border>
+
+                            <!-- Memories: facts noted from chats, shared by every conversation.
+                                 Read when the inspector opens; each can be deleted, or all. -->
+                            <Border Background="{ThemeResource CardBrush}"
+                                    BorderBrush="{ThemeResource BorderSubtleBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="{StaticResource RControl}"
+                                    Padding="12">
+                                <StackPanel Spacing="8">
+                                    <Grid ColumnSpacing="8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <TextBlock x:Uid="Chat_MemoriesTitle" Text="Memories"
+                                                   Style="{StaticResource CaptionStyle}"
+                                                   Foreground="{ThemeResource TextAccentBrush}"
+                                                   VerticalAlignment="Center" />
+
+                                        <!-- Memory count: a number in an LCD well, like the token count -->
+                                        <Border Grid.Column="1"
+                                                Background="{ThemeResource VoidBrush}"
+                                                BorderBrush="{ThemeResource HairlineBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="{StaticResource RCard}"
+                                                Padding="8,3,8,3"
+                                                VerticalAlignment="Center">
+                                            <TextBlock Style="{StaticResource LcdStyle}"
+                                                       FontSize="10">
+                                                <Run Text="{x:Bind ViewModel.MemoryCount, Mode=OneWay}" />
+                                                <Run x:Uid="Chat_MemoriesCountRun" Text="stored" />
+                                            </TextBlock>
+                                        </Border>
+
+                                        <Button Grid.Column="2"
+                                                x:Uid="Chat_ClearMemoriesBtn" Content="Clear all"
+                                                Style="{StaticResource GhostButtonStyle}"
+                                                Command="{x:Bind ViewModel.ClearMemoriesCommand}"
+                                                Visibility="{x:Bind ViewModel.HasMemories, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"
+                                                Padding="8,4,8,4"
+                                                MinHeight="28"
+                                                FontSize="12" />
+                                    </Grid>
+
+                                    <TextBlock x:Uid="Chat_MemoriesHint"
+                                               Text="Facts Agent-X noted from your chats. When you send a message, up to eight that closely match it are added to the model's context, whichever conversation they came from."
+                                               Style="{StaticResource CaptionStyle}"
+                                               TextWrapping="WrapWholeWords" />
+
+                                    <TextBlock Text="{x:Bind ViewModel.MemoriesStatus, Mode=OneWay}"
+                                               Style="{StaticResource CaptionStyle}"
+                                               Foreground="{ThemeResource TextSecondaryBrush}"
+                                               TextWrapping="WrapWholeWords"
+                                               Visibility="{x:Bind ViewModel.HasMemoriesStatus, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+
+                                    <ScrollViewer MaxHeight="200"
+                                                  VerticalScrollBarVisibility="Auto"
+                                                  HorizontalScrollBarVisibility="Disabled"
+                                                  Visibility="{x:Bind ViewModel.HasMemories, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                                        <ItemsRepeater ItemsSource="{x:Bind ViewModel.Memories, Mode=OneWay}">
+                                            <ItemsRepeater.Layout>
+                                                <StackLayout Orientation="Vertical" Spacing="4" />
+                                            </ItemsRepeater.Layout>
+                                            <ItemsRepeater.ItemTemplate>
+                                                <DataTemplate x:DataType="vm:ChatMemoryItem">
+                                                    <Grid ColumnSpacing="8">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+
+                                                        <TextBlock Text="{x:Bind Content}"
+                                                                   Style="{StaticResource CaptionStyle}"
+                                                                   TextWrapping="WrapWholeWords"
+                                                                   VerticalAlignment="Center" />
+
+                                                        <Button Grid.Column="1"
+                                                                Style="{StaticResource MessageActionButtonStyle}"
+                                                                Click="OnDeleteMemoryClick"
+                                                                Tag="{x:Bind}"
+                                                                x:Uid="Chat_DeleteMemoryTip" ToolTipService.ToolTip="Delete memory"
+                                                                VerticalAlignment="Center">
+                                                            <FontIcon Glyph="&#xE74D;" FontSize="12" />
+                                                        </Button>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ItemsRepeater.ItemTemplate>
+                                        </ItemsRepeater>
+                                    </ScrollViewer>
+                                </StackPanel>
+                            </Border>
                         </StackPanel>
                     </Border>
 

@@ -1105,6 +1105,22 @@
   <data name="Dash_BeliefUnavailableDetail" xml:space="preserve"><value>Agent-X could not load your belief history.</value></data>
   <data name="Chat_CodeCopy" xml:space="preserve"><value>Copy</value></data>
   <data name="Chat_CodeCopied" xml:space="preserve"><value>Copied!</value></data>
+  <data name="Chat_MemoriesTitle.Text" xml:space="preserve"><value>Memories</value></data>
+  <data name="Chat_MemoriesCountRun.Text" xml:space="preserve"><value>stored</value></data>
+  <data name="Chat_ClearMemoriesBtn.Content" xml:space="preserve"><value>Clear all</value></data>
+  <data name="Chat_MemoriesHint.Text" xml:space="preserve"><value>Facts Agent-X noted from your chats. When you send a message, up to eight that closely match it are added to the model's context, whichever conversation they came from.</value></data>
+  <data name="Chat_DeleteMemoryTip.ToolTipService.ToolTip" xml:space="preserve"><value>Delete memory</value></data>
+  <data name="Chat_DeleteMemoryTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Delete memory</value></data>
+  <data name="Chat_MemoriesEmpty" xml:space="preserve"><value>No memories are stored.</value></data>
+  <data name="Chat_MemoriesLoadFailed" xml:space="preserve"><value>Memories could not be loaded.</value></data>
+  <data name="Chat_DeleteMemoryFailedTitle" xml:space="preserve"><value>Memory not deleted</value></data>
+  <data name="Chat_DeleteMemoryFailedBody" xml:space="preserve"><value>The memory could not be deleted and is still stored. Try again.</value></data>
+  <data name="Chat_ClearMemoriesTitle" xml:space="preserve"><value>Delete all memories?</value></data>
+  <data name="Chat_ClearMemoriesBody" xml:space="preserve"><value>Everything Agent-X has noted about you from your chats will be permanently deleted. Your conversations are kept, so facts can be noted again from new messages.</value></data>
+  <data name="Chat_ClearMemoriesConfirm" xml:space="preserve"><value>Delete all</value></data>
+  <data name="Chat_ClearMemoriesCancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Chat_ClearMemoriesFailedTitle" xml:space="preserve"><value>Memories not deleted</value></data>
+  <data name="Chat_ClearMemoriesFailedBody" xml:space="preserve"><value>The memories could not be deleted and are still stored. Try again.</value></data>
   <data name="Main_QuickActions.Content" xml:space="preserve"><value>Quick Actions</value></data>
   <data name="Main_Workflows.Content" xml:space="preserve"><value>Workflows</value></data>
   <data name="Main_Knowledge.Content" xml:space="preserve"><value>KNOWLEDGE</value></data>

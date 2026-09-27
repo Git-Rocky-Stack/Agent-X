@@ -983,6 +983,22 @@
   <data name="Dash_BeliefUnavailableDetail" xml:space="preserve"><value>Agent-X konnte Ihren Überzeugungsverlauf nicht laden.</value></data>
   <data name="Chat_CodeCopy" xml:space="preserve"><value>Kopieren</value></data>
   <data name="Chat_CodeCopied" xml:space="preserve"><value>Kopiert!</value></data>
+  <data name="Chat_MemoriesTitle.Text" xml:space="preserve"><value>Erinnerungen</value></data>
+  <data name="Chat_MemoriesCountRun.Text" xml:space="preserve"><value>gespeichert</value></data>
+  <data name="Chat_ClearMemoriesBtn.Content" xml:space="preserve"><value>Alle löschen</value></data>
+  <data name="Chat_MemoriesHint.Text" xml:space="preserve"><value>Fakten, die Agent-X aus Ihren Chats notiert hat. Wenn Sie eine Nachricht senden, werden bis zu acht, die eng zu ihr passen, dem Kontext des Modells hinzugefügt, egal aus welcher Unterhaltung sie stammen.</value></data>
+  <data name="Chat_DeleteMemoryTip.ToolTipService.ToolTip" xml:space="preserve"><value>Erinnerung löschen</value></data>
+  <data name="Chat_DeleteMemoryTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Erinnerung löschen</value></data>
+  <data name="Chat_MemoriesEmpty" xml:space="preserve"><value>Es sind keine Erinnerungen gespeichert.</value></data>
+  <data name="Chat_MemoriesLoadFailed" xml:space="preserve"><value>Erinnerungen konnten nicht geladen werden.</value></data>
+  <data name="Chat_DeleteMemoryFailedTitle" xml:space="preserve"><value>Erinnerung nicht gelöscht</value></data>
+  <data name="Chat_DeleteMemoryFailedBody" xml:space="preserve"><value>Die Erinnerung konnte nicht gelöscht werden und ist weiterhin gespeichert. Versuchen Sie es erneut.</value></data>
+  <data name="Chat_ClearMemoriesTitle" xml:space="preserve"><value>Alle Erinnerungen löschen?</value></data>
+  <data name="Chat_ClearMemoriesBody" xml:space="preserve"><value>Alles, was Agent-X aus Ihren Chats über Sie notiert hat, wird endgültig gelöscht. Ihre Unterhaltungen bleiben erhalten, daher können aus neuen Nachrichten wieder Fakten notiert werden.</value></data>
+  <data name="Chat_ClearMemoriesConfirm" xml:space="preserve"><value>Alle löschen</value></data>
+  <data name="Chat_ClearMemoriesCancel" xml:space="preserve"><value>Abbrechen</value></data>
+  <data name="Chat_ClearMemoriesFailedTitle" xml:space="preserve"><value>Erinnerungen nicht gelöscht</value></data>
+  <data name="Chat_ClearMemoriesFailedBody" xml:space="preserve"><value>Die Erinnerungen konnten nicht gelöscht werden und sind weiterhin gespeichert. Versuchen Sie es erneut.</value></data>
   <data name="Main_QuickActions.Content" xml:space="preserve"><value>Quick Actions</value></data>
   <data name="Main_Workflows.Content" xml:space="preserve"><value>Workflows</value></data>
   <data name="Main_Knowledge.Content" xml:space="preserve"><value>WISSEN</value></data>

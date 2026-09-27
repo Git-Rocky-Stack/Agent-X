@@ -40,6 +40,7 @@ public sealed partial class ChatPage : Page
     {
         ViewModel = PageViewModelFactory.Create<ChatViewModel>();
         Interlocked.Exchange(ref s_liveViewModel, ViewModel)?.Dispose();
+        ViewModel.ConfirmClearMemoriesAsync = ConfirmClearMemoriesAsync;
         _shortcutRegistry = App.GetService<IShortcutRegistry>();
         InitializeComponent();
 
@@ -301,6 +302,33 @@ public sealed partial class ChatPage : Page
         {
             ViewModel.DeleteMessageCommand.Execute(message);
         }
+    }
+
+    private void OnDeleteMemoryClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is ChatMemoryItem memory)
+        {
+            ViewModel.DeleteMemoryCommand.Execute(memory);
+        }
+    }
+
+    /// <summary>
+    /// Asks before every memory is deleted. Deleting cannot be undone; conversations are kept.
+    /// </summary>
+    private async Task<bool> ConfirmClearMemoriesAsync()
+    {
+        var localization = App.GetService<ILocalizationService>();
+        var dialog = new ContentDialog
+        {
+            Title = localization.GetString("Chat_ClearMemoriesTitle"),
+            Content = localization.GetString("Chat_ClearMemoriesBody"),
+            PrimaryButtonText = localization.GetString("Chat_ClearMemoriesConfirm"),
+            CloseButtonText = localization.GetString("Chat_ClearMemoriesCancel"),
+            DefaultButton = ContentDialogButton.Close,
+            XamlRoot = this.XamlRoot
+        };
+
+        return await dialog.ShowAsync() == ContentDialogResult.Primary;
     }
 
     private void OnOpenWebCitationClick(object sender, RoutedEventArgs e)

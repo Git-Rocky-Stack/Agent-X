@@ -210,11 +210,45 @@ Conversation:
     /// <inheritdoc />
     public async Task<IReadOnlyList<MemoryEntity>> GetAllMemoriesAsync(CancellationToken ct = default)
     {
+        // Untracked: the list is for display, and the shared change tracker is also used by the
+        // background memory extraction.
         return await _db.Memories
+            .AsNoTracking()
             .Where(m => m.IsActive)
             .OrderByDescending(m => m.Importance)
             .ThenByDescending(m => m.CreatedAt)
             .ToListAsync(ct);
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> DeleteMemoryAsync(long memoryId, CancellationToken ct = default)
+    {
+        // Set-based statements rather than tracked Remove calls: the context is shared with the
+        // background extraction. Links go first, because databases built from the model carry a
+        // restricting foreign key on LinkedMemoryId, and a link to a deleted memory leads nowhere.
+        await _db.Memories
+            .Where(m => m.LinkedMemoryId == memoryId)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(m => m.LinkedMemoryId, (long?)null), ct);
+
+        var deleted = await _db.Memories
+            .Where(m => m.Id == memoryId)
+            .ExecuteDeleteAsync(ct);
+
+        _logger.Information("Deleted memory {MemoryId}: {Deleted}", memoryId, deleted > 0);
+        return deleted > 0;
+    }
+
+    /// <inheritdoc />
+    public async Task<int> DeleteAllMemoriesAsync(CancellationToken ct = default)
+    {
+        await _db.Memories
+            .Where(m => m.LinkedMemoryId != null)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(m => m.LinkedMemoryId, (long?)null), ct);
+
+        var deleted = await _db.Memories.ExecuteDeleteAsync(ct);
+
+        _logger.Information("Deleted all {Count} memories", deleted);
+        return deleted;
     }
 
     /// <inheritdoc />

@@ -1966,6 +1966,171 @@ public sealed class ChatViewModelTests
         viewModel.PrivacyHint.Should().Be("Ihre Nachrichten werden zur Verarbeitung an OpenAI gesendet.");
     }
 
+    // --- Memories ---
+    // Memories were counted (MemoryCount) but nothing showed them, so what the app remembered
+    // about the operator could be neither seen nor removed.
+
+    [Fact]
+    public async Task OpeningTheContextInspector_ListsTheStoredMemoriesAndTheirCount()
+    {
+        SetupMemories(StoredMemory(1, "Prefers dark mode"), StoredMemory(2, "Works on Agent-X"));
+        var viewModel = CreateViewModel();
+
+        viewModel.IsContextInspectorOpen = true;
+
+        await WaitUntilAsync(() => viewModel.Memories.Count == 2);
+        viewModel.Memories.Select(m => m.Content).Should().Equal("Prefers dark mode", "Works on Agent-X");
+        viewModel.MemoryCount.Should().Be(2);
+        viewModel.HasMemories.Should().BeTrue();
+        viewModel.HasMemoriesStatus.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task OpeningTheContextInspector_WithNoMemories_SaysSo()
+    {
+        SetupMemories();
+        var viewModel = CreateViewModel();
+
+        viewModel.ToggleContextInspectorCommand.Execute(null);
+
+        await WaitUntilAsync(() => viewModel.HasMemoriesStatus);
+        viewModel.MemoriesStatus.Should().Be("No memories are stored.");
+        viewModel.HasMemories.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task OpeningTheContextInspector_WhenTheMemoriesCannotBeRead_SaysSo()
+    {
+        _memoryService
+            .Setup(service => service.GetAllMemoriesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("database busy"));
+        var viewModel = CreateViewModel();
+
+        viewModel.IsContextInspectorOpen = true;
+
+        await WaitUntilAsync(() => viewModel.HasMemoriesStatus);
+        viewModel.MemoriesStatus.Should().Be("Memories could not be loaded.");
+    }
+
+    [Fact]
+    public async Task DeleteMemory_DeletesItAndTakesItOffTheList()
+    {
+        SetupMemories(StoredMemory(1, "Prefers dark mode"), StoredMemory(2, "Works on Agent-X"));
+        _memoryService
+            .Setup(service => service.DeleteMemoryAsync(1, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+        var viewModel = CreateViewModel();
+        viewModel.IsContextInspectorOpen = true;
+        await WaitUntilAsync(() => viewModel.Memories.Count == 2);
+
+        await viewModel.DeleteMemoryCommand.ExecuteAsync(viewModel.Memories[0]);
+
+        _memoryService.Verify(service => service.DeleteMemoryAsync(1, It.IsAny<CancellationToken>()), Times.Once);
+        viewModel.Memories.Select(m => m.Content).Should().Equal("Works on Agent-X");
+        viewModel.MemoryCount.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task DeleteMemory_WhenItFails_KeepsItListedAndSaysSo()
+    {
+        SetupMemories(StoredMemory(1, "Prefers dark mode"));
+        _memoryService
+            .Setup(service => service.DeleteMemoryAsync(1, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("database busy"));
+        var viewModel = CreateViewModel();
+        viewModel.IsContextInspectorOpen = true;
+        await WaitUntilAsync(() => viewModel.Memories.Count == 1);
+
+        await viewModel.DeleteMemoryCommand.ExecuteAsync(viewModel.Memories[0]);
+
+        viewModel.Memories.Should().ContainSingle();
+        _notificationService.Verify(
+            service => service.ShowError(
+                "Memory not deleted",
+                "The memory could not be deleted and is still stored. Try again.",
+                It.IsAny<int>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task ClearMemories_DeletesEverythingOnceConfirmed()
+    {
+        SetupMemories(StoredMemory(1, "Prefers dark mode"), StoredMemory(2, "Works on Agent-X"));
+        var viewModel = CreateViewModel();
+        var asked = 0;
+        viewModel.ConfirmClearMemoriesAsync = () =>
+        {
+            asked++;
+            return Task.FromResult(true);
+        };
+        viewModel.IsContextInspectorOpen = true;
+        await WaitUntilAsync(() => viewModel.Memories.Count == 2);
+
+        await viewModel.ClearMemoriesCommand.ExecuteAsync(null);
+
+        asked.Should().Be(1);
+        _memoryService.Verify(service => service.DeleteAllMemoriesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        viewModel.Memories.Should().BeEmpty();
+        viewModel.MemoryCount.Should().Be(0);
+        viewModel.MemoriesStatus.Should().Be("No memories are stored.");
+    }
+
+    [Fact]
+    public async Task ClearMemories_WhenDeclined_DeletesNothing()
+    {
+        SetupMemories(StoredMemory(1, "Prefers dark mode"));
+        var viewModel = CreateViewModel();
+        viewModel.ConfirmClearMemoriesAsync = () => Task.FromResult(false);
+        viewModel.IsContextInspectorOpen = true;
+        await WaitUntilAsync(() => viewModel.Memories.Count == 1);
+
+        await viewModel.ClearMemoriesCommand.ExecuteAsync(null);
+
+        _memoryService.Verify(service => service.DeleteAllMemoriesAsync(It.IsAny<CancellationToken>()), Times.Never);
+        viewModel.Memories.Should().ContainSingle();
+    }
+
+    [Fact]
+    public async Task ClearMemories_WithoutAWayToAsk_DeletesNothing()
+    {
+        SetupMemories(StoredMemory(1, "Prefers dark mode"));
+        var viewModel = CreateViewModel();
+        viewModel.IsContextInspectorOpen = true;
+        await WaitUntilAsync(() => viewModel.Memories.Count == 1);
+
+        await viewModel.ClearMemoriesCommand.ExecuteAsync(null);
+
+        _memoryService.Verify(service => service.DeleteAllMemoriesAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ClearMemories_WhenItFails_SaysSoAndShowsWhatIsStillStored()
+    {
+        SetupMemories(StoredMemory(1, "Prefers dark mode"));
+        _memoryService
+            .Setup(service => service.DeleteAllMemoriesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("database busy"));
+        var viewModel = CreateViewModel();
+        viewModel.ConfirmClearMemoriesAsync = () => Task.FromResult(true);
+        viewModel.IsContextInspectorOpen = true;
+        await WaitUntilAsync(() => viewModel.Memories.Count == 1);
+
+        await viewModel.ClearMemoriesCommand.ExecuteAsync(null);
+
+        viewModel.Memories.Should().ContainSingle();
+        _notificationService.Verify(
+            service => service.ShowError("Memories not deleted", It.IsAny<string>(), It.IsAny<int>()),
+            Times.Once);
+    }
+
+    private void SetupMemories(params AgentX.Core.Data.Entities.MemoryEntity[] memories) =>
+        _memoryService
+            .Setup(service => service.GetAllMemoriesAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(memories);
+
+    private static AgentX.Core.Data.Entities.MemoryEntity StoredMemory(long id, string content) =>
+        new() { Id = id, Content = content };
+
     // --- Comparing branches ---
     // Compare branches always compared the main thread with the first branch, whichever
     // thread was open.

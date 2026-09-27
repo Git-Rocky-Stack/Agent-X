@@ -983,6 +983,22 @@
   <data name="Dash_BeliefUnavailableDetail" xml:space="preserve"><value>Agent-X n'a pas pu charger l'historique de vos convictions.</value></data>
   <data name="Chat_CodeCopy" xml:space="preserve"><value>Copier</value></data>
   <data name="Chat_CodeCopied" xml:space="preserve"><value>Copié !</value></data>
+  <data name="Chat_MemoriesTitle.Text" xml:space="preserve"><value>Mémoires</value></data>
+  <data name="Chat_MemoriesCountRun.Text" xml:space="preserve"><value>enregistrées</value></data>
+  <data name="Chat_ClearMemoriesBtn.Content" xml:space="preserve"><value>Tout effacer</value></data>
+  <data name="Chat_MemoriesHint.Text" xml:space="preserve"><value>Faits qu'Agent-X a notés dans vos discussions. Quand vous envoyez un message, jusqu'à huit qui lui correspondent étroitement sont ajoutés au contexte du modèle, quelle que soit la conversation d'où ils viennent.</value></data>
+  <data name="Chat_DeleteMemoryTip.ToolTipService.ToolTip" xml:space="preserve"><value>Supprimer la mémoire</value></data>
+  <data name="Chat_DeleteMemoryTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Supprimer la mémoire</value></data>
+  <data name="Chat_MemoriesEmpty" xml:space="preserve"><value>Aucune mémoire n'est enregistrée.</value></data>
+  <data name="Chat_MemoriesLoadFailed" xml:space="preserve"><value>Impossible de charger les mémoires.</value></data>
+  <data name="Chat_DeleteMemoryFailedTitle" xml:space="preserve"><value>Mémoire non supprimée</value></data>
+  <data name="Chat_DeleteMemoryFailedBody" xml:space="preserve"><value>La mémoire n'a pas pu être supprimée et reste enregistrée. Réessayez.</value></data>
+  <data name="Chat_ClearMemoriesTitle" xml:space="preserve"><value>Supprimer toutes les mémoires ?</value></data>
+  <data name="Chat_ClearMemoriesBody" xml:space="preserve"><value>Tout ce qu'Agent-X a noté à votre sujet dans vos discussions sera définitivement supprimé. Vos conversations sont conservées : des faits peuvent donc de nouveau être notés à partir de nouveaux messages.</value></data>
+  <data name="Chat_ClearMemoriesConfirm" xml:space="preserve"><value>Tout supprimer</value></data>
+  <data name="Chat_ClearMemoriesCancel" xml:space="preserve"><value>Annuler</value></data>
+  <data name="Chat_ClearMemoriesFailedTitle" xml:space="preserve"><value>Mémoires non supprimées</value></data>
+  <data name="Chat_ClearMemoriesFailedBody" xml:space="preserve"><value>Les mémoires n'ont pas pu être supprimées et restent enregistrées. Réessayez.</value></data>
   <data name="Main_QuickActions.Content" xml:space="preserve"><value>Quick Actions</value></data>
   <data name="Main_Workflows.Content" xml:space="preserve"><value>Workflows</value></data>
   <data name="Main_Knowledge.Content" xml:space="preserve"><value>CONNAISSANCES</value></data>

@@ -24,6 +24,18 @@ public interface IConversationMemoryService
     /// <summary>Dismiss (soft-delete) a memory.</summary>
     Task DismissMemoryAsync(long memoryId, CancellationToken ct = default);
 
+    /// <summary>
+    /// Permanently deletes a memory, so its text no longer exists in the database (dismissing only
+    /// hides it). Links from other memories to it are cleared. Returns false when there was no such
+    /// memory.
+    /// </summary>
+    Task<bool> DeleteMemoryAsync(long memoryId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Permanently deletes every stored memory, dismissed ones included. Returns how many were deleted.
+    /// </summary>
+    Task<int> DeleteAllMemoriesAsync(CancellationToken ct = default);
+
     /// <summary>Get count of active memories.</summary>
     Task<int> GetMemoryCountAsync(CancellationToken ct = default);
 }

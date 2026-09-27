@@ -115,7 +115,22 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _conversationSearchQuery = string.Empty;
 
     // ── Memory ────────────────────────────────────────────────
+    // Facts noted from chats (IConversationMemoryService). They are not tied to one conversation:
+    // chat adds the ones closest to each new message whichever conversation they came from, so
+    // the context inspector lists all of them, with delete and clear all.
     [ObservableProperty] private int _memoryCount;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasMemoriesStatus))]
+    private string _memoriesStatus = string.Empty;
+    public ObservableCollection<ChatMemoryItem> Memories { get; } = new();
+    public bool HasMemories => Memories.Count > 0;
+    public bool HasMemoriesStatus => !string.IsNullOrEmpty(MemoriesStatus);
+
+    /// <summary>
+    /// Asks the operator to confirm deleting every memory. The page supplies it (a dialog); with
+    /// none set, nothing is deleted.
+    /// </summary>
+    public Func<Task<bool>>? ConfirmClearMemoriesAsync { get; set; }
 
     // ── Privacy claim (empty chat) ────────────────────────────
     // The empty chat claims "100% Private" only while nothing a message sends leaves this
@@ -621,6 +636,86 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         catch (Exception ex) { Log.Warning(ex, "Failed to update memory count"); }
     }
 
+    /// <summary>Reads the stored memories for the context inspector.</summary>
+    private async Task LoadMemoriesAsync()
+    {
+        try
+        {
+            var memories = await _memoryService.GetAllMemoriesAsync();
+            Memories.Clear();
+            foreach (var memory in memories)
+            {
+                Memories.Add(new ChatMemoryItem { Id = memory.Id, Content = memory.Content });
+            }
+
+            MemoryCount = Memories.Count;
+            MemoriesStatus = Memories.Count == 0 ? _localization.GetString("Chat_MemoriesEmpty") : string.Empty;
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to load memories");
+            Memories.Clear();
+            MemoriesStatus = _localization.GetString("Chat_MemoriesLoadFailed");
+        }
+
+        OnPropertyChanged(nameof(HasMemories));
+    }
+
+    /// <summary>
+    /// Permanently deletes one memory. Chat can note the fact again if later messages state it.
+    /// </summary>
+    [RelayCommand]
+    private async Task DeleteMemoryAsync(ChatMemoryItem? memory)
+    {
+        if (memory is null) return;
+
+        try
+        {
+            // False means it was already gone; either way it is no longer stored.
+            await _memoryService.DeleteMemoryAsync(memory.Id);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to delete memory {MemoryId}", memory.Id);
+            _notificationService.ShowError(
+                _localization.GetString("Chat_DeleteMemoryFailedTitle"),
+                _localization.GetString("Chat_DeleteMemoryFailedBody"));
+            return;
+        }
+
+        Memories.Remove(memory);
+        MemoryCount = Memories.Count;
+        MemoriesStatus = Memories.Count == 0 ? _localization.GetString("Chat_MemoriesEmpty") : string.Empty;
+        OnPropertyChanged(nameof(HasMemories));
+    }
+
+    /// <summary>Permanently deletes every memory, once the operator confirms.</summary>
+    [RelayCommand]
+    private async Task ClearMemoriesAsync()
+    {
+        if (Memories.Count == 0 && MemoryCount == 0) return;
+        if (ConfirmClearMemoriesAsync is not { } confirm || !await confirm()) return;
+
+        try
+        {
+            await _memoryService.DeleteAllMemoriesAsync();
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to delete all memories");
+            _notificationService.ShowError(
+                _localization.GetString("Chat_ClearMemoriesFailedTitle"),
+                _localization.GetString("Chat_ClearMemoriesFailedBody"));
+            await LoadMemoriesAsync();
+            return;
+        }
+
+        Memories.Clear();
+        MemoryCount = 0;
+        MemoriesStatus = _localization.GetString("Chat_MemoriesEmpty");
+        OnPropertyChanged(nameof(HasMemories));
+    }
+
     /// <summary>
     /// Works out what the empty chat may say about where messages go, for the provider active now
     /// and the Research Mode switch on screen. The page runs it on every visit, so a provider
@@ -786,6 +881,15 @@ public partial class ChatViewModel : ObservableObject, IDisposable
 
     partial void OnIsRefreshingConversationSummaryChanged(bool value)
         => NotifyConversationSummaryRefreshStateChanged();
+
+    // The inspector lists the memories, read afresh each time it opens.
+    partial void OnIsContextInspectorOpenChanged(bool value)
+    {
+        if (value)
+        {
+            _ = LoadMemoriesAsync();
+        }
+    }
 
     partial void OnConversationSummaryRefreshErrorChanged(string value)
         => NotifyConversationSummaryRefreshStateChanged();
@@ -2309,4 +2413,11 @@ public sealed class ChatContextRecallDisplayItem
 public sealed class ChatContextStorySourceDisplayItem
 {
     public string Label { get; init; } = string.Empty;
+}
+
+/// <summary>A stored memory as the context inspector lists it.</summary>
+public sealed class ChatMemoryItem
+{
+    public long Id { get; init; }
+    public string Content { get; init; } = string.Empty;
 }
