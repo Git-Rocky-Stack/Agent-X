@@ -78,6 +78,8 @@ public sealed class StatusBarService : IStatusBarService
 
         var connected = false;
         var modelId = string.Empty;
+        // The status names the active provider; it used to say Ollama whatever was active.
+        var providerName = "AI provider";
         var isIndexing = false;
         var indexingQueueLength = 0;
         var docCount = 0L;
@@ -86,7 +88,13 @@ public sealed class StatusBarService : IStatusBarService
         try
         {
             var aiService = (IAiService)_serviceProvider.GetService(typeof(IAiService))!;
-            connected = await aiService.ActiveProvider.CheckConnectionAsync();
+            var activeProvider = aiService.ActiveProvider;
+            if (!string.IsNullOrWhiteSpace(activeProvider.DisplayName))
+            {
+                providerName = activeProvider.DisplayName;
+            }
+
+            connected = await activeProvider.CheckConnectionAsync();
 
             if (connected)
             {
@@ -129,7 +137,9 @@ public sealed class StatusBarService : IStatusBarService
 
         var state = new StatusBarState(
             connected,
-            connected ? (!string.IsNullOrEmpty(modelId) ? $"Connected \u2014 {modelId}" : "Connected to Ollama") : "Ollama not detected",
+            connected
+                ? (!string.IsNullOrEmpty(modelId) ? $"Connected \u2014 {modelId}" : $"Connected to {providerName}")
+                : $"{providerName} not available",
             modelId,
             isIndexing,
             indexingQueueLength,

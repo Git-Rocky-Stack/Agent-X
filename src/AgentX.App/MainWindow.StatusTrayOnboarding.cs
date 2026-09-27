@@ -111,11 +111,11 @@ public sealed partial class MainWindow
             Log.Warning("Nav pane was hidden outside of onboarding - restored");
         }
 
-        // MDL well: model name on phosphor when linked; amber caution when not.
-        // "Ollama not detected" preserves the pre-strip disconnected wording.
-        StatusText.Text = state.IsConnected
-            ? (string.IsNullOrWhiteSpace(state.ActiveModelName) ? state.ConnectionStatus : state.ActiveModelName)
-            : "Ollama not detected";
+        // MDL well: model name on phosphor when linked; amber caution when not. The caution
+        // names the active provider (StatusBarService), not Ollama whatever was active.
+        StatusText.Text = state.IsConnected && !string.IsNullOrWhiteSpace(state.ActiveModelName)
+            ? state.ActiveModelName
+            : state.ConnectionStatus;
         StatusText.Foreground = (Brush)Application.Current.Resources[
             state.IsConnected ? "LcdPhosphorBrush" : "LcdAmberBrush"];
         CompositionGlow.SetColor(StatusText, state.IsConnected ? LcdGreen : LcdAmber);

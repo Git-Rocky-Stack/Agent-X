@@ -99,9 +99,16 @@ public class StatusBarServiceTests
         service.ActiveModelName.Should().BeEmpty();
     }
 
-    [Fact]
-    public async Task PollAsync_WhenConnectedWithoutModelName_ShowsConnectedToOllama()
+    // The strip said "Connected to Ollama" and "Ollama not detected" whatever provider was
+    // active, so someone on the built-in model or a cloud provider was pointed at Ollama.
+
+    [Theory]
+    [InlineData("Ollama")]
+    [InlineData("Built-in LLM")]
+    [InlineData("Anthropic Claude")]
+    public async Task PollAsync_WhenConnectedWithoutModelName_NamesTheActiveProvider(string providerName)
     {
+        _providerMock.SetupGet(p => p.DisplayName).Returns(providerName);
         _providerMock.Setup(p => p.CheckConnectionAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
         _aiServiceMock.SetupGet(a => a.ActiveModelId).Returns((string)null!);
         _indexingServiceMock.SetupGet(i => i.IsProcessing).Returns(false);
@@ -114,7 +121,25 @@ public class StatusBarServiceTests
         await service.PollAsync();
 
         capturedState.Should().NotBeNull();
-        capturedState!.ConnectionStatus.Should().Be("Connected to Ollama");
+        capturedState!.ConnectionStatus.Should().Be($"Connected to {providerName}");
+    }
+
+    [Fact]
+    public async Task PollAsync_WhenTheBuiltInModelIsNotAvailable_SaysSoWithoutMentioningOllama()
+    {
+        _providerMock.SetupGet(p => p.DisplayName).Returns("Built-in LLM");
+        _providerMock.Setup(p => p.CheckConnectionAsync(It.IsAny<CancellationToken>())).ReturnsAsync(false);
+        _indexingServiceMock.SetupGet(i => i.IsProcessing).Returns(false);
+        _documentServiceMock.Setup(d => d.GetTotalDocumentCountAsync()).ReturnsAsync(0L);
+
+        var service = CreateService();
+        StatusBarState? capturedState = null;
+        service.StateChanged += (_, state) => capturedState = state;
+
+        await service.PollAsync();
+
+        capturedState!.ConnectionStatus.Should().Be("Built-in LLM not available");
+        capturedState.ConnectionStatus.Should().NotContain("Ollama");
     }
 
     [Fact]
@@ -171,7 +196,7 @@ public class StatusBarServiceTests
 
         service.IsConnected.Should().BeFalse();
         capturedState.Should().NotBeNull();
-        capturedState!.ConnectionStatus.Should().Be("Ollama not detected");
+        capturedState!.ConnectionStatus.Should().Be("AI provider not available");
     }
 
     [Fact]

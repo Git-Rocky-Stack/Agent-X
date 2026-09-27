@@ -195,6 +195,52 @@ public class MessagingCoordinatorTests
         errorReceived.Should().NotBeNull();
     }
 
+    // --- Provider-aware help ---
+    // The failure text told everyone to start Ollama, whatever provider was active.
+
+    [Fact]
+    public async Task SendMessageAsync_WhenTheBuiltInModelFails_AdvisesOnTheBuiltInModelNotOllama()
+    {
+        _provider.SetupGet(p => p.ProviderId).Returns("local");
+        _provider.SetupGet(p => p.DisplayName).Returns("Built-in LLM");
+        _chatService
+            .Setup(s => s.SendMessageAsync(1, "fail", It.IsAny<CancellationToken>()))
+            .Throws(new Exception("AI error"));
+
+        var result = await _coordinator.SendMessageAsync("fail", 1, null, null, false);
+
+        result.HadError.Should().BeTrue();
+        result.ResponseContent.Should().Contain("built-in model").And.NotContain("Ollama");
+    }
+
+    [Fact]
+    public async Task SendMessageAsync_WhenTheCloudProviderIsUnreachable_TheFallbackNamesIt()
+    {
+        _provider.SetupGet(p => p.ProviderId).Returns("anthropic");
+        _provider.SetupGet(p => p.DisplayName).Returns("Anthropic Claude");
+        _provider.Setup(p => p.CheckConnectionAsync(It.IsAny<CancellationToken>())).ReturnsAsync(false);
+        _aiService
+            .Setup(s => s.StreamChatAsync(
+                It.IsAny<IReadOnlyList<ChatMessage>>(), It.IsAny<string?>(), It.IsAny<ChatOptions?>(), It.IsAny<CancellationToken>()))
+            .Returns(FailingStream(new HttpRequestException("No connection could be made.")));
+
+        var result = await _coordinator.SendMessageAsync("q", 1, null, null, false);
+
+        result.ResponseContent.Should().Contain("Anthropic Claude is not available")
+            .And.Contain("Anthropic Claude API key")
+            .And.NotContain("Ollama");
+    }
+
+    [Theory]
+    [InlineData("local", "Built-in LLM", "built-in model")]
+    [InlineData("ollama", "Ollama", "Ollama is running")]
+    [InlineData("openai", "OpenAI", "OpenAI API key")]
+    [InlineData("anthropic", "Anthropic Claude", "Anthropic Claude API key")]
+    public void ProviderCheckHint_NamesWhatToCheckForTheActiveProvider(string providerId, string providerName, string expected)
+    {
+        MessagingCoordinator.ProviderCheckHint(providerId, providerName).Should().Contain(expected);
+    }
+
     // ── Events ─────────────────────────────────────────────────────
 
     [Fact]
@@ -747,6 +793,18 @@ public class MessagingCoordinatorTests
         await gate.Task;
         yield return "after";
         ct.ThrowIfCancellationRequested();
+    }
+
+    /// <summary>A stream whose provider fails before the first token.</summary>
+    private static async IAsyncEnumerable<string> FailingStream(Exception failure, bool fail = true)
+    {
+        await Task.Yield();
+        if (fail)
+        {
+            throw failure;
+        }
+
+        yield break;
     }
 
     // ── Helper: Create async token stream ──────────────────────────

@@ -181,7 +181,7 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
                 exchange,
                 knownUserMessageId: null,
                 ex,
-                "An error occurred while generating a response. Please check that Ollama is running and a model is loaded.",
+                $"An error occurred while generating a response. {ActiveProviderCheckHint()}",
                 "Could not generate a response. Check your AI connection in Settings.",
                 generation);
         }
@@ -845,6 +845,40 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
     }
 
     /// <summary>
+    /// What to check when no reply could be generated, for the provider that is active. The
+    /// advice used to name Ollama whatever the provider was, so someone on the built-in model or
+    /// a cloud provider was told to start Ollama.
+    /// </summary>
+    private string ActiveProviderCheckHint()
+    {
+        var (providerId, providerName) = ActiveProviderIdentity();
+        return ProviderCheckHint(providerId, providerName);
+    }
+
+    internal static string ProviderCheckHint(string? providerId, string? providerName) =>
+        providerId?.Trim().ToLowerInvariant() switch
+        {
+            "local" => "Check that the built-in model is installed and that there is enough free memory to load it.",
+            "ollama" => "Check that Ollama is running with a model downloaded, and that its address in Settings is correct.",
+            "openai" or "anthropic" => $"Check the {providerName} API key in Settings and your network connection.",
+            _ => "Check the AI provider in Settings."
+        };
+
+    /// <summary>The active provider's id and display name, or nulls before the AI service is ready.</summary>
+    private (string? ProviderId, string? DisplayName) ActiveProviderIdentity()
+    {
+        try
+        {
+            var provider = _aiService.ActiveProvider;
+            return (provider?.ProviderId, string.IsNullOrWhiteSpace(provider?.DisplayName) ? null : provider.DisplayName);
+        }
+        catch (InvalidOperationException)
+        {
+            return (null, null); // not initialized yet
+        }
+    }
+
+    /// <summary>
     /// Streams a response directly via IAiService when no conversation context or connection is available.
     /// </summary>
     private async Task StreamDirectAsync(
@@ -871,13 +905,10 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
         {
             if (responseBuilder.Length == 0)
             {
-                responseBuilder.AppendLine("Unable to generate a response. Please ensure:");
+                var (_, providerName) = ActiveProviderIdentity();
+                responseBuilder.AppendLine($"Unable to generate a response: {providerName ?? "the AI provider"} is not available.");
                 responseBuilder.AppendLine();
-                responseBuilder.AppendLine("1. **Ollama is installed and running** on your machine");
-                responseBuilder.AppendLine("2. **A model is downloaded** (use the Model Manager page)");
-                responseBuilder.AppendLine("3. **The endpoint** is correct in Settings (default: http://localhost:11434)");
-                responseBuilder.AppendLine();
-                responseBuilder.AppendLine("Once connected, Agent-X will stream AI responses directly from your hardware.");
+                responseBuilder.AppendLine(ActiveProviderCheckHint());
             }
             else
             {
