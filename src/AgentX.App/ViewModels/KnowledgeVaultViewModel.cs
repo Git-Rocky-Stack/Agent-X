@@ -7,8 +7,10 @@ using AgentX.Core.Data.Entities;
 using AgentX.Core.Documents;
 using AgentX.Core.Helpers;
 using AgentX.Core.Search.Models;
+using AgentX.Core.Services.Annotations;
 using AgentX.Core.Services.Collections;
 using AgentX.Core.Services.Indexing;
+using AgentX.Core.Services.Localization;
 using AgentX.Core.Services.Tagging;
 using AgentX.Core.Services.TemporalIdentity;
 using AgentX.Core.Services.TemporalIdentity.Models;
@@ -136,6 +138,9 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     /// </summary>
     public Func<DocumentDeletionRequest, Task<bool>>? ConfirmDeleteAsync { get; set; }
 
+    /// <summary>The previewed document's passages and annotations.</summary>
+    public DocumentNotesViewModel Notes { get; }
+
     public KnowledgeVaultViewModel(
         IDocumentService documentService,
         IIndexingService indexingService,
@@ -144,7 +149,9 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         ICollectionService collectionService,
         IWorkflowLaunchService? workflowLaunchService = null,
         IOperationsDrillInService? operationsDrillInService = null,
-        ITemporalIdentityService? temporalIdentity = null)
+        ITemporalIdentityService? temporalIdentity = null,
+        IAnnotationService? annotationService = null,
+        ILocalizationService? localization = null)
     {
         _documentService = documentService;
         _indexingService = indexingService;
@@ -156,6 +163,7 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         _documentEngagement = temporalIdentity is null
             ? null
             : new EngagementTracker(temporalIdentity, EngagementTargetType.Document, () => UtcNow());
+        Notes = new DocumentNotesViewModel(annotationService, localization);
 
         // Rows showed the status they were loaded with until the next refresh, so a document
         // imported as "pending" never turned "Indexed" (or "Failed") on screen.
@@ -622,6 +630,10 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
 
         IsPreviewOpen = value is not null;
         OnPropertyChanged(nameof(HasSelectedDocument));
+
+        // The preview's passage and annotations follow the previewed document. The load
+        // handles its own failures.
+        _ = Notes.ShowDocumentAsync(value?.Id);
 
         if (value is null)
         {

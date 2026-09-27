@@ -1499,7 +1499,7 @@
   <data name="Annot_DeleteAnnotationTip.ToolTipService.ToolTip" xml:space="preserve"><value>Delete annotation</value></data>
   <data name="Annot_DeleteAnnotationTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Delete annotation</value></data>
   <data name="Annot_NoAnnotationsYet.Text" xml:space="preserve"><value>No annotations yet</value></data>
-  <data name="Annot_HighlightTextInYour.Text" xml:space="preserve"><value>Highlight text in your documents to create annotations.</value></data>
+  <data name="Annot_HighlightTextInYour.Text" xml:space="preserve"><value>Select text in a document's preview in the Knowledge Vault to create annotations.</value></data>
   <data name="WebImport_WebImport.Text" xml:space="preserve"><value>WEB IMPORT</value></data>
   <data name="WebImport_PasteUrlsToExtract.Text" xml:space="preserve"><value>Paste URLs to extract and ingest web articles into your Knowledge Vault.</value></data>
   <data name="WebImport_EnterUrls.Text" xml:space="preserve"><value>Enter URLs</value></data>
@@ -2183,6 +2183,26 @@
   <data name="Terms_ContentYouProcessImport.Text" xml:space="preserve"><value>Content you process, import, or generate through the application</value></data>
   <data name="Vault_SearchScopeHint.Text" xml:space="preserve"><value>Matches file names and tags. To search inside documents, use Semantic Search or Ask Your Files.</value></data>
   <data name="Vault_IndexingFailedReason.Text" xml:space="preserve"><value>WHY INDEXING FAILED</value></data>
+  <data name="Vault_DocumentText.Text" xml:space="preserve"><value>DOCUMENT TEXT</value></data>
+  <data name="Vault_Passage.Text" xml:space="preserve"><value>Passage</value></data>
+  <data name="Vault_PreviousPassageTip.ToolTipService.ToolTip" xml:space="preserve"><value>Previous passage</value></data>
+  <data name="Vault_PreviousPassageTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Previous passage</value></data>
+  <data name="Vault_NextPassageTip.ToolTipService.ToolTip" xml:space="preserve"><value>Next passage</value></data>
+  <data name="Vault_NextPassageTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Next passage</value></data>
+  <data name="Vault_SelectTextToAnnotate.Text" xml:space="preserve"><value>Select text in the passage to annotate it.</value></data>
+  <data name="Vault_NoTextToAnnotate.Text" xml:space="preserve"><value>This document has no indexed text to annotate. Its text appears here once the document is indexed.</value></data>
+  <data name="Vault_NewAnnotation.Text" xml:space="preserve"><value>NEW ANNOTATION</value></data>
+  <data name="Vault_AnnotationNote.PlaceholderText" xml:space="preserve"><value>Add a note (optional)</value></data>
+  <data name="Vault_AnnotationNote.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Annotation note</value></data>
+  <data name="Vault_CancelAnnotation.Content" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Vault_SaveAnnotation.Content" xml:space="preserve"><value>Save Annotation</value></data>
+  <data name="Vault_DocumentAnnotations.Text" xml:space="preserve"><value>ANNOTATIONS</value></data>
+  <data name="Vault_NoAnnotationsYet.Text" xml:space="preserve"><value>No annotations on this document yet.</value></data>
+  <data name="Vault_DeleteAnnotationTip.ToolTipService.ToolTip" xml:space="preserve"><value>Delete annotation</value></data>
+  <data name="Vault_DeleteAnnotationTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Delete annotation</value></data>
+  <data name="Vault_AnnotationsLoadFailed" xml:space="preserve"><value>The text and annotations of this document could not be loaded.</value></data>
+  <data name="Vault_AnnotationSaveFailed" xml:space="preserve"><value>The annotation could not be saved.</value></data>
+  <data name="Vault_AnnotationDeleteFailed" xml:space="preserve"><value>The annotation could not be deleted.</value></data>
   <data name="Vault_DeleteDocumentTitle" xml:space="preserve"><value>Delete document?</value></data>
   <data name="Vault_DeleteDocumentBody" xml:space="preserve"><value>"{0}" will be removed from the Knowledge Vault, together with its index and annotations. The file on disk is not deleted. This cannot be undone.</value></data>
   <data name="Vault_DeleteDocumentsTitle" xml:space="preserve"><value>Delete documents?</value></data>

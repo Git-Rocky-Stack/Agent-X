@@ -1377,7 +1377,7 @@
   <data name="Annot_DeleteAnnotationTip.ToolTipService.ToolTip" xml:space="preserve"><value>Eliminar anotación</value></data>
   <data name="Annot_DeleteAnnotationTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Eliminar anotación</value></data>
   <data name="Annot_NoAnnotationsYet.Text" xml:space="preserve"><value>Aún no hay anotaciones</value></data>
-  <data name="Annot_HighlightTextInYour.Text" xml:space="preserve"><value>Resalte texto en sus documentos para crear anotaciones.</value></data>
+  <data name="Annot_HighlightTextInYour.Text" xml:space="preserve"><value>Seleccione texto en la vista previa de un documento en la Bóveda de Conocimiento para crear anotaciones.</value></data>
   <data name="WebImport_WebImport.Text" xml:space="preserve"><value>IMPORTACIÓN WEB</value></data>
   <data name="WebImport_PasteUrlsToExtract.Text" xml:space="preserve"><value>Pegue URL para extraer artículos web e incorporarlos a su bóveda de conocimiento.</value></data>
   <data name="WebImport_EnterUrls.Text" xml:space="preserve"><value>Introducir URL</value></data>
@@ -2061,6 +2061,26 @@
   <data name="Terms_ContentYouProcessImport.Text" xml:space="preserve"><value>El contenido que procese, importe o genere a través de la aplicación</value></data>
   <data name="Vault_SearchScopeHint.Text" xml:space="preserve"><value>Busca en nombres de archivo y etiquetas. Para buscar dentro de los documentos, use «Búsqueda semántica» o «Pregunta a tus archivos».</value></data>
   <data name="Vault_IndexingFailedReason.Text" xml:space="preserve"><value>POR QUÉ FALLÓ LA INDEXACIÓN</value></data>
+  <data name="Vault_DocumentText.Text" xml:space="preserve"><value>TEXTO DEL DOCUMENTO</value></data>
+  <data name="Vault_Passage.Text" xml:space="preserve"><value>Pasaje</value></data>
+  <data name="Vault_PreviousPassageTip.ToolTipService.ToolTip" xml:space="preserve"><value>Pasaje anterior</value></data>
+  <data name="Vault_PreviousPassageTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Pasaje anterior</value></data>
+  <data name="Vault_NextPassageTip.ToolTipService.ToolTip" xml:space="preserve"><value>Pasaje siguiente</value></data>
+  <data name="Vault_NextPassageTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Pasaje siguiente</value></data>
+  <data name="Vault_SelectTextToAnnotate.Text" xml:space="preserve"><value>Seleccione texto del pasaje para anotarlo.</value></data>
+  <data name="Vault_NoTextToAnnotate.Text" xml:space="preserve"><value>Este documento no tiene texto indexado para anotar. Su texto aparece aquí cuando el documento está indexado.</value></data>
+  <data name="Vault_NewAnnotation.Text" xml:space="preserve"><value>NUEVA ANOTACIÓN</value></data>
+  <data name="Vault_AnnotationNote.PlaceholderText" xml:space="preserve"><value>Añadir una nota (opcional)</value></data>
+  <data name="Vault_AnnotationNote.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Nota de la anotación</value></data>
+  <data name="Vault_CancelAnnotation.Content" xml:space="preserve"><value>Cancelar</value></data>
+  <data name="Vault_SaveAnnotation.Content" xml:space="preserve"><value>Guardar anotación</value></data>
+  <data name="Vault_DocumentAnnotations.Text" xml:space="preserve"><value>ANOTACIONES</value></data>
+  <data name="Vault_NoAnnotationsYet.Text" xml:space="preserve"><value>Este documento aún no tiene anotaciones.</value></data>
+  <data name="Vault_DeleteAnnotationTip.ToolTipService.ToolTip" xml:space="preserve"><value>Eliminar anotación</value></data>
+  <data name="Vault_DeleteAnnotationTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Eliminar anotación</value></data>
+  <data name="Vault_AnnotationsLoadFailed" xml:space="preserve"><value>No se pudieron cargar el texto y las anotaciones de este documento.</value></data>
+  <data name="Vault_AnnotationSaveFailed" xml:space="preserve"><value>No se pudo guardar la anotación.</value></data>
+  <data name="Vault_AnnotationDeleteFailed" xml:space="preserve"><value>No se pudo eliminar la anotación.</value></data>
   <data name="Vault_DeleteDocumentTitle" xml:space="preserve"><value>¿Eliminar el documento?</value></data>
   <data name="Vault_DeleteDocumentBody" xml:space="preserve"><value>"{0}" se quitará de la Bóveda de Conocimiento, junto con su índice y sus anotaciones. El archivo del disco no se elimina. Esta acción no se puede deshacer.</value></data>
   <data name="Vault_DeleteDocumentsTitle" xml:space="preserve"><value>¿Eliminar los documentos?</value></data>

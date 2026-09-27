@@ -85,6 +85,8 @@
     <Compile Include="..\..\src\AgentX.App\ViewModels\AnnotationsViewModel.cs" Link="ViewModels\AnnotationsViewModel.cs" />
     <!-- KnowledgeVaultViewModel is pure document-orchestration logic aside from an App.GetService seam stubbed in tests. -->
     <Compile Include="..\..\src\AgentX.App\ViewModels\KnowledgeVaultViewModel.cs" Link="ViewModels\KnowledgeVaultViewModel.cs" />
+    <!-- DocumentNotesViewModel is the vault preview's passage and annotation state. -->
+    <Compile Include="..\..\src\AgentX.App\ViewModels\DocumentNotesViewModel.cs" Link="ViewModels\DocumentNotesViewModel.cs" />
     <!-- SearchViewModel is pure search orchestration/state logic. -->
     <Compile Include="..\..\src\AgentX.App\ViewModels\SearchViewModel.cs" Link="ViewModels\SearchViewModel.cs" />
     <!-- PluginManagerViewModel is pure plugin-orchestration logic with no WinUI dependencies. -->

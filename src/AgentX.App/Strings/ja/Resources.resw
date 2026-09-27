@@ -1377,7 +1377,7 @@
   <data name="Annot_DeleteAnnotationTip.ToolTipService.ToolTip" xml:space="preserve"><value>注釈を削除</value></data>
   <data name="Annot_DeleteAnnotationTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>注釈を削除</value></data>
   <data name="Annot_NoAnnotationsYet.Text" xml:space="preserve"><value>注釈はまだありません</value></data>
-  <data name="Annot_HighlightTextInYour.Text" xml:space="preserve"><value>ドキュメント内のテキストをハイライトすると注釈を作成できます。</value></data>
+  <data name="Annot_HighlightTextInYour.Text" xml:space="preserve"><value>Knowledge Vault のドキュメント プレビューでテキストを選択すると、注釈を作成できます。</value></data>
   <data name="WebImport_WebImport.Text" xml:space="preserve"><value>Web インポート</value></data>
   <data name="WebImport_PasteUrlsToExtract.Text" xml:space="preserve"><value>URL を貼り付けると、Web 記事を抽出して Knowledge Vault に取り込めます。</value></data>
   <data name="WebImport_EnterUrls.Text" xml:space="preserve"><value>URL を入力</value></data>
@@ -2061,6 +2061,26 @@
   <data name="Terms_ContentYouProcessImport.Text" xml:space="preserve"><value>アプリケーションを通じて処理、インポート、または生成したコンテンツ</value></data>
   <data name="Vault_SearchScopeHint.Text" xml:space="preserve"><value>ファイル名とタグで絞り込みます。ドキュメントの内容を検索するには、「セマンティック検索」または「ファイルに質問する」を使用してください。</value></data>
   <data name="Vault_IndexingFailedReason.Text" xml:space="preserve"><value>インデックス作成に失敗した理由</value></data>
+  <data name="Vault_DocumentText.Text" xml:space="preserve"><value>ドキュメントのテキスト</value></data>
+  <data name="Vault_Passage.Text" xml:space="preserve"><value>パッセージ</value></data>
+  <data name="Vault_PreviousPassageTip.ToolTipService.ToolTip" xml:space="preserve"><value>前のパッセージ</value></data>
+  <data name="Vault_PreviousPassageTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>前のパッセージ</value></data>
+  <data name="Vault_NextPassageTip.ToolTipService.ToolTip" xml:space="preserve"><value>次のパッセージ</value></data>
+  <data name="Vault_NextPassageTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>次のパッセージ</value></data>
+  <data name="Vault_SelectTextToAnnotate.Text" xml:space="preserve"><value>注釈を付けるには、パッセージ内のテキストを選択してください。</value></data>
+  <data name="Vault_NoTextToAnnotate.Text" xml:space="preserve"><value>このドキュメントには注釈を付けられるインデックス済みのテキストがありません。ドキュメントのインデックスが作成されると、ここにテキストが表示されます。</value></data>
+  <data name="Vault_NewAnnotation.Text" xml:space="preserve"><value>新しい注釈</value></data>
+  <data name="Vault_AnnotationNote.PlaceholderText" xml:space="preserve"><value>メモを追加 (任意)</value></data>
+  <data name="Vault_AnnotationNote.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>注釈のメモ</value></data>
+  <data name="Vault_CancelAnnotation.Content" xml:space="preserve"><value>キャンセル</value></data>
+  <data name="Vault_SaveAnnotation.Content" xml:space="preserve"><value>注釈を保存</value></data>
+  <data name="Vault_DocumentAnnotations.Text" xml:space="preserve"><value>注釈</value></data>
+  <data name="Vault_NoAnnotationsYet.Text" xml:space="preserve"><value>このドキュメントにはまだ注釈がありません。</value></data>
+  <data name="Vault_DeleteAnnotationTip.ToolTipService.ToolTip" xml:space="preserve"><value>注釈を削除</value></data>
+  <data name="Vault_DeleteAnnotationTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>注釈を削除</value></data>
+  <data name="Vault_AnnotationsLoadFailed" xml:space="preserve"><value>このドキュメントのテキストと注釈を読み込めませんでした。</value></data>
+  <data name="Vault_AnnotationSaveFailed" xml:space="preserve"><value>注釈を保存できませんでした。</value></data>
+  <data name="Vault_AnnotationDeleteFailed" xml:space="preserve"><value>注釈を削除できませんでした。</value></data>
   <data name="Vault_DeleteDocumentTitle" xml:space="preserve"><value>ドキュメントを削除しますか?</value></data>
   <data name="Vault_DeleteDocumentBody" xml:space="preserve"><value>「{0}」は、インデックスと注釈とともに Knowledge Vault から削除されます。ディスク上のファイルは削除されません。この操作は元に戻せません。</value></data>
   <data name="Vault_DeleteDocumentsTitle" xml:space="preserve"><value>選択したドキュメントを削除しますか?</value></data>

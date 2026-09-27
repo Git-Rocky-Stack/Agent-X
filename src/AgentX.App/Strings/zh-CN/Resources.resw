@@ -1377,7 +1377,7 @@
   <data name="Annot_DeleteAnnotationTip.ToolTipService.ToolTip" xml:space="preserve"><value>删除注释</value></data>
   <data name="Annot_DeleteAnnotationTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>删除注释</value></data>
   <data name="Annot_NoAnnotationsYet.Text" xml:space="preserve"><value>暂无注释</value></data>
-  <data name="Annot_HighlightTextInYour.Text" xml:space="preserve"><value>在文档中高亮文本即可创建注释。</value></data>
+  <data name="Annot_HighlightTextInYour.Text" xml:space="preserve"><value>在 Knowledge Vault 的文档预览中选择文本即可创建注释。</value></data>
   <data name="WebImport_WebImport.Text" xml:space="preserve"><value>网页导入</value></data>
   <data name="WebImport_PasteUrlsToExtract.Text" xml:space="preserve"><value>粘贴 URL,提取网页文章并导入 Knowledge Vault。</value></data>
   <data name="WebImport_EnterUrls.Text" xml:space="preserve"><value>输入 URL</value></data>
@@ -2061,6 +2061,26 @@
   <data name="Terms_ContentYouProcessImport.Text" xml:space="preserve"><value>您通过应用程序处理、导入或生成的内容</value></data>
   <data name="Vault_SearchScopeHint.Text" xml:space="preserve"><value>匹配文件名和标签。要搜索文档内容，请使用“语义搜索”或“向您的文件提问”。</value></data>
   <data name="Vault_IndexingFailedReason.Text" xml:space="preserve"><value>索引失败原因</value></data>
+  <data name="Vault_DocumentText.Text" xml:space="preserve"><value>文档文本</value></data>
+  <data name="Vault_Passage.Text" xml:space="preserve"><value>段落</value></data>
+  <data name="Vault_PreviousPassageTip.ToolTipService.ToolTip" xml:space="preserve"><value>上一段</value></data>
+  <data name="Vault_PreviousPassageTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>上一段</value></data>
+  <data name="Vault_NextPassageTip.ToolTipService.ToolTip" xml:space="preserve"><value>下一段</value></data>
+  <data name="Vault_NextPassageTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>下一段</value></data>
+  <data name="Vault_SelectTextToAnnotate.Text" xml:space="preserve"><value>在段落中选择文本即可为其添加注释。</value></data>
+  <data name="Vault_NoTextToAnnotate.Text" xml:space="preserve"><value>此文档没有可添加注释的已索引文本。文档完成索引后，文本会显示在这里。</value></data>
+  <data name="Vault_NewAnnotation.Text" xml:space="preserve"><value>新注释</value></data>
+  <data name="Vault_AnnotationNote.PlaceholderText" xml:space="preserve"><value>添加备注（可选）</value></data>
+  <data name="Vault_AnnotationNote.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>注释备注</value></data>
+  <data name="Vault_CancelAnnotation.Content" xml:space="preserve"><value>取消</value></data>
+  <data name="Vault_SaveAnnotation.Content" xml:space="preserve"><value>保存注释</value></data>
+  <data name="Vault_DocumentAnnotations.Text" xml:space="preserve"><value>注释</value></data>
+  <data name="Vault_NoAnnotationsYet.Text" xml:space="preserve"><value>此文档还没有注释。</value></data>
+  <data name="Vault_DeleteAnnotationTip.ToolTipService.ToolTip" xml:space="preserve"><value>删除注释</value></data>
+  <data name="Vault_DeleteAnnotationTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>删除注释</value></data>
+  <data name="Vault_AnnotationsLoadFailed" xml:space="preserve"><value>无法加载此文档的文本和注释。</value></data>
+  <data name="Vault_AnnotationSaveFailed" xml:space="preserve"><value>无法保存注释。</value></data>
+  <data name="Vault_AnnotationDeleteFailed" xml:space="preserve"><value>无法删除注释。</value></data>
   <data name="Vault_DeleteDocumentTitle" xml:space="preserve"><value>删除文档？</value></data>
   <data name="Vault_DeleteDocumentBody" xml:space="preserve"><value>“{0}”将连同其索引和注释一起从 Knowledge Vault 中移除。磁盘上的文件不会被删除。此操作无法撤消。</value></data>
   <data name="Vault_DeleteDocumentsTitle" xml:space="preserve"><value>删除所选文档？</value></data>

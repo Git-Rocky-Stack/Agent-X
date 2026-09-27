@@ -5,6 +5,7 @@ using AgentX.Core.AI;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Documents;
 using AgentX.Core.Search.Models;
+using AgentX.Core.Services.Annotations;
 using AgentX.Core.Services.Collections;
 using AgentX.Core.Services.Indexing;
 using AgentX.Core.Services.Tagging;
@@ -1114,7 +1115,40 @@ public sealed class KnowledgeVaultViewModelTests
         viewModel.SelectedDocument.StatusColor.Should().Be("#C8453E");
     }
 
-    private KnowledgeVaultViewModel CreateViewModel(ITemporalIdentityService? temporalIdentity = null) =>
+    // Annotations in the preview
+
+    [Fact]
+    public async Task PreviewingADocument_ShowsItsTextAndAnnotations_AndClosingClearsThem()
+    {
+        var annotations = new Mock<IAnnotationService>();
+        annotations.Setup(service => service.GetPassageAsync(2, 0, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new AnnotationPassage(20, 0, 3, 1, "Budgets beat heroics."));
+        annotations.Setup(service => service.GetAnnotationsForDocumentAsync(2))
+            .ReturnsAsync(
+            [
+                new AnnotationEntity { Id = 5, DocumentId = 2, HighlightedText = "Budgets", Color = "green" }
+            ]);
+        SetupVault(CreateDocument(1, "alpha.md"), CreateDocument(2, "beta.pdf"));
+        _documentService.Setup(service => service.GetDocumentAsync(2)).ReturnsAsync(CreateDocument(2, "beta.pdf"));
+        var viewModel = CreateViewModel(annotationService: annotations.Object);
+        await viewModel.InitializeAsync();
+
+        await viewModel.SelectDocumentCommand.ExecuteAsync(2L);
+
+        viewModel.Notes.PassageText.Should().Be("Budgets beat heroics.");
+        viewModel.Notes.PassageNumber.Should().Be(1);
+        viewModel.Notes.PassageCount.Should().Be(3);
+        viewModel.Notes.Annotations.Select(a => a.Id).Should().Equal(5L);
+
+        viewModel.ClosePreviewCommand.Execute(null);
+
+        viewModel.Notes.HasPassage.Should().BeFalse();
+        viewModel.Notes.Annotations.Should().BeEmpty();
+    }
+
+    private KnowledgeVaultViewModel CreateViewModel(
+        ITemporalIdentityService? temporalIdentity = null,
+        IAnnotationService? annotationService = null) =>
         new(
             _documentService.Object,
             _indexingService.Object,
@@ -1123,7 +1157,8 @@ public sealed class KnowledgeVaultViewModelTests
             _collectionService.Object,
             _workflowLaunchService.Object,
             _operationsDrillInService.Object,
-            temporalIdentity);
+            temporalIdentity,
+            annotationService);
 
     /// <summary>Creates the view model with <paramref name="context"/> as its UI context.</summary>
     private KnowledgeVaultViewModel CreateViewModelOn(SynchronizationContext context)

@@ -655,6 +655,7 @@ public sealed class DocumentService : IDocumentService
         await _db.DocumentChunks.Where(c => c.DocumentId == documentId).ExecuteDeleteAsync();
         await _db.DocumentCollections.Where(dc => dc.DocumentId == documentId).ExecuteDeleteAsync();
         await _db.DocumentTags.Where(dt => dt.DocumentId == documentId).ExecuteDeleteAsync();
+        await _db.Annotations.Where(a => a.DocumentId == documentId).ExecuteDeleteAsync();
 
         // Cached result sets may still reference the deleted document.
         _searchCacheService?.InvalidateForDocument(documentId);

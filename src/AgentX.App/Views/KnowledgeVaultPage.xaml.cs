@@ -30,6 +30,9 @@ public sealed partial class KnowledgeVaultPage : Page
 
     public KnowledgeVaultViewModel ViewModel { get; }
 
+    /// <summary>The preview's document text and annotations.</summary>
+    private DocumentNotesViewModel Notes => ViewModel.Notes;
+
     public KnowledgeVaultPage()
     {
         ViewModel = PageViewModelFactory.Create<KnowledgeVaultViewModel>();
@@ -415,6 +418,29 @@ public sealed partial class KnowledgeVaultPage : Page
         };
 
         return await dialog.ShowAsync() == ContentDialogResult.Primary;
+    }
+
+    // Preview annotations
+
+    /// <summary>
+    /// Hands the text selected in the preview's passage to the view model. The selection start
+    /// is a text pointer whose offset also counts element boundaries, so it only tells the view
+    /// model which occurrence of the selected text was meant.
+    /// </summary>
+    private void OnPassageSelectionChanged(object sender, RoutedEventArgs e)
+    {
+        if (sender is TextBlock passage)
+        {
+            Notes.CaptureSelection(passage.SelectedText, passage.SelectionStart?.Offset ?? -1);
+        }
+    }
+
+    private async void OnDeleteAnnotationClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button button && button.Tag is long annotationId)
+        {
+            await Notes.DeleteAnnotationCommand.ExecuteAsync(annotationId);
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════

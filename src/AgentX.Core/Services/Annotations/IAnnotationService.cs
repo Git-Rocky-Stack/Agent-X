@@ -23,7 +23,10 @@ public interface IAnnotationService
     /// <param name="color">
     /// Colour label: "yellow", "green", "blue", "red", or "purple".
     /// </param>
-    /// <param name="noteText">Optional user note attached to the highlight.</param>
+    /// <param name="noteText">
+    /// Optional user note attached to the highlight. A note that is empty or only white space
+    /// is stored as no note.
+    /// </param>
     /// <returns>The newly created annotation entity with its generated ID.</returns>
     Task<AnnotationEntity> CreateAnnotationAsync(
         long documentId,
@@ -33,6 +36,20 @@ public interface IAnnotationService
         string highlightedText,
         string color,
         string? noteText = null);
+
+    /// <summary>
+    /// Returns one passage of a document's indexed text for a viewer to show and annotate:
+    /// the content of the chunk at <paramref name="position"/> in reading order. A highlight
+    /// made on it is created with the passage's chunk ID and offsets into its text.
+    /// </summary>
+    /// <param name="documentId">The document to read.</param>
+    /// <param name="position">
+    /// Zero-based passage position; values outside the document's passages are clamped to
+    /// the first or last passage.
+    /// </param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>The passage, or null when the document has no indexed text.</returns>
+    Task<AnnotationPassage?> GetPassageAsync(long documentId, int position, CancellationToken ct = default);
 
     /// <summary>
     /// Retrieves a single annotation by ID, including the parent document.
