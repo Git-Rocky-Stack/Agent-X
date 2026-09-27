@@ -129,6 +129,13 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     public bool HasSelectedDocument => SelectedDocument is not null;
     public NavigateHandler? NavigateRequested { get; set; }
 
+    /// <summary>
+    /// Asks the operator to confirm a deletion before anything is removed; the page supplies a
+    /// dialog. Deleting cannot be undone, so without an answer of true (or without a handler)
+    /// nothing is deleted.
+    /// </summary>
+    public Func<DocumentDeletionRequest, Task<bool>>? ConfirmDeleteAsync { get; set; }
+
     public KnowledgeVaultViewModel(
         IDocumentService documentService,
         IIndexingService indexingService,
@@ -808,15 +815,23 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         Log.Information("Delete document requested: {DocumentId}", id);
         ClearError();
 
+        var name = await GetDocumentNameAsync(id);
+        if (name is null)
+        {
+            Log.Warning("Delete requested for document {DocumentId}, which was not found", id);
+            return;
+        }
+
+        if (!await IsDeletionConfirmedAsync(new DocumentDeletionRequest(1, name)))
+        {
+            Log.Information("Delete of document {DocumentId} was not confirmed", id);
+            return;
+        }
+
         try
         {
             await _documentService.DeleteDocumentAsync(id);
-
-            // A deleted document no longer exists, so the time it was open is not recorded.
-            if (_documentEngagement?.OpenTargetId == id)
-            {
-                _documentEngagement.Discard();
-            }
+            ForgetDeletedDocuments([id]);
 
             var item = Documents.FirstOrDefault(d => d.Id == id);
             if (item is not null)
@@ -1145,12 +1160,22 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     {
         if (SelectedDocumentIds.Count == 0) return;
         var ids = SelectedDocumentIds.ToList();
-        Log.Information("Bulk delete: {Count} documents", ids.Count);
         ClearError();
+
+        // A single document is named in the confirmation; several are counted.
+        var name = ids.Count == 1 ? await GetDocumentNameAsync(ids[0]) : null;
+        if (!await IsDeletionConfirmedAsync(new DocumentDeletionRequest(ids.Count, name)))
+        {
+            Log.Information("Bulk delete of {Count} documents was not confirmed", ids.Count);
+            return;
+        }
+
+        Log.Information("Bulk delete: {Count} documents", ids.Count);
 
         try
         {
             await _documentService.BulkDeleteAsync(ids);
+            ForgetDeletedDocuments(ids);
             await LoadDocumentsAsync();
             await LoadStatsAsync();
             ClearSelection();
@@ -1360,6 +1385,71 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     // ═══════════════════════════════════════════════════════════════
     // PRIVATE HELPERS
     // ═══════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// The file name the deletion confirmation names: from the row or the preview when the
+    /// document is on screen, otherwise from the vault. Null when the document does not exist.
+    /// </summary>
+    private async Task<string?> GetDocumentNameAsync(long id)
+    {
+        var shown = Documents.FirstOrDefault(d => d.Id == id)
+            ?? (SelectedDocument?.Id == id ? SelectedDocument : null);
+        if (shown is not null)
+        {
+            return shown.FileName;
+        }
+
+        try
+        {
+            return (await _documentService.GetDocumentAsync(id))?.FileName;
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to look up document {DocumentId} for its deletion", id);
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Asks the page to confirm <paramref name="request"/>. No handler, or a dialog that could
+    /// not be shown, counts as not confirmed: a deletion never goes ahead unasked.
+    /// </summary>
+    private async Task<bool> IsDeletionConfirmedAsync(DocumentDeletionRequest request)
+    {
+        if (ConfirmDeleteAsync is null)
+        {
+            Log.Warning("No deletion confirmation is available, so nothing was deleted");
+            return false;
+        }
+
+        try
+        {
+            return await ConfirmDeleteAsync(request);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "The deletion confirmation could not be shown, so nothing was deleted");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Lets go of documents that were just deleted: the time the previewed one was open is not
+    /// recorded, and its preview closes, so nothing in it can act on a document that no longer
+    /// exists.
+    /// </summary>
+    private void ForgetDeletedDocuments(IReadOnlyCollection<long> ids)
+    {
+        if (_documentEngagement?.OpenTargetId is { } open && ids.Contains(open))
+        {
+            _documentEngagement.Discard();
+        }
+
+        if (SelectedDocument is { } previewed && ids.Contains(previewed.Id))
+        {
+            SelectedDocument = null;
+        }
+    }
 
     private void ApplyFilters()
     {
@@ -1644,6 +1734,14 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         Log.Debug("KnowledgeVaultViewModel disposed");
     }
 }
+
+/// <summary>
+/// What a deletion would remove, for the confirmation the page shows: one document by name,
+/// or several by count.
+/// </summary>
+/// <param name="Count">How many documents would be deleted.</param>
+/// <param name="DocumentName">The file name when exactly one document would be deleted.</param>
+public sealed record DocumentDeletionRequest(int Count, string? DocumentName);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // DOCUMENT DISPLAY ITEM

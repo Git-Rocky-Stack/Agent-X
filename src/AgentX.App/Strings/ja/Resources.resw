@@ -2060,6 +2060,12 @@
   <data name="Terms_YourViolationOfAny.Text" xml:space="preserve"><value>知的財産権を含む第三者の権利の侵害</value></data>
   <data name="Terms_ContentYouProcessImport.Text" xml:space="preserve"><value>アプリケーションを通じて処理、インポート、または生成したコンテンツ</value></data>
   <data name="Vault_SearchScopeHint.Text" xml:space="preserve"><value>ファイル名とタグで絞り込みます。ドキュメントの内容を検索するには、「セマンティック検索」または「ファイルに質問する」を使用してください。</value></data>
+  <data name="Vault_DeleteDocumentTitle" xml:space="preserve"><value>ドキュメントを削除しますか?</value></data>
+  <data name="Vault_DeleteDocumentBody" xml:space="preserve"><value>「{0}」は、インデックスと注釈とともに Knowledge Vault から削除されます。ディスク上のファイルは削除されません。この操作は元に戻せません。</value></data>
+  <data name="Vault_DeleteDocumentsTitle" xml:space="preserve"><value>選択したドキュメントを削除しますか?</value></data>
+  <data name="Vault_DeleteDocumentsBody" xml:space="preserve"><value>{0} 件のドキュメントが、インデックスと注釈とともに Knowledge Vault から削除されます。ディスク上のファイルは削除されません。この操作は元に戻せません。</value></data>
+  <data name="Vault_DeleteConfirm" xml:space="preserve"><value>削除</value></data>
+  <data name="Vault_DeleteCancel" xml:space="preserve"><value>キャンセル</value></data>
   <data name="Terms_12Termination.Text" xml:space="preserve"><value>12. 終了</value></data>
   <data name="Terms_TheRightsGrantedTo.Text" xml:space="preserve"><value>MIT ライセンスに基づきお客様に付与される権利は永続的かつ取消不能であり、本規約の影響を受けません。本規約の他の規定にかかわらず、Agent-X のソース コードおよびソフトウェアの使用には MIT ライセンスが適用されます。</value></data>
   <data name="Terms_YouMayStopUsing.Text" xml:space="preserve"><value>アプリケーションをアンインストールし、関連するすべてのデータをデバイスから削除することで、いつでも Agent-X の利用を終了できます。</value></data>

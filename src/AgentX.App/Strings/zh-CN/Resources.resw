@@ -2060,6 +2060,12 @@
   <data name="Terms_YourViolationOfAny.Text" xml:space="preserve"><value>您侵犯任何第三方权利(包括知识产权)的行为</value></data>
   <data name="Terms_ContentYouProcessImport.Text" xml:space="preserve"><value>您通过应用程序处理、导入或生成的内容</value></data>
   <data name="Vault_SearchScopeHint.Text" xml:space="preserve"><value>匹配文件名和标签。要搜索文档内容，请使用“语义搜索”或“向您的文件提问”。</value></data>
+  <data name="Vault_DeleteDocumentTitle" xml:space="preserve"><value>删除文档？</value></data>
+  <data name="Vault_DeleteDocumentBody" xml:space="preserve"><value>“{0}”将连同其索引和注释一起从 Knowledge Vault 中移除。磁盘上的文件不会被删除。此操作无法撤消。</value></data>
+  <data name="Vault_DeleteDocumentsTitle" xml:space="preserve"><value>删除所选文档？</value></data>
+  <data name="Vault_DeleteDocumentsBody" xml:space="preserve"><value>{0} 个文档将连同其索引和注释一起从 Knowledge Vault 中移除。磁盘上的文件不会被删除。此操作无法撤消。</value></data>
+  <data name="Vault_DeleteConfirm" xml:space="preserve"><value>删除</value></data>
+  <data name="Vault_DeleteCancel" xml:space="preserve"><value>取消</value></data>
   <data name="Terms_12Termination.Text" xml:space="preserve"><value>12. 终止</value></data>
   <data name="Terms_TheRightsGrantedTo.Text" xml:space="preserve"><value>根据 MIT 许可证授予您的权利是永久且不可撤销的,不受本条款影响。无论本条款有任何其他规定,您对 Agent-X 源代码和软件的使用均受 MIT 许可证约束。</value></data>
   <data name="Terms_YouMayStopUsing.Text" xml:space="preserve"><value>您可以随时通过卸载应用并从设备中删除所有相关数据来停止使用 Agent-X。</value></data>

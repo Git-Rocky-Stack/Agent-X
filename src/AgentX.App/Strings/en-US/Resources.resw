@@ -2182,6 +2182,12 @@
   <data name="Terms_YourViolationOfAny.Text" xml:space="preserve"><value>Your violation of any third-party rights, including intellectual property rights</value></data>
   <data name="Terms_ContentYouProcessImport.Text" xml:space="preserve"><value>Content you process, import, or generate through the application</value></data>
   <data name="Vault_SearchScopeHint.Text" xml:space="preserve"><value>Matches file names and tags. To search inside documents, use Semantic Search or Ask Your Files.</value></data>
+  <data name="Vault_DeleteDocumentTitle" xml:space="preserve"><value>Delete document?</value></data>
+  <data name="Vault_DeleteDocumentBody" xml:space="preserve"><value>"{0}" will be removed from the Knowledge Vault, together with its index and annotations. The file on disk is not deleted. This cannot be undone.</value></data>
+  <data name="Vault_DeleteDocumentsTitle" xml:space="preserve"><value>Delete documents?</value></data>
+  <data name="Vault_DeleteDocumentsBody" xml:space="preserve"><value>{0} documents will be removed from the Knowledge Vault, together with their index and annotations. The files on disk are not deleted. This cannot be undone.</value></data>
+  <data name="Vault_DeleteConfirm" xml:space="preserve"><value>Delete</value></data>
+  <data name="Vault_DeleteCancel" xml:space="preserve"><value>Cancel</value></data>
   <data name="Terms_12Termination.Text" xml:space="preserve"><value>12. Termination</value></data>
   <data name="Terms_TheRightsGrantedTo.Text" xml:space="preserve"><value>The rights granted to you under the MIT License are perpetual and irrevocable, and are not affected by these Terms. The MIT License governs your use of the Agent-X source code and software regardless of any other provision here.</value></data>
   <data name="Terms_YouMayStopUsing.Text" xml:space="preserve"><value>You may stop using Agent-X at any time by uninstalling the application and deleting all associated data from your device.</value></data>

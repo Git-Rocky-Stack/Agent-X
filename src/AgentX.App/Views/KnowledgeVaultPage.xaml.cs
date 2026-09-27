@@ -1,6 +1,7 @@
 using AgentX.App.Helpers;
 using AgentX.App.Services;
 using AgentX.App.ViewModels;
+using AgentX.Core.Services.Localization;
 using AgentX.Core.Services.Shortcuts;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -34,6 +35,7 @@ public sealed partial class KnowledgeVaultPage : Page
         ViewModel = PageViewModelFactory.Create<KnowledgeVaultViewModel>();
         Interlocked.Exchange(ref s_liveViewModel, ViewModel)?.Dispose();
         ViewModel.NavigateRequested = NavigateToPage;
+        ViewModel.ConfirmDeleteAsync = ConfirmDeleteAsync;
         _shortcutRegistry = App.GetService<IShortcutRegistry>();
         InitializeComponent();
         Loaded += async (_, _) => await ViewModel.InitializeAsync();
@@ -387,6 +389,32 @@ public sealed partial class KnowledgeVaultPage : Page
         {
             ViewModel.DeleteDocumentCommand.Execute(id);
         }
+    }
+
+    /// <summary>
+    /// Asks before documents are deleted: one by name, several by count. The view model
+    /// deletes only on a yes; the files on disk are never touched.
+    /// </summary>
+    private async Task<bool> ConfirmDeleteAsync(DocumentDeletionRequest request)
+    {
+        var localization = App.GetService<ILocalizationService>();
+        var (title, body) = request.DocumentName is { } name
+            ? (localization.GetString("Vault_DeleteDocumentTitle"),
+               localization.GetString("Vault_DeleteDocumentBody", name))
+            : (localization.GetString("Vault_DeleteDocumentsTitle"),
+               localization.GetString("Vault_DeleteDocumentsBody", request.Count));
+
+        var dialog = new ContentDialog
+        {
+            Title = title,
+            Content = body,
+            PrimaryButtonText = localization.GetString("Vault_DeleteConfirm"),
+            CloseButtonText = localization.GetString("Vault_DeleteCancel"),
+            DefaultButton = ContentDialogButton.Close,
+            XamlRoot = this.XamlRoot
+        };
+
+        return await dialog.ShowAsync() == ContentDialogResult.Primary;
     }
 
     // ═══════════════════════════════════════════════════════════════

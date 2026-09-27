@@ -2060,6 +2060,12 @@
   <data name="Terms_YourViolationOfAny.Text" xml:space="preserve"><value>Votre violation de droits de tiers, y compris les droits de propriété intellectuelle</value></data>
   <data name="Terms_ContentYouProcessImport.Text" xml:space="preserve"><value>Le contenu que vous traitez, importez ou générez via l'application</value></data>
   <data name="Vault_SearchScopeHint.Text" xml:space="preserve"><value>Porte sur les noms de fichiers et les tags. Pour chercher dans le contenu des documents, utilisez « Recherche sémantique » ou « Interroger vos fichiers ».</value></data>
+  <data name="Vault_DeleteDocumentTitle" xml:space="preserve"><value>Supprimer le document ?</value></data>
+  <data name="Vault_DeleteDocumentBody" xml:space="preserve"><value>« {0} » sera retiré du Coffre-fort de Connaissances, avec son index et ses annotations. Le fichier sur le disque n'est pas supprimé. Cette action est irréversible.</value></data>
+  <data name="Vault_DeleteDocumentsTitle" xml:space="preserve"><value>Supprimer les documents ?</value></data>
+  <data name="Vault_DeleteDocumentsBody" xml:space="preserve"><value>{0} documents seront retirés du Coffre-fort de Connaissances, avec leur index et leurs annotations. Les fichiers sur le disque ne sont pas supprimés. Cette action est irréversible.</value></data>
+  <data name="Vault_DeleteConfirm" xml:space="preserve"><value>Supprimer</value></data>
+  <data name="Vault_DeleteCancel" xml:space="preserve"><value>Annuler</value></data>
   <data name="Terms_12Termination.Text" xml:space="preserve"><value>12. Résiliation</value></data>
   <data name="Terms_TheRightsGrantedTo.Text" xml:space="preserve"><value>Les droits qui vous sont accordés sous licence MIT sont perpétuels et irrévocables, et ne sont pas affectés par ces Conditions. La licence MIT régit votre utilisation du code source et du logiciel Agent-X indépendamment de toute autre disposition des présentes.</value></data>
   <data name="Terms_YouMayStopUsing.Text" xml:space="preserve"><value>Vous pouvez cesser d'utiliser Agent-X à tout moment en désinstallant l'application et en supprimant toutes les données associées de votre appareil.</value></data>

@@ -836,8 +836,9 @@ public sealed class KnowledgeVaultViewModelTests
         var now = new DateTime(2026, 9, 27, 8, 0, 0, DateTimeKind.Utc);
         var viewModel = CreateViewModel(temporalIdentity.Object);
         viewModel.UtcNow = () => now;
+        viewModel.ConfirmDeleteAsync = _ => Task.FromResult(true);
         viewModel.ResumeDocumentEngagement();
-        viewModel.SelectedDocument = new DocumentDisplayItem { Id = 7 };
+        viewModel.SelectedDocument = new DocumentDisplayItem { Id = 7, FileName = "plan.pdf" };
 
         now = now.AddSeconds(60);
         await viewModel.DeleteDocumentCommand.ExecuteAsync(7L);
@@ -906,6 +907,154 @@ public sealed class KnowledgeVaultViewModelTests
         var tags = new[] { new TagEntity { Name = "Finance" } };
 
         KnowledgeVaultViewModel.MatchesSearch("quarterly-plan.pdf", tags, query).Should().Be(expected);
+    }
+
+    // Delete confirmation
+    // A document, or a whole multi-selection, was deleted the moment the button was pressed.
+
+    [Fact]
+    public async Task DeleteDocumentCommand_NamesTheDocument_AndDeletesItOnceConfirmed()
+    {
+        SetupVault(CreateDocument(1, "alpha.md"), CreateDocument(2, "beta.pdf"));
+        var viewModel = CreateViewModel();
+        await viewModel.InitializeAsync();
+        var requests = new List<DocumentDeletionRequest>();
+        viewModel.ConfirmDeleteAsync = request =>
+        {
+            requests.Add(request);
+            return Task.FromResult(true);
+        };
+
+        await viewModel.DeleteDocumentCommand.ExecuteAsync(2L);
+
+        requests.Should().Equal(new DocumentDeletionRequest(1, "beta.pdf"));
+        _documentService.Verify(service => service.DeleteDocumentAsync(2), Times.Once);
+        viewModel.Documents.Select(d => d.Id).Should().Equal(1L);
+    }
+
+    [Fact]
+    public async Task DeleteDocumentCommand_WhenDeclined_KeepsTheDocument()
+    {
+        SetupVault(CreateDocument(1, "alpha.md"), CreateDocument(2, "beta.pdf"));
+        var viewModel = CreateViewModel();
+        await viewModel.InitializeAsync();
+        viewModel.ConfirmDeleteAsync = _ => Task.FromResult(false);
+
+        await viewModel.DeleteDocumentCommand.ExecuteAsync(2L);
+
+        _documentService.Verify(service => service.DeleteDocumentAsync(It.IsAny<long>()), Times.Never);
+        viewModel.Documents.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public async Task BulkDeleteCommand_CountsTheSelection_AndDeletesItOnceConfirmed()
+    {
+        SetupVault(CreateDocument(1, "alpha.md"), CreateDocument(2, "beta.pdf"), CreateDocument(3, "gamma.txt"));
+        var viewModel = CreateViewModel();
+        await viewModel.InitializeAsync();
+        viewModel.ToggleDocumentSelectionCommand.Execute(1L);
+        viewModel.ToggleDocumentSelectionCommand.Execute(3L);
+        var requests = new List<DocumentDeletionRequest>();
+        viewModel.ConfirmDeleteAsync = request =>
+        {
+            requests.Add(request);
+            return Task.FromResult(true);
+        };
+
+        await viewModel.BulkDeleteCommand.ExecuteAsync(null);
+
+        requests.Should().Equal(new DocumentDeletionRequest(2, null));
+        _documentService.Verify(
+            service => service.BulkDeleteAsync(
+                It.Is<IReadOnlyList<long>>(ids => ids.SequenceEqual(new[] { 1L, 3L })),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+        viewModel.SelectedCount.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task BulkDeleteCommand_WithOneDocumentSelected_NamesIt()
+    {
+        SetupVault(CreateDocument(1, "alpha.md"), CreateDocument(2, "beta.pdf"));
+        var viewModel = CreateViewModel();
+        await viewModel.InitializeAsync();
+        viewModel.ToggleDocumentSelectionCommand.Execute(2L);
+        DocumentDeletionRequest? asked = null;
+        viewModel.ConfirmDeleteAsync = request =>
+        {
+            asked = request;
+            return Task.FromResult(false);
+        };
+
+        await viewModel.BulkDeleteCommand.ExecuteAsync(null);
+
+        asked.Should().Be(new DocumentDeletionRequest(1, "beta.pdf"));
+    }
+
+    [Fact]
+    public async Task BulkDeleteCommand_WhenDeclined_KeepsTheDocumentsAndTheSelection()
+    {
+        SetupVault(CreateDocument(1, "alpha.md"), CreateDocument(2, "beta.pdf"));
+        var viewModel = CreateViewModel();
+        await viewModel.InitializeAsync();
+        viewModel.ToggleDocumentSelectionCommand.Execute(1L);
+        viewModel.ToggleDocumentSelectionCommand.Execute(2L);
+        viewModel.ConfirmDeleteAsync = _ => Task.FromResult(false);
+
+        await viewModel.BulkDeleteCommand.ExecuteAsync(null);
+
+        _documentService.Verify(
+            service => service.BulkDeleteAsync(It.IsAny<IReadOnlyList<long>>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+        viewModel.SelectedDocumentIds.Should().Equal(1L, 2L);
+        viewModel.SelectedCount.Should().Be(2);
+    }
+
+    [Fact]
+    public async Task DeleteCommands_WithoutAConfirmation_DeleteNothing()
+    {
+        // No handler, or a dialog that fails to open, is not a yes.
+        SetupVault(CreateDocument(1, "alpha.md"), CreateDocument(2, "beta.pdf"));
+        var viewModel = CreateViewModel();
+        await viewModel.InitializeAsync();
+        viewModel.ToggleDocumentSelectionCommand.Execute(1L);
+
+        await viewModel.DeleteDocumentCommand.ExecuteAsync(2L);
+        await viewModel.BulkDeleteCommand.ExecuteAsync(null);
+
+        viewModel.ConfirmDeleteAsync = _ => throw new InvalidOperationException("Only a single ContentDialog can be open");
+        await viewModel.DeleteDocumentCommand.ExecuteAsync(2L);
+        await viewModel.BulkDeleteCommand.ExecuteAsync(null);
+
+        _documentService.Verify(service => service.DeleteDocumentAsync(It.IsAny<long>()), Times.Never);
+        _documentService.Verify(
+            service => service.BulkDeleteAsync(It.IsAny<IReadOnlyList<long>>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+        viewModel.Documents.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public async Task DeletingThePreviewedDocument_ClosesThePreview()
+    {
+        // The preview stayed open on a document that no longer existed, offering its actions.
+        SetupVault(CreateDocument(1, "alpha.md"), CreateDocument(2, "beta.pdf"));
+        _documentService.Setup(service => service.GetDocumentAsync(It.IsAny<long>()))
+            .ReturnsAsync((long id) => CreateDocument(id, id == 1 ? "alpha.md" : "beta.pdf"));
+        var viewModel = CreateViewModel();
+        await viewModel.InitializeAsync();
+        viewModel.ConfirmDeleteAsync = _ => Task.FromResult(true);
+
+        await viewModel.SelectDocumentCommand.ExecuteAsync(2L);
+        await viewModel.DeleteDocumentCommand.ExecuteAsync(2L);
+
+        viewModel.SelectedDocument.Should().BeNull();
+        viewModel.IsPreviewOpen.Should().BeFalse();
+
+        await viewModel.SelectDocumentCommand.ExecuteAsync(1L);
+        viewModel.ToggleDocumentSelectionCommand.Execute(1L);
+        await viewModel.BulkDeleteCommand.ExecuteAsync(null);
+
+        viewModel.IsPreviewOpen.Should().BeFalse();
     }
 
     private KnowledgeVaultViewModel CreateViewModel(ITemporalIdentityService? temporalIdentity = null) =>
