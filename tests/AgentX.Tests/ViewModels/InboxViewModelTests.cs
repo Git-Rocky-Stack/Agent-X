@@ -350,6 +350,77 @@ public sealed class InboxViewModelTests
         viewModel.StatusMessage.Should().Be("1 Element übernommen (1 bereits im Wissens-Tresor)");
     }
 
+    // The STATUS list showed the service's English status values ("pending", "deferred", ...)
+    // in every language, and so did each item's status line.
+
+    [Fact]
+    public void StatusFilters_are_named_in_the_users_language_and_keep_the_services_values()
+    {
+        var english = new InboxViewModel(_inboxService.Object, _collectionService.Object, EnglishResources.Create());
+        var german = new InboxViewModel(_inboxService.Object, _collectionService.Object, ReswLocalization.For("de"));
+
+        english.StatusFilters.Select(option => option.Label)
+            .Should().Equal("Pending", "Accepted", "Rejected", "Deferred", "All");
+        german.StatusFilters.Select(option => option.Label)
+            .Should().Equal("Ausstehend", "Übernommen", "Abgelehnt", "Zurückgestellt", "Alle");
+        german.StatusFilters.Select(option => option.Value)
+            .Should().Equal("pending", "accepted", "rejected", "deferred", "all");
+    }
+
+    [Theory]
+    [InlineData("en-US")]
+    [InlineData("de")]
+    [InlineData("es")]
+    [InlineData("fr")]
+    [InlineData("ja")]
+    [InlineData("zh-CN")]
+    public void Every_language_names_each_status_and_no_two_alike(string locale)
+    {
+        var viewModel = new InboxViewModel(_inboxService.Object, _collectionService.Object, ReswLocalization.For(locale));
+
+        var labels = viewModel.StatusFilters.Select(option => option.Label).ToList();
+
+        labels.Should().OnlyContain(label => !string.IsNullOrWhiteSpace(label) && !label.StartsWith("Inbox_", StringComparison.Ordinal));
+        labels.Should().OnlyHaveUniqueItems("a filter must not read like another one");
+    }
+
+    [Fact]
+    public async Task FilterByStatusCommand_filters_by_the_value_behind_the_name()
+    {
+        _inboxService.Setup(service => service.GetAllItemsAsync(It.IsAny<string?>(), 0, 100))
+            .ReturnsAsync(Array.Empty<InboxItemEntity>());
+        var viewModel = new InboxViewModel(_inboxService.Object, _collectionService.Object, ReswLocalization.For("fr"));
+
+        await viewModel.FilterByStatusCommand.ExecuteAsync(viewModel.StatusFilters.Single(o => o.Label == "Reporté").Value);
+        viewModel.StatusFilter.Should().Be("deferred");
+        _inboxService.Verify(service => service.GetAllItemsAsync("deferred", 0, 100), Times.Once);
+
+        await viewModel.FilterByStatusCommand.ExecuteAsync(viewModel.StatusFilters.Single(o => o.Label == "Tous").Value);
+        viewModel.StatusFilter.Should().Be("all");
+        _inboxService.Verify(service => service.GetAllItemsAsync(null, 0, 100), Times.Once);
+    }
+
+    [Fact]
+    public async Task Each_item_shows_its_status_in_the_users_language()
+    {
+        _inboxService.Setup(service => service.GetAllItemsAsync(null, 0, 100))
+            .ReturnsAsync(
+            [
+                new InboxItemEntity { Id = 1, FileName = "a.md", Status = "pending", AddedAt = DateTime.UtcNow },
+                new InboxItemEntity { Id = 2, FileName = "b.md", Status = "deferred", AddedAt = DateTime.UtcNow },
+                new InboxItemEntity { Id = 3, FileName = "c.md", Status = "accepted", AddedAt = DateTime.UtcNow },
+                new InboxItemEntity { Id = 4, FileName = "d.md", Status = "archived", AddedAt = DateTime.UtcNow },
+            ]);
+        var viewModel = new InboxViewModel(_inboxService.Object, _collectionService.Object, ReswLocalization.For("es"));
+
+        await viewModel.FilterByStatusCommand.ExecuteAsync("all");
+
+        viewModel.InboxItems.Select(item => item.StatusLabel)
+            .Should().Equal("Pendiente", "Aplazado", "Aceptado", "archived");
+        viewModel.InboxItems.Select(item => item.Status)
+            .Should().Equal("pending", "deferred", "accepted", "archived");
+    }
+
     [Fact]
     public async Task RefreshCommand_picks_up_items_that_arrived_while_the_page_was_open()
     {

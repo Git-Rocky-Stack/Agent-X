@@ -37,7 +37,11 @@ public partial class InboxViewModel : ObservableObject
     [ObservableProperty] private CollectionEntity? _selectedCollection;
 
     // ── Filter Options ───────────────────────────────────────
-    public List<string> StatusFilters { get; } = new() { "pending", "accepted", "rejected", "deferred", "all" };
+    /// <summary>
+    /// The STATUS list: each filter's value (what <see cref="StatusFilter"/> and the inbox
+    /// service use) and the name shown for it in the user's language.
+    /// </summary>
+    public IReadOnlyList<InboxStatusFilterOption> StatusFilters { get; }
 
     private CancellationTokenSource? _previewCts;
 
@@ -51,6 +55,10 @@ public partial class InboxViewModel : ObservableObject
         _collectionService = collectionService;
         _localization = localization ?? throw new ArgumentNullException(nameof(localization));
         _operationsDrillInService = operationsDrillInService;
+
+        StatusFilters = new[] { "pending", "accepted", "rejected", "deferred", "all" }
+            .Select(value => new InboxStatusFilterOption(value, DescribeStatus(value)))
+            .ToList();
     }
 
     public async Task InitializeAsync()
@@ -107,6 +115,7 @@ public partial class InboxViewModel : ObservableObject
                     FileType = item.FileType,
                     FileSizeBytes = item.FileSizeBytes,
                     Status = item.Status,
+                    StatusLabel = DescribeStatus(item.Status),
                     Preview = item.Preview ?? string.Empty,
                     SuggestedCollectionName = item.SuggestedCollectionName ?? string.Empty,
                     SuggestedTags = item.SuggestedTags ?? string.Empty,
@@ -370,6 +379,20 @@ public partial class InboxViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// The name shown for an inbox status, or for the "all" filter, in the user's language.
+    /// A status this page does not know is shown as it is stored.
+    /// </summary>
+    internal string DescribeStatus(string status) => status switch
+    {
+        "pending" => _localization.GetString("Inbox_StatusPending"),
+        "accepted" => _localization.GetString("Inbox_StatusAccepted"),
+        "rejected" => _localization.GetString("Inbox_StatusRejected"),
+        "deferred" => _localization.GetString("Inbox_StatusDeferred"),
+        "all" => _localization.GetString("Inbox_StatusAll"),
+        _ => status,
+    };
+
     /// <summary>Status line for a single accept, worded after what actually happened.</summary>
     internal string DescribeAcceptStatus(InboxAcceptOutcome outcome) => outcome switch
     {
@@ -441,6 +464,12 @@ public partial class InboxViewModel : ObservableObject
         OnPropertyChanged(nameof(HasFocusedInboxLanding));
 }
 
+/// <summary>A STATUS filter: the value the inbox is filtered by and the name shown for it.</summary>
+public sealed record InboxStatusFilterOption(string Value, string Label)
+{
+    public override string ToString() => Label;
+}
+
 public partial class InboxDisplayItem : ObservableObject
 {
     [ObservableProperty] private long _id;
@@ -449,6 +478,7 @@ public partial class InboxDisplayItem : ObservableObject
     [ObservableProperty] private string _fileType = string.Empty;
     [ObservableProperty] private long _fileSizeBytes;
     [ObservableProperty] private string _status = "pending";
+    [ObservableProperty] private string _statusLabel = string.Empty;
     [ObservableProperty] private string _preview = string.Empty;
     [ObservableProperty] private string _suggestedCollectionName = string.Empty;
     [ObservableProperty] private string _suggestedTags = string.Empty;

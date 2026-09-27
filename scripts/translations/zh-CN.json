@@ -227,7 +227,7 @@
   "UserGuide_Inbox_Feature1_Title.Text": "AI 预览",
   "UserGuide_Inbox_Feature1_Description.Text": "“生成 AI 预览”会根据每个尚无预览的待处理项文本的前 2,000 个字符，向当前 AI 提供商询问：它会写出两三句话的摘要，并建议一个合集和最多五个标签。如果建议的合集与您已有的某个合集一致，接受该项时就会使用它；建议的标签只作显示，文档在建立索引时会获得自己的标签。在您点击该按钮之前，不会生成任何内容。",
   "UserGuide_Inbox_Feature2_Title.Text": "接受、推迟或拒绝",
-  "UserGuide_Inbox_Feature2_Description.Text": "“接受”会将该项导入 Knowledge Vault，放入在“目标合集”中选择的合集，未选择时放入建议的合集。“推迟”和“拒绝”只会改变该项的状态，不会导入任何内容。“状态”列表（pending、accepted、rejected、deferred 或 all）决定显示哪些项。“接受全部待处理”会接受每个待处理项，并分别放入其建议的合集。“清理已处理项”会从列表中移除已接受和已拒绝的项，并保留已推迟的项；已导入的文档仍保留在 Vault 中。",
+  "UserGuide_Inbox_Feature2_Description.Text": "“接受”会将该项导入 Knowledge Vault，放入在“目标合集”中选择的合集，未选择时放入建议的合集。“推迟”和“拒绝”只会改变该项的状态，不会导入任何内容。“状态”列表（待处理、已接受、已拒绝、已推迟或全部）决定显示哪些项。“接受全部待处理”会接受每个待处理项，并分别放入其建议的合集。“清理已处理项”会从列表中移除已接受和已拒绝的项，并保留已推迟的项；已导入的文档仍保留在 Vault 中。",
   "UserGuide_Inbox_Feature3_Title.Text": "捕获来源",
   "UserGuide_Inbox_Feature3_Description.Text": "带“网页剪藏”标记的项来自浏览器扩展（整个页面、您的选择或阅读视图），会等待您处理。来自日历和邮件连接器，以及向收件箱推送项的数据连接器插件的项，一到达就会导入 Vault，因此显示时已是已接受状态。监视文件夹中的文件不经过 Smart Inbox。",
   "UserGuide_Analytics_Title.Text": "Analytics(分析)",
@@ -3435,5 +3435,10 @@
   "UserGuide_Settings_Group2_Description.Text": "“温度”（0 到 2，默认 0.7）决定回复的多样性，“最大 Token 数”（256 到 32,768，默认 4,096）限制回复长度，“上下文窗口”（2,048 到 131,072，默认 8,192）限制组装的对话上下文量，并会传给 Ollama。这些设置适用于所有对话；没有针对单个对话的覆盖设置，也没有 top_p、惩罚项或停止序列设置。",
   "UserGuide_Settings_Group4_Description.Text": "“总支出”和“今日”（从当地时间午夜起算）根据应用内置的价格表估算 OpenAI 和 Anthropic 调用的费用，“总 Token 数”统计所记录的 OpenAI、Anthropic 和 Ollama 调用的 Token 数；本地模型不产生费用。这些总计在重启后仍会保留，涵盖自引入此历史记录以来记录的全部用量；每次调用的详细信息会在数据文件夹的 usage-history.json 中保留 90 天。没有按模型、对话或功能的明细，也没有预算上限。",
   "UserGuide_Settings_Shortcut.Text": "在应用中的任何位置按 Ctrl+, 即可打开“设置”，在该页面上按 Ctrl+S 即可保存。该页面没有搜索框；请滚动到所需的部分。",
-  "UserGuide_GettingStarted_Prereq2_Title.Text": "至少拉取一个聊天模型：打开终端并运行"
+  "UserGuide_GettingStarted_Prereq2_Title.Text": "至少拉取一个聊天模型：打开终端并运行",
+  "Inbox_StatusPending": "待处理",
+  "Inbox_StatusAccepted": "已接受",
+  "Inbox_StatusRejected": "已拒绝",
+  "Inbox_StatusDeferred": "已推迟",
+  "Inbox_StatusAll": "全部"
 }

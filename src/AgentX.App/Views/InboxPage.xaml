@@ -88,10 +88,12 @@
                             <StackLayout Spacing="4" />
                         </ItemsRepeater.Layout>
                         <ItemsRepeater.ItemTemplate>
-                            <DataTemplate x:DataType="x:String">
-                                <Button Content="{x:Bind}"
+                            <!-- The button shows the status name in the user's language and filters
+                                 by the status value the inbox service uses. -->
+                            <DataTemplate x:DataType="vm:InboxStatusFilterOption">
+                                <Button Content="{x:Bind Label}"
                                         Command="{Binding ViewModel.FilterByStatusCommand, ElementName=InboxRoot}"
-                                        CommandParameter="{Binding}"
+                                        CommandParameter="{x:Bind Value}"
                                         HorizontalAlignment="Stretch"
                                         HorizontalContentAlignment="Left"
                                         Style="{StaticResource GhostButtonStyle}"
@@ -250,7 +252,7 @@
                                                     <TextBlock Text="{x:Bind FileType}"
                                                                Style="{StaticResource CaptionStyle}" />
                                                     <TextBlock Style="{StaticResource CaptionStyle}"
-                                                               Text="{x:Bind Status}" />
+                                                               Text="{x:Bind StatusLabel}" />
                                                     <!-- Web Clip badge — visible only for browser-extension items -->
                                                     <Border Visibility="{x:Bind IsBrowserClip, Converter={StaticResource BoolToVis}}"
                                                             CornerRadius="4"

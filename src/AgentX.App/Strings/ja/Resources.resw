@@ -445,7 +445,7 @@
   <data name="UserGuide_BrowserExtension_Feature1.Text" xml:space="preserve"><value>クリップ モード：ページ全体は記事全体を、選択範囲はハイライトしたテキストだけを取り込み、リーダー表示はナビゲーションや広告を除いた本文を残します。各クリップにはテキストと共にページのタイトルと URL が含まれます。</value></data>
   <data name="UserGuide_BrowserExtension_Feature2.Text" xml:space="preserve"><value>すべてのタブをクリップ：1 つのボタンで現在のブラウザー ウィンドウのすべてのタブをクリップし、それぞれを個別の Smart Inbox アイテムにします。調べものの締めくくりに便利です。</value></data>
   <data name="UserGuide_BrowserExtension_Feature3.Text" xml:space="preserve"><value>最近のクリップ：ポップアップに最近クリップした内容が一覧表示されるため、クリップが Agent-X に届いたかをひと目で確認できます。拡張機能にはコンテキスト メニュー、キーボード ショートカット、サイド パネルはなく、すべての操作はポップアップから行います。</value></data>
-  <data name="UserGuide_BrowserExtension_Feature4.Text" xml:space="preserve"><value>ボールトに入る前のトリアージ：クリップは Knowledge Vault に直接入りません。Smart Inbox で待機し、そこで 1 件ずつ確認して、承認、保留、または却下します。</value></data>
+  <data name="UserGuide_BrowserExtension_Feature4.Text" xml:space="preserve"><value>ボールトに入る前のトリアージ：クリップは Knowledge Vault に直接入りません。Smart Inbox で待機し、そこで 1 件ずつ確認して、承認、延期、または却下します。</value></data>
   <data name="UserGuide_BrowserExtension_NativeMessaging_Title.Text" xml:space="preserve"><value>ローカル API 接続</value></data>
   <data name="UserGuide_BrowserExtension_NativeMessaging_Description.Text" xml:space="preserve"><value>各クリップは http://localhost:9846 の Agent-X ローカル API への認証済みリクエストです。このローカル API はこのコンピューター上でのみ応答し、Web ページからのリクエストはブロックします。Agent-X が [ローカル API を有効化] をオンにした状態で実行されている必要があります。そうでない場合、ポップアップには Offline と表示され、クリップは後で送るためにキューに入ることなく失敗します。アプリが戻ってから、もう一度クリップしてください。データがこのコンピューターの外に出ることはありません。</value></data>
   <data name="UserGuide_MobileCompanion_Title.Text" xml:space="preserve"><value>モバイル コンパニオン アプリ</value></data>
@@ -588,8 +588,8 @@
   <data name="UserGuide_Inbox_Description.Text" xml:space="preserve"><value>Smart Inbox は、ブラウザー拡張機能でクリップしたページが、どうするか決めるまで待機する場所です。承認するまで Knowledge Vault には入りません。コネクターからのカレンダー イベントとメール、およびデータ コネクター プラグインが追加する項目もここに表示されますが、届いた時点で Vault にインポートされるため、すでに承認済みになっています。監視フォルダーのファイルは Knowledge Vault に直接入ります。</value></data>
   <data name="UserGuide_Inbox_Feature1_Title.Text" xml:space="preserve"><value>AI プレビュー</value></data>
   <data name="UserGuide_Inbox_Feature1_Description.Text" xml:space="preserve"><value>[AI プレビューを生成] は、まだプレビューのない保留中の各項目について、テキストの先頭 2,000 文字をもとに有効な AI プロバイダーに問い合わせます。2、3 文の要約を書き、コレクションと最大 5 個のタグを提案します。提案されたコレクションが既存のコレクションと一致すれば、承認時にそのコレクションが使われます。提案されたタグは表示されるだけで、ドキュメントにはインデックス作成時に独自のタグが付きます。ボタンをクリックするまで何も生成されません。</value></data>
-  <data name="UserGuide_Inbox_Feature2_Title.Text" xml:space="preserve"><value>承認・保留・却下</value></data>
-  <data name="UserGuide_Inbox_Feature2_Description.Text" xml:space="preserve"><value>[承認] は項目を Knowledge Vault にインポートします。インポート先は「対象コレクション」で選んだコレクション、選んでいなければ提案されたコレクションです。[保留] と [却下] は項目の状態を変えるだけで、何もインポートしません。「ステータス」の一覧 (pending、accepted、rejected、deferred、all) で、表示する項目を選びます。[保留中をすべて承認] は保留中のすべての項目を、それぞれ提案されたコレクションに承認します。[処理済みを整理] は、承認または却下した項目を一覧から削除し、保留にした項目は残します。インポート済みのドキュメントは Vault に残ります。</value></data>
+  <data name="UserGuide_Inbox_Feature2_Title.Text" xml:space="preserve"><value>承認・延期・却下</value></data>
+  <data name="UserGuide_Inbox_Feature2_Description.Text" xml:space="preserve"><value>[承認] は項目を Knowledge Vault にインポートします。インポート先は「対象コレクション」で選んだコレクション、選んでいなければ提案されたコレクションです。[延期] と [却下] は項目の状態を変えるだけで、何もインポートしません。「ステータス」の一覧 (保留中、承認済み、却下済み、延期、すべて) で、表示する項目を選びます。[保留中をすべて承認] は保留中のすべての項目を、それぞれ提案されたコレクションに承認します。[処理済みを整理] は、承認または却下した項目を一覧から削除し、延期した項目は残します。インポート済みのドキュメントは Vault に残ります。</value></data>
   <data name="UserGuide_Inbox_Feature3_Title.Text" xml:space="preserve"><value>キャプチャソース</value></data>
   <data name="UserGuide_Inbox_Feature3_Description.Text" xml:space="preserve"><value>「Web クリップ」の項目はブラウザー拡張機能から届き (ページ全体、選択範囲、リーダー ビューのいずれか)、判断を待ちます。カレンダーとメールのコネクター、および受信トレイに項目を送るデータ コネクター プラグインからの項目は、届いた時点で Vault にインポートされるため、承認済みの状態で表示されます。監視フォルダーのファイルは Smart Inbox を通りません。</value></data>
   <data name="UserGuide_Analytics_Title.Text" xml:space="preserve"><value>Analytics(分析)</value></data>
@@ -672,8 +672,8 @@
   <data name="Inbox_AcceptFailed" xml:space="preserve"><value>アイテムを承認できませんでした: {0}</value></data>
   <data name="Inbox_ItemRejected" xml:space="preserve"><value>アイテムを却下しました</value></data>
   <data name="Inbox_RejectFailed" xml:space="preserve"><value>アイテムを却下できませんでした</value></data>
-  <data name="Inbox_ItemDeferred" xml:space="preserve"><value>アイテムを保留にしました</value></data>
-  <data name="Inbox_DeferFailed" xml:space="preserve"><value>アイテムを保留にできませんでした</value></data>
+  <data name="Inbox_ItemDeferred" xml:space="preserve"><value>アイテムを延期しました</value></data>
+  <data name="Inbox_DeferFailed" xml:space="preserve"><value>アイテムを延期できませんでした</value></data>
   <data name="Inbox_AcceptAllFailed" xml:space="preserve"><value>すべて承認できませんでした</value></data>
   <data name="Inbox_PreviewsGenerated" xml:space="preserve"><value>AI プレビューを生成しました</value></data>
   <data name="Inbox_PreviewsCancelled" xml:space="preserve"><value>プレビューの生成をキャンセルしました</value></data>
@@ -913,8 +913,8 @@
   <data name="Inbox_WebClipBadge.Text" xml:space="preserve"><value>Web クリップ</value></data>
   <data name="Inbox_AcceptBtn.ToolTipService.ToolTip" xml:space="preserve"><value>承認</value></data>
   <data name="Inbox_AcceptBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>承認</value></data>
-  <data name="Inbox_DeferBtn.ToolTipService.ToolTip" xml:space="preserve"><value>保留</value></data>
-  <data name="Inbox_DeferBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>保留</value></data>
+  <data name="Inbox_DeferBtn.ToolTipService.ToolTip" xml:space="preserve"><value>延期</value></data>
+  <data name="Inbox_DeferBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>延期</value></data>
   <data name="Inbox_RejectBtn.ToolTipService.ToolTip" xml:space="preserve"><value>却下</value></data>
   <data name="Inbox_RejectBtn.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>却下</value></data>
   <data name="Inbox_AiPreviewLabel.Text" xml:space="preserve"><value>AI プレビュー</value></data>
@@ -3702,4 +3702,9 @@
   <data name="Startup_FailedHelp" xml:space="preserve"><value>データを保護するため、Agent-X は機能を読み込む前に停止しました。バックアップは Agent-X の中からしか復元できないため、ここでは復元できません。まず %LocalAppData%\AgentX フォルダーを安全な場所にコピーし、この問題を報告する際は %LocalAppData%\AgentX\Logs のログ ファイルを添付してください。</value></data>
   <data name="Startup_FailedManualRestore" xml:space="preserve"><value>手動でバックアップに戻すには: Agent-X を閉じた状態で、%LocalAppData%\AgentX に agentx.db-wal と agentx.db-shm があれば削除し、agentx.db を、パスワードなしで作成した .agentxbak バックアップ内の database\agentx.db ファイルに置き換えます (このファイルは ZIP アーカイブです)。パスワード付きで作成したバックアップは Agent-X でしか開けません。</value></data>
   <data name="Startup_ExitButton" xml:space="preserve"><value>終了</value></data>
+  <data name="Inbox_StatusPending" xml:space="preserve"><value>保留中</value></data>
+  <data name="Inbox_StatusAccepted" xml:space="preserve"><value>承認済み</value></data>
+  <data name="Inbox_StatusRejected" xml:space="preserve"><value>却下済み</value></data>
+  <data name="Inbox_StatusDeferred" xml:space="preserve"><value>延期</value></data>
+  <data name="Inbox_StatusAll" xml:space="preserve"><value>すべて</value></data>
 </root>
