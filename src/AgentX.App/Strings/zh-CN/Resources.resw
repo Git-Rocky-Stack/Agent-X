@@ -621,6 +621,81 @@
   <data name="Inbox_Title.Text" xml:space="preserve"><value>Smart Inbox(智能收件箱)</value></data>
   <data name="Inbox_PendingRun.Text" xml:space="preserve"><value>个待处理</value></data>
   <data name="Inbox_StatusOverline.Text" xml:space="preserve"><value>状态</value></data>
+  <data name="Vault_LoadFailed" xml:space="preserve"><value>无法加载文档。请尝试刷新。</value></data>
+  <data name="Vault_ImportingFiles" xml:space="preserve"><value>正在导入 {0} 个文件...</value></data>
+  <data name="Vault_ImportingFileProgress" xml:space="preserve"><value>正在导入文件 {0}/{1}...</value></data>
+  <data name="Vault_ImportSummaryWithFailure" xml:space="preserve"><value>{0}。{1}：{2}</value></data>
+  <data name="Vault_ImportFailedStatus" xml:space="preserve"><value>导入失败</value></data>
+  <data name="Vault_ImportFilesFailed" xml:space="preserve"><value>无法导入文件：{0}</value></data>
+  <data name="Vault_ImportSucceeded" xml:space="preserve"><value>已成功导入 {0} 个文件</value></data>
+  <data name="Vault_ImportSucceededFromFolder" xml:space="preserve"><value>已成功从文件夹导入 {0} 个文件</value></data>
+  <data name="Vault_ImportPartial" xml:space="preserve"><value>已导入 {0} 个文件（共 {1} 个）</value></data>
+  <data name="Vault_ImportPartialFromFolder" xml:space="preserve"><value>已从文件夹导入 {0} 个文件（共 {1} 个）</value></data>
+  <data name="Vault_ImportUnreadableOne" xml:space="preserve"><value>其中 1 个无法读取，已标记为“失败”</value></data>
+  <data name="Vault_ImportUnreadableMany" xml:space="preserve"><value>其中 {0} 个无法读取，已标记为“失败”</value></data>
+  <data name="Vault_ImportDuplicateOne" xml:space="preserve"><value>1 个因重复而跳过</value></data>
+  <data name="Vault_ImportDuplicateMany" xml:space="preserve"><value>{0} 个因重复而跳过</value></data>
+  <data name="Vault_ImportNotImportedOne" xml:space="preserve"><value>1 个无法导入</value></data>
+  <data name="Vault_ImportNotImportedMany" xml:space="preserve"><value>{0} 个无法导入</value></data>
+  <data name="Vault_ScanningFolder" xml:space="preserve"><value>正在扫描文件夹...</value></data>
+  <data name="Vault_FolderImportFailedStatus" xml:space="preserve"><value>文件夹导入失败</value></data>
+  <data name="Vault_ImportFolderFailed" xml:space="preserve"><value>无法导入文件夹：{0}</value></data>
+  <data name="Vault_NoSupportedFilesStatus" xml:space="preserve"><value>文件夹中未找到支持的文件</value></data>
+  <data name="Vault_NoSupportedFilesInFolder" xml:space="preserve"><value>所选文件夹中未找到支持的文件。</value></data>
+  <data name="Vault_DeleteFailed" xml:space="preserve"><value>无法删除文档：{0}</value></data>
+  <data name="Vault_ReindexFailed" xml:space="preserve"><value>无法重新索引文档：{0}</value></data>
+  <data name="Vault_WorkflowLaunchUnavailable" xml:space="preserve"><value>工作流启动服务不可用。</value></data>
+  <data name="Vault_WorkflowDocumentMissing" xml:space="preserve"><value>无法为工作流准备所选文档。</value></data>
+  <data name="Vault_WorkflowNotEnoughText" xml:space="preserve"><value>此文档的已索引文本还不足以在工作流中使用。</value></data>
+  <data name="Vault_WorkflowPrepareFailed" xml:space="preserve"><value>无法为工作流准备文档。</value></data>
+  <data name="Vault_BulkDeleteFailed" xml:space="preserve"><value>批量删除失败</value></data>
+  <data name="Vault_BulkReindexFailed" xml:space="preserve"><value>批量重新索引失败</value></data>
+  <data name="Vault_DroppedFolderUnreadable" xml:space="preserve"><value>无法读取拖放的文件夹 {0}，其中的文件未导入。</value></data>
+  <data name="Vault_NoSupportedFilesDropped" xml:space="preserve"><value>拖放的文件夹中未找到支持的文件。</value></data>
+  <data name="Vault_DuplicateMatch" xml:space="preserve"><value>“{0}”与“{1}”相同</value></data>
+  <data name="Vault_DuplicateWarningOne" xml:space="preserve"><value>1 个文件重复，将被跳过</value></data>
+  <data name="Vault_DuplicateWarningMany" xml:space="preserve"><value>{0} 个文件重复，将被跳过</value></data>
+  <data name="Vault_FiltersWidened" xml:space="preserve"><value>已放宽筛选条件以显示所请求的文档。</value></data>
+  <data name="Vault_WorkflowSourceLine" xml:space="preserve"><value>来源：Knowledge Vault 文档</value></data>
+  <data name="Vault_WorkflowDocumentLine" xml:space="preserve"><value>文档：{0}</value></data>
+  <data name="Vault_WorkflowTitleLine" xml:space="preserve"><value>标题：{0}</value></data>
+  <data name="Vault_WorkflowSummaryHeading" xml:space="preserve"><value>摘要</value></data>
+  <data name="Vault_WorkflowPreviewHeading" xml:space="preserve"><value>文档预览</value></data>
+  <data name="Vault_WorkflowSourceLabel" xml:space="preserve"><value>已从“{0}”加载文档上下文</value></data>
+  <data name="Vault_StatusIndexed" xml:space="preserve"><value>已索引</value></data>
+  <data name="Vault_StatusProcessing" xml:space="preserve"><value>处理中</value></data>
+  <data name="Vault_StatusPending" xml:space="preserve"><value>待处理</value></data>
+  <data name="Vault_StatusFailed" xml:space="preserve"><value>失败</value></data>
+  <data name="Inbox_LoadFailed" xml:space="preserve"><value>无法加载收件箱</value></data>
+  <data name="Inbox_FilterWidened" xml:space="preserve"><value>已放宽状态筛选条件以显示所请求的收件项。</value></data>
+  <data name="Inbox_RequestedItemGone" xml:space="preserve"><value>所请求的收件项已不存在。</value></data>
+  <data name="Inbox_AcceptFailed" xml:space="preserve"><value>无法接受该项：{0}</value></data>
+  <data name="Inbox_ItemRejected" xml:space="preserve"><value>已拒绝该项</value></data>
+  <data name="Inbox_RejectFailed" xml:space="preserve"><value>无法拒绝该项</value></data>
+  <data name="Inbox_ItemDeferred" xml:space="preserve"><value>已推迟该项</value></data>
+  <data name="Inbox_DeferFailed" xml:space="preserve"><value>无法推迟该项</value></data>
+  <data name="Inbox_AcceptAllFailed" xml:space="preserve"><value>无法全部接受</value></data>
+  <data name="Inbox_PreviewsGenerated" xml:space="preserve"><value>已生成 AI 预览</value></data>
+  <data name="Inbox_PreviewsCancelled" xml:space="preserve"><value>已取消生成预览</value></data>
+  <data name="Inbox_PreviewsFailed" xml:space="preserve"><value>无法生成预览</value></data>
+  <data name="Inbox_CleanedUp" xml:space="preserve"><value>已清理已处理项</value></data>
+  <data name="Inbox_CleanupFailed" xml:space="preserve"><value>清理失败</value></data>
+  <data name="Inbox_AcceptedQueued" xml:space="preserve"><value>已接受该项并加入索引队列</value></data>
+  <data name="Inbox_AcceptedLinked" xml:space="preserve"><value>已接受该项；Knowledge Vault 中已有相同内容，因此已关联而未重新导入</value></data>
+  <data name="Inbox_AlreadyAccepted" xml:space="preserve"><value>该项已被接受</value></data>
+  <data name="Inbox_NothingToAccept" xml:space="preserve"><value>没有可接受的待处理项</value></data>
+  <data name="Inbox_AcceptedCountOne" xml:space="preserve"><value>已接受 1 项</value></data>
+  <data name="Inbox_AcceptedCountMany" xml:space="preserve"><value>已接受 {0} 项</value></data>
+  <data name="Inbox_AcceptedWithVault" xml:space="preserve"><value>{0}（其中 {1} 项已在 Knowledge Vault 中）</value></data>
+  <data name="Inbox_AcceptedWithFailureOne" xml:space="preserve"><value>{0}；1 项失败，仍为待处理</value></data>
+  <data name="Inbox_AcceptedWithFailuresMany" xml:space="preserve"><value>{0}；{1} 项失败，仍为待处理</value></data>
+  <data name="Inbox_AcceptedFirstError" xml:space="preserve"><value>{0}：{1}</value></data>
+  <data name="Inbox_ResolvedQueued" xml:space="preserve"><value>已解决“{0}”：已接受并加入索引队列。</value></data>
+  <data name="Inbox_ResolvedLinked" xml:space="preserve"><value>已解决“{0}”：已接受并关联到 Knowledge Vault 中已有的相同文档。</value></data>
+  <data name="Inbox_ResolvedAlreadyAccepted" xml:space="preserve"><value>已解决“{0}”：确认其已被接受。</value></data>
+  <data name="Inbox_ResolvedFocusedQueued" xml:space="preserve"><value>已解决聚焦的收件项：已接受并加入索引队列。</value></data>
+  <data name="Inbox_ResolvedFocusedLinked" xml:space="preserve"><value>已解决聚焦的收件项：已接受并关联到 Knowledge Vault 中已有的相同文档。</value></data>
+  <data name="Inbox_ResolvedFocusedAlreadyAccepted" xml:space="preserve"><value>已解决聚焦的收件项：确认其已被接受。</value></data>
   <data name="Inbox_TargetCollectionOverline.Text" xml:space="preserve"><value>目标合集</value></data>
   <data name="Inbox_AutoSuggestPlaceholder.PlaceholderText" xml:space="preserve"><value>自动建议</value></data>
   <data name="Inbox_ActionsOverline.Text" xml:space="preserve"><value>操作</value></data>

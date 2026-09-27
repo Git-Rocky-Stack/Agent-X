@@ -8,9 +8,11 @@ using AgentX.Core.Search.Models;
 using AgentX.Core.Services.Annotations;
 using AgentX.Core.Services.Collections;
 using AgentX.Core.Services.Indexing;
+using AgentX.Core.Services.Localization;
 using AgentX.Core.Services.Tagging;
 using AgentX.Core.Services.TemporalIdentity;
 using AgentX.Core.Services.TemporalIdentity.Models;
+using AgentX.Tests.Helpers;
 using FluentAssertions;
 using Moq;
 using Xunit;
@@ -83,7 +85,8 @@ public sealed class KnowledgeVaultViewModelTests
             _indexingService.Object,
             _aiService.Object,
             _autoTagService.Object,
-            _collectionService.Object);
+            _collectionService.Object,
+            EnglishResources.Create());
 
         await viewModel.InitializeAsync();
 
@@ -134,6 +137,7 @@ public sealed class KnowledgeVaultViewModelTests
             _aiService.Object,
             _autoTagService.Object,
             _collectionService.Object,
+            EnglishResources.Create(),
             _workflowLaunchService.Object)
         {
             NavigateRequested = (page, _) => navigatedPage = page
@@ -144,9 +148,60 @@ public sealed class KnowledgeVaultViewModelTests
         stagedRequest.Should().NotBeNull();
         stagedRequest!.InputText.Should().Contain("Source: Knowledge Vault document");
         stagedRequest.InputText.Should().Contain("Document: QuarterlyPlan.pdf");
-        stagedRequest.InputText.Should().Contain("Plan summary");
+        stagedRequest.InputText.Should().Contain("Summary" + Environment.NewLine + "-------" + Environment.NewLine + "Plan summary");
+        stagedRequest.InputText.Should().Contain("Document Preview" + Environment.NewLine + "----------------");
+        stagedRequest.SourceLabel.Should().Be("Loaded document context from \"QuarterlyPlan.pdf\"");
         stagedRequest.RecommendedWorkflowName.Should().Be("Summarize & Act");
         navigatedPage.Should().Be("Workflows");
+    }
+
+    [Fact]
+    public async Task LaunchDocumentInWorkflowAsync_words_the_input_in_the_users_language()
+    {
+        // The headings come from the resources and are underlined to their own length; the
+        // recommended workflow keeps its stored name, which the Workflows page matches.
+        WorkflowLaunchRequest? stagedRequest = null;
+        _documentService.Setup(service => service.GetDocumentAsync(7))
+            .ReturnsAsync(new DocumentEntity
+            {
+                Id = 7,
+                FileName = "Plan.pdf",
+                FilePath = @"C:\docs\Plan.pdf",
+                FileType = "pdf",
+                ContentHash = "hash-7",
+                IndexingStatus = "completed",
+                Summary = "Kurzfassung"
+            });
+        _documentService.Setup(service => service.GetDocumentPreviewTextAsync(7, It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync("Kurzfassung");
+        _workflowLaunchService.Setup(service => service.StageRequest(It.IsAny<WorkflowLaunchRequest>()))
+            .Callback<WorkflowLaunchRequest>(request => stagedRequest = request);
+        var localization = new Mock<ILocalizationService>();
+        localization.Setup(l => l.GetString(It.IsAny<string>())).Returns((string key) => key);
+        localization.Setup(l => l.GetString("Vault_WorkflowSummaryHeading")).Returns("Zusammenfassung");
+        localization.Setup(l => l.GetString(It.IsAny<string>(), It.IsAny<object[]>()))
+            .Returns((string key, object[] args) => $"{key}({string.Join(",", args)})");
+        var viewModel = new KnowledgeVaultViewModel(
+            _documentService.Object,
+            _indexingService.Object,
+            _aiService.Object,
+            _autoTagService.Object,
+            _collectionService.Object,
+            localization.Object,
+            _workflowLaunchService.Object);
+
+        await viewModel.LaunchDocumentInWorkflowCommand.ExecuteAsync(7L);
+
+        stagedRequest!.InputText.Should().Be(string.Join(
+            Environment.NewLine,
+            "Vault_WorkflowSourceLine",
+            "Vault_WorkflowDocumentLine(Plan.pdf)",
+            string.Empty,
+            "Zusammenfassung",
+            "---------------",
+            "Kurzfassung"));
+        stagedRequest.SourceLabel.Should().Be("Vault_WorkflowSourceLabel(Plan.pdf)");
+        stagedRequest.RecommendedWorkflowName.Should().Be("Summarize & Act");
     }
 
     [Fact]
@@ -190,6 +245,7 @@ public sealed class KnowledgeVaultViewModelTests
             _aiService.Object,
             _autoTagService.Object,
             _collectionService.Object,
+            EnglishResources.Create(),
             _workflowLaunchService.Object,
             _operationsDrillInService.Object);
 
@@ -246,6 +302,7 @@ public sealed class KnowledgeVaultViewModelTests
             _aiService.Object,
             _autoTagService.Object,
             _collectionService.Object,
+            EnglishResources.Create(),
             _workflowLaunchService.Object,
             _operationsDrillInService.Object);
 
@@ -267,6 +324,7 @@ public sealed class KnowledgeVaultViewModelTests
             _aiService.Object,
             _autoTagService.Object,
             _collectionService.Object,
+            EnglishResources.Create(),
             _workflowLaunchService.Object,
             _operationsDrillInService.Object);
 
@@ -315,6 +373,7 @@ public sealed class KnowledgeVaultViewModelTests
             _aiService.Object,
             _autoTagService.Object,
             _collectionService.Object,
+            EnglishResources.Create(),
             _workflowLaunchService.Object,
             _operationsDrillInService.Object)
         {
@@ -371,6 +430,7 @@ public sealed class KnowledgeVaultViewModelTests
             _aiService.Object,
             _autoTagService.Object,
             _collectionService.Object,
+            EnglishResources.Create(),
             _workflowLaunchService.Object,
             _operationsDrillInService.Object);
 
@@ -427,6 +487,7 @@ public sealed class KnowledgeVaultViewModelTests
             _aiService.Object,
             _autoTagService.Object,
             _collectionService.Object,
+            EnglishResources.Create(),
             _workflowLaunchService.Object,
             _operationsDrillInService.Object);
 
@@ -506,7 +567,8 @@ public sealed class KnowledgeVaultViewModelTests
         report.Imported.Add(CreateDocument(1, "a.md"));
         report.Imported.Add(CreateDocument(2, "b.md"));
 
-        KnowledgeVaultViewModel.FormatImportSummary(report, 2).Should().Be("Successfully imported 2 file(s)");
+        KnowledgeVaultViewModel.FormatImportSummary(EnglishResources.Create(), report, 2)
+            .Should().Be("Successfully imported 2 file(s)");
     }
 
     [Fact]
@@ -521,9 +583,45 @@ public sealed class KnowledgeVaultViewModelTests
         report.Duplicates.Add(new DocumentImportDuplicate("d.md", 40, "d-original.md"));
         report.Failed.Add(new DocumentImportFailure("e.zzz", "No processor"));
 
-        KnowledgeVaultViewModel.FormatImportSummary(report, 5, fromFolder: true).Should().Be(
+        KnowledgeVaultViewModel.FormatImportSummary(EnglishResources.Create(), report, 5, fromFolder: true).Should().Be(
             "Imported 2 of 5 file(s) from folder; 1 of them could not be read and is marked Failed; " +
             "2 skipped as duplicates; 1 could not be imported");
+    }
+
+    [Fact]
+    public void FormatImportSummary_CountsSeveralUnreadableAndFailedFiles()
+    {
+        var report = new DocumentImportReport();
+        foreach (var id in new long[] { 1, 2, 3 })
+        {
+            var unreadable = CreateDocument(id, $"scan-{id}.pdf");
+            unreadable.IndexingStatus = "failed";
+            report.Imported.Add(unreadable);
+        }
+
+        report.Failed.Add(new DocumentImportFailure("e.zzz", "No processor"));
+        report.Failed.Add(new DocumentImportFailure("f.zzz", "No processor"));
+
+        KnowledgeVaultViewModel.FormatImportSummary(EnglishResources.Create(), report, 5).Should().Be(
+            "Imported 3 of 5 file(s); 3 of them could not be read and are marked Failed; 2 could not be imported");
+    }
+
+    [Fact]
+    public void FormatImportSummary_ReadsEveryPartFromTheResources()
+    {
+        // A translated summary must come entirely from the resources: every part is asked
+        // for by key, so no English is left in another language's summary.
+        var localization = new Mock<ILocalizationService>();
+        localization.Setup(l => l.GetString(It.IsAny<string>()))
+            .Returns((string key) => $"<{key}>");
+        localization.Setup(l => l.GetString(It.IsAny<string>(), It.IsAny<object[]>()))
+            .Returns((string key, object[] args) => $"<{key}:{string.Join(",", args)}>");
+        var report = new DocumentImportReport();
+        report.Imported.Add(CreateDocument(1, "a.md"));
+        report.Duplicates.Add(new DocumentImportDuplicate("c.md", 30, "c-original.md"));
+
+        KnowledgeVaultViewModel.FormatImportSummary(localization.Object, report, 3).Should().Be(
+            "<Vault_ImportPartial:1,3>; <Vault_ImportDuplicateOne>");
     }
 
     // Drag and drop
@@ -622,7 +720,7 @@ public sealed class KnowledgeVaultViewModelTests
     {
         // The badge binds IndexingStatusLabel, which never reported a change, so it kept
         // showing the old status after a re-index.
-        var item = new DocumentDisplayItem { IndexingStatus = "completed" };
+        var item = new DocumentDisplayItem { Localization = EnglishResources.Create(), IndexingStatus = "completed" };
         var changed = new List<string?>();
         item.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
 
@@ -630,6 +728,16 @@ public sealed class KnowledgeVaultViewModelTests
 
         changed.Should().Contain(nameof(DocumentDisplayItem.IndexingStatusLabel));
         item.IndexingStatusLabel.Should().Be("Processing");
+    }
+
+    [Fact]
+    public void DocumentDisplayItem_BadgeLabel_ComesFromTheResources()
+    {
+        var localization = new Mock<ILocalizationService>();
+        localization.Setup(l => l.GetString("Vault_StatusPending")).Returns("Ausstehend");
+        var item = new DocumentDisplayItem { Localization = localization.Object, IndexingStatus = "pending" };
+
+        item.IndexingStatusLabel.Should().Be("Ausstehend");
     }
 
     // Date filters
@@ -1155,6 +1263,7 @@ public sealed class KnowledgeVaultViewModelTests
             _aiService.Object,
             _autoTagService.Object,
             _collectionService.Object,
+            EnglishResources.Create(),
             _workflowLaunchService.Object,
             _operationsDrillInService.Object,
             temporalIdentity,

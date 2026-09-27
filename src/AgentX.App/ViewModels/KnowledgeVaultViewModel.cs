@@ -38,6 +38,7 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     private readonly IAiService _aiService;
     private readonly IAutoTagService _autoTagService;
     private readonly ICollectionService _collectionService;
+    private readonly ILocalizationService _localization;
     private readonly IWorkflowLaunchService? _workflowLaunchService;
     private readonly IOperationsDrillInService? _operationsDrillInService;
     private bool _suppressFilterRefresh;
@@ -147,17 +148,18 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         IAiService aiService,
         IAutoTagService autoTagService,
         ICollectionService collectionService,
+        ILocalizationService localization,
         IWorkflowLaunchService? workflowLaunchService = null,
         IOperationsDrillInService? operationsDrillInService = null,
         ITemporalIdentityService? temporalIdentity = null,
-        IAnnotationService? annotationService = null,
-        ILocalizationService? localization = null)
+        IAnnotationService? annotationService = null)
     {
         _documentService = documentService;
         _indexingService = indexingService;
         _aiService = aiService;
         _autoTagService = autoTagService;
         _collectionService = collectionService;
+        _localization = localization ?? throw new ArgumentNullException(nameof(localization));
         _workflowLaunchService = workflowLaunchService;
         _operationsDrillInService = operationsDrillInService;
         _documentEngagement = temporalIdentity is null
@@ -198,7 +200,7 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to initialize KnowledgeVaultViewModel");
-            SetError("Failed to load documents. Please try refreshing.");
+            SetError(_localization.GetString("Vault_LoadFailed"));
         }
         finally
         {
@@ -670,7 +672,7 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
 
         IsImporting = true;
         ImportProgress = 0;
-        ImportStatus = $"Importing {filePaths.Count} file(s)...";
+        ImportStatus = _localization.GetString("Vault_ImportingFiles", filePaths.Count);
         ClearError();
 
         try
@@ -678,13 +680,13 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
             var progressReporter = new Progress<int>(completed =>
             {
                 ImportProgress = (int)((double)completed / filePaths.Count * 100);
-                ImportStatus = $"Importing file {completed}/{filePaths.Count}...";
+                ImportStatus = _localization.GetString("Vault_ImportingFileProgress", completed, filePaths.Count);
             });
 
             var report = await _documentService.ImportFilesWithReportAsync(
                 filePaths, allowDuplicates: allowDuplicates, progress: progressReporter);
 
-            var summary = FormatImportSummary(report, filePaths.Count, fromFolder);
+            var summary = FormatImportSummary(_localization, report, filePaths.Count, fromFolder);
             ImportStatus = summary;
             Log.Information(
                 "Import completed: {Imported}/{Total} imported, {ExtractionFailed} unreadable, {Duplicates} duplicates skipped, {Failed} failed",
@@ -697,7 +699,11 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
                 var firstFailure = report.Failed.FirstOrDefault();
                 SetError(firstFailure is null
                     ? summary
-                    : $"{summary}. {Path.GetFileName(firstFailure.FilePath)}: {firstFailure.Reason}");
+                    : _localization.GetString(
+                        "Vault_ImportSummaryWithFailure",
+                        summary,
+                        Path.GetFileName(firstFailure.FilePath),
+                        firstFailure.Reason));
             }
 
             // Refresh the document list
@@ -708,8 +714,8 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to import files");
-            ImportStatus = "Import failed";
-            SetError($"Failed to import files: {ex.Message}");
+            ImportStatus = _localization.GetString("Vault_ImportFailedStatus");
+            SetError(_localization.GetString("Vault_ImportFilesFailed", ex.Message));
         }
         finally
         {
@@ -718,13 +724,13 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
-    /// One-line outcome of an import: a plain success message when every file was imported
-    /// and readable, otherwise the real counts of what was imported, unreadable, skipped as
-    /// a duplicate, or not imported.
+    /// One-line outcome of an import, in the user's language: a plain success message when
+    /// every file was imported and readable, otherwise the real counts of what was imported,
+    /// unreadable, skipped as a duplicate, or not imported.
     /// </summary>
-    internal static string FormatImportSummary(DocumentImportReport report, int totalFiles, bool fromFolder = false)
+    internal static string FormatImportSummary(
+        ILocalizationService localization, DocumentImportReport report, int totalFiles, bool fromFolder = false)
     {
-        var origin = fromFolder ? " from folder" : string.Empty;
         var imported = report.Imported.Count;
         var unreadable = report.ExtractionFailedCount;
         var duplicates = report.Duplicates.Count;
@@ -732,27 +738,36 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
 
         if (unreadable == 0 && duplicates == 0 && failed == 0)
         {
-            return $"Successfully imported {imported} file(s){origin}";
+            return fromFolder
+                ? localization.GetString("Vault_ImportSucceededFromFolder", imported)
+                : localization.GetString("Vault_ImportSucceeded", imported);
         }
 
-        var parts = new List<string> { $"Imported {imported} of {totalFiles} file(s){origin}" };
+        var parts = new List<string>
+        {
+            fromFolder
+                ? localization.GetString("Vault_ImportPartialFromFolder", imported, totalFiles)
+                : localization.GetString("Vault_ImportPartial", imported, totalFiles)
+        };
         if (unreadable > 0)
         {
             parts.Add(unreadable == 1
-                ? "1 of them could not be read and is marked Failed"
-                : $"{unreadable} of them could not be read and are marked Failed");
+                ? localization.GetString("Vault_ImportUnreadableOne")
+                : localization.GetString("Vault_ImportUnreadableMany", unreadable));
         }
 
         if (duplicates > 0)
         {
             parts.Add(duplicates == 1
-                ? "1 skipped as a duplicate"
-                : $"{duplicates} skipped as duplicates");
+                ? localization.GetString("Vault_ImportDuplicateOne")
+                : localization.GetString("Vault_ImportDuplicateMany", duplicates));
         }
 
         if (failed > 0)
         {
-            parts.Add($"{failed} could not be imported");
+            parts.Add(failed == 1
+                ? localization.GetString("Vault_ImportNotImportedOne")
+                : localization.GetString("Vault_ImportNotImportedMany", failed));
         }
 
         return string.Join("; ", parts);
@@ -772,7 +787,7 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
 
         IsImporting = true;
         ImportProgress = 0;
-        ImportStatus = "Scanning folder...";
+        ImportStatus = _localization.GetString("Vault_ScanningFolder");
         ClearError();
 
         List<string> filePaths;
@@ -783,16 +798,16 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to scan folder: {FolderPath}", folderPath);
-            ImportStatus = "Folder import failed";
-            SetError($"Failed to import folder: {ex.Message}");
+            ImportStatus = _localization.GetString("Vault_FolderImportFailedStatus");
+            SetError(_localization.GetString("Vault_ImportFolderFailed", ex.Message));
             IsImporting = false;
             return;
         }
 
         if (filePaths.Count == 0)
         {
-            ImportStatus = "No supported files found in folder";
-            SetError("No supported files found in the selected folder.");
+            ImportStatus = _localization.GetString("Vault_NoSupportedFilesStatus");
+            SetError(_localization.GetString("Vault_NoSupportedFilesInFolder"));
             IsImporting = false;
             return;
         }
@@ -865,7 +880,7 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to delete document: {DocumentId}", id);
-            SetError($"Failed to delete document: {ex.Message}");
+            SetError(_localization.GetString("Vault_DeleteFailed", ex.Message));
         }
     }
 
@@ -893,7 +908,7 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to re-index document: {DocumentId}", id);
-            SetError($"Failed to re-index document: {ex.Message}");
+            SetError(_localization.GetString("Vault_ReindexFailed", ex.Message));
         }
     }
 
@@ -1047,7 +1062,7 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     {
         if (_workflowLaunchService is null)
         {
-            SetError("Workflow launch service unavailable.");
+            SetError(_localization.GetString("Vault_WorkflowLaunchUnavailable"));
             return;
         }
 
@@ -1056,14 +1071,14 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
             var document = await _documentService.GetDocumentAsync(id);
             if (document is null)
             {
-                SetError("Unable to prepare the selected document for workflows.");
+                SetError(_localization.GetString("Vault_WorkflowDocumentMissing"));
                 return;
             }
 
             var previewText = await _documentService.GetDocumentPreviewTextAsync(id);
             if (string.IsNullOrWhiteSpace(previewText) && string.IsNullOrWhiteSpace(document.Summary))
             {
-                SetError("This document does not have enough indexed text to launch into a workflow yet.");
+                SetError(_localization.GetString("Vault_WorkflowNotEnoughText"));
                 return;
             }
 
@@ -1073,7 +1088,7 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to launch document {DocumentId} into workflow", id);
-            SetError("Failed to prepare the document for workflows.");
+            SetError(_localization.GetString("Vault_WorkflowPrepareFailed"));
         }
     }
 
@@ -1192,7 +1207,7 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Bulk delete failed");
-            SetError("Bulk delete failed");
+            SetError(_localization.GetString("Vault_BulkDeleteFailed"));
         }
     }
 
@@ -1213,7 +1228,7 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Bulk reindex failed");
-            SetError("Bulk reindex failed");
+            SetError(_localization.GetString("Vault_BulkReindexFailed"));
         }
     }
 
@@ -1257,11 +1272,11 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         // Import errors take precedence on the banner; otherwise say what was left out.
         if (!HasError && unreadableFolders.Count > 0)
         {
-            SetError($"Could not read the dropped folder {unreadableFolders[0]}; its files were not imported.");
+            SetError(_localization.GetString("Vault_DroppedFolderUnreadable", unreadableFolders[0]));
         }
         else if (distinct.Count == 0 && unreadableFolders.Count == 0)
         {
-            SetError("No supported files found in the dropped folder(s).");
+            SetError(_localization.GetString("Vault_NoSupportedFilesDropped"));
         }
     }
 
@@ -1293,8 +1308,8 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
                 if (result.IsDuplicate)
                 {
                     duplicatePaths.Add(path);
-                    duplicateNames.Add(
-                        $"'{Path.GetFileName(path)}' matches '{result.ExistingFileName}'");
+                    duplicateNames.Add(_localization.GetString(
+                        "Vault_DuplicateMatch", Path.GetFileName(path), result.ExistingFileName ?? string.Empty));
                     Log.Debug("Duplicate detected: {FilePath} -> {ExistingFile}",
                         path, result.ExistingFileName);
                 }
@@ -1316,8 +1331,8 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
             _duplicateFilePaths = duplicatePaths;
 
             DuplicateWarningMessage = duplicatePaths.Count == 1
-                ? $"1 file is a duplicate and will be skipped"
-                : $"{duplicatePaths.Count} files are duplicates and will be skipped";
+                ? _localization.GetString("Vault_DuplicateWarningOne")
+                : _localization.GetString("Vault_DuplicateWarningMany", duplicatePaths.Count);
 
             DuplicateFileName = duplicateNames.Count > 0 ? duplicateNames[0] : null;
             ShowDuplicateWarning = true;
@@ -1538,7 +1553,7 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
                 target = Documents.FirstOrDefault(document => document.Id == documentId);
                 if (target is not null)
                 {
-                    FocusedDocumentVisibilityHint = "Filters were widened to show the requested document.";
+                    FocusedDocumentVisibilityHint = _localization.GetString("Vault_FiltersWidened");
                 }
             }
         }
@@ -1601,10 +1616,11 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         return true;
     }
 
-    private static DocumentDisplayItem MapDocumentToDisplay(AgentX.Core.Data.Entities.DocumentEntity doc)
+    private DocumentDisplayItem MapDocumentToDisplay(AgentX.Core.Data.Entities.DocumentEntity doc)
     {
         return new DocumentDisplayItem
         {
+            Localization = _localization,
             Id = doc.Id,
             FileName = doc.FileName,
             FilePath = doc.FilePath,
@@ -1646,26 +1662,32 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         _ => "#6B7280"
     };
 
-    private static WorkflowLaunchRequest BuildWorkflowLaunchRequest(
+    /// <summary>
+    /// The input the Workflows page opens with: the document's name, title, summary and preview
+    /// under headings in the user's language, each heading underlined to its own length. The
+    /// recommended workflow is named as stored, since the page matches it by name.
+    /// </summary>
+    private WorkflowLaunchRequest BuildWorkflowLaunchRequest(
         AgentX.Core.Data.Entities.DocumentEntity document,
         string? previewText)
     {
         var lines = new List<string>
         {
-            "Source: Knowledge Vault document",
-            $"Document: {document.FileName}"
+            _localization.GetString("Vault_WorkflowSourceLine"),
+            _localization.GetString("Vault_WorkflowDocumentLine", document.FileName)
         };
 
         if (!string.IsNullOrWhiteSpace(document.ExtractedTitle))
         {
-            lines.Add($"Title: {document.ExtractedTitle.Trim()}");
+            lines.Add(_localization.GetString("Vault_WorkflowTitleLine", document.ExtractedTitle.Trim()));
         }
 
         if (!string.IsNullOrWhiteSpace(document.Summary))
         {
+            var heading = _localization.GetString("Vault_WorkflowSummaryHeading");
             lines.Add(string.Empty);
-            lines.Add("Summary");
-            lines.Add("-------");
+            lines.Add(heading);
+            lines.Add(new string('-', heading.Length));
             lines.Add(document.Summary.Trim());
         }
 
@@ -1675,16 +1697,17 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
                 previewText.Trim(),
                 StringComparison.Ordinal))
         {
+            var heading = _localization.GetString("Vault_WorkflowPreviewHeading");
             lines.Add(string.Empty);
-            lines.Add("Document Preview");
-            lines.Add("----------------");
+            lines.Add(heading);
+            lines.Add(new string('-', heading.Length));
             lines.Add(previewText.Trim());
         }
 
         return new WorkflowLaunchRequest
         {
             InputText = string.Join(Environment.NewLine, lines),
-            SourceLabel = $"Loaded document context from \"{document.FileName}\"",
+            SourceLabel = _localization.GetString("Vault_WorkflowSourceLabel", document.FileName),
             RecommendedWorkflowName = "Summarize & Act"
         };
     }
@@ -1770,6 +1793,12 @@ public class DocumentDisplayItem : ObservableObject
     private int _chunkCount;
     private long _wordCount;
     private int _pageCount;
+
+    /// <summary>
+    /// Words the status badge in the user's language. The vault sets it on every row it
+    /// builds; without it <see cref="IndexingStatusLabel"/> shows the raw status.
+    /// </summary>
+    public ILocalizationService? Localization { get; init; }
 
     public long Id { get; set; }
     public string FileName { get; set; } = string.Empty;
@@ -1906,14 +1935,16 @@ public class DocumentDisplayItem : ObservableObject
     /// <summary>
     /// Display label for the indexing status badge.
     /// </summary>
-    public string IndexingStatusLabel => IndexingStatus switch
-    {
-        "completed" => "Indexed",
-        "processing" => "Processing",
-        "pending" => "Pending",
-        "failed" => "Failed",
-        _ => IndexingStatus
-    };
+    public string IndexingStatusLabel => Localization is not { } localization
+        ? IndexingStatus
+        : IndexingStatus switch
+        {
+            "completed" => localization.GetString("Vault_StatusIndexed"),
+            "processing" => localization.GetString("Vault_StatusProcessing"),
+            "pending" => localization.GetString("Vault_StatusPending"),
+            "failed" => localization.GetString("Vault_StatusFailed"),
+            _ => IndexingStatus
+        };
 
     /// <summary>
     /// File type display label (uppercased).

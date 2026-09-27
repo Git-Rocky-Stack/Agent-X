@@ -621,6 +621,81 @@
   <data name="Inbox_Title.Text" xml:space="preserve"><value>Smart Inbox</value></data>
   <data name="Inbox_PendingRun.Text" xml:space="preserve"><value>pendientes</value></data>
   <data name="Inbox_StatusOverline.Text" xml:space="preserve"><value>ESTADO</value></data>
+  <data name="Vault_LoadFailed" xml:space="preserve"><value>No se pudieron cargar los documentos. Intente actualizar.</value></data>
+  <data name="Vault_ImportingFiles" xml:space="preserve"><value>Importando {0} archivo(s)...</value></data>
+  <data name="Vault_ImportingFileProgress" xml:space="preserve"><value>Importando archivo {0}/{1}...</value></data>
+  <data name="Vault_ImportSummaryWithFailure" xml:space="preserve"><value>{0}. {1}: {2}</value></data>
+  <data name="Vault_ImportFailedStatus" xml:space="preserve"><value>Error en la importación</value></data>
+  <data name="Vault_ImportFilesFailed" xml:space="preserve"><value>No se pudieron importar los archivos: {0}</value></data>
+  <data name="Vault_ImportSucceeded" xml:space="preserve"><value>Se importaron correctamente {0} archivo(s)</value></data>
+  <data name="Vault_ImportSucceededFromFolder" xml:space="preserve"><value>Se importaron correctamente {0} archivo(s) de la carpeta</value></data>
+  <data name="Vault_ImportPartial" xml:space="preserve"><value>Se importaron {0} de {1} archivo(s)</value></data>
+  <data name="Vault_ImportPartialFromFolder" xml:space="preserve"><value>Se importaron {0} de {1} archivo(s) de la carpeta</value></data>
+  <data name="Vault_ImportUnreadableOne" xml:space="preserve"><value>1 de ellos no se pudo leer y está marcado como Fallido</value></data>
+  <data name="Vault_ImportUnreadableMany" xml:space="preserve"><value>{0} de ellos no se pudieron leer y están marcados como Fallido</value></data>
+  <data name="Vault_ImportDuplicateOne" xml:space="preserve"><value>1 omitido por ser un duplicado</value></data>
+  <data name="Vault_ImportDuplicateMany" xml:space="preserve"><value>{0} omitidos por ser duplicados</value></data>
+  <data name="Vault_ImportNotImportedOne" xml:space="preserve"><value>1 no se pudo importar</value></data>
+  <data name="Vault_ImportNotImportedMany" xml:space="preserve"><value>{0} no se pudieron importar</value></data>
+  <data name="Vault_ScanningFolder" xml:space="preserve"><value>Examinando la carpeta...</value></data>
+  <data name="Vault_FolderImportFailedStatus" xml:space="preserve"><value>Error al importar la carpeta</value></data>
+  <data name="Vault_ImportFolderFailed" xml:space="preserve"><value>No se pudo importar la carpeta: {0}</value></data>
+  <data name="Vault_NoSupportedFilesStatus" xml:space="preserve"><value>No se encontraron archivos compatibles en la carpeta</value></data>
+  <data name="Vault_NoSupportedFilesInFolder" xml:space="preserve"><value>No se encontraron archivos compatibles en la carpeta seleccionada.</value></data>
+  <data name="Vault_DeleteFailed" xml:space="preserve"><value>No se pudo eliminar el documento: {0}</value></data>
+  <data name="Vault_ReindexFailed" xml:space="preserve"><value>No se pudo reindexar el documento: {0}</value></data>
+  <data name="Vault_WorkflowLaunchUnavailable" xml:space="preserve"><value>El servicio para iniciar flujos de trabajo no está disponible.</value></data>
+  <data name="Vault_WorkflowDocumentMissing" xml:space="preserve"><value>No se pudo preparar el documento seleccionado para los flujos de trabajo.</value></data>
+  <data name="Vault_WorkflowNotEnoughText" xml:space="preserve"><value>Este documento aún no tiene suficiente texto indexado para usarlo en un flujo de trabajo.</value></data>
+  <data name="Vault_WorkflowPrepareFailed" xml:space="preserve"><value>No se pudo preparar el documento para los flujos de trabajo.</value></data>
+  <data name="Vault_BulkDeleteFailed" xml:space="preserve"><value>Error al eliminar los documentos seleccionados</value></data>
+  <data name="Vault_BulkReindexFailed" xml:space="preserve"><value>Error al reindexar los documentos seleccionados</value></data>
+  <data name="Vault_DroppedFolderUnreadable" xml:space="preserve"><value>No se pudo leer la carpeta arrastrada {0}; sus archivos no se importaron.</value></data>
+  <data name="Vault_NoSupportedFilesDropped" xml:space="preserve"><value>No se encontraron archivos compatibles en las carpetas arrastradas.</value></data>
+  <data name="Vault_DuplicateMatch" xml:space="preserve"><value>«{0}» coincide con «{1}»</value></data>
+  <data name="Vault_DuplicateWarningOne" xml:space="preserve"><value>1 archivo es un duplicado y se omitirá</value></data>
+  <data name="Vault_DuplicateWarningMany" xml:space="preserve"><value>{0} archivos son duplicados y se omitirán</value></data>
+  <data name="Vault_FiltersWidened" xml:space="preserve"><value>Se ampliaron los filtros para mostrar el documento solicitado.</value></data>
+  <data name="Vault_WorkflowSourceLine" xml:space="preserve"><value>Origen: documento de la Bóveda de Conocimiento</value></data>
+  <data name="Vault_WorkflowDocumentLine" xml:space="preserve"><value>Documento: {0}</value></data>
+  <data name="Vault_WorkflowTitleLine" xml:space="preserve"><value>Título: {0}</value></data>
+  <data name="Vault_WorkflowSummaryHeading" xml:space="preserve"><value>Resumen</value></data>
+  <data name="Vault_WorkflowPreviewHeading" xml:space="preserve"><value>Vista previa del documento</value></data>
+  <data name="Vault_WorkflowSourceLabel" xml:space="preserve"><value>Contexto del documento cargado desde «{0}»</value></data>
+  <data name="Vault_StatusIndexed" xml:space="preserve"><value>Indexado</value></data>
+  <data name="Vault_StatusProcessing" xml:space="preserve"><value>Procesando</value></data>
+  <data name="Vault_StatusPending" xml:space="preserve"><value>Pendiente</value></data>
+  <data name="Vault_StatusFailed" xml:space="preserve"><value>Fallido</value></data>
+  <data name="Inbox_LoadFailed" xml:space="preserve"><value>No se pudo cargar la bandeja de entrada</value></data>
+  <data name="Inbox_FilterWidened" xml:space="preserve"><value>Se amplió el filtro de estado para mostrar el elemento solicitado de la bandeja de entrada.</value></data>
+  <data name="Inbox_RequestedItemGone" xml:space="preserve"><value>El elemento solicitado de la bandeja de entrada ya no está disponible.</value></data>
+  <data name="Inbox_AcceptFailed" xml:space="preserve"><value>No se pudo aceptar el elemento: {0}</value></data>
+  <data name="Inbox_ItemRejected" xml:space="preserve"><value>Elemento rechazado</value></data>
+  <data name="Inbox_RejectFailed" xml:space="preserve"><value>No se pudo rechazar el elemento</value></data>
+  <data name="Inbox_ItemDeferred" xml:space="preserve"><value>Elemento aplazado</value></data>
+  <data name="Inbox_DeferFailed" xml:space="preserve"><value>No se pudo aplazar el elemento</value></data>
+  <data name="Inbox_AcceptAllFailed" xml:space="preserve"><value>No se pudieron aceptar todos los elementos</value></data>
+  <data name="Inbox_PreviewsGenerated" xml:space="preserve"><value>Vistas previas con IA generadas</value></data>
+  <data name="Inbox_PreviewsCancelled" xml:space="preserve"><value>Generación de vistas previas cancelada</value></data>
+  <data name="Inbox_PreviewsFailed" xml:space="preserve"><value>No se pudieron generar las vistas previas</value></data>
+  <data name="Inbox_CleanedUp" xml:space="preserve"><value>Elementos procesados limpiados</value></data>
+  <data name="Inbox_CleanupFailed" xml:space="preserve"><value>Error en la limpieza</value></data>
+  <data name="Inbox_AcceptedQueued" xml:space="preserve"><value>Elemento aceptado y en cola para indexación</value></data>
+  <data name="Inbox_AcceptedLinked" xml:space="preserve"><value>Elemento aceptado; ya había contenido idéntico en la Bóveda de Conocimiento, así que se vinculó en lugar de importarlo de nuevo</value></data>
+  <data name="Inbox_AlreadyAccepted" xml:space="preserve"><value>El elemento ya estaba aceptado</value></data>
+  <data name="Inbox_NothingToAccept" xml:space="preserve"><value>No hay elementos pendientes para aceptar</value></data>
+  <data name="Inbox_AcceptedCountOne" xml:space="preserve"><value>1 elemento aceptado</value></data>
+  <data name="Inbox_AcceptedCountMany" xml:space="preserve"><value>{0} elementos aceptados</value></data>
+  <data name="Inbox_AcceptedWithVault" xml:space="preserve"><value>{0} ({1} ya en la Bóveda de Conocimiento)</value></data>
+  <data name="Inbox_AcceptedWithFailureOne" xml:space="preserve"><value>{0}; 1 falló y sigue pendiente</value></data>
+  <data name="Inbox_AcceptedWithFailuresMany" xml:space="preserve"><value>{0}; {1} fallaron y siguen pendientes</value></data>
+  <data name="Inbox_AcceptedFirstError" xml:space="preserve"><value>{0}: {1}</value></data>
+  <data name="Inbox_ResolvedQueued" xml:space="preserve"><value>Se resolvió «{0}»: aceptado y en cola para indexación.</value></data>
+  <data name="Inbox_ResolvedLinked" xml:space="preserve"><value>Se resolvió «{0}»: aceptado y vinculado al documento idéntico que ya estaba en la Bóveda de Conocimiento.</value></data>
+  <data name="Inbox_ResolvedAlreadyAccepted" xml:space="preserve"><value>Se resolvió «{0}»: ya estaba aceptado.</value></data>
+  <data name="Inbox_ResolvedFocusedQueued" xml:space="preserve"><value>Se resolvió el elemento enfocado de la bandeja de entrada: aceptado y en cola para indexación.</value></data>
+  <data name="Inbox_ResolvedFocusedLinked" xml:space="preserve"><value>Se resolvió el elemento enfocado de la bandeja de entrada: aceptado y vinculado al documento idéntico que ya estaba en la Bóveda de Conocimiento.</value></data>
+  <data name="Inbox_ResolvedFocusedAlreadyAccepted" xml:space="preserve"><value>Se resolvió el elemento enfocado de la bandeja de entrada: ya estaba aceptado.</value></data>
   <data name="Inbox_TargetCollectionOverline.Text" xml:space="preserve"><value>COLECCIÓN DE DESTINO</value></data>
   <data name="Inbox_AutoSuggestPlaceholder.PlaceholderText" xml:space="preserve"><value>Sugerencia automática</value></data>
   <data name="Inbox_ActionsOverline.Text" xml:space="preserve"><value>ACCIONES</value></data>

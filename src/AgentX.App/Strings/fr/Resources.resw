@@ -621,6 +621,81 @@
   <data name="Inbox_Title.Text" xml:space="preserve"><value>Smart Inbox</value></data>
   <data name="Inbox_PendingRun.Text" xml:space="preserve"><value>en attente</value></data>
   <data name="Inbox_StatusOverline.Text" xml:space="preserve"><value>STATUT</value></data>
+  <data name="Vault_LoadFailed" xml:space="preserve"><value>Impossible de charger les documents. Essayez d'actualiser.</value></data>
+  <data name="Vault_ImportingFiles" xml:space="preserve"><value>Importation de {0} fichier(s)...</value></data>
+  <data name="Vault_ImportingFileProgress" xml:space="preserve"><value>Importation du fichier {0}/{1}...</value></data>
+  <data name="Vault_ImportSummaryWithFailure" xml:space="preserve"><value>{0}. {1} : {2}</value></data>
+  <data name="Vault_ImportFailedStatus" xml:space="preserve"><value>Échec de l'importation</value></data>
+  <data name="Vault_ImportFilesFailed" xml:space="preserve"><value>Impossible d'importer les fichiers : {0}</value></data>
+  <data name="Vault_ImportSucceeded" xml:space="preserve"><value>{0} fichier(s) importé(s) avec succès</value></data>
+  <data name="Vault_ImportSucceededFromFolder" xml:space="preserve"><value>{0} fichier(s) importé(s) avec succès depuis le dossier</value></data>
+  <data name="Vault_ImportPartial" xml:space="preserve"><value>{0} fichier(s) sur {1} importé(s)</value></data>
+  <data name="Vault_ImportPartialFromFolder" xml:space="preserve"><value>{0} fichier(s) sur {1} importé(s) depuis le dossier</value></data>
+  <data name="Vault_ImportUnreadableOne" xml:space="preserve"><value>1 d'entre eux n'a pas pu être lu et est marqué Échec</value></data>
+  <data name="Vault_ImportUnreadableMany" xml:space="preserve"><value>{0} d'entre eux n'ont pas pu être lus et sont marqués Échec</value></data>
+  <data name="Vault_ImportDuplicateOne" xml:space="preserve"><value>1 ignoré car en double</value></data>
+  <data name="Vault_ImportDuplicateMany" xml:space="preserve"><value>{0} ignorés car en double</value></data>
+  <data name="Vault_ImportNotImportedOne" xml:space="preserve"><value>1 n'a pas pu être importé</value></data>
+  <data name="Vault_ImportNotImportedMany" xml:space="preserve"><value>{0} n'ont pas pu être importés</value></data>
+  <data name="Vault_ScanningFolder" xml:space="preserve"><value>Analyse du dossier...</value></data>
+  <data name="Vault_FolderImportFailedStatus" xml:space="preserve"><value>Échec de l'importation du dossier</value></data>
+  <data name="Vault_ImportFolderFailed" xml:space="preserve"><value>Impossible d'importer le dossier : {0}</value></data>
+  <data name="Vault_NoSupportedFilesStatus" xml:space="preserve"><value>Aucun fichier pris en charge trouvé dans le dossier</value></data>
+  <data name="Vault_NoSupportedFilesInFolder" xml:space="preserve"><value>Aucun fichier pris en charge n'a été trouvé dans le dossier sélectionné.</value></data>
+  <data name="Vault_DeleteFailed" xml:space="preserve"><value>Impossible de supprimer le document : {0}</value></data>
+  <data name="Vault_ReindexFailed" xml:space="preserve"><value>Impossible de réindexer le document : {0}</value></data>
+  <data name="Vault_WorkflowLaunchUnavailable" xml:space="preserve"><value>Le service de lancement des flux de travail est indisponible.</value></data>
+  <data name="Vault_WorkflowDocumentMissing" xml:space="preserve"><value>Impossible de préparer le document sélectionné pour les flux de travail.</value></data>
+  <data name="Vault_WorkflowNotEnoughText" xml:space="preserve"><value>Ce document n'a pas encore assez de texte indexé pour être utilisé dans un flux de travail.</value></data>
+  <data name="Vault_WorkflowPrepareFailed" xml:space="preserve"><value>Impossible de préparer le document pour les flux de travail.</value></data>
+  <data name="Vault_BulkDeleteFailed" xml:space="preserve"><value>Échec de la suppression groupée</value></data>
+  <data name="Vault_BulkReindexFailed" xml:space="preserve"><value>Échec de la réindexation groupée</value></data>
+  <data name="Vault_DroppedFolderUnreadable" xml:space="preserve"><value>Impossible de lire le dossier déposé {0} ; ses fichiers n'ont pas été importés.</value></data>
+  <data name="Vault_NoSupportedFilesDropped" xml:space="preserve"><value>Aucun fichier pris en charge n'a été trouvé dans le ou les dossiers déposés.</value></data>
+  <data name="Vault_DuplicateMatch" xml:space="preserve"><value>« {0} » correspond à « {1} »</value></data>
+  <data name="Vault_DuplicateWarningOne" xml:space="preserve"><value>1 fichier est en double et sera ignoré</value></data>
+  <data name="Vault_DuplicateWarningMany" xml:space="preserve"><value>{0} fichiers sont en double et seront ignorés</value></data>
+  <data name="Vault_FiltersWidened" xml:space="preserve"><value>Les filtres ont été élargis pour afficher le document demandé.</value></data>
+  <data name="Vault_WorkflowSourceLine" xml:space="preserve"><value>Source : document du Coffre-fort de Connaissances</value></data>
+  <data name="Vault_WorkflowDocumentLine" xml:space="preserve"><value>Document : {0}</value></data>
+  <data name="Vault_WorkflowTitleLine" xml:space="preserve"><value>Titre : {0}</value></data>
+  <data name="Vault_WorkflowSummaryHeading" xml:space="preserve"><value>Résumé</value></data>
+  <data name="Vault_WorkflowPreviewHeading" xml:space="preserve"><value>Aperçu du document</value></data>
+  <data name="Vault_WorkflowSourceLabel" xml:space="preserve"><value>Contexte du document chargé depuis « {0} »</value></data>
+  <data name="Vault_StatusIndexed" xml:space="preserve"><value>Indexé</value></data>
+  <data name="Vault_StatusProcessing" xml:space="preserve"><value>En cours de traitement</value></data>
+  <data name="Vault_StatusPending" xml:space="preserve"><value>En attente</value></data>
+  <data name="Vault_StatusFailed" xml:space="preserve"><value>Échec</value></data>
+  <data name="Inbox_LoadFailed" xml:space="preserve"><value>Impossible de charger la boîte de réception</value></data>
+  <data name="Inbox_FilterWidened" xml:space="preserve"><value>Le filtre de statut a été élargi pour afficher l'élément demandé de la boîte de réception.</value></data>
+  <data name="Inbox_RequestedItemGone" xml:space="preserve"><value>L'élément demandé de la boîte de réception n'est plus disponible.</value></data>
+  <data name="Inbox_AcceptFailed" xml:space="preserve"><value>Impossible d'accepter l'élément : {0}</value></data>
+  <data name="Inbox_ItemRejected" xml:space="preserve"><value>Élément rejeté</value></data>
+  <data name="Inbox_RejectFailed" xml:space="preserve"><value>Impossible de rejeter l'élément</value></data>
+  <data name="Inbox_ItemDeferred" xml:space="preserve"><value>Élément reporté</value></data>
+  <data name="Inbox_DeferFailed" xml:space="preserve"><value>Impossible de reporter l'élément</value></data>
+  <data name="Inbox_AcceptAllFailed" xml:space="preserve"><value>Impossible de tout accepter</value></data>
+  <data name="Inbox_PreviewsGenerated" xml:space="preserve"><value>Aperçus IA générés</value></data>
+  <data name="Inbox_PreviewsCancelled" xml:space="preserve"><value>Génération des aperçus annulée</value></data>
+  <data name="Inbox_PreviewsFailed" xml:space="preserve"><value>Impossible de générer les aperçus</value></data>
+  <data name="Inbox_CleanedUp" xml:space="preserve"><value>Éléments traités nettoyés</value></data>
+  <data name="Inbox_CleanupFailed" xml:space="preserve"><value>Échec du nettoyage</value></data>
+  <data name="Inbox_AcceptedQueued" xml:space="preserve"><value>Élément accepté et mis en file d'attente pour l'indexation</value></data>
+  <data name="Inbox_AcceptedLinked" xml:space="preserve"><value>Élément accepté ; un contenu identique se trouvait déjà dans le Coffre-fort de Connaissances, il a donc été lié au lieu d'être réimporté</value></data>
+  <data name="Inbox_AlreadyAccepted" xml:space="preserve"><value>L'élément était déjà accepté</value></data>
+  <data name="Inbox_NothingToAccept" xml:space="preserve"><value>Aucun élément en attente à accepter</value></data>
+  <data name="Inbox_AcceptedCountOne" xml:space="preserve"><value>1 élément accepté</value></data>
+  <data name="Inbox_AcceptedCountMany" xml:space="preserve"><value>{0} éléments acceptés</value></data>
+  <data name="Inbox_AcceptedWithVault" xml:space="preserve"><value>{0} ({1} déjà dans le Coffre-fort de Connaissances)</value></data>
+  <data name="Inbox_AcceptedWithFailureOne" xml:space="preserve"><value>{0} ; 1 a échoué et reste en attente</value></data>
+  <data name="Inbox_AcceptedWithFailuresMany" xml:space="preserve"><value>{0} ; {1} ont échoué et restent en attente</value></data>
+  <data name="Inbox_AcceptedFirstError" xml:space="preserve"><value>{0} : {1}</value></data>
+  <data name="Inbox_ResolvedQueued" xml:space="preserve"><value>« {0} » résolu : accepté et mis en file d'attente pour l'indexation.</value></data>
+  <data name="Inbox_ResolvedLinked" xml:space="preserve"><value>« {0} » résolu : accepté et lié au document identique déjà présent dans le Coffre-fort de Connaissances.</value></data>
+  <data name="Inbox_ResolvedAlreadyAccepted" xml:space="preserve"><value>« {0} » résolu : il était déjà accepté.</value></data>
+  <data name="Inbox_ResolvedFocusedQueued" xml:space="preserve"><value>Élément ciblé de la boîte de réception résolu : accepté et mis en file d'attente pour l'indexation.</value></data>
+  <data name="Inbox_ResolvedFocusedLinked" xml:space="preserve"><value>Élément ciblé de la boîte de réception résolu : accepté et lié au document identique déjà présent dans le Coffre-fort de Connaissances.</value></data>
+  <data name="Inbox_ResolvedFocusedAlreadyAccepted" xml:space="preserve"><value>Élément ciblé de la boîte de réception résolu : il était déjà accepté.</value></data>
   <data name="Inbox_TargetCollectionOverline.Text" xml:space="preserve"><value>COLLECTION CIBLE</value></data>
   <data name="Inbox_AutoSuggestPlaceholder.PlaceholderText" xml:space="preserve"><value>Suggestion automatique</value></data>
   <data name="Inbox_ActionsOverline.Text" xml:space="preserve"><value>ACTIONS</value></data>

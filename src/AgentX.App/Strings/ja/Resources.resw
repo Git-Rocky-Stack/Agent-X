@@ -621,6 +621,81 @@
   <data name="Inbox_Title.Text" xml:space="preserve"><value>Smart Inbox</value></data>
   <data name="Inbox_PendingRun.Text" xml:space="preserve"><value>件が保留中</value></data>
   <data name="Inbox_StatusOverline.Text" xml:space="preserve"><value>ステータス</value></data>
+  <data name="Vault_LoadFailed" xml:space="preserve"><value>ドキュメントを読み込めませんでした。更新してみてください。</value></data>
+  <data name="Vault_ImportingFiles" xml:space="preserve"><value>{0} 個のファイルをインポートしています...</value></data>
+  <data name="Vault_ImportingFileProgress" xml:space="preserve"><value>ファイルをインポートしています ({0}/{1})...</value></data>
+  <data name="Vault_ImportSummaryWithFailure" xml:space="preserve"><value>{0}。{1}: {2}</value></data>
+  <data name="Vault_ImportFailedStatus" xml:space="preserve"><value>インポートに失敗しました</value></data>
+  <data name="Vault_ImportFilesFailed" xml:space="preserve"><value>ファイルをインポートできませんでした: {0}</value></data>
+  <data name="Vault_ImportSucceeded" xml:space="preserve"><value>{0} 個のファイルをインポートしました</value></data>
+  <data name="Vault_ImportSucceededFromFolder" xml:space="preserve"><value>フォルダーから {0} 個のファイルをインポートしました</value></data>
+  <data name="Vault_ImportPartial" xml:space="preserve"><value>{1} 個中 {0} 個のファイルをインポートしました</value></data>
+  <data name="Vault_ImportPartialFromFolder" xml:space="preserve"><value>フォルダーの {1} 個中 {0} 個のファイルをインポートしました</value></data>
+  <data name="Vault_ImportUnreadableOne" xml:space="preserve"><value>そのうち 1 個は読み取れなかったため、「失敗」とマークされています</value></data>
+  <data name="Vault_ImportUnreadableMany" xml:space="preserve"><value>そのうち {0} 個は読み取れなかったため、「失敗」とマークされています</value></data>
+  <data name="Vault_ImportDuplicateOne" xml:space="preserve"><value>1 個は重複のためスキップしました</value></data>
+  <data name="Vault_ImportDuplicateMany" xml:space="preserve"><value>{0} 個は重複のためスキップしました</value></data>
+  <data name="Vault_ImportNotImportedOne" xml:space="preserve"><value>1 個はインポートできませんでした</value></data>
+  <data name="Vault_ImportNotImportedMany" xml:space="preserve"><value>{0} 個はインポートできませんでした</value></data>
+  <data name="Vault_ScanningFolder" xml:space="preserve"><value>フォルダーをスキャンしています...</value></data>
+  <data name="Vault_FolderImportFailedStatus" xml:space="preserve"><value>フォルダーのインポートに失敗しました</value></data>
+  <data name="Vault_ImportFolderFailed" xml:space="preserve"><value>フォルダーをインポートできませんでした: {0}</value></data>
+  <data name="Vault_NoSupportedFilesStatus" xml:space="preserve"><value>フォルダーにサポートされているファイルがありません</value></data>
+  <data name="Vault_NoSupportedFilesInFolder" xml:space="preserve"><value>選択したフォルダーにサポートされているファイルが見つかりませんでした。</value></data>
+  <data name="Vault_DeleteFailed" xml:space="preserve"><value>ドキュメントを削除できませんでした: {0}</value></data>
+  <data name="Vault_ReindexFailed" xml:space="preserve"><value>ドキュメントを再インデックスできませんでした: {0}</value></data>
+  <data name="Vault_WorkflowLaunchUnavailable" xml:space="preserve"><value>ワークフローの起動サービスを利用できません。</value></data>
+  <data name="Vault_WorkflowDocumentMissing" xml:space="preserve"><value>選択したドキュメントをワークフロー用に準備できませんでした。</value></data>
+  <data name="Vault_WorkflowNotEnoughText" xml:space="preserve"><value>このドキュメントには、ワークフローで使用できるだけのインデックス済みテキストがまだありません。</value></data>
+  <data name="Vault_WorkflowPrepareFailed" xml:space="preserve"><value>ドキュメントをワークフロー用に準備できませんでした。</value></data>
+  <data name="Vault_BulkDeleteFailed" xml:space="preserve"><value>一括削除に失敗しました</value></data>
+  <data name="Vault_BulkReindexFailed" xml:space="preserve"><value>一括再インデックスに失敗しました</value></data>
+  <data name="Vault_DroppedFolderUnreadable" xml:space="preserve"><value>ドロップしたフォルダー {0} を読み取れなかったため、そのファイルはインポートされませんでした。</value></data>
+  <data name="Vault_NoSupportedFilesDropped" xml:space="preserve"><value>ドロップしたフォルダーにサポートされているファイルが見つかりませんでした。</value></data>
+  <data name="Vault_DuplicateMatch" xml:space="preserve"><value>「{0}」は「{1}」と一致します</value></data>
+  <data name="Vault_DuplicateWarningOne" xml:space="preserve"><value>1 個のファイルが重複しているため、スキップされます</value></data>
+  <data name="Vault_DuplicateWarningMany" xml:space="preserve"><value>{0} 個のファイルが重複しているため、スキップされます</value></data>
+  <data name="Vault_FiltersWidened" xml:space="preserve"><value>要求されたドキュメントを表示するため、フィルターを広げました。</value></data>
+  <data name="Vault_WorkflowSourceLine" xml:space="preserve"><value>ソース: Knowledge Vault のドキュメント</value></data>
+  <data name="Vault_WorkflowDocumentLine" xml:space="preserve"><value>ドキュメント: {0}</value></data>
+  <data name="Vault_WorkflowTitleLine" xml:space="preserve"><value>タイトル: {0}</value></data>
+  <data name="Vault_WorkflowSummaryHeading" xml:space="preserve"><value>要約</value></data>
+  <data name="Vault_WorkflowPreviewHeading" xml:space="preserve"><value>ドキュメント プレビュー</value></data>
+  <data name="Vault_WorkflowSourceLabel" xml:space="preserve"><value>「{0}」からドキュメントのコンテキストを読み込みました</value></data>
+  <data name="Vault_StatusIndexed" xml:space="preserve"><value>インデックス済み</value></data>
+  <data name="Vault_StatusProcessing" xml:space="preserve"><value>処理中</value></data>
+  <data name="Vault_StatusPending" xml:space="preserve"><value>保留中</value></data>
+  <data name="Vault_StatusFailed" xml:space="preserve"><value>失敗</value></data>
+  <data name="Inbox_LoadFailed" xml:space="preserve"><value>受信トレイを読み込めませんでした</value></data>
+  <data name="Inbox_FilterWidened" xml:space="preserve"><value>要求された受信アイテムを表示するため、ステータス フィルターを広げました。</value></data>
+  <data name="Inbox_RequestedItemGone" xml:space="preserve"><value>要求された受信アイテムは利用できなくなりました。</value></data>
+  <data name="Inbox_AcceptFailed" xml:space="preserve"><value>アイテムを承認できませんでした: {0}</value></data>
+  <data name="Inbox_ItemRejected" xml:space="preserve"><value>アイテムを却下しました</value></data>
+  <data name="Inbox_RejectFailed" xml:space="preserve"><value>アイテムを却下できませんでした</value></data>
+  <data name="Inbox_ItemDeferred" xml:space="preserve"><value>アイテムを保留にしました</value></data>
+  <data name="Inbox_DeferFailed" xml:space="preserve"><value>アイテムを保留にできませんでした</value></data>
+  <data name="Inbox_AcceptAllFailed" xml:space="preserve"><value>すべて承認できませんでした</value></data>
+  <data name="Inbox_PreviewsGenerated" xml:space="preserve"><value>AI プレビューを生成しました</value></data>
+  <data name="Inbox_PreviewsCancelled" xml:space="preserve"><value>プレビューの生成をキャンセルしました</value></data>
+  <data name="Inbox_PreviewsFailed" xml:space="preserve"><value>プレビューを生成できませんでした</value></data>
+  <data name="Inbox_CleanedUp" xml:space="preserve"><value>処理済みのアイテムを整理しました</value></data>
+  <data name="Inbox_CleanupFailed" xml:space="preserve"><value>整理に失敗しました</value></data>
+  <data name="Inbox_AcceptedQueued" xml:space="preserve"><value>アイテムを承認し、インデックス作成キューに追加しました</value></data>
+  <data name="Inbox_AcceptedLinked" xml:space="preserve"><value>アイテムを承認しました。同じ内容が Knowledge Vault に既にあったため、再インポートせずにリンクしました</value></data>
+  <data name="Inbox_AlreadyAccepted" xml:space="preserve"><value>アイテムは既に承認されています</value></data>
+  <data name="Inbox_NothingToAccept" xml:space="preserve"><value>承認する保留中のアイテムはありません</value></data>
+  <data name="Inbox_AcceptedCountOne" xml:space="preserve"><value>1 件のアイテムを承認しました</value></data>
+  <data name="Inbox_AcceptedCountMany" xml:space="preserve"><value>{0} 件のアイテムを承認しました</value></data>
+  <data name="Inbox_AcceptedWithVault" xml:space="preserve"><value>{0} ({1} 件は Knowledge Vault に既に存在)</value></data>
+  <data name="Inbox_AcceptedWithFailureOne" xml:space="preserve"><value>{0}。1 件は失敗し、保留中のままです</value></data>
+  <data name="Inbox_AcceptedWithFailuresMany" xml:space="preserve"><value>{0}。{1} 件は失敗し、保留中のままです</value></data>
+  <data name="Inbox_AcceptedFirstError" xml:space="preserve"><value>{0}: {1}</value></data>
+  <data name="Inbox_ResolvedQueued" xml:space="preserve"><value>「{0}」を承認し、インデックス作成キューに追加して解決しました。</value></data>
+  <data name="Inbox_ResolvedLinked" xml:space="preserve"><value>「{0}」を承認し、Knowledge Vault に既にある同じドキュメントにリンクして解決しました。</value></data>
+  <data name="Inbox_ResolvedAlreadyAccepted" xml:space="preserve"><value>「{0}」が既に承認済みであることを確認して解決しました。</value></data>
+  <data name="Inbox_ResolvedFocusedQueued" xml:space="preserve"><value>フォーカス中の受信アイテムを承認し、インデックス作成キューに追加して解決しました。</value></data>
+  <data name="Inbox_ResolvedFocusedLinked" xml:space="preserve"><value>フォーカス中の受信アイテムを承認し、Knowledge Vault に既にある同じドキュメントにリンクして解決しました。</value></data>
+  <data name="Inbox_ResolvedFocusedAlreadyAccepted" xml:space="preserve"><value>フォーカス中の受信アイテムが既に承認済みであることを確認して解決しました。</value></data>
   <data name="Inbox_TargetCollectionOverline.Text" xml:space="preserve"><value>対象コレクション</value></data>
   <data name="Inbox_AutoSuggestPlaceholder.PlaceholderText" xml:space="preserve"><value>自動提案</value></data>
   <data name="Inbox_ActionsOverline.Text" xml:space="preserve"><value>操作</value></data>
