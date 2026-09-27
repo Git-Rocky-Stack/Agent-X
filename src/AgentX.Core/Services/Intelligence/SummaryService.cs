@@ -69,6 +69,8 @@ public class SummaryService : ISummaryService
             documentId, document.FileName, summaryResult.DocumentSummary.Length,
             summaryResult.SectionsIncluded, summaryResult.TotalSections);
 
+        await SaveSummaryAsync(document, summaryResult.DocumentSummary, ct).ConfigureAwait(false);
+
         return summaryResult.DocumentSummary;
     }
 
@@ -286,6 +288,28 @@ public class SummaryService : ISummaryService
         }
 
         return document;
+    }
+
+    /// <summary>
+    /// Keeps the summary on the document, where the Knowledge Vault preview shows it and the
+    /// vault's Workflow action sends it instead of the first chunk. Nothing else writes
+    /// <c>DocumentEntity.Summary</c> on this device. A failed save is logged, and the summary is
+    /// still returned to the caller.
+    /// </summary>
+    private async Task SaveSummaryAsync(Data.Entities.DocumentEntity document, string summary, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(summary))
+            return;
+
+        try
+        {
+            document.Summary = summary.Trim();
+            await _db.SaveChangesAsync(ct).ConfigureAwait(false);
+        }
+        catch (DbUpdateException ex)
+        {
+            _log.Warning(ex, "Could not save the summary of document {DocumentId}", document.Id);
+        }
     }
 
     private static IReadOnlyList<string> GetDocumentSections(Data.Entities.DocumentEntity document)

@@ -64,6 +64,36 @@ public sealed class SummaryServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task SummarizeDocumentAsync_saves_the_summary_on_the_document()
+    {
+        using var db = _dbFactory.CreateContext();
+        var document = await SeedDocumentAsync(db);
+
+        _hierarchicalSummaryService
+            .Setup(service => service.BuildSummaryAsync(
+                It.IsAny<string>(),
+                It.IsAny<IReadOnlyList<string>>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new HierarchicalSummaryResult
+            {
+                DocumentTitle = document.FileName,
+                DocumentSummary = "  The architecture in brief.  ",
+                TotalSections = 3,
+                SectionsIncluded = 3
+            });
+
+        var sut = new SummaryService(_aiService.Object, db, _logger, _hierarchicalSummaryService.Object);
+
+        await sut.SummarizeDocumentAsync(document.Id);
+
+        // Read back through a fresh context: the vault preview and the Workflow action read the
+        // saved column, not the tracked entity.
+        using var verify = _dbFactory.CreateContext();
+        var saved = await verify.Documents.FindAsync(document.Id);
+        saved!.Summary.Should().Be("The architecture in brief.");
+    }
+
+    [Fact]
     public async Task ExtractKeyPointsAsync_returns_key_points_from_layered_summary_result()
     {
         using var db = _dbFactory.CreateContext();
