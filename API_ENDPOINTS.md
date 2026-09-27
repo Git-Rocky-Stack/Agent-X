@@ -510,8 +510,9 @@ Token counts from the final chunk are recorded in the cost tracker at zero cost.
 | Embeddings | `POST embeddings` with `{ "model", "input" }`, only when the Embedding Model setting is an OpenAI `text-embedding-*` model |
 
 - Reasoning models (ids starting with `o1`, `o3`, `o4` or `gpt-5`) get `max_completion_tokens`
-  and no sampling or penalty parameters. Other models get `max_tokens` and `temperature`, and
-  `top_p`, `frequency_penalty` and `presence_penalty` only when they differ from the defaults.
+  and no sampling or penalty parameters. Other models get `max_tokens` and `temperature`; `top_p`
+  only when it lies between 0 and 1 (the options default of 0.9 is sent), and
+  `frequency_penalty` and `presence_penalty` only when they are not 0.
 - `stream_options.include_usage` is sent only when the endpoint host is `api.openai.com`, because
   compatible servers may reject it.
 - JSON mode sends `response_format` `json_object`, or `json_schema` with `strict: true` when the
@@ -548,8 +549,9 @@ The embedding provider is chosen independently of the chat provider
 
 ### Research Mode web search
 
-Used only when **Settings > Research Mode > Enable Research Mode** is on. Only the selected
-**Search Provider** is used; there is no fallback to another provider.
+Used only for chat messages sent with the chat's Research mode button on, and only while
+**Settings > Research Mode > Enable Research Mode** is on and a provider is configured. Only the
+selected **Search Provider** is used; there is no fallback to another provider.
 
 | Provider | Request | Credential (the **API Key or Instance URL** field) |
 |----------|---------|------------------|
@@ -602,17 +604,18 @@ Connector and Email Connector pages; the client secrets are stored DPAPI-encrypt
 - Tokens are stored DPAPI-encrypted in the database and refreshed 5 minutes before they expire
   (`OAuthSettings.TokenRefreshBufferMinutes`). The browser sign-in times out after 300 seconds
   (`OAuthSettings.AuthTimeoutSeconds`).
+- There is one stored credential per provider, shared by both connectors, so **Disconnect** on
+  either page signs that account out of both.
 
-Scopes requested by the Connect buttons:
+**Scopes.** Each provider has default scopes (`OAuthProviderRegistry`), and `OAuthService`
+merges the scopes a Connect button asks for into them, so one sign-in covers both connectors:
 
-| Connector | Google | Microsoft |
-|-----------|--------|-----------|
-| Calendar | `https://www.googleapis.com/auth/calendar.readonly`, `https://www.googleapis.com/auth/userinfo.profile` | `offline_access Calendars.Read User.Read` |
-| Email | `https://www.googleapis.com/auth/gmail.readonly`, `https://www.googleapis.com/auth/userinfo.profile` | `offline_access Mail.Read User.Read` |
+| Provider | Default scopes | Added by Calendar Connect | Added by Email Connect |
+|----------|----------------|---------------------------|------------------------|
+| Google | `openid profile email https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/gmail.readonly` | `https://www.googleapis.com/auth/userinfo.profile` | `https://www.googleapis.com/auth/userinfo.profile` |
+| Microsoft | `openid profile email offline_access Calendars.Read Mail.Read User.Read` | nothing new | nothing new |
 
-When no scopes are passed, `OAuthProviderRegistry` uses its defaults: Google
-`openid profile email` plus `calendar.readonly` and `gmail.readonly`, Microsoft
-`openid profile email offline_access Calendars.Read Mail.Read User.Read`. All access is read-only.
+All requested access is read-only.
 
 APIs the connectors call, each with `Authorization: Bearer <access token>`:
 
@@ -625,12 +628,12 @@ APIs the connectors call, each with `Authorization: Bearer <access token>`:
 
 ### Model downloads
 
-Downloads start only when you ask for them (first-run setup or the Model Manager page):
+Downloads start only when you ask for them, in first-run setup or on the Model Manager page:
 
 | Model | Source |
 |-------|--------|
 | Built-in chat model, Llama 3.2 3B Instruct Q4_K_M (default) | `https://huggingface.co/hugging-quants/Llama-3.2-3B-Instruct-Q4_K_M-GGUF/resolve/main/llama-3.2-3b-instruct-q4_k_m.gguf` |
-| Llama 3.2 1B Instruct Q4_K_M | `https://huggingface.co/hugging-quants/Llama-3.2-1B-Instruct-Q4_K_M-GGUF/resolve/main/llama-3.2-1b-instruct-q4_k_m.gguf` |
+| Llama 3.2 1B Instruct Q4_K_M (pulled by its file name on the Model Manager page while the built-in provider is active) | `https://huggingface.co/hugging-quants/Llama-3.2-1B-Instruct-Q4_K_M-GGUF/resolve/main/llama-3.2-1b-instruct-q4_k_m.gguf` |
 | Speech-to-text model, Whisper base (Model Manager, **Speech-to-Text Model**) | `https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin` |
 
 `TranscriptionService` also knows the `tiny`, `small`, `medium` and `large` (`ggml-large-v3.bin`)
