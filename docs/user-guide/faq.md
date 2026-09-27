@@ -63,6 +63,12 @@ Two caveats the file picker used to hide:
   it, so selecting an RTF file failed after you had already chosen it. The picker no longer
   offers it.
 
+Audio is transcribed locally with the Whisper base model, whose file (`ggml-base.bin` in
+`%LOCALAPPDATA%\AgentX\Models\Whisper`) the app does not download for you; without it, audio
+is imported with a note instead of a transcript. The import picker does not list audio, so drag
+audio files onto the Knowledge Vault page or use Import Folder. OGG and WebM need a codec
+installed in Windows. See "Audio" under Supported File Types in `docs/USER-GUIDE.md`.
+
 ### Does Agent-X work offline?
 
 Yes, once the local model is on the machine. How it gets there depends on which installer you ran:

@@ -308,7 +308,7 @@ After onboarding, you have access to an enterprise-grade intelligence platform. 
 | **Validation Layer** | `IValidator<T>` with typed validators for AppSettings, SyncConfiguration, PluginManifest |
 | **Error Handling** | 7 typed exception classes with structured error propagation |
 | **Logging** | Serilog with 7-day rolling retention at `%LocalAppData%\AgentX\Logs\` |
-| **Feature Flags** | 15 feature gates for experimental capabilities and phased rollouts |
+| **Feature Flags** | Three flags, all on by default: auto-tagging, search caching, and duplicate detection. There is no feature flag page in Settings |
 
 ### UX Polish
 
@@ -441,7 +441,7 @@ AI Chat is the full conversational workspace. Quick Chat is the tray/shortcut-st
 | Branching | Explore alternate responses without losing the original path |
 | Suggested questions | Continue a thread with relevant follow-ups |
 | Research Mode | The Research mode toggle beside the message box adds web search results to your next answers (Research Mode must also be enabled in Settings, with a web search provider configured); the pages an answer used are listed under it as numbered sources, and clicking one opens it in your browser |
-| Voice input | Dictate text into chat through local transcription |
+| Voice input | Click the microphone to dictate into the message box, or right-click it to transcribe an audio file; uses the local Whisper base model (see [Audio](#audio)) |
 
 ### Message behavior
 
@@ -1307,6 +1307,21 @@ Use Quick Actions for one-off document tasks. Use Workflows when the same multi-
 | `.sql` | SQL |
 | `.sh` | Shell |
 | `.xaml` | XAML |
+
+### Audio
+
+| Extension | Type | Processing |
+| --- | --- | --- |
+| `.wav` | WAV audio | Decoded by the app, converted to 16 kHz mono PCM, transcribed with Whisper |
+| `.mp3`, `.m4a`, `.flac` | Compressed audio | Decoded with Windows Media Foundation, then converted and transcribed |
+| `.ogg`, `.webm` | Compressed audio | Transcribed only when Windows has a codec installed for the format |
+
+Audio is transcribed on your machine with the Whisper base model, on the CPU. The transcript starts with a short header (file name, detected language, duration, model) and has one line per segment, prefixed with its time range, such as `[00:01:05 --> 00:01:12]`. The language is detected automatically and cannot be forced, and there are no speaker labels (diarization is not implemented). Agent-X has no audio playback.
+
+- The model file `ggml-base.bin` must be in `%LOCALAPPDATA%\AgentX\Models\Whisper`; the app does not download it. Without it, AI Chat reports that a model is required and imported audio is stored with a note instead of a transcript. Re-index the document once the model is in place.
+- Audio that Windows cannot decode is imported the same way, with a note that says so.
+- The Import Files picker lists document formats only: drag audio files onto the Knowledge Vault page or use Import Folder.
+- In AI Chat, click the microphone to dictate, or right-click it to pick an audio file; the text lands in the message box.
 
 ---
 

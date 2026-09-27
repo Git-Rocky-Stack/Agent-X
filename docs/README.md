@@ -116,7 +116,7 @@ The tables below list representative capabilities across core productivity, inte
 | **Validation Layer** | `IValidator<T>` with typed validators for AppSettings, SyncConfiguration, PluginManifest |
 | **Error Handling** | 7 typed exception classes with structured error propagation |
 | **Logging** | Serilog with 7-day rolling retention |
-| **Feature Flags** | 15 feature gates for experimental capabilities and phased rollouts |
+| **Feature Flags** | Three flags, all on by default: auto-tagging, search caching, and duplicate detection. There is no feature flag page in Settings |
 
 ### UX Polish Features
 
