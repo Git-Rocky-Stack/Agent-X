@@ -150,31 +150,31 @@
   <data name="UserGuide_QuickActions_Action6_Description.Text" xml:space="preserve"><value>顶部的“针对当前上下文的推荐”面板会根据所选文档和应用状态，推荐最多四个后续步骤，例如完成索引、生成摘要、处理 Smart Inbox 中的新条目、连接实时来源或扫描近似重复项。每个按钮都会执行相应操作或打开负责该操作的页面。</value></data>
   <data name="UserGuide_QuickActions_Usage.Text" xml:space="preserve"><value>从导航栏或仪表板打开 Quick Actions，在列表中选择一个文档，选择一个选项卡并单击其按钮。“总结”和“要点”需要已编入索引的文档，“翻译”处理粘贴的文本，“重复项”和“整理”则检查整个 Vault。结果显示在页面上；不支持导出、另存为注释或在聊天中继续。</value></data>
   <data name="UserGuide_KnowledgeVault_Title.Text" xml:space="preserve"><value>Knowledge Vault</value></data>
-  <data name="UserGuide_KnowledgeVault_Description.Text" xml:space="preserve"><value>The Knowledge Vault is your centralized document repository. All files imported into Agent-X are stored, indexed, and made searchable through the Knowledge Vault.</value></data>
+  <data name="UserGuide_KnowledgeVault_Description.Text" xml:space="preserve"><value>Knowledge Vault 列出您导入的所有文档。对于每个文件，Agent-X 会提取文本、将其拆分为分块、嵌入到向量索引（HNSW）中、将文本加入关键词索引（FTS5），然后让 AI 模型生成最多五个标签。语义搜索、“向您的文件提问”、Quick Actions、知识图谱和工作流都从 Vault 读取内容。Vault 保存的是提取的文本和原始文件的路径；文件本身不会被复制，仍保留在原处。</value></data>
   <data name="UserGuide_KnowledgeVault_Importing_Title.Text" xml:space="preserve"><value>导入文档</value></data>
-  <data name="UserGuide_KnowledgeVault_Importing_Description.Text" xml:space="preserve"><value>向您的 Knowledge Vault 添加文档共有五种方式：</value></data>
-  <data name="UserGuide_KnowledgeVault_Import1.Text" xml:space="preserve"><value>Drag and drop — Drag files or folders directly onto the Knowledge Vault page. Agent-X will import all supported file types.</value></data>
-  <data name="UserGuide_KnowledgeVault_Import2.Text" xml:space="preserve"><value>File picker — Click the Import button and select individual files from the system file picker dialog.</value></data>
+  <data name="UserGuide_KnowledgeVault_Importing_Description.Text" xml:space="preserve"><value>您可以通过以下方式向 Knowledge Vault 添加文档：</value></data>
+  <data name="UserGuide_KnowledgeVault_Import1.Text" xml:space="preserve"><value>拖放：将文件或文件夹拖到 Knowledge Vault 页面。系统会搜索文件夹及其所有子文件夹，只导入受支持的文件类型。导入前，Agent-X 会将每个文件的内容与 Vault 进行比较：与已有文档完全相同的文件会被列为重复项，您可以选择“跳过重复项”或“全部导入”。</value></data>
+  <data name="UserGuide_KnowledgeVault_Import2.Text" xml:space="preserve"><value>导入文件：点击“导入文件”并选择一个或多个文件，同样会进行重复检查。选择器只提供文档、数据和代码格式，因此图片和音频需要通过拖放或“导入文件夹”导入。网页则通过“网页导入”页面或浏览器扩展导入。</value></data>
   <data name="UserGuide_KnowledgeVault_Import3.Text" xml:space="preserve"><value>文件夹导入 - 单击“导入文件夹”，一次性导入文件夹及其子文件夹中所有受支持的文件。若要持续从某个文件夹导入，请在“设置”&gt;“Knowledge Vault”的“监视文件夹”中添加它：“自动索引监视文件夹”打开时，Agent-X 会导入其中已有的受支持文件，并在运行期间导入新增和更改的文件。</value></data>
   <data name="UserGuide_KnowledgeVault_Managing_Title.Text" xml:space="preserve"><value>管理文档</value></data>
-  <data name="UserGuide_KnowledgeVault_Managing_Description.Text" xml:space="preserve"><value>Each document in the vault shows its file name, format, size, import date, chunk count, and indexing status. You can:</value></data>
-  <data name="UserGuide_KnowledgeVault_Manage1.Text" xml:space="preserve"><value>View document details including full text preview, metadata, and chunk breakdown.</value></data>
-  <data name="UserGuide_KnowledgeVault_Manage2.Text" xml:space="preserve"><value>Re-index a document if you change embedding models or chunking settings.</value></data>
-  <data name="UserGuide_KnowledgeVault_Manage3.Text" xml:space="preserve"><value>Delete documents you no longer need. This removes the file and all associated embeddings from the local database.</value></data>
+  <data name="UserGuide_KnowledgeVault_Managing_Description.Text" xml:space="preserve"><value>每一行显示文件名、类型、索引状态、提取或生成的标题、页数、字数和分块数、大小、导入日期以及标签。可以按文件名搜索，按文件类型、状态、标签、合集或导入日期筛选，并按名称、日期、大小或类型排序。对每个文档，您可以：</value></data>
+  <data name="UserGuide_KnowledgeVault_Manage1.Text" xml:space="preserve"><value>查看详情：选择一行或点击“详情”，即可打开“文档预览”面板，其中显示文件类型和索引状态、标题、页数、字数和分块数、大小、导入日期以及标签。“在文件资源管理器中打开”会显示原始文件，“工作流”会带着该文档打开工作流页面。</value></data>
+  <data name="UserGuide_KnowledgeVault_Manage2.Text" xml:space="preserve"><value>重新索引：“重新索引”（可在行中、预览面板中或对多个所选文档使用）会删除文档的分块、嵌入和关键词条目，并从原始文件重新建立索引；原始文件必须仍位于导入时的路径。在“设置”中更改嵌入模型、分块大小或重叠后，请重新索引。</value></data>
+  <data name="UserGuide_KnowledgeVault_Manage3.Text" xml:space="preserve"><value>删除：“删除”（可在行中或对多个所选文档使用）会立即从 Vault 中移除文档，不会先确认：包括其文本、分块、嵌入、关键词条目、标签和合集归属。磁盘上的原始文件不受影响。要一起重新索引或删除多个文档，请开启多选模式或使用“全选”。</value></data>
   <data name="UserGuide_KnowledgeVault_Advanced_Title.Text" xml:space="preserve"><value>进阶功能</value></data>
   <data name="UserGuide_KnowledgeVault_Advanced1.Text" xml:space="preserve"><value>自动打标签 — 导入文档时，AI 会自动生成语义标签，按主题、领域和核心概念对内容分类，无需任何手动操作。</value></data>
-  <data name="UserGuide_KnowledgeVault_Advanced2.Text" xml:space="preserve"><value>重复检测 — 导入时通过内容哈希与余弦相似度进行智能的重复及近似重复检测，防止冗余文档堆积在您的 Vault 中。</value></data>
-  <data name="UserGuide_KnowledgeVault_Advanced3.Text" xml:space="preserve"><value>批量操作 — 选择多份文档进行批量操作，包括删除、重新建索引或分配标签，在管理大型文档集合时节省时间。</value></data>
+  <data name="UserGuide_KnowledgeVault_Advanced2.Text" xml:space="preserve"><value>重复检测：导入前，内容与 Vault 中已有文档完全相同的文件会被标出，以便您跳过。导入时不会检查近似重复；可在 Quick Actions &gt;“重复项”中查找，它只会报告结果。</value></data>
+  <data name="UserGuide_KnowledgeVault_Advanced3.Text" xml:space="preserve"><value>批量操作：开启多选模式选择多个文档，或使用“全选”，然后一步完成重新索引或删除。没有批量打标签的功能；标签来自自动打标签。</value></data>
   <data name="UserGuide_KnowledgeVault_Advanced4.Text" xml:space="preserve"><value>高级筛选 — 按 Collection、日期范围筛选文档，并按名称、日期、大小或文件类型排序，快速定位 Vault 中的特定文件。</value></data>
   <data name="UserGuide_KnowledgeVault_Advanced5.Text" xml:space="preserve"><value>文档预览面板 — 侧边面板可一目了然地展示文档详情、标签、分块和元数据，无需离开文档列表。</value></data>
-  <data name="UserGuide_KnowledgeVault_Advanced6.Text" xml:space="preserve"><value>AI 生成标题 — 借助 AI 对内容的分析，为文档生成具有描述性、有意义的标题，用信息丰富的标签替代笼统的文件名。</value></data>
-  <data name="UserGuide_Collections_Title.Text" xml:space="preserve"><value>Collections</value></data>
-  <data name="UserGuide_Collections_Description.Text" xml:space="preserve"><value>Collections let you organize your documents into logical groups. Think of them as folders or tags for your Knowledge Vault — a single document can belong to multiple collections.</value></data>
-  <data name="UserGuide_Collections_Working_Title.Text" xml:space="preserve"><value>使用 Collection</value></data>
-  <data name="UserGuide_Collections_Working1.Text" xml:space="preserve"><value>Creating collections — Navigate to the Collections page and click New Collection. Give it a descriptive name and optional description.</value></data>
-  <data name="UserGuide_Collections_Working2.Text" xml:space="preserve"><value>Adding documents — Open a collection and use the Add Documents button to select files from your Knowledge Vault. Documents can belong to multiple collections simultaneously.</value></data>
-  <data name="UserGuide_Collections_Working3.Text" xml:space="preserve"><value>Collection-scoped search — When using Semantic Search or Ask Your Files, you can scope your query to a specific collection to narrow results to only the relevant documents.</value></data>
-  <data name="UserGuide_Collections_Working4.Text" xml:space="preserve"><value>Managing collections — Rename, edit descriptions, remove documents, or delete entire collections. Deleting a collection does not delete the documents themselves — only the grouping.</value></data>
+  <data name="UserGuide_KnowledgeVault_Advanced6.Text" xml:space="preserve"><value>AI 生成标题：“AI 标题”（预览面板中为“生成标题”）会让模型根据文档开头生成一个简短标题，并显示在文件名下方。文件名本身不会改变。</value></data>
+  <data name="UserGuide_Collections_Title.Text" xml:space="preserve"><value>合集</value></data>
+  <data name="UserGuide_Collections_Description.Text" xml:space="preserve"><value>合集用于将 Knowledge Vault 中的文档分组。一个文档可以同时属于多个合集，删除合集绝不会删除其中的文档。语义搜索和“向您的文件提问”可以限定在一个合集内，Knowledge Vault 可以按合集筛选，知识图谱则将每个合集显示为连接其文档的中心节点。</value></data>
+  <data name="UserGuide_Collections_Working_Title.Text" xml:space="preserve"><value>使用合集</value></data>
+  <data name="UserGuide_Collections_Working1.Text" xml:space="preserve"><value>创建：在合集页面输入名称和可选的描述，然后点击“创建合集”。Quick Actions &gt;“整理”可以为不属于任何合集的文档推荐合集，但不会替您创建。</value></data>
+  <data name="UserGuide_Collections_Working2.Text" xml:space="preserve"><value>添加文档：选择一个合集，点击“添加文档”并选择文件（PDF、Word、文本、Markdown、CSV、JSON 或 HTML）。新文件会被导入 Vault 并添加到合集；如果某个文件的内容已在 Vault 中，则会添加已有的文档，而不是副本。随后会显示摘要，说明有多少文件已添加、已在合集中或添加失败。网页导入也可以将导入的页面放入合集。</value></data>
+  <data name="UserGuide_Collections_Working3.Text" xml:space="preserve"><value>限定检索范围：在语义搜索和“向您的文件提问”中选择一个合集，即可只搜索其中的文档；在 Knowledge Vault 中，合集筛选器只显示该合集的成员。一次只能选择一个合集，无法用 AND 或 OR 组合多个合集。</value></data>
+  <data name="UserGuide_Collections_Working4.Text" xml:space="preserve"><value>管理：可以重命名合集、导出合集，或从中移除单个文档。删除单个合集会立即执行，不会先确认；在多选模式下选择多个合集，确认后即可一起删除。无论哪种方式，文档都会保留在 Vault 中。</value></data>
   <data name="UserGuide_KnowledgeGraph_Title.Text" xml:space="preserve"><value>知识图谱</value></data>
   <data name="UserGuide_KnowledgeGraph_Description.Text" xml:space="preserve"><value>知识图谱将您的 Knowledge Vault 绘制为一张网络。文档、合集和标签都是节点；每个文档与其所属的合集和标签之间以线相连，至少共享一个合集或标签的两个文档之间也会相连。可从导航栏或按 Ctrl+G 打开它，查看哪些文档聚集在一起、哪些孤立存在。</value></data>
   <data name="UserGuide_KnowledgeGraph_Elements_Title.Text" xml:space="preserve"><value>图谱元素</value></data>
@@ -206,20 +206,20 @@
   <data name="UserGuide_SemanticSearch_Using5.Text" xml:space="preserve"><value>三种搜索模式：语义（向量相似度，最适合概念）、关键词（FTS5 全文检索，最适合精确词语、名称、ID 和代码）和混合（两者结合，以 Reciprocal Rank Fusion 合并，k=60）。在“搜索模式”下选择；页面打开时为语义模式。“向您的文件提问”使用混合检索。</value></data>
   <data name="UserGuide_SemanticSearch_Using6.Text" xml:space="preserve"><value>历史记录和缓存：搜索会保存在跨会话保留的历史记录中。“搜索历史”列表显示最近的查询（单击即可重新运行），“清空”会清除它。结果会缓存五分钟，每当文档被编入索引、重新索引或删除时，缓存都会被清除。</value></data>
   <data name="UserGuide_ModelManager_Title.Text" xml:space="preserve"><value>模型管理器</value></data>
-  <data name="UserGuide_ModelManager_Description.Text" xml:space="preserve"><value>The Model Manager provides a visual interface for managing all Ollama models installed on your system. You can browse, download, inspect, and remove models without using the command line.</value></data>
+  <data name="UserGuide_ModelManager_Description.Text" xml:space="preserve"><value>模型管理器列出当前 AI 提供商的模型，让您无需命令行即可下载、删除和切换模型。使用 Ollama 时，它管理您电脑上的 Ollama 模型；使用内置提供商时，它管理模型文件夹中的模型文件（.gguf）；对于 OpenAI 和 Anthropic，它只列出模型。提供商本身、Ollama 地址和嵌入模型在“设置”中选择。</value></data>
   <data name="UserGuide_ModelManager_Capabilities_Title.Text" xml:space="preserve"><value>功能</value></data>
-  <data name="UserGuide_ModelManager_Capability1.Text" xml:space="preserve"><value>View installed models — See all models currently available on your system with their name, size, parameter count, and quantization level (e.g., Q4_0, Q5_K_M).</value></data>
-  <data name="UserGuide_ModelManager_Capability2.Text" xml:space="preserve"><value>Model details — Click any model to see detailed information: family, format, parameter size, quantization type, context window, license, and system prompt template.</value></data>
-  <data name="UserGuide_ModelManager_Capability3.Text" xml:space="preserve"><value>Pull new models — Enter a model name (e.g., mistral, codellama, phi3) and click Pull to download it directly. A real-time progress bar tracks the download.</value></data>
+  <data name="UserGuide_ModelManager_Capability1.Text" xml:space="preserve"><value>查看已安装的模型：每个模型都会列出名称、系列、参数量、量化方式、上下文长度、磁盘占用、最后修改时间和简短摘要（digest），当前使用的模型会标为“当前使用”。页头显示模型数量及其总大小。</value></data>
+  <data name="UserGuide_ModelManager_Capability2.Text" xml:space="preserve"><value>模型操作：“设为当前”会让当前提供商在整个应用中使用该模型（与在 AI Chat 中选择它相同），重启后仍然保留。“复制模型名称”会将名称复制到剪贴板。没有详情视图或基准测试。</value></data>
+  <data name="UserGuide_ModelManager_Capability3.Text" xml:space="preserve"><value>拉取新模型：输入模型名称，或点击某个建议（llama3.2、mistral、phi3、qwen2.5、gemma2、deepseek-r1），然后点击“拉取模型”。进度条显示已下载的大小和百分比，“取消”可停止下载。“浏览模型”会在浏览器中打开 Ollama 模型库。使用内置提供商时，只能下载其目录中的两个模型（Llama 3.2 3B 和 1B，需使用 .gguf 文件名）。</value></data>
   <data name="UserGuide_ModelManager_Capability4.Text" xml:space="preserve"><value>删除模型：删除不再使用的模型以回收磁盘空间。删除一次只针对一个模型，并且立即生效：没有确认提示，也无法撤销；如果误删了模型，请重新拉取（pull）该模型。</value></data>
-  <data name="UserGuide_ModelManager_Capability5.Text" xml:space="preserve"><value>Set default models — Assign a default chat model and a default embedding model. These are used as the system-wide defaults in Chat, RAG, and Quick Actions.</value></data>
+  <data name="UserGuide_ModelManager_Capability5.Text" xml:space="preserve"><value>默认设置：“设为当前”是这里唯一的模型选择。提供商、Ollama 地址和嵌入模型在“设置”中配置；模型管理器没有按任务分配模型的功能，也没有硬件兼容性评分。适合您电脑的模型由硬件顾问推荐。</value></data>
   <data name="UserGuide_HardwareAdvisor_Title.Text" xml:space="preserve"><value>硬件顾问</value></data>
-  <data name="UserGuide_HardwareAdvisor_Description.Text" xml:space="preserve"><value>The Hardware Advisor scans your system to determine your AI capabilities and recommends the best models for your specific hardware configuration.</value></data>
+  <data name="UserGuide_HardwareAdvisor_Description.Text" xml:space="preserve"><value>硬件顾问会读取您电脑的 GPU、处理器、内存和 NPU，并推荐适合的 Ollama 模型。打开页面时会自动扫描，更换硬件后可点击“重新扫描”再次运行。推荐只取决于一个数值：GPU 的显存，若未报告 GPU 显存，则为可用的系统内存。硬件顾问不会运行基准测试。</value></data>
   <data name="UserGuide_HardwareAdvisor_Detects_Title.Text" xml:space="preserve"><value>可检测内容</value></data>
-  <data name="UserGuide_HardwareAdvisor_Detect1.Text" xml:space="preserve"><value>GPU detection — Identifies your graphics card(s), whether NVIDIA (CUDA), AMD (ROCm), or Intel (oneAPI), and reports the GPU model name.</value></data>
-  <data name="UserGuide_HardwareAdvisor_Detect2.Text" xml:space="preserve"><value>VRAM analysis — Reports total and available video memory, which directly determines the maximum model size you can run.</value></data>
-  <data name="UserGuide_HardwareAdvisor_Detect3.Text" xml:space="preserve"><value>Recommended model sizes — Based on your available VRAM and system RAM, the advisor suggests which model sizes (3B, 7B, 13B, 30B, 70B) will run well on your machine.</value></data>
-  <data name="UserGuide_HardwareAdvisor_Detect4.Text" xml:space="preserve"><value>Performance tips — Actionable recommendations for maximizing inference speed, such as using quantized models, reducing context length, or offloading layers to GPU.</value></data>
+  <data name="UserGuide_HardwareAdvisor_Detect1.Text" xml:space="preserve"><value>GPU 检测：显卡名称和显存来自 Windows（WMI 和显示驱动程序的注册表项），并根据显存划分等级：No dedicated GPU、Entry、Mainstream、Performance、Enthusiast 或 Professional。硬件顾问不会检查 CUDA、ROCm 或 oneAPI 支持。</value></data>
+  <data name="UserGuide_HardwareAdvisor_Detect2.Text" xml:space="preserve"><value>处理器与内存：处理器名称、核心数和逻辑核心数、系统内存总量和可用量，以及是否有 NPU。如果 Windows 未报告其中某些信息，会显示“部分硬件信息不可用”的提示。</value></data>
+  <data name="UserGuide_HardwareAdvisor_Detect3.Text" xml:space="preserve"><value>推荐模型：低于 4 GB 时推荐 phi3:mini、qwen2.5:0.5b 等小模型；4 到 8 GB 推荐 llama3.2:3b 和 mistral:7b；8 到 16 GB 推荐 llama3.1:8b、deepseek-r1:8b 等 7B 和 8B 模型；16 GB 及以上推荐 qwen2.5:32b、llama3.1:70b-q4_0 等大模型。每个等级还会列出代码模型和一到两个嵌入模型（all-minilm、nomic-embed-text、mxbai-embed-large），并按聊天、代码和嵌入分组。</value></data>
+  <data name="UserGuide_HardwareAdvisor_Detect4.Text" xml:space="preserve"><value>安装与建议：已有的模型会标为“已安装”，“安装”会通过当前提供商下载其他模型，这适用于 Ollama（内置提供商只能下载其自身的 .gguf 模型）。一段简短的建议会说明检测到的 GPU 或 CPU 对速度的影响，以及可以使用多大的模型。这里没有量化、上下文长度或 GPU 卸载的设置。</value></data>
   <data name="UserGuide_Settings_Title.Text" xml:space="preserve"><value>设置</value></data>
   <data name="UserGuide_Settings_Description.Text" xml:space="preserve"><value>The Settings page gives you fine-grained control over every aspect of Agent-X. All settings are persisted locally.</value></data>
   <data name="UserGuide_Settings_Group1_Title.Text" xml:space="preserve"><value>AI 提供方</value></data>

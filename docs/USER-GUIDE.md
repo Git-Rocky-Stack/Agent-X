@@ -487,7 +487,7 @@ Use citations to verify source quality. If a citation looks weak, rephrase the q
 
 ## 10. Knowledge Vault
 
-The Knowledge Vault is the document repository and indexing control center.
+The Knowledge Vault is the document repository and indexing control center. It stores each document's extracted text, chunks, and the path to the original file; the file itself is not copied, so re-indexing needs it to stay where it was imported from. The search box matches file names only.
 
 ### Import methods
 
@@ -511,12 +511,12 @@ Each document tracks:
 
 ### Bulk operations
 
-Multi-select documents to:
+Multi-select documents (or use **Select All**) to:
 
 - Re-index multiple files.
-- Delete multiple files from the vault.
-- Add selected documents to a collection.
-- Apply or remove tags where supported by the current page controls.
+- Delete multiple files from the vault. Deletion, single or bulk, happens without a confirmation and leaves the original files on disk.
+
+There is no bulk collection assignment or tagging on this page; tags come from auto-tagging, and documents join a collection through the Collections page.
 
 ### Indexing lifecycle
 
@@ -570,10 +570,11 @@ Use Collections for project, client, research area, or topic groupings.
 | Action | Result |
 | --- | --- |
 | Create collection | Adds a new organizational container |
-| Nest collection | Creates parent/child structure |
+| Rename collection | Changes the name only |
+| Export collection | Exports the collection's documents (see Export) |
 | Add documents | Imports the picked files and adds them to the collection. A file already in the vault adds the existing document instead of a copy, and a summary reports how many files were added, were already in the collection, or failed |
 | Remove documents | Removes only the collection relationship |
-| Delete collection | Leaves original vault documents intact |
+| Delete collection | Leaves original vault documents intact. A single collection is deleted without a confirmation; deleting several selected collections asks first. Collections cannot be nested from the app |
 
 Collections improve RAG scope, search filtering, sync scope, and dashboard insights.
 
@@ -835,11 +836,12 @@ Analytics gives a deeper view into usage, quality, and intelligence coverage.
 
 ## 21. Model Manager
 
-Model Manager provides a UI for Ollama model inventory and lifecycle management.
+Model Manager works on the active AI provider: Ollama models when Ollama is active, the model files (.gguf) of the built-in provider when it is active (only the Llama 3.2 3B and 1B files of its catalog can be downloaded), and a read-only list for OpenAI and Anthropic.
 
 ### Capabilities
 
-- List installed models with size and metadata.
+- List installed models with family, parameter count, quantization, context length, size, and last-modified date.
+- **Set Active** makes a model the active provider's model everywhere and keeps it after a restart.
 - Pull a model by name.
 - Track pull progress.
 - Delete unused models. Delete is one click per model, with no confirmation and no undo; pull the model again if you remove one by mistake.
@@ -862,7 +864,7 @@ Embedding models should include names such as `embed`, `nomic`, `bge`, or `minil
 
 ## 22. Hardware Advisor
 
-Hardware Advisor detects system capacity and recommends suitable models.
+Hardware Advisor detects system capacity and recommends suitable Ollama models. Recommendations depend on one figure: the GPU's video memory, or the available system RAM when no GPU memory is reported. **Install** downloads a recommended model through the active provider, which works when Ollama is active. The advisor runs no benchmarks and does not check CUDA, ROCm, or oneAPI support.
 
 ### Detection areas
 
