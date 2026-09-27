@@ -719,6 +719,42 @@ public sealed class ApiHostServiceTests
     }
 
     [Fact]
+    public async Task PostClip_WithABodyOverTheLimit_Returns413AndClipsNothing()
+    {
+        await using var harness = await ApiHostHarness.StartAsync();
+        var clipPath = harness.CaptureClipPath();
+
+        var response = await harness.PostJsonAsync("api/inbox/clip", new
+        {
+            title = "Too big",
+            content = new string('x', ApiHostService.MaxRequestBodyBytes),
+            sourceUrl = "https://example.com"
+        });
+
+        response.StatusCode.Should().Be(HttpStatusCode.RequestEntityTooLarge);
+        (await ReadAsync<object>(response))!.Success.Should().BeFalse();
+        clipPath().Should().BeNull("an oversized request must not reach the inbox");
+    }
+
+    [Fact]
+    public async Task PostClip_WithABodyJustUnderTheLimit_IsAccepted()
+    {
+        await using var harness = await ApiHostHarness.StartAsync();
+        var clipPath = harness.CaptureClipPath();
+
+        // The JSON wrapper around the content adds well under 1 KB.
+        var response = await harness.PostJsonAsync("api/inbox/clip", new
+        {
+            title = "Large clip",
+            content = new string('x', ApiHostService.MaxRequestBodyBytes - 1024),
+            sourceUrl = "https://example.com"
+        });
+
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        clipPath().Should().NotBeNull();
+    }
+
+    [Fact]
     public async Task PostClip_WithWhitespaceTitle_FallsBackToUntitledFileName()
     {
         await using var harness = await ApiHostHarness.StartAsync();

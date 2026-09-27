@@ -511,8 +511,13 @@ public sealed class ApiHostService : IApiHostService, IAsyncDisposable
         ApiSearchRequest? searchReq;
         try
         {
-            using var reader = new StreamReader(req.InputStream, req.ContentEncoding ?? Encoding.UTF8);
-            var json = await reader.ReadToEndAsync(ct).ConfigureAwait(false);
+            var json = await ReadBodyAsync(req, ct).ConfigureAwait(false);
+            if (json is null)
+            {
+                await WriteErrorResponseAsync(resp, 413, BodyTooLargeMessage, ct).ConfigureAwait(false);
+                return 413;
+            }
+
             searchReq = JsonSerializer.Deserialize<ApiSearchRequest>(json, JsonOptions);
         }
         catch (JsonException ex)
@@ -557,8 +562,13 @@ public sealed class ApiHostService : IApiHostService, IAsyncDisposable
         ApiClipRequest? clipReq;
         try
         {
-            using var reader = new StreamReader(req.InputStream, req.ContentEncoding ?? Encoding.UTF8);
-            var json = await reader.ReadToEndAsync(ct).ConfigureAwait(false);
+            var json = await ReadBodyAsync(req, ct).ConfigureAwait(false);
+            if (json is null)
+            {
+                await WriteErrorResponseAsync(resp, 413, BodyTooLargeMessage, ct).ConfigureAwait(false);
+                return 413;
+            }
+
             clipReq = JsonSerializer.Deserialize<ApiClipRequest>(json, JsonOptions);
         }
         catch (JsonException ex)
@@ -657,6 +667,46 @@ public sealed class ApiHostService : IApiHostService, IAsyncDisposable
 
         await WriteJsonResponseAsync(resp, 200, ApiResponse<ApiAuthCheckDto>.Ok(payload), ct).ConfigureAwait(false);
         return 200;
+    }
+
+    // ── Request Body ──────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Largest request body the API accepts (10 MB). A clipped page is far smaller; the cap keeps
+    /// a runaway client from filling memory with one request.
+    /// </summary>
+    internal const int MaxRequestBodyBytes = 10 * 1024 * 1024;
+
+    private const string BodyTooLargeMessage = "Request body is too large. The limit is 10 MB.";
+
+    /// <summary>
+    /// Reads the request body as text, or returns null when it is larger than
+    /// <see cref="MaxRequestBodyBytes"/>. The part past the limit is read and dropped rather than
+    /// kept, so the client still receives the 413 response instead of a reset connection.
+    /// </summary>
+    private static async Task<string?> ReadBodyAsync(HttpListenerRequest req, CancellationToken ct)
+    {
+        using var body = new MemoryStream();
+        var tooLarge = req.ContentLength64 > MaxRequestBodyBytes;
+        var chunk = new byte[81920];
+        int read;
+        while ((read = await req.InputStream.ReadAsync(chunk, ct).ConfigureAwait(false)) > 0)
+        {
+            if (tooLarge || body.Length + read > MaxRequestBodyBytes)
+            {
+                tooLarge = true;
+                continue;
+            }
+
+            await body.WriteAsync(chunk.AsMemory(0, read), ct).ConfigureAwait(false);
+        }
+
+        if (tooLarge)
+            return null;
+
+        body.Position = 0;
+        using var reader = new StreamReader(body, req.ContentEncoding ?? Encoding.UTF8);
+        return await reader.ReadToEndAsync(ct).ConfigureAwait(false);
     }
 
     // ── Clip Helpers ──────────────────────────────────────────────────────────

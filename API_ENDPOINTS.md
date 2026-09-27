@@ -88,7 +88,8 @@ Authorization: Bearer <token>
   `Content-Type`, or as UTF-8 when none is named; the `Content-Type` value is not otherwise
   checked.
 - At most 16 requests are processed at the same time; further requests wait for a free slot.
-- There is no rate limit and no size limit on request bodies.
+- A request body may be at most 10 MB (`ApiHostService.MaxRequestBodyBytes`); a larger one gets
+  `413` with the error `Request body is too large. The limit is 10 MB.` There is no rate limit.
 - Every request is logged as `<METHOD> <path> -> <status> (<n>ms)`.
 
 ### CORS
@@ -128,6 +129,7 @@ such values as UTC.
 | `400` | The body is not valid JSON for the route (including a value of the wrong type), or a required field is missing or blank |
 | `401` | Missing or wrong bearer token |
 | `404` | Unknown route, wrong method, non-numeric id, or an id that does not exist |
+| `413` | The request body is larger than 10 MB (`POST /api/search`, `POST /api/inbox/clip`) |
 | `500` | Unexpected server error (`An internal server error occurred.`), or the Smart Inbox did not accept a clip (`Failed to add clip to inbox.`) |
 
 ### Endpoints
