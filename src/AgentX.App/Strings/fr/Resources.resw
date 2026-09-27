@@ -1460,7 +1460,7 @@
   <data name="PastSelf_RelevantInsightsFromYour.Text" xml:space="preserve"><value>Idées pertinentes de votre passé</value></data>
   <data name="PastSelf_TopicsYouVeBeen.Text" xml:space="preserve"><value>Sujets que vous avez explorés</value></data>
   <data name="PastSelf_DraftAsMe.Text" xml:space="preserve"><value>Rédiger comme moi</value></data>
-  <data name="PastSelf_GenerateTextInYour.Text" xml:space="preserve"><value>Générez du texte avec votre voix grâce à l'analyse par IA de vos habitudes d'écriture.</value></data>
+  <data name="PastSelf_GenerateTextInYour.Text" xml:space="preserve"><value>Votre fournisseur d'IA rédige le brouillon dans le style d'écriture mesuré à partir de vos messages de chat, en suivant les points de vue que vous aviez enregistrés jusqu'à la période choisie ci-dessus.</value></data>
   <data name="PastSelf_LoadProfile.Content" xml:space="preserve"><value>Charger le profil</value></data>
   <data name="PastSelf_Samples.Text" xml:space="preserve"><value>Échantillons</value></data>
   <data name="PastSelf_AvgSentenceLength.Text" xml:space="preserve"><value>Longueur moyenne des phrases</value></data>
@@ -1704,6 +1704,19 @@
   <data name="Settings_DefaultModel.Text" xml:space="preserve"><value>Modèle par défaut</value></data>
   <data name="Settings_TestConnection2.Content" xml:space="preserve"><value>Tester la connexion</value></data>
   <data name="Settings_Cloud2.Text" xml:space="preserve"><value>CLOUD</value></data>
+  <data name="PastSelf_CancelDraft.Content" xml:space="preserve"><value>Annuler</value></data>
+  <data name="PastSelf_DraftWriting.Text" xml:space="preserve"><value>Rédaction du brouillon...</value></data>
+  <data name="PastSelf_DraftNeedsContext" xml:space="preserve"><value>Décrivez d'abord dans Contexte ce que vous voulez écrire.</value></data>
+  <data name="PastSelf_DraftNoProvider" xml:space="preserve"><value>Aucun fournisseur d'IA n'est disponible, donc aucun brouillon n'a été rédigé. Choisissez-en un dans Paramètres &gt; Fournisseurs d'IA, vérifiez-le avec Tester la connexion, puis réessayez.</value></data>
+  <data name="PastSelf_DraftFailed" xml:space="preserve"><value>Le fournisseur d'IA n'a pas pu rédiger le brouillon : {0}</value></data>
+  <data name="PastSelf_DraftEmpty" xml:space="preserve"><value>Le fournisseur d'IA a renvoyé un brouillon vide. Réessayez, ou décrivez le contexte plus en détail.</value></data>
+  <data name="PastSelf_DraftCancelled" xml:space="preserve"><value>Brouillon annulé. Rien n'a été conservé.</value></data>
+  <data name="PastSelf_DraftBasisModel" xml:space="preserve"><value>Rédigé par {0}.</value></data>
+  <data name="PastSelf_DraftBasisVoice" xml:space="preserve"><value>Suit le style d'écriture de votre profil de voix ci-dessus.</value></data>
+  <data name="PastSelf_DraftBasisNoVoice" xml:space="preserve"><value>Aucun style d'écriture n'a encore été mesuré, donc le brouillon adopte une voix neutre.</value></data>
+  <data name="PastSelf_DraftBasisViews" xml:space="preserve"><value>Points de vue utilisés, enregistrés jusqu'au {0} : {1}</value></data>
+  <data name="PastSelf_DraftBasisNoViews" xml:space="preserve"><value>Aucun de vos points de vue enregistrés jusqu'au {0} ne concerne ce brouillon.</value></data>
+  <data name="PastSelf_DraftBasisInsights" xml:space="preserve"><value>Idées enregistrées utilisées comme contexte : {0}</value></data>
   <data name="Settings_ApiKey2.Text" xml:space="preserve"><value>Clé API</value></data>
   <data name="Settings_Endpoint3.Text" xml:space="preserve"><value>Point de terminaison</value></data>
   <data name="Settings_DefaultModel2.Text" xml:space="preserve"><value>Modèle par défaut</value></data>

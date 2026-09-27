@@ -13,7 +13,6 @@
     NavigationCacheMode="Enabled">
 
     <Page.Resources>
-        <converters:InverseVisibilityConverter x:Key="InverseVisibilityConverter"/>
         <converters:StringEmptyToVisibilityConverter x:Key="StringEmptyToVisibilityConverter"/>
         <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
         <converters:InverseBoolConverter x:Key="InverseBoolConverter"/>
@@ -339,8 +338,9 @@
                             <TextBlock x:Uid="PastSelf_DraftAsMe" Text="Draft as Me"
                                        Style="{StaticResource HeadingSmallStyle}"
                                        AutomationProperties.HeadingLevel="Level2"/>
-                            <TextBlock x:Uid="PastSelf_GenerateTextInYour" Text="Generate text in your voice using AI analysis of your writing patterns."
-                                       Style="{StaticResource BodySecondaryStyle}"/>
+                            <TextBlock x:Uid="PastSelf_GenerateTextInYour" Text="Your AI provider writes the draft in the writing style measured from your chat messages, following the views you had recorded by the time period chosen above."
+                                       Style="{StaticResource BodySecondaryStyle}"
+                                       TextWrapping="Wrap"/>
                         </StackPanel>
 
                         <Button Grid.Column="1"
@@ -392,12 +392,14 @@
                         <StackPanel Spacing="4">
                             <TextBlock x:Uid="PastSelf_Context" Text="Context"
                                        Style="{StaticResource LabelStyle}"/>
+                            <!-- MaxLength matches VoiceDraftService.MaxContextLength. -->
                             <TextBox x:Name="DraftContextBox"
                                      Style="{StaticResource InputTextBoxStyle}"
                                      x:Uid="PastSelf_DescribeWhatYouRePh" PlaceholderText="Describe what you're writing about (e.g., 'An email to the team about the Q4 roadmap')"
                                      Text="{x:Bind ViewModel.DraftContext, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                      TextWrapping="Wrap"
                                      AcceptsReturn="True"
+                                     MaxLength="6000"
                                      Height="60"/>
                         </StackPanel>
 
@@ -411,16 +413,46 @@
                                      Text="{x:Bind ViewModel.DraftGoal, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                         </StackPanel>
 
-                        <!-- Generate Button -->
-                        <Button x:Uid="PastSelf_GenerateDraft" Content="Generate Draft"
-                                Click="GenerateDraftButton_Click"
-                                Style="{StaticResource AccentButtonStyle}"
-                                HorizontalAlignment="Left"
-                                IsEnabled="{x:Bind ViewModel.IsGeneratingDraft, Mode=OneWay, Converter={StaticResource InverseBoolConverter}}"
-                                MinWidth="140"/>
+                        <!-- Generate / Cancel, with the progress state while the provider writes -->
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <Button x:Uid="PastSelf_GenerateDraft" Content="Generate Draft"
+                                    Click="GenerateDraftButton_Click"
+                                    Style="{StaticResource AccentButtonStyle}"
+                                    IsEnabled="{x:Bind ViewModel.IsGeneratingDraft, Mode=OneWay, Converter={StaticResource InverseBoolConverter}}"
+                                    MinWidth="140"/>
+                            <Button x:Uid="PastSelf_CancelDraft" Content="Cancel"
+                                    Click="CancelDraftButton_Click"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Visibility="{x:Bind ViewModel.IsGeneratingDraft, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                            <ProgressRing IsActive="{x:Bind ViewModel.IsGeneratingDraft, Mode=OneWay}"
+                                          Width="24"
+                                          Height="24"
+                                          Foreground="{ThemeResource AccentPrimaryBrush}"
+                                          VerticalAlignment="Center"
+                                          Visibility="{x:Bind ViewModel.IsGeneratingDraft, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                            <TextBlock x:Uid="PastSelf_DraftWriting" Text="Writing the draft..."
+                                       Style="{StaticResource BodySecondaryStyle}"
+                                       VerticalAlignment="Center"
+                                       Visibility="{x:Bind ViewModel.IsGeneratingDraft, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                        </StackPanel>
+
+                        <!-- Why no draft was written: no context, no AI provider, a provider error -->
+                        <Border Style="{StaticResource InlineErrorBarStyle}"
+                                Visibility="{x:Bind ViewModel.DraftErrorMessage, Mode=OneWay, Converter={StaticResource NullToVisibilityConverter}}">
+                            <TextBlock Text="{x:Bind ViewModel.DraftErrorMessage, Mode=OneWay}"
+                                       Style="{StaticResource BodyStyle}"
+                                       Foreground="{ThemeResource ErrorBrush}"
+                                       TextWrapping="Wrap"/>
+                        </Border>
+
+                        <!-- A neutral note, such as that the draft was cancelled -->
+                        <TextBlock Text="{x:Bind ViewModel.DraftStatus, Mode=OneWay}"
+                                   Style="{StaticResource BodySecondaryStyle}"
+                                   TextWrapping="Wrap"
+                                   Visibility="{x:Bind ViewModel.DraftStatus, Mode=OneWay, Converter={StaticResource StringEmptyToVisibilityConverter}}"/>
                     </StackPanel>
 
-                    <!-- Generated Output -->
+                    <!-- Generated Output: streams in while the provider writes -->
                     <Border x:Name="GeneratedDraftPanel"
                             Style="{StaticResource CardInsetStyle}"
                             Visibility="{x:Bind ViewModel.DraftContent, Mode=OneWay, Converter={StaticResource StringEmptyToVisibilityConverter}}">
@@ -437,30 +469,30 @@
                                            AutomationProperties.HeadingLevel="Level3"
                                            VerticalAlignment="Center"/>
 
+                                <!-- Copying waits for the finished draft. -->
                                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
                                     <Button x:Uid="PastSelf_Copy" Content="Copy"
                                             Click="CopyDraftButton_Click"
-                                            Style="{StaticResource SecondaryButtonStyle}"/>
+                                            Style="{StaticResource SecondaryButtonStyle}"
+                                            IsEnabled="{x:Bind ViewModel.IsGeneratingDraft, Mode=OneWay, Converter={StaticResource InverseBoolConverter}}"/>
                                     <Button x:Uid="PastSelf_CopyForChat" Content="Copy for Chat"
                                             Click="UseInChatButton_Click"
-                                            Style="{StaticResource AccentButtonStyle}"/>
+                                            Style="{StaticResource AccentButtonStyle}"
+                                            IsEnabled="{x:Bind ViewModel.IsGeneratingDraft, Mode=OneWay, Converter={StaticResource InverseBoolConverter}}"/>
                                 </StackPanel>
                             </Grid>
-
-                            <!-- Loading State -->
-                            <ProgressRing IsActive="{x:Bind ViewModel.IsGeneratingDraft, Mode=OneWay}"
-                                         Width="24"
-                                         Height="24"
-                                         Foreground="{ThemeResource AccentPrimaryBrush}"
-                                         HorizontalAlignment="Left"
-                                         Visibility="{x:Bind ViewModel.IsGeneratingDraft, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"/>
 
                             <!-- Generated Content -->
                             <TextBlock x:Name="DraftOutputText"
                                        Text="{x:Bind ViewModel.DraftContent, Mode=OneWay}"
                                        TextWrapping="Wrap"
-                                       Style="{StaticResource BodyStyle}"
-                                       Visibility="{x:Bind ViewModel.IsGeneratingDraft, Mode=OneWay, Converter={StaticResource InverseVisibilityConverter}}"/>
+                                       Style="{StaticResource BodyStyle}"/>
+
+                            <!-- What the draft was written from: model, voice, views -->
+                            <TextBlock Text="{x:Bind ViewModel.DraftBasis, Mode=OneWay}"
+                                       Style="{StaticResource CaptionStyle}"
+                                       TextWrapping="Wrap"
+                                       Visibility="{x:Bind ViewModel.DraftBasis, Mode=OneWay, Converter={StaticResource StringEmptyToVisibilityConverter}}"/>
                         </StackPanel>
                     </Border>
                 </StackPanel>

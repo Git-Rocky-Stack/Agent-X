@@ -1460,7 +1460,7 @@
   <data name="PastSelf_RelevantInsightsFromYour.Text" xml:space="preserve"><value>Ideas relevantes de su pasado</value></data>
   <data name="PastSelf_TopicsYouVeBeen.Text" xml:space="preserve"><value>Temas que ha estado explorando</value></data>
   <data name="PastSelf_DraftAsMe.Text" xml:space="preserve"><value>Redactar como yo</value></data>
-  <data name="PastSelf_GenerateTextInYour.Text" xml:space="preserve"><value>Genere texto con su propia voz mediante el análisis de IA de sus patrones de escritura.</value></data>
+  <data name="PastSelf_GenerateTextInYour.Text" xml:space="preserve"><value>Su proveedor de IA escribe el borrador con el estilo de escritura medido en sus mensajes de chat y sigue los puntos de vista que había registrado hasta el período elegido arriba.</value></data>
   <data name="PastSelf_LoadProfile.Content" xml:space="preserve"><value>Cargar perfil</value></data>
   <data name="PastSelf_Samples.Text" xml:space="preserve"><value>Muestras</value></data>
   <data name="PastSelf_AvgSentenceLength.Text" xml:space="preserve"><value>Longitud media de frase</value></data>
@@ -1704,6 +1704,19 @@
   <data name="Settings_DefaultModel.Text" xml:space="preserve"><value>Modelo predeterminado</value></data>
   <data name="Settings_TestConnection2.Content" xml:space="preserve"><value>Probar conexión</value></data>
   <data name="Settings_Cloud2.Text" xml:space="preserve"><value>NUBE</value></data>
+  <data name="PastSelf_CancelDraft.Content" xml:space="preserve"><value>Cancelar</value></data>
+  <data name="PastSelf_DraftWriting.Text" xml:space="preserve"><value>Escribiendo el borrador...</value></data>
+  <data name="PastSelf_DraftNeedsContext" xml:space="preserve"><value>Primero describa en Contexto lo que quiere escribir.</value></data>
+  <data name="PastSelf_DraftNoProvider" xml:space="preserve"><value>No hay ningún proveedor de IA disponible, así que no se escribió ningún borrador. Elija uno en Configuración &gt; Proveedores de IA y compruébelo con Probar conexión; después, vuelva a intentarlo.</value></data>
+  <data name="PastSelf_DraftFailed" xml:space="preserve"><value>El proveedor de IA no pudo escribir el borrador: {0}</value></data>
+  <data name="PastSelf_DraftEmpty" xml:space="preserve"><value>El proveedor de IA devolvió un borrador vacío. Vuelva a intentarlo o describa el contexto con más detalle.</value></data>
+  <data name="PastSelf_DraftCancelled" xml:space="preserve"><value>Borrador cancelado. No se conservó nada.</value></data>
+  <data name="PastSelf_DraftBasisModel" xml:space="preserve"><value>Escrito por {0}.</value></data>
+  <data name="PastSelf_DraftBasisVoice" xml:space="preserve"><value>Sigue el estilo de escritura de su perfil de voz, que aparece arriba.</value></data>
+  <data name="PastSelf_DraftBasisNoVoice" xml:space="preserve"><value>Todavía no se ha medido ningún estilo de escritura, así que el borrador usa una voz neutra.</value></data>
+  <data name="PastSelf_DraftBasisViews" xml:space="preserve"><value>Puntos de vista usados, registrados hasta el {0}: {1}</value></data>
+  <data name="PastSelf_DraftBasisNoViews" xml:space="preserve"><value>Ninguno de sus puntos de vista registrados hasta el {0} tiene relación con este borrador.</value></data>
+  <data name="PastSelf_DraftBasisInsights" xml:space="preserve"><value>Ideas guardadas usadas como contexto: {0}</value></data>
   <data name="Settings_ApiKey2.Text" xml:space="preserve"><value>Clave de API</value></data>
   <data name="Settings_Endpoint3.Text" xml:space="preserve"><value>Endpoint</value></data>
   <data name="Settings_DefaultModel2.Text" xml:space="preserve"><value>Modelo predeterminado</value></data>

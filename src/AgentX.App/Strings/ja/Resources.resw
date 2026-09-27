@@ -1460,7 +1460,7 @@
   <data name="PastSelf_RelevantInsightsFromYour.Text" xml:space="preserve"><value>過去からの関連インサイト</value></data>
   <data name="PastSelf_TopicsYouVeBeen.Text" xml:space="preserve"><value>最近探求しているトピック</value></data>
   <data name="PastSelf_DraftAsMe.Text" xml:space="preserve"><value>自分らしく下書き</value></data>
-  <data name="PastSelf_GenerateTextInYour.Text" xml:space="preserve"><value>AI があなたの文章パターンを分析し、あなたらしい文章を生成します。</value></data>
+  <data name="PastSelf_GenerateTextInYour.Text" xml:space="preserve"><value>AI プロバイダーが、チャットのメッセージから測定したあなたの文体で、上で選んだ期間までに記録された見方に沿って下書きを作成します。</value></data>
   <data name="PastSelf_LoadProfile.Content" xml:space="preserve"><value>プロファイルを読み込む</value></data>
   <data name="PastSelf_Samples.Text" xml:space="preserve"><value>サンプル</value></data>
   <data name="PastSelf_AvgSentenceLength.Text" xml:space="preserve"><value>平均文長</value></data>
@@ -1704,6 +1704,19 @@
   <data name="Settings_DefaultModel.Text" xml:space="preserve"><value>既定のモデル</value></data>
   <data name="Settings_TestConnection2.Content" xml:space="preserve"><value>接続をテスト</value></data>
   <data name="Settings_Cloud2.Text" xml:space="preserve"><value>クラウド</value></data>
+  <data name="PastSelf_CancelDraft.Content" xml:space="preserve"><value>キャンセル</value></data>
+  <data name="PastSelf_DraftWriting.Text" xml:space="preserve"><value>下書きを作成しています...</value></data>
+  <data name="PastSelf_DraftNeedsContext" xml:space="preserve"><value>まず「コンテキスト」に書きたい内容を入力してください。</value></data>
+  <data name="PastSelf_DraftNoProvider" xml:space="preserve"><value>利用できる AI プロバイダーがないため、下書きは作成されませんでした。設定 &gt; AI プロバイダーでプロバイダーを選び、[接続をテスト] で確認してから、もう一度お試しください。</value></data>
+  <data name="PastSelf_DraftFailed" xml:space="preserve"><value>AI プロバイダーが下書きを作成できませんでした: {0}</value></data>
+  <data name="PastSelf_DraftEmpty" xml:space="preserve"><value>AI プロバイダーから空の下書きが返されました。もう一度試すか、コンテキストをより詳しく入力してください。</value></data>
+  <data name="PastSelf_DraftCancelled" xml:space="preserve"><value>下書きの作成をキャンセルしました。内容は保持されていません。</value></data>
+  <data name="PastSelf_DraftBasisModel" xml:space="preserve"><value>作成: {0}</value></data>
+  <data name="PastSelf_DraftBasisVoice" xml:space="preserve"><value>上の文体プロファイルの書き方に沿っています。</value></data>
+  <data name="PastSelf_DraftBasisNoVoice" xml:space="preserve"><value>文体がまだ測定されていないため、下書きは中立的な文体で作成されています。</value></data>
+  <data name="PastSelf_DraftBasisViews" xml:space="preserve"><value>{0} までに記録された見方のうち使用したもの: {1}</value></data>
+  <data name="PastSelf_DraftBasisNoViews" xml:space="preserve"><value>{0} までに記録された見方に、この下書きに関係するものはありません。</value></data>
+  <data name="PastSelf_DraftBasisInsights" xml:space="preserve"><value>背景として使用した保存済みインサイト: {0}</value></data>
   <data name="Settings_ApiKey2.Text" xml:space="preserve"><value>API キー</value></data>
   <data name="Settings_Endpoint3.Text" xml:space="preserve"><value>エンドポイント</value></data>
   <data name="Settings_DefaultModel2.Text" xml:space="preserve"><value>既定のモデル</value></data>

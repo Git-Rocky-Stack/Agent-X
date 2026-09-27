@@ -1460,7 +1460,7 @@
   <data name="PastSelf_RelevantInsightsFromYour.Text" xml:space="preserve"><value>Relevante Erkenntnisse aus Ihrer Vergangenheit</value></data>
   <data name="PastSelf_TopicsYouVeBeen.Text" xml:space="preserve"><value>Themen, die Sie beschäftigt haben</value></data>
   <data name="PastSelf_DraftAsMe.Text" xml:space="preserve"><value>Als ich entwerfen</value></data>
-  <data name="PastSelf_GenerateTextInYour.Text" xml:space="preserve"><value>Erzeugen Sie Texte in Ihrem Stil – auf Basis einer KI-Analyse Ihrer Schreibmuster.</value></data>
+  <data name="PastSelf_GenerateTextInYour.Text" xml:space="preserve"><value>Ihr KI-Anbieter schreibt den Entwurf in dem Schreibstil, der aus Ihren Chatnachrichten gemessen wurde, und folgt den Sichtweisen, die Sie bis zum oben gewählten Zeitraum erfasst hatten.</value></data>
   <data name="PastSelf_LoadProfile.Content" xml:space="preserve"><value>Profil laden</value></data>
   <data name="PastSelf_Samples.Text" xml:space="preserve"><value>Beispiele</value></data>
   <data name="PastSelf_AvgSentenceLength.Text" xml:space="preserve"><value>Ø Satzlänge</value></data>
@@ -1704,6 +1704,19 @@
   <data name="Settings_DefaultModel.Text" xml:space="preserve"><value>Standardmodell</value></data>
   <data name="Settings_TestConnection2.Content" xml:space="preserve"><value>Verbindung testen</value></data>
   <data name="Settings_Cloud2.Text" xml:space="preserve"><value>CLOUD</value></data>
+  <data name="PastSelf_CancelDraft.Content" xml:space="preserve"><value>Abbrechen</value></data>
+  <data name="PastSelf_DraftWriting.Text" xml:space="preserve"><value>Der Entwurf wird geschrieben...</value></data>
+  <data name="PastSelf_DraftNeedsContext" xml:space="preserve"><value>Beschreiben Sie zuerst unter „Kontext“, was Sie schreiben möchten.</value></data>
+  <data name="PastSelf_DraftNoProvider" xml:space="preserve"><value>Es ist kein KI-Anbieter verfügbar, daher wurde kein Entwurf geschrieben. Wählen Sie unter Einstellungen &gt; KI-Anbieter einen aus, prüfen Sie ihn mit „Verbindung testen“ und versuchen Sie es dann erneut.</value></data>
+  <data name="PastSelf_DraftFailed" xml:space="preserve"><value>Der KI-Anbieter konnte den Entwurf nicht schreiben: {0}</value></data>
+  <data name="PastSelf_DraftEmpty" xml:space="preserve"><value>Der KI-Anbieter hat einen leeren Entwurf zurückgegeben. Versuchen Sie es erneut, oder beschreiben Sie den Kontext genauer.</value></data>
+  <data name="PastSelf_DraftCancelled" xml:space="preserve"><value>Entwurf abgebrochen. Nichts davon wurde behalten.</value></data>
+  <data name="PastSelf_DraftBasisModel" xml:space="preserve"><value>Geschrieben von {0}.</value></data>
+  <data name="PastSelf_DraftBasisVoice" xml:space="preserve"><value>Folgt dem Schreibstil aus Ihrem Stilprofil oben.</value></data>
+  <data name="PastSelf_DraftBasisNoVoice" xml:space="preserve"><value>Es wurde noch kein Schreibstil gemessen, daher klingt der Entwurf neutral.</value></data>
+  <data name="PastSelf_DraftBasisViews" xml:space="preserve"><value>Verwendete Sichtweisen, erfasst bis {0}: {1}</value></data>
+  <data name="PastSelf_DraftBasisNoViews" xml:space="preserve"><value>Keine Ihrer bis {0} erfassten Sichtweisen betrifft diesen Entwurf.</value></data>
+  <data name="PastSelf_DraftBasisInsights" xml:space="preserve"><value>Als Hintergrund verwendete gespeicherte Erkenntnisse: {0}</value></data>
   <data name="Settings_ApiKey2.Text" xml:space="preserve"><value>API-Schlüssel</value></data>
   <data name="Settings_Endpoint3.Text" xml:space="preserve"><value>Endpunkt</value></data>
   <data name="Settings_DefaultModel2.Text" xml:space="preserve"><value>Standardmodell</value></data>

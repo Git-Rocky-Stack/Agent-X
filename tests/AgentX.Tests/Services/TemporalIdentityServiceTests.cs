@@ -13,53 +13,8 @@ public sealed class TemporalIdentityServiceTests : IDisposable
 {
     private readonly TestDbContextFactory _dbFactory = new();
 
-    [Fact]
-    public async Task GenerateAsUserAsync_WithoutVoiceProfile_ReturnsUsableDraftInsteadOfPlaceholder()
-    {
-        using var db = _dbFactory.CreateContext();
-        var service = new TemporalIdentityService(db);
-
-        var draft = await service.GenerateAsUserAsync(
-            "A note to the product team about delaying launch until the installer smoke test passes.",
-            "Keep the tone direct and accountable.");
-
-        draft.Should().Contain("installer smoke test");
-        draft.Should().Contain("direct and accountable");
-        draft.Should().NotContain("[Voice profile not yet learned]");
-        draft.Should().NotContain("placeholder");
-    }
-
-    [Fact]
-    public async Task GenerateAsUserAsync_WithVoiceProfile_UsesLearnedToneSignals()
-    {
-        using var db = _dbFactory.CreateContext();
-        db.Set<VoiceProfileEntity>().Add(new VoiceProfileEntity
-        {
-            FirstSampleAt = DateTime.UtcNow.AddDays(-3),
-            LastSampleAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
-            SampleCount = 12,
-            AvgSentenceLength = 9,
-            AvgParagraphLength = 2,
-            FormalityScore = 0.72,
-            CharacteristicPhrasesJson = "[]",
-            SentencePatternsJson = "[]",
-            BookendsJson = "{}",
-            StylisticTraitsJson = "{}",
-        });
-        await db.SaveChangesAsync();
-
-        var service = new TemporalIdentityService(db);
-
-        var draft = await service.GenerateAsUserAsync(
-            "A customer update about the new browser-extension connection status.",
-            "Reassure users that setup is stable.");
-
-        draft.Should().Contain("customer update");
-        draft.Should().Contain("setup is stable");
-        draft.Should().Contain("I recommend");
-        draft.Should().NotContain("[Draft in your voice");
-    }
+    // Drafting in the user's voice moved to VoiceDraftService (VoiceDraftServiceTests): the
+    // template generator tested here returned canned sentences and involved no model.
 
     [Fact]
     public async Task AcknowledgeConflictAsync_persists_so_conflict_does_not_resurface_after_restart()
@@ -500,60 +455,6 @@ public sealed class TemporalIdentityServiceTests : IDisposable
         profile.AvgSentenceLength.Should().BeApproximately(15 * 0.9 + 6 * 0.1, 0.01);   // 14.1
         profile.FormalityScore.Should().BeApproximately(0.5 * 0.95 + 0.8 * 0.05, 0.001); // 0.515
         profile.LastSampleAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromMinutes(1));
-    }
-
-    [Fact]
-    public async Task GenerateAsUser_empty_context_asks_for_context()
-    {
-        using var db = _dbFactory.CreateContext();
-        var draft = await new TemporalIdentityService(db).GenerateAsUserAsync("   ", "any goal");
-        draft.Should().Be("Please provide context so I can draft something useful.");
-    }
-
-    [Fact]
-    public async Task GenerateAsUser_informal_profile_uses_informal_opening()
-    {
-        using var db = _dbFactory.CreateContext();
-        db.Set<VoiceProfileEntity>().Add(new VoiceProfileEntity
-        {
-            SampleCount = 8,
-            FormalityScore = 0.2,
-            AvgSentenceLength = 18,
-            CharacteristicPhrasesJson = "[]",
-            SentencePatternsJson = "[]",
-            BookendsJson = "{}",
-            StylisticTraitsJson = "{}",
-        });
-        await db.SaveChangesAsync();
-
-        var draft = await new TemporalIdentityService(db).GenerateAsUserAsync("Ship the beta now", "unblock the pilot team");
-
-        draft.Should().StartWith("Here is how I would frame it.");
-        draft.Should().Contain("Ship the beta now.");
-        draft.Should().Contain("The goal is to unblock the pilot team.");
-    }
-
-    [Fact]
-    public async Task GenerateAsUser_mid_formality_short_sentences_caps_at_three_sentences_and_no_goal_line_without_goal()
-    {
-        using var db = _dbFactory.CreateContext();
-        db.Set<VoiceProfileEntity>().Add(new VoiceProfileEntity
-        {
-            SampleCount = 8,
-            FormalityScore = 0.5,
-            AvgSentenceLength = 8, // <=10 -> 3 sentences
-            CharacteristicPhrasesJson = "[]",
-            SentencePatternsJson = "[]",
-            BookendsJson = "{}",
-            StylisticTraitsJson = "{}",
-        });
-        await db.SaveChangesAsync();
-
-        var draft = await new TemporalIdentityService(db).GenerateAsUserAsync("Trim the scope", "  ");
-
-        draft.Should().StartWith("I would keep this clear and grounded.");
-        draft.Should().Contain("Trim the scope.");
-        draft.Should().NotContain("The goal is to");
     }
 
     // ─── Pattern recognition ─────────────────────────────────────────────────────

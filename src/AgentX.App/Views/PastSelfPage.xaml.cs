@@ -147,6 +147,11 @@ public sealed partial class PastSelfPage : Page, INotifyPropertyChanged
         await ViewModel.GenerateDraftAsMeAsync();
     }
 
+    private void CancelDraftButton_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.CancelDraft();
+    }
+
     private void CopyDraftButton_Click(object sender, RoutedEventArgs e)
     {
         if (!string.IsNullOrWhiteSpace(ViewModel.DraftContent))

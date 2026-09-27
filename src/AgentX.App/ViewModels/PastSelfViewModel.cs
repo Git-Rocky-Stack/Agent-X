@@ -1,6 +1,11 @@
+using System.Globalization;
+using System.Text;
+using AgentX.Core.Services.Localization;
 using AgentX.Core.Services.TemporalIdentity;
+using AgentX.Core.Services.TemporalIdentity.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Serilog;
 
 namespace AgentX.App.ViewModels;
 
@@ -10,6 +15,11 @@ namespace AgentX.App.ViewModels;
 public partial class PastSelfViewModel : ObservableObject
 {
     private readonly ITemporalIdentityService _temporalIdentity;
+    private readonly IVoiceDraftService _voiceDraft;
+    private readonly ILocalizationService _localization;
+
+    /// <summary>Stops the draft being written; null while none is.</summary>
+    private CancellationTokenSource? _draftCts;
 
     [ObservableProperty]
     private string _searchQuery = string.Empty;
@@ -31,9 +41,14 @@ public partial class PastSelfViewModel : ObservableObject
     [ObservableProperty]
     private int _selectedTimeRange = 2;
 
-    public PastSelfViewModel(ITemporalIdentityService temporalIdentity)
+    public PastSelfViewModel(
+        ITemporalIdentityService temporalIdentity,
+        IVoiceDraftService voiceDraft,
+        ILocalizationService localization)
     {
         _temporalIdentity = temporalIdentity;
+        _voiceDraft = voiceDraft;
+        _localization = localization;
     }
 
     /// <summary>
@@ -287,56 +302,146 @@ public partial class PastSelfViewModel : ObservableObject
     [ObservableProperty]
     private string _draftGoal = string.Empty;
 
+    /// <summary>The draft; it fills in as the AI provider writes it. Empty when there is none.</summary>
     [ObservableProperty]
     private string _draftContent = string.Empty;
 
     [ObservableProperty]
     private bool _isGeneratingDraft;
 
+    /// <summary>Why no draft was written (no context, no AI provider, a provider error), or null.</summary>
+    [ObservableProperty]
+    private string? _draftErrorMessage;
+
+    /// <summary>A neutral note about the last draft request, such as that it was cancelled.</summary>
+    [ObservableProperty]
+    private string _draftStatus = string.Empty;
+
+    /// <summary>What the draft on the page was written from: the model, the voice, the views used.</summary>
+    [ObservableProperty]
+    private string _draftBasis = string.Empty;
+
     [ObservableProperty]
     private VoiceProfileDisplay? _voiceProfile;
 
     /// <summary>
-    /// Generate text in the user's voice based on context and goal.
+    /// Has the active AI provider write the draft in the user's voice, guided by the learned voice
+    /// profile and by the views recorded by the time period chosen for the search above. The draft
+    /// streams in as it is written and can be cancelled. Without a provider, or when the provider
+    /// fails, the page says so and shows no draft. This used to assemble canned sentences around
+    /// the context, with no model involved, and present them as a draft in the user's voice.
     /// </summary>
     [RelayCommand]
     public async Task GenerateDraftAsMeAsync()
     {
+        if (IsGeneratingDraft)
+            return;
+
+        DraftStatus = string.Empty;
+        DraftBasis = string.Empty;
         if (string.IsNullOrWhiteSpace(DraftContext))
         {
-            DraftContent = "Please provide some context about what you want to write.";
+            // Said beside the button. It used to be put in the draft itself, so it showed (and
+            // copied) as generated text.
+            DraftErrorMessage = _localization.GetString("PastSelf_DraftNeedsContext");
             return;
         }
 
+        DraftErrorMessage = null;
+        DraftContent = string.Empty;
         IsGeneratingDraft = true;
-        ErrorMessage = null;
+        var cts = new CancellationTokenSource();
+        _draftCts = cts;
 
         try
         {
-            DraftContent = await _temporalIdentity.GenerateAsUserAsync(DraftContext, DraftGoal);
+            var draft = await _voiceDraft.StartDraftAsync(
+                new VoiceDraftRequest(DraftContext, DraftGoal, GetTargetDate()), cts.Token);
 
-            // Load voice profile for display
-            var profile = await _temporalIdentity.GetVoiceProfileAsync();
-            if (profile != null)
+            if (draft is null)
             {
-                VoiceProfile = new VoiceProfileDisplay
-                {
-                    SampleCount = profile.SampleCount,
-                    AvgSentenceLength = profile.AvgSentenceLength,
-                    FormalityScore = profile.FormalityScore,
-                    FirstSampleAt = profile.FirstSampleAt,
-                    LastSampleAt = profile.LastSampleAt
-                };
+                DraftErrorMessage = _localization.GetString("PastSelf_DraftNoProvider");
+                return;
             }
+
+            // Continues on the UI thread, so each piece is shown as it arrives.
+            var written = new StringBuilder();
+            await foreach (var piece in draft.Text.WithCancellation(cts.Token))
+            {
+                written.Append(piece);
+                DraftContent = written.ToString();
+            }
+
+            DraftContent = written.ToString().Trim();
+            if (DraftContent.Length == 0)
+            {
+                DraftErrorMessage = _localization.GetString("PastSelf_DraftEmpty");
+                return;
+            }
+
+            DraftBasis = DescribeBasis(draft.Basis);
+            VoiceProfile = ToDisplay(draft.Basis.VoiceProfile);
+        }
+        catch (OperationCanceledException) when (cts.IsCancellationRequested)
+        {
+            DraftContent = string.Empty;
+            DraftStatus = _localization.GetString("PastSelf_DraftCancelled");
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Failed to generate draft: {ex.Message}";
+            Log.Warning(ex, "Draft as Me: the AI provider could not write the draft");
+            DraftContent = string.Empty;
+            DraftErrorMessage = _localization.GetString("PastSelf_DraftFailed", ex.Message);
         }
         finally
         {
+            if (ReferenceEquals(_draftCts, cts))
+                _draftCts = null;
+
+            cts.Dispose();
             IsGeneratingDraft = false;
         }
+    }
+
+    /// <summary>Stops the draft being written; none of it is kept.</summary>
+    [RelayCommand]
+    public void CancelDraft()
+    {
+        try
+        {
+            _draftCts?.Cancel();
+        }
+        catch (ObjectDisposedException)
+        {
+            // The draft finished meanwhile.
+        }
+    }
+
+    /// <summary>
+    /// One line each for the model that wrote the draft, the voice it followed, the views it
+    /// used (as of when) and the insights, so the draft never reads as more than it is.
+    /// </summary>
+    private string DescribeBasis(VoiceDraftBasis basis)
+    {
+        var asOf = (basis.AsOf.Kind == DateTimeKind.Utc ? basis.AsOf.ToLocalTime() : basis.AsOf)
+            .ToString("d", CultureInfo.CurrentCulture);
+        var topics = string.Join("; ", basis.Views.Select(view => view.Topic));
+
+        var lines = new List<string>
+        {
+            _localization.GetString("PastSelf_DraftBasisModel", basis.WrittenBy),
+            basis.VoiceProfile is { SampleCount: > 0 }
+                ? _localization.GetString("PastSelf_DraftBasisVoice")
+                : _localization.GetString("PastSelf_DraftBasisNoVoice"),
+            basis.Views.Count > 0
+                ? _localization.GetString("PastSelf_DraftBasisViews", asOf, topics)
+                : _localization.GetString("PastSelf_DraftBasisNoViews", asOf),
+        };
+
+        if (basis.Insights.Count > 0)
+            lines.Add(_localization.GetString("PastSelf_DraftBasisInsights", basis.Insights.Count));
+
+        return string.Join("\n", lines);
     }
 
     /// <summary>
@@ -347,38 +452,36 @@ public partial class PastSelfViewModel : ObservableObject
     {
         try
         {
-            var profile = await _temporalIdentity.GetVoiceProfileAsync();
-            if (profile != null)
-            {
-                VoiceProfile = new VoiceProfileDisplay
-                {
-                    SampleCount = profile.SampleCount,
-                    AvgSentenceLength = profile.AvgSentenceLength,
-                    FormalityScore = profile.FormalityScore,
-                    FirstSampleAt = profile.FirstSampleAt,
-                    LastSampleAt = profile.LastSampleAt
-                };
-            }
-            else
-            {
-                // No samples captured yet. Report the absence rather than plausible-looking
-                // numbers: a 15-word average and a "Balanced" style read as measurements of
-                // the user's writing when nothing has actually been measured.
-                VoiceProfile = new VoiceProfileDisplay
-                {
-                    SampleCount = 0,
-                    AvgSentenceLength = 0,
-                    FormalityScore = 0,
-                    FirstSampleAt = DateTime.MinValue,
-                    LastSampleAt = DateTime.MinValue
-                };
-            }
+            VoiceProfile = ToDisplay(await _temporalIdentity.GetVoiceProfileAsync());
         }
         catch (Exception ex)
         {
             ErrorMessage = $"Failed to load voice profile: {ex.Message}";
         }
     }
+
+    /// <summary>
+    /// The voice profile as the page shows it. With no profile, no samples captured yet: that
+    /// absence is reported rather than plausible-looking numbers, since a 15-word average and a
+    /// "Balanced" style read as measurements of the user's writing when nothing was measured.
+    /// </summary>
+    private static VoiceProfileDisplay ToDisplay(VoiceProfileEntity? profile) => profile is null
+        ? new VoiceProfileDisplay
+        {
+            SampleCount = 0,
+            AvgSentenceLength = 0,
+            FormalityScore = 0,
+            FirstSampleAt = DateTime.MinValue,
+            LastSampleAt = DateTime.MinValue
+        }
+        : new VoiceProfileDisplay
+        {
+            SampleCount = profile.SampleCount,
+            AvgSentenceLength = profile.AvgSentenceLength,
+            FormalityScore = profile.FormalityScore,
+            FirstSampleAt = profile.FirstSampleAt,
+            LastSampleAt = profile.LastSampleAt
+        };
 }
 
 // ─── Result Models ───────────────────────────────────────────────────────────────

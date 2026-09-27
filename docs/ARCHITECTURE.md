@@ -452,7 +452,6 @@ A custom control that renders AI-generated Markdown responses in the chat interf
 | `CountToVisibilityConverter` | `int` | `Visibility` | Hide empty list messages |
 | `DoubleToStringConverter` | `double` | `string` | Numeric values in data templates |
 | `InverseBoolConverter` | `bool` | `bool` | Inverse binding |
-| `InverseVisibilityConverter` | `Visibility` | `Visibility` | Visible becomes Collapsed |
 | `NullToVisibilityConverter` | `object?` | `Visibility` | Null checks |
 | `PercentToWidthConverter` | `double` | `double` | Progress bar widths |
 | `StatusToColorConverter` | `string` | `Brush` | Document status color coding |

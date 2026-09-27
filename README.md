@@ -44,7 +44,7 @@ Requirements: Windows 10 build 19041+ or Windows 11, x64. No account, no subscri
 
 **Document intelligence**
 - **Document Comparison**: structured AI comparison of 2+ documents — shared themes, key differences, unique points, Markdown export
-- Temporal Identity: rule-based belief tracking from your chat messages, insight capture from AI replies, Past Self topic lookups, and template drafts shaped by a simple voice profile
+- Temporal Identity: rule-based belief tracking from your chat messages, insight capture from AI replies, Past Self topic lookups, and Draft As Me, where your AI provider writes a draft in the writing style measured from your messages and follows the views you had recorded by a chosen time
 - Weekly Digest and an Analytics dashboard (usage, trends, indexing health) — computed locally from your own data
 
 **Automation & power use**

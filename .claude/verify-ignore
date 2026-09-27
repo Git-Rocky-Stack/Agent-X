@@ -43,7 +43,6 @@ src/AgentX.App/Converters/BoolToVisibilityConverter.cs
 src/AgentX.App/Converters/CountToVisibilityConverter.cs
 src/AgentX.App/Converters/DoubleToStringConverter.cs
 src/AgentX.App/Converters/InverseBoolConverter.cs
-src/AgentX.App/Converters/InverseVisibilityConverter.cs
 src/AgentX.App/Converters/NullToVisibilityConverter.cs
 src/AgentX.App/Converters/PercentToWidthConverter.cs
 src/AgentX.App/Converters/StatusToColorConverter.cs

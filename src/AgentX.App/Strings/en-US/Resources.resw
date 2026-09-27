@@ -1582,7 +1582,7 @@
   <data name="PastSelf_RelevantInsightsFromYour.Text" xml:space="preserve"><value>Relevant Insights from Your Past</value></data>
   <data name="PastSelf_TopicsYouVeBeen.Text" xml:space="preserve"><value>Topics You've Been Exploring</value></data>
   <data name="PastSelf_DraftAsMe.Text" xml:space="preserve"><value>Draft as Me</value></data>
-  <data name="PastSelf_GenerateTextInYour.Text" xml:space="preserve"><value>Generate text in your voice using AI analysis of your writing patterns.</value></data>
+  <data name="PastSelf_GenerateTextInYour.Text" xml:space="preserve"><value>Your AI provider writes the draft in the writing style measured from your chat messages, following the views you had recorded by the time period chosen above.</value></data>
   <data name="PastSelf_LoadProfile.Content" xml:space="preserve"><value>Load Profile</value></data>
   <data name="PastSelf_Samples.Text" xml:space="preserve"><value>Samples</value></data>
   <data name="PastSelf_AvgSentenceLength.Text" xml:space="preserve"><value>Avg Sentence Length</value></data>
@@ -1826,6 +1826,19 @@
   <data name="Settings_DefaultModel.Text" xml:space="preserve"><value>Default Model</value></data>
   <data name="Settings_TestConnection2.Content" xml:space="preserve"><value>Test Connection</value></data>
   <data name="Settings_Cloud2.Text" xml:space="preserve"><value>CLOUD</value></data>
+  <data name="PastSelf_CancelDraft.Content" xml:space="preserve"><value>Cancel</value></data>
+  <data name="PastSelf_DraftWriting.Text" xml:space="preserve"><value>Writing the draft...</value></data>
+  <data name="PastSelf_DraftNeedsContext" xml:space="preserve"><value>Describe what you want to write in Context first.</value></data>
+  <data name="PastSelf_DraftNoProvider" xml:space="preserve"><value>No AI provider is available, so no draft was written. Choose one under Settings &gt; AI Providers and check it with Test Connection, then try again.</value></data>
+  <data name="PastSelf_DraftFailed" xml:space="preserve"><value>The AI provider could not write the draft: {0}</value></data>
+  <data name="PastSelf_DraftEmpty" xml:space="preserve"><value>The AI provider returned an empty draft. Try again, or describe the context in more detail.</value></data>
+  <data name="PastSelf_DraftCancelled" xml:space="preserve"><value>Draft cancelled. Nothing was kept.</value></data>
+  <data name="PastSelf_DraftBasisModel" xml:space="preserve"><value>Written by {0}.</value></data>
+  <data name="PastSelf_DraftBasisVoice" xml:space="preserve"><value>Follows the writing style in your voice profile above.</value></data>
+  <data name="PastSelf_DraftBasisNoVoice" xml:space="preserve"><value>No writing style has been measured yet, so the draft uses a neutral voice.</value></data>
+  <data name="PastSelf_DraftBasisViews" xml:space="preserve"><value>Views used, as recorded by {0}: {1}</value></data>
+  <data name="PastSelf_DraftBasisNoViews" xml:space="preserve"><value>None of your views recorded by {0} relate to this draft.</value></data>
+  <data name="PastSelf_DraftBasisInsights" xml:space="preserve"><value>Saved insights used as background: {0}</value></data>
   <data name="Settings_ApiKey2.Text" xml:space="preserve"><value>API Key</value></data>
   <data name="Settings_Endpoint3.Text" xml:space="preserve"><value>Endpoint</value></data>
   <data name="Settings_DefaultModel2.Text" xml:space="preserve"><value>Default Model</value></data>

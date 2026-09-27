@@ -196,7 +196,6 @@ AgentX.App/
     CountToVisibilityConverter.cs
     DoubleToStringConverter.cs
     InverseBoolConverter.cs
-    InverseVisibilityConverter.cs
     NullToVisibilityConverter.cs
     PercentToWidthConverter.cs
     StatusToColorConverter.cs

@@ -141,7 +141,8 @@ public interface ITemporalIdentityService
 
     /// <summary>
     /// Analyze a message to learn the user's communication patterns.
-    /// Builds the voice profile for "draft as me" generation.
+    /// Builds the voice profile that <see cref="IVoiceDraftService"/> ("draft as me") describes
+    /// to the AI provider.
     /// </summary>
     Task LearnFromMessageAsync(long messageId, CancellationToken ct = default);
 
@@ -150,15 +151,6 @@ public interface ITemporalIdentityService
     /// Shows what we've learned about how the user communicates.
     /// </summary>
     Task<VoiceProfileEntity?> GetVoiceProfileAsync(CancellationToken ct = default);
-
-    /// <summary>
-    /// Generate text in the user's voice.
-    /// "Draft as me" — write a response AS the user would.
-    /// </summary>
-    Task<string> GenerateAsUserAsync(
-        string context,
-        string goal,
-        CancellationToken ct = default);
 
     // ─── Pattern Recognition ─────────────────────────────────────────────────────
 
