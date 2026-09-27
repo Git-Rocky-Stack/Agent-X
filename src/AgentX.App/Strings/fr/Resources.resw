@@ -1245,6 +1245,14 @@
   <data name="QuickChat_Placeholder" xml:space="preserve"><value>Posez votre question...</value></data>
   <data name="QuickChat_Clear" xml:space="preserve"><value>Effacer</value></data>
   <data name="QuickChat_Ask" xml:space="preserve"><value>Demander</value></data>
+  <data name="Voice_Recording" xml:space="preserve"><value>Enregistrement...</value></data>
+  <data name="Voice_Transcribing" xml:space="preserve"><value>Transcription...</value></data>
+  <data name="Voice_PhaseValidatingFile" xml:space="preserve"><value>Vérification du fichier...</value></data>
+  <data name="Voice_PhaseCheckingModel" xml:space="preserve"><value>Vérification du modèle...</value></data>
+  <data name="Voice_PhasePreparingAudio" xml:space="preserve"><value>Préparation de l'audio...</value></data>
+  <data name="Voice_PhaseLoadingModel" xml:space="preserve"><value>Chargement du modèle...</value></data>
+  <data name="Voice_PhaseFinalizing" xml:space="preserve"><value>Finalisation...</value></data>
+  <data name="Voice_PhaseComplete" xml:space="preserve"><value>Terminé</value></data>
   <data name="Chat_PrivacyLocal" xml:space="preserve"><value>{0} s'exécute sur cet ordinateur, vos messages restent donc sur cet appareil.</value></data>
   <data name="Chat_PrivacyLocalUnnamed" xml:space="preserve"><value>Le modèle d'IA s'exécute sur cet ordinateur, vos messages restent donc sur cet appareil.</value></data>
   <data name="Chat_PrivacyCloud" xml:space="preserve"><value>Vos messages sont envoyés à {0} pour être traités.</value></data>

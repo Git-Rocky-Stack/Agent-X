@@ -1245,6 +1245,14 @@
   <data name="QuickChat_Placeholder" xml:space="preserve"><value>Stellen Sie eine beliebige Frage...</value></data>
   <data name="QuickChat_Clear" xml:space="preserve"><value>Leeren</value></data>
   <data name="QuickChat_Ask" xml:space="preserve"><value>Fragen</value></data>
+  <data name="Voice_Recording" xml:space="preserve"><value>Aufnahme läuft...</value></data>
+  <data name="Voice_Transcribing" xml:space="preserve"><value>Wird transkribiert...</value></data>
+  <data name="Voice_PhaseValidatingFile" xml:space="preserve"><value>Datei wird geprüft...</value></data>
+  <data name="Voice_PhaseCheckingModel" xml:space="preserve"><value>Modell wird geprüft...</value></data>
+  <data name="Voice_PhasePreparingAudio" xml:space="preserve"><value>Audio wird vorbereitet...</value></data>
+  <data name="Voice_PhaseLoadingModel" xml:space="preserve"><value>Modell wird geladen...</value></data>
+  <data name="Voice_PhaseFinalizing" xml:space="preserve"><value>Wird abgeschlossen...</value></data>
+  <data name="Voice_PhaseComplete" xml:space="preserve"><value>Abgeschlossen</value></data>
   <data name="Chat_PrivacyLocal" xml:space="preserve"><value>{0} läuft auf diesem Computer, daher bleiben Ihre Nachrichten auf diesem Gerät.</value></data>
   <data name="Chat_PrivacyLocalUnnamed" xml:space="preserve"><value>Das KI-Modell läuft auf diesem Computer, daher bleiben Ihre Nachrichten auf diesem Gerät.</value></data>
   <data name="Chat_PrivacyCloud" xml:space="preserve"><value>Ihre Nachrichten werden zur Verarbeitung an {0} gesendet.</value></data>

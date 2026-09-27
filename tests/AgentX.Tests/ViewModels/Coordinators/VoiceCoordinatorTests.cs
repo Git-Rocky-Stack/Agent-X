@@ -212,9 +212,50 @@ public class VoiceCoordinatorTests : IDisposable
         // Act
         await _coordinator.TranscribeFileAsync("/test/audio.wav");
 
-        // Assert
-        statuses.Should().Contain("Transcribing...");
+        // Assert: the status comes from the resources
+        statuses.Should().Contain("Voice_Transcribing");
         statuses.Should().Contain(string.Empty); // reset in finally
+    }
+
+    [Fact]
+    public void DescribePhase_ShowsEveryPhaseTheTranscriptionServiceReports_InTheUsersLanguage()
+    {
+        // The service names its phases in English; each one it reports must map to a resource.
+        var phases = TranscriptionServicePhases();
+        phases.Should().Contain(new[] { "Loading model...", "Transcribing..." }, "the scan must find the phases");
+
+        foreach (var phase in phases)
+        {
+            _coordinator.DescribePhase(phase).Should().StartWith("Voice_", "\"{0}\" is shown to the user", phase);
+        }
+
+        _coordinator.DescribePhase("Transcribing...").Should().Be("Voice_Transcribing");
+    }
+
+    [Fact]
+    public void DescribePhase_ShowsAnUnknownPhaseAsItCame()
+    {
+        _coordinator.DescribePhase("Warming up...").Should().Be("Warming up...");
+    }
+
+    private static IReadOnlyList<string> TranscriptionServicePhases()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null &&
+               !File.Exists(Path.Combine(directory.FullName, "src", "AgentX.Core", "Services", "Audio", "TranscriptionService.cs")))
+        {
+            directory = directory.Parent;
+        }
+
+        directory.Should().NotBeNull("the transcription service source must be found");
+        var source = File.ReadAllText(
+            Path.Combine(directory!.FullName, "src", "AgentX.Core", "Services", "Audio", "TranscriptionService.cs"));
+
+        return System.Text.RegularExpressions.Regex
+            .Matches(source, @"ReportProgress\(\s*progress\s*,[^,]+,\s*""(?<phase>[^""]+)""")
+            .Select(match => match.Groups["phase"].Value)
+            .Distinct()
+            .ToList();
     }
 
     // ── NotificationRequested event ───────────────────────────────
@@ -310,7 +351,7 @@ public class VoiceCoordinatorTests : IDisposable
         if (_coordinator.IsRecording)
         {
             result.Should().BeNull();
-            _coordinator.StatusMessage.Should().Be("Recording...");
+            _coordinator.StatusMessage.Should().Be("Voice_Recording");
         }
         // If no mic available, the coordinator handles the error and IsRecording stays false
     }

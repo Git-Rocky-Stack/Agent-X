@@ -8,9 +8,9 @@ namespace AgentX.App.ViewModels.Coordinators;
 
 /// <summary>
 /// Orchestrates voice recording (via NAudio) and transcription (via ITranscriptionService).
-/// Raises events for the ChatViewModel to synchronize UI state. Notification text comes from
-/// the string resources; a missing speech-to-text model points the user at the Model Manager
-/// page, where it is installed.
+/// Raises events for the ChatViewModel to synchronize UI state. Status and notification text
+/// come from the string resources; a missing speech-to-text model points the user at the Model
+/// Manager page, where it is installed.
 /// </summary>
 public sealed class VoiceCoordinator : IVoiceCoordinator, IDisposable
 {
@@ -64,14 +64,14 @@ public sealed class VoiceCoordinator : IVoiceCoordinator, IDisposable
     public async Task<string?> TranscribeFileAsync(string filePath)
     {
         SetTranscribing(true);
-        SetStatus("Transcribing...");
+        SetStatus(_localization.GetString("Voice_Transcribing"));
 
         try
         {
             var result = await _transcriptionService.TranscribeFileAsync(
                 filePath,
                 new TranscriptionOptions { ModelSize = "base" },
-                progress: new Progress<TranscriptionProgress>(p => SetStatus(p.CurrentPhase)),
+                progress: new Progress<TranscriptionProgress>(p => SetStatus(DescribePhase(p.CurrentPhase))),
                 CancellationToken.None);
 
             if (!string.IsNullOrWhiteSpace(result.FullText))
@@ -130,7 +130,7 @@ public sealed class VoiceCoordinator : IVoiceCoordinator, IDisposable
 
             _waveIn.StartRecording();
             SetRecording(true);
-            SetStatus("Recording...");
+            SetStatus(_localization.GetString("Voice_Recording"));
 
             Log.Debug("Voice recording started: {Path}", _currentRecordingPath);
         }
@@ -156,7 +156,7 @@ public sealed class VoiceCoordinator : IVoiceCoordinator, IDisposable
         _waveIn.StopRecording();
         SetRecording(false);
         SetTranscribing(true);
-        SetStatus("Transcribing...");
+        SetStatus(_localization.GetString("Voice_Transcribing"));
 
         if (_recordingStopTcs is not null)
             await _recordingStopTcs.Task;
@@ -171,7 +171,7 @@ public sealed class VoiceCoordinator : IVoiceCoordinator, IDisposable
                     var result = await _transcriptionService.TranscribeFileAsync(
                         _currentRecordingPath,
                         new TranscriptionOptions { ModelSize = "base" },
-                        progress: new Progress<TranscriptionProgress>(p => SetStatus(p.CurrentPhase)),
+                        progress: new Progress<TranscriptionProgress>(p => SetStatus(DescribePhase(p.CurrentPhase))),
                         CancellationToken.None);
 
                     if (!string.IsNullOrWhiteSpace(result.FullText))
@@ -285,6 +285,22 @@ public sealed class VoiceCoordinator : IVoiceCoordinator, IDisposable
         _statusMessage = message;
         StatusChanged?.Invoke(this, message);
     }
+
+    /// <summary>
+    /// The transcription service names its progress phases in English. The phases it reports are
+    /// shown in the user's language; any other phase is shown as it came.
+    /// </summary>
+    internal string DescribePhase(string phase) => phase switch
+    {
+        "Validating file..." => _localization.GetString("Voice_PhaseValidatingFile"),
+        "Checking model..." => _localization.GetString("Voice_PhaseCheckingModel"),
+        "Preparing audio..." => _localization.GetString("Voice_PhasePreparingAudio"),
+        "Loading model..." => _localization.GetString("Voice_PhaseLoadingModel"),
+        "Transcribing..." => _localization.GetString("Voice_Transcribing"),
+        "Finalizing..." => _localization.GetString("Voice_PhaseFinalizing"),
+        "Complete" => _localization.GetString("Voice_PhaseComplete"),
+        _ => phase
+    };
 
     // ── Cleanup ──────────────────────────────────────────────────
 

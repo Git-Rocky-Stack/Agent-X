@@ -1245,6 +1245,14 @@
   <data name="QuickChat_Placeholder" xml:space="preserve"><value>输入您的问题...</value></data>
   <data name="QuickChat_Clear" xml:space="preserve"><value>清空</value></data>
   <data name="QuickChat_Ask" xml:space="preserve"><value>提问</value></data>
+  <data name="Voice_Recording" xml:space="preserve"><value>正在录音...</value></data>
+  <data name="Voice_Transcribing" xml:space="preserve"><value>正在转录...</value></data>
+  <data name="Voice_PhaseValidatingFile" xml:space="preserve"><value>正在验证文件...</value></data>
+  <data name="Voice_PhaseCheckingModel" xml:space="preserve"><value>正在检查模型...</value></data>
+  <data name="Voice_PhasePreparingAudio" xml:space="preserve"><value>正在准备音频...</value></data>
+  <data name="Voice_PhaseLoadingModel" xml:space="preserve"><value>正在加载模型...</value></data>
+  <data name="Voice_PhaseFinalizing" xml:space="preserve"><value>正在完成...</value></data>
+  <data name="Voice_PhaseComplete" xml:space="preserve"><value>已完成</value></data>
   <data name="Chat_PrivacyLocal" xml:space="preserve"><value>{0} 在这台电脑上运行，因此您的消息会保留在此设备上。</value></data>
   <data name="Chat_PrivacyLocalUnnamed" xml:space="preserve"><value>AI 模型在这台电脑上运行，因此您的消息会保留在此设备上。</value></data>
   <data name="Chat_PrivacyCloud" xml:space="preserve"><value>您的消息会发送到 {0} 进行处理。</value></data>

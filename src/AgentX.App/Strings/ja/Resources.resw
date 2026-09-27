@@ -1245,6 +1245,14 @@
   <data name="QuickChat_Placeholder" xml:space="preserve"><value>何でも質問してください...</value></data>
   <data name="QuickChat_Clear" xml:space="preserve"><value>クリア</value></data>
   <data name="QuickChat_Ask" xml:space="preserve"><value>質問</value></data>
+  <data name="Voice_Recording" xml:space="preserve"><value>録音しています...</value></data>
+  <data name="Voice_Transcribing" xml:space="preserve"><value>文字起こししています...</value></data>
+  <data name="Voice_PhaseValidatingFile" xml:space="preserve"><value>ファイルを検証しています...</value></data>
+  <data name="Voice_PhaseCheckingModel" xml:space="preserve"><value>モデルを確認しています...</value></data>
+  <data name="Voice_PhasePreparingAudio" xml:space="preserve"><value>音声を準備しています...</value></data>
+  <data name="Voice_PhaseLoadingModel" xml:space="preserve"><value>モデルを読み込んでいます...</value></data>
+  <data name="Voice_PhaseFinalizing" xml:space="preserve"><value>最終処理をしています...</value></data>
+  <data name="Voice_PhaseComplete" xml:space="preserve"><value>完了</value></data>
   <data name="Chat_PrivacyLocal" xml:space="preserve"><value>{0} はこの PC 上で動作するため、メッセージはこのデバイスから出ません。</value></data>
   <data name="Chat_PrivacyLocalUnnamed" xml:space="preserve"><value>AI モデルはこの PC 上で動作するため、メッセージはこのデバイスから出ません。</value></data>
   <data name="Chat_PrivacyCloud" xml:space="preserve"><value>メッセージは処理のために {0} に送信されます。</value></data>

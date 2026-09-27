@@ -1584,6 +1584,14 @@
   <data name="QuickChat_Placeholder" xml:space="preserve"><value>Ask anything...</value></data>
   <data name="QuickChat_Clear" xml:space="preserve"><value>Clear</value></data>
   <data name="QuickChat_Ask" xml:space="preserve"><value>Ask</value></data>
+  <data name="Voice_Recording" xml:space="preserve"><value>Recording...</value></data>
+  <data name="Voice_Transcribing" xml:space="preserve"><value>Transcribing...</value></data>
+  <data name="Voice_PhaseValidatingFile" xml:space="preserve"><value>Validating file...</value></data>
+  <data name="Voice_PhaseCheckingModel" xml:space="preserve"><value>Checking model...</value></data>
+  <data name="Voice_PhasePreparingAudio" xml:space="preserve"><value>Preparing audio...</value></data>
+  <data name="Voice_PhaseLoadingModel" xml:space="preserve"><value>Loading model...</value></data>
+  <data name="Voice_PhaseFinalizing" xml:space="preserve"><value>Finalizing...</value></data>
+  <data name="Voice_PhaseComplete" xml:space="preserve"><value>Complete</value></data>
   <data name="Chat_PrivacyLocal" xml:space="preserve"><value>{0} runs on this computer, so your messages stay on this device.</value></data>
   <data name="Chat_PrivacyLocalUnnamed" xml:space="preserve"><value>The AI model runs on this computer, so your messages stay on this device.</value></data>
   <data name="Chat_PrivacyCloud" xml:space="preserve"><value>Your messages are sent to {0} for processing.</value></data>
