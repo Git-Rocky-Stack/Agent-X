@@ -1557,6 +1557,77 @@ public sealed class WorkflowBuilderViewModelTests : IDisposable
         viewModel.StatusMessage.Should().Be("Selected template \"Document Review\"");
     }
 
+    [Fact]
+    public async Task Categories_are_shown_in_the_UI_language_while_the_stored_value_stays()
+    {
+        // The workflow list, the template cards and the editor dropdown showed the stored
+        // category ("Research") in every language.
+        _workflowService.Setup(service => service.SeedBuiltInWorkflowsAsync())
+            .Returns(Task.CompletedTask);
+        _workflowService.Setup(service => service.GetAllWorkflowsAsync(It.IsAny<bool>()))
+            .ReturnsAsync(
+            [
+                new WorkflowEntity { Id = 42, Name = "Market Scan", Category = "Research", IsBuiltIn = true },
+                new WorkflowEntity { Id = 43, Name = "Imported", Category = "Marketing" }
+            ]);
+        _modelManager.Setup(service => service.GetAvailableModelsAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<AiModel>());
+        var german = AgentX.Tests.Helpers.ReswLocalization.For("de");
+        var viewModel = new WorkflowBuilderViewModel(
+            _workflowService.Object,
+            _workflowEngine.Object,
+            _modelManager.Object,
+            _documentService.Object,
+            localization: german);
+
+        await viewModel.InitializeAsync();
+
+        var research = german.GetString("WfBuilder_CategoryResearch");
+        research.Should().NotBe("Research").And.NotBe("WfBuilder_CategoryResearch");
+        viewModel.Workflows.Select(workflow => workflow.CategoryLabel).Should().Equal(research, "Marketing");
+        viewModel.Workflows.Select(workflow => workflow.Category).Should().Equal("Research", "Marketing");
+
+        var template = viewModel.WorkflowStarterTemplates.Single();
+        template.Category.Should().Be("Research");
+        template.CategoryLabel.Should().Be(research);
+        template.BestFor.Should().Be(research, "a template without a guide names its category");
+
+        viewModel.CategoryOptions.Should().Equal(
+            german.GetString("WfBuilder_CategoryCustom"),
+            research,
+            german.GetString("WfBuilder_CategoryWriting"),
+            german.GetString("WfBuilder_CategoryAnalysis"),
+            german.GetString("WfBuilder_CategoryProductivity"));
+    }
+
+    [Fact]
+    public void Category_dropdown_selects_by_index_so_the_stored_category_stays_English()
+    {
+        // The dropdown bound the stored value itself, so it could only list the English names.
+        var viewModel = new WorkflowBuilderViewModel(
+            _workflowService.Object,
+            _workflowEngine.Object,
+            _modelManager.Object,
+            _documentService.Object);
+        var changed = new List<string?>();
+        viewModel.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+
+        viewModel.CategoryOptions.Should().Equal("Custom", "Research", "Writing", "Analysis", "Productivity");
+        viewModel.SelectedCategoryIndex.Should().Be(0);
+
+        viewModel.SelectedCategoryIndex = 3;
+
+        viewModel.EditCategory.Should().Be("Analysis");
+        changed.Should().Contain(nameof(WorkflowBuilderViewModel.SelectedCategoryIndex));
+
+        viewModel.EditCategory = "Marketing";
+        viewModel.SelectedCategoryIndex.Should().Be(-1);
+
+        viewModel.SelectedCategoryIndex = -1;
+
+        viewModel.EditCategory.Should().Be("Marketing", "a category the dropdown does not offer stays as stored");
+    }
+
     [Theory]
     [InlineData("")]
     [InlineData("  \n ")]

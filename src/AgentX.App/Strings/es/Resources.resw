@@ -3048,6 +3048,24 @@
   <data name="Backup_DeleteButton" xml:space="preserve"><value>Eliminar</value></data>
   <data name="Backup_TypeManual" xml:space="preserve"><value>Manual</value></data>
   <data name="Backup_TypeScheduled" xml:space="preserve"><value>Programada</value></data>
+  <data name="WfBuilder_OutputCopied" xml:space="preserve"><value>Salida copiada al portapapeles</value></data>
+  <data name="WfBuilder_WorkflowCopied" xml:space="preserve"><value>Flujo de trabajo "{0}" copiado al portapapeles</value></data>
+  <data name="WfBuilder_ImportDialogTitle" xml:space="preserve"><value>Importar flujo de trabajo</value></data>
+  <data name="WfBuilder_ImportDialogInstructions" xml:space="preserve"><value>Pegue abajo un flujo de trabajo exportado. El texto del portapapeles se carga automáticamente cuando está disponible.</value></data>
+  <data name="WfBuilder_ImportDialogPlaceholder" xml:space="preserve"><value>Pegue aquí el JSON del flujo de trabajo exportado</value></data>
+  <data name="WfBuilder_ImportDialogImport" xml:space="preserve"><value>Importar</value></data>
+  <data name="WfBuilder_DialogCancel" xml:space="preserve"><value>Cancelar</value></data>
+  <data name="WfBuilder_ExportResultTitle" xml:space="preserve"><value>Exportar resultado del flujo de trabajo</value></data>
+  <data name="WfBuilder_ExportStoredRunTitle" xml:space="preserve"><value>Exportar ejecución guardada ({0})</value></data>
+  <data name="WfBuilder_ExportDialogInstructions" xml:space="preserve"><value>Exporte este resultado del flujo de trabajo al directorio de exportación predeterminado de Agent-X.</value></data>
+  <data name="WfBuilder_ExportDialogFormat" xml:space="preserve"><value>Formato</value></data>
+  <data name="WfBuilder_ExportDialogIncludeMetadata" xml:space="preserve"><value>Incluir metadatos</value></data>
+  <data name="WfBuilder_ExportDialogExport" xml:space="preserve"><value>Exportar</value></data>
+  <data name="WfBuilder_CategoryCustom" xml:space="preserve"><value>Personalizado</value></data>
+  <data name="WfBuilder_CategoryResearch" xml:space="preserve"><value>Investigación</value></data>
+  <data name="WfBuilder_CategoryWriting" xml:space="preserve"><value>Redacción</value></data>
+  <data name="WfBuilder_CategoryAnalysis" xml:space="preserve"><value>Análisis</value></data>
+  <data name="WfBuilder_CategoryProductivity" xml:space="preserve"><value>Productividad</value></data>
   <data name="Vault_SearchScopeHint.Text" xml:space="preserve"><value>Busca en nombres de archivo y etiquetas. Para buscar dentro de los documentos, use «Búsqueda semántica» o «Pregunta a tus archivos».</value></data>
   <data name="Vault_IndexingFailedReason.Text" xml:space="preserve"><value>POR QUÉ FALLÓ LA INDEXACIÓN</value></data>
   <data name="Vault_DocumentText.Text" xml:space="preserve"><value>TEXTO DEL DOCUMENTO</value></data>

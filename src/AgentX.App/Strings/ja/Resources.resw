@@ -3048,6 +3048,24 @@
   <data name="Backup_DeleteButton" xml:space="preserve"><value>削除</value></data>
   <data name="Backup_TypeManual" xml:space="preserve"><value>手動</value></data>
   <data name="Backup_TypeScheduled" xml:space="preserve"><value>スケジュール</value></data>
+  <data name="WfBuilder_OutputCopied" xml:space="preserve"><value>出力をクリップボードにコピーしました</value></data>
+  <data name="WfBuilder_WorkflowCopied" xml:space="preserve"><value>ワークフロー「{0}」をクリップボードにコピーしました</value></data>
+  <data name="WfBuilder_ImportDialogTitle" xml:space="preserve"><value>ワークフローをインポート</value></data>
+  <data name="WfBuilder_ImportDialogInstructions" xml:space="preserve"><value>エクスポートしたワークフローを下に貼り付けてください。クリップボードにテキストがあれば自動的に読み込まれます。</value></data>
+  <data name="WfBuilder_ImportDialogPlaceholder" xml:space="preserve"><value>エクスポートしたワークフローの JSON をここに貼り付けます</value></data>
+  <data name="WfBuilder_ImportDialogImport" xml:space="preserve"><value>インポート</value></data>
+  <data name="WfBuilder_DialogCancel" xml:space="preserve"><value>キャンセル</value></data>
+  <data name="WfBuilder_ExportResultTitle" xml:space="preserve"><value>ワークフローの結果をエクスポート</value></data>
+  <data name="WfBuilder_ExportStoredRunTitle" xml:space="preserve"><value>保存済みの実行をエクスポート ({0})</value></data>
+  <data name="WfBuilder_ExportDialogInstructions" xml:space="preserve"><value>このワークフローの結果を Agent-X の既定のエクスポート ディレクトリにエクスポートします。</value></data>
+  <data name="WfBuilder_ExportDialogFormat" xml:space="preserve"><value>形式</value></data>
+  <data name="WfBuilder_ExportDialogIncludeMetadata" xml:space="preserve"><value>メタデータを含める</value></data>
+  <data name="WfBuilder_ExportDialogExport" xml:space="preserve"><value>エクスポート</value></data>
+  <data name="WfBuilder_CategoryCustom" xml:space="preserve"><value>カスタム</value></data>
+  <data name="WfBuilder_CategoryResearch" xml:space="preserve"><value>リサーチ</value></data>
+  <data name="WfBuilder_CategoryWriting" xml:space="preserve"><value>ライティング</value></data>
+  <data name="WfBuilder_CategoryAnalysis" xml:space="preserve"><value>分析</value></data>
+  <data name="WfBuilder_CategoryProductivity" xml:space="preserve"><value>生産性</value></data>
   <data name="Vault_SearchScopeHint.Text" xml:space="preserve"><value>ファイル名とタグで絞り込みます。ドキュメントの内容を検索するには、「セマンティック検索」または「ファイルに質問する」を使用してください。</value></data>
   <data name="Vault_IndexingFailedReason.Text" xml:space="preserve"><value>インデックス作成に失敗した理由</value></data>
   <data name="Vault_DocumentText.Text" xml:space="preserve"><value>ドキュメントのテキスト</value></data>

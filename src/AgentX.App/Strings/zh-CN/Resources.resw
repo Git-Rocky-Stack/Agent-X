@@ -3048,6 +3048,24 @@
   <data name="Backup_DeleteButton" xml:space="preserve"><value>删除</value></data>
   <data name="Backup_TypeManual" xml:space="preserve"><value>手动</value></data>
   <data name="Backup_TypeScheduled" xml:space="preserve"><value>计划</value></data>
+  <data name="WfBuilder_OutputCopied" xml:space="preserve"><value>已将输出复制到剪贴板</value></data>
+  <data name="WfBuilder_WorkflowCopied" xml:space="preserve"><value>已将工作流“{0}”复制到剪贴板</value></data>
+  <data name="WfBuilder_ImportDialogTitle" xml:space="preserve"><value>导入工作流</value></data>
+  <data name="WfBuilder_ImportDialogInstructions" xml:space="preserve"><value>请在下方粘贴导出的工作流。剪贴板中有文本时会自动载入。</value></data>
+  <data name="WfBuilder_ImportDialogPlaceholder" xml:space="preserve"><value>在此粘贴导出的工作流 JSON</value></data>
+  <data name="WfBuilder_ImportDialogImport" xml:space="preserve"><value>导入</value></data>
+  <data name="WfBuilder_DialogCancel" xml:space="preserve"><value>取消</value></data>
+  <data name="WfBuilder_ExportResultTitle" xml:space="preserve"><value>导出工作流结果</value></data>
+  <data name="WfBuilder_ExportStoredRunTitle" xml:space="preserve"><value>导出已保存的运行（{0}）</value></data>
+  <data name="WfBuilder_ExportDialogInstructions" xml:space="preserve"><value>将此工作流结果导出到 Agent-X 的默认导出目录。</value></data>
+  <data name="WfBuilder_ExportDialogFormat" xml:space="preserve"><value>格式</value></data>
+  <data name="WfBuilder_ExportDialogIncludeMetadata" xml:space="preserve"><value>包含元数据</value></data>
+  <data name="WfBuilder_ExportDialogExport" xml:space="preserve"><value>导出</value></data>
+  <data name="WfBuilder_CategoryCustom" xml:space="preserve"><value>自定义</value></data>
+  <data name="WfBuilder_CategoryResearch" xml:space="preserve"><value>研究</value></data>
+  <data name="WfBuilder_CategoryWriting" xml:space="preserve"><value>写作</value></data>
+  <data name="WfBuilder_CategoryAnalysis" xml:space="preserve"><value>分析</value></data>
+  <data name="WfBuilder_CategoryProductivity" xml:space="preserve"><value>效率</value></data>
   <data name="Vault_SearchScopeHint.Text" xml:space="preserve"><value>匹配文件名和标签。要搜索文档内容，请使用“语义搜索”或“向您的文件提问”。</value></data>
   <data name="Vault_IndexingFailedReason.Text" xml:space="preserve"><value>索引失败原因</value></data>
   <data name="Vault_DocumentText.Text" xml:space="preserve"><value>文档文本</value></data>

@@ -1,6 +1,7 @@
 using AgentX.App.Helpers;
 using AgentX.App.ViewModels;
 using AgentX.Core.Services.Export.Models;
+using AgentX.Core.Services.Localization;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Serilog;
@@ -50,7 +51,7 @@ public sealed partial class WorkflowBuilderPage : Page
             var dataPackage = new DataPackage();
             dataPackage.SetText(ViewModel.RunOutput);
             Clipboard.SetContent(dataPackage);
-            ViewModel.StatusMessage = "Output copied to clipboard";
+            ViewModel.StatusMessage = App.GetService<ILocalizationService>().GetString("WfBuilder_OutputCopied");
         }
     }
 
@@ -70,18 +71,20 @@ public sealed partial class WorkflowBuilderPage : Page
         var dataPackage = new DataPackage();
         dataPackage.SetText(json);
         Clipboard.SetContent(dataPackage);
-        ViewModel.StatusMessage = $"Workflow \"{ViewModel.SelectedWorkflowName}\" copied to clipboard";
+        ViewModel.StatusMessage = App.GetService<ILocalizationService>()
+            .GetString("WfBuilder_WorkflowCopied", ViewModel.SelectedWorkflowName);
     }
 
     private async void ImportWorkflow_Click(object sender, RoutedEventArgs e)
     {
+        var localization = App.GetService<ILocalizationService>();
         var importBox = new TextBox
         {
             AcceptsReturn = true,
             TextWrapping = TextWrapping.Wrap,
             MinHeight = 220,
             MaxHeight = 420,
-            PlaceholderText = "Paste exported workflow JSON here"
+            PlaceholderText = localization.GetString("WfBuilder_ImportDialogPlaceholder")
         };
 
         var clipboardText = await TryGetClipboardTextAsync();
@@ -92,9 +95,9 @@ public sealed partial class WorkflowBuilderPage : Page
 
         var dialog = new ContentDialog
         {
-            Title = "Import Workflow",
-            PrimaryButtonText = "Import",
-            CloseButtonText = "Cancel",
+            Title = localization.GetString("WfBuilder_ImportDialogTitle"),
+            PrimaryButtonText = localization.GetString("WfBuilder_ImportDialogImport"),
+            CloseButtonText = localization.GetString("WfBuilder_DialogCancel"),
             DefaultButton = ContentDialogButton.Primary,
             IsPrimaryButtonEnabled = !string.IsNullOrWhiteSpace(importBox.Text),
             XamlRoot = this.XamlRoot,
@@ -106,7 +109,7 @@ public sealed partial class WorkflowBuilderPage : Page
                 {
                     new TextBlock
                     {
-                        Text = "Paste a workflow export below. Clipboard text is loaded automatically when available.",
+                        Text = localization.GetString("WfBuilder_ImportDialogInstructions"),
                         TextWrapping = TextWrapping.Wrap
                     },
                     importBox
@@ -128,7 +131,7 @@ public sealed partial class WorkflowBuilderPage : Page
     private async void ExportCurrentResult_Click(object sender, RoutedEventArgs e)
     {
         await ShowWorkflowResultExportDialogAsync(
-            "Export Workflow Result",
+            App.GetService<ILocalizationService>().GetString("WfBuilder_ExportResultTitle"),
             options => ViewModel.ExportCurrentResultAsync(options));
     }
 
@@ -140,7 +143,7 @@ public sealed partial class WorkflowBuilderPage : Page
         }
 
         await ShowWorkflowResultExportDialogAsync(
-            $"Export Stored Run ({run.StartedAtText})",
+            App.GetService<ILocalizationService>().GetString("WfBuilder_ExportStoredRunTitle", run.StartedAtText),
             options => ViewModel.ExportHistoricalRunAsync(run, options));
     }
 
@@ -148,24 +151,31 @@ public sealed partial class WorkflowBuilderPage : Page
         string title,
         Func<ExportOptions, Task<ExportResult>> exportAction)
     {
+        var localization = App.GetService<ILocalizationService>();
+
+        // The combo showed the enum member names ("PlainText"); each choice now carries the
+        // localized name the conversation export dialog shows for that format.
+        var formatChoices = WorkflowResultExportFormats
+            .Select(format => new FormatChoice(format, FormatLabel(localization, format)))
+            .ToList();
         var formatCombo = new ComboBox
         {
-            ItemsSource = WorkflowResultExportFormats,
-            SelectedItem = ExportFormat.Markdown,
+            ItemsSource = formatChoices,
+            SelectedItem = formatChoices.First(candidate => candidate.Value == ExportFormat.Markdown),
             HorizontalAlignment = HorizontalAlignment.Stretch
         };
 
         var includeMetadataToggle = new ToggleSwitch
         {
-            Header = "Include metadata",
+            Header = localization.GetString("WfBuilder_ExportDialogIncludeMetadata"),
             IsOn = true
         };
 
         var dialog = new ContentDialog
         {
             Title = title,
-            PrimaryButtonText = "Export",
-            CloseButtonText = "Cancel",
+            PrimaryButtonText = localization.GetString("WfBuilder_ExportDialogExport"),
+            CloseButtonText = localization.GetString("WfBuilder_DialogCancel"),
             DefaultButton = ContentDialogButton.Primary,
             XamlRoot = this.XamlRoot,
             Content = new StackPanel
@@ -176,7 +186,7 @@ public sealed partial class WorkflowBuilderPage : Page
                 {
                     new TextBlock
                     {
-                        Text = "Export this workflow result to the default Agent-X export directory.",
+                        Text = localization.GetString("WfBuilder_ExportDialogInstructions"),
                         TextWrapping = TextWrapping.Wrap
                     },
                     new StackPanel
@@ -184,7 +194,7 @@ public sealed partial class WorkflowBuilderPage : Page
                         Spacing = 6,
                         Children =
                         {
-                            new TextBlock { Text = "Format" },
+                            new TextBlock { Text = localization.GetString("WfBuilder_ExportDialogFormat") },
                             formatCombo
                         }
                     },
@@ -197,12 +207,28 @@ public sealed partial class WorkflowBuilderPage : Page
         {
             var options = new ExportOptions
             {
-                Format = (ExportFormat)formatCombo.SelectedItem!,
+                Format = formatCombo.SelectedItem is FormatChoice choice ? choice.Value : ExportFormat.Markdown,
                 IncludeMetadata = includeMetadataToggle.IsOn
             };
 
             await exportAction(options);
         }
+    }
+
+    /// <summary>The name shown for an export format: the one the conversation export dialog shows.</summary>
+    private static string FormatLabel(ILocalizationService localization, ExportFormat format) => format switch
+    {
+        ExportFormat.Markdown => localization.GetString("ExportDlg_FormatMarkdown"),
+        ExportFormat.PlainText => localization.GetString("ExportDlg_FormatPlainText"),
+        ExportFormat.Html => localization.GetString("ExportDlg_FormatHtml"),
+        ExportFormat.Json => localization.GetString("ExportDlg_FormatJson"),
+        _ => format.ToString()
+    };
+
+    /// <summary>A format combo entry: the format it stands for and the name shown for it.</summary>
+    private sealed record FormatChoice(ExportFormat Value, string Label)
+    {
+        public override string ToString() => Label;
     }
 
     private static async Task<string?> TryGetClipboardTextAsync()

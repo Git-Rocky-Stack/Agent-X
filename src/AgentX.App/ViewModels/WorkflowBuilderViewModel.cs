@@ -95,7 +95,32 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
     public NavigateHandler? NavigateRequested { get; set; }
 
     // ── Category Options ─────────────────────────────────────
+    /// <summary>The stored category values the editor offers, in the order of <see cref="CategoryOptions"/>.</summary>
     public List<string> Categories { get; } = new() { "Custom", "Research", "Writing", "Analysis", "Productivity" };
+
+    /// <summary>
+    /// Display names for the category dropdown, one per entry of <see cref="Categories"/>. The
+    /// dropdown binds <see cref="SelectedCategoryIndex"/>, so the names are shown in the user's
+    /// language while <see cref="EditCategory"/> keeps the stored value.
+    /// </summary>
+    public List<string> CategoryOptions { get; }
+
+    /// <summary>
+    /// Index of <see cref="EditCategory"/> in <see cref="Categories"/>, bound two-way by the
+    /// dropdown; -1 when the workflow has a category the editor does not offer, which then stays.
+    /// </summary>
+    public int SelectedCategoryIndex
+    {
+        get => Categories.IndexOf(EditCategory);
+        set
+        {
+            if (value >= 0 && value < Categories.Count)
+            {
+                EditCategory = Categories[value];
+            }
+        }
+    }
+
     public List<string> StepTypes { get; } = [.. WorkflowStepSettings.StepTypes];
     public bool HasSelectedWorkflow => SelectedWorkflow is not null;
     public long SelectedWorkflowId => SelectedWorkflow?.Id ?? 0;
@@ -131,12 +156,14 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
             {
                 var guide = FindTemplateGuide(workflow.Name);
                 var summary = guide?.Summary ?? workflow.Description;
-                var bestFor = guide?.BestFor ?? workflow.Category;
+                var categoryLabel = CategoryName(_localization, workflow.Category);
+                var bestFor = guide?.BestFor ?? categoryLabel;
 
                 return new WorkflowStarterTemplateDisplayItem(
                     workflow.Id,
                     workflow.Name,
                     workflow.Category,
+                    categoryLabel,
                     summary,
                     bestFor);
             })
@@ -176,6 +203,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         // Translates the page's messages and the step settings texts; without it they are
         // shown in English.
         _localization = localization;
+        CategoryOptions = Categories.Select(category => CategoryName(localization, category)).ToList();
 
         Workflows.CollectionChanged += (_, _) =>
         {
@@ -421,6 +449,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
                     Name = wf.Name,
                     Description = wf.Description ?? string.Empty,
                     Category = wf.Category,
+                    CategoryLabel = CategoryName(_localization, wf.Category),
                     Icon = wf.Icon ?? "\uE945",
                     IsBuiltIn = wf.IsBuiltIn,
                     StepCount = wf.Steps.Count,
@@ -1054,6 +1083,11 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(CanChangeWorkflowSelection));
     }
 
+    partial void OnEditCategoryChanged(string value)
+    {
+        OnPropertyChanged(nameof(SelectedCategoryIndex));
+    }
+
     partial void OnRunOutputChanged(string value)
     {
         OnPropertyChanged(nameof(HasRunOutput));
@@ -1464,6 +1498,25 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         run.StartedAtText);
 
     /// <summary>
+    /// The name shown for a stored workflow category. The categories the editor offers are
+    /// translated; any other category (an imported workflow can bring its own) is shown as stored.
+    /// </summary>
+    internal static string CategoryName(ILocalizationService? localization, string category) => category switch
+    {
+        "Custom" => WorkflowBuilderText.Resolve(
+            localization?.GetString("WfBuilder_CategoryCustom"), "WfBuilder_CategoryCustom", "Custom"),
+        "Research" => WorkflowBuilderText.Resolve(
+            localization?.GetString("WfBuilder_CategoryResearch"), "WfBuilder_CategoryResearch", "Research"),
+        "Writing" => WorkflowBuilderText.Resolve(
+            localization?.GetString("WfBuilder_CategoryWriting"), "WfBuilder_CategoryWriting", "Writing"),
+        "Analysis" => WorkflowBuilderText.Resolve(
+            localization?.GetString("WfBuilder_CategoryAnalysis"), "WfBuilder_CategoryAnalysis", "Analysis"),
+        "Productivity" => WorkflowBuilderText.Resolve(
+            localization?.GetString("WfBuilder_CategoryProductivity"), "WfBuilder_CategoryProductivity", "Productivity"),
+        _ => category
+    };
+
+    /// <summary>
     /// The artifact a result is saved or exported as. Its metadata names, title and file name
     /// stay as they are; the values shown on the page (context and status) are in the UI language.
     /// </summary>
@@ -1641,6 +1694,13 @@ public partial class WorkflowListItem : ObservableObject
     [ObservableProperty] private string _name = string.Empty;
     [ObservableProperty] private string _description = string.Empty;
     [ObservableProperty] private string _category = "Custom";
+
+    /// <summary>
+    /// The category as the list shows it, in the user's language. <see cref="Category"/> keeps
+    /// the stored value.
+    /// </summary>
+    public string CategoryLabel { get; init; } = string.Empty;
+
     [ObservableProperty] private string _icon = "\uE945";
     [ObservableProperty] private bool _isBuiltIn;
     [ObservableProperty] private int _stepCount;
@@ -2012,19 +2072,27 @@ public sealed class WorkflowStarterTemplateDisplayItem
         long id,
         string name,
         string category,
+        string categoryLabel,
         string summary,
         string bestFor)
     {
         Id = id;
         Name = name;
         Category = category;
+        CategoryLabel = categoryLabel;
         Summary = summary;
         BestFor = bestFor;
     }
 
     public long Id { get; }
     public string Name { get; }
+
+    /// <summary>The stored category.</summary>
     public string Category { get; }
+
+    /// <summary>The category as the template card shows it, in the user's language.</summary>
+    public string CategoryLabel { get; }
+
     public string Summary { get; }
     public string BestFor { get; }
 }
