@@ -134,21 +134,21 @@
   <data name="UserGuide_AskYourFiles_Citations_Title.Text" xml:space="preserve"><value>引用システム</value></data>
   <data name="UserGuide_AskYourFiles_Citations_Description.Text" xml:space="preserve"><value>「出典」パネルには、引用された各箇所が番号、ドキュメント名、ページのある形式ではページ番号、一致率、短い抜粋とともに一覧表示されます。[元のドキュメントを開く] はファイルをエクスプローラーで表示するだけで、引用箇所には移動しません。</value></data>
   <data name="UserGuide_QuickActions_Title.Text" xml:space="preserve"><value>Quick Actions</value></data>
-  <data name="UserGuide_QuickActions_Description.Text" xml:space="preserve"><value>Quick Actions are pre-built AI workflows that perform common document intelligence tasks with a single click. Select one or more documents, choose an action, and Agent-X handles the rest.</value></data>
+  <data name="UserGuide_QuickActions_Description.Text" xml:space="preserve"><value>Quick Actions では、Vault に対する AI 処理やメンテナンス作業を 1 つのページで実行できます。一覧からドキュメントを 1 つずつ選んで要約したり要点を抽出したりできるほか、貼り付けたテキストの翻訳、Vault 全体の重複のスキャン、まだどのコレクションにも入っていないドキュメントに対するコレクションとタグの提案を行えます。結果はページに表示されるだけで、ドキュメントに保存されたり自動的に適用されたりはしません。</value></data>
   <data name="UserGuide_QuickActions_Available_Title.Text" xml:space="preserve"><value>利用可能なアクション</value></data>
   <data name="UserGuide_QuickActions_Action1_Title.Text" xml:space="preserve"><value>要約</value></data>
-  <data name="UserGuide_QuickActions_Action1_Description.Text" xml:space="preserve"><value>Generate a concise summary of the selected document, capturing the key themes, arguments, and conclusions.</value></data>
+  <data name="UserGuide_QuickActions_Action1_Description.Text" xml:space="preserve"><value>[階層要約を生成] は、選択したドキュメントをインデックス済みのチャンクから要約します。まずセクションごとに要約し、それらを最終的な概要にまとめるため、長いドキュメントでも巨大なプロンプトを使わずに全体をカバーできます。ドキュメントはインデックス済みである必要があります。</value></data>
   <data name="UserGuide_QuickActions_Action2_Title.Text" xml:space="preserve"><value>要点の抽出</value></data>
-  <data name="UserGuide_QuickActions_Action2_Description.Text" xml:space="preserve"><value>Pull out the most important facts, figures, arguments, and takeaways as structured bullet points.</value></data>
+  <data name="UserGuide_QuickActions_Action2_Description.Text" xml:space="preserve"><value>選択したドキュメントの主な事実、数値、要点を、インデックス済みのチャンクに対する同じ階層処理から箇条書きにまとめます。各項目は選択してコピーできる通常のテキストです。</value></data>
   <data name="UserGuide_QuickActions_Action3_Title.Text" xml:space="preserve"><value>翻訳</value></data>
-  <data name="UserGuide_QuickActions_Action3_Description.Text" xml:space="preserve"><value>Translate the document content into another language while preserving meaning and formatting.</value></data>
-  <data name="UserGuide_QuickActions_Action4_Title.Text" xml:space="preserve"><value>リライト</value></data>
-  <data name="UserGuide_QuickActions_Action4_Description.Text" xml:space="preserve"><value>Rewrite the document content in a different tone, style, or complexity level — simplify, formalize, or make it more concise.</value></data>
-  <data name="UserGuide_QuickActions_Action5_Title.Text" xml:space="preserve"><value>解説</value></data>
-  <data name="UserGuide_QuickActions_Action5_Description.Text" xml:space="preserve"><value>Get a clear, detailed explanation of complex topics, technical jargon, or dense material within the document.</value></data>
-  <data name="UserGuide_QuickActions_Action6_Title.Text" xml:space="preserve"><value>Q&amp;A の生成</value></data>
-  <data name="UserGuide_QuickActions_Action6_Description.Text" xml:space="preserve"><value>Automatically generate question-and-answer pairs from the document — ideal for study guides, quizzes, or knowledge checks.</value></data>
-  <data name="UserGuide_QuickActions_Usage.Text" xml:space="preserve"><value>To use a Quick Action, navigate to the Quick Actions page, select one or more documents from your Knowledge Vault, choose the desired action tab, and click Run. The output appears in the results panel and can be copied to the clipboard.</value></data>
+  <data name="UserGuide_QuickActions_Action3_Description.Text" xml:space="preserve"><value>[入力テキスト] ボックスに貼り付けたテキスト (最大 4,000 文字。超えた部分は切り捨てられます) を、スペイン語、フランス語、ドイツ語、中国語、日本語、韓国語、ポルトガル語、イタリア語、ロシア語、アラビア語の 10 言語のいずれかに翻訳します。アクティブなチャット モデルを使い、Vault のドキュメントは翻訳しません。</value></data>
+  <data name="UserGuide_QuickActions_Action4_Title.Text" xml:space="preserve"><value>重複の検出</value></data>
+  <data name="UserGuide_QuickActions_Action4_Description.Text" xml:space="preserve"><value>[完全一致の重複をスキャン] は、ファイルの内容が同一 (SHA-256 ハッシュが同じ) のドキュメントをグループにまとめ、コピーが占める容量を表示します。[セマンティックな類似重複をスキャン] は、保存済みの埋め込みを比較して、ほぼ同じ内容のドキュメントを信頼度付きでグループにまとめます。どちらのスキャンも報告するだけで、削除や統合は行いません。</value></data>
+  <data name="UserGuide_QuickActions_Action5_Title.Text" xml:space="preserve"><value>整理</value></data>
+  <data name="UserGuide_QuickActions_Action5_Description.Text" xml:space="preserve"><value>[分析して提案] は、どのコレクションにも入っていないドキュメントを最大 20 件調べ、それぞれにコレクション名とタグを、信頼度と理由とともに提案します。提案は表示されるだけなので、同意する場合はコレクションの作成とタグの追加をご自身で行ってください。</value></data>
+  <data name="UserGuide_QuickActions_Action6_Title.Text" xml:space="preserve"><value>おすすめのアクション</value></data>
+  <data name="UserGuide_QuickActions_Action6_Description.Text" xml:space="preserve"><value>上部の「このコンテキストへのおすすめ」パネルには、選択したドキュメントとアプリの状態に基づいて、インデックスの完了、要約、Smart Inbox の新しいアイテムの確認、ライブ ソースの接続、類似重複のスキャンなど、次の手順が最大 4 つ提案されます。各ボタンはそのアクションを実行するか、対応するページを開きます。</value></data>
+  <data name="UserGuide_QuickActions_Usage.Text" xml:space="preserve"><value>ナビゲーション レールまたはダッシュボードから Quick Actions を開き、一覧でドキュメントを選び、タブを選んでそのボタンをクリックします。[要約] と [要点] にはインデックス済みのドキュメントが必要で、[翻訳] は貼り付けたテキストを対象とし、[重複] と [整理] は Vault 全体を調べます。結果はページに表示されます。エクスポート、注釈としての保存、チャットでの続行はできません。</value></data>
   <data name="UserGuide_KnowledgeVault_Title.Text" xml:space="preserve"><value>Knowledge Vault</value></data>
   <data name="UserGuide_KnowledgeVault_Description.Text" xml:space="preserve"><value>The Knowledge Vault is your centralized document repository. All files imported into Agent-X are stored, indexed, and made searchable through the Knowledge Vault.</value></data>
   <data name="UserGuide_KnowledgeVault_Importing_Title.Text" xml:space="preserve"><value>ドキュメントのインポート</value></data>

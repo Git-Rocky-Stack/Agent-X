@@ -282,7 +282,7 @@ After onboarding, you have access to an enterprise-grade intelligence platform. 
 | Feature | What It Does |
 | --- | --- |
 | **Workflows** | Multi-step prompt chains you run on demand, starting from four built-in templates (Summarize & Act, Research Brief, Document Review, Content Repurpose), with run history and token tracking |
-| **Quick Actions** | One-click AI tasks: summarize, extract keypoints, translate, rewrite/explain, duplicate review, organization suggestions, Q&A generation |
+| **Quick Actions** | Layered summary and key points for one document, translation of pasted text (ten languages), exact and semantic duplicate scans, and collection and tag suggestions |
 | **Compare Documents** | Multi-document synthesis revealing similarities, differences, contradictions, unique points, and metrics |
 | **Batch Operations** | Multi-select documents for bulk delete, re-index, collection assignment, tag operations |
 | **Web Import** | URL-to-vault ingestion with preview, collection assignment, and auto-indexing |
@@ -672,23 +672,23 @@ Export the comparison as Markdown when the report should become part of a projec
 
 ## 16. Quick Actions
 
-Quick Actions are one-click AI tasks over selected documents.
+Quick Actions runs AI and maintenance tasks from one page. The summary and key points work on one selected, indexed document; the other tabs do not need a selection.
 
-### Available action families
+### Available actions
 
-| Action | Output |
+| Tab | Output |
 | --- | --- |
-| Summarize | Concise summary of selected content |
-| Extract key points | Structured takeaways and facts |
-| Translate | Translated text with meaning preserved |
-| Rewrite/explain | Clearer or domain-adjusted language |
-| Duplicate review | Exact or semantic duplication signals |
-| Organize | Collection/tag suggestions |
-| Q&A generation | Study or review questions with answers |
+| Summarize | Layered summary: section summaries combined into a final overview |
+| Key Points | Bullet list of the document's main facts and takeaways |
+| Translate | Translation of pasted text (up to 4,000 characters) into one of ten languages |
+| Duplicates | Exact duplicate groups (same SHA-256 hash) or semantic near-duplicate groups; report only |
+| Organize | Collection and tag suggestions for up to 20 documents outside any collection; not applied automatically |
+
+There is no rewrite, explain, or Q&A generation action, and results are not exported or saved as annotations.
 
 ### Contextual guidance
 
-Quick Actions can recommend useful actions based on selected document state, indexing readiness, and setup gaps. If no document is ready, follow the guidance to import, index, or repair provider configuration first.
+The Recommended For This Context panel suggests up to four next steps based on the selected document's indexing state, the Smart Inbox backlog, and connector setup. If no document is ready, follow the guidance to import or index one first.
 
 ---
 

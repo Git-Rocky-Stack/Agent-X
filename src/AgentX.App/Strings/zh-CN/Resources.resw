@@ -134,21 +134,21 @@
   <data name="UserGuide_AskYourFiles_Citations_Title.Text" xml:space="preserve"><value>引用系统</value></data>
   <data name="UserGuide_AskYourFiles_Citations_Description.Text" xml:space="preserve"><value>“来源”面板列出每个被引用的段落，包括编号、文档名称、页码（如果格式有页）、匹配百分比和一段简短摘录。“打开源文档”会在文件资源管理器中显示该文件，但不会跳转到被引用的段落。</value></data>
   <data name="UserGuide_QuickActions_Title.Text" xml:space="preserve"><value>Quick Actions</value></data>
-  <data name="UserGuide_QuickActions_Description.Text" xml:space="preserve"><value>Quick Actions are pre-built AI workflows that perform common document intelligence tasks with a single click. Select one or more documents, choose an action, and Agent-X handles the rest.</value></data>
+  <data name="UserGuide_QuickActions_Description.Text" xml:space="preserve"><value>Quick Actions 在一个页面上对您的 Vault 执行 AI 和维护任务。从列表中选择一个文档（每次一个）进行总结或提取要点，翻译您粘贴的文本，扫描整个 Vault 中的重复项，或为尚未加入任何合集的文档获取合集和标签建议。结果显示在页面上；不会保存到文档中，也不会自动应用。</value></data>
   <data name="UserGuide_QuickActions_Available_Title.Text" xml:space="preserve"><value>可用操作</value></data>
   <data name="UserGuide_QuickActions_Action1_Title.Text" xml:space="preserve"><value>总结</value></data>
-  <data name="UserGuide_QuickActions_Action1_Description.Text" xml:space="preserve"><value>Generate a concise summary of the selected document, capturing the key themes, arguments, and conclusions.</value></data>
+  <data name="UserGuide_QuickActions_Action1_Description.Text" xml:space="preserve"><value>“生成分层摘要”根据所选文档已编入索引的块生成摘要：先分别总结各部分，再合并为最终概述，因此长文档也能被完整覆盖，而无需超大的提示。文档必须已编入索引。</value></data>
   <data name="UserGuide_QuickActions_Action2_Title.Text" xml:space="preserve"><value>提取要点</value></data>
-  <data name="UserGuide_QuickActions_Action2_Description.Text" xml:space="preserve"><value>Pull out the most important facts, figures, arguments, and takeaways as structured bullet points.</value></data>
+  <data name="UserGuide_QuickActions_Action2_Description.Text" xml:space="preserve"><value>基于对已编入索引的块进行的同一分层处理，将所选文档的主要事实、数字和要点整理成项目符号列表。这些要点是可以选择和复制的普通文本。</value></data>
   <data name="UserGuide_QuickActions_Action3_Title.Text" xml:space="preserve"><value>翻译</value></data>
-  <data name="UserGuide_QuickActions_Action3_Description.Text" xml:space="preserve"><value>Translate the document content into another language while preserving meaning and formatting.</value></data>
-  <data name="UserGuide_QuickActions_Action4_Title.Text" xml:space="preserve"><value>改写</value></data>
-  <data name="UserGuide_QuickActions_Action4_Description.Text" xml:space="preserve"><value>Rewrite the document content in a different tone, style, or complexity level — simplify, formalize, or make it more concise.</value></data>
-  <data name="UserGuide_QuickActions_Action5_Title.Text" xml:space="preserve"><value>解释</value></data>
-  <data name="UserGuide_QuickActions_Action5_Description.Text" xml:space="preserve"><value>Get a clear, detailed explanation of complex topics, technical jargon, or dense material within the document.</value></data>
-  <data name="UserGuide_QuickActions_Action6_Title.Text" xml:space="preserve"><value>问答生成</value></data>
-  <data name="UserGuide_QuickActions_Action6_Description.Text" xml:space="preserve"><value>Automatically generate question-and-answer pairs from the document — ideal for study guides, quizzes, or knowledge checks.</value></data>
-  <data name="UserGuide_QuickActions_Usage.Text" xml:space="preserve"><value>To use a Quick Action, navigate to the Quick Actions page, select one or more documents from your Knowledge Vault, choose the desired action tab, and click Run. The output appears in the results panel and can be copied to the clipboard.</value></data>
+  <data name="UserGuide_QuickActions_Action3_Description.Text" xml:space="preserve"><value>将您粘贴到“输入文本”框中的文本（最多 4,000 个字符，超出部分会被截断）翻译为十种语言之一：西班牙语、法语、德语、中文、日语、韩语、葡萄牙语、意大利语、俄语或阿拉伯语。翻译使用当前的聊天模型，不会翻译 Vault 中的文档。</value></data>
+  <data name="UserGuide_QuickActions_Action4_Title.Text" xml:space="preserve"><value>查找重复项</value></data>
+  <data name="UserGuide_QuickActions_Action4_Description.Text" xml:space="preserve"><value>“扫描完全重复项”会把文件内容完全相同（SHA-256 哈希相同）的文档归为一组，并显示副本占用的空间。“扫描语义近似重复项”会比较已存储的嵌入，把内容几乎相同的文档归为一组，并给出置信度。两种扫描都只报告结果，不会删除或合并任何内容。</value></data>
+  <data name="UserGuide_QuickActions_Action5_Title.Text" xml:space="preserve"><value>整理</value></data>
+  <data name="UserGuide_QuickActions_Action5_Description.Text" xml:space="preserve"><value>“分析并推荐”会检查最多 20 个未加入任何合集的文档，并为每个文档推荐一个合集名称和标签，同时给出置信度和理由。建议仅作显示；如果您认可，请自行创建合集并添加标签。</value></data>
+  <data name="UserGuide_QuickActions_Action6_Title.Text" xml:space="preserve"><value>推荐操作</value></data>
+  <data name="UserGuide_QuickActions_Action6_Description.Text" xml:space="preserve"><value>顶部的“针对当前上下文的推荐”面板会根据所选文档和应用状态，推荐最多四个后续步骤，例如完成索引、生成摘要、处理 Smart Inbox 中的新条目、连接实时来源或扫描近似重复项。每个按钮都会执行相应操作或打开负责该操作的页面。</value></data>
+  <data name="UserGuide_QuickActions_Usage.Text" xml:space="preserve"><value>从导航栏或仪表板打开 Quick Actions，在列表中选择一个文档，选择一个选项卡并单击其按钮。“总结”和“要点”需要已编入索引的文档，“翻译”处理粘贴的文本，“重复项”和“整理”则检查整个 Vault。结果显示在页面上；不支持导出、另存为注释或在聊天中继续。</value></data>
   <data name="UserGuide_KnowledgeVault_Title.Text" xml:space="preserve"><value>Knowledge Vault</value></data>
   <data name="UserGuide_KnowledgeVault_Description.Text" xml:space="preserve"><value>The Knowledge Vault is your centralized document repository. All files imported into Agent-X are stored, indexed, and made searchable through the Knowledge Vault.</value></data>
   <data name="UserGuide_KnowledgeVault_Importing_Title.Text" xml:space="preserve"><value>导入文档</value></data>
