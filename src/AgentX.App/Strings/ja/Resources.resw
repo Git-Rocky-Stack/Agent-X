@@ -2047,6 +2047,7 @@
   <data name="TimeAgo_MonthAgo" xml:space="preserve"><value>1 か月前</value></data>
   <data name="TimeAgo_MonthsAgo" xml:space="preserve"><value>{0} か月前</value></data>
   <data name="TimeAgo_DateFormat" xml:space="preserve"><value>yyyy年M月d日</value></data>
+  <data name="PastSelf_ViewSince" xml:space="preserve"><value>{0} 以降のあなたの見方</value></data>
   <data name="Privacy_AgentXIsDesigned.Text" xml:space="preserve"><value>Agent-X はプライバシーを基本原則として設計されています。ドキュメント、会話、埋め込み、設定など、すべてのデータはデバイスにローカル保存されます。当社は、お客様の個人データを処理・保存するクラウド サーバーを運用していません。</value></data>
   <data name="Privacy_OurLocalFirstArchitecture.Text" xml:space="preserve"><value>ローカルファーストのアーキテクチャにより、Agent-X で作成またはインポートしたすべての情報の所有権と管理権はお客様が完全に保持します。アカウント作成、データ同期、テレメトリ送信は一切ありません。</value></data>
   <data name="Privacy_InformationWeCollect.Text" xml:space="preserve"><value>収集する情報</value></data>

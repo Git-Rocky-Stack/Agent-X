@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using AgentX.App.ViewModels;
 using AgentX.Core.AI;
@@ -162,6 +163,11 @@ public sealed class PastSelfViewModelTests
         CreateViewModel().SelectedTimeRange.Should().Be(2);
     }
 
+    private void SetUpLookup(PastSelfResponse? response) =>
+        _temporalIdentity
+            .Setup(service => service.GetPastSelfAsync(It.IsAny<string>(), It.IsAny<DateTime?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(response);
+
     private void SetupInsights(string insight) =>
         _temporalIdentity
             .Setup(service => service.GetRelevantInsightsAsync(It.IsAny<string[]>(), It.IsAny<CancellationToken>()))
@@ -306,6 +312,97 @@ public sealed class PastSelfViewModelTests
         await viewModel.ShowBeliefEvolutionCommand.ExecuteAsync(null);
 
         viewModel.CurrentResult!.Confidence.Should().Be(0.8);
+    }
+
+    // --- A view that changed after the chosen time ---
+    // The page's "Your view has evolved" badge was hard-coded Collapsed, and today's stance and
+    // when it changed, which the lookup returns, were never shown.
+
+    [Fact]
+    public async Task SearchPastSelfAsync_WhenTheViewChangedAfterTheChosenTime_ShowsTodaysViewAndSinceWhen()
+    {
+        var changedAt = new DateTime(2026, 9, 12, 15, 30, 0, DateTimeKind.Utc);
+        SetUpLookup(new PastSelfResponse
+        {
+            Topic = "Monoliths",
+            Stance = "I think that monoliths never scale",
+            HasEvolved = true,
+            CurrentStance = "Monoliths are fine at small scale",
+            StanceChangedAt = changedAt,
+            EvidenceExcerpts = [],
+            RelatedConversations = [],
+            RelatedDocuments = []
+        });
+        var viewModel = CreateViewModel(EnglishResources.Create());
+        viewModel.SearchQuery = "monoliths";
+
+        await viewModel.SearchPastSelfCommand.ExecuteAsync(null);
+
+        var result = viewModel.CurrentResult!;
+        result.HasStance.Should().BeTrue();
+        result.Stance.Should().Be("I think that monoliths never scale", "the stance held then leads");
+        result.ShowsEvolution.Should().BeTrue();
+        result.CurrentStance.Should().Be("Monoliths are fine at small scale");
+        result.CurrentStanceLabel.Should().Be(
+            "Your view since " + changedAt.ToLocalTime().ToString("d", CultureInfo.CurrentCulture));
+    }
+
+    [Fact]
+    public async Task SearchPastSelfAsync_WhenTheViewHasNotChangedSince_ShowsNoEvolution()
+    {
+        SetUpLookup(new PastSelfResponse
+        {
+            Topic = "Monoliths",
+            Stance = "Monoliths are fine at small scale",
+            EvidenceExcerpts = [],
+            RelatedConversations = [],
+            RelatedDocuments = []
+        });
+        var viewModel = CreateViewModel(EnglishResources.Create());
+        viewModel.SearchQuery = "monoliths";
+
+        await viewModel.SearchPastSelfCommand.ExecuteAsync(null);
+
+        viewModel.CurrentResult!.ShowsEvolution.Should().BeFalse();
+        viewModel.CurrentResult.CurrentStanceLabel.Should().BeEmpty();
+        viewModel.CurrentResult.HasStance.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task SearchPastSelfAsync_WithNothingRecorded_ShowsTheMessageWithoutAStanceOrConfidence()
+    {
+        // The page showed an empty stance, a Confidence bar at 0 and empty related lists under
+        // "No records found".
+        SetUpLookup(null);
+        var viewModel = CreateViewModel(EnglishResources.Create());
+        viewModel.SearchQuery = "monoliths";
+
+        await viewModel.SearchPastSelfCommand.ExecuteAsync(null);
+
+        var result = viewModel.CurrentResult!;
+        result.Message.Should().Be("No records found about \"monoliths\" from the selected time period.");
+        result.HasStance.Should().BeFalse();
+        result.ShowsEvolution.Should().BeFalse();
+        result.HasRelatedItems.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task SearchPastSelfAsync_WithRelatedItems_ListsThem()
+    {
+        SetUpLookup(new PastSelfResponse
+        {
+            Topic = "Monoliths",
+            Stance = "Monoliths are fine at small scale",
+            EvidenceExcerpts = [],
+            RelatedConversations = [],
+            RelatedDocuments = ["monoliths.pdf"]
+        });
+        var viewModel = CreateViewModel();
+        viewModel.SearchQuery = "monoliths";
+
+        await viewModel.SearchPastSelfCommand.ExecuteAsync(null);
+
+        viewModel.CurrentResult!.HasRelatedItems.Should().BeTrue();
     }
 
     // --- Draft as Me ---

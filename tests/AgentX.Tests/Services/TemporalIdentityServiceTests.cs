@@ -232,12 +232,14 @@ public sealed class TemporalIdentityServiceTests : IDisposable
     public async Task GetPastSelf_evolved_belief_exposes_current_stance_and_honors_explicit_time()
     {
         using var db = _dbFactory.CreateContext();
+        var changedAt = DateTime.UtcNow.AddMonths(-1);
         db.Set<TemporalBeliefEntity>().Add(new TemporalBeliefEntity
         {
             Topic = "monoliths",
             FirstDetectedAt = DateTime.UtcNow.AddYears(-1),
             CurrentStance = "monoliths are fine at small scale",
             HasEvolved = true,
+            StanceChangedAt = changedAt,
         });
         await db.SaveChangesAsync();
         var at = DateTime.UtcNow.AddMonths(-2);
@@ -247,6 +249,33 @@ public sealed class TemporalIdentityServiceTests : IDisposable
         past!.TimePeriod.Should().Be(at);
         past.HasEvolved.Should().BeTrue();
         past.CurrentStance.Should().Be("monoliths are fine at small scale");
+        past.StanceChangedAt.Should().Be(changedAt);
+    }
+
+    [Fact]
+    public async Task GetPastSelf_asked_about_a_time_after_the_last_change_reports_no_evolution()
+    {
+        // The page is to say "your view has evolved" only when it changed after the time asked
+        // about. HasEvolved used to mean "changed at some point", so a view already held then
+        // would have been reported as having changed since.
+        using var db = _dbFactory.CreateContext();
+        db.Set<TemporalBeliefEntity>().Add(new TemporalBeliefEntity
+        {
+            Topic = "monoliths",
+            FirstDetectedAt = DateTime.UtcNow.AddYears(-1),
+            CurrentStance = "monoliths are fine at small scale",
+            HasEvolved = true,
+            PreviousStance = "-0.40: monoliths never scale",
+            StanceChangedAt = DateTime.UtcNow.AddMonths(-3),
+        });
+        await db.SaveChangesAsync();
+
+        var past = await new TemporalIdentityService(db).GetPastSelfAsync("monoliths", DateTime.UtcNow.AddMonths(-2));
+
+        past!.Stance.Should().Be("monoliths are fine at small scale");
+        past.HasEvolved.Should().BeFalse();
+        past.CurrentStance.Should().BeNull();
+        past.StanceChangedAt.Should().BeNull();
     }
 
     // ─── Insights ────────────────────────────────────────────────────────────────
@@ -808,7 +837,12 @@ public sealed class TemporalIdentityServiceTests : IDisposable
         earliest.HasEvolved.Should().BeTrue();
         earliest.CurrentStance.Should().Be("Microservices rock was a wrong and bad slogan full of problems");
         lastWeek!.Stance.Should().Be("I believe that microservices rock");
+        lastWeek.HasEvolved.Should().BeTrue();
+        lastWeek.StanceChangedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromMinutes(1));
         afterChange!.Stance.Should().Be("Microservices rock was a wrong and bad slogan full of problems");
+        afterChange.HasEvolved.Should().BeFalse("today's stance was already held then");
+        afterChange.CurrentStance.Should().BeNull();
+        afterChange.StanceChangedAt.Should().BeNull();
     }
 
     [Fact]

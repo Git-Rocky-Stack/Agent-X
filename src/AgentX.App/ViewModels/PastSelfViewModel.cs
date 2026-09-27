@@ -93,6 +93,13 @@ public partial class PastSelfViewModel : ObservableObject
                     RelatedDocuments = result.RelatedDocuments,
                     HasEvolved = result.HasEvolved,
                     CurrentStance = result.CurrentStance,
+                    EvolutionChanged = result.StanceChangedAt,
+                    // When the view changed after the chosen time, the page shows today's stance
+                    // under this label, which says since when. The lookup returned both, but the
+                    // page never showed them.
+                    CurrentStanceLabel = result.HasEvolved && result.StanceChangedAt is { } changedAt
+                        ? _localization.GetString("PastSelf_ViewSince", FormatDate(changedAt))
+                        : string.Empty,
                     Message = string.IsNullOrEmpty(timeAgo)
                         ? _localization.GetString("PastSelf_ThoughtAbout", result.Topic)
                         : _localization.GetString("PastSelf_ThoughtAboutWhen", result.Topic, timeAgo)
@@ -252,6 +259,10 @@ public partial class PastSelfViewModel : ObservableObject
         if (days < 730) return localization.GetString("PastSelf_TimeAboutAYearAgo");
         return localization.GetString("PastSelf_TimeYearsAgo", (int)(days / 365));
     }
+
+    /// <summary>A recorded time as the user's short date. Records are kept in UTC.</summary>
+    private static string FormatDate(DateTime recordedAt) =>
+        recordedAt.ToLocalTime().ToString("d", CultureInfo.CurrentCulture);
 
     /// <summary>
     /// Get topics the user has been exploring recently.
@@ -517,10 +528,26 @@ public class PastSelfResult
     public string[]? RelatedDocuments { get; set; }
     public bool HasEvolved { get; set; }
     public string? CurrentStance { get; set; }
+
+    /// <summary>Since when <see cref="CurrentStance"/> has been held, as the page labels it; empty without one.</summary>
+    public string CurrentStanceLabel { get; set; } = string.Empty;
+
     public DateTime? EvolutionStart { get; set; }
     public DateTime? EvolutionChanged { get; set; }
     public string? PreviousStance { get; set; }
     public List<InsightDisplay>? RelevantInsights { get; set; }
+
+    /// <summary>
+    /// A stance was found. A result that only carries a message (nothing recorded, insights
+    /// only) shows no stance and no confidence.
+    /// </summary>
+    public bool HasStance => Found && !string.IsNullOrWhiteSpace(Stance);
+
+    /// <summary>The view changed after the time asked about, so the page shows today's view as well.</summary>
+    public bool ShowsEvolution => HasEvolved && !string.IsNullOrWhiteSpace(CurrentStance);
+
+    /// <summary>There are related conversations or documents to list.</summary>
+    public bool HasRelatedItems => RelatedConversations is { Length: > 0 } || RelatedDocuments is { Length: > 0 };
 
     /// <summary>
     /// A copy of this result carrying <paramref name="insights"/>. The result is published whole

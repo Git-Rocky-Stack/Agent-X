@@ -35,7 +35,9 @@ public interface ITemporalIdentityService
     /// Get what the user believed about a topic at a specific point in time.
     /// Core of "Past Self" mode. <see cref="PastSelfResponse.Stance"/> is the stance held at
     /// <paramref name="at"/> (the earliest recorded stance when <paramref name="at"/> is null);
-    /// <see cref="PastSelfResponse.CurrentStance"/> is today's stance when the belief has evolved.
+    /// when the stance changed after that time, <see cref="PastSelfResponse.HasEvolved"/> is set
+    /// and <see cref="PastSelfResponse.CurrentStance"/> and
+    /// <see cref="PastSelfResponse.StanceChangedAt"/> give today's stance and when it changed.
     /// Returns null when the topic is unknown, or was first recorded after <paramref name="at"/>.
     /// The topic matches regardless of case and surrounding spaces; related conversations and
     /// documents are those whose title or file name contains it, also regardless of case.

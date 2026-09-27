@@ -385,8 +385,19 @@ public class PastSelfResponse
     public required string[] EvidenceExcerpts { get; set; }
     public required string[] RelatedConversations { get; set; }
     public required string[] RelatedDocuments { get; set; }
+
+    /// <summary>
+    /// The stance changed after <see cref="TimePeriod"/>, so the view held now
+    /// (<see cref="CurrentStance"/>) differs from <see cref="Stance"/>. False for a belief whose
+    /// last change came before that time: it already held today's stance then.
+    /// </summary>
     public bool HasEvolved { get; set; }
+
+    /// <summary>Today's stance when <see cref="HasEvolved"/>; otherwise null.</summary>
     public string? CurrentStance { get; set; }
+
+    /// <summary>When the stance last changed, to <see cref="CurrentStance"/>; null unless <see cref="HasEvolved"/>.</summary>
+    public DateTime? StanceChangedAt { get; set; }
 }
 
 /// <summary>

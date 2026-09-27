@@ -7,6 +7,7 @@ namespace AgentX.Tests.Views;
 public sealed class PastSelfPageXamlTests
 {
     private static readonly XNamespace Presentation = "http://schemas.microsoft.com/winfx/2006/xaml/presentation";
+    private static readonly XNamespace Xaml = "http://schemas.microsoft.com/winfx/2006/xaml";
 
     [Fact]
     public void PastSelfPage_DeclaresConvertersUsedByStaticResources()
@@ -45,6 +46,32 @@ public sealed class PastSelfPageXamlTests
             .Should().ContainSingle()
             .Which.Attribute("Style")!.Value.Should().Be("{StaticResource SecondaryButtonStyle}");
     }
+
+    [Fact]
+    public void EvolutionBadge_FollowsTheResult_AndTodaysViewIsShownWithIt()
+    {
+        // The badge was hard-coded Collapsed, and today's stance and when it changed never showed.
+        var page = LoadPastSelfPage();
+        var badge = Named(page, "EvolutionBadge");
+
+        badge.Attribute("Visibility")!.Value.Should().Be("{x:Bind ViewModel.CurrentResult.ShowsEvolution, Mode=OneWay}");
+        badge.Attribute("Style")!.Value.Should().Be("{StaticResource BadgeDefaultStyle}", "it informs; armed red is for commands and live states");
+        ReadPastSelfPageXaml().Should()
+            .Contain("Text=\"{x:Bind ViewModel.CurrentResult.CurrentStance, Mode=OneWay}\"")
+            .And.Contain("Text=\"{x:Bind ViewModel.CurrentResult.CurrentStanceLabel, Mode=OneWay}\"");
+    }
+
+    [Fact]
+    public void StanceAndConfidence_ShowOnlyForAResultWithAStance()
+    {
+        var section = Named(LoadPastSelfPage(), "StanceText").Ancestors(Presentation + "Border").First();
+
+        section.Attribute("Visibility")!.Value.Should().Be("{x:Bind ViewModel.CurrentResult.HasStance, Mode=OneWay}");
+        section.Descendants(Presentation + "ProgressBar").Should().ContainSingle("the Confidence bar belongs to the stance");
+    }
+
+    private static XElement Named(XDocument page, string name) =>
+        page.Descendants().Single(element => (string?)element.Attribute(Xaml + "Name") == name);
 
     private static XDocument LoadPastSelfPage() => XDocument.Load(ResolvePastSelfFile("PastSelfPage.xaml"));
 

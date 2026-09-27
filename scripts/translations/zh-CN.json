@@ -1684,6 +1684,7 @@
   "TimeAgo_MonthAgo": "1 个月前",
   "TimeAgo_MonthsAgo": "{0} 个月前",
   "TimeAgo_DateFormat": "yyyy年M月d日",
+  "PastSelf_ViewSince": "自 {0} 起您的观点",
   "Privacy_AgentXIsDesigned.Text": "Agent-X 以隐私为核心原则设计。您的所有数据 — 文档、会话、嵌入和设置 — 均存储在您的本地设备上。我们不运营任何处理或存储您个人数据的云服务器。",
   "Privacy_OurLocalFirstArchitecture.Text": "我们的本地优先架构意味着,您对在 Agent-X 中创建或导入的每一条信息都保有完全的所有权和控制权。无需创建账户,没有数据同步,也不传输任何遥测数据。",
   "Privacy_InformationWeCollect.Text": "我们收集的信息",

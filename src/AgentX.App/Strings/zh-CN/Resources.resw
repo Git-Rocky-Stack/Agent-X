@@ -2047,6 +2047,7 @@
   <data name="TimeAgo_MonthAgo" xml:space="preserve"><value>1 个月前</value></data>
   <data name="TimeAgo_MonthsAgo" xml:space="preserve"><value>{0} 个月前</value></data>
   <data name="TimeAgo_DateFormat" xml:space="preserve"><value>yyyy年M月d日</value></data>
+  <data name="PastSelf_ViewSince" xml:space="preserve"><value>自 {0} 起您的观点</value></data>
   <data name="Privacy_AgentXIsDesigned.Text" xml:space="preserve"><value>Agent-X 以隐私为核心原则设计。您的所有数据 — 文档、会话、嵌入和设置 — 均存储在您的本地设备上。我们不运营任何处理或存储您个人数据的云服务器。</value></data>
   <data name="Privacy_OurLocalFirstArchitecture.Text" xml:space="preserve"><value>我们的本地优先架构意味着,您对在 Agent-X 中创建或导入的每一条信息都保有完全的所有权和控制权。无需创建账户,没有数据同步,也不传输任何遥测数据。</value></data>
   <data name="Privacy_InformationWeCollect.Text" xml:space="preserve"><value>我们收集的信息</value></data>

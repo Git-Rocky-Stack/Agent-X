@@ -163,6 +163,11 @@ public class TemporalIdentityService : ITemporalIdentityService
         // If no time specified, return earliest recorded stance
         var targetTime = at ?? belief.FirstDetectedAt;
 
+        // The belief records its latest change. Only a change after that time makes today's
+        // stance differ from the one held then; a belief that last changed earlier already held
+        // today's stance at that time, and used to be reported as evolved all the same.
+        var changedSince = belief.HasEvolved && belief.StanceChangedAt > targetTime;
+
         return new PastSelfResponse
         {
             Topic = belief.Topic,
@@ -173,8 +178,9 @@ public class TemporalIdentityService : ITemporalIdentityService
             EvidenceExcerpts = GetEvidenceExcerpts(belief.EvidenceJson),
             RelatedConversations = await GetRelatedConversationsAsync(belief.Topic, targetTime, ct),
             RelatedDocuments = await GetRelatedDocumentsAsync(belief.Topic, targetTime, ct),
-            HasEvolved = belief.HasEvolved,
-            CurrentStance = belief.HasEvolved ? belief.CurrentStance : null,
+            HasEvolved = changedSince,
+            CurrentStance = changedSince ? belief.CurrentStance : null,
+            StanceChangedAt = changedSince ? belief.StanceChangedAt : null,
         };
     }
 

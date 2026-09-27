@@ -2047,6 +2047,7 @@
   <data name="TimeAgo_MonthAgo" xml:space="preserve"><value>vor 1 Monat</value></data>
   <data name="TimeAgo_MonthsAgo" xml:space="preserve"><value>vor {0} Monaten</value></data>
   <data name="TimeAgo_DateFormat" xml:space="preserve"><value>d. MMM yyyy</value></data>
+  <data name="PastSelf_ViewSince" xml:space="preserve"><value>Ihre Sichtweise seit {0}</value></data>
   <data name="Privacy_AgentXIsDesigned.Text" xml:space="preserve"><value>Agent-X wurde mit Datenschutz als Grundprinzip entwickelt. Alle Ihre Daten — Dokumente, Konversationen, Embeddings und Einstellungen — werden lokal auf Ihrem Gerät gespeichert. Wir betreiben keine Cloud-Server, die Ihre personenbezogenen Daten verarbeiten oder speichern.</value></data>
   <data name="Privacy_OurLocalFirstArchitecture.Text" xml:space="preserve"><value>Unsere Local-First-Architektur bedeutet, dass Sie die volle Eigentümerschaft und Kontrolle über jede Information behalten, die Sie in Agent-X erstellen oder importieren. Es gibt keine Konten, keine Datensynchronisierung und keine Telemetrie-Übertragung.</value></data>
   <data name="Privacy_InformationWeCollect.Text" xml:space="preserve"><value>Welche Informationen wir erfassen</value></data>

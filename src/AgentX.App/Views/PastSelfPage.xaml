@@ -162,34 +162,47 @@
                  ROW 5: RESULTS
                  ========================================================== -->
             <controls:Faceplate Grid.Row="5" x:Name="ResultsPanel" Padding="0" Visibility="{x:Bind ViewModel.CurrentResult, Mode=OneWay, Converter={StaticResource NullToVisibilityConverter}}" Kicker="MOD - PAST - 04">
+                <!-- Each section below the header draws the hairline above it, so a section
+                     that is hidden leaves neither a doubled nor a trailing line. -->
                 <StackPanel Spacing="0">
                     <!-- Result Header -->
-                    <Border BorderBrush="{ThemeResource BorderSubtleBrush}"
-                            BorderThickness="0,0,0,1"
-                            Padding="20,16,20,16">
+                    <Border Padding="20,16,20,16">
                         <TextBlock Text="{x:Bind ViewModel.CurrentResult.Message, Mode=OneWay}"
                                    Style="{StaticResource BodyStrongStyle}"/>
                     </Border>
 
-                    <!-- Stance/Content -->
+                    <!-- Stance/Content: only for a stance that was found. A result that is
+                         only a message (nothing recorded, insights only) has no stance and no
+                         confidence to show. -->
                     <Border BorderBrush="{ThemeResource BorderSubtleBrush}"
-                            BorderThickness="0,0,0,1"
-                            Padding="20">
+                            BorderThickness="0,1,0,0"
+                            Padding="20"
+                            Visibility="{x:Bind ViewModel.CurrentResult.HasStance, Mode=OneWay}">
                         <StackPanel Spacing="12">
-                            <!-- Evolution Badge -->
+                            <!-- Evolution Badge: the view changed after the chosen time. A
+                                 neutral tag: armed red is for live states and commands. -->
                             <Border x:Name="EvolutionBadge"
-                                    Style="{StaticResource BadgeAccentStyle}"
+                                    Style="{StaticResource BadgeDefaultStyle}"
                                     HorizontalAlignment="Left"
-                                    Visibility="Collapsed">
+                                    Visibility="{x:Bind ViewModel.CurrentResult.ShowsEvolution, Mode=OneWay}">
                                 <TextBlock x:Uid="PastSelf_YourViewHasEvolved" Text="Your view has evolved"
-                                           Style="{StaticResource BadgeStyle}"
-                                           Foreground="{ThemeResource TextAccentBrush}"/>
+                                           Style="{StaticResource BadgeStyle}"/>
                             </Border>
 
                             <TextBlock x:Name="StanceText"
                                        Text="{x:Bind ViewModel.CurrentResult.Stance, Mode=OneWay}"
                                        Style="{StaticResource BodyStyle}"
                                        TextWrapping="Wrap"/>
+
+                            <!-- Today's view, and since when it has been held -->
+                            <StackPanel Spacing="4"
+                                        Visibility="{x:Bind ViewModel.CurrentResult.ShowsEvolution, Mode=OneWay}">
+                                <TextBlock Text="{x:Bind ViewModel.CurrentResult.CurrentStanceLabel, Mode=OneWay}"
+                                           Style="{StaticResource LabelStyle}"/>
+                                <TextBlock Text="{x:Bind ViewModel.CurrentResult.CurrentStance, Mode=OneWay}"
+                                           Style="{StaticResource BodyStyle}"
+                                           TextWrapping="Wrap"/>
+                            </StackPanel>
 
                             <!-- Confidence Bar -->
                             <StackPanel Spacing="4">
@@ -204,7 +217,7 @@
 
                     <!-- Evidence Excerpts -->
                     <Border BorderBrush="{ThemeResource BorderSubtleBrush}"
-                            BorderThickness="0,0,0,1"
+                            BorderThickness="0,1,0,0"
                             Padding="20"
                             Visibility="{x:Bind HasEvidence, Mode=OneWay}">
                         <StackPanel Spacing="8">
@@ -225,8 +238,11 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- Related Content -->
-                    <Grid ColumnSpacing="12" Padding="20">
+                    <!-- Related Content: hidden when there is none to list -->
+                    <Grid ColumnSpacing="12" Padding="20"
+                          BorderBrush="{ThemeResource BorderSubtleBrush}"
+                          BorderThickness="0,1,0,0"
+                          Visibility="{x:Bind ViewModel.CurrentResult.HasRelatedItems, Mode=OneWay}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="*"/>

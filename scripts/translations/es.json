@@ -1684,6 +1684,7 @@
   "TimeAgo_MonthAgo": "hace 1 mes",
   "TimeAgo_MonthsAgo": "hace {0} meses",
   "TimeAgo_DateFormat": "d MMM yyyy",
+  "PastSelf_ViewSince": "Su punto de vista desde el {0}",
   "Privacy_AgentXIsDesigned.Text": "Agent-X está diseñado con la privacidad como principio fundamental. Todos sus datos — documentos, conversaciones, embeddings y ajustes — se almacenan localmente en su dispositivo. No operamos servidores en la nube que procesen o almacenen sus datos personales.",
   "Privacy_OurLocalFirstArchitecture.Text": "Nuestra arquitectura local primero significa que usted conserva la plena propiedad y el control de cada dato que crea o importa en Agent-X. No hay cuentas que crear, ni sincronización de datos, ni telemetría transmitida.",
   "Privacy_InformationWeCollect.Text": "Información que recopilamos",
