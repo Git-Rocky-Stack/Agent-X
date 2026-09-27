@@ -1,5 +1,9 @@
-using System.Text.RegularExpressions;
+using AgentX.App.ViewModels;
+using AgentX.Core.AI;
+using AgentX.Core.AI.Models;
+using AgentX.Tests.Helpers;
 using FluentAssertions;
+using Moq;
 using Xunit;
 
 namespace AgentX.Tests.CodeQuality;
@@ -8,19 +12,22 @@ namespace AgentX.Tests.CodeQuality;
 /// Guards the model facts the Hardware Advisor shows. The advisor told users that
 /// <c>llama3.2:latest</c> was an 8B, 4.7 GB model (the tag is the 3B, 2.0 GB model) and
 /// recommended <c>phi3:medium</c>, a 7.9 GB download, to machines with 4-8 GB of memory.
-/// The view model lives in the WinUI project, which this test project cannot compile, so the
-/// recommendation table is checked on its source.
+/// The recommendations are read from the view model itself, with the English descriptions
+/// the app ships, for every memory tier.
 /// </summary>
 public sealed class HardwareAdvisorModelFactsTests
 {
-    private static readonly Regex EntryPattern = new(
-        @"Name = ""(?<name>[^""]+)"",\s*Description = ""(?<description>[^""]+)"",\s*Size = ""(?<size>[^""]+)""",
-        RegexOptions.CultureInvariant);
+    /// <summary>One video memory size in each of the advisor's tiers, in GB.</summary>
+    private static readonly int[] TierSizes = { 2, 6, 12, 24 };
 
     [Fact]
-    public void Llama_3_2_tags_are_described_as_the_3B_model()
+    public async Task Llama_3_2_tags_are_described_as_the_3B_model()
     {
-        var entries = ReadEntries(ReadSource());
+        var entries = new List<RecommendedModel>();
+        foreach (var gigabytes in TierSizes)
+        {
+            entries.AddRange(await RecommendAsync(gigabytes));
+        }
 
         var llama32 = entries.Where(e => e.Name.StartsWith("llama3.2", StringComparison.Ordinal)).ToList();
         llama32.Should().NotBeEmpty();
@@ -29,51 +36,40 @@ public sealed class HardwareAdvisorModelFactsTests
     }
 
     [Fact]
-    public void Phi3_medium_is_not_recommended_below_8_GB()
+    public async Task Phi3_medium_is_not_recommended_below_8_GB()
     {
-        var source = ReadSource();
-        var lightTier = Between(source, "else if (effectiveMemoryGb < 8)", "else if (effectiveMemoryGb < 16)");
+        (await RecommendAsync(6)).Should().NotContain(e => e.Name == "phi3:medium");
 
-        ReadEntries(lightTier).Should().NotContain(e => e.Name == "phi3:medium");
-        ReadEntries(source).Where(e => e.Name == "phi3:medium")
-            .Should().OnlyContain(e => e.Size == "7.9 GB");
-    }
-
-    private sealed record Entry(string Name, string Description, string Size);
-
-    private static List<Entry> ReadEntries(string source) =>
-        EntryPattern.Matches(source)
-            .Select(m => new Entry(m.Groups["name"].Value, m.Groups["description"].Value, m.Groups["size"].Value))
-            .ToList();
-
-    private static string Between(string source, string startMarker, string endMarker)
-    {
-        var start = source.IndexOf(startMarker, StringComparison.Ordinal);
-        var end = source.IndexOf(endMarker, StringComparison.Ordinal);
-        start.Should().BeGreaterThanOrEqualTo(0);
-        end.Should().BeGreaterThan(start);
-        return source[start..end];
-    }
-
-    private static string ReadSource() =>
-        File.ReadAllText(Path.Combine(ResolveSourceRoot(), "AgentX.App", "ViewModels", "HardwareAdvisorViewModel.cs"));
-
-    private static string ResolveSourceRoot()
-    {
-        var directory = new DirectoryInfo(AppContext.BaseDirectory);
-        while (directory is not null)
+        var entries = new List<RecommendedModel>();
+        foreach (var gigabytes in TierSizes)
         {
-            var candidate = Path.Combine(directory.FullName, "src");
-            if (Directory.Exists(Path.Combine(candidate, "AgentX.App")) &&
-                Directory.Exists(Path.Combine(candidate, "AgentX.Core")))
-            {
-                return candidate;
-            }
-
-            directory = directory.Parent;
+            entries.AddRange(await RecommendAsync(gigabytes));
         }
 
-        throw new DirectoryNotFoundException(
-            $"Could not locate the source root from {AppContext.BaseDirectory}.");
+        entries.Where(e => e.Name == "phi3:medium").Should().NotBeEmpty()
+            .And.OnlyContain(e => e.Size == "7.9 GB");
+    }
+
+    /// <summary>The models the advisor recommends for a GPU with this much video memory.</summary>
+    private static async Task<IReadOnlyList<RecommendedModel>> RecommendAsync(int gigabytes)
+    {
+        var detector = new Mock<IHardwareDetector>();
+        detector.Setup(d => d.DetectAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new HardwareCapability
+        {
+            GpuName = "Test GPU",
+            GpuVramBytes = gigabytes * 1_000_000_000L,
+            CpuName = "Test CPU",
+            CpuCores = 8,
+            TotalRamBytes = 64_000_000_000,
+            AvailableRamBytes = 48_000_000_000,
+        });
+        var modelManager = new Mock<IModelManager>();
+        modelManager.Setup(m => m.GetInstalledModelsAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<AiModel>());
+
+        var viewModel = new HardwareAdvisorViewModel(
+            detector.Object, modelManager.Object, EnglishResourceLocalization.Create());
+        await viewModel.InitializeAsync();
+        return viewModel.RecommendedModels.ToList();
     }
 }

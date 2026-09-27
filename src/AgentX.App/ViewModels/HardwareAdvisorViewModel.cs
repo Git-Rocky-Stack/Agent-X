@@ -1,44 +1,53 @@
 using System.Collections.ObjectModel;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
+using AgentX.Core.Services.Localization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Serilog;
 
 namespace AgentX.App.ViewModels;
 
+/// <summary>
+/// The Hardware Advisor page. Every text it builds (tier names, fallbacks for values Windows did
+/// not report, the advisory, model descriptions and errors) comes from the localized resources.
+/// The hardware values start empty: the page keeps them hidden behind the scanning panel until
+/// detection has filled them in.
+/// </summary>
 public partial class HardwareAdvisorViewModel : ObservableObject, IDisposable
 {
     // ── Services ──────────────────────────────────────────────
     private readonly IHardwareDetector _hardwareDetector;
     private readonly IModelManager _modelManager;
+    private readonly ILocalizationService _localization;
 
     // ── Page Properties ────────────────────────────────────────
     [ObservableProperty] private bool _isDetecting = true;
 
     // ── GPU ────────────────────────────────────────────────────
-    [ObservableProperty] private string _gpuName = "Detecting...";
-    [ObservableProperty] private string _gpuVram = "Detecting...";
-    [ObservableProperty] private string _gpuTier = "Unknown";
+    [ObservableProperty] private string _gpuName = string.Empty;
+    [ObservableProperty] private string _gpuVram = string.Empty;
+    [ObservableProperty] private string _gpuTier = string.Empty;
 
     // ── CPU ────────────────────────────────────────────────────
-    [ObservableProperty] private string _cpuName = "Detecting...";
+    [ObservableProperty] private string _cpuName = string.Empty;
     [ObservableProperty] private int _cpuCores;
     [ObservableProperty] private string _cpuArchitecture = "x64";
 
     // ── Memory ─────────────────────────────────────────────────
-    [ObservableProperty] private string _totalRam = "Detecting...";
-    [ObservableProperty] private string _availableRam = "Detecting...";
+    [ObservableProperty] private string _totalRam = string.Empty;
+    [ObservableProperty] private string _availableRam = string.Empty;
     [ObservableProperty] private double _ramUsagePercent;
 
     // ── NPU ────────────────────────────────────────────────────
+    // The name is shown only while HasNpu is true.
     [ObservableProperty] private bool _hasNpu;
-    [ObservableProperty] private string _npuName = "None detected";
+    [ObservableProperty] private string _npuName = string.Empty;
 
     // ── Recommendations ────────────────────────────────────────
-    [ObservableProperty] private string _recommendedModelSize = "Analyzing...";
+    [ObservableProperty] private string _recommendedModelSize = string.Empty;
     [ObservableProperty] private string _advisoryMessage = string.Empty;
-    [ObservableProperty] private string _performanceTier = "Analyzing...";
+    [ObservableProperty] private string _performanceTier = string.Empty;
     [ObservableProperty] private string _errorMessage = string.Empty;
     [ObservableProperty] private bool _hasError;
 
@@ -57,10 +66,14 @@ public partial class HardwareAdvisorViewModel : ObservableObject, IDisposable
     public ObservableCollection<RecommendedModel> EmbeddingModels { get; } = new();
 
     // ── Constructor ────────────────────────────────────────────
-    public HardwareAdvisorViewModel(IHardwareDetector hardwareDetector, IModelManager modelManager)
+    public HardwareAdvisorViewModel(
+        IHardwareDetector hardwareDetector,
+        IModelManager modelManager,
+        ILocalizationService localization)
     {
         _hardwareDetector = hardwareDetector;
         _modelManager = modelManager;
+        _localization = localization;
         Log.Debug("HardwareAdvisorViewModel created with services");
     }
 
@@ -84,7 +97,7 @@ public partial class HardwareAdvisorViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Hardware detection failed");
-            SetError("Hardware detection failed. Some information may be unavailable.");
+            SetError(_localization.GetString("HwAdvisor_DetectionFailedError"));
             PopulateFallbackData();
         }
         finally
@@ -98,24 +111,28 @@ public partial class HardwareAdvisorViewModel : ObservableObject, IDisposable
     {
         // Coalesce placeholder/empty sensor values to friendly fallbacks so the
         // UI never shows a blank field when a read returns nothing.
-        GpuName = Friendly(capability.GpuName, "GPU not detected");
-        GpuVram = capability.GpuVramFormatted;
+        GpuName = Friendly(capability.GpuName, _localization.GetString("HwAdvisor_GpuNotDetected"));
+        GpuVram = capability.GpuVramBytes > 0
+            ? capability.GpuVramFormatted
+            : _localization.GetString("HwAdvisor_NoDedicatedGpu");
         GpuTier = DetermineGpuTier(capability.GpuVramBytes);
 
-        CpuName = Friendly(capability.CpuName, "CPU not detected");
+        CpuName = Friendly(capability.CpuName, _localization.GetString("HwAdvisor_CpuNotDetected"));
         CpuCores = capability.CpuCores;
         CpuArchitecture = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString();
 
-        TotalRam = capability.TotalRamBytes > 0 ? capability.TotalRamFormatted : "Not detected";
-        AvailableRam = capability.TotalRamBytes > 0 ? capability.AvailableRamFormatted : "Not detected";
+        var ramNotDetected = _localization.GetString("HwAdvisor_RamNotDetected");
+        TotalRam = capability.TotalRamBytes > 0 ? capability.TotalRamFormatted : ramNotDetected;
+        AvailableRam = capability.TotalRamBytes > 0 ? capability.AvailableRamFormatted : ramNotDetected;
         RamUsagePercent = capability.TotalRamBytes > 0
             ? (double)(capability.TotalRamBytes - capability.AvailableRamBytes) / capability.TotalRamBytes * 100.0
             : 0;
 
         HasNpu = capability.HasNpu;
-        NpuName = capability.HasNpu ? capability.NpuName : "None detected";
+        NpuName = capability.HasNpu ? capability.NpuName : string.Empty;
 
-        RecommendedModelSize = capability.RecommendedMaxModelSize;
+        RecommendedModelSize = _localization.GetString(
+            "HwAdvisor_UpToModelSize", capability.RecommendedMaxModelParameters);
 
         // Detection is incomplete when core sensor reads came back empty or as a
         // placeholder — the typical signature of running without elevation.
@@ -201,7 +218,7 @@ public partial class HardwareAdvisorViewModel : ObservableObject, IDisposable
     }
 
     // ── Model Recommendations by Memory Tier ───────────────────
-    private static List<RecommendedModel> BuildModelList(double effectiveMemoryGb)
+    private List<RecommendedModel> BuildModelList(double effectiveMemoryGb)
     {
         var models = new List<RecommendedModel>();
 
@@ -211,28 +228,28 @@ public partial class HardwareAdvisorViewModel : ObservableObject, IDisposable
             models.Add(new RecommendedModel
             {
                 Name = "phi3:mini",
-                Description = "Microsoft Phi-3 Mini (3.8B) -- Surprisingly capable for its size. Great for quick Q&A and summarization.",
+                Description = _localization.GetString("HwAdvisor_ModelPhi3Mini"),
                 Size = "2.3 GB",
                 Category = "Chat"
             });
             models.Add(new RecommendedModel
             {
                 Name = "qwen2.5:0.5b",
-                Description = "Alibaba Qwen 2.5 (0.5B) -- Ultra-lightweight model, fast responses with basic reasoning.",
+                Description = _localization.GetString("HwAdvisor_ModelQwen25Tiny"),
                 Size = "0.4 GB",
                 Category = "Chat"
             });
             models.Add(new RecommendedModel
             {
                 Name = "qwen2.5-coder:1.5b",
-                Description = "Qwen 2.5 Coder (1.5B) -- Lightweight code completion and generation.",
+                Description = _localization.GetString("HwAdvisor_ModelQwen25Coder1_5b"),
                 Size = "1.0 GB",
                 Category = "Code"
             });
             models.Add(new RecommendedModel
             {
                 Name = "all-minilm:l6-v2",
-                Description = "Sentence Transformers MiniLM -- Fast, efficient text embeddings for semantic search.",
+                Description = _localization.GetString("HwAdvisor_ModelAllMiniLm"),
                 Size = "0.1 GB",
                 Category = "Embedding"
             });
@@ -243,28 +260,28 @@ public partial class HardwareAdvisorViewModel : ObservableObject, IDisposable
             models.Add(new RecommendedModel
             {
                 Name = "llama3.2:3b",
-                Description = "Meta Llama 3.2 (3B) -- Excellent balance of quality and speed for everyday tasks.",
+                Description = _localization.GetString("HwAdvisor_ModelLlama32"),
                 Size = "2.0 GB",
                 Category = "Chat"
             });
             models.Add(new RecommendedModel
             {
                 Name = "mistral:7b",
-                Description = "Mistral 7B -- Fast, versatile, and great at following instructions.",
+                Description = _localization.GetString("HwAdvisor_ModelMistral7b"),
                 Size = "4.1 GB",
                 Category = "Chat"
             });
             models.Add(new RecommendedModel
             {
                 Name = "qwen2.5-coder:7b",
-                Description = "Qwen 2.5 Coder (7B) -- Solid code generation, completion, and debugging.",
+                Description = _localization.GetString("HwAdvisor_ModelQwen25Coder7b"),
                 Size = "4.7 GB",
                 Category = "Code"
             });
             models.Add(new RecommendedModel
             {
                 Name = "all-minilm:l6-v2",
-                Description = "Sentence Transformers MiniLM -- Fast, efficient text embeddings for semantic search.",
+                Description = _localization.GetString("HwAdvisor_ModelAllMiniLm"),
                 Size = "0.1 GB",
                 Category = "Embedding"
             });
@@ -275,49 +292,49 @@ public partial class HardwareAdvisorViewModel : ObservableObject, IDisposable
             models.Add(new RecommendedModel
             {
                 Name = "llama3.1:8b",
-                Description = "Meta Llama 3.1 (8B) -- Top-tier open model. Excellent for chat, analysis, and writing.",
+                Description = _localization.GetString("HwAdvisor_ModelLlama31_8b"),
                 Size = "4.9 GB",
                 Category = "Chat"
             });
             models.Add(new RecommendedModel
             {
                 Name = "mistral:latest",
-                Description = "Mistral 7B v0.3 -- Fast and instruction-tuned. Great all-rounder.",
+                Description = _localization.GetString("HwAdvisor_ModelMistralLatest"),
                 Size = "4.1 GB",
                 Category = "Chat"
             });
             models.Add(new RecommendedModel
             {
                 Name = "deepseek-r1:8b",
-                Description = "DeepSeek R1 (8B) -- Strong reasoning model with chain-of-thought capabilities.",
+                Description = _localization.GetString("HwAdvisor_ModelDeepSeekR1_8b"),
                 Size = "4.9 GB",
                 Category = "Chat"
             });
             models.Add(new RecommendedModel
             {
                 Name = "phi3:medium",
-                Description = "Microsoft Phi-3 Medium (14B, Q4) -- Strong reasoning in a compact package.",
+                Description = _localization.GetString("HwAdvisor_ModelPhi3Medium"),
                 Size = "7.9 GB",
                 Category = "Chat"
             });
             models.Add(new RecommendedModel
             {
                 Name = "qwen2.5-coder:7b",
-                Description = "Qwen 2.5 Coder (7B) -- Excellent code generation, review, and debugging.",
+                Description = _localization.GetString("HwAdvisor_ModelQwen25Coder7b"),
                 Size = "4.7 GB",
                 Category = "Code"
             });
             models.Add(new RecommendedModel
             {
                 Name = "deepseek-coder-v2:16b",
-                Description = "DeepSeek Coder V2 (16B) -- Advanced code understanding across 300+ languages.",
+                Description = _localization.GetString("HwAdvisor_ModelDeepSeekCoderV2"),
                 Size = "8.9 GB",
                 Category = "Code"
             });
             models.Add(new RecommendedModel
             {
                 Name = "nomic-embed-text",
-                Description = "Nomic Embed Text -- High-quality embeddings with 8K context window.",
+                Description = _localization.GetString("HwAdvisor_ModelNomicEmbed"),
                 Size = "0.3 GB",
                 Category = "Embedding"
             });
@@ -328,56 +345,56 @@ public partial class HardwareAdvisorViewModel : ObservableObject, IDisposable
             models.Add(new RecommendedModel
             {
                 Name = "llama3.1:70b-q4_0",
-                Description = "Meta Llama 3.1 (70B, Q4) -- Flagship open model. Near-GPT-4 quality for complex tasks.",
+                Description = _localization.GetString("HwAdvisor_ModelLlama31_70b"),
                 Size = "40 GB",
                 Category = "Chat"
             });
             models.Add(new RecommendedModel
             {
                 Name = "qwen2.5:32b",
-                Description = "Alibaba Qwen 2.5 (32B) -- Exceptional multilingual model with strong reasoning.",
+                Description = _localization.GetString("HwAdvisor_ModelQwen25_32b"),
                 Size = "20 GB",
                 Category = "Chat"
             });
             models.Add(new RecommendedModel
             {
                 Name = "mistral-large:latest",
-                Description = "Mistral Large -- Enterprise-grade model with excellent instruction following.",
+                Description = _localization.GetString("HwAdvisor_ModelMistralLarge"),
                 Size = "23 GB",
                 Category = "Chat"
             });
             models.Add(new RecommendedModel
             {
                 Name = "llama3.2:latest",
-                Description = "Meta Llama 3.2 (3B) -- Fast, efficient option for quick everyday tasks.",
+                Description = _localization.GetString("HwAdvisor_ModelLlama32Latest"),
                 Size = "2.0 GB",
                 Category = "Chat"
             });
             models.Add(new RecommendedModel
             {
                 Name = "deepseek-coder-v2:16b",
-                Description = "DeepSeek Coder V2 (16B) -- Advanced code understanding across 300+ languages.",
+                Description = _localization.GetString("HwAdvisor_ModelDeepSeekCoderV2"),
                 Size = "8.9 GB",
                 Category = "Code"
             });
             models.Add(new RecommendedModel
             {
                 Name = "qwen2.5-coder:32b",
-                Description = "Qwen 2.5 Coder (32B) -- Top-tier code model for complex multi-file tasks.",
+                Description = _localization.GetString("HwAdvisor_ModelQwen25Coder32b"),
                 Size = "20 GB",
                 Category = "Code"
             });
             models.Add(new RecommendedModel
             {
                 Name = "nomic-embed-text",
-                Description = "Nomic Embed Text -- High-quality embeddings with 8K context window.",
+                Description = _localization.GetString("HwAdvisor_ModelNomicEmbed"),
                 Size = "0.3 GB",
                 Category = "Embedding"
             });
             models.Add(new RecommendedModel
             {
                 Name = "mxbai-embed-large",
-                Description = "Mixedbread Embed Large -- State-of-the-art embeddings for RAG and search.",
+                Description = _localization.GetString("HwAdvisor_ModelMxbaiEmbedLarge"),
                 Size = "0.7 GB",
                 Category = "Embedding"
             });
@@ -387,67 +404,67 @@ public partial class HardwareAdvisorViewModel : ObservableObject, IDisposable
     }
 
     // ── Advisory Message Builder ───────────────────────────────
-    private static string BuildAdvisoryMessage(HardwareCapability capability, double effectiveMemoryGb)
+    private string BuildAdvisoryMessage(HardwareCapability capability, double effectiveMemoryGb)
     {
         var lines = new List<string>();
 
         if (capability.GpuVramBytes > 0)
         {
-            lines.Add($"Your GPU ({capability.GpuName}) has {capability.GpuVramFormatted} of VRAM, which enables GPU-accelerated inference for significantly faster responses.");
+            lines.Add(_localization.GetString("HwAdvisor_AdviceGpu", capability.GpuName, capability.GpuVramFormatted));
         }
         else
         {
-            lines.Add("No dedicated GPU detected. Models will run on CPU, which is slower but still functional. Consider a GPU with at least 8GB VRAM for the best experience.");
+            lines.Add(_localization.GetString("HwAdvisor_AdviceNoGpu"));
         }
 
         if (effectiveMemoryGb < 4)
         {
-            lines.Add("With limited memory, stick to small models (3B parameters or less). These models are fast and surprisingly capable for basic tasks.");
+            lines.Add(_localization.GetString("HwAdvisor_AdviceUnder4"));
         }
         else if (effectiveMemoryGb < 8)
         {
-            lines.Add("You can run 7B parameter models comfortably. These provide a great balance of quality and speed for most everyday AI tasks.");
+            lines.Add(_localization.GetString("HwAdvisor_AdviceUnder8"));
         }
         else if (effectiveMemoryGb < 16)
         {
-            lines.Add("Your system can handle up to 13B parameter models, offering strong performance across chat, code, and reasoning tasks.");
+            lines.Add(_localization.GetString("HwAdvisor_AdviceUnder16"));
         }
         else
         {
-            lines.Add("Your hardware is excellent for local AI. You can run large 30-70B parameter models for near-frontier quality reasoning and generation.");
+            lines.Add(_localization.GetString("HwAdvisor_AdviceOver16"));
         }
 
         if (capability.HasNpu)
         {
-            lines.Add($"NPU detected ({capability.NpuName}). Some models may leverage your NPU for additional acceleration.");
+            lines.Add(_localization.GetString("HwAdvisor_AdviceNpu", capability.NpuName));
         }
 
         return string.Join(" ", lines);
     }
 
     // ── Tier Determination ─────────────────────────────────────
-    private static string DetermineGpuTier(long gpuVramBytes)
+    private string DetermineGpuTier(long gpuVramBytes)
     {
         return gpuVramBytes switch
         {
-            0 => "No dedicated GPU",
-            < 4_000_000_000L => "Entry",
-            < 8_000_000_000L => "Mainstream",
-            < 16_000_000_000L => "Performance",
-            < 24_000_000_000L => "Enthusiast",
-            _ => "Professional"
+            0 => _localization.GetString("HwAdvisor_NoDedicatedGpu"),
+            < 4_000_000_000L => _localization.GetString("HwAdvisor_GpuTierEntry"),
+            < 8_000_000_000L => _localization.GetString("HwAdvisor_GpuTierMainstream"),
+            < 16_000_000_000L => _localization.GetString("HwAdvisor_GpuTierPerformance"),
+            < 24_000_000_000L => _localization.GetString("HwAdvisor_GpuTierEnthusiast"),
+            _ => _localization.GetString("HwAdvisor_GpuTierProfessional")
         };
     }
 
-    private static string DeterminePerformanceTier(double effectiveMemoryGb)
+    private string DeterminePerformanceTier(double effectiveMemoryGb)
     {
         return effectiveMemoryGb switch
         {
-            < 4 => "Basic",
-            < 8 => "Standard",
-            < 16 => "Performance",
-            < 32 => "High-End",
-            _ => "Professional"
+            < 4 => _localization.GetString("HwAdvisor_PerfTierBasic"),
+            < 8 => _localization.GetString("HwAdvisor_PerfTierStandard"),
+            < 16 => _localization.GetString("HwAdvisor_PerfTierPerformance"),
+            < 32 => _localization.GetString("HwAdvisor_PerfTierHighEnd"),
+            _ => _localization.GetString("HwAdvisor_PerfTierProfessional")
         };
     }
 
@@ -484,7 +501,7 @@ public partial class HardwareAdvisorViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to pull recommended model: {ModelName}", modelName);
-            SetError($"Failed to install {modelName}. Open the Model Manager for detailed download progress.");
+            SetError(_localization.GetString("HwAdvisor_InstallFailed", modelName));
         }
     }
 
@@ -523,16 +540,17 @@ public partial class HardwareAdvisorViewModel : ObservableObject, IDisposable
 
     private void PopulateFallbackData()
     {
-        GpuName = "Detection failed";
-        GpuVram = "Unknown";
-        GpuTier = "Unknown";
-        CpuName = $"{Environment.ProcessorCount}-core CPU";
+        var unknown = _localization.GetString("HwAdvisor_Unknown");
+        GpuName = _localization.GetString("HwAdvisor_DetectionFailed");
+        GpuVram = unknown;
+        GpuTier = unknown;
+        CpuName = _localization.GetString("HwAdvisor_CpuCoreCount", Environment.ProcessorCount);
         CpuCores = Environment.ProcessorCount;
-        TotalRam = "Unknown";
-        AvailableRam = "Unknown";
-        RecommendedModelSize = "Unable to determine";
-        AdvisoryMessage = "Hardware detection was unable to complete. Please ensure the application has the necessary permissions and try refreshing.";
-        PerformanceTier = "Unknown";
+        TotalRam = unknown;
+        AvailableRam = unknown;
+        RecommendedModelSize = _localization.GetString("HwAdvisor_UnableToDetermine");
+        AdvisoryMessage = _localization.GetString("HwAdvisor_AdviceDetectionFailed");
+        PerformanceTier = unknown;
         IsDetectionIncomplete = true;
     }
 

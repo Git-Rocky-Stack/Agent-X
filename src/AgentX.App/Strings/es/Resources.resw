@@ -1492,6 +1492,54 @@
   <data name="CollMgr_MoveConfirm.Content" xml:space="preserve"><value>Mover</value></data>
   <data name="CollMgr_MoveToTopLevel" xml:space="preserve"><value>Nivel superior</value></data>
   <data name="CollMgr_MoveFailed" xml:space="preserve"><value>No se pudo mover la colección: {0}</value></data>
+  <data name="HwAdvisor_GpuNotDetected" xml:space="preserve"><value>GPU no detectada</value></data>
+  <data name="HwAdvisor_NoDedicatedGpu" xml:space="preserve"><value>Sin GPU dedicada</value></data>
+  <data name="HwAdvisor_CpuNotDetected" xml:space="preserve"><value>CPU no detectada</value></data>
+  <data name="HwAdvisor_RamNotDetected" xml:space="preserve"><value>No detectada</value></data>
+  <data name="HwAdvisor_UpToModelSize" xml:space="preserve"><value>Modelos de hasta {0} parámetros</value></data>
+  <data name="HwAdvisor_GpuTierEntry" xml:space="preserve"><value>Básica</value></data>
+  <data name="HwAdvisor_GpuTierMainstream" xml:space="preserve"><value>Gama media</value></data>
+  <data name="HwAdvisor_GpuTierPerformance" xml:space="preserve"><value>Alto rendimiento</value></data>
+  <data name="HwAdvisor_GpuTierEnthusiast" xml:space="preserve"><value>Entusiasta</value></data>
+  <data name="HwAdvisor_GpuTierProfessional" xml:space="preserve"><value>Profesional</value></data>
+  <data name="HwAdvisor_PerfTierBasic" xml:space="preserve"><value>Básico</value></data>
+  <data name="HwAdvisor_PerfTierStandard" xml:space="preserve"><value>Estándar</value></data>
+  <data name="HwAdvisor_PerfTierPerformance" xml:space="preserve"><value>Rendimiento</value></data>
+  <data name="HwAdvisor_PerfTierHighEnd" xml:space="preserve"><value>Gama alta</value></data>
+  <data name="HwAdvisor_PerfTierProfessional" xml:space="preserve"><value>Profesional</value></data>
+  <data name="HwAdvisor_AdviceGpu" xml:space="preserve"><value>Su GPU ({0}) tiene {1} de VRAM, lo que permite inferencia acelerada por GPU con respuestas mucho más rápidas.</value></data>
+  <data name="HwAdvisor_AdviceNoGpu" xml:space="preserve"><value>No se detectó ninguna GPU dedicada. Los modelos se ejecutarán en la CPU, que es más lenta pero funciona. Para obtener la mejor experiencia, considere una GPU con al menos 8 GB de VRAM.</value></data>
+  <data name="HwAdvisor_AdviceUnder4" xml:space="preserve"><value>Con poca memoria, limítese a modelos pequeños (3B parámetros o menos). Son rápidos y sorprendentemente capaces para tareas básicas.</value></data>
+  <data name="HwAdvisor_AdviceUnder8" xml:space="preserve"><value>Puede ejecutar cómodamente modelos de 7B parámetros. Ofrecen un gran equilibrio entre calidad y velocidad para la mayoría de las tareas de IA cotidianas.</value></data>
+  <data name="HwAdvisor_AdviceUnder16" xml:space="preserve"><value>Su sistema admite modelos de hasta 13B parámetros, con un gran rendimiento en chat, código y razonamiento.</value></data>
+  <data name="HwAdvisor_AdviceOver16" xml:space="preserve"><value>Su hardware es excelente para IA local. Puede ejecutar modelos grandes de 30-70B parámetros, con razonamiento y generación de calidad cercana a la de los modelos más avanzados.</value></data>
+  <data name="HwAdvisor_AdviceNpu" xml:space="preserve"><value>NPU detectada ({0}). Algunos modelos pueden aprovechar la NPU para acelerar aún más.</value></data>
+  <data name="HwAdvisor_AdviceDetectionFailed" xml:space="preserve"><value>La detección de hardware no pudo completarse. Compruebe que Agent-X tiene los permisos necesarios y seleccione Volver a analizar.</value></data>
+  <data name="HwAdvisor_Unknown" xml:space="preserve"><value>Desconocido</value></data>
+  <data name="HwAdvisor_DetectionFailed" xml:space="preserve"><value>Error de detección</value></data>
+  <data name="HwAdvisor_CpuCoreCount" xml:space="preserve"><value>CPU de {0} núcleos</value></data>
+  <data name="HwAdvisor_UnableToDetermine" xml:space="preserve"><value>No se puede determinar</value></data>
+  <data name="HwAdvisor_DetectionFailedError" xml:space="preserve"><value>La detección de hardware ha fallado. Parte de la información puede no estar disponible.</value></data>
+  <data name="HwAdvisor_InstallFailed" xml:space="preserve"><value>No se pudo instalar {0}. Abra el Gestor de modelos para ver el progreso detallado de la descarga.</value></data>
+  <data name="HwAdvisor_ModelPhi3Mini" xml:space="preserve"><value>Microsoft Phi-3 Mini (3.8B) -- Sorprendentemente capaz para su tamaño. Ideal para preguntas rápidas y resúmenes.</value></data>
+  <data name="HwAdvisor_ModelQwen25Tiny" xml:space="preserve"><value>Alibaba Qwen 2.5 (0.5B) -- Modelo ultraligero con respuestas rápidas y razonamiento básico.</value></data>
+  <data name="HwAdvisor_ModelQwen25Coder1_5b" xml:space="preserve"><value>Qwen 2.5 Coder (1.5B) -- Completado y generación de código ligeros.</value></data>
+  <data name="HwAdvisor_ModelAllMiniLm" xml:space="preserve"><value>Sentence Transformers MiniLM -- Embeddings de texto rápidos y eficientes para la búsqueda semántica.</value></data>
+  <data name="HwAdvisor_ModelLlama32" xml:space="preserve"><value>Meta Llama 3.2 (3B) -- Excelente equilibrio entre calidad y velocidad para las tareas cotidianas.</value></data>
+  <data name="HwAdvisor_ModelMistral7b" xml:space="preserve"><value>Mistral 7B -- Rápido, versátil y muy bueno siguiendo instrucciones.</value></data>
+  <data name="HwAdvisor_ModelQwen25Coder7b" xml:space="preserve"><value>Qwen 2.5 Coder (7B) -- Generación, completado, revisión y depuración de código sólidos.</value></data>
+  <data name="HwAdvisor_ModelLlama31_8b" xml:space="preserve"><value>Meta Llama 3.1 (8B) -- Modelo abierto de primer nivel. Excelente para chat, análisis y redacción.</value></data>
+  <data name="HwAdvisor_ModelMistralLatest" xml:space="preserve"><value>Mistral 7B v0.3 -- Rápido y ajustado para seguir instrucciones. Un gran todoterreno.</value></data>
+  <data name="HwAdvisor_ModelDeepSeekR1_8b" xml:space="preserve"><value>DeepSeek R1 (8B) -- Potente modelo de razonamiento con cadena de pensamiento.</value></data>
+  <data name="HwAdvisor_ModelPhi3Medium" xml:space="preserve"><value>Microsoft Phi-3 Medium (14B, Q4) -- Gran capacidad de razonamiento en un formato compacto.</value></data>
+  <data name="HwAdvisor_ModelDeepSeekCoderV2" xml:space="preserve"><value>DeepSeek Coder V2 (16B) -- Comprensión avanzada de código en más de 300 lenguajes.</value></data>
+  <data name="HwAdvisor_ModelNomicEmbed" xml:space="preserve"><value>Nomic Embed Text -- Embeddings de alta calidad con una ventana de contexto de 8K.</value></data>
+  <data name="HwAdvisor_ModelLlama31_70b" xml:space="preserve"><value>Meta Llama 3.1 (70B, Q4) -- Modelo abierto insignia. Calidad cercana a GPT-4 en tareas complejas.</value></data>
+  <data name="HwAdvisor_ModelQwen25_32b" xml:space="preserve"><value>Alibaba Qwen 2.5 (32B) -- Modelo multilingüe excepcional con un razonamiento sólido.</value></data>
+  <data name="HwAdvisor_ModelMistralLarge" xml:space="preserve"><value>Mistral Large -- Modelo de nivel empresarial que sigue las instrucciones de forma excelente.</value></data>
+  <data name="HwAdvisor_ModelLlama32Latest" xml:space="preserve"><value>Meta Llama 3.2 (3B) -- Opción rápida y eficiente para tareas cotidianas breves.</value></data>
+  <data name="HwAdvisor_ModelQwen25Coder32b" xml:space="preserve"><value>Qwen 2.5 Coder (32B) -- Modelo de código de primer nivel para tareas complejas con varios archivos.</value></data>
+  <data name="HwAdvisor_ModelMxbaiEmbedLarge" xml:space="preserve"><value>Mixedbread Embed Large -- Embeddings de última generación para RAG y búsqueda.</value></data>
   <data name="Digest_NoDigestReportsYet.Text" xml:space="preserve"><value>Aún no hay informes de resumen</value></data>
   <data name="Digest_GenerateYourFirstWeekly.Text" xml:space="preserve"><value>Genere su primer resumen semanal para ver resúmenes de actividad, tendencias de búsqueda y momentos destacados de las conversaciones.</value></data>
   <data name="Digest_GenerateFirstDigest.Text" xml:space="preserve"><value>Generar primer resumen</value></data>

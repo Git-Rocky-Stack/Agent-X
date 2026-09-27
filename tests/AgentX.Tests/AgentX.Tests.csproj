@@ -96,6 +96,8 @@
     <Compile Include="..\..\src\AgentX.App\ViewModels\PluginManagerViewModel.cs" Link="ViewModels\PluginManagerViewModel.cs" />
     <!-- The confirmation both of them ask the page for before deleting or uninstalling. -->
     <Compile Include="..\..\src\AgentX.App\ViewModels\ConfirmationRequest.cs" Link="ViewModels\ConfirmationRequest.cs" />
+    <!-- HardwareAdvisorViewModel builds its texts from Core hardware data and the localized resources. -->
+    <Compile Include="..\..\src\AgentX.App\ViewModels\HardwareAdvisorViewModel.cs" Link="ViewModels\HardwareAdvisorViewModel.cs" />
     <!-- WorkspaceProfileViewModel is pure workspace-profile orchestration/state logic. -->
     <Compile Include="..\..\src\AgentX.App\ViewModels\WorkspaceProfileViewModel.cs" Link="ViewModels\WorkspaceProfileViewModel.cs" />
     <!-- WorkflowBuilderViewModel is pure workflow orchestration/state logic. -->

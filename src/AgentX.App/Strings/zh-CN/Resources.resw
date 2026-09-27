@@ -1492,6 +1492,54 @@
   <data name="CollMgr_MoveConfirm.Content" xml:space="preserve"><value>移动</value></data>
   <data name="CollMgr_MoveToTopLevel" xml:space="preserve"><value>顶层</value></data>
   <data name="CollMgr_MoveFailed" xml:space="preserve"><value>无法移动合集：{0}</value></data>
+  <data name="HwAdvisor_GpuNotDetected" xml:space="preserve"><value>未检测到 GPU</value></data>
+  <data name="HwAdvisor_NoDedicatedGpu" xml:space="preserve"><value>无独立显卡</value></data>
+  <data name="HwAdvisor_CpuNotDetected" xml:space="preserve"><value>未检测到 CPU</value></data>
+  <data name="HwAdvisor_RamNotDetected" xml:space="preserve"><value>未检测到</value></data>
+  <data name="HwAdvisor_UpToModelSize" xml:space="preserve"><value>最多 {0} 参数的模型</value></data>
+  <data name="HwAdvisor_GpuTierEntry" xml:space="preserve"><value>入门级</value></data>
+  <data name="HwAdvisor_GpuTierMainstream" xml:space="preserve"><value>主流级</value></data>
+  <data name="HwAdvisor_GpuTierPerformance" xml:space="preserve"><value>性能级</value></data>
+  <data name="HwAdvisor_GpuTierEnthusiast" xml:space="preserve"><value>发烧级</value></data>
+  <data name="HwAdvisor_GpuTierProfessional" xml:space="preserve"><value>专业级</value></data>
+  <data name="HwAdvisor_PerfTierBasic" xml:space="preserve"><value>基础</value></data>
+  <data name="HwAdvisor_PerfTierStandard" xml:space="preserve"><value>标准</value></data>
+  <data name="HwAdvisor_PerfTierPerformance" xml:space="preserve"><value>性能</value></data>
+  <data name="HwAdvisor_PerfTierHighEnd" xml:space="preserve"><value>高端</value></data>
+  <data name="HwAdvisor_PerfTierProfessional" xml:space="preserve"><value>专业</value></data>
+  <data name="HwAdvisor_AdviceGpu" xml:space="preserve"><value>您的 GPU ({0}) 有 {1} 显存，可进行 GPU 加速推理，响应速度明显更快。</value></data>
+  <data name="HwAdvisor_AdviceNoGpu" xml:space="preserve"><value>未检测到独立显卡。模型将在 CPU 上运行，速度较慢但仍可使用。为获得最佳体验，建议使用至少 8 GB 显存的 GPU。</value></data>
+  <data name="HwAdvisor_AdviceUnder4" xml:space="preserve"><value>内存有限时，请使用小型模型（3B 参数及以下）。这些模型速度快，处理基本任务的能力出人意料。</value></data>
+  <data name="HwAdvisor_AdviceUnder8" xml:space="preserve"><value>您可以流畅运行 7B 参数的模型。对于大多数日常 AI 任务，它们在质量和速度之间取得了很好的平衡。</value></data>
+  <data name="HwAdvisor_AdviceUnder16" xml:space="preserve"><value>您的系统可运行最多 13B 参数的模型，在聊天、代码和推理任务中表现出色。</value></data>
+  <data name="HwAdvisor_AdviceOver16" xml:space="preserve"><value>您的硬件非常适合本地 AI。您可以运行 30-70B 参数的大型模型，获得接近前沿水平的推理和生成质量。</value></data>
+  <data name="HwAdvisor_AdviceNpu" xml:space="preserve"><value>检测到 NPU（{0}）。部分模型可借助 NPU 进一步加速。</value></data>
+  <data name="HwAdvisor_AdviceDetectionFailed" xml:space="preserve"><value>硬件检测未能完成。请确认 Agent-X 拥有所需权限，然后选择“重新扫描”。</value></data>
+  <data name="HwAdvisor_Unknown" xml:space="preserve"><value>未知</value></data>
+  <data name="HwAdvisor_DetectionFailed" xml:space="preserve"><value>检测失败</value></data>
+  <data name="HwAdvisor_CpuCoreCount" xml:space="preserve"><value>{0} 核 CPU</value></data>
+  <data name="HwAdvisor_UnableToDetermine" xml:space="preserve"><value>无法确定</value></data>
+  <data name="HwAdvisor_DetectionFailedError" xml:space="preserve"><value>硬件检测失败。部分信息可能不可用。</value></data>
+  <data name="HwAdvisor_InstallFailed" xml:space="preserve"><value>无法安装 {0}。打开模型管理器可查看详细的下载进度。</value></data>
+  <data name="HwAdvisor_ModelPhi3Mini" xml:space="preserve"><value>Microsoft Phi-3 Mini (3.8B) -- 以其体量而言能力出众。非常适合快速问答和摘要。</value></data>
+  <data name="HwAdvisor_ModelQwen25Tiny" xml:space="preserve"><value>Alibaba Qwen 2.5 (0.5B) -- 超轻量模型，响应迅速，具备基础推理能力。</value></data>
+  <data name="HwAdvisor_ModelQwen25Coder1_5b" xml:space="preserve"><value>Qwen 2.5 Coder (1.5B) -- 轻量级代码补全与生成。</value></data>
+  <data name="HwAdvisor_ModelAllMiniLm" xml:space="preserve"><value>Sentence Transformers MiniLM -- 快速高效的文本嵌入，适用于语义搜索。</value></data>
+  <data name="HwAdvisor_ModelLlama32" xml:space="preserve"><value>Meta Llama 3.2 (3B) -- 在日常任务中兼顾质量与速度。</value></data>
+  <data name="HwAdvisor_ModelMistral7b" xml:space="preserve"><value>Mistral 7B -- 速度快、用途广，能很好地遵循指令。</value></data>
+  <data name="HwAdvisor_ModelQwen25Coder7b" xml:space="preserve"><value>Qwen 2.5 Coder (7B) -- 可靠的代码生成、补全、审查与调试。</value></data>
+  <data name="HwAdvisor_ModelLlama31_8b" xml:space="preserve"><value>Meta Llama 3.1 (8B) -- 顶级开放模型。非常适合聊天、分析和写作。</value></data>
+  <data name="HwAdvisor_ModelMistralLatest" xml:space="preserve"><value>Mistral 7B v0.3 -- 速度快，经过指令微调。出色的全能型模型。</value></data>
+  <data name="HwAdvisor_ModelDeepSeekR1_8b" xml:space="preserve"><value>DeepSeek R1 (8B) -- 具备思维链能力的强推理模型。</value></data>
+  <data name="HwAdvisor_ModelPhi3Medium" xml:space="preserve"><value>Microsoft Phi-3 Medium (14B, Q4) -- 体积紧凑，推理能力强。</value></data>
+  <data name="HwAdvisor_ModelDeepSeekCoderV2" xml:space="preserve"><value>DeepSeek Coder V2 (16B) -- 支持 300 多种语言的高级代码理解。</value></data>
+  <data name="HwAdvisor_ModelNomicEmbed" xml:space="preserve"><value>Nomic Embed Text -- 高质量嵌入，上下文窗口为 8K。</value></data>
+  <data name="HwAdvisor_ModelLlama31_70b" xml:space="preserve"><value>Meta Llama 3.1 (70B, Q4) -- 旗舰级开放模型。复杂任务接近 GPT-4 水平。</value></data>
+  <data name="HwAdvisor_ModelQwen25_32b" xml:space="preserve"><value>Alibaba Qwen 2.5 (32B) -- 出色的多语言模型，推理能力强。</value></data>
+  <data name="HwAdvisor_ModelMistralLarge" xml:space="preserve"><value>Mistral Large -- 企业级模型，指令遵循能力出色。</value></data>
+  <data name="HwAdvisor_ModelLlama32Latest" xml:space="preserve"><value>Meta Llama 3.2 (3B) -- 快速高效，适合处理日常小任务。</value></data>
+  <data name="HwAdvisor_ModelQwen25Coder32b" xml:space="preserve"><value>Qwen 2.5 Coder (32B) -- 顶级代码模型，适合复杂的多文件任务。</value></data>
+  <data name="HwAdvisor_ModelMxbaiEmbedLarge" xml:space="preserve"><value>Mixedbread Embed Large -- 用于 RAG 和搜索的先进嵌入模型。</value></data>
   <data name="Digest_NoDigestReportsYet.Text" xml:space="preserve"><value>暂无摘要报告</value></data>
   <data name="Digest_GenerateYourFirstWeekly.Text" xml:space="preserve"><value>生成您的第一份每周摘要,查看活动汇总、搜索趋势和会话亮点。</value></data>
   <data name="Digest_GenerateFirstDigest.Text" xml:space="preserve"><value>生成第一份摘要</value></data>

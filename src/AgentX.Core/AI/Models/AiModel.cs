@@ -98,14 +98,20 @@ public class HardwareCapability
     public string TotalRamFormatted => $"{TotalRamBytes / 1_000_000_000.0:F0} GB";
     public string AvailableRamFormatted => $"{AvailableRamBytes / 1_000_000_000.0:F1} GB";
 
-    public string RecommendedMaxModelSize => AvailableRamBytes switch
+    /// <summary>
+    /// The largest model, in parameters ("3B", "7B", "13B", "34B" or "70B+"), that the available
+    /// system RAM holds. The Hardware Advisor shows it inside a localized sentence.
+    /// </summary>
+    public string RecommendedMaxModelParameters => AvailableRamBytes switch
     {
-        < 4_000_000_000L => "Up to 3B parameter models",
-        < 8_000_000_000L => "Up to 7B parameter models",
-        < 16_000_000_000L => "Up to 13B parameter models",
-        < 32_000_000_000L => "Up to 34B parameter models",
-        _ => "Up to 70B+ parameter models"
+        < 4_000_000_000L => "3B",
+        < 8_000_000_000L => "7B",
+        < 16_000_000_000L => "13B",
+        < 32_000_000_000L => "34B",
+        _ => "70B+"
     };
+
+    public string RecommendedMaxModelSize => $"Up to {RecommendedMaxModelParameters} parameter models";
 
     /// <summary>Whether the detected GPU is an NVIDIA GPU (CUDA-capable).</summary>
     public bool IsNvidiaGpu =>
