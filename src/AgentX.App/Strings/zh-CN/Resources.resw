@@ -1487,7 +1487,7 @@
   <data name="Main_Settings2.Text" xml:space="preserve"><value>设置</value></data>
   <data name="Main_Exit.Text" xml:space="preserve"><value>退出</value></data>
   <data name="Dash_Title.Text" xml:space="preserve"><value>仪表板</value></data>
-  <data name="Dash_Subtitle.Text" xml:space="preserve"><value>您的私人 AI 智能中心。一切都在您的电脑上运行。</value></data>
+  <data name="Dash_Subtitle.Text" xml:space="preserve"><value>您的私人 AI 智能中心。除非您选择云端 AI 提供商或设置网页搜索，否则您的文档和对话都会保留在这台电脑上。</value></data>
   <data name="Dash_RefreshBtn.Content" xml:space="preserve"><value>刷新</value></data>
   <data name="Dash_SetupAiBtn.Content" xml:space="preserve"><value>设置 AI</value></data>
   <data name="Dash_SearchBox.PlaceholderText" xml:space="preserve"><value>搜索 Knowledge Vault...</value></data>

@@ -1120,7 +1120,7 @@
   "Main_Settings2.Text": "Configuración",
   "Main_Exit.Text": "Salir",
   "Dash_Title.Text": "Panel",
-  "Dash_Subtitle.Text": "Su centro privado de inteligencia de IA. Todo se ejecuta en su equipo.",
+  "Dash_Subtitle.Text": "Su centro privado de inteligencia de IA. Sus documentos y conversaciones permanecen en este equipo a menos que elija un proveedor de IA en la nube o configure la búsqueda web.",
   "Dash_RefreshBtn.Content": "Actualizar",
   "Dash_SetupAiBtn.Content": "Configurar IA",
   "Dash_SearchBox.PlaceholderText": "Buscar en su bóveda de conocimiento...",

@@ -1487,7 +1487,7 @@
   <data name="Main_Settings2.Text" xml:space="preserve"><value>Configuración</value></data>
   <data name="Main_Exit.Text" xml:space="preserve"><value>Salir</value></data>
   <data name="Dash_Title.Text" xml:space="preserve"><value>PANEL</value></data>
-  <data name="Dash_Subtitle.Text" xml:space="preserve"><value>Su centro privado de inteligencia de IA. Todo se ejecuta en su equipo.</value></data>
+  <data name="Dash_Subtitle.Text" xml:space="preserve"><value>Su centro privado de inteligencia de IA. Sus documentos y conversaciones permanecen en este equipo a menos que elija un proveedor de IA en la nube o configure la búsqueda web.</value></data>
   <data name="Dash_RefreshBtn.Content" xml:space="preserve"><value>Actualizar</value></data>
   <data name="Dash_SetupAiBtn.Content" xml:space="preserve"><value>Configurar IA</value></data>
   <data name="Dash_SearchBox.PlaceholderText" xml:space="preserve"><value>Buscar en su bóveda de conocimiento...</value></data>

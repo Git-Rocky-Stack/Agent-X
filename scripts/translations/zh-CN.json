@@ -1120,7 +1120,7 @@
   "Main_Settings2.Text": "设置",
   "Main_Exit.Text": "退出",
   "Dash_Title.Text": "仪表板",
-  "Dash_Subtitle.Text": "您的私人 AI 智能中心。一切都在您的电脑上运行。",
+  "Dash_Subtitle.Text": "您的私人 AI 智能中心。除非您选择云端 AI 提供商或设置网页搜索，否则您的文档和对话都会保留在这台电脑上。",
   "Dash_RefreshBtn.Content": "刷新",
   "Dash_SetupAiBtn.Content": "设置 AI",
   "Dash_SearchBox.PlaceholderText": "搜索 Knowledge Vault...",

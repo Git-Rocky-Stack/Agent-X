@@ -1120,7 +1120,7 @@
   "Main_Settings2.Text": "Einstellungen",
   "Main_Exit.Text": "Beenden",
   "Dash_Title.Text": "Dashboard",
-  "Dash_Subtitle.Text": "Ihre private KI-Intelligenzzentrale. Alles läuft auf Ihrem Rechner.",
+  "Dash_Subtitle.Text": "Ihre private KI-Intelligenzzentrale. Ihre Dokumente und Unterhaltungen bleiben auf diesem Computer, es sei denn, Sie wählen einen Cloud-KI-Anbieter oder richten eine Websuche ein.",
   "Dash_RefreshBtn.Content": "Aktualisieren",
   "Dash_SetupAiBtn.Content": "KI einrichten",
   "Dash_SearchBox.PlaceholderText": "Wissens-Tresor durchsuchen...",

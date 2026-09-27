@@ -1120,7 +1120,7 @@
   "Main_Settings2.Text": "Paramètres",
   "Main_Exit.Text": "Quitter",
   "Dash_Title.Text": "Tableau de bord",
-  "Dash_Subtitle.Text": "Votre centre privé d'intelligence IA. Tout s'exécute sur votre machine.",
+  "Dash_Subtitle.Text": "Votre centre privé d'intelligence IA. Vos documents et conversations restent sur cet ordinateur, sauf si vous choisissez un fournisseur d'IA dans le cloud ou configurez la recherche web.",
   "Dash_RefreshBtn.Content": "Actualiser",
   "Dash_SetupAiBtn.Content": "Configurer l'IA",
   "Dash_SearchBox.PlaceholderText": "Rechercher dans votre coffre-fort...",

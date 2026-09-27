@@ -1487,7 +1487,7 @@
   <data name="Main_Settings2.Text" xml:space="preserve"><value>Paramètres</value></data>
   <data name="Main_Exit.Text" xml:space="preserve"><value>Quitter</value></data>
   <data name="Dash_Title.Text" xml:space="preserve"><value>TABLEAU DE BORD</value></data>
-  <data name="Dash_Subtitle.Text" xml:space="preserve"><value>Votre centre privé d'intelligence IA. Tout s'exécute sur votre machine.</value></data>
+  <data name="Dash_Subtitle.Text" xml:space="preserve"><value>Votre centre privé d'intelligence IA. Vos documents et conversations restent sur cet ordinateur, sauf si vous choisissez un fournisseur d'IA dans le cloud ou configurez la recherche web.</value></data>
   <data name="Dash_RefreshBtn.Content" xml:space="preserve"><value>Actualiser</value></data>
   <data name="Dash_SetupAiBtn.Content" xml:space="preserve"><value>Configurer l'IA</value></data>
   <data name="Dash_SearchBox.PlaceholderText" xml:space="preserve"><value>Rechercher dans votre coffre-fort...</value></data>

@@ -1120,7 +1120,7 @@
   "Main_Settings2.Text": "設定",
   "Main_Exit.Text": "終了",
   "Dash_Title.Text": "ダッシュボード",
-  "Dash_Subtitle.Text": "あなた専用のプライベート AI インテリジェンス センター。すべてお使いのマシン上で動作します。",
+  "Dash_Subtitle.Text": "あなた専用のプライベート AI インテリジェンス センター。クラウドの AI プロバイダーを選ぶか Web 検索を設定するかしない限り、ドキュメントと会話がこの PC の外に出ることはありません。",
   "Dash_RefreshBtn.Content": "更新",
   "Dash_SetupAiBtn.Content": "AI をセットアップ",
   "Dash_SearchBox.PlaceholderText": "Knowledge Vault を検索...",

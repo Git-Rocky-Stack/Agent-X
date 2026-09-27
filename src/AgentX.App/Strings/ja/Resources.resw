@@ -1487,7 +1487,7 @@
   <data name="Main_Settings2.Text" xml:space="preserve"><value>設定</value></data>
   <data name="Main_Exit.Text" xml:space="preserve"><value>終了</value></data>
   <data name="Dash_Title.Text" xml:space="preserve"><value>ダッシュボード</value></data>
-  <data name="Dash_Subtitle.Text" xml:space="preserve"><value>あなた専用のプライベート AI インテリジェンス センター。すべてお使いのマシン上で動作します。</value></data>
+  <data name="Dash_Subtitle.Text" xml:space="preserve"><value>あなた専用のプライベート AI インテリジェンス センター。クラウドの AI プロバイダーを選ぶか Web 検索を設定するかしない限り、ドキュメントと会話がこの PC の外に出ることはありません。</value></data>
   <data name="Dash_RefreshBtn.Content" xml:space="preserve"><value>更新</value></data>
   <data name="Dash_SetupAiBtn.Content" xml:space="preserve"><value>AI をセットアップ</value></data>
   <data name="Dash_SearchBox.PlaceholderText" xml:space="preserve"><value>Knowledge Vault を検索...</value></data>

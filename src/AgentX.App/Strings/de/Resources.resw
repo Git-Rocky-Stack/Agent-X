@@ -1487,7 +1487,7 @@
   <data name="Main_Settings2.Text" xml:space="preserve"><value>Einstellungen</value></data>
   <data name="Main_Exit.Text" xml:space="preserve"><value>Beenden</value></data>
   <data name="Dash_Title.Text" xml:space="preserve"><value>DASHBOARD</value></data>
-  <data name="Dash_Subtitle.Text" xml:space="preserve"><value>Ihre private KI-Intelligenzzentrale. Alles läuft auf Ihrem Rechner.</value></data>
+  <data name="Dash_Subtitle.Text" xml:space="preserve"><value>Ihre private KI-Intelligenzzentrale. Ihre Dokumente und Unterhaltungen bleiben auf diesem Computer, es sei denn, Sie wählen einen Cloud-KI-Anbieter oder richten eine Websuche ein.</value></data>
   <data name="Dash_RefreshBtn.Content" xml:space="preserve"><value>Aktualisieren</value></data>
   <data name="Dash_SetupAiBtn.Content" xml:space="preserve"><value>KI einrichten</value></data>
   <data name="Dash_SearchBox.PlaceholderText" xml:space="preserve"><value>Wissens-Tresor durchsuchen...</value></data>

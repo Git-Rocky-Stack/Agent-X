@@ -1823,7 +1823,7 @@
   <data name="Main_Settings2.Text" xml:space="preserve"><value>Settings</value></data>
   <data name="Main_Exit.Text" xml:space="preserve"><value>Exit</value></data>
   <data name="Dash_Title.Text" xml:space="preserve"><value>DASHBOARD</value></data>
-  <data name="Dash_Subtitle.Text" xml:space="preserve"><value>Your private AI intelligence center. Everything runs on your machine.</value></data>
+  <data name="Dash_Subtitle.Text" xml:space="preserve"><value>Your private AI intelligence center. Your documents and conversations stay on this computer unless you choose a cloud AI provider or set up web search.</value></data>
   <data name="Dash_RefreshBtn.Content" xml:space="preserve"><value>Refresh</value></data>
   <data name="Dash_SetupAiBtn.Content" xml:space="preserve"><value>Setup AI</value></data>
   <data name="Dash_SearchBox.PlaceholderText" xml:space="preserve"><value>Search your knowledge vault...</value></data>
