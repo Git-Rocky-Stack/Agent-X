@@ -1,7 +1,9 @@
 using AgentX.App.ViewModels;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
+using AgentX.Core.Services.Localization;
 using AgentX.Core.Services.Screen;
+using AgentX.Tests.Helpers;
 using FluentAssertions;
 using Moq;
 using Xunit;
@@ -41,7 +43,7 @@ public sealed class QuickChatViewModelScreenTests
     public void Constructor_WithNullScreenCaptureService_AcceptsNull()
     {
         // Act
-        var vm = new QuickChatViewModel(_mockAiService.Object);
+        var vm = new QuickChatViewModel(_mockAiService.Object, EnglishResources.Create());
 
         // Assert — should not throw; screen context simply won't be captured
         vm.Should().NotBeNull();
@@ -209,7 +211,7 @@ public sealed class QuickChatViewModelScreenTests
                 StreamTokensAsync("AI response"));
 
         // No screen capture service (null) — no screen context
-        var vm = new QuickChatViewModel(_mockAiService.Object);
+        var vm = new QuickChatViewModel(_mockAiService.Object, EnglishResources.Create());
         vm.QueryText = "Tell me about AI";
 
         // Act
@@ -244,7 +246,7 @@ public sealed class QuickChatViewModelScreenTests
         // Arrange
         SetupStreamingResponse("AI response without screen context");
 
-        var vm = new QuickChatViewModel(_mockAiService.Object);
+        var vm = new QuickChatViewModel(_mockAiService.Object, EnglishResources.Create());
         vm.QueryText = "Hello";
 
         // Act
@@ -298,6 +300,43 @@ public sealed class QuickChatViewModelScreenTests
         vm.ResponseText.Should().Be("Response text");
     }
 
+    [Fact]
+    public void NewViewModel_IsReady_AndClearReturnsToReady()
+    {
+        var vm = CreateViewModel();
+        vm.StatusMessage.Should().Be("Ready");
+
+        vm.QueryText = "Test query";
+        vm.ClearCommand.Execute(null);
+
+        vm.StatusMessage.Should().Be("Ready");
+    }
+
+    [Fact]
+    public async Task SubmitQueryAsync_WhenTheProviderFails_ReportsItInTheUsersLanguage()
+    {
+        var localization = new Mock<ILocalizationService>();
+        localization.Setup(l => l.GetString("QuickChat_Ready")).Returns("Bereit");
+        localization.Setup(l => l.GetString("QuickChat_Error")).Returns("Fehler");
+        localization.Setup(l => l.GetString("QuickChat_ResponseFailed", It.IsAny<object[]>()))
+            .Returns((string _, object[] args) => $"Keine Antwort erhalten: {args[0]}");
+        _mockAiService
+            .Setup(s => s.StreamChatAsync(
+                It.IsAny<IReadOnlyList<ChatMessage>>(),
+                It.IsAny<string?>(),
+                It.IsAny<ChatOptions?>(),
+                It.IsAny<CancellationToken>()))
+            .Throws(new InvalidOperationException("provider offline"));
+        var vm = new QuickChatViewModel(_mockAiService.Object, localization.Object);
+        vm.StatusMessage.Should().Be("Bereit");
+        vm.QueryText = "Test query";
+
+        await vm.SubmitQueryCommand.ExecuteAsync(null);
+
+        vm.StatusMessage.Should().Be("Fehler");
+        vm.ResponseText.Should().Be("Keine Antwort erhalten: provider offline");
+    }
+
     // ── Cancellation ────────────────────────────────────────────────────────────
 
     [Fact]
@@ -317,7 +356,7 @@ public sealed class QuickChatViewModelScreenTests
 
     private QuickChatViewModel CreateViewModel()
     {
-        return new QuickChatViewModel(_mockAiService.Object, _mockScreenCapture.Object);
+        return new QuickChatViewModel(_mockAiService.Object, _mockScreenCapture.Object, EnglishResources.Create());
     }
 
     /// <summary>

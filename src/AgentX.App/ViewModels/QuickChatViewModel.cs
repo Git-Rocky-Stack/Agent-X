@@ -1,6 +1,7 @@
 using System.Text;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
+using AgentX.Core.Services.Localization;
 using AgentX.Core.Services.Screen;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -18,6 +19,7 @@ public partial class QuickChatViewModel : ObservableObject
 {
     private readonly IAiService _aiService;
     private readonly IScreenCaptureService? _screenCaptureService;
+    private readonly ILocalizationService _localization;
     private CancellationTokenSource? _queryCts;
 
     // ── Observable Properties ─────────────────────────────────────
@@ -31,8 +33,9 @@ public partial class QuickChatViewModel : ObservableObject
     [ObservableProperty]
     private bool _isProcessing;
 
+    // "Ready" in the user's language, set by the constructor.
     [ObservableProperty]
-    private string _statusMessage = "Ready";
+    private string _statusMessage;
 
     [ObservableProperty]
     private bool _screenContextCaptured;
@@ -44,14 +47,19 @@ public partial class QuickChatViewModel : ObservableObject
     /// </summary>
     public IntPtr TargetWindowHandle { get; set; }
 
-    public QuickChatViewModel(IAiService aiService)
+    public QuickChatViewModel(IAiService aiService, ILocalizationService localization)
     {
         _aiService = aiService ?? throw new ArgumentNullException(nameof(aiService));
+        _localization = localization ?? throw new ArgumentNullException(nameof(localization));
+        _statusMessage = _localization.GetString("QuickChat_Ready");
     }
 
-    public QuickChatViewModel(IAiService aiService, IScreenCaptureService screenCaptureService)
+    public QuickChatViewModel(
+        IAiService aiService,
+        IScreenCaptureService screenCaptureService,
+        ILocalizationService localization)
+        : this(aiService, localization)
     {
-        _aiService = aiService ?? throw new ArgumentNullException(nameof(aiService));
         _screenCaptureService = screenCaptureService;
     }
 
@@ -69,7 +77,7 @@ public partial class QuickChatViewModel : ObservableObject
         if (string.IsNullOrWhiteSpace(query)) return;
 
         IsProcessing = true;
-        StatusMessage = "Thinking...";
+        StatusMessage = _localization.GetString("QuickChat_Thinking");
         ResponseText = string.Empty;
         ScreenContextCaptured = false;
 
@@ -153,17 +161,19 @@ public partial class QuickChatViewModel : ObservableObject
                 ResponseText = sb.ToString();
             }
 
-            StatusMessage = string.IsNullOrEmpty(ResponseText) ? "No response received" : "Done";
+            StatusMessage = string.IsNullOrEmpty(ResponseText)
+                ? _localization.GetString("QuickChat_NoResponse")
+                : _localization.GetString("QuickChat_Done");
         }
         catch (OperationCanceledException)
         {
-            StatusMessage = "Cancelled";
+            StatusMessage = _localization.GetString("QuickChat_Cancelled");
             Log.Debug("Quick Chat query cancelled");
         }
         catch (Exception ex)
         {
-            StatusMessage = "Error";
-            ResponseText = $"Failed to get response: {ex.Message}";
+            StatusMessage = _localization.GetString("QuickChat_Error");
+            ResponseText = _localization.GetString("QuickChat_ResponseFailed", ex.Message);
             Log.Warning(ex, "Quick Chat query failed");
         }
         finally
@@ -185,7 +195,7 @@ public partial class QuickChatViewModel : ObservableObject
         _queryCts?.Cancel();
         QueryText = string.Empty;
         ResponseText = string.Empty;
-        StatusMessage = "Ready";
+        StatusMessage = _localization.GetString("QuickChat_Ready");
         IsProcessing = false;
         ScreenContextCaptured = false;
     }
