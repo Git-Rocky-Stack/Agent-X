@@ -637,7 +637,6 @@ Hardware detected by `IHardwareDetector`.
 | `RecommendedMaxModelParameters` | `string` | Largest model size the free RAM holds: `"3B"` below 4 GB, `"7B"` below 8 GB, `"13B"` below 16 GB, `"34B"` below 32 GB, otherwise `"70B+"`. The Hardware Advisor shows it inside a localized sentence. |
 | `IsNvidiaGpu` | `bool` | Whether `GpuName` contains `NVIDIA`. |
 | `RecommendedGpuLayers` | `int` | 0 for other GPUs; for NVIDIA: 0 below 2 GB, 16 below 4 GB, 28 below 6 GB, otherwise 33. |
-| `GpuAccelerationSummary` | `string` | English summary of CUDA acceleration or CPU inference. |
 
 ---
 
