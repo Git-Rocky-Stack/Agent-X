@@ -3381,11 +3381,11 @@ Email triage is rule-based: `EmailTriageProcessor.Classify` assigns each message
 
 Provides a plugin with controlled, safe access to host application resources. Created per plugin by `IPluginService` and passed to `IPlugin.InitializeAsync` before activation.
 
-**Design Rationale**: Plugins must never receive the root `IServiceProvider`. `Services` is a dedicated child scope containing only approved services. File-system access is constrained to `PluginDataPath`.
+**Design Rationale**: Plugins must never receive the root `IServiceProvider`. `Services` is a dedicated child scope containing only approved services. `PluginDataPath` is a convention, not a sandbox: plugins run in-process with the user's rights, and the host does not restrict file-system or network access.
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `Services` | `IServiceProvider` | Scoped service provider with only host-approved services. `IOAuthService` is available for `DataConnector` plugins. |
+| `Services` | `IServiceProvider` | Scoped service provider with only host-approved services: currently `IInboxService` alone. `IOAuthService` is not offered to installed plugins (it can return stored refresh tokens); only the built-in Calendar and Email connectors receive it. |
 | `PluginDataPath` | `string` | Absolute path to per-plugin data directory. Created by the host before initialization. |
 | `Logger` | `ILogger` | Serilog logger pre-enriched with plugin identifier and version. |
 
@@ -3395,9 +3395,17 @@ Provides a plugin with controlled, safe access to host application resources. Cr
 
 **Namespace**: `AgentX.Core.Services.Plugins`
 
+Only `DocumentProcessor` and `DataConnector` have a host integration today; the other values are labels.
+
 | Value | Name | Description |
 |-------|------|-------------|
-| `0` | `DataConnector` | Connects to external data sources and syncs into the knowledge vault. Has access to `IOAuthService`. |
+| `0` | `DocumentProcessor` | Adds text extraction for file formats. The entry type implements `IDocumentProcessorPlugin`; while the plugin is active the host offers it every file that no built-in processor claims (`IPluginDocumentProcessorSource`). |
+| `1` | `AiProvider` | Label only: the host does not call such plugins yet. |
+| `2` | `QuickAction` | Label only: the host does not call such plugins yet. |
+| `3` | `WorkflowStep` | Label only: the host does not call such plugins yet. |
+| `4` | `DataConnector` | Pushes external items into the Smart Inbox through the `IInboxService` in `IPluginContext.Services`. |
+| `5` | `Theme` | Label only: the host does not call such plugins yet. |
+| `6` | `Custom` | Catch-all label; no host integration. |
 
 ---
 

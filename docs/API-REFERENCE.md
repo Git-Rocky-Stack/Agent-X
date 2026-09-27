@@ -3829,13 +3829,13 @@ Provides a plugin with controlled, safe access to host application resources. An
 **Namespace:** `AgentX.Core.Services.Plugins`
 **Assembly:** `AgentX.Core`
 
-**Design Rationale:** Plugins must never receive the root `IServiceProvider` directly. Instead, `Services` is a dedicated child scope containing only safe services. File-system access is constrained to `PluginDataPath`.
+**Design Rationale:** Plugins must never receive the root `IServiceProvider` directly. Instead, `Services` is a dedicated child scope containing only safe services. `PluginDataPath` is a convention, not a sandbox: plugins run in-process with the user's rights, and the host does not restrict file-system or network access.
 
 #### Properties
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `Services` | `IServiceProvider` | Scoped service provider exposing only host-approved services. `IOAuthService` is available for `DataConnector` plugins. |
+| `Services` | `IServiceProvider` | Scoped service provider exposing only host-approved services: currently `IInboxService` alone. `IOAuthService` is deliberately not offered to installed plugins, because it can return the stored Google and Microsoft refresh tokens; only the built-in Calendar and Email connectors receive it, from `BuiltinConnectorLifecycleService`. |
 | `PluginDataPath` | `string` | Absolute path to a per-plugin data directory for reading/writing private data (config, caches, state). Created by the host before `InitializeAsync`. |
 | `Logger` | `ILogger` | Serilog logger pre-enriched with plugin identifier and version via `ForContext`. |
 
@@ -3849,11 +3849,17 @@ namespace AgentX.Core.Services.Plugins;
 public enum PluginType
 ```
 
-Defines the type of plugin, which determines its capabilities and what host services it can access.
+Declares the primary extension point a plugin targets. Only `DocumentProcessor` and `DataConnector` have a host integration today; the other values are labels the Plugin Manager shows. Every plugin receives the same `IPluginContext` services, whatever its type.
 
 | Value | Name | Description |
 |-------|------|-------------|
-| `0` | `DataConnector` | Plugin that connects to external data sources (Calendar, Email) and syncs data into the knowledge vault. Has access to `IOAuthService` for OAuth2 authentication. |
+| `0` | `DocumentProcessor` | Adds text extraction for file formats. The entry type implements `IDocumentProcessorPlugin`; while the plugin is active the host offers it every file that no built-in processor claims (`IPluginDocumentProcessorSource`). |
+| `1` | `AiProvider` | Label only: the host does not call such plugins yet. |
+| `2` | `QuickAction` | Label only: the host does not call such plugins yet. |
+| `3` | `WorkflowStep` | Label only: the host does not call such plugins yet. |
+| `4` | `DataConnector` | Pushes external items into the Smart Inbox through the `IInboxService` in `IPluginContext.Services`. |
+| `5` | `Theme` | Label only: the host does not call such plugins yet. |
+| `6` | `Custom` | Catch-all label; no host integration. |
 
 ---
 

@@ -229,7 +229,7 @@ Throughput depends on your CPU, GPU, and VRAM, and is not benchmarked here. The 
 Yes. Agent-X reaches models through the providers in `src/AgentX.Core/AI/Providers/`:
 - Ollama (run `ollama run <model-name>`)
 - OpenAI-compatible endpoints
-- Custom providers (via plugin system)
+- Anthropic, and the built-in local model (plugins cannot add a provider yet)
 
 ### How do I switch between models?
 

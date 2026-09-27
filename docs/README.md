@@ -416,7 +416,7 @@ Navigation is managed by a `NavigationView` in `MainWindow.xaml`. The `ContentFr
 | Hardware Advisor | `HardwareAdvisor` | Reads CPU, RAM, and GPU specifications via `System.Management` and provides model size recommendations (e.g., "Your hardware supports up to 13B parameter models at 4-bit quantization"). |
 | Backup & Restore | `BackupRestore` | Creates encrypted or plaintext backup packages and restores application state for migration and recovery workflows. |
 | Workspace Profiles | `WorkspaceProfiles` | Saves named presets (Ollama model identifier, collection IDs, free-form settings) and marks at most one as the default. Profiles are not applied: all profiles share one vault, conversations, and settings. |
-| Plugin Manager | `PluginManager` | Installs, enables, disables, and removes plugin packages that extend ingestion, provider, workflow, or UI capabilities. |
+| Plugin Manager | `PluginManager` | Installs, enables, disables, and removes plugin packages. Today the host integrates document processors (new file formats) and data connectors (Smart Inbox items); other plugin types are listed but not called. |
 | Collaborative Sync | `SyncSettings` | Configures encrypted sync packages, auto-sync scheduling, sync history, and conflict-aware synchronization settings. |
 | Calendar | `CalendarSettings` | Configures calendar connectors and related ingestion behavior for event-driven inbox flows. |
 | Email | `EmailSettings` | Configures email connectors and related ingestion behavior for inbox-driven knowledge capture. |

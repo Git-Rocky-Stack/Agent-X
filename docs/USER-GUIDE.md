@@ -296,7 +296,7 @@ After onboarding, you have access to an enterprise-grade intelligence platform. 
 | **Collaborative Sync** | Encrypted package exchange via local/network/cloud folders with conflict resolution and auto-scheduling |
 | **Calendar/Email Connectors** | OAuth2-based Google/Microsoft integration for event-driven inbox flows and message ingestion |
 | **REST API** | Embedded HTTP listener (port 9846) with `/api/documents`, `/api/conversations`, `/api/search`, and more |
-| **Plugin Ecosystem** | Extensible plugin API for ingestion, providers, workflows, and UI extensions with markdown documentation rendering |
+| **Plugins** | `.agentx-plugin` packages that add document formats (document processors) or push items into the Smart Inbox (data connectors); other plugin types are listed but not called yet. Plugins run unsandboxed, and Plugin Manager renders each plugin's README |
 | **Database Encryption** | SQLCipher with automatic DPAPI-wrapped key management tied to your Windows account |
 
 ### Developer Quality Bar

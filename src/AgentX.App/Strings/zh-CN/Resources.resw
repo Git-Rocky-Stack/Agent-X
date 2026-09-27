@@ -532,16 +532,16 @@
   <data name="UserGuide_WorkspaceProfiles_UseCase2.Text" xml:space="preserve"><value>项目参考：将某个客户或项目的合集 ID 和备注集中保存，以便重新开展该工作时随时查阅。</value></data>
   <data name="UserGuide_WorkspaceProfiles_UseCase3.Text" xml:space="preserve"><value>变体：复制配置文件以记录一个变体，而不修改原始配置文件。</value></data>
   <data name="UserGuide_Plugins_Title.Text" xml:space="preserve"><value>插件与可扩展性</value></data>
-  <data name="UserGuide_Plugins_Description.Text" xml:space="preserve"><value>插件以新的提供方、解析器、Quick Actions、工作流节点、侧边栏页面与集成扩展 Agent-X。它们打包为 .agentx-plugin 文件(或 .zip),通过 Plugin Manager(设置 &gt; Plugins)发布,在桌面应用内沙箱运行。内置插件包括 Calendar(Outlook/Google)与 Email;开发者 SDK 让您构建自己的插件——从自定义 RAG 管道到“发送到 Notion”动作。</value></data>
+  <data name="UserGuide_Plugins_Description.Text" xml:space="preserve"><value>插件为 Agent-X 增加功能。插件是一个 .agentx-plugin 包（根目录包含 manifest.json 的 ZIP 压缩包；普通 .zip 文件也可以），在插件管理器页面中安装和管理。目前应用集成了两类插件：文档处理器，让 Knowledge Vault 支持新的文件格式；数据连接器，将条目推送到 Smart Inbox。插件在 Agent-X 内部以您的 Windows 帐户权限运行，没有沙盒隔离，因此请只安装您信任的插件。内置的日历和邮件连接器有各自的页面，不在此处管理。</value></data>
   <data name="UserGuide_Plugins_Manager_Title.Text" xml:space="preserve"><value>插件管理</value></data>
-  <data name="UserGuide_Plugins_Manager1.Text" xml:space="preserve"><value>安装 — 把 .agentx-plugin 或 .zip 拖到 Plugin Manager,或浏览目录并点击 Install。插件在安装时声明权限(网络、文件系统、模型访问);激活前请审阅并批准。</value></data>
-  <data name="UserGuide_Plugins_Manager2.Text" xml:space="preserve"><value>配置 — 每个插件提供自己的设置面板(API 密钥、同步间隔、范围过滤器)。配置与 Agent-X 设置并列加密存储,跨升级保留。插件贡献的命令会自动出现在 Command Palette 中。</value></data>
-  <data name="UserGuide_Plugins_Manager3.Text" xml:space="preserve"><value>启用 / 禁用 / 卸载 — 在不卸载的情况下切换插件开关。被禁用的插件保留配置但停止运行。卸载会删除所有插件文件与配置;卸载为最终操作,经 Danger Zone 确认。</value></data>
+  <data name="UserGuide_Plugins_Manager1.Text" xml:space="preserve"><value>安装：点击“安装插件”（或 + 按钮），然后选择一个 .agentx-plugin 或 .zip 文件。Agent-X 会检查清单；如果插件需要更高版本的应用（minAppVersion），或其依赖项尚未安装，则拒绝安装；否则将包解压到 %LOCALAPPDATA%\AgentX\Plugins\&lt;插件 ID&gt;，并将插件登记为已禁用，此时尚未加载任何内容。清单中列出的权限仅供参考：既不会要求您批准，也不会强制执行。</value></data>
+  <data name="UserGuide_Plugins_Manager2.Text" xml:space="preserve"><value>启用：用开关打开插件。Agent-X 会将插件连同其文件夹中的私有依赖项一起加载到独立隔离的程序集上下文中，然后运行其初始化和激活，每一步限时 30 秒；如果插件声明的依赖项未启用，则会被拒绝。已启用的插件会随 Agent-X 一起重新启动（先启动依赖项），启动失败的插件会被关闭，而不会显示为正在运行。详细信息面板显示插件的说明、安装路径、日期和 README；没有针对单个插件的设置面板。</value></data>
+  <data name="UserGuide_Plugins_Manager3.Text" xml:space="preserve"><value>禁用和卸载：关闭插件会将其停用并卸下，但其文件仍保持安装。卸载（垃圾桶按钮，或“危险区域”下的“卸载插件”）会立即删除插件文件夹（包括插件保存在其中的数据）及其记录，不会弹出确认提示；卸载多个选中的插件时会先询问。如果 Windows 仍占用某些文件，插件管理器会指出重新启动 Agent-X 后需要删除的文件夹。</value></data>
   <data name="UserGuide_Plugins_Capabilities_Title.Text" xml:space="preserve"><value>插件能做什么</value></data>
-  <data name="UserGuide_Plugins_Capability1.Text" xml:space="preserve"><value>自定义 AI 提供方 — 接入任何兼容 OpenAI 或 Anthropic 的 API 端点(自托管 Mistral、Together、Groq、OpenRouter、Replicate、Fireworks 等)。提供方插件与 Cost Tracking、设置和 Model Manager 集成。</value></data>
-  <data name="UserGuide_Plugins_Capability2.Text" xml:space="preserve"><value>自定义解析器与来源 — 增加对新文件格式、利基来源(Notion 导出、Logseq 日志、Roam 图)或专用索引器的支持。插件解析器与内置解析器一同参与索引队列。</value></data>
-  <data name="UserGuide_Plugins_Capability3.Text" xml:space="preserve"><value>工作流节点与 Quick Actions — 贡献新的动作节点(发送到 Slack、推送到 webhook、追加到电子表格、运行脚本)或新的 Quick Action 模板。插件扩展用户已熟悉的同一构建器 UI。</value></data>
-  <data name="UserGuide_Plugins_Capability4.Text" xml:space="preserve"><value>侧边栏页面与集成 — 插件可添加带自有 UI 的新页面、与 Calendar/Email/Inbox 集成,或为知识图谱做贡献。插件 SDK 使用与应用其余部分一致的 WinUI 3 组件,以保持视觉一致性。</value></data>
+  <data name="UserGuide_Plugins_Capability1.Text" xml:space="preserve"><value>文档处理器：插件可以读取任何内置处理器都不支持的文件格式。插件启用期间，Knowledge Vault 会把内置处理器不处理的每个文件交给它，因此插件可以增加格式，但不能改变 PDF、Word、文本、Markdown、代码、图像、音频或网页文件的读取方式。新格式的文件可以拖到 Knowledge Vault，或通过“导入文件夹”导入；“导入文件”选择器不会列出它们。</value></data>
+  <data name="UserGuide_Plugins_Capability2.Text" xml:space="preserve"><value>数据连接器：插件可以通过 Agent-X 提供给它的收件箱服务，将消息或订阅源条目等外部条目推送到 Smart Inbox；每个新条目还会作为可搜索的文档导入 Knowledge Vault。该收件箱服务是插件获得的唯一应用服务：应用不会把您已保存的 Google 或 Microsoft 登录令牌交给插件。</value></data>
+  <data name="UserGuide_Plugins_Capability3.Text" xml:space="preserve"><value>其他插件类型：清单也可以将插件标记为 AI 提供商、Quick Action、工作流步骤或主题，插件管理器也会列出它，但 Agent-X 目前还不会调用这类插件：它们不会添加模型、操作、工作流步骤或主题。</value></data>
+  <data name="UserGuide_Plugins_Capability4.Text" xml:space="preserve"><value>隔离而非沙盒：每个插件都会加载到自己的可回收程序集上下文中，使其依赖项与应用的依赖项分开，并可在禁用时卸下。这分隔的是代码，而不是权限：插件可以像您运行的任何程序一样访问您的文件和网络。</value></data>
   <data name="UserGuide_Integrations_Title.Text" xml:space="preserve"><value>日历与邮件集成</value></data>
   <data name="UserGuide_Integrations_Description.Text" xml:space="preserve"><value>连接 Microsoft Outlook 或 Google（Gmail 和 Google 日历）后，Agent-X 会将您的日历事件和电子邮件与文档放在一起：每个已同步的事件或邮件都会添加到 Smart Inbox，并作为可搜索的文档导入 Knowledge Vault。仅支持这两家提供商；没有 CalDAV、IMAP 或 Exchange Web Services 连接器。连接器只读取数据：Agent-X 绝不会在您的账户中发送、回复或更改任何内容。</value></data>
   <data name="UserGuide_Integrations_Calendar_Title.Text" xml:space="preserve"><value>日历集成</value></data>

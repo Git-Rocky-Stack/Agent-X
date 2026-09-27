@@ -50,7 +50,7 @@ Requirements: Windows 10 build 19041+ or Windows 11, x64. No account, no subscri
 **Automation & power use**
 - **Workflows**: on-demand multi-step AI pipelines built from five step types (AI Prompt, Document Lookup, Text Transform, Conditional Branch, Output Format) in a visual builder, with full run history
 - Quick Actions, a command palette, Jump-To that opens the exact document or conversation you pick, keyboard-first navigation with a fixed shortcut set (F1 shows the cheatsheet), and a Quick Chat window
-- Plugin system (sandboxed, manifest-validated) with multi-select bulk enable / disable / uninstall, and an authenticated local REST API
+- Plugin system (manifest-validated, each plugin in its own assembly load context but not sandboxed) for new document formats and Smart Inbox connectors, with multi-select bulk enable / disable / uninstall, and an authenticated local REST API
 
 **Data safety & sync**
 - SQLCipher AES-256 encryption at rest; EF Core migrations; DPAPI-protected secrets
