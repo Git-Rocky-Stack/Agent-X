@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Serilog;
 
 namespace AgentX.Core.Services.Plugins.Email.Models;
@@ -47,10 +48,19 @@ public sealed class EmailSyncSettings
     public string? CategorizationPrompt { get; set; }
 
     /// <summary>
-    /// Not applied. The plain-text body is indexed when the provider supplies one, otherwise
-    /// the HTML body with its tags stripped; raw HTML is never indexed.
+    /// Whether a message without a plain-text part keeps its body: when on (the default), its
+    /// HTML body is converted to readable text (HtmlParser.ConvertToPlainText) and stored and
+    /// indexed with the message, and fills the inbox preview; when off, such a message is stored
+    /// with its headers and preview only. A message with a plain-text part always keeps that
+    /// part, and raw HTML is never stored.
     /// </summary>
-    public bool IncludeHtmlBody { get; set; }
+    /// <remarks>
+    /// Saved as "includeHtmlBodyText". The earlier "includeHtmlBody" key was written with every
+    /// settings file while the option did nothing, so its value says nothing about what the user
+    /// wants and is ignored: those files get the default.
+    /// </remarks>
+    [JsonPropertyName("includeHtmlBodyText")]
+    public bool IncludeHtmlBody { get; set; } = true;
 
     /// <summary>
     /// Whether to include attachment names in indexed content.

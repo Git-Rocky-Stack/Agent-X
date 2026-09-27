@@ -3366,7 +3366,7 @@ Unified email message DTO.
 | `SyncDaysBack` | `int` | `30` | Initial sync lookback |
 | `EnableAiCategorization` | `bool` | `true` | Not applied (no AI categorizes email; kept so old settings files load) |
 | `CategorizationPrompt` | `string?` | `null` | Not applied |
-| `IncludeHtmlBody` | `bool` | `false` | Include HTML in index |
+| `IncludeHtmlBody` | `bool` | `true` | Message without a plain-text part: store and index its HTML as readable text (off: headers and preview only). Saved as `includeHtmlBodyText` |
 | `IncludeAttachmentNames` | `bool` | `true` | Include attachment names |
 
 Email triage is rule-based: `EmailTriageProcessor.Classify` assigns each message one `EmailCategory` (`ActionRequired`, `Meeting`, `Financial`, `Social`, `Promotion`, `Newsletter`, `Notification`, otherwise `Other`) from ordered keyword and sender rules, first match wins, and the name is stored on `InboxItemEntity.SourceCategory`. No model is called and there is no switch to turn it off.

@@ -659,4 +659,45 @@ public class HtmlParserTests
 
         result.Author.Should().Be("Array Author");
     }
+
+    // --- ConvertToPlainText (the HTML part of an email) ---
+
+    [Fact]
+    public void ConvertToPlainText_keeps_every_visible_block_on_its_own_line()
+    {
+        var html = """
+                   <html><head><title>Newsletter</title>
+                   <style>body { font-family: Arial; } .footer { color: #999; }</style></head>
+                   <body>
+                   <h1>September update</h1>
+                   <p>First <b>news</b> item.</p>
+                   <ul><li>One</li><li>Two</li></ul>
+                   <div class="footer">You can unsubscribe at any time.</div>
+                   <script>window.dataLayer = [];</script>
+                   </body></html>
+                   """;
+
+        var text = HtmlParser.ConvertToPlainText(html);
+
+        text.Should().Be("September update\n\nFirst news item.\n\n- One\n- Two\nYou can unsubscribe at any time.");
+    }
+
+    [Fact]
+    public void ConvertToPlainText_handles_a_fragment_breaks_entities_and_hidden_elements()
+    {
+        var html = "<span style=\"display: none\">preheader</span>Hello&nbsp;Dana,<br>Your order &amp; receipt &lt;#7&gt; shipped.";
+
+        var text = HtmlParser.ConvertToPlainText(html);
+
+        text.Should().Be("Hello Dana,\nYour order & receipt <#7> shipped.");
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData("<style>p { margin: 0; }</style>")]
+    public void ConvertToPlainText_without_visible_text_is_empty(string html)
+    {
+        HtmlParser.ConvertToPlainText(html).Should().BeEmpty();
+    }
 }

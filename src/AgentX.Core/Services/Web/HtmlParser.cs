@@ -68,6 +68,14 @@ public class HtmlParser : IHtmlParser
     };
 
     /// <summary>
+    /// Elements whose content is never shown as text, dropped by <see cref="ConvertToPlainText"/>.
+    /// </summary>
+    private static readonly HashSet<string> ElementsWithoutText = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "head", "title", "meta", "link", "script", "style", "noscript", "template"
+    };
+
+    /// <summary>
     /// CSS class and ID name fragments that typically indicate non-article content.
     /// Used as a negative signal when scoring content containers.
     /// </summary>
@@ -187,6 +195,38 @@ public class HtmlParser : IHtmlParser
         var htmlDoc = LoadDocument(html);
         var articleText = ExtractArticleContent(htmlDoc);
         return CleanText(articleText);
+    }
+
+    /// <summary>
+    /// Converts an HTML document or fragment, such as the HTML part of an email, to readable
+    /// plain text: the text of every visible element, with paragraphs, headings, list items and
+    /// line breaks on lines of their own and data tables as Markdown. The document head, scripts,
+    /// styles and elements hidden with an inline style are dropped, and entities are decoded.
+    /// Unlike <see cref="ExtractReadabilityText"/> no readability heuristics are applied, so no
+    /// visible text is left out.
+    /// </summary>
+    public static string ConvertToPlainText(string html)
+    {
+        if (string.IsNullOrWhiteSpace(html))
+            return string.Empty;
+
+        var htmlDoc = LoadDocument(html);
+        foreach (var node in htmlDoc.DocumentNode.Descendants()
+                     .Where(n => n.NodeType == HtmlNodeType.Element && ElementsWithoutText.Contains(n.Name))
+                     .ToList())
+        {
+            node.Remove();
+        }
+
+        // A fragment has no body element; its top-level nodes are the content.
+        var root = htmlDoc.DocumentNode.SelectSingleNode("//body") ?? htmlDoc.DocumentNode;
+        var text = new StringBuilder();
+        foreach (var child in root.ChildNodes)
+        {
+            ExtractTextRecursive(child, text);
+        }
+
+        return CleanText(text.ToString());
     }
 
     /// <inheritdoc />

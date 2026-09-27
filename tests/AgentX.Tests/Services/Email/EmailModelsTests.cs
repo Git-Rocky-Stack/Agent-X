@@ -96,7 +96,7 @@ public sealed class EmailModelsTests
         settings.SyncDaysBack.Should().Be(30);
         settings.EnableAiCategorization.Should().BeTrue();
         settings.CategorizationPrompt.Should().BeNull();
-        settings.IncludeHtmlBody.Should().BeFalse();
+        settings.IncludeHtmlBody.Should().BeTrue();
         settings.IncludeAttachmentNames.Should().BeTrue();
         settings.EnabledFolders.Should().ContainKey("INBOX");
         settings.EnabledFolders["INBOX"].Should().BeTrue();
@@ -134,6 +134,50 @@ public sealed class EmailModelsTests
             loaded.IncludeHtmlBody.Should().BeTrue();
             loaded.IncludeAttachmentNames.Should().BeFalse();
             loaded.EnabledFolders.Should().ContainKey("SENT");
+        }
+        finally
+        {
+            if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true);
+        }
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void EmailSyncSettings_IncludeHtmlBody_RoundTripsUnderItsNewKey(bool value)
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), $"agentx-email-settings-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(tempDir);
+        try
+        {
+            var path = Path.Combine(tempDir, "email-sync-settings.json");
+            new EmailSyncSettings { IncludeHtmlBody = value }.Save(path);
+
+            File.ReadAllText(path).Should().Contain("\"includeHtmlBodyText\"").And.NotContain("\"includeHtmlBody\"");
+            EmailSyncSettings.Load(path).IncludeHtmlBody.Should().Be(value);
+        }
+        finally
+        {
+            if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true);
+        }
+    }
+
+    [Fact]
+    public void EmailSyncSettings_Load_IgnoresTheOldKeyWrittenWhileTheOptionDidNothing()
+    {
+        // Every settings file saved before carries "includeHtmlBody": false, the old default of
+        // an option nothing read. It must not switch HTML-only bodies off now that it is applied.
+        var tempDir = Path.Combine(Path.GetTempPath(), $"agentx-email-settings-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(tempDir);
+        try
+        {
+            var path = Path.Combine(tempDir, "email-sync-settings.json");
+            File.WriteAllText(path, "{ \"syncIntervalMinutes\": 20, \"includeHtmlBody\": false }");
+
+            var loaded = EmailSyncSettings.Load(path);
+
+            loaded.SyncIntervalMinutes.Should().Be(20);
+            loaded.IncludeHtmlBody.Should().BeTrue();
         }
         finally
         {
@@ -299,6 +343,86 @@ public sealed class EmailTriageProcessorTests
 
         content.Should().Contain("Hello World");
         content.Should().NotContain("<p>");
+    }
+
+    // IncludeHtmlBody was documented as applied, but nothing read it: an HTML-only message was
+    // always indexed with its tags cut out character by character, which kept the CSS of <style>
+    // blocks and the code of scripts as text and ran paragraphs together.
+
+    private const string HtmlOnlyBody =
+        "<html><head><title>Weekly roundup</title><style>.x { color: red; }</style></head>" +
+        "<body><div style=\"display:none\">hidden preheader</div>" +
+        "<p>Invoice&nbsp;#42 is &lt;due&gt; &amp; payable.</p><p>Thanks,<br>Dana</p>" +
+        "<script>track();</script></body></html>";
+
+    [Fact]
+    public void ExtractSearchableContent_HtmlOnlyMessage_StoresItsHtmlAsReadableText()
+    {
+        var msg = CreateSampleMessage(bodyText: "", bodyHtml: HtmlOnlyBody);
+
+        var content = _processor.ExtractSearchableContent(msg, new EmailSyncSettings { IncludeHtmlBody = true });
+
+        content.Should().EndWith("Invoice #42 is <due> & payable.\n\nThanks,\nDana");
+        content.Should().NotContain("color: red").And.NotContain("track()")
+            .And.NotContain("hidden preheader").And.NotContain("Weekly roundup").And.NotContain("<p>");
+    }
+
+    [Fact]
+    public void ExtractSearchableContent_HtmlOnlyMessage_WithIncludeHtmlBodyOff_LeavesTheBodyOut()
+    {
+        var msg = CreateSampleMessage(bodyText: "", bodyHtml: HtmlOnlyBody);
+
+        var content = _processor.ExtractSearchableContent(msg, new EmailSyncSettings { IncludeHtmlBody = false });
+
+        content.Should().NotContain("Invoice").And.NotContain("Dana");
+        content.Should().Contain("Subject: Test Email");
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void ExtractSearchableContent_APlainTextPart_IsAlwaysStoredAndTheHtmlNever(bool includeHtmlBody)
+    {
+        var msg = CreateSampleMessage(bodyText: "Plain body", bodyHtml: "<p>Html body</p>");
+
+        var content = _processor.ExtractSearchableContent(msg, new EmailSyncSettings { IncludeHtmlBody = includeHtmlBody });
+
+        content.Should().Contain("Plain body").And.NotContain("Html body");
+    }
+
+    [Fact]
+    public void ConvertToInboxParameters_HtmlOnlyMessage_TakesThePreviewFromTheReadableText()
+    {
+        // An HTML-only Gmail message has no plain-text preview, so the inbox showed none.
+        var msg = CreateSampleMessage(bodyText: "", bodyHtml: HtmlOnlyBody);
+
+        var (_, _, _, _, _, _, _, preview, contentText) =
+            _processor.ConvertToInboxParameters(msg, new EmailSyncSettings());
+
+        preview.Should().Be("Invoice #42 is <due> & payable.\n\nThanks,\nDana");
+        contentText.Should().Contain("Invoice #42");
+    }
+
+    [Fact]
+    public void ConvertToInboxParameters_HtmlOnlyMessage_WithIncludeHtmlBodyOff_HasNoBodyOrPreview()
+    {
+        var msg = CreateSampleMessage(bodyText: "", bodyHtml: HtmlOnlyBody);
+
+        var (_, _, _, _, _, _, _, preview, contentText) =
+            _processor.ConvertToInboxParameters(msg, new EmailSyncSettings { IncludeHtmlBody = false });
+
+        preview.Should().BeEmpty();
+        contentText.Should().NotContain("Invoice");
+    }
+
+    [Fact]
+    public void ConvertToInboxParameters_ALongHtmlBody_GivesAPreviewOfThreeHundredCharacters()
+    {
+        var msg = CreateSampleMessage(bodyText: "", bodyHtml: "<p>" + new string('a', 1000) + "</p>");
+
+        var (_, _, _, _, _, _, _, preview, _) = _processor.ConvertToInboxParameters(msg);
+
+        preview.Should().HaveLength(300);
     }
 
     [Fact]

@@ -3807,7 +3807,7 @@ Unified email message DTO returned by all email providers. Provider-specific JSO
 | `SyncDaysBack` | `int` | `30` | How many days back to sync on first connection. |
 | `EnableAiCategorization` | `bool` | `true` | Not applied. No AI categorizes email; the property is kept so existing settings files still load. See the triage categories note below. |
 | `CategorizationPrompt` | `string?` | `null` | Not applied (no AI categorization exists). |
-| `IncludeHtmlBody` | `bool` | `false` | Whether to include full HTML body in indexed content. |
+| `IncludeHtmlBody` | `bool` | `true` | For a message without a plain-text part: when on, its HTML body is converted to readable text (`HtmlParser.ConvertToPlainText`), stored, indexed and used for the inbox preview; when off, the message is stored with its headers and preview only. A plain-text part is always kept and raw HTML is never stored. Saved as `includeHtmlBodyText`; the old `includeHtmlBody` key is ignored. |
 | `IncludeAttachmentNames` | `bool` | `true` | Whether to include attachment names in indexed content. |
 
 **Triage categories.** Email triage is rule-based. `EmailTriageProcessor.Classify` gives each message one `EmailCategory` from ordered keyword and sender rules, and the first match wins: `ActionRequired`, `Meeting`, `Financial`, `Social`, `Promotion`, `Newsletter`, `Notification`, otherwise `Other`. The rules run offline and return the same category for the same message every time. The category name is stored on `InboxItemEntity.SourceCategory`. There is no setting to turn categorization off.
