@@ -109,8 +109,11 @@ public partial class QuickChatViewModel : ObservableObject
                 new() { Role = "user", Content = query }
             };
 
+            // Quick Chat retrieves nothing from the vault; claiming otherwise invited answers that
+            // pretend to quote the user's documents.
             var systemPrompt = "You are Agent-X Quick Chat, a fast assistant that answers questions " +
-                               "concisely based on the user's knowledge vault. Be brief, accurate, and helpful. " +
+                               "concisely from general knowledge and any screen or IDE context given below. " +
+                               "You cannot see the user's documents here. Be brief, accurate, and helpful. " +
                                "If you don't know the answer, say so clearly.";
 
             // Append IDE context and screen context to the system prompt if available.
