@@ -2,7 +2,7 @@
 
 **Power user navigation guide**
 
-Every shortcut on this page is one Agent-X actually registers. Global shortcuts are seeded by `ShortcutCatalog` (`src/AgentX.App/Services/ShortcutCatalog.cs`); page shortcuts are registered by the page while it is open. Press `F1` anywhere for the live cheatsheet, which lists the global shortcuts plus the ones the current page registers.
+Every shortcut on this page is one Agent-X actually registers. Global shortcuts are seeded by `ShortcutCatalog` (`src/AgentX.App/Services/ShortcutCatalog.cs`); page shortcuts are registered by the page while it is open. Press `F1` anywhere for the live Keyboard Shortcuts dialog, which lists the global shortcuts plus the ones the current page registers.
 
 ---
 
@@ -12,10 +12,11 @@ Every shortcut on this page is one Agent-X actually registers. Global shortcuts 
 2. [Navigation Shortcuts](#navigation-shortcuts)
 3. [Chat Shortcuts](#chat-shortcuts)
 4. [Knowledge Vault Shortcuts](#knowledge-vault-shortcuts)
-5. [Search Shortcuts](#search-shortcuts)
-6. [Editing Shortcuts](#editing-shortcuts)
-7. [Accessibility Shortcuts](#accessibility-shortcuts)
-8. [Platform-Specific Notes](#platform-specific-notes)
+5. [Search and Other Pages](#search-and-other-pages)
+6. [Quick Chat](#quick-chat)
+7. [Editing Shortcuts](#editing-shortcuts)
+8. [Accessibility Shortcuts](#accessibility-shortcuts)
+9. [Platform-Specific Notes](#platform-specific-notes)
 
 ---
 
@@ -28,19 +29,39 @@ Every shortcut on this page is one Agent-X actually registers. Global shortcuts 
 | `Ctrl+K` | Open Command Palette | Every page on the navigation rail, three actions, and the current page's shortcuts |
 | `Ctrl+Shift+P` | Open Command Palette | Alternate chord |
 | `Ctrl+P` | Jump To | Open a page, a document, or a conversation by name |
-| `F1` | Keyboard cheatsheet | Global shortcuts plus the current page's |
-| `Ctrl+Shift+/` | Keyboard cheatsheet | Same as `F1` (shown as `Ctrl+Shift+?` in some places) |
+| `F1` | Keyboard Shortcuts | Global shortcuts plus the current page's |
+| `Ctrl+Shift+/` | Keyboard Shortcuts | Same as `F1`; the dialog shows it as `Ctrl+Shift+?` |
 | `Ctrl+,` | Open Settings | |
 | `Ctrl+N` | New Conversation | Opens AI Chat on a fresh conversation |
+| `Win+Shift+A` | Quick Chat | A system-wide hotkey: it works while Agent-X runs, also when its window is hidden in the notification area. If another program already uses it, Agent-X logs that and the hotkey does nothing |
 
-### Inside the Command Palette and Jump To
+These work from the main window, also while a text box has the focus. They do not fire inside dialogs (Jump To, the Keyboard Shortcuts dialog, confirmations).
+
+### Inside the Command Palette
 
 | Shortcut | Action |
 |----------|--------|
-| Type | Filter the list (fuzzy match: letters in order, not necessarily adjacent) |
-| `Up` / `Down` | Move through results (the palette also accepts `Tab` / `Shift+Tab`) |
-| `Enter` | Run the selected command or open the selected item |
-| `Esc` | Close the palette or dialog |
+| Type | Filter the list (fuzzy match: the letters in order, not necessarily adjacent, so "knv" finds Knowledge Vault) |
+| `Up` / `Down` | Move through results (`Tab` / `Shift+Tab` also work) |
+| `Enter` | Run the selected command or open the selected page |
+| `Esc` | Close the palette |
+
+The palette lists the rail's pages under their rail names and groups, then three actions (New Conversation, Import Files, Toggle Theme), then ON THIS PAGE with the shortcuts the current page registers.
+
+### Inside Jump To
+
+| Shortcut | Action |
+|----------|--------|
+| Type | Filter pages, documents and conversations |
+| `Up` / `Down` | Move through results |
+| `Enter` | Open the selected item |
+| `Esc` | Close Jump To |
+
+Jump To lists every page (including Onboarding, which is how you reopen the first-run wizard), up to 50 documents and up to 50 conversations. Pages appear under their internal names in English, which differ from the rail in places: for example "Chat" (AI Chat), "Search" (Semantic Search), "Digest" (Weekly Digest), "Inbox" (Smart Inbox) and "Sync Settings" (Collaborative Sync).
+
+### The Keyboard Shortcuts dialog
+
+`F1` (or `Ctrl+Shift+/`) lists the global shortcuts grouped as Navigation, Quick Access, Actions and Help, and adds the group of the page you are on, marked "Current page". It is a read-only list; there is no search box.
 
 ---
 
@@ -61,9 +82,11 @@ Every shortcut on this page is one Agent-X actually registers. Global shortcuts 
 | `Ctrl+Shift+O` | Operations |
 | `Ctrl+,` | Settings |
 
+`Ctrl+I` only opens the Knowledge Vault. To open the file picker as well, use Import Files in the Command Palette.
+
 ### Quick-Access Slots
 
-`Ctrl+1` through `Ctrl+9` open the first nine pages in this fixed order:
+`Ctrl+1` through `Ctrl+9` open nine pages in this fixed order (it is not the order of the navigation rail):
 
 | Shortcut | Page |
 |----------|------|
@@ -93,6 +116,8 @@ These are registered by the AI Chat page and work while it is open.
 | `Ctrl+B` | Show or hide the conversation pane |
 | `Ctrl+N` | New conversation (global; also works from any other page) |
 
+In the conversation list, `Enter` opens the focused conversation, and `Shift+F10` or the Menu key opens its menu (Pin or Unpin conversation, Delete conversation), like a right-click.
+
 ### Composer
 
 | Shortcut | Action |
@@ -100,7 +125,7 @@ These are registered by the AI Chat page and work while it is open.
 | `Enter` | Send the message |
 | `Shift+Enter` | Insert a line break |
 
-Copy, regenerate, edit, delete, and feedback are buttons on each message; they have no keyboard shortcuts.
+Copy, regenerate, edit, delete, branch and the Good response / Poor response ratings are buttons on each message; they have no keyboard shortcuts. The microphone button records speech into the message box; right-click it to transcribe an audio file instead.
 
 ---
 
@@ -113,18 +138,33 @@ Registered by the Knowledge Vault page while it is open.
 | `F5` | Refresh the document list |
 | `Ctrl+I` | Open the Knowledge Vault (global) |
 
-Importing, deleting, re-indexing, tagging, and collection assignment are done with the page's buttons and multi-select; they have no dedicated shortcuts.
+Importing, deleting, re-indexing and collection assignment are done with the page's buttons and multi-select; they have no dedicated shortcuts.
 
 ---
 
-## Search Shortcuts
+## Search and Other Pages
+
+| Page | Shortcut | Action |
+|------|----------|--------|
+| Semantic Search | `Ctrl+F` | Open the page (global) |
+| Semantic Search | `Enter` | Run the search in the search box |
+| Ask Your Files | `Enter` | Ask the question; `Shift+Enter` inserts a line break |
+| Dashboard | `Enter` | In the search box, open Semantic Search with the query |
+| Past Self | `Enter` | In the topic box, run Search Past Self |
+| Settings | `Ctrl+S` | Save settings (registered by the Settings page while it is open) |
+
+The search mode (Semantic, Keyword, Hybrid) and filters are chosen on the page; they have no shortcuts.
+
+---
+
+## Quick Chat
+
+`Win+Shift+A`, or Quick Chat in the tray icon's menu, opens a small always-on-top window for a one-off question to the active AI provider.
 
 | Shortcut | Action |
 |----------|--------|
-| `Ctrl+F` | Open Semantic Search |
-| `Enter` | Run the search from the search box |
-
-The search mode (Semantic, Keyword, Hybrid) and filters are chosen in the page; they have no shortcuts.
+| `Enter` | Ask |
+| `Esc` | Stop the answer and close the window |
 
 ---
 
@@ -163,7 +203,7 @@ Text boxes throughout the app (the chat composer, search boxes, forms) use the s
 | `Shift+Home` | Select to line start |
 | `Shift+End` | Select to line end |
 
-Settings has one page shortcut of its own: `Ctrl+S` saves your settings while the Settings page is open.
+The global shortcuts take priority inside text boxes too: `Ctrl+F`, `Ctrl+I` or `Ctrl+D` in a text box opens that page.
 
 ---
 
@@ -182,7 +222,7 @@ These are Windows shortcuts; they work in Agent-X like in any other app.
 
 ### Application Accessibility
 
-Agent-X has no zoom shortcuts of its own; use Windows text size or display scaling instead. Every page is reachable from the keyboard: `Tab` moves between controls, and `Ctrl+K` or `Ctrl+P` reach any page. Under high contrast the app switches to the system contrast colors.
+Agent-X has no zoom shortcuts of its own; use Windows text size or display scaling instead. Every page is reachable from the keyboard: `Tab` moves between controls, and `Ctrl+K` or `Ctrl+P` reach any page. Under a Windows contrast theme the app switches to the system contrast colors.
 
 ---
 
@@ -192,7 +232,6 @@ Agent-X has no zoom shortcuts of its own; use Windows text size or display scali
 
 | Shortcut | Notes |
 |----------|-------|
-| `Windows+Ctrl+Enter` | Narrator may have slight delay |
 | `Windows+Shift+S` | System screenshot, works within Agent-X |
 
 ### Keyboard Layouts
@@ -203,7 +242,7 @@ Agent-X shortcuts are defined for US keyboard layouts. On other layouts the punc
 
 ## Customization
 
-Shortcuts are fixed in this release: there is no settings page for rebinding keys, adding chords, or resetting a shortcut map. The cheatsheet (`F1`) always shows exactly what is bound.
+Shortcuts are fixed in this release: there is no settings page for rebinding keys, adding chords, or resetting a shortcut map. The Keyboard Shortcuts dialog (`F1`) always shows exactly what is bound.
 
 ---
 
@@ -217,9 +256,10 @@ Agent-X Keyboard Shortcuts
 | Everywhere                                |
 |   Ctrl+K        Command Palette           |
 |   Ctrl+P        Jump To                   |
-|   F1            Cheatsheet                |
+|   F1            Keyboard Shortcuts        |
 |   Ctrl+N        New Conversation          |
 |   Ctrl+,        Settings                  |
+|   Win+Shift+A   Quick Chat                |
 +-------------------------------------------+
 | Pages                                     |
 |   Ctrl+D        Dashboard                 |
@@ -262,4 +302,4 @@ Agent-X Keyboard Shortcuts
 
 ---
 
-*Last updated: 2026-09-26*
+*Last updated: 2026-09-27*
