@@ -119,119 +119,6 @@
         </MenuFlyout>
 
         <!-- ═══════════════════════════════════════════════════════════
-             USER MESSAGE TEMPLATE
-             ═══════════════════════════════════════════════════════════ -->
-
-        <DataTemplate x:Key="UserMessageTemplate" x:DataType="vm:ChatMessageItem">
-            <StackPanel HorizontalAlignment="Right"
-                        Margin="64,4,0,4"
-                        MaxWidth="680">
-                <!-- Message bubble -->
-                <Border Style="{StaticResource UserMessageStyle}">
-                    <TextBlock Text="{x:Bind Content, Mode=OneWay}"
-                               Style="{StaticResource BodyStyle}"
-                               TextWrapping="Wrap"
-                               IsTextSelectionEnabled="True" />
-                </Border>
-
-                <!-- Timestamp -->
-                <TextBlock Text="{x:Bind FormattedTime}"
-                           Style="{StaticResource ChatTimestampStyle}"
-                           HorizontalAlignment="Right"
-                           Margin="0,4,4,0" />
-            </StackPanel>
-        </DataTemplate>
-
-        <!-- ═══════════════════════════════════════════════════════════
-             ASSISTANT MESSAGE TEMPLATE
-             ═══════════════════════════════════════════════════════════ -->
-
-        <DataTemplate x:Key="AssistantMessageTemplate" x:DataType="vm:ChatMessageItem">
-            <StackPanel HorizontalAlignment="Left"
-                        Margin="0,4,64,4"
-                        MaxWidth="720">
-                <!-- Message bubble with accent left border -->
-                <Border Style="{StaticResource AssistantMessageStyle}">
-                    <Grid ColumnSpacing="0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-
-                        <!-- Red accent bar -->
-                        <Border Style="{StaticResource AssistantAccentBorderStyle}" />
-
-                        <!-- Content area: rendered with markdown formatting -->
-                        <StackPanel Grid.Column="1" Spacing="4">
-                            <controls:MarkdownMessageControl
-                                Segments="{x:Bind ContentSegments, Mode=OneWay}" />
-
-                            <!-- Streaming cursor (visible only while streaming) -->
-                            <Border Style="{StaticResource StreamingCursorStyle}"
-                                    x:Name="StreamingCursor"
-                                    Visibility="{x:Bind IsStreaming, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"
-                                    HorizontalAlignment="Left" />
-                        </StackPanel>
-                    </Grid>
-                </Border>
-
-                <Button Style="{StaticResource GhostButtonStyle}"
-                        Padding="0"
-                        MinHeight="0"
-                        HorizontalAlignment="Stretch"
-                        HorizontalContentAlignment="Stretch"
-                        Margin="8,4,24,0"
-                        Click="OnInspectInlineContextClick"
-                        Tag="{x:Bind}"
-                        x:Uid="Chat_InspectContextTip" ToolTipService.ToolTip="Inspect the full context used for this response"
-                        Visibility="{x:Bind HasInlineContextNote, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"
-                        AutomationProperties.LabeledBy="{Binding ElementName=ContextUsedLabel}">
-                    <Border Background="{ThemeResource AccentSubtleBrush}"
-                            BorderBrush="{ThemeResource BorderSubtleBrush}"
-                            BorderThickness="1"
-                            CornerRadius="{StaticResource RControl}"
-                            Padding="8,8,8,8">
-                        <StackPanel Spacing="4">
-                            <TextBlock x:Name="ContextUsedLabel" x:Uid="Chat_ContextUsedLabel" Text="Context Used"
-                                       Style="{StaticResource CaptionStyle}"
-                                       Foreground="{ThemeResource TextAccentBrush}" />
-                            <TextBlock Text="{x:Bind InlineContextStoryText, Mode=OneWay}"
-                                       Style="{StaticResource CaptionStyle}"
-                                       TextWrapping="WrapWholeWords" />
-                            <ItemsRepeater ItemsSource="{x:Bind InlineContextStorySourceChips, Mode=OneWay}"
-                                           ItemTemplate="{StaticResource InlineContextStoryChipTemplate}"
-                                           Visibility="{x:Bind HasInlineContextStorySourceChips, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
-                                <ItemsRepeater.Layout>
-                                    <StackLayout Orientation="Horizontal" Spacing="4" />
-                                </ItemsRepeater.Layout>
-                            </ItemsRepeater>
-                        </StackPanel>
-                    </Border>
-                </Button>
-
-                <!-- Meta row: timestamp, tokens, generation time -->
-                <Grid Margin="4,4,0,0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <TextBlock Text="{x:Bind FormattedTime}"
-                                   Style="{StaticResource ChatTimestampStyle}" />
-                        <TextBlock Text="{x:Bind FormattedTokens, Mode=OneWay}"
-                                   Style="{StaticResource MessageMetaStyle}"
-                                   Visibility="{x:Bind FormattedTokens, Mode=OneWay, Converter={StaticResource StringToVisibility}}" />
-                        <TextBlock Text="{x:Bind FormattedTokenSpeed, Mode=OneWay}"
-                                   Style="{StaticResource MessageMetaStyle}"
-                                   Visibility="{x:Bind FormattedTokenSpeed, Mode=OneWay, Converter={StaticResource StringToVisibility}}" />
-                    </StackPanel>
-                </Grid>
-            </StackPanel>
-        </DataTemplate>
-
-        <!-- ═══════════════════════════════════════════════════════════
              SYSTEM PROMPT PICKER ITEM TEMPLATE
              ═══════════════════════════════════════════════════════════ -->
 
@@ -265,14 +152,6 @@
                               VerticalAlignment="Center" />
                 </Grid>
             </Border>
-        </DataTemplate>
-
-        <!-- ═══════════════════════════════════════════════════════════
-             MODEL COMBOBOX ITEM TEMPLATE
-             ═══════════════════════════════════════════════════════════ -->
-
-        <DataTemplate x:Key="ModelItemTemplate" x:DataType="vm:ChatMessageItem">
-            <TextBlock Style="{StaticResource BodyStyle}" />
         </DataTemplate>
 
         <DataTemplate x:Key="ContextStoryChipTemplate" x:DataType="vm:ChatContextStorySourceDisplayItem">
@@ -1149,6 +1028,42 @@
                                                 </StackPanel>
                                             </Grid>
                                         </Border>
+
+                                        <!-- Context note: what the answer was built from. A click opens the
+                                             context inspector for this answer. -->
+                                        <Button Style="{StaticResource GhostButtonStyle}"
+                                                Padding="0"
+                                                MinHeight="0"
+                                                HorizontalAlignment="Stretch"
+                                                HorizontalContentAlignment="Stretch"
+                                                Margin="8,4,24,0"
+                                                Click="OnInspectInlineContextClick"
+                                                Tag="{x:Bind}"
+                                                x:Uid="Chat_InspectContextTip" ToolTipService.ToolTip="Inspect the full context used for this response"
+                                                Visibility="{x:Bind HasInlineContextNote, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"
+                                                AutomationProperties.LabeledBy="{Binding ElementName=ContextUsedLabel}">
+                                            <Border Background="{ThemeResource AccentSubtleBrush}"
+                                                    BorderBrush="{ThemeResource BorderSubtleBrush}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="{StaticResource RControl}"
+                                                    Padding="8,8,8,8">
+                                                <StackPanel Spacing="4">
+                                                    <TextBlock x:Name="ContextUsedLabel" x:Uid="Chat_ContextUsedLabel" Text="Context Used"
+                                                               Style="{StaticResource CaptionStyle}"
+                                                               Foreground="{ThemeResource TextAccentBrush}" />
+                                                    <TextBlock Text="{x:Bind InlineContextStoryText, Mode=OneWay}"
+                                                               Style="{StaticResource CaptionStyle}"
+                                                               TextWrapping="WrapWholeWords" />
+                                                    <ItemsRepeater ItemsSource="{x:Bind InlineContextStorySourceChips, Mode=OneWay}"
+                                                                   ItemTemplate="{StaticResource InlineContextStoryChipTemplate}"
+                                                                   Visibility="{x:Bind HasInlineContextStorySourceChips, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                                                        <ItemsRepeater.Layout>
+                                                            <StackLayout Orientation="Horizontal" Spacing="4" />
+                                                        </ItemsRepeater.Layout>
+                                                    </ItemsRepeater>
+                                                </StackPanel>
+                                            </Border>
+                                        </Button>
 
                                         <!-- Web sources: the pages Research Mode gave this answer, numbered as its [n]
                                              markers. A streamed reply gets them when it completes, after this bubble
