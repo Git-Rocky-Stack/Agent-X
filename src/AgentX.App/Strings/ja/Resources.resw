@@ -696,6 +696,36 @@
   <data name="Inbox_ResolvedFocusedQueued" xml:space="preserve"><value>フォーカス中の受信アイテムを承認し、インデックス作成キューに追加して解決しました。</value></data>
   <data name="Inbox_ResolvedFocusedLinked" xml:space="preserve"><value>フォーカス中の受信アイテムを承認し、Knowledge Vault に既にある同じドキュメントにリンクして解決しました。</value></data>
   <data name="Inbox_ResolvedFocusedAlreadyAccepted" xml:space="preserve"><value>フォーカス中の受信アイテムが既に承認済みであることを確認して解決しました。</value></data>
+  <data name="Annot_LoadFailed" xml:space="preserve"><value>注釈を読み込めませんでした</value></data>
+  <data name="Annot_UnknownDocument" xml:space="preserve"><value>不明</value></data>
+  <data name="Annot_Updated" xml:space="preserve"><value>注釈を更新しました</value></data>
+  <data name="Annot_UpdateFailed" xml:space="preserve"><value>注釈を更新できませんでした</value></data>
+  <data name="Annot_Deleted" xml:space="preserve"><value>注釈を削除しました</value></data>
+  <data name="Annot_DeleteFailed" xml:space="preserve"><value>注釈を削除できませんでした</value></data>
+  <data name="Annot_ExportUnavailable" xml:space="preserve"><value>エクスポートを利用できません</value></data>
+  <data name="Annot_ExportCancelled" xml:space="preserve"><value>エクスポートをキャンセルしました</value></data>
+  <data name="Annot_MarkdownFile" xml:space="preserve"><value>Markdown ファイル</value></data>
+  <data name="Annot_ExportedOne" xml:space="preserve"><value>1 件の注釈を {0} にエクスポートしました</value></data>
+  <data name="Annot_ExportedMany" xml:space="preserve"><value>{0} 件の注釈を {1} にエクスポートしました</value></data>
+  <data name="Annot_ExportFailed" xml:space="preserve"><value>エクスポートに失敗しました</value></data>
+  <data name="QuickChat_Ready" xml:space="preserve"><value>準備完了</value></data>
+  <data name="QuickChat_Thinking" xml:space="preserve"><value>考えています...</value></data>
+  <data name="QuickChat_NoResponse" xml:space="preserve"><value>応答がありませんでした</value></data>
+  <data name="QuickChat_Done" xml:space="preserve"><value>完了</value></data>
+  <data name="QuickChat_Cancelled" xml:space="preserve"><value>キャンセルしました</value></data>
+  <data name="QuickChat_Error" xml:space="preserve"><value>エラー</value></data>
+  <data name="QuickChat_ResponseFailed" xml:space="preserve"><value>応答を取得できませんでした: {0}</value></data>
+  <data name="ModelMgr_CheckingConnection" xml:space="preserve"><value>確認しています...</value></data>
+  <data name="ModelMgr_ConnectionFailed" xml:space="preserve"><value>接続に失敗しました</value></data>
+  <data name="ModelMgr_ConnectFailed" xml:space="preserve"><value>{0} に接続できませんでした。設定で AI プロバイダーを確認してください。</value></data>
+  <data name="ModelMgr_LoadModelsFailed" xml:space="preserve"><value>モデル一覧を読み込めませんでした。{0} への接続を確認してください。</value></data>
+  <data name="ModelMgr_PreparingDownload" xml:space="preserve"><value>{0} のダウンロードを準備しています...</value></data>
+  <data name="ModelMgr_Downloaded" xml:space="preserve"><value>{0} をダウンロードしました</value></data>
+  <data name="ModelMgr_DownloadCancelled" xml:space="preserve"><value>ダウンロードをキャンセルしました</value></data>
+  <data name="ModelMgr_DownloadFailedStatus" xml:space="preserve"><value>ダウンロードに失敗しました: {0}</value></data>
+  <data name="ModelMgr_DownloadFailed" xml:space="preserve"><value>{0} をダウンロードできませんでした。{1} が利用可能で、モデル名が正しいことを確認してください。</value></data>
+  <data name="ModelMgr_DeleteFailed" xml:space="preserve"><value>モデルを削除できませんでした。{0}</value></data>
+  <data name="ModelMgr_SetActiveFailed" xml:space="preserve"><value>アクティブなモデルを設定できませんでした。{0}</value></data>
   <data name="Inbox_TargetCollectionOverline.Text" xml:space="preserve"><value>対象コレクション</value></data>
   <data name="Inbox_AutoSuggestPlaceholder.PlaceholderText" xml:space="preserve"><value>自動提案</value></data>
   <data name="Inbox_ActionsOverline.Text" xml:space="preserve"><value>操作</value></data>

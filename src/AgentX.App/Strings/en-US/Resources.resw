@@ -1035,6 +1035,36 @@
   <data name="Inbox_ResolvedFocusedQueued" xml:space="preserve"><value>Resolved the focused inbox item by accepting it and queuing it for indexing.</value></data>
   <data name="Inbox_ResolvedFocusedLinked" xml:space="preserve"><value>Resolved the focused inbox item by accepting it and linking it to the identical document already in the vault.</value></data>
   <data name="Inbox_ResolvedFocusedAlreadyAccepted" xml:space="preserve"><value>Resolved the focused inbox item by confirming it was already accepted.</value></data>
+  <data name="Annot_LoadFailed" xml:space="preserve"><value>Failed to load annotations</value></data>
+  <data name="Annot_UnknownDocument" xml:space="preserve"><value>Unknown</value></data>
+  <data name="Annot_Updated" xml:space="preserve"><value>Annotation updated</value></data>
+  <data name="Annot_UpdateFailed" xml:space="preserve"><value>Failed to update annotation</value></data>
+  <data name="Annot_Deleted" xml:space="preserve"><value>Annotation deleted</value></data>
+  <data name="Annot_DeleteFailed" xml:space="preserve"><value>Failed to delete annotation</value></data>
+  <data name="Annot_ExportUnavailable" xml:space="preserve"><value>Export unavailable</value></data>
+  <data name="Annot_ExportCancelled" xml:space="preserve"><value>Export cancelled</value></data>
+  <data name="Annot_MarkdownFile" xml:space="preserve"><value>Markdown file</value></data>
+  <data name="Annot_ExportedOne" xml:space="preserve"><value>Exported 1 annotation to {0}</value></data>
+  <data name="Annot_ExportedMany" xml:space="preserve"><value>Exported {0} annotations to {1}</value></data>
+  <data name="Annot_ExportFailed" xml:space="preserve"><value>Export failed</value></data>
+  <data name="QuickChat_Ready" xml:space="preserve"><value>Ready</value></data>
+  <data name="QuickChat_Thinking" xml:space="preserve"><value>Thinking...</value></data>
+  <data name="QuickChat_NoResponse" xml:space="preserve"><value>No response received</value></data>
+  <data name="QuickChat_Done" xml:space="preserve"><value>Done</value></data>
+  <data name="QuickChat_Cancelled" xml:space="preserve"><value>Cancelled</value></data>
+  <data name="QuickChat_Error" xml:space="preserve"><value>Error</value></data>
+  <data name="QuickChat_ResponseFailed" xml:space="preserve"><value>Failed to get response: {0}</value></data>
+  <data name="ModelMgr_CheckingConnection" xml:space="preserve"><value>Checking...</value></data>
+  <data name="ModelMgr_ConnectionFailed" xml:space="preserve"><value>Connection failed</value></data>
+  <data name="ModelMgr_ConnectFailed" xml:space="preserve"><value>Failed to connect to {0}. Check the AI provider in Settings.</value></data>
+  <data name="ModelMgr_LoadModelsFailed" xml:space="preserve"><value>Failed to load the model list. Check the {0} connection.</value></data>
+  <data name="ModelMgr_PreparingDownload" xml:space="preserve"><value>Preparing to download {0}...</value></data>
+  <data name="ModelMgr_Downloaded" xml:space="preserve"><value>Successfully downloaded {0}</value></data>
+  <data name="ModelMgr_DownloadCancelled" xml:space="preserve"><value>Download cancelled</value></data>
+  <data name="ModelMgr_DownloadFailedStatus" xml:space="preserve"><value>Download failed: {0}</value></data>
+  <data name="ModelMgr_DownloadFailed" xml:space="preserve"><value>Failed to download {0}. Ensure {1} is available and the model name is correct.</value></data>
+  <data name="ModelMgr_DeleteFailed" xml:space="preserve"><value>Failed to delete model. {0}</value></data>
+  <data name="ModelMgr_SetActiveFailed" xml:space="preserve"><value>Failed to set active model. {0}</value></data>
   <data name="Inbox_TargetCollectionOverline.Text" xml:space="preserve"><value>TARGET COLLECTION</value></data>
   <data name="Inbox_AutoSuggestPlaceholder.PlaceholderText" xml:space="preserve"><value>Auto-suggest</value></data>
   <data name="Inbox_ActionsOverline.Text" xml:space="preserve"><value>ACTIONS</value></data>

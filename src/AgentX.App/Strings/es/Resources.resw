@@ -696,6 +696,36 @@
   <data name="Inbox_ResolvedFocusedQueued" xml:space="preserve"><value>Se resolvió el elemento enfocado de la bandeja de entrada: aceptado y en cola para indexación.</value></data>
   <data name="Inbox_ResolvedFocusedLinked" xml:space="preserve"><value>Se resolvió el elemento enfocado de la bandeja de entrada: aceptado y vinculado al documento idéntico que ya estaba en la Bóveda de Conocimiento.</value></data>
   <data name="Inbox_ResolvedFocusedAlreadyAccepted" xml:space="preserve"><value>Se resolvió el elemento enfocado de la bandeja de entrada: ya estaba aceptado.</value></data>
+  <data name="Annot_LoadFailed" xml:space="preserve"><value>No se pudieron cargar las anotaciones</value></data>
+  <data name="Annot_UnknownDocument" xml:space="preserve"><value>Desconocido</value></data>
+  <data name="Annot_Updated" xml:space="preserve"><value>Anotación actualizada</value></data>
+  <data name="Annot_UpdateFailed" xml:space="preserve"><value>No se pudo actualizar la anotación</value></data>
+  <data name="Annot_Deleted" xml:space="preserve"><value>Anotación eliminada</value></data>
+  <data name="Annot_DeleteFailed" xml:space="preserve"><value>No se pudo eliminar la anotación</value></data>
+  <data name="Annot_ExportUnavailable" xml:space="preserve"><value>Exportación no disponible</value></data>
+  <data name="Annot_ExportCancelled" xml:space="preserve"><value>Exportación cancelada</value></data>
+  <data name="Annot_MarkdownFile" xml:space="preserve"><value>archivo Markdown</value></data>
+  <data name="Annot_ExportedOne" xml:space="preserve"><value>Se exportó 1 anotación a {0}</value></data>
+  <data name="Annot_ExportedMany" xml:space="preserve"><value>Se exportaron {0} anotaciones a {1}</value></data>
+  <data name="Annot_ExportFailed" xml:space="preserve"><value>Error en la exportación</value></data>
+  <data name="QuickChat_Ready" xml:space="preserve"><value>Listo</value></data>
+  <data name="QuickChat_Thinking" xml:space="preserve"><value>Pensando...</value></data>
+  <data name="QuickChat_NoResponse" xml:space="preserve"><value>No se recibió respuesta</value></data>
+  <data name="QuickChat_Done" xml:space="preserve"><value>Completado</value></data>
+  <data name="QuickChat_Cancelled" xml:space="preserve"><value>Cancelado</value></data>
+  <data name="QuickChat_Error" xml:space="preserve"><value>Error</value></data>
+  <data name="QuickChat_ResponseFailed" xml:space="preserve"><value>No se pudo obtener una respuesta: {0}</value></data>
+  <data name="ModelMgr_CheckingConnection" xml:space="preserve"><value>Comprobando...</value></data>
+  <data name="ModelMgr_ConnectionFailed" xml:space="preserve"><value>Error de conexión</value></data>
+  <data name="ModelMgr_ConnectFailed" xml:space="preserve"><value>No se pudo conectar con {0}. Revise el proveedor de IA en Configuración.</value></data>
+  <data name="ModelMgr_LoadModelsFailed" xml:space="preserve"><value>No se pudo cargar la lista de modelos. Revise la conexión con {0}.</value></data>
+  <data name="ModelMgr_PreparingDownload" xml:space="preserve"><value>Preparando la descarga de {0}...</value></data>
+  <data name="ModelMgr_Downloaded" xml:space="preserve"><value>{0} se descargó correctamente</value></data>
+  <data name="ModelMgr_DownloadCancelled" xml:space="preserve"><value>Descarga cancelada</value></data>
+  <data name="ModelMgr_DownloadFailedStatus" xml:space="preserve"><value>Error en la descarga: {0}</value></data>
+  <data name="ModelMgr_DownloadFailed" xml:space="preserve"><value>No se pudo descargar {0}. Asegúrese de que {1} esté disponible y de que el nombre del modelo sea correcto.</value></data>
+  <data name="ModelMgr_DeleteFailed" xml:space="preserve"><value>No se pudo eliminar el modelo. {0}</value></data>
+  <data name="ModelMgr_SetActiveFailed" xml:space="preserve"><value>No se pudo establecer el modelo activo. {0}</value></data>
   <data name="Inbox_TargetCollectionOverline.Text" xml:space="preserve"><value>COLECCIÓN DE DESTINO</value></data>
   <data name="Inbox_AutoSuggestPlaceholder.PlaceholderText" xml:space="preserve"><value>Sugerencia automática</value></data>
   <data name="Inbox_ActionsOverline.Text" xml:space="preserve"><value>ACCIONES</value></data>

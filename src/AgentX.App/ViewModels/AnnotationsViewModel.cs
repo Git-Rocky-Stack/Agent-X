@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Services.Annotations;
+using AgentX.Core.Services.Localization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Serilog;
@@ -10,6 +11,7 @@ namespace AgentX.App.ViewModels;
 public partial class AnnotationsViewModel : ObservableObject
 {
     private readonly IAnnotationService _annotationService;
+    private readonly ILocalizationService _localization;
 
     // ── Page State ───────────────────────────────────────────
     [ObservableProperty] private bool _isLoading;
@@ -44,9 +46,10 @@ public partial class AnnotationsViewModel : ObservableObject
 
     public Func<AnnotationMarkdownExportRequest, Task<AnnotationMarkdownExportResult>>? SaveMarkdownExportAsync { get; set; }
 
-    public AnnotationsViewModel(IAnnotationService annotationService)
+    public AnnotationsViewModel(IAnnotationService annotationService, ILocalizationService localization)
     {
         _annotationService = annotationService;
+        _localization = localization ?? throw new ArgumentNullException(nameof(localization));
     }
 
     public async Task InitializeAsync()
@@ -60,7 +63,7 @@ public partial class AnnotationsViewModel : ObservableObject
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to initialize AnnotationsViewModel");
-            StatusMessage = "Failed to load annotations";
+            StatusMessage = _localization.GetString("Annot_LoadFailed");
         }
         finally
         {
@@ -94,7 +97,7 @@ public partial class AnnotationsViewModel : ObservableObject
                 {
                     Id = a.Id,
                     DocumentId = a.DocumentId,
-                    DocumentName = a.Document?.FileName ?? "Unknown",
+                    DocumentName = a.Document?.FileName ?? _localization.GetString("Annot_UnknownDocument"),
                     HighlightedText = a.HighlightedText,
                     NoteText = a.NoteText ?? string.Empty,
                     Color = a.Color,
@@ -166,13 +169,13 @@ public partial class AnnotationsViewModel : ObservableObject
             SelectedAnnotation.NoteText = EditNoteText;
             SelectedAnnotation.Color = EditColor;
             IsEditing = false;
-            StatusMessage = "Annotation updated";
+            StatusMessage = _localization.GetString("Annot_Updated");
             await LoadColorStatsAsync();
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to update annotation");
-            StatusMessage = "Failed to update annotation";
+            StatusMessage = _localization.GetString("Annot_UpdateFailed");
         }
     }
 
@@ -195,13 +198,13 @@ public partial class AnnotationsViewModel : ObservableObject
             }
             HasAnnotations = Annotations.Count > 0;
             TotalCount--;
-            StatusMessage = "Annotation deleted";
+            StatusMessage = _localization.GetString("Annot_Deleted");
             await LoadColorStatsAsync();
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to delete annotation {Id}", annotationId);
-            StatusMessage = "Failed to delete annotation";
+            StatusMessage = _localization.GetString("Annot_DeleteFailed");
         }
     }
 
@@ -214,7 +217,7 @@ public partial class AnnotationsViewModel : ObservableObject
 
             if (SaveMarkdownExportAsync is null)
             {
-                StatusMessage = "Export unavailable";
+                StatusMessage = _localization.GetString("Annot_ExportUnavailable");
                 return;
             }
 
@@ -224,19 +227,21 @@ public partial class AnnotationsViewModel : ObservableObject
 
             if (!result.IsSaved)
             {
-                StatusMessage = "Export cancelled";
+                StatusMessage = _localization.GetString("Annot_ExportCancelled");
                 return;
             }
 
             var fileName = string.IsNullOrWhiteSpace(result.FilePath)
-                ? "Markdown file"
+                ? _localization.GetString("Annot_MarkdownFile")
                 : Path.GetFileName(result.FilePath);
-            StatusMessage = $"Exported {TotalCount} annotations to {fileName}";
+            StatusMessage = TotalCount == 1
+                ? _localization.GetString("Annot_ExportedOne", fileName)
+                : _localization.GetString("Annot_ExportedMany", TotalCount, fileName);
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to export annotations");
-            StatusMessage = "Export failed";
+            StatusMessage = _localization.GetString("Annot_ExportFailed");
         }
     }
 

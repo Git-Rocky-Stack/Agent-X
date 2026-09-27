@@ -696,6 +696,36 @@
   <data name="Inbox_ResolvedFocusedQueued" xml:space="preserve"><value>已解决聚焦的收件项：已接受并加入索引队列。</value></data>
   <data name="Inbox_ResolvedFocusedLinked" xml:space="preserve"><value>已解决聚焦的收件项：已接受并关联到 Knowledge Vault 中已有的相同文档。</value></data>
   <data name="Inbox_ResolvedFocusedAlreadyAccepted" xml:space="preserve"><value>已解决聚焦的收件项：确认其已被接受。</value></data>
+  <data name="Annot_LoadFailed" xml:space="preserve"><value>无法加载注释</value></data>
+  <data name="Annot_UnknownDocument" xml:space="preserve"><value>未知</value></data>
+  <data name="Annot_Updated" xml:space="preserve"><value>注释已更新</value></data>
+  <data name="Annot_UpdateFailed" xml:space="preserve"><value>无法更新注释</value></data>
+  <data name="Annot_Deleted" xml:space="preserve"><value>注释已删除</value></data>
+  <data name="Annot_DeleteFailed" xml:space="preserve"><value>无法删除注释</value></data>
+  <data name="Annot_ExportUnavailable" xml:space="preserve"><value>无法导出</value></data>
+  <data name="Annot_ExportCancelled" xml:space="preserve"><value>已取消导出</value></data>
+  <data name="Annot_MarkdownFile" xml:space="preserve"><value>Markdown 文件</value></data>
+  <data name="Annot_ExportedOne" xml:space="preserve"><value>已将 1 条注释导出到 {0}</value></data>
+  <data name="Annot_ExportedMany" xml:space="preserve"><value>已将 {0} 条注释导出到 {1}</value></data>
+  <data name="Annot_ExportFailed" xml:space="preserve"><value>导出失败</value></data>
+  <data name="QuickChat_Ready" xml:space="preserve"><value>就绪</value></data>
+  <data name="QuickChat_Thinking" xml:space="preserve"><value>正在思考...</value></data>
+  <data name="QuickChat_NoResponse" xml:space="preserve"><value>未收到回复</value></data>
+  <data name="QuickChat_Done" xml:space="preserve"><value>完成</value></data>
+  <data name="QuickChat_Cancelled" xml:space="preserve"><value>已取消</value></data>
+  <data name="QuickChat_Error" xml:space="preserve"><value>错误</value></data>
+  <data name="QuickChat_ResponseFailed" xml:space="preserve"><value>无法获取回复：{0}</value></data>
+  <data name="ModelMgr_CheckingConnection" xml:space="preserve"><value>正在检查...</value></data>
+  <data name="ModelMgr_ConnectionFailed" xml:space="preserve"><value>连接失败</value></data>
+  <data name="ModelMgr_ConnectFailed" xml:space="preserve"><value>无法连接到 {0}。请在“设置”中检查 AI 提供商。</value></data>
+  <data name="ModelMgr_LoadModelsFailed" xml:space="preserve"><value>无法加载模型列表。请检查与 {0} 的连接。</value></data>
+  <data name="ModelMgr_PreparingDownload" xml:space="preserve"><value>正在准备下载 {0}...</value></data>
+  <data name="ModelMgr_Downloaded" xml:space="preserve"><value>已成功下载 {0}</value></data>
+  <data name="ModelMgr_DownloadCancelled" xml:space="preserve"><value>下载已取消</value></data>
+  <data name="ModelMgr_DownloadFailedStatus" xml:space="preserve"><value>下载失败：{0}</value></data>
+  <data name="ModelMgr_DownloadFailed" xml:space="preserve"><value>无法下载 {0}。请确保 {1} 可用且模型名称正确。</value></data>
+  <data name="ModelMgr_DeleteFailed" xml:space="preserve"><value>无法删除模型。{0}</value></data>
+  <data name="ModelMgr_SetActiveFailed" xml:space="preserve"><value>无法设置当前模型。{0}</value></data>
   <data name="Inbox_TargetCollectionOverline.Text" xml:space="preserve"><value>目标合集</value></data>
   <data name="Inbox_AutoSuggestPlaceholder.PlaceholderText" xml:space="preserve"><value>自动建议</value></data>
   <data name="Inbox_ActionsOverline.Text" xml:space="preserve"><value>操作</value></data>

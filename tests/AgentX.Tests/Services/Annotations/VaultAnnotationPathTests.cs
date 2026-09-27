@@ -92,7 +92,7 @@ public sealed class VaultAnnotationPathTests : IDisposable
         stored.Color.Should().Be("yellow");
         preview.Annotations.Should().ContainSingle().Which.Id.Should().Be(stored.Id);
 
-        var annotationsPage = new AnnotationsViewModel(service);
+        var annotationsPage = new AnnotationsViewModel(service, EnglishResources.Create());
         await annotationsPage.InitializeAsync();
 
         annotationsPage.TotalCount.Should().Be(1);
