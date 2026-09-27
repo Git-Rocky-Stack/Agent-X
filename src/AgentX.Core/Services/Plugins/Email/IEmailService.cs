@@ -20,7 +20,8 @@ public interface IEmailService
     Task<SyncResult> SyncMessagesAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Lists available mail folders from all connected providers.
+    /// Lists the mail folders of every connected account, whether or not sync is on. A provider
+    /// that cannot be reached is left out (and logged) rather than failing the whole list.
     /// </summary>
     Task<IReadOnlyList<EmailFolderInfo>> ListAvailableFoldersAsync(CancellationToken cancellationToken = default);
 

@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:AgentX.App.Controls"
     xmlns:c="using:AgentX.App.Converters"
+    xmlns:vm="using:AgentX.App.ViewModels"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
@@ -169,6 +170,66 @@
                     <ToggleSwitch x:Uid="EmailSet_IncludeAttachmentNamesIn" Header="Include attachment names in search index"
                                   IsOn="{x:Bind ViewModel.IncludeAttachmentNames, Mode=TwoWay}"
                                   OffContent="Exclude" OnContent="Include"/>
+
+                    <!-- Folders to sync: the folders of the connected accounts, saved per folder id -->
+                    <StackPanel Spacing="8">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="4">
+                                <TextBlock x:Uid="EmailSet_FoldersToSync" Text="Folders to sync"
+                                           Style="{StaticResource LabelStyle}"/>
+                                <TextBlock x:Uid="EmailSet_FoldersToSyncHint" Text="Mail is read only from the selected folders. By default, only the inbox is selected."
+                                           Style="{StaticResource CaptionStyle}"
+                                           TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <Button Grid.Column="1"
+                                    x:Uid="EmailSet_RefreshFolders" Content="Refresh folders"
+                                    Command="{x:Bind ViewModel.RefreshFoldersCommand, Mode=OneWay}"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    VerticalAlignment="Top"/>
+                        </Grid>
+
+                        <Border Style="{StaticResource CardInsetStyle}" Padding="12">
+                            <Grid>
+                                <ScrollViewer MaxHeight="240"
+                                              VerticalScrollBarVisibility="Auto"
+                                              Visibility="{x:Bind ViewModel.HasFolders, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                                    <ItemsRepeater ItemsSource="{x:Bind ViewModel.Folders, Mode=OneWay}">
+                                        <ItemsRepeater.Layout>
+                                            <StackLayout Spacing="8"/>
+                                        </ItemsRepeater.Layout>
+                                        <ItemsRepeater.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:EmailFolderSelectionItem">
+                                                <CheckBox IsChecked="{x:Bind IsSelected, Mode=TwoWay}"
+                                                          AutomationProperties.Name="{x:Bind Name}">
+                                                    <StackPanel Spacing="2">
+                                                        <TextBlock Text="{x:Bind Name}"
+                                                                   Style="{StaticResource BodyStyle}"/>
+                                                        <TextBlock Text="{x:Bind Accounts}"
+                                                                   Style="{StaticResource CaptionStyle}"/>
+                                                    </StackPanel>
+                                                </CheckBox>
+                                            </DataTemplate>
+                                        </ItemsRepeater.ItemTemplate>
+                                    </ItemsRepeater>
+                                </ScrollViewer>
+
+                                <TextBlock x:Uid="EmailSet_NoFolders" Text="No folders to show. Connect an account above, then refresh the folders."
+                                           Style="{StaticResource CaptionStyle}"
+                                           TextWrapping="Wrap"
+                                           Visibility="{x:Bind ViewModel.ShowNoFoldersHint, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"/>
+                            </Grid>
+                        </Border>
+
+                        <TextBlock x:Uid="EmailSet_NoFolderSelected" Text="No folder is selected, so no mail will be synced."
+                                   Style="{StaticResource CaptionStyle}"
+                                   Foreground="{ThemeResource LedNoGoTextBrush}"
+                                   TextWrapping="Wrap"
+                                   Visibility="{x:Bind ViewModel.IsFolderSelectionEmpty, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"/>
+                    </StackPanel>
                 </StackPanel>
             </controls:Faceplate>
 

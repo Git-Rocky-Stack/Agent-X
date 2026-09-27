@@ -199,35 +199,57 @@ public sealed class EmailPlugin : IPlugin
         _log.Information("EmailPlugin disposed");
     }
 
+    /// <summary>
+    /// Providers for the accounts connected now, to list their folders. They are built from the
+    /// current credentials rather than taken from the registered providers, which exist only
+    /// while sync is on and only for the accounts connected when it was turned on; the settings
+    /// page offers folders as soon as an account is connected.
+    /// </summary>
+    public async Task<IReadOnlyList<IEmailProvider>> GetProvidersForFolderListingAsync()
+    {
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
+        return await CreateProvidersAsync().ConfigureAwait(false);
+    }
+
     // ── Internal: provider registration ────────────────────────────────────────
 
     private async Task RegisterProvidersAsync()
     {
         _providers.Clear();
+        _providers.AddRange(await CreateProvidersAsync().ConfigureAwait(false));
+
+        foreach (var provider in _providers)
+            _log.Information("Email provider {ProviderId} registered", provider.ProviderId);
+    }
+
+    /// <summary>A provider for each account that has a stored OAuth credential.</summary>
+    private async Task<List<IEmailProvider>> CreateProvidersAsync()
+    {
+        var providers = new List<IEmailProvider>();
 
         if (_oauthService is null)
         {
             _log.Warning("IOAuthService not available — no email providers can be registered");
-            return;
+            return providers;
         }
 
-        // Register Google provider if credential exists.
+        // Google provider if a credential exists.
         var googleCred = await _oauthService.GetCredentialAsync("google").ConfigureAwait(false);
         if (googleCred is not null)
         {
             var googleScopes = "https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/userinfo.profile";
-            _providers.Add(new GmailProvider(_oauthService, _log, googleScopes));
-            _log.Information("GmailProvider registered");
+            providers.Add(new GmailProvider(_oauthService, _log, googleScopes));
         }
 
-        // Register Microsoft provider if credential exists.
+        // Microsoft provider if a credential exists.
         var msCred = await _oauthService.GetCredentialAsync("microsoft").ConfigureAwait(false);
         if (msCred is not null)
         {
             var msScopes = "Mail.Read User.Read";
-            _providers.Add(new OutlookEmailProvider(_oauthService, _log, msScopes));
-            _log.Information("OutlookEmailProvider registered");
+            providers.Add(new OutlookEmailProvider(_oauthService, _log, msScopes));
         }
+
+        return providers;
     }
 
     // ── Internal: sync cycle ───────────────────────────────────────────────────

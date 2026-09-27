@@ -1739,6 +1739,11 @@
   <data name="EmailSet_IncludeAttachmentNamesIn.Header" xml:space="preserve"><value>Anhangsnamen in Suchindex aufnehmen</value></data>
   <data name="EmailSet_IncludeAttachmentNamesIn.OffContent" xml:space="preserve"><value>Ausschließen</value></data>
   <data name="EmailSet_IncludeAttachmentNamesIn.OnContent" xml:space="preserve"><value>Einschließen</value></data>
+  <data name="EmailSet_FoldersToSync.Text" xml:space="preserve"><value>Zu synchronisierende Ordner</value></data>
+  <data name="EmailSet_FoldersToSyncHint.Text" xml:space="preserve"><value>E-Mails werden nur aus den ausgewählten Ordnern gelesen. Standardmäßig ist nur der Posteingang ausgewählt.</value></data>
+  <data name="EmailSet_RefreshFolders.Content" xml:space="preserve"><value>Ordner aktualisieren</value></data>
+  <data name="EmailSet_NoFolders.Text" xml:space="preserve"><value>Keine Ordner vorhanden. Verbinden Sie oben ein Konto und aktualisieren Sie dann die Ordner.</value></data>
+  <data name="EmailSet_NoFolderSelected.Text" xml:space="preserve"><value>Es ist kein Ordner ausgewählt, daher werden keine E-Mails synchronisiert.</value></data>
   <data name="EmailSet_SaveSettings.Content" xml:space="preserve"><value>Einstellungen speichern</value></data>
   <data name="EmailSet_SyncNow.Content" xml:space="preserve"><value>Jetzt synchronisieren</value></data>
   <data name="EmailSet_LastSynced.Text" xml:space="preserve"><value>Zuletzt synchronisiert</value></data>

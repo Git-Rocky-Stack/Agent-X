@@ -1739,6 +1739,11 @@
   <data name="EmailSet_IncludeAttachmentNamesIn.Header" xml:space="preserve"><value>将附件名称纳入搜索索引</value></data>
   <data name="EmailSet_IncludeAttachmentNamesIn.OffContent" xml:space="preserve"><value>不包含</value></data>
   <data name="EmailSet_IncludeAttachmentNamesIn.OnContent" xml:space="preserve"><value>包含</value></data>
+  <data name="EmailSet_FoldersToSync.Text" xml:space="preserve"><value>要同步的文件夹</value></data>
+  <data name="EmailSet_FoldersToSyncHint.Text" xml:space="preserve"><value>仅从所选文件夹读取邮件。默认情况下仅选择收件箱。</value></data>
+  <data name="EmailSet_RefreshFolders.Content" xml:space="preserve"><value>刷新文件夹</value></data>
+  <data name="EmailSet_NoFolders.Text" xml:space="preserve"><value>没有可显示的文件夹。请先在上方连接账户，然后刷新文件夹。</value></data>
+  <data name="EmailSet_NoFolderSelected.Text" xml:space="preserve"><value>未选择任何文件夹，因此不会同步任何邮件。</value></data>
   <data name="EmailSet_SaveSettings.Content" xml:space="preserve"><value>保存设置</value></data>
   <data name="EmailSet_SyncNow.Content" xml:space="preserve"><value>立即同步</value></data>
   <data name="EmailSet_LastSynced.Text" xml:space="preserve"><value>上次同步</value></data>

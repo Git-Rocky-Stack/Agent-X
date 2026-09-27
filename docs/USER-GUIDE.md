@@ -977,6 +977,7 @@ Email sync supports:
 - Sync interval selection.
 - Maximum messages per sync.
 - Days-back sync window.
+- Folder selection: the folders of every connected account are listed once an account is connected, and mail is read only from the checked folders (only the inbox by default). The Gmail and Outlook inboxes share one entry.
 - Last sync and next sync indicators.
 
 Each synced event or message is added to the Smart Inbox as an already-accepted item and imported into the vault as a searchable document, and Operations shows connector health.

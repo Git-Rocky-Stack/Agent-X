@@ -1861,6 +1861,11 @@
   <data name="EmailSet_IncludeAttachmentNamesIn.Header" xml:space="preserve"><value>Include attachment names in search index</value></data>
   <data name="EmailSet_IncludeAttachmentNamesIn.OffContent" xml:space="preserve"><value>Exclude</value></data>
   <data name="EmailSet_IncludeAttachmentNamesIn.OnContent" xml:space="preserve"><value>Include</value></data>
+  <data name="EmailSet_FoldersToSync.Text" xml:space="preserve"><value>Folders to sync</value></data>
+  <data name="EmailSet_FoldersToSyncHint.Text" xml:space="preserve"><value>Mail is read only from the selected folders. By default, only the inbox is selected.</value></data>
+  <data name="EmailSet_RefreshFolders.Content" xml:space="preserve"><value>Refresh folders</value></data>
+  <data name="EmailSet_NoFolders.Text" xml:space="preserve"><value>No folders to show. Connect an account above, then refresh the folders.</value></data>
+  <data name="EmailSet_NoFolderSelected.Text" xml:space="preserve"><value>No folder is selected, so no mail will be synced.</value></data>
   <data name="EmailSet_SaveSettings.Content" xml:space="preserve"><value>Save Settings</value></data>
   <data name="EmailSet_SyncNow.Content" xml:space="preserve"><value>Sync Now</value></data>
   <data name="EmailSet_LastSynced.Text" xml:space="preserve"><value>Last synced</value></data>

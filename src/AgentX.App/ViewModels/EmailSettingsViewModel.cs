@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using AgentX.App.Services;
 using AgentX.Core.Services.OAuth;
 using AgentX.Core.Services.Plugins.Calendar.Models;
@@ -34,6 +35,13 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
         _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
         _connectorLifecycle = connectorLifecycle ?? throw new ArgumentNullException(nameof(connectorLifecycle));
         _log = (logger ?? throw new ArgumentNullException(nameof(logger))).ForContext<EmailSettingsViewModel>();
+
+        Folders.CollectionChanged += (_, _) =>
+        {
+            OnPropertyChanged(nameof(HasFolders));
+            OnPropertyChanged(nameof(ShowNoFoldersHint));
+            OnPropertyChanged(nameof(IsFolderSelectionEmpty));
+        };
     }
 
     // ── Observable properties ──────────────────────────────────────────────────
@@ -97,6 +105,29 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
     /// </summary>
     public List<int> SyncIntervalOptions { get; } = [5, 10, 15, 30, 60];
 
+    /// <summary>
+    /// The mail folders of the connected accounts, and whether each is synced. The selection is
+    /// saved per folder id and applies to every account with that id: Gmail and Outlook both
+    /// report their inbox as <see cref="IEmailProvider.InboxFolderId"/>, so one entry stands for
+    /// both inboxes.
+    /// </summary>
+    public ObservableCollection<EmailFolderSelectionItem> Folders { get; } = new();
+
+    [ObservableProperty]
+    private bool _isLoadingFolders;
+
+    /// <summary>True when the connected accounts reported at least one folder.</summary>
+    public bool HasFolders => Folders.Count > 0;
+
+    /// <summary>
+    /// True when there is no folder to show and none is being read, so the page can say how to
+    /// get some without flashing that hint while the list loads.
+    /// </summary>
+    public bool ShowNoFoldersHint => !HasFolders && !IsLoadingFolders;
+
+    /// <summary>True when folders are listed but none is selected, so a sync would read no mail.</summary>
+    public bool IsFolderSelectionEmpty => Folders.Count > 0 && !Folders.Any(folder => folder.IsSelected);
+
     // ── Initialization ─────────────────────────────────────────────────────────
 
     public async Task InitializeAsync()
@@ -118,6 +149,7 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
             if (SyncIntervalIndex < 0) SyncIntervalIndex = 1;
 
             await CheckConnectionStatusAsync();
+            await RefreshFoldersAsync();
         }
         catch (Exception ex)
         {
@@ -146,6 +178,7 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
                 scopes: "https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/userinfo.profile");
 
             await CheckConnectionStatusAsync();
+            await RefreshFoldersAsync();
             _log.Information("Gmail connected successfully");
         }
         catch (OperationCanceledException)
@@ -187,6 +220,7 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
                 scopes: "offline_access Mail.Read User.Read");
 
             await CheckConnectionStatusAsync();
+            await RefreshFoldersAsync();
             _log.Information("Outlook Email connected successfully");
         }
         catch (OperationCanceledException)
@@ -223,6 +257,7 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
         {
             await _oauthService.RevokeAsync("google");
             await CheckConnectionStatusAsync();
+            await RefreshFoldersAsync();
             _log.Information("Gmail disconnected");
         }
         catch (Exception ex)
@@ -247,6 +282,7 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
         {
             await _oauthService.RevokeAsync("microsoft");
             await CheckConnectionStatusAsync();
+            await RefreshFoldersAsync();
             _log.Information("Outlook Email disconnected");
         }
         catch (Exception ex)
@@ -324,7 +360,84 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// Lists the folders of the connected accounts. A folder already on the page keeps its check,
+    /// even when that change is not saved yet; a folder new to the page shows its saved setting.
+    /// When the accounts cannot be read the list stays as it was.
+    /// </summary>
+    [RelayCommand]
+    private async Task RefreshFoldersAsync()
+    {
+        IsLoadingFolders = true;
+
+        try
+        {
+            var syncSettings = await _emailService.GetSyncSettingsAsync();
+            var folders = await _emailService.ListAvailableFoldersAsync();
+            ApplyFolders(folders ?? [], syncSettings.EnabledFolders);
+        }
+        catch (Exception ex)
+        {
+            _log.Warning(ex, "Failed to list email folders");
+        }
+        finally
+        {
+            IsLoadingFolders = false;
+        }
+    }
+
     // ── Private helpers ─────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Replaces the folder list with <paramref name="folders"/>: one entry per folder id, the
+    /// inbox first and the rest by name.
+    /// </summary>
+    private void ApplyFolders(IReadOnlyList<EmailFolderInfo> folders, IReadOnlyDictionary<string, bool> savedSelection)
+    {
+        var shownSelection = Folders.ToDictionary(folder => folder.Id, folder => folder.IsSelected, StringComparer.Ordinal);
+
+        var items = folders
+            .Where(folder => !string.IsNullOrWhiteSpace(folder.Id))
+            .GroupBy(folder => folder.Id, StringComparer.Ordinal)
+            .Select(reports =>
+            {
+                var isSelected = shownSelection.TryGetValue(reports.Key, out var shown)
+                    ? shown
+                    : savedSelection.TryGetValue(reports.Key, out var saved) && saved;
+                return new EmailFolderSelectionItem(
+                    reports.Key, ReadableName(reports), AccountNames(reports), isSelected, OnFolderSelectionChanged);
+            })
+            .OrderBy(item => item.Id == IEmailProvider.InboxFolderId ? 0 : 1)
+            .ThenBy(item => item.Name, StringComparer.CurrentCultureIgnoreCase)
+            .ToList();
+
+        Folders.Clear();
+        foreach (var item in items)
+            Folders.Add(item);
+    }
+
+    private void OnFolderSelectionChanged() => OnPropertyChanged(nameof(IsFolderSelectionEmpty));
+
+    /// <summary>
+    /// The folder's name, preferring one that is not all capitals: Gmail names its system labels
+    /// by their ids ("INBOX"), while Outlook reports "Inbox" for the same shared entry.
+    /// </summary>
+    private static string ReadableName(IEnumerable<EmailFolderInfo> reports)
+    {
+        var names = reports.Select(folder => string.IsNullOrWhiteSpace(folder.Name) ? folder.Id : folder.Name).ToList();
+        return names.FirstOrDefault(name => name.Any(char.IsLower)) ?? names[0];
+    }
+
+    /// <summary>The accounts that report a folder, by product name ("Gmail", "Outlook").</summary>
+    private static string AccountNames(IEnumerable<EmailFolderInfo> reports) =>
+        string.Join(", ", reports
+            .Select(folder => folder.SourceProvider switch
+            {
+                "google" => "Gmail",
+                "microsoft" => "Outlook",
+                var other => other,
+            })
+            .Distinct(StringComparer.Ordinal));
 
     private async Task PersistConnectorSettingsAsync(bool refreshLifecycle)
     {
@@ -344,9 +457,18 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
         syncSettings.SyncDaysBack = SyncDaysBack;
         syncSettings.IncludeAttachmentNames = IncludeAttachmentNames;
 
-        if (!syncSettings.EnabledFolders.Any(kv => kv.Value))
+        if (Folders.Count > 0)
         {
-            syncSettings.EnabledFolders["INBOX"] = true;
+            // Each listed folder is saved as checked, an empty selection included (the page warns
+            // about it). A folder not listed now, such as one of an account that could not be
+            // reached, keeps its saved setting.
+            foreach (var folder in Folders)
+                syncSettings.EnabledFolders[folder.Id] = folder.IsSelected;
+        }
+        else if (!syncSettings.EnabledFolders.Any(kv => kv.Value))
+        {
+            // No folders to choose from yet: the inbox, as by default.
+            syncSettings.EnabledFolders[IEmailProvider.InboxFolderId] = true;
         }
 
         await _emailService.UpdateSyncSettingsAsync(syncSettings);
@@ -386,6 +508,8 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
         UpdateNextSyncTime();
     }
 
+    partial void OnIsLoadingFoldersChanged(bool value) => OnPropertyChanged(nameof(ShowNoFoldersHint));
+
     partial void OnSyncIntervalIndexChanged(int value)
     {
         if (value >= 0 && value < SyncIntervalOptions.Count)
@@ -407,4 +531,34 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
     {
         return $"Added {result.ItemsAdded}, updated {result.ItemsUpdated}, skipped {result.ItemsSkipped}, failed {result.ItemsFailed}";
     }
+}
+
+/// <summary>
+/// One mail folder on the Email settings page: its id, a readable name, the accounts that have
+/// it, and whether it is synced.
+/// </summary>
+public sealed partial class EmailFolderSelectionItem : ObservableObject
+{
+    private readonly Action _selectionChanged;
+
+    public EmailFolderSelectionItem(string id, string name, string accounts, bool isSelected, Action selectionChanged)
+    {
+        Id = id;
+        Name = name;
+        Accounts = accounts;
+        _isSelected = isSelected;
+        _selectionChanged = selectionChanged;
+    }
+
+    /// <summary>The folder id the sync settings are keyed by.</summary>
+    public string Id { get; }
+
+    public string Name { get; }
+
+    /// <summary>The accounts that have this folder, such as "Gmail" or "Gmail, Outlook".</summary>
+    public string Accounts { get; }
+
+    [ObservableProperty] private bool _isSelected;
+
+    partial void OnIsSelectedChanged(bool value) => _selectionChanged();
 }

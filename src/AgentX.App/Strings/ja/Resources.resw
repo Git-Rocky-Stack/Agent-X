@@ -1739,6 +1739,11 @@
   <data name="EmailSet_IncludeAttachmentNamesIn.Header" xml:space="preserve"><value>添付ファイル名を検索インデックスに含める</value></data>
   <data name="EmailSet_IncludeAttachmentNamesIn.OffContent" xml:space="preserve"><value>含めない</value></data>
   <data name="EmailSet_IncludeAttachmentNamesIn.OnContent" xml:space="preserve"><value>含める</value></data>
+  <data name="EmailSet_FoldersToSync.Text" xml:space="preserve"><value>同期するフォルダー</value></data>
+  <data name="EmailSet_FoldersToSyncHint.Text" xml:space="preserve"><value>メールは選択したフォルダーからのみ読み込まれます。既定では受信トレイのみが選択されています。</value></data>
+  <data name="EmailSet_RefreshFolders.Content" xml:space="preserve"><value>フォルダーを更新</value></data>
+  <data name="EmailSet_NoFolders.Text" xml:space="preserve"><value>表示するフォルダーがありません。上でアカウントを接続してから、フォルダーを更新してください。</value></data>
+  <data name="EmailSet_NoFolderSelected.Text" xml:space="preserve"><value>フォルダーが選択されていないため、メールは同期されません。</value></data>
   <data name="EmailSet_SaveSettings.Content" xml:space="preserve"><value>設定を保存</value></data>
   <data name="EmailSet_SyncNow.Content" xml:space="preserve"><value>今すぐ同期</value></data>
   <data name="EmailSet_LastSynced.Text" xml:space="preserve"><value>前回の同期</value></data>

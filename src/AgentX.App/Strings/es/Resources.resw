@@ -1739,6 +1739,11 @@
   <data name="EmailSet_IncludeAttachmentNamesIn.Header" xml:space="preserve"><value>Incluir nombres de adjuntos en el índice de búsqueda</value></data>
   <data name="EmailSet_IncludeAttachmentNamesIn.OffContent" xml:space="preserve"><value>Excluir</value></data>
   <data name="EmailSet_IncludeAttachmentNamesIn.OnContent" xml:space="preserve"><value>Incluir</value></data>
+  <data name="EmailSet_FoldersToSync.Text" xml:space="preserve"><value>Carpetas que se sincronizan</value></data>
+  <data name="EmailSet_FoldersToSyncHint.Text" xml:space="preserve"><value>El correo solo se lee de las carpetas seleccionadas. De forma predeterminada, solo está seleccionada la bandeja de entrada.</value></data>
+  <data name="EmailSet_RefreshFolders.Content" xml:space="preserve"><value>Actualizar carpetas</value></data>
+  <data name="EmailSet_NoFolders.Text" xml:space="preserve"><value>No hay carpetas que mostrar. Conecte una cuenta arriba y luego actualice las carpetas.</value></data>
+  <data name="EmailSet_NoFolderSelected.Text" xml:space="preserve"><value>No hay ninguna carpeta seleccionada, así que no se sincronizará ningún correo.</value></data>
   <data name="EmailSet_SaveSettings.Content" xml:space="preserve"><value>Guardar configuración</value></data>
   <data name="EmailSet_SyncNow.Content" xml:space="preserve"><value>Sincronizar ahora</value></data>
   <data name="EmailSet_LastSynced.Text" xml:space="preserve"><value>Última sincronización</value></data>

@@ -181,6 +181,197 @@ public sealed class EmailSettingsViewModelTests
             .Should().Be((true, "Connected"));
     }
 
+    // -- Folder selection -----------------------------------------------------------
+
+    private static List<EmailFolderInfo> TwoAccountsFolders() =>
+    [
+        new() { Id = "INBOX", Name = "INBOX", SourceProvider = "google" },
+        new() { Id = "Label_7", Name = "Receipts", SourceProvider = "google" },
+        new() { Id = "INBOX", Name = "Inbox", SourceProvider = "microsoft" },
+        new() { Id = "AAMkProjects", Name = "Projects", SourceProvider = "microsoft" },
+        new() { Id = "", Name = "No id", SourceProvider = "microsoft" },
+    ];
+
+    /// <summary>
+    /// A view model over two connected accounts whose saved selection syncs the inbox and
+    /// Projects, not Receipts, plus a label no account lists any more.
+    /// </summary>
+    private static (EmailSettingsViewModel Vm, Mock<IEmailService> Email, List<EmailSyncSettings> Saved) CreateWithFolders(
+        Dictionary<string, bool>? savedFolders = null,
+        List<EmailFolderInfo>? folders = null)
+    {
+        savedFolders ??= new() { ["INBOX"] = true, ["Label_7"] = false, ["AAMkProjects"] = true, ["Label_gone"] = true };
+        var settings = new Mock<ISettingsService>();
+        settings.Setup(s => s.GetSettingsAsync()).ReturnsAsync(new AppSettings());
+        var email = new Mock<IEmailService>();
+        email.Setup(e => e.GetSyncSettingsAsync())
+            .ReturnsAsync(() => new EmailSyncSettings { EnabledFolders = new Dictionary<string, bool>(savedFolders) });
+        email.Setup(e => e.ListAvailableFoldersAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(folders ?? TwoAccountsFolders());
+        var saved = new List<EmailSyncSettings>();
+        email.Setup(e => e.UpdateSyncSettingsAsync(It.IsAny<EmailSyncSettings>()))
+            .Callback((EmailSyncSettings s) => saved.Add(s))
+            .Returns(Task.CompletedTask);
+
+        var vm = new EmailSettingsViewModel(
+            settings.Object, Mock.Of<IOAuthService>(), email.Object,
+            Mock.Of<IBuiltinConnectorLifecycleService>(), Logger.None);
+        return (vm, email, saved);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_ListsEachFolderOnce_InboxFirst_WithTheSavedSelection()
+    {
+        var (vm, _, _) = CreateWithFolders();
+
+        await vm.InitializeAsync();
+
+        // Both accounts report their inbox as INBOX, and the selection is keyed by folder id,
+        // so one entry stands for both.
+        vm.Folders.Select(f => (f.Id, f.Name, f.Accounts, f.IsSelected)).Should().Equal(
+            ("INBOX", "Inbox", "Gmail, Outlook", true),
+            ("AAMkProjects", "Projects", "Outlook", true),
+            ("Label_7", "Receipts", "Gmail", false));
+        vm.HasFolders.Should().BeTrue();
+        vm.IsFolderSelectionEmpty.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task SaveSettingsCommand_SavesEachListedFolderAsChecked_AndKeepsFoldersNotListed()
+    {
+        var (vm, _, saved) = CreateWithFolders();
+        await vm.InitializeAsync();
+
+        vm.Folders.Single(f => f.Id == "Label_7").IsSelected = true;
+        vm.Folders.Single(f => f.Id == "INBOX").IsSelected = false;
+        await vm.SaveSettingsCommand.ExecuteAsync(null);
+
+        saved.Single().EnabledFolders.Should().BeEquivalentTo(new Dictionary<string, bool>
+        {
+            ["INBOX"] = false,
+            ["Label_7"] = true,
+            ["AAMkProjects"] = true,
+            ["Label_gone"] = true, // an account that could not be listed keeps its setting
+        });
+    }
+
+    [Fact]
+    public async Task ClearingEveryFolder_Warns_AndIsSavedAsShownRatherThanReplacedByTheInbox()
+    {
+        var (vm, _, saved) = CreateWithFolders();
+        await vm.InitializeAsync();
+        var changed = new List<string?>();
+        vm.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+
+        foreach (var folder in vm.Folders)
+            folder.IsSelected = false;
+        await vm.SaveSettingsCommand.ExecuteAsync(null);
+
+        vm.IsFolderSelectionEmpty.Should().BeTrue();
+        changed.Should().Contain(nameof(EmailSettingsViewModel.IsFolderSelectionEmpty));
+        saved.Single().EnabledFolders
+            .Where(kv => kv.Key != "Label_gone")
+            .Should().OnlyContain(kv => !kv.Value, "the page shows no folder checked, so none is saved as synced");
+    }
+
+    [Fact]
+    public async Task SaveSettingsCommand_WithoutAFolderList_KeepsTheInboxAsTheDefault()
+    {
+        var (vm, _, saved) = CreateWithFolders(new() { ["INBOX"] = false }, folders: []);
+        await vm.InitializeAsync();
+
+        await vm.SaveSettingsCommand.ExecuteAsync(null);
+
+        vm.HasFolders.Should().BeFalse();
+        vm.IsFolderSelectionEmpty.Should().BeFalse("there is nothing to choose from yet");
+        saved.Single().EnabledFolders["INBOX"].Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task RefreshFoldersCommand_KeepsUnsavedChecks_AndAddsNewFoldersWithTheirSavedSetting()
+    {
+        var folders = TwoAccountsFolders();
+        var (vm, _, _) = CreateWithFolders(folders: folders);
+        await vm.InitializeAsync();
+        vm.Folders.Single(f => f.Id == "INBOX").IsSelected = false;
+
+        folders.Add(new EmailFolderInfo { Id = "Label_gone", Name = "Old project", SourceProvider = "google" });
+        await vm.RefreshFoldersCommand.ExecuteAsync(null);
+
+        vm.Folders.Single(f => f.Id == "INBOX").IsSelected.Should().BeFalse();
+        vm.Folders.Single(f => f.Id == "Label_gone").IsSelected.Should().BeTrue();
+        vm.IsLoadingFolders.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task ShowNoFoldersHint_StaysHiddenWhileTheListLoads()
+    {
+        var (vm, email, _) = CreateWithFolders();
+        var pending = new TaskCompletionSource<IReadOnlyList<EmailFolderInfo>>();
+        email.Setup(e => e.ListAvailableFoldersAsync(It.IsAny<CancellationToken>())).Returns(pending.Task);
+
+        var refresh = vm.RefreshFoldersCommand.ExecuteAsync(null);
+        vm.IsLoadingFolders.Should().BeTrue();
+        vm.ShowNoFoldersHint.Should().BeFalse("the hint says there are no folders, which is not known yet");
+
+        pending.SetResult([]);
+        await refresh;
+
+        vm.ShowNoFoldersHint.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task RefreshFoldersCommand_WhenTheAccountsCannotBeRead_KeepsTheList()
+    {
+        var (vm, email, _) = CreateWithFolders();
+        await vm.InitializeAsync();
+        email.Setup(e => e.ListAvailableFoldersAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new HttpRequestException("offline"));
+
+        await vm.RefreshFoldersCommand.ExecuteAsync(null);
+
+        vm.Folders.Should().HaveCount(3);
+        vm.IsLoadingFolders.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task FolderLoading_WritesBoundPropertiesOnlyOnTheUiThread()
+    {
+        var settings = new Mock<ISettingsService>();
+        var oauth = new Mock<IOAuthService>();
+        var email = new Mock<IEmailService>();
+        settings.Setup(s => s.GetSettingsAsync()).Returns(() => Later(new AppSettings()));
+        oauth.Setup(o => o.AuthorizeAsync(It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .Returns(() => Later(new OAuthCredential { AccessToken = "a", RefreshToken = "r" }));
+        oauth.Setup(o => o.GetCredentialAsync(It.IsAny<string>()))
+            .Returns(() => Later<OAuthCredential?>(new OAuthCredential { AccessToken = "a", RefreshToken = "r" }));
+        email.Setup(e => e.GetSyncSettingsAsync()).Returns(() => Later(new EmailSyncSettings()));
+        email.Setup(e => e.ListAvailableFoldersAsync(It.IsAny<CancellationToken>()))
+            .Returns(() => Later<IReadOnlyList<EmailFolderInfo>>(TwoAccountsFolders()));
+
+        var vm = new EmailSettingsViewModel(
+            settings.Object, oauth.Object, email.Object,
+            Mock.Of<IBuiltinConnectorLifecycleService>(), Logger.None);
+
+        using var ui = new SingleThreadSynchronizationContext();
+        var offThreadWrites = new ConcurrentQueue<string>();
+        vm.PropertyChanged += (_, e) =>
+        {
+            if (Environment.CurrentManagedThreadId != ui.ThreadId)
+                offThreadWrites.Enqueue(e.PropertyName ?? "?");
+        };
+
+        await ui.RunAsync(() => vm.InitializeAsync());
+        await ui.RunAsync(() => vm.ConnectMicrosoftCommand.ExecuteAsync(null));
+        await ui.RunAsync(() => vm.RefreshFoldersCommand.ExecuteAsync(null));
+        await ui.RunAsync(() => vm.SaveSettingsCommand.ExecuteAsync(null));
+
+        offThreadWrites.Should().BeEmpty();
+        vm.Folders.Should().HaveCount(3);
+        email.Verify(e => e.ListAvailableFoldersAsync(It.IsAny<CancellationToken>()), Times.Exactly(3),
+            "the list is read on load, after connecting an account, and on refresh");
+    }
+
     [Fact]
     public async Task ConnectMicrosoftCommand_AsksForOfflineAccess()
     {

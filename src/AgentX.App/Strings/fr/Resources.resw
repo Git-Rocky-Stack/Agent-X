@@ -1739,6 +1739,11 @@
   <data name="EmailSet_IncludeAttachmentNamesIn.Header" xml:space="preserve"><value>Inclure les noms des pièces jointes dans l'index de recherche</value></data>
   <data name="EmailSet_IncludeAttachmentNamesIn.OffContent" xml:space="preserve"><value>Exclure</value></data>
   <data name="EmailSet_IncludeAttachmentNamesIn.OnContent" xml:space="preserve"><value>Inclure</value></data>
+  <data name="EmailSet_FoldersToSync.Text" xml:space="preserve"><value>Dossiers à synchroniser</value></data>
+  <data name="EmailSet_FoldersToSyncHint.Text" xml:space="preserve"><value>Les e-mails ne sont lus que dans les dossiers sélectionnés. Par défaut, seule la boîte de réception est sélectionnée.</value></data>
+  <data name="EmailSet_RefreshFolders.Content" xml:space="preserve"><value>Actualiser les dossiers</value></data>
+  <data name="EmailSet_NoFolders.Text" xml:space="preserve"><value>Aucun dossier à afficher. Connectez un compte ci-dessus, puis actualisez les dossiers.</value></data>
+  <data name="EmailSet_NoFolderSelected.Text" xml:space="preserve"><value>Aucun dossier n'est sélectionné, aucun e-mail ne sera donc synchronisé.</value></data>
   <data name="EmailSet_SaveSettings.Content" xml:space="preserve"><value>Enregistrer les paramètres</value></data>
   <data name="EmailSet_SyncNow.Content" xml:space="preserve"><value>Synchroniser maintenant</value></data>
   <data name="EmailSet_LastSynced.Text" xml:space="preserve"><value>Dernière synchronisation</value></data>
