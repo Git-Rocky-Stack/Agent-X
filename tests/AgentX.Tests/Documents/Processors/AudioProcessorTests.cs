@@ -1,3 +1,4 @@
+using AgentX.Core.Documents;
 using AgentX.Core.Documents.Processors;
 using AgentX.Core.Services.Audio;
 using AgentX.Core.Services.Audio.Models;
@@ -13,7 +14,8 @@ namespace AgentX.Tests.Documents.Processors;
 /// Like <see cref="WebProcessor"/>, this shipped fully implemented but unregistered, so no
 /// user ever reached it. These tests drive the real processor against real temp files with
 /// only <see cref="ITranscriptionService"/> mocked, and cover every degraded path: the
-/// Whisper runtime missing, the model not downloaded, cancellation, and unexpected faults.
+/// Whisper runtime missing, the model not downloaded, undecodable audio, cancellation, and
+/// unexpected faults. Each failure is a <see cref="DocumentExtractionException"/>.
 /// </para>
 /// </summary>
 public sealed class AudioProcessorTests : IDisposable
@@ -173,41 +175,66 @@ public sealed class AudioProcessorTests : IDisposable
     }
 
     // ── Degraded paths ───────────────────────────────────────────────────────
+    //
+    // A file that cannot be transcribed used to come back as a document holding a placeholder
+    // ("[Audio transcript unavailable ...]") or no text at all, which the pipeline chunked,
+    // embedded and indexed like a real transcript. Every such case now fails the extraction with
+    // a reason, the way the other processors do, and the import records a failed document.
 
     [Fact]
-    public async Task ProcessAsync_WhisperRuntimeMissing_IndexesAStubInsteadOfFailing()
-    {
-        var path = WriteAudio("runtime.mp3");
-        _transcription
-            .Setup(t => t.TranscribeFileAsync(path, It.IsAny<TranscriptionOptions?>(),
-                It.IsAny<IProgress<TranscriptionProgress>?>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NotSupportedException("Whisper.net runtime is not installed."));
-
-        var document = await _processor.ProcessAsync(path);
-
-        document.ExtractedText.Should().Contain("[Audio transcript unavailable");
-        document.WordCount.Should().Be(0);
-        document.ContentHash.Should().NotBeNullOrWhiteSpace();
-        document.Metadata.Custom["errorType"].Should().Be("RuntimeNotInstalled");
-    }
-
-    [Fact]
-    public async Task ProcessAsync_ModelNotDownloaded_IndexesAStubWithItsOwnErrorType()
+    public async Task ProcessAsync_ModelNotInstalled_FailsWithTheReasonToInstallIt()
     {
         var path = WriteAudio("model.mp3");
         _transcription
             .Setup(t => t.TranscribeFileAsync(path, It.IsAny<TranscriptionOptions?>(),
                 It.IsAny<IProgress<TranscriptionProgress>?>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new InvalidOperationException("Model base is not available locally."));
+            .ThrowsAsync(new TranscriptionModelMissingException("base", "/models/ggml-base.bin"));
 
-        var document = await _processor.ProcessAsync(path);
+        var act = () => _processor.ProcessAsync(path);
 
-        document.ExtractedText.Should().Contain("Whisper model not downloaded");
-        document.Metadata.Custom["errorType"].Should().Be("ModelNotDownloaded");
+        var thrown = await act.Should().ThrowAsync<DocumentExtractionException>();
+        thrown.Which.Message.Should().Be(AudioProcessor.SpeechModelMissingError);
+        thrown.Which.Message.Should().Contain("Model Manager page");
+        thrown.Which.InnerException.Should().BeOfType<TranscriptionModelMissingException>();
     }
 
     [Fact]
-    public async Task ProcessAsync_InvalidOperationWithoutTheNotAvailableMarker_FallsToTheGenericArm()
+    public async Task ProcessAsync_WhisperRuntimeUnavailable_FailsWithTheRuntimeReason()
+    {
+        var path = WriteAudio("runtime.mp3");
+        var unavailable = new TranscriptionRuntimeUnavailableException(
+            "The speech-to-text runtime could not be loaded on this computer: Native Library not found",
+            new FileNotFoundException("whisper.dll"));
+        _transcription
+            .Setup(t => t.TranscribeFileAsync(path, It.IsAny<TranscriptionOptions?>(),
+                It.IsAny<IProgress<TranscriptionProgress>?>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(unavailable);
+
+        var act = () => _processor.ProcessAsync(path);
+
+        var thrown = await act.Should().ThrowAsync<DocumentExtractionException>();
+        thrown.Which.Message.Should().Be(unavailable.Message);
+        thrown.Which.Message.Should().NotBe(AudioProcessor.SpeechModelMissingError,
+            "installing the model does not help when the runtime cannot load");
+    }
+
+    [Fact]
+    public async Task ProcessAsync_UndecodableAudio_FailsWithTheDecoderReason()
+    {
+        var path = WriteAudio("broken.m4a");
+        _transcription
+            .Setup(t => t.TranscribeFileAsync(path, It.IsAny<TranscriptionOptions?>(),
+                It.IsAny<IProgress<TranscriptionProgress>?>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new NotSupportedException("The audio in 'broken.m4a' could not be decoded."));
+
+        var act = () => _processor.ProcessAsync(path);
+
+        (await act.Should().ThrowAsync<DocumentExtractionException>())
+            .WithMessage("The audio in 'broken.m4a' could not be decoded.");
+    }
+
+    [Fact]
+    public async Task ProcessAsync_DamagedModel_FailsWithTheFileNamedInTheReason()
     {
         var path = WriteAudio("other.mp3");
         _transcription
@@ -215,15 +242,14 @@ public sealed class AudioProcessorTests : IDisposable
                 It.IsAny<IProgress<TranscriptionProgress>?>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("something else entirely"));
 
-        var document = await _processor.ProcessAsync(path);
+        var act = () => _processor.ProcessAsync(path);
 
-        document.ExtractedText.Should().BeEmpty();
-        document.Metadata.Custom["errorType"].Should().Be("InvalidOperationException");
-        document.Metadata.Custom["error"].Should().Be("something else entirely");
+        (await act.Should().ThrowAsync<DocumentExtractionException>())
+            .WithMessage("Could not transcribe 'other.mp3': something else entirely");
     }
 
     [Fact]
-    public async Task ProcessAsync_UnexpectedFault_RecordsTheExceptionTypeAndEmptiesText()
+    public async Task ProcessAsync_UnexpectedFault_FailsTheExtractionInsteadOfReturningEmptyText()
     {
         var path = WriteAudio("boom.wav");
         _transcription
@@ -231,10 +257,11 @@ public sealed class AudioProcessorTests : IDisposable
                 It.IsAny<IProgress<TranscriptionProgress>?>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new IOException("disk fell over"));
 
-        var document = await _processor.ProcessAsync(path);
+        var act = () => _processor.ProcessAsync(path);
 
-        document.ExtractedText.Should().BeEmpty();
-        document.Metadata.Custom["errorType"].Should().Be("IOException");
+        var thrown = await act.Should().ThrowAsync<DocumentExtractionException>();
+        thrown.Which.Message.Should().Be("Could not transcribe 'boom.wav': disk fell over");
+        thrown.Which.InnerException.Should().BeOfType<IOException>();
     }
 
     [Fact]

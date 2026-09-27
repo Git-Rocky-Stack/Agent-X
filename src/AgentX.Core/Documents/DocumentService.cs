@@ -3,6 +3,7 @@ using AgentX.Core.Data;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Data.VectorDb;
 using AgentX.Core.Documents.Models;
+using AgentX.Core.Documents.Processors;
 using AgentX.Core.Helpers;
 using AgentX.Core.Search;
 using AgentX.Core.Services.Plugins;
@@ -967,6 +968,54 @@ public sealed class DocumentService : IDocumentService
         }
 
         _logger.Information("Bulk re-index completed for {Count} documents", documentIds.Count);
+    }
+
+    /// <inheritdoc />
+    public async Task<int> RequeueAudioAwaitingSpeechModelAsync(CancellationToken ct = default)
+    {
+        var audioFileTypes = AudioProcessor.FileTypes;
+        var legacyMarker = AudioProcessor.LegacyTranscriptionErrorMarker;
+
+        // Failed for want of the model, or kept by an earlier version with a placeholder
+        // transcript and the transcription error in its metadata. Documents that are pending or
+        // being indexed are already on their way through the pipeline.
+        var documents = await _db.Documents
+            .Where(d => audioFileTypes.Contains(d.FileType))
+            .Where(d =>
+                (d.IndexingStatus == "failed" && d.IndexingError == AudioProcessor.SpeechModelMissingError) ||
+                ((d.IndexingStatus == "completed" || d.IndexingStatus == "failed") &&
+                 d.MetadataJson != null && d.MetadataJson.Contains(legacyMarker)))
+            .ToListAsync(ct);
+
+        if (documents.Count == 0)
+        {
+            return 0;
+        }
+
+        foreach (var document in documents)
+        {
+            document.IndexingStatus = "pending";
+            document.IndexingError = null;
+
+            // The placeholder's error record describes a transcript that is about to be made, and
+            // left in place it would select the document again after every later download.
+            if (document.MetadataJson?.Contains(legacyMarker, StringComparison.Ordinal) == true)
+            {
+                document.MetadataJson = null;
+            }
+        }
+
+        await _db.SaveChangesAsync(ct);
+
+        _logger.Information(
+            "Queued {Count} audio documents that were waiting for the speech-to-text model", documents.Count);
+
+        foreach (var document in documents)
+        {
+            RaisePendingIndexing(document.Id, extracted: null);
+        }
+
+        return documents.Count;
     }
 
     /// <inheritdoc />

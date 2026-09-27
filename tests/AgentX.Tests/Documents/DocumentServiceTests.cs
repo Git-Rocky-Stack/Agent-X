@@ -1982,6 +1982,115 @@ public sealed class DocumentServiceTests : IDisposable
 
         await act.Should().ThrowAsync<OperationCanceledException>();
     }
+
+    // Audio waiting for the speech-to-text model
+
+    [Fact]
+    public async Task ImportFileAsync_AudioWithoutTheSpeechModel_IsRecordedFailedWithTheInstallReason()
+    {
+        // The audio processor used to hand back "[Audio transcript unavailable ...]" as the
+        // transcript, which was then chunked, embedded and keyword-indexed like real content.
+        var transcription = new Mock<AgentX.Core.Services.Audio.ITranscriptionService>();
+        transcription
+            .Setup(t => t.TranscribeFileAsync(
+                It.IsAny<string>(),
+                It.IsAny<AgentX.Core.Services.Audio.Models.TranscriptionOptions?>(),
+                It.IsAny<IProgress<AgentX.Core.Services.Audio.Models.TranscriptionProgress>?>(),
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new AgentX.Core.Services.Audio.TranscriptionModelMissingException("base", "/models/ggml-base.bin"));
+        var h = NewHarness(processors: new IDocumentProcessor[]
+        {
+            new AgentX.Core.Documents.Processors.AudioProcessor(transcription.Object),
+        });
+        var raised = 0;
+        h.Service.DocumentPendingIndexing += (_, _) => raised++;
+
+        var entity = await h.Service.ImportFileAsync(h.WriteFile("interview.mp3", "not really audio"));
+
+        entity.IndexingStatus.Should().Be("failed");
+        entity.IndexingError.Should().Be(AgentX.Core.Documents.Processors.AudioProcessor.SpeechModelMissingError);
+        entity.WordCount.Should().Be(0);
+        entity.MetadataJson.Should().BeNull();
+        raised.Should().Be(0, "nothing is handed to indexing, so no placeholder reaches the index");
+    }
+
+    [Fact]
+    public async Task RequeueAudioAwaitingSpeechModel_QueuesOnlyAudioThatWaitedForTheModel()
+    {
+        var h = NewHarness();
+        var missing = AgentX.Core.Documents.Processors.AudioProcessor.SpeechModelMissingError;
+        const string legacyPlaceholderMetadata =
+            "{\"custom\":{\"audioFormat\":\"m4a\",\"error\":\"Whisper model 'base' is not available\",\"errorType\":\"ModelNotDownloaded\"}}";
+        const string legacyFaultMetadata =
+            "{\"custom\":{\"error\":\"Failed to load Whisper model\",\"errorType\":\"InvalidOperationException\"}}";
+        const string transcriptMetadata =
+            "{\"custom\":{\"audioFormat\":\"mp3\",\"modelUsed\":\"base\",\"segmentCount\":\"12\"}}";
+
+        var ids = new Dictionary<string, long>();
+        h.Seed(ctx =>
+        {
+            void Add(string name, string type, string status, string? error = null, string? metadata = null)
+            {
+                var doc = NewDoc(fileName: name, fileType: type, status: status);
+                doc.IndexingError = error;
+                doc.MetadataJson = metadata;
+                ctx.Documents.Add(doc);
+                ctx.SaveChanges();
+                ids[name] = doc.Id;
+            }
+
+            // Queued: failed for want of the model, and placeholders left by earlier versions.
+            Add("waiting.mp3", "mp3", "failed", missing);
+            Add("legacy-placeholder.m4a", "m4a", "completed", metadata: legacyPlaceholderMetadata);
+            Add("legacy-fault.flac", "flac", "completed", metadata: legacyFaultMetadata);
+
+            // Left alone: another reason, another type, a real transcript, already in the pipeline.
+            Add("undecodable.wav", "wav", "failed", "The audio in 'undecodable.wav' could not be decoded.");
+            Add("report.pdf", "pdf", "failed", missing);
+            Add("transcribed.mp3", "mp3", "completed", metadata: transcriptMetadata);
+            Add("queued.ogg", "ogg", "pending", metadata: legacyPlaceholderMetadata);
+        });
+        var raised = new List<DocumentPendingIndexingEventArgs>();
+        h.Service.DocumentPendingIndexing += (_, e) => raised.Add(e);
+
+        var queued = await h.Service.RequeueAudioAwaitingSpeechModelAsync();
+
+        queued.Should().Be(3);
+        raised.Select(e => e.DocumentId).Should().BeEquivalentTo(
+            new[] { ids["waiting.mp3"], ids["legacy-placeholder.m4a"], ids["legacy-fault.flac"] });
+        raised.Should().OnlyContain(e => e.Extracted == null, "the pipeline extracts the file itself");
+
+        using var fresh = h.Fresh();
+        var docs = await fresh.Documents.AsNoTracking().ToDictionaryAsync(d => d.FileName);
+        foreach (var name in new[] { "waiting.mp3", "legacy-placeholder.m4a", "legacy-fault.flac" })
+        {
+            docs[name].IndexingStatus.Should().Be("pending", name);
+            docs[name].IndexingError.Should().BeNull(name);
+        }
+
+        docs["legacy-placeholder.m4a"].MetadataJson.Should().BeNull("the placeholder's error record is dropped");
+        docs["undecodable.wav"].IndexingStatus.Should().Be("failed");
+        docs["report.pdf"].IndexingStatus.Should().Be("failed");
+        docs["transcribed.mp3"].IndexingStatus.Should().Be("completed");
+        docs["transcribed.mp3"].MetadataJson.Should().Be(transcriptMetadata);
+        docs["queued.ogg"].IndexingStatus.Should().Be("pending");
+        docs["queued.ogg"].MetadataJson.Should().Be(legacyPlaceholderMetadata);
+
+        (await h.Service.RequeueAudioAwaitingSpeechModelAsync()).Should().Be(0, "nothing is waiting any more");
+    }
+
+    [Fact]
+    public async Task RequeueAudioAwaitingSpeechModel_WithNothingWaiting_ReturnsZeroAndRaisesNothing()
+    {
+        var h = NewHarness();
+        h.Seed(ctx => ctx.Documents.Add(NewDoc(fileName: "talk.mp3", fileType: "mp3", status: "completed")));
+        var raised = 0;
+        h.Service.DocumentPendingIndexing += (_, _) => raised++;
+
+        (await h.Service.RequeueAudioAwaitingSpeechModelAsync()).Should().Be(0);
+
+        raised.Should().Be(0);
+    }
 }
 
 /// <summary>

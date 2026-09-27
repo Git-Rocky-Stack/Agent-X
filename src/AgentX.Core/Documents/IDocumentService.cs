@@ -217,6 +217,17 @@ public interface IDocumentService
     Task BulkReindexAsync(IReadOnlyList<long> documentIds, CancellationToken ct = default);
 
     /// <summary>
+    /// Queues the audio documents that have no transcript because the speech-to-text model was
+    /// not installed when they were read: documents that failed with
+    /// <see cref="Processors.AudioProcessor.SpeechModelMissingError"/>, and documents imported by
+    /// earlier versions, which kept a placeholder transcript instead of failing. Each is reset to
+    /// "pending" and handed to the indexing pipeline through <see cref="DocumentPendingIndexing"/>,
+    /// which transcribes it; a pending document is also picked up again at the next start. Call
+    /// it once the model is installed. Returns the number of documents queued.
+    /// </summary>
+    Task<int> RequeueAudioAwaitingSpeechModelAsync(CancellationToken ct = default);
+
+    /// <summary>
     /// Associates multiple documents with the specified collection. Failures for
     /// individual documents are logged but do not abort the batch.
     /// </summary>

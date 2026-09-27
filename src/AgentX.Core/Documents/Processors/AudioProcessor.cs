@@ -23,11 +23,33 @@ namespace AgentX.Core.Documents.Processors;
 /// context for downstream chunking and citation generation.
 /// </para>
 /// <para>
+/// A file that cannot be transcribed is reported as a failed extraction
+/// (<see cref="DocumentExtractionException"/>), never as a document holding placeholder text:
+/// the speech-to-text model not installed (<see cref="SpeechModelMissingError"/>), the Whisper
+/// runtime not loadable on this computer, audio that cannot be decoded, or any other fault.
+/// </para>
+/// <para>
 /// Supported extensions: .mp3, .wav, .m4a, .flac, .ogg, .webm
 /// </para>
 /// </summary>
 public sealed class AudioProcessor : IDocumentProcessor
 {
+    /// <summary>
+    /// Indexing error of an audio file that could not be transcribed because the speech-to-text
+    /// model is not installed. Once the model is downloaded on the Model Manager page, documents
+    /// that failed with exactly this reason are queued again
+    /// (<see cref="IDocumentService.RequeueAudioAwaitingSpeechModelAsync"/>).
+    /// </summary>
+    public const string SpeechModelMissingError =
+        "The speech-to-text model is not installed. Install it on the Model Manager page to transcribe this audio file.";
+
+    /// <summary>
+    /// Key that earlier versions wrote into the metadata JSON of an audio document they could not
+    /// transcribe. They stored a placeholder transcript instead of failing the import, so the key
+    /// is how those documents are recognised and queued again once the model is installed.
+    /// </summary>
+    internal const string LegacyTranscriptionErrorMarker = "\"errorType\":";
+
     // ── Static fields ─────────────────────────────────────────────────────────
 
     private static readonly ILogger Log = Serilog.Log.ForContext<AudioProcessor>();
@@ -36,6 +58,13 @@ public sealed class AudioProcessor : IDocumentProcessor
     {
         ".mp3", ".wav", ".m4a", ".flac", ".ogg", ".webm"
     };
+
+    /// <summary>
+    /// The <see cref="Data.Entities.DocumentEntity.FileType"/> values of imported audio files:
+    /// the extensions above without the dot, lower-case.
+    /// </summary>
+    internal static readonly string[] FileTypes =
+        Extensions.Select(extension => extension.TrimStart('.').ToLowerInvariant()).ToArray();
 
     /// <summary>
     /// Maps audio file extensions to human-readable file type identifiers used in
@@ -89,10 +118,10 @@ public sealed class AudioProcessor : IDocumentProcessor
     /// directly and assemble a <see cref="ProcessedDocument"/> from the result.
     /// </para>
     /// <para>
-    /// If the Whisper.net runtime is not installed, this method catches the
-    /// <see cref="NotSupportedException"/> from the transcription service and stores a
-    /// descriptive placeholder in <see cref="ProcessedDocument.ExtractedText"/> so that
-    /// the document can still be indexed (as a stub entry) without crashing the indexing queue.
+    /// When the file cannot be transcribed this method throws
+    /// <see cref="DocumentExtractionException"/> with a reason written for the user, and the
+    /// import records the document as failed with that reason. A placeholder is never returned
+    /// as the transcript: it would be chunked, embedded and served by search like real content.
     /// </para>
     /// </remarks>
     public async Task<ProcessedDocument> ProcessAsync(string filePath, CancellationToken ct = default)
@@ -184,70 +213,41 @@ public sealed class AudioProcessor : IDocumentProcessor
             // Let cancellation propagate so the indexing queue can handle it correctly.
             throw;
         }
-        catch (NotSupportedException ex)
-        {
-            // Whisper.net runtime not installed — record a descriptive stub so the document
-            // is indexed as a known-but-untranscribed entry rather than silently dropped.
-            Log.Warning(
-                ex,
-                "Whisper.net runtime unavailable; audio file will be indexed without transcript: {FilePath}",
-                filePath);
-
-            document.ContentHash = await hashTask.ConfigureAwait(false);
-            document.ExtractedText =
-                $"[Audio transcript unavailable — {ex.Message}]";
-            document.ExtractedTitle = Path.GetFileNameWithoutExtension(filePath);
-            document.WordCount = 0;
-            document.Metadata.CreatedDate = fileInfo.CreationTimeUtc;
-            document.Metadata.ModifiedDate = fileInfo.LastWriteTimeUtc;
-            document.Metadata.Custom["audioFormat"] = ext.TrimStart('.');
-            document.Metadata.Custom["error"] = ex.Message;
-            document.Metadata.Custom["errorType"] = "RuntimeNotInstalled";
-        }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("not available"))
-        {
-            // Model not downloaded — record a descriptive stub similar to the runtime case.
-            Log.Warning(
-                ex,
-                "Whisper model not downloaded; audio file will be indexed without transcript: {FilePath}",
-                filePath);
-
-            document.ContentHash = await hashTask.ConfigureAwait(false);
-            document.ExtractedText =
-                $"[Audio transcript unavailable — Whisper model not downloaded. {ex.Message}]";
-            document.ExtractedTitle = Path.GetFileNameWithoutExtension(filePath);
-            document.WordCount = 0;
-            document.Metadata.CreatedDate = fileInfo.CreationTimeUtc;
-            document.Metadata.ModifiedDate = fileInfo.LastWriteTimeUtc;
-            document.Metadata.Custom["audioFormat"] = ext.TrimStart('.');
-            document.Metadata.Custom["error"] = ex.Message;
-            document.Metadata.Custom["errorType"] = "ModelNotDownloaded";
-        }
         catch (Exception ex)
         {
-            Log.Error(ex, "Failed to process audio file: {FilePath}", filePath);
+            Log.Warning(ex, "Audio file could not be transcribed: {FilePath}", filePath);
 
-            // Ensure the hash completes even in the error path so the document entity
-            // can still be uniquely identified in the database.
+            // The hash is not needed any more, but it still reads the file: let it finish
+            // rather than leave it running unobserved.
             try
             {
-                document.ContentHash = await hashTask.ConfigureAwait(false);
+                await hashTask.ConfigureAwait(false);
             }
             catch (Exception hashEx)
             {
-                Log.Warning(hashEx, "Failed to compute content hash during error recovery: {FilePath}", filePath);
-                document.ContentHash = string.Empty;
+                Log.Debug(hashEx, "Content hash of {FilePath} was not computed", filePath);
             }
 
-            document.ExtractedText = string.Empty;
-            document.Metadata.Custom["error"] = ex.Message;
-            document.Metadata.Custom["errorType"] = ex.GetType().Name;
+            throw ToExtractionFailure(ex, document.FileName);
         }
 
         return document;
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────
+
+    /// <summary>
+    /// The extraction failure a transcription failure is recorded as. The missing model gets the
+    /// fixed <see cref="SpeechModelMissingError"/>, which the requeue after a model download
+    /// matches on; a runtime that cannot load and audio that cannot be decoded already carry a
+    /// message written for the user; anything else is prefixed with the file it happened to.
+    /// </summary>
+    private static DocumentExtractionException ToExtractionFailure(Exception ex, string fileName) => ex switch
+    {
+        TranscriptionModelMissingException => new DocumentExtractionException(SpeechModelMissingError, ex),
+        NotSupportedException => new DocumentExtractionException(ex.Message, ex),
+        _ => new DocumentExtractionException($"Could not transcribe '{fileName}': {ex.Message}", ex),
+    };
 
     /// <summary>
     /// Assembles the structured plain-text representation that will be stored in
