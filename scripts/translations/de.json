@@ -614,6 +614,8 @@
   "Dash_BeliefAcknowledgedDetail": "Alle Überzeugungskonflikte wurden bestätigt.",
   "Dash_BeliefUnavailableStatus": "Überzeugungsstatus nicht verfügbar",
   "Dash_BeliefUnavailableDetail": "Agent-X konnte Ihren Überzeugungsverlauf nicht laden.",
+  "Chat_CodeCopy": "Kopieren",
+  "Chat_CodeCopied": "Kopiert!",
   "Main_QuickActions.Content": "Quick Actions",
   "Main_Workflows.Content": "Workflows",
   "Main_Knowledge.Content": "WISSEN",

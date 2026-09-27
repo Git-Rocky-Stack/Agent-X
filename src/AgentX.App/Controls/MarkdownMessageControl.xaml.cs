@@ -1,8 +1,10 @@
 using System.Text.RegularExpressions;
 using AgentX.App.Helpers;
+using AgentX.Core.Services.Localization;
 using Microsoft.UI;
 using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media;
@@ -123,7 +125,8 @@ public sealed partial class MarkdownMessageControl : UserControl
         Grid.SetColumn(languageLabel, 0);
         headerGrid.Children.Add(languageLabel);
 
-        // Copy button with icon and label
+        // Copy button with icon and label, in the user's language
+        var (copyText, copiedText) = CopyButtonTexts();
         var copyButtonContent = new StackPanel
         {
             Orientation = Orientation.Horizontal,
@@ -137,7 +140,7 @@ public sealed partial class MarkdownMessageControl : UserControl
         });
         copyButtonContent.Children.Add(new TextBlock
         {
-            Text = "Copy",
+            Text = copyText,
             FontSize = 11,
             Foreground = ThemeResources.Brush("WellTextSecondaryBrush")
         });
@@ -151,6 +154,9 @@ public sealed partial class MarkdownMessageControl : UserControl
             VerticalAlignment = VerticalAlignment.Center
         };
 
+        // The content is a panel, so the button has no name for a screen reader unless given one.
+        AutomationProperties.SetName(copyButton, copyText);
+
         // Capture content for the closure to avoid capturing the segment reference
         var codeContent = segment.Content;
         copyButton.Click += async (s, e) =>
@@ -161,13 +167,13 @@ public sealed partial class MarkdownMessageControl : UserControl
                 dataPackage.SetText(codeContent);
                 Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
 
-                // Provide visual feedback: briefly change the button text to "Copied!"
+                // Provide visual feedback: briefly change the button text to say it was copied
                 if (s is Button btn && btn.Content is StackPanel sp && sp.Children.Count >= 2)
                 {
                     if (sp.Children[1] is TextBlock tb)
                     {
                         var originalText = tb.Text;
-                        tb.Text = "Copied!";
+                        tb.Text = copiedText;
                         await System.Threading.Tasks.Task.Delay(1500);
                         tb.Text = originalText;
                     }
@@ -242,6 +248,23 @@ public sealed partial class MarkdownMessageControl : UserControl
 
         grid.Margin = new Thickness(0, 4, 0, 4);
         return grid;
+    }
+
+    /// <summary>
+    /// The copy button's label and the feedback shown after a copy, from the app's localization
+    /// service. English when the service is not available (the designer, before startup).
+    /// </summary>
+    private static (string Copy, string Copied) CopyButtonTexts()
+    {
+        try
+        {
+            var localization = App.GetService<ILocalizationService>();
+            return (localization.GetString("Chat_CodeCopy"), localization.GetString("Chat_CodeCopied"));
+        }
+        catch (InvalidOperationException)
+        {
+            return ("Copy", "Copied!");
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════════

@@ -981,6 +981,8 @@
   <data name="Dash_BeliefAcknowledgedDetail" xml:space="preserve"><value>Se han confirmado todos los conflictos de creencias.</value></data>
   <data name="Dash_BeliefUnavailableStatus" xml:space="preserve"><value>Estado de las creencias no disponible</value></data>
   <data name="Dash_BeliefUnavailableDetail" xml:space="preserve"><value>Agent-X no pudo cargar el historial de sus creencias.</value></data>
+  <data name="Chat_CodeCopy" xml:space="preserve"><value>Copiar</value></data>
+  <data name="Chat_CodeCopied" xml:space="preserve"><value>¡Copiado!</value></data>
   <data name="Main_QuickActions.Content" xml:space="preserve"><value>Quick Actions</value></data>
   <data name="Main_Workflows.Content" xml:space="preserve"><value>Workflows</value></data>
   <data name="Main_Knowledge.Content" xml:space="preserve"><value>CONOCIMIENTO</value></data>

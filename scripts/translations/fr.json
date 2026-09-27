@@ -614,6 +614,8 @@
   "Dash_BeliefAcknowledgedDetail": "Tous les conflits de convictions ont été pris en compte.",
   "Dash_BeliefUnavailableStatus": "État des convictions indisponible",
   "Dash_BeliefUnavailableDetail": "Agent-X n'a pas pu charger l'historique de vos convictions.",
+  "Chat_CodeCopy": "Copier",
+  "Chat_CodeCopied": "Copié !",
   "Main_QuickActions.Content": "Quick Actions",
   "Main_Workflows.Content": "Workflows",
   "Main_Knowledge.Content": "CONNAISSANCES",

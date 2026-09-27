@@ -1103,6 +1103,8 @@
   <data name="Dash_BeliefAcknowledgedDetail" xml:space="preserve"><value>All belief conflicts have been acknowledged.</value></data>
   <data name="Dash_BeliefUnavailableStatus" xml:space="preserve"><value>Belief status unavailable</value></data>
   <data name="Dash_BeliefUnavailableDetail" xml:space="preserve"><value>Agent-X could not load your belief history.</value></data>
+  <data name="Chat_CodeCopy" xml:space="preserve"><value>Copy</value></data>
+  <data name="Chat_CodeCopied" xml:space="preserve"><value>Copied!</value></data>
   <data name="Main_QuickActions.Content" xml:space="preserve"><value>Quick Actions</value></data>
   <data name="Main_Workflows.Content" xml:space="preserve"><value>Workflows</value></data>
   <data name="Main_Knowledge.Content" xml:space="preserve"><value>KNOWLEDGE</value></data>

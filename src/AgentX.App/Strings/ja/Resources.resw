@@ -981,6 +981,8 @@
   <data name="Dash_BeliefAcknowledgedDetail" xml:space="preserve"><value>信念の矛盾はすべて確認済みです。</value></data>
   <data name="Dash_BeliefUnavailableStatus" xml:space="preserve"><value>信念の状態を取得できません</value></data>
   <data name="Dash_BeliefUnavailableDetail" xml:space="preserve"><value>Agent-X は信念の履歴を読み込めませんでした。</value></data>
+  <data name="Chat_CodeCopy" xml:space="preserve"><value>コピー</value></data>
+  <data name="Chat_CodeCopied" xml:space="preserve"><value>コピーしました</value></data>
   <data name="Main_QuickActions.Content" xml:space="preserve"><value>Quick Actions</value></data>
   <data name="Main_Workflows.Content" xml:space="preserve"><value>ワークフロー</value></data>
   <data name="Main_Knowledge.Content" xml:space="preserve"><value>ナレッジ</value></data>

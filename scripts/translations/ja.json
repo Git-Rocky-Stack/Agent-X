@@ -614,6 +614,8 @@
   "Dash_BeliefAcknowledgedDetail": "信念の矛盾はすべて確認済みです。",
   "Dash_BeliefUnavailableStatus": "信念の状態を取得できません",
   "Dash_BeliefUnavailableDetail": "Agent-X は信念の履歴を読み込めませんでした。",
+  "Chat_CodeCopy": "コピー",
+  "Chat_CodeCopied": "コピーしました",
   "Main_QuickActions.Content": "Quick Actions",
   "Main_Workflows.Content": "ワークフロー",
   "Main_Knowledge.Content": "ナレッジ",

@@ -614,6 +614,8 @@
   "Dash_BeliefAcknowledgedDetail": "Se han confirmado todos los conflictos de creencias.",
   "Dash_BeliefUnavailableStatus": "Estado de las creencias no disponible",
   "Dash_BeliefUnavailableDetail": "Agent-X no pudo cargar el historial de sus creencias.",
+  "Chat_CodeCopy": "Copiar",
+  "Chat_CodeCopied": "¡Copiado!",
   "Main_QuickActions.Content": "Quick Actions",
   "Main_Workflows.Content": "Workflows",
   "Main_Knowledge.Content": "CONOCIMIENTO",

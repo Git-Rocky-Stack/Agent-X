@@ -614,6 +614,8 @@
   "Dash_BeliefAcknowledgedDetail": "所有观点冲突均已确认。",
   "Dash_BeliefUnavailableStatus": "观点状态不可用",
   "Dash_BeliefUnavailableDetail": "Agent-X 无法加载您的观点历史记录。",
+  "Chat_CodeCopy": "复制",
+  "Chat_CodeCopied": "已复制",
   "Main_QuickActions.Content": "Quick Actions",
   "Main_Workflows.Content": "工作流",
   "Main_Knowledge.Content": "知识",
