@@ -1472,6 +1472,18 @@
   <data name="Digest_TokensUsed.Text" xml:space="preserve"><value>Tokens utilisés</value></data>
   <data name="Digest_StorageDelta.Text" xml:space="preserve"><value>Delta de stockage</value></data>
   <data name="Digest_LoadingDigestReports.Text" xml:space="preserve"><value>Chargement des rapports de résumé...</value></data>
+  <data name="CollMgr_DeleteConfirmTitle" xml:space="preserve"><value>Supprimer la collection ?</value></data>
+  <data name="CollMgr_DeleteConfirmMessage" xml:space="preserve"><value>« {0} » sera supprimée. Ses documents restent dans votre Coffre-fort de Connaissances et ses sous-collections remontent d'un niveau. Cette action est irréversible.</value></data>
+  <data name="CollMgr_BulkDeleteConfirmTitle" xml:space="preserve"><value>Supprimer les collections ?</value></data>
+  <data name="CollMgr_BulkDeleteConfirmMessage" xml:space="preserve"><value>Collections sélectionnées : {0}. Leurs documents restent dans votre Coffre-fort de Connaissances et les sous-collections non sélectionnées remontent d'un niveau. Cette action est irréversible.</value></data>
+  <data name="CollMgr_DeleteConfirmButton" xml:space="preserve"><value>Supprimer</value></data>
+  <data name="CollMgr_ConfirmCancelButton" xml:space="preserve"><value>Annuler</value></data>
+  <data name="Plugin_UninstallConfirmTitle" xml:space="preserve"><value>Désinstaller le plugin ?</value></data>
+  <data name="Plugin_UninstallConfirmMessage" xml:space="preserve"><value>« {0} » sera désinstallé : son dossier est supprimé, avec toutes les données que le plugin y conserve. Cette action est irréversible.</value></data>
+  <data name="Plugin_BulkUninstallConfirmTitle" xml:space="preserve"><value>Désinstaller les plugins ?</value></data>
+  <data name="Plugin_BulkUninstallConfirmMessage" xml:space="preserve"><value>Plugins sélectionnés : {0}. Leurs dossiers sont supprimés, avec toutes les données que les plugins y conservent. Cette action est irréversible.</value></data>
+  <data name="Plugin_UninstallConfirmButton" xml:space="preserve"><value>Désinstaller</value></data>
+  <data name="Plugin_ConfirmCancelButton" xml:space="preserve"><value>Annuler</value></data>
   <data name="Digest_NoDigestReportsYet.Text" xml:space="preserve"><value>Pas encore de rapports de résumé</value></data>
   <data name="Digest_GenerateYourFirstWeekly.Text" xml:space="preserve"><value>Générez votre premier résumé hebdomadaire pour voir les synthèses d'activité, les tendances de recherche et les temps forts des conversations.</value></data>
   <data name="Digest_GenerateFirstDigest.Text" xml:space="preserve"><value>Générer le premier résumé</value></data>

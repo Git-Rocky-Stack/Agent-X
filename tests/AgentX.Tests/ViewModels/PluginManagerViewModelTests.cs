@@ -1,6 +1,7 @@
 using AgentX.App.Services;
 using AgentX.App.ViewModels;
 using AgentX.Core.Data.Entities;
+using AgentX.Core.Services.Localization;
 using AgentX.Core.Services.Plugins;
 using FluentAssertions;
 using Moq;
@@ -265,6 +266,111 @@ public sealed class PluginManagerViewModelTests
         viewModel.SelectedCount.Should().Be(0);
     }
 
+    // -- Uninstall asks first --
+    // Uninstalling one plugin deleted its folder on a single click, while uninstalling several
+    // asked first. Both now ask through the same page-supplied confirmation.
+
+    [Fact]
+    public async Task UninstallPluginCommand_AsksWithThePluginsName_AndUninstallsOnlyOnConfirm()
+    {
+        SetupTwoPlugins();
+        _pluginService.Setup(service => service.UninstallPluginAsync(11))
+            .ReturnsAsync(new PluginUninstallResult(Found: true, LeftoverDirectory: null));
+        var viewModel = CreateViewModel();
+        await viewModel.InitializeAsync();
+        var requests = new List<ConfirmationRequest>();
+        viewModel.ConfirmDestructiveActionAsync = request =>
+        {
+            requests.Add(request);
+            return Task.FromResult(true);
+        };
+
+        await viewModel.UninstallPluginCommand.ExecuteAsync(11L);
+
+        requests.Should().ContainSingle().Which.Should().Be(new ConfirmationRequest(
+            "[Plugin_UninstallConfirmTitle]",
+            "[Plugin_UninstallConfirmMessage] Calendar Connector",
+            "[Plugin_UninstallConfirmButton]",
+            "[Plugin_ConfirmCancelButton]"));
+        _pluginService.Verify(service => service.UninstallPluginAsync(11), Times.Once);
+        viewModel.Plugins.Select(plugin => plugin.Id).Should().Equal(12L);
+        viewModel.PluginCount.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task UninstallPluginCommand_WhenCancelled_RemovesNothing()
+    {
+        SetupTwoPlugins();
+        var viewModel = CreateViewModel();
+        await viewModel.InitializeAsync();
+        viewModel.ConfirmDestructiveActionAsync = _ => Task.FromResult(false);
+
+        await viewModel.UninstallPluginCommand.ExecuteAsync(11L);
+
+        _pluginService.Verify(service => service.UninstallPluginAsync(It.IsAny<long>()), Times.Never);
+        viewModel.Plugins.Should().HaveCount(2);
+        viewModel.HasError.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task UninstallPluginCommand_WithoutAConfirmationHandler_RemovesNothing()
+    {
+        SetupTwoPlugins();
+        var viewModel = CreateViewModel();
+        await viewModel.InitializeAsync();
+        viewModel.ConfirmDestructiveActionAsync = null;
+
+        await viewModel.UninstallPluginCommand.ExecuteAsync(11L);
+
+        _pluginService.Verify(service => service.UninstallPluginAsync(It.IsAny<long>()), Times.Never);
+        viewModel.Plugins.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public async Task BulkUninstallCommand_AsksWithTheCount_AndKeepsTheSelectionWhenCancelled()
+    {
+        SetupTwoPlugins();
+        var viewModel = CreateViewModel();
+        await viewModel.InitializeAsync();
+        viewModel.ToggleMultiSelectCommand.Execute(null);
+        viewModel.SelectAllPluginsCommand.Execute(null);
+        ConfirmationRequest? asked = null;
+        viewModel.ConfirmDestructiveActionAsync = request =>
+        {
+            asked = request;
+            return Task.FromResult(false);
+        };
+
+        await viewModel.BulkUninstallCommand.ExecuteAsync(null);
+
+        asked.Should().NotBeNull();
+        asked!.Title.Should().Be("[Plugin_BulkUninstallConfirmTitle]");
+        asked.Message.Should().Be("[Plugin_BulkUninstallConfirmMessage] 2");
+        asked.ConfirmText.Should().Be("[Plugin_UninstallConfirmButton]");
+        _pluginService.Verify(service => service.UninstallPluginAsync(It.IsAny<long>()), Times.Never);
+        viewModel.SelectedCount.Should().Be(2, "a cancelled uninstall keeps the selection to adjust");
+        viewModel.IsMultiSelectMode.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task BulkUninstallCommand_WhenConfirmed_UninstallsEverySelectedPlugin()
+    {
+        SetupTwoPlugins();
+        _pluginService.Setup(service => service.UninstallPluginAsync(It.IsAny<long>()))
+            .ReturnsAsync(new PluginUninstallResult(Found: true, LeftoverDirectory: null));
+        var viewModel = CreateViewModel();
+        await viewModel.InitializeAsync();
+        viewModel.ToggleMultiSelectCommand.Execute(null);
+        viewModel.SelectAllPluginsCommand.Execute(null);
+
+        await viewModel.BulkUninstallCommand.ExecuteAsync(null);
+
+        _pluginService.Verify(service => service.UninstallPluginAsync(11), Times.Once);
+        _pluginService.Verify(service => service.UninstallPluginAsync(12), Times.Once);
+        viewModel.SelectedCount.Should().Be(0);
+        viewModel.IsMultiSelectMode.Should().BeFalse();
+    }
+
     private void SetupTwoPlugins() =>
         _pluginService.Setup(service => service.GetInstalledPluginsAsync())
             .ReturnsAsync(
@@ -273,8 +379,25 @@ public sealed class PluginManagerViewModelTests
                 CreatePlugin(12, "Email Connector", enabled: true),
             ]);
 
+    /// <summary>
+    /// A view model whose page confirms every uninstall, as a user who clicks Uninstall would.
+    /// Tests of the confirmation itself replace the handler.
+    /// </summary>
     private PluginManagerViewModel CreateViewModel() =>
-        new(_pluginService.Object, _operationsDrillInService.Object);
+        new(_pluginService.Object, KeyEchoingLocalization().Object, _operationsDrillInService.Object)
+        {
+            ConfirmDestructiveActionAsync = _ => Task.FromResult(true)
+        };
+
+    /// <summary>Returns "[key]" for a text and "[key] arg1, arg2" for a formatted one.</summary>
+    private static Mock<ILocalizationService> KeyEchoingLocalization()
+    {
+        var localization = new Mock<ILocalizationService>();
+        localization.Setup(l => l.GetString(It.IsAny<string>())).Returns((string key) => $"[{key}]");
+        localization.Setup(l => l.GetString(It.IsAny<string>(), It.IsAny<object[]>()))
+            .Returns((string key, object[] args) => $"[{key}] {string.Join(", ", args)}");
+        return localization;
+    }
 
     private static PluginEntity CreatePlugin(long id, string name, bool enabled)
     {

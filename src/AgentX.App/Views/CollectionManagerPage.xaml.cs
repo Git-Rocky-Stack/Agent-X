@@ -20,6 +20,7 @@ public sealed partial class CollectionManagerPage : Page
     public CollectionManagerPage()
     {
         ViewModel = PageViewModelFactory.Create<CollectionManagerViewModel>();
+        ViewModel.ConfirmDestructiveActionAsync = request => ConfirmationDialog.ShowAsync(XamlRoot, request);
         InitializeComponent();
         Loaded += async (_, _) => await ViewModel.InitializeAsync();
     }
@@ -41,7 +42,8 @@ public sealed partial class CollectionManagerPage : Page
     }
 
     /// <summary>
-    /// Handles the delete button click for a collection.
+    /// Handles the delete button click for a collection. The view model asks for confirmation
+    /// (through <see cref="CollectionManagerViewModel.ConfirmDestructiveActionAsync"/>) first.
     /// </summary>
     private void OnDeleteCollectionClick(object sender, RoutedEventArgs e)
     {
@@ -52,31 +54,12 @@ public sealed partial class CollectionManagerPage : Page
     }
 
     /// <summary>
-    /// Confirms before bulk-deleting collections. Deleting several at once is not
-    /// reversible, so it takes the same gate as any other destructive action.
+    /// Deletes the selected collections. The view model asks for confirmation first, the same
+    /// way as for a single collection.
     /// </summary>
     private async void OnBulkDeleteCollectionsClick(object sender, RoutedEventArgs e)
     {
-        if (ViewModel.SelectedCount == 0)
-        {
-            return;
-        }
-
-        var dialog = new ContentDialog
-        {
-            Title = "Delete Collections?",
-            Content = $"This permanently deletes {ViewModel.SelectedCount} collection(s). " +
-                      "Documents inside them are kept in your Knowledge Vault. This cannot be undone.",
-            PrimaryButtonText = "Delete",
-            CloseButtonText = "Cancel",
-            DefaultButton = ContentDialogButton.Close,
-            XamlRoot = this.XamlRoot
-        };
-
-        if (await dialog.ShowAsync() == ContentDialogResult.Primary)
-        {
-            await ViewModel.BulkDeleteCollectionsCommand.ExecuteAsync(null);
-        }
+        await ViewModel.BulkDeleteCollectionsCommand.ExecuteAsync(null);
     }
 
     /// <summary>

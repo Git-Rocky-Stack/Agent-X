@@ -94,6 +94,8 @@
     <Compile Include="..\..\src\AgentX.App\ViewModels\AskFilesViewModel.cs" Link="ViewModels\AskFilesViewModel.cs" />
     <Compile Include="..\..\src\AgentX.App\ViewModels\CollectionManagerViewModel.cs" Link="ViewModels\CollectionManagerViewModel.cs" />
     <Compile Include="..\..\src\AgentX.App\ViewModels\PluginManagerViewModel.cs" Link="ViewModels\PluginManagerViewModel.cs" />
+    <!-- The confirmation both of them ask the page for before deleting or uninstalling. -->
+    <Compile Include="..\..\src\AgentX.App\ViewModels\ConfirmationRequest.cs" Link="ViewModels\ConfirmationRequest.cs" />
     <!-- WorkspaceProfileViewModel is pure workspace-profile orchestration/state logic. -->
     <Compile Include="..\..\src\AgentX.App\ViewModels\WorkspaceProfileViewModel.cs" Link="ViewModels\WorkspaceProfileViewModel.cs" />
     <!-- WorkflowBuilderViewModel is pure workflow orchestration/state logic. -->

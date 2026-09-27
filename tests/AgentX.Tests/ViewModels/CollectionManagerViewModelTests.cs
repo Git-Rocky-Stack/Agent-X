@@ -14,6 +14,7 @@ public sealed class CollectionManagerViewModelTests
 {
     private readonly Mock<ICollectionService> _collectionService = new();
     private readonly Mock<IDocumentService> _documentService = new();
+    private readonly Mock<ILocalizationService> _localization = KeyEchoingLocalization();
 
     // ── Rename ───────────────────────────────────────────────────────────────
     // Rename logged "rename requested" and returned without calling the service, so a
@@ -196,6 +197,104 @@ public sealed class CollectionManagerViewModelTests
         leaf.ParentCollectionId.Should().Be(1);
     }
 
+    // --- Delete asks first ---
+    // Deleting one collection ran on a single click, while Delete Selected asked first. Both now
+    // ask through the same page-supplied confirmation, and nothing is deleted without a yes.
+
+    [Fact]
+    public async Task DeleteCollectionCommand_AsksWithTheCollectionsName_AndDeletesOnlyOnConfirm()
+    {
+        _collectionService.Setup(service => service.GetCollectionCountAsync()).ReturnsAsync(0);
+        var viewModel = CreateViewModel();
+        viewModel.Collections.Add(new CollectionDisplayItem { Id = 7, Name = "Tax 2025" });
+        var requests = new List<ConfirmationRequest>();
+        viewModel.ConfirmDestructiveActionAsync = request =>
+        {
+            requests.Add(request);
+            return Task.FromResult(true);
+        };
+
+        await viewModel.DeleteCollectionCommand.ExecuteAsync(7L);
+
+        requests.Should().ContainSingle().Which.Should().Be(new ConfirmationRequest(
+            "[CollMgr_DeleteConfirmTitle]",
+            "[CollMgr_DeleteConfirmMessage] Tax 2025",
+            "[CollMgr_DeleteConfirmButton]",
+            "[CollMgr_ConfirmCancelButton]"));
+        _collectionService.Verify(service => service.DeleteCollectionAsync(7, false), Times.Once);
+        viewModel.Collections.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task DeleteCollectionCommand_WhenCancelled_DeletesNothing()
+    {
+        var viewModel = CreateViewModel();
+        var item = new CollectionDisplayItem { Id = 7, Name = "Tax 2025" };
+        viewModel.Collections.Add(item);
+        viewModel.ConfirmDestructiveActionAsync = _ => Task.FromResult(false);
+
+        await viewModel.DeleteCollectionCommand.ExecuteAsync(7L);
+
+        _collectionService.Verify(
+            service => service.DeleteCollectionAsync(It.IsAny<long>(), It.IsAny<bool>()), Times.Never);
+        viewModel.Collections.Should().ContainSingle().Which.Should().BeSameAs(item);
+    }
+
+    [Fact]
+    public async Task DeleteCollectionCommand_WithoutAConfirmationHandler_DeletesNothing()
+    {
+        var viewModel = CreateViewModel();
+        viewModel.Collections.Add(new CollectionDisplayItem { Id = 7, Name = "Tax 2025" });
+        viewModel.ConfirmDestructiveActionAsync = null;
+
+        await viewModel.DeleteCollectionCommand.ExecuteAsync(7L);
+
+        _collectionService.Verify(
+            service => service.DeleteCollectionAsync(It.IsAny<long>(), It.IsAny<bool>()), Times.Never);
+        viewModel.Collections.Should().ContainSingle();
+    }
+
+    [Fact]
+    public async Task DeleteCollectionCommand_WhenTheDialogFails_DeletesNothing()
+    {
+        var viewModel = CreateViewModel();
+        viewModel.Collections.Add(new CollectionDisplayItem { Id = 7, Name = "Tax 2025" });
+        viewModel.ConfirmDestructiveActionAsync = _ => throw new InvalidOperationException("A dialog is already open.");
+
+        await viewModel.DeleteCollectionCommand.ExecuteAsync(7L);
+
+        _collectionService.Verify(
+            service => service.DeleteCollectionAsync(It.IsAny<long>(), It.IsAny<bool>()), Times.Never);
+        viewModel.Collections.Should().ContainSingle();
+    }
+
+    [Fact]
+    public async Task BulkDeleteCollectionsCommand_AsksWithTheCount_AndKeepsTheSelectionWhenCancelled()
+    {
+        var viewModel = CreateViewModel();
+        viewModel.Collections.Add(new CollectionDisplayItem { Id = 1, Name = "A" });
+        viewModel.Collections.Add(new CollectionDisplayItem { Id = 2, Name = "B" });
+        viewModel.ToggleMultiSelectCommand.Execute(null);
+        viewModel.SelectAllCollectionsCommand.Execute(null);
+        ConfirmationRequest? asked = null;
+        viewModel.ConfirmDestructiveActionAsync = request =>
+        {
+            asked = request;
+            return Task.FromResult(false);
+        };
+
+        await viewModel.BulkDeleteCollectionsCommand.ExecuteAsync(null);
+
+        asked.Should().NotBeNull();
+        asked!.Title.Should().Be("[CollMgr_BulkDeleteConfirmTitle]");
+        asked.Message.Should().Be("[CollMgr_BulkDeleteConfirmMessage] 2");
+        asked.ConfirmText.Should().Be("[CollMgr_DeleteConfirmButton]");
+        _collectionService.Verify(
+            service => service.DeleteCollectionAsync(It.IsAny<long>(), It.IsAny<bool>()), Times.Never);
+        viewModel.SelectedCount.Should().Be(2, "a cancelled delete keeps the selection to adjust");
+        viewModel.IsMultiSelectMode.Should().BeTrue();
+    }
+
     [Fact]
     public async Task InitializeAsync_ShowsTheStoredDocumentCount()
     {
@@ -343,8 +442,25 @@ public sealed class CollectionManagerViewModelTests
         viewModel.SelectedCollection!.DocumentCount.Should().Be(2);
     }
 
+    /// <summary>
+    /// A view model whose page confirms every delete, as a user who clicks Delete would.
+    /// Tests of the confirmation itself replace the handler.
+    /// </summary>
     private CollectionManagerViewModel CreateViewModel() =>
-        new(_collectionService.Object, _documentService.Object);
+        new(_collectionService.Object, _documentService.Object, _localization.Object)
+        {
+            ConfirmDestructiveActionAsync = _ => Task.FromResult(true)
+        };
+
+    /// <summary>Returns "[key]" for a text and "[key] arg1, arg2" for a formatted one.</summary>
+    private static Mock<ILocalizationService> KeyEchoingLocalization()
+    {
+        var localization = new Mock<ILocalizationService>();
+        localization.Setup(l => l.GetString(It.IsAny<string>())).Returns((string key) => $"[{key}]");
+        localization.Setup(l => l.GetString(It.IsAny<string>(), It.IsAny<object[]>()))
+            .Returns((string key, object[] args) => $"[{key}] {string.Join(", ", args)}");
+        return localization;
+    }
 
     private async Task<CollectionManagerViewModel> CreateViewModelWithSelectedCollectionAsync(
         long collectionId,
@@ -354,7 +470,7 @@ public sealed class CollectionManagerViewModelTests
         _collectionService.Setup(s => s.GetDocumentsInCollectionAsync(collectionId))
             .ReturnsAsync(Array.Empty<DocumentEntity>());
         var viewModel = new CollectionManagerViewModel(
-            _collectionService.Object, _documentService.Object, localization, notifications);
+            _collectionService.Object, _documentService.Object, localization ?? _localization.Object, notifications);
         var collection = new CollectionDisplayItem { Id = collectionId, Name = "Research" };
         viewModel.Collections.Add(collection);
         await viewModel.SelectCollectionCommand.ExecuteAsync(collection);

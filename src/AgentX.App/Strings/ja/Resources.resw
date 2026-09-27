@@ -1472,6 +1472,18 @@
   <data name="Digest_TokensUsed.Text" xml:space="preserve"><value>使用トークン</value></data>
   <data name="Digest_StorageDelta.Text" xml:space="preserve"><value>ストレージ増減</value></data>
   <data name="Digest_LoadingDigestReports.Text" xml:space="preserve"><value>ダイジェスト レポートを読み込んでいます...</value></data>
+  <data name="CollMgr_DeleteConfirmTitle" xml:space="preserve"><value>コレクションを削除しますか?</value></data>
+  <data name="CollMgr_DeleteConfirmMessage" xml:space="preserve"><value>「{0}」を削除します。ドキュメントは Knowledge Vault に残り、サブコレクションは 1 つ上の階層に移動します。この操作は元に戻せません。</value></data>
+  <data name="CollMgr_BulkDeleteConfirmTitle" xml:space="preserve"><value>選択したコレクションを削除しますか?</value></data>
+  <data name="CollMgr_BulkDeleteConfirmMessage" xml:space="preserve"><value>選択したコレクション: {0} 件。ドキュメントは Knowledge Vault に残り、選択していないサブコレクションは 1 つ上の階層に移動します。この操作は元に戻せません。</value></data>
+  <data name="CollMgr_DeleteConfirmButton" xml:space="preserve"><value>削除</value></data>
+  <data name="CollMgr_ConfirmCancelButton" xml:space="preserve"><value>キャンセル</value></data>
+  <data name="Plugin_UninstallConfirmTitle" xml:space="preserve"><value>プラグインをアンインストールしますか?</value></data>
+  <data name="Plugin_UninstallConfirmMessage" xml:space="preserve"><value>「{0}」をアンインストールします。フォルダーは、プラグインがそこに保存しているデータと一緒に削除されます。この操作は元に戻せません。</value></data>
+  <data name="Plugin_BulkUninstallConfirmTitle" xml:space="preserve"><value>選択したプラグインをアンインストールしますか?</value></data>
+  <data name="Plugin_BulkUninstallConfirmMessage" xml:space="preserve"><value>選択したプラグイン: {0} 件。各フォルダーは、プラグインがそこに保存しているデータと一緒に削除されます。この操作は元に戻せません。</value></data>
+  <data name="Plugin_UninstallConfirmButton" xml:space="preserve"><value>アンインストール</value></data>
+  <data name="Plugin_ConfirmCancelButton" xml:space="preserve"><value>キャンセル</value></data>
   <data name="Digest_NoDigestReportsYet.Text" xml:space="preserve"><value>ダイジェスト レポートはまだありません</value></data>
   <data name="Digest_GenerateYourFirstWeekly.Text" xml:space="preserve"><value>最初の週次ダイジェストを生成すると、アクティビティの概要、検索トレンド、会話のハイライトが表示されます。</value></data>
   <data name="Digest_GenerateFirstDigest.Text" xml:space="preserve"><value>最初のダイジェストを生成</value></data>

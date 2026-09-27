@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using AgentX.App.Services;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Helpers;
+using AgentX.Core.Services.Localization;
 using AgentX.Core.Services.Plugins;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -13,6 +14,7 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
 {
     // -- Services ---------------------------------------------------------
     private readonly IPluginService _pluginService;
+    private readonly ILocalizationService _localization;
     private readonly IOperationsDrillInService? _operationsDrillInService;
 
     // -- Page Properties --------------------------------------------------
@@ -38,12 +40,23 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
     /// </summary>
     public event Func<Task<string?>>? FilePickerRequested;
 
+    /// <summary>
+    /// Asks the user to confirm an uninstall and answers true when they do. The page supplies
+    /// it (a ContentDialog). While it is unset, Uninstall removes nothing.
+    /// </summary>
+    public Func<ConfirmationRequest, Task<bool>>? ConfirmDestructiveActionAsync { get; set; }
+
     // -- Constructor ------------------------------------------------------
+    /// <param name="pluginService">Plugin install, uninstall and state changes.</param>
+    /// <param name="localization">Texts of the uninstall confirmations.</param>
+    /// <param name="operationsDrillInService">Focus requests from the Operations page.</param>
     public PluginManagerViewModel(
         IPluginService pluginService,
+        ILocalizationService localization,
         IOperationsDrillInService? operationsDrillInService = null)
     {
         _pluginService = pluginService;
+        _localization = localization;
         _operationsDrillInService = operationsDrillInService;
         Log.Debug("PluginManagerViewModel created with services");
     }
@@ -144,17 +157,32 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
     }
 
     // -- Uninstall Plugin Command -----------------------------------------
+    /// <summary>
+    /// Uninstalls a plugin once the user confirms: its folder, with any data it keeps there,
+    /// and its record are deleted.
+    /// </summary>
     [RelayCommand]
     private async Task UninstallPluginAsync(long id)
     {
+        var target = Plugins.FirstOrDefault(p => p.Id == id);
+        var pluginName = target?.Name ?? $"#{id}";
+
+        var confirmed = await IsConfirmedAsync(new ConfirmationRequest(
+            _localization.GetString("Plugin_UninstallConfirmTitle"),
+            _localization.GetString("Plugin_UninstallConfirmMessage", pluginName),
+            _localization.GetString("Plugin_UninstallConfirmButton"),
+            _localization.GetString("Plugin_ConfirmCancelButton")));
+        if (!confirmed)
+        {
+            Log.Information("Uninstall of plugin ID {PluginId} was not confirmed", id);
+            return;
+        }
+
         Log.Information("Uninstalling plugin ID: {PluginId}", id);
         ClearError();
 
         try
         {
-            var target = Plugins.FirstOrDefault(p => p.Id == id);
-            var pluginName = target?.Name ?? $"#{id}";
-
             StatusMessage = $"Uninstalling {pluginName}...";
 
             var result = await _pluginService.UninstallPluginAsync(id);
@@ -415,9 +443,9 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
-    /// Uninstalls all currently selected plugins in bulk.
+    /// Uninstalls all currently selected plugins in bulk, once the user confirms.
     /// After completion, the selection is cleared, multi-select mode is exited,
-    /// and the plugin list is refreshed.
+    /// and the plugin list is refreshed. Without confirmation the selection is kept.
     /// </summary>
     [RelayCommand]
     private async Task BulkUninstallAsync()
@@ -425,6 +453,17 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
         if (SelectedPluginIds.Count == 0) return;
 
         var count = SelectedPluginIds.Count;
+        var confirmed = await IsConfirmedAsync(new ConfirmationRequest(
+            _localization.GetString("Plugin_BulkUninstallConfirmTitle"),
+            _localization.GetString("Plugin_BulkUninstallConfirmMessage", count),
+            _localization.GetString("Plugin_UninstallConfirmButton"),
+            _localization.GetString("Plugin_ConfirmCancelButton")));
+        if (!confirmed)
+        {
+            Log.Information("Bulk uninstall of {Count} plugins was not confirmed", count);
+            return;
+        }
+
         Log.Information("Bulk uninstalling {Count} plugins", count);
         ClearError();
         IsLoading = true;
@@ -579,6 +618,29 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
         PluginCount > 0
             ? $"{PluginCount} plugin{(PluginCount == 1 ? "" : "s")} installed"
             : "No plugins installed";
+
+    /// <summary>
+    /// Asks <see cref="ConfirmDestructiveActionAsync"/>. No handler, or a dialog that fails to
+    /// open, counts as "not confirmed": nothing is uninstalled without an answer.
+    /// </summary>
+    private async Task<bool> IsConfirmedAsync(ConfirmationRequest request)
+    {
+        if (ConfirmDestructiveActionAsync is not { } confirm)
+        {
+            Log.Warning("No confirmation handler is attached; '{Title}' was not carried out", request.Title);
+            return false;
+        }
+
+        try
+        {
+            return await confirm(request);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "The confirmation '{Title}' could not be shown", request.Title);
+            return false;
+        }
+    }
 
     private void SetError(string message)
     {

@@ -1594,6 +1594,18 @@
   <data name="Digest_TokensUsed.Text" xml:space="preserve"><value>Tokens Used</value></data>
   <data name="Digest_StorageDelta.Text" xml:space="preserve"><value>Storage Delta</value></data>
   <data name="Digest_LoadingDigestReports.Text" xml:space="preserve"><value>Loading digest reports...</value></data>
+  <data name="CollMgr_DeleteConfirmTitle" xml:space="preserve"><value>Delete collection?</value></data>
+  <data name="CollMgr_DeleteConfirmMessage" xml:space="preserve"><value>"{0}" will be deleted. Its documents stay in your Knowledge Vault, and its sub-collections move up one level. This cannot be undone.</value></data>
+  <data name="CollMgr_BulkDeleteConfirmTitle" xml:space="preserve"><value>Delete collections?</value></data>
+  <data name="CollMgr_BulkDeleteConfirmMessage" xml:space="preserve"><value>Selected collections: {0}. Their documents stay in your Knowledge Vault, and sub-collections you did not select move up one level. This cannot be undone.</value></data>
+  <data name="CollMgr_DeleteConfirmButton" xml:space="preserve"><value>Delete</value></data>
+  <data name="CollMgr_ConfirmCancelButton" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Plugin_UninstallConfirmTitle" xml:space="preserve"><value>Uninstall plugin?</value></data>
+  <data name="Plugin_UninstallConfirmMessage" xml:space="preserve"><value>"{0}" will be uninstalled: its folder is deleted, together with any data the plugin keeps there. This cannot be undone.</value></data>
+  <data name="Plugin_BulkUninstallConfirmTitle" xml:space="preserve"><value>Uninstall plugins?</value></data>
+  <data name="Plugin_BulkUninstallConfirmMessage" xml:space="preserve"><value>Selected plugins: {0}. Their folders are deleted, together with any data the plugins keep there. This cannot be undone.</value></data>
+  <data name="Plugin_UninstallConfirmButton" xml:space="preserve"><value>Uninstall</value></data>
+  <data name="Plugin_ConfirmCancelButton" xml:space="preserve"><value>Cancel</value></data>
   <data name="Digest_NoDigestReportsYet.Text" xml:space="preserve"><value>No Digest Reports Yet</value></data>
   <data name="Digest_GenerateYourFirstWeekly.Text" xml:space="preserve"><value>Generate your first weekly digest to see activity summaries, search trends, and conversation highlights.</value></data>
   <data name="Digest_GenerateFirstDigest.Text" xml:space="preserve"><value>Generate First Digest</value></data>

@@ -28,6 +28,7 @@ public sealed partial class PluginManagerPage : Page
     public PluginManagerPage()
     {
         ViewModel = PageViewModelFactory.Create<PluginManagerViewModel>();
+        ViewModel.ConfirmDestructiveActionAsync = request => ConfirmationDialog.ShowAsync(XamlRoot, request);
         InitializeComponent();
 
         // The page is cached, so Loaded runs on every visit while the constructor runs once.
@@ -96,38 +97,19 @@ public sealed partial class PluginManagerPage : Page
     // ═══════════════════════════════════════════════════════════════
 
     /// <summary>
+    /// Uninstalls the selected plugins. Uninstall removes files from disk and cannot be undone,
+    /// so the view model asks for confirmation first, the same way as for a single plugin.
+    /// </summary>
+    private async void OnBulkUninstallPluginsClick(object sender, RoutedEventArgs e)
+    {
+        await ViewModel.BulkUninstallCommand.ExecuteAsync(null);
+    }
+
+    /// <summary>
     /// Handles selection changes in the plugin list. Updates the detail
     /// panel to reflect the newly selected plugin, or shows the empty
     /// state when nothing is selected.
     /// </summary>
-    /// <summary>
-    /// Confirms before uninstalling plugins in bulk. Uninstall removes files from disk and
-    /// cannot be undone, so it takes a gate rather than firing on a single click.
-    /// </summary>
-    private async void OnBulkUninstallPluginsClick(object sender, RoutedEventArgs e)
-    {
-        if (ViewModel.SelectedCount == 0)
-        {
-            return;
-        }
-
-        var dialog = new ContentDialog
-        {
-            Title = "Uninstall Plugins?",
-            Content = $"This permanently removes {ViewModel.SelectedCount} plugin(s) from disk. " +
-                      "This cannot be undone.",
-            PrimaryButtonText = "Uninstall",
-            CloseButtonText = "Cancel",
-            DefaultButton = ContentDialogButton.Close,
-            XamlRoot = this.XamlRoot
-        };
-
-        if (await dialog.ShowAsync() == ContentDialogResult.Primary)
-        {
-            await ViewModel.BulkUninstallCommand.ExecuteAsync(null);
-        }
-    }
-
     private void OnPluginSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (PluginListView.SelectedItem is PluginDisplayItem plugin)
@@ -330,16 +312,17 @@ public sealed partial class PluginManagerPage : Page
 
     /// <summary>
     /// Handles the Uninstall button click. The plugin ID is passed via
-    /// the Button's Tag property.
+    /// the Button's Tag property. The view model asks for confirmation first.
     /// </summary>
-    private void OnUninstallPluginClick(object sender, RoutedEventArgs e)
+    private async void OnUninstallPluginClick(object sender, RoutedEventArgs e)
     {
         if (sender is Button button && button.Tag is long pluginId)
         {
-            ViewModel.UninstallPluginCommand.Execute(pluginId);
+            await ViewModel.UninstallPluginCommand.ExecuteAsync(pluginId);
 
-            // If the uninstalled plugin was selected, clear the detail panel
-            if (_selectedPlugin is not null && _selectedPlugin.Id == pluginId)
+            // If the selected plugin was uninstalled (not cancelled), clear the detail panel
+            if (_selectedPlugin is not null && _selectedPlugin.Id == pluginId
+                && ViewModel.Plugins.All(plugin => plugin.Id != pluginId))
             {
                 _selectedPlugin = null;
                 PluginListView.SelectedItem = null;

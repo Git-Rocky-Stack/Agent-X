@@ -25,7 +25,7 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
     // ── Services ──────────────────────────────────────────────
     private readonly ICollectionService _collectionService;
     private readonly IDocumentService _documentService;
-    private readonly ILocalizationService? _localization;
+    private readonly ILocalizationService _localization;
     private readonly INotificationService? _notifications;
 
     // ── Page State ─────────────────────────────────────────────
@@ -69,14 +69,20 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
     /// </summary>
     public CollectionAddOutcome? LastAddOutcome { get; private set; }
 
+    /// <summary>
+    /// Asks the user to confirm a delete and answers true when they do. The page supplies it (a
+    /// ContentDialog). While it is unset, Delete and Delete Selected delete nothing.
+    /// </summary>
+    public Func<ConfirmationRequest, Task<bool>>? ConfirmDestructiveActionAsync { get; set; }
+
     /// <param name="collectionService">Collection reads and writes.</param>
     /// <param name="documentService">Imports the files picked for "Add Documents".</param>
-    /// <param name="localization">Texts of the "Add Documents" summary; no summary without it.</param>
+    /// <param name="localization">Texts of the delete confirmations and the "Add Documents" summary.</param>
     /// <param name="notifications">Shows the "Add Documents" summary; no summary without it.</param>
     public CollectionManagerViewModel(
         ICollectionService collectionService,
         IDocumentService documentService,
-        ILocalizationService? localization = null,
+        ILocalizationService localization,
         INotificationService? notifications = null)
     {
         _collectionService = collectionService;
@@ -298,10 +304,27 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
         RenameName = string.Empty;
     }
 
+    /// <summary>
+    /// Deletes a collection once the user confirms. Its documents stay in the vault and its
+    /// sub-collections move up to its parent (or to the top level).
+    /// </summary>
     [RelayCommand]
     private async Task DeleteCollectionAsync(long id)
     {
         Log.Information("Delete collection requested: {CollectionId}", id);
+
+        var name = FindCollectionById(id)?.Name ?? string.Empty;
+        var confirmed = await IsConfirmedAsync(new ConfirmationRequest(
+            _localization.GetString("CollMgr_DeleteConfirmTitle"),
+            _localization.GetString("CollMgr_DeleteConfirmMessage", name),
+            _localization.GetString("CollMgr_DeleteConfirmButton"),
+            _localization.GetString("CollMgr_ConfirmCancelButton")));
+        if (!confirmed)
+        {
+            Log.Information("Delete of collection {CollectionId} was not confirmed", id);
+            return;
+        }
+
         ClearError();
 
         try
@@ -449,7 +472,7 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
     /// </summary>
     private void ReportAddOutcome(CollectionAddOutcome outcome)
     {
-        if (_localization is null || _notifications is null)
+        if (_notifications is null)
         {
             return;
         }
@@ -594,9 +617,9 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
-    /// Deletes all currently selected collections in bulk.
+    /// Deletes all currently selected collections in bulk, once the user confirms.
     /// After completion, the selection is cleared, multi-select mode is exited,
-    /// and the collection list is refreshed.
+    /// and the collection list is refreshed. Without confirmation the selection is kept.
     /// </summary>
     [RelayCommand]
     private async Task BulkDeleteCollectionsAsync()
@@ -604,6 +627,17 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
         if (SelectedCollectionIds.Count == 0) return;
 
         var count = SelectedCollectionIds.Count;
+        var confirmed = await IsConfirmedAsync(new ConfirmationRequest(
+            _localization.GetString("CollMgr_BulkDeleteConfirmTitle"),
+            _localization.GetString("CollMgr_BulkDeleteConfirmMessage", count),
+            _localization.GetString("CollMgr_DeleteConfirmButton"),
+            _localization.GetString("CollMgr_ConfirmCancelButton")));
+        if (!confirmed)
+        {
+            Log.Information("Bulk delete of {Count} collections was not confirmed", count);
+            return;
+        }
+
         Log.Information("Bulk deleting {Count} collections", count);
         ClearError();
         IsLoading = true;
@@ -749,6 +783,29 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
             if (parent is not null) return parent;
         }
         return null;
+    }
+
+    /// <summary>
+    /// Asks <see cref="ConfirmDestructiveActionAsync"/>. No handler, or a dialog that fails to
+    /// open, counts as "not confirmed": nothing is deleted without an answer.
+    /// </summary>
+    private async Task<bool> IsConfirmedAsync(ConfirmationRequest request)
+    {
+        if (ConfirmDestructiveActionAsync is not { } confirm)
+        {
+            Log.Warning("No confirmation handler is attached; '{Title}' was not carried out", request.Title);
+            return false;
+        }
+
+        try
+        {
+            return await confirm(request);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "The confirmation '{Title}' could not be shown", request.Title);
+            return false;
+        }
     }
 
     private void SetError(string message)
