@@ -32,8 +32,9 @@ public interface ISummaryService
     Task<IReadOnlyList<string>> ExtractKeyPointsAsync(long documentId, CancellationToken ct = default);
 
     /// <summary>
-    /// Translates the given text to the specified target language.
-    /// Input text is capped at 4000 characters to fit within context limits.
+    /// Translates the given text to the specified target language. Text longer than one request
+    /// holds (4000 characters) is translated in parts split at paragraph, line or sentence breaks,
+    /// and the translated parts are joined in order, so nothing is left out.
     /// </summary>
     /// <param name="text">The source text to translate.</param>
     /// <param name="targetLanguage">The target language (e.g., "Spanish", "French", "Japanese").</param>
