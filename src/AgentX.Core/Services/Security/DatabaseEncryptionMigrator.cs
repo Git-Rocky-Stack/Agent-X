@@ -77,20 +77,20 @@ public sealed class DatabaseEncryptionMigrator : IDatabaseEncryptionMigrator
             // invoke sqlcipher_export to copy schema + data, DETACH.
             using (var source = new SqliteConnection($"Data Source={dbPath}"))
             {
-                await source.OpenAsync();
+                await source.OpenAsync().ConfigureAwait(false);
 
                 // Ensure WAL is flushed to the main DB file before export.
                 // Without this, uncommitted WAL pages could be lost during encryption migration.
                 using var checkpointCmd = source.CreateCommand();
                 checkpointCmd.CommandText = "PRAGMA wal_checkpoint(FULL)";
-                await checkpointCmd.ExecuteNonQueryAsync();
+                await checkpointCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
 
                 using var cmd = source.CreateCommand();
                 cmd.CommandText = $@"
                     ATTACH DATABASE '{EscapeSingleQuotes(tempEncryptedPath)}' AS encrypted KEY ""x'{key.HexKey}'"";
                     SELECT sqlcipher_export('encrypted');
                     DETACH DATABASE encrypted;";
-                await cmd.ExecuteNonQueryAsync();
+                await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
             }
 
             // Release file handles held by the Microsoft.Data.Sqlite connection pool.
@@ -109,15 +109,15 @@ public sealed class DatabaseEncryptionMigrator : IDatabaseEncryptionMigrator
             // Verification open: use PRAGMA key (NOT Password=), matches Correction #1.
             using (var verify = new SqliteConnection($"Data Source={dbPath}"))
             {
-                await verify.OpenAsync();
+                await verify.OpenAsync().ConfigureAwait(false);
 
                 using var keyCmd = verify.CreateCommand();
                 keyCmd.CommandText = $@"PRAGMA key = ""x'{key.HexKey}'"";";
-                await keyCmd.ExecuteNonQueryAsync();
+                await keyCmd.ExecuteNonQueryAsync().ConfigureAwait(false);
 
                 using var probeCmd = verify.CreateCommand();
                 probeCmd.CommandText = "SELECT count(*) FROM sqlite_master";
-                await probeCmd.ExecuteScalarAsync();
+                await probeCmd.ExecuteScalarAsync().ConfigureAwait(false);
             }
 
             SqliteConnection.ClearAllPools();
@@ -126,7 +126,7 @@ public sealed class DatabaseEncryptionMigrator : IDatabaseEncryptionMigrator
             // backup still exists, so a failed commit rolls the database back and the marker and
             // the file on disk never disagree.
             if (commitAsync is not null)
-                await commitAsync();
+                await commitAsync().ConfigureAwait(false);
         }
         catch
         {

@@ -6,6 +6,7 @@ using System.Text.Json;
 using AgentX.Core.Constants;
 using AgentX.Core.Data;
 using AgentX.Core.Data.Entities;
+using AgentX.Core.Data.VectorDb;
 using AgentX.Core.Helpers;
 using AgentX.Core.Services.Backup.Models;
 using AgentX.Core.Services.Security;
@@ -36,9 +37,11 @@ namespace AgentX.Core.Services.Backup;
 /// restorable.
 ///
 /// Restore stages the archive's database next to the live file, verifies it with the current
-/// database key (re-encrypting a plaintext backup when encryption is on), releases the shared
-/// connection, swaps the file in with <see cref="File.Replace(string, string, string?)"/> and keeps
-/// the replaced file until the swapped-in database passes verification.
+/// database key (re-encrypting a plaintext backup when encryption is on), suspends the vector
+/// store's own connection, releases the shared connection, swaps the file in with
+/// <see cref="File.Replace(string, string, string?)"/> and keeps the replaced file until the
+/// swapped-in database passes verification. The swap and the verification run under the shared
+/// context's database gate, so EF work from other flows waits for them.
 /// </summary>
 public sealed class BackupService : IBackupService
 {
@@ -71,6 +74,7 @@ public sealed class BackupService : IBackupService
     private readonly AgentXDbContext _db;
     private readonly ISettingsService _settingsService;
     private readonly IEncryptedConnectionFactory _connectionFactory;
+    private readonly IVectorStore? _vectorStore;
     private readonly string? _databasePathOverride;
 
     /// <summary>
@@ -96,13 +100,16 @@ public sealed class BackupService : IBackupService
     /// <summary>
     /// Creates a <see cref="BackupService"/>. The <paramref name="connectionFactory"/> is a
     /// required dependency: PRAGMA key is applied through it to the source and destination
-    /// connections of the SQLite Online Backup API and to every staged restore.
+    /// connections of the SQLite Online Backup API and to every staged restore. The
+    /// <paramref name="vectorStore"/> keeps its own connection to the database file; a restore
+    /// suspends it around the swap and has it reload the restored vectors.
     /// </summary>
     public BackupService(
         AgentXDbContext dbContext,
         ISettingsService settingsService,
-        IEncryptedConnectionFactory connectionFactory)
-        : this(dbContext, settingsService, connectionFactory, databasePath: null)
+        IEncryptedConnectionFactory connectionFactory,
+        IVectorStore? vectorStore = null)
+        : this(dbContext, settingsService, connectionFactory, vectorStore, databasePath: null)
     {
     }
 
@@ -111,11 +118,13 @@ public sealed class BackupService : IBackupService
         AgentXDbContext dbContext,
         ISettingsService settingsService,
         IEncryptedConnectionFactory connectionFactory,
+        IVectorStore? vectorStore,
         string? databasePath)
     {
         _db = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
+        _vectorStore = vectorStore;
         _databasePathOverride = databasePath;
         Log.Information("BackupService initialized");
     }
@@ -338,38 +347,78 @@ public sealed class BackupService : IBackupService
             Report(progress, "Staging document files", 55);
             var stagedDocuments = await StageDocumentsAsync(archive, paths, warnings, ct).ConfigureAwait(false);
 
-            // Last point where cancelling leaves nothing to undo.
-            ct.ThrowIfCancellationRequested();
-
             // --- Phase 4: swap the database in, verify it, install documents ---
             Report(progress, "Replacing database", 70);
-            SwapInDatabase(restoredDatabase, paths);
 
-            int restoredDocs, restoredConvs, restoredWorkflows;
-            var installed = new List<InstalledDocument>();
+            // The vector store keeps its own connection to the database file, and on Windows any
+            // open handle makes the swap fail. It is closed here and reopened afterwards on
+            // whichever file is live, reloading its vectors when that is the restored one.
+            var vectorStoreSuspended = await SharedDatabaseConnection
+                .TrySuspendVectorStoreAsync(_vectorStore, ct).ConfigureAwait(false);
+
+            int restoredDocs = 0, restoredConvs = 0, restoredWorkflows = 0;
+            var databaseReplaced = false;
             try
             {
-                Report(progress, "Verifying restored data", 80);
-                restoredDocs = await _db.Documents.CountAsync(CancellationToken.None).ConfigureAwait(false);
-                restoredConvs = await _db.Conversations.CountAsync(CancellationToken.None).ConfigureAwait(false);
-                restoredWorkflows = await _db.Workflows.CountAsync(CancellationToken.None).ConfigureAwait(false);
+                // Last point where cancelling leaves nothing to undo.
+                ct.ThrowIfCancellationRequested();
 
-                Report(progress, "Restoring document files", 90);
-                InstallDocuments(stagedDocuments, paths, installed);
+                // Other flows share this context (status polling, indexing, background tasks).
+                // Holding its gate makes their EF work wait while the connection is released, the
+                // file swapped and the result verified, instead of reopening the connection on a
+                // file in mid-swap. The EF calls made here re-enter the gate. The gate is entered
+                // with a blocking wait, so this runs on the thread pool, never on the UI thread
+                // that started the restore.
+                await Task.Run(
+                    async () =>
+                    {
+                        using (_db.EnterDatabaseGate())
+                        {
+                            SwapInDatabase(restoredDatabase, paths);
+                            databaseReplaced = true;
+
+                            var installed = new List<InstalledDocument>();
+                            try
+                            {
+                                Report(progress, "Verifying restored data", 80);
+                                restoredDocs = await _db.Documents.CountAsync(CancellationToken.None).ConfigureAwait(false);
+                                restoredConvs = await _db.Conversations.CountAsync(CancellationToken.None).ConfigureAwait(false);
+                                restoredWorkflows = await _db.Workflows.CountAsync(CancellationToken.None).ConfigureAwait(false);
+
+                                Report(progress, "Restoring document files", 90);
+                                InstallDocuments(stagedDocuments, paths, installed);
+                            }
+                            catch (Exception ex)
+                            {
+                                if (RollBackDocuments(installed))
+                                    paths.DiscardDocumentRollback();
+
+                                var previousKeptAt = RollBackDatabase(paths);
+                                if (previousKeptAt is not null)
+                                {
+                                    throw new InvalidOperationException(
+                                        $"{ex.Message} The previous database could not be put back automatically; it is kept at {previousKeptAt}.", ex);
+                                }
+
+                                throw;
+                            }
+                        }
+                    },
+                    CancellationToken.None).ConfigureAwait(false);
             }
-            catch (Exception ex)
+            finally
             {
-                if (RollBackDocuments(installed))
-                    paths.DiscardDocumentRollback();
-
-                var previousKeptAt = RollBackDatabase(paths);
-                if (previousKeptAt is not null)
+                if (vectorStoreSuspended)
                 {
-                    throw new InvalidOperationException(
-                        $"{ex.Message} The previous database could not be put back automatically; it is kept at {previousKeptAt}.", ex);
+                    var resumed = await SharedDatabaseConnection
+                        .ResumeVectorStoreAsync(_vectorStore!, reloadFromDatabase: databaseReplaced)
+                        .ConfigureAwait(false);
+                    if (!resumed)
+                    {
+                        warnings.Add(
+                            "The semantic search index could not be reloaded. Restart Agent-X to rebuild it from the restored database.");
+                    }
                 }
-
-                throw;
             }
 
             // The swapped-in database passed verification: the replaced files are no longer needed.
@@ -1204,7 +1253,8 @@ public sealed class BackupService : IBackupService
     /// Replaces the live database with the verified staged file. The shared connection is
     /// released first (SQLite opens files without FILE_SHARE_DELETE, so any open handle makes
     /// the replace fail on Windows) and reopened with the current key afterwards. The replaced
-    /// file is kept as the safety copy.
+    /// file is kept as the safety copy. The caller holds the database gate and has suspended
+    /// the vector store.
     /// </summary>
     private void SwapInDatabase(string restoredDatabase, RestorePaths paths)
     {

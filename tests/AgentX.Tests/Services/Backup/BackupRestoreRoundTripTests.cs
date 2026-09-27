@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using AgentX.Core.Data;
 using AgentX.Core.Data.Entities;
+using AgentX.Core.Data.VectorDb;
 using AgentX.Core.Services.Backup;
 using AgentX.Core.Services.Backup.Models;
 using AgentX.Core.Services.Security;
@@ -36,9 +37,9 @@ public sealed class BackupRestoreRoundTripTests : IDisposable
             harness.Dispose();
     }
 
-    private Harness NewHarness(DatabaseKeyMaterial? key = null)
+    private Harness NewHarness(DatabaseKeyMaterial? key = null, IVectorStore? vectorStore = null, bool withVectorStore = false)
     {
-        var harness = new Harness(key);
+        var harness = new Harness(key, vectorStore, withVectorStore);
         _harnesses.Add(harness);
         return harness;
     }
@@ -170,6 +171,111 @@ public sealed class BackupRestoreRoundTripTests : IDisposable
         result.ErrorMessage.Should().Contain("damaged");
         (await h.Db.Conversations.CountAsync()).Should().Be(1);
         h.LeftoverRestoreFiles().Should().BeEmpty();
+    }
+
+    // --- Restore: other users of the database file ---
+
+    [Fact]
+    public async Task Restore_holds_the_database_gate_so_other_flows_wait_for_the_swap()
+    {
+        var h = NewHarness();
+        h.AddConversation("in the backup");
+        var backup = await h.CreateBackupAsync();
+        h.AddConversation("added after the backup");
+
+        // Another flow of the shared context (status polling, indexing), started before the
+        // restore so it does not share the restore's ownership of the gate.
+        var swapReached = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var queryStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var otherFlow = Task.Run(async () =>
+        {
+            await swapReached.Task;
+            queryStarted.SetResult();
+            return await h.Db.Conversations.CountAsync();
+        });
+
+        bool? otherFlowFinishedDuringSwap = null;
+        var progress = new CallbackProgress(p =>
+        {
+            if (p.Phase != "Verifying restored data")
+                return;
+
+            swapReached.SetResult();
+            queryStarted.Task.Wait(TimeSpan.FromSeconds(5));
+            otherFlowFinishedDuringSwap = otherFlow.Wait(TimeSpan.FromMilliseconds(300));
+        });
+
+        var result = await h.Service.RestoreFromBackupAsync(backup, password: null, progress);
+
+        result.Success.Should().BeTrue(result.ErrorMessage);
+        otherFlowFinishedDuringSwap.Should().BeFalse(
+            "EF work from another flow must wait while the connection is released and the file swapped");
+        (await otherFlow.WaitAsync(TimeSpan.FromSeconds(10))).Should().Be(1, "it runs once the restored database is in place");
+    }
+
+    [Fact]
+    public async Task Restore_closes_the_vector_store_during_the_swap_and_reloads_the_restored_vectors()
+    {
+        var h = NewHarness(withVectorStore: true);
+        var store = h.VectorStore!;
+        await store.InitializeAsync();
+        await store.InsertEmbeddingAsync(1, new[] { 1f, 0f, 0f });
+        h.AddConversation("in the backup");
+        var backup = await h.CreateBackupAsync();
+        await store.DeleteEmbeddingAsync(1);
+        await store.InsertEmbeddingAsync(2, new[] { 0f, 1f, 0f });
+
+        // The replaced database is renamed to the safety copy, so a handle that survives the swap
+        // shows up there. On Windows such a handle makes the swap fail with "database in use".
+        bool? replacedFileStillOpen = null;
+        var progress = new CallbackProgress(p =>
+        {
+            if (p.Phase == "Verifying restored data")
+                replacedFileStillOpen = FileHandleProbe.IsOpenByThisProcess(h.DbPath + ".pre-restore");
+        });
+
+        var result = await h.Service.RestoreFromBackupAsync(backup, password: null, progress);
+
+        result.Success.Should().BeTrue(result.ErrorMessage);
+        replacedFileStillOpen.Should().BeFalse("the vector store's own connection must be closed for the swap");
+        (await store.SearchAsync(new[] { 1f, 0f, 0f }, topK: 5, minSimilarity: 0.5)).Select(r => r.ChunkId)
+            .Should().Equal(new long[] { 1 }, "the store reads the restored vectors");
+        (await store.SearchAsync(new[] { 0f, 1f, 0f }, topK: 5, minSimilarity: 0.5)).Should().BeEmpty();
+        (await store.GetEmbeddingCountAsync()).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task Restore_reports_a_warning_when_the_vector_store_cannot_reopen()
+    {
+        var store = new Mock<IVectorStore>();
+        store.Setup(s => s.ResumeAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new IOException("cannot open"));
+        var h = NewHarness(vectorStore: store.Object);
+        h.AddConversation("in the backup");
+        var backup = await h.CreateBackupAsync();
+
+        var result = await h.Service.RestoreFromBackupAsync(backup, password: null);
+
+        result.Success.Should().BeTrue(result.ErrorMessage);
+        result.WarningMessages.Should().Contain(w => w.Contains("semantic search index", StringComparison.Ordinal));
+        store.Verify(s => s.SuspendAsync(It.IsAny<CancellationToken>()), Times.Once);
+        store.Verify(s => s.ResumeAsync(true, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Restore_that_fails_before_the_swap_leaves_the_vector_store_alone()
+    {
+        var store = new Mock<IVectorStore>();
+        var h = NewHarness(vectorStore: store.Object);
+        var archive = Path.Combine(h.BackupDir, "damaged.agentxbak");
+        await File.WriteAllBytesAsync(archive, BuildArchive(
+            ("database/agentx.db", new byte[] { 1, 2, 3 }),
+            ("manifest.json", Encoding.UTF8.GetBytes("{\"version\":1}"))));
+
+        var result = await h.Service.RestoreFromBackupAsync(archive, password: null);
+
+        result.Success.Should().BeFalse();
+        store.Verify(s => s.SuspendAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     // --- Restore: document files ---
@@ -314,6 +420,16 @@ public sealed class BackupRestoreRoundTripTests : IDisposable
         return ms.ToArray();
     }
 
+    /// <summary>Runs a callback synchronously on the reporting thread, unlike <see cref="Progress{T}"/>.</summary>
+    private sealed class CallbackProgress : IProgress<BackupProgress>
+    {
+        private readonly Action<BackupProgress> _onReport;
+
+        public CallbackProgress(Action<BackupProgress> onReport) => _onReport = onReport;
+
+        public void Report(BackupProgress value) => _onReport(value);
+    }
+
     /// <summary>Real factory that records which files were opened.</summary>
     private sealed class RecordingFactory : IEncryptedConnectionFactory
     {
@@ -337,7 +453,13 @@ public sealed class BackupRestoreRoundTripTests : IDisposable
     {
         private readonly string _root = Path.Combine(Path.GetTempPath(), $"agentx-bakrt-{Guid.NewGuid():N}");
 
-        public Harness(DatabaseKeyMaterial? key)
+        /// <param name="key">Database key, or null for a plaintext installation.</param>
+        /// <param name="vectorStore">A vector store to hand to the service.</param>
+        /// <param name="withVectorStore">
+        /// Creates a real SqliteVecStore on the live database file, the way the app runs it (its own
+        /// long-lived connection, through the same keyed factory). Not initialized.
+        /// </param>
+        public Harness(DatabaseKeyMaterial? key, IVectorStore? vectorStore = null, bool withVectorStore = false)
         {
             var appDir = Path.Combine(_root, "app");
             StorageDir = Path.Combine(_root, "storage");
@@ -359,8 +481,20 @@ public sealed class BackupRestoreRoundTripTests : IDisposable
 
             var settings = new Mock<ISettingsService>();
             settings.Setup(s => s.GetSettingsAsync()).ReturnsAsync(() => new AppSettings { StoragePath = StorageDir });
-            Service = new BackupService(Db, settings.Object, Factory);
+
+            if (withVectorStore)
+            {
+                // The vector store opens <StoragePath>/agentx.db, which is the live database here.
+                var vectorSettings = new Mock<ISettingsService>();
+                vectorSettings.Setup(s => s.GetSettingsAsync()).ReturnsAsync(() => new AppSettings { StoragePath = appDir });
+                vectorStore = new SqliteVecStore(vectorSettings.Object, Factory);
+            }
+
+            VectorStore = vectorStore;
+            Service = new BackupService(Db, settings.Object, Factory, vectorStore);
         }
+
+        public IVectorStore? VectorStore { get; }
 
         public string DbPath { get; }
         public string StorageDir { get; }
@@ -395,6 +529,7 @@ public sealed class BackupRestoreRoundTripTests : IDisposable
 
         public void Dispose()
         {
+            VectorStore?.DisposeAsync().AsTask().GetAwaiter().GetResult();
             Db.Dispose();
             SqliteConnection.ClearAllPools();
             try { Directory.Delete(_root, recursive: true); } catch (IOException) { }

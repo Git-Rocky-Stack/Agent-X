@@ -1,10 +1,13 @@
 using AgentX.Core.Data;
 using AgentX.Core.Data.Entities;
+using AgentX.Core.Data.VectorDb;
 using AgentX.Core.Services.Security;
+using AgentX.Core.Services.Settings;
 using AgentX.Tests.Helpers;
 using FluentAssertions;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 using Xunit;
 
 namespace AgentX.Tests.Services.Security;
@@ -44,7 +47,10 @@ public sealed class DatabaseEncryptionManagerTests : IDisposable
         try { Directory.Delete(_dir, recursive: true); } catch (IOException) { }
     }
 
-    private DatabaseEncryptionManager CreateSut(IDatabaseEncryptionMigrator? migrator = null, IEncryptionStateFile? stateFile = null)
+    private DatabaseEncryptionManager CreateSut(
+        IDatabaseEncryptionMigrator? migrator = null,
+        IEncryptionStateFile? stateFile = null,
+        IVectorStore? vectorStore = null)
     {
         var markers = stateFile ?? _stateFile;
         return new DatabaseEncryptionManager(
@@ -52,7 +58,16 @@ public sealed class DatabaseEncryptionManagerTests : IDisposable
             new DatabaseKeyService(markers, new FakeDpapiEncryptionService()),
             migrator ?? new DatabaseEncryptionMigrator(markers),
             _keyProvider,
-            markers);
+            markers,
+            vectorStore);
+    }
+
+    /// <summary>The vector store the app runs: its own connection to the live file, keyed by the same provider.</summary>
+    private SqliteVecStore CreateVectorStore()
+    {
+        var settings = new Mock<ISettingsService>();
+        settings.Setup(s => s.GetSettingsAsync()).ReturnsAsync(() => new AppSettings { StoragePath = _dir });
+        return new SqliteVecStore(settings.Object, new EncryptedConnectionFactory(_keyProvider));
     }
 
     [Fact]
@@ -84,6 +99,62 @@ public sealed class DatabaseEncryptionManagerTests : IDisposable
         // SQLite opens files without FILE_SHARE_DELETE, so an open handle makes the swap fail on
         // Windows (and the old code wrote the marker anyway).
         spy.DatabaseWasOpenDuringMigration.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task EnableEncryptionAsync_holds_the_database_gate_while_the_file_is_migrated()
+    {
+        var migrator = new PausingMigrator(new DatabaseEncryptionMigrator(_stateFile));
+
+        // Another flow of the shared context (status polling, indexing), started before the
+        // migration so it does not share the migration's ownership of the gate.
+        var queryStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var otherFlow = Task.Run(async () =>
+        {
+            await migrator.Started.Task;
+            queryStarted.SetResult();
+            return await _db.Conversations.CountAsync();
+        });
+
+        var enable = CreateSut(migrator: migrator).EnableEncryptionAsync();
+        await queryStarted.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        await Task.Delay(300);
+
+        // Without the gate the query reopened the connection on the plaintext file while it was
+        // being exported and swapped: the swap failed on Windows, and writes made then were lost.
+        otherFlow.IsCompleted.Should().BeFalse("EF work from another flow must wait while the file is migrated");
+
+        migrator.Continue.SetResult();
+        (await enable.WaitAsync(TimeSpan.FromSeconds(30))).Should().BeTrue();
+        (await otherFlow.WaitAsync(TimeSpan.FromSeconds(10))).Should().Be(1, "it runs on the encrypted file once the key is applied");
+    }
+
+    [Fact]
+    public async Task EnableEncryptionAsync_closes_the_vector_store_and_reopens_it_with_the_new_key()
+    {
+        var store = CreateVectorStore();
+        await using (store)
+        {
+            await store.InitializeAsync();
+            await store.InsertEmbeddingAsync(1, new[] { 1f, 0f, 0f });
+            var spy = new SpyMigrator(new DatabaseEncryptionMigrator(_stateFile), _dbPath);
+
+            (await CreateSut(migrator: spy, vectorStore: store).EnableEncryptionAsync()).Should().BeTrue();
+
+            spy.DatabaseWasOpenDuringMigration.Should().BeFalse("the vector store's own connection blocked the swap on Windows");
+            await store.InsertEmbeddingAsync(2, new[] { 0f, 1f, 0f });
+            (await store.SearchAsync(new[] { 0f, 1f, 0f }, topK: 5, minSimilarity: 0.5)).Select(r => r.ChunkId)
+                .Should().Equal(new long[] { 2 });
+        }
+
+        // The insert made after encryption landed in the encrypted live file, not in the
+        // plaintext file the store had open before.
+        IsPlaintext(_dbPath).Should().BeFalse();
+        using var keyed = new EncryptedConnectionFactory(_keyProvider).OpenKeyed(_dbPath);
+        using var count = keyed.CreateCommand();
+        count.CommandText = "SELECT count(*) FROM vec_embeddings;";
+        Convert.ToInt64(count.ExecuteScalar()).Should().Be(2);
+        SqliteConnection.ClearPool(keyed);
     }
 
     [Fact]
@@ -152,6 +223,30 @@ public sealed class DatabaseEncryptionManagerTests : IDisposable
         {
             DatabaseWasOpenDuringMigration = FileHandleProbe.IsOpenByThisProcess(_dbPath);
             return _inner.MigrateToEncryptedAsync(dbPath, key, commitAsync);
+        }
+
+        public void RecoverIfNeeded(string dbPath) => _inner.RecoverIfNeeded(dbPath);
+    }
+
+    /// <summary>Signals when the migration starts and holds it until the test continues it.</summary>
+    private sealed class PausingMigrator : IDatabaseEncryptionMigrator
+    {
+        private readonly IDatabaseEncryptionMigrator _inner;
+
+        public PausingMigrator(IDatabaseEncryptionMigrator inner) => _inner = inner;
+
+        public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public TaskCompletionSource Continue { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public Task MigrateToEncryptedAsync(string dbPath, DatabaseKeyMaterial key)
+            => MigrateToEncryptedAsync(dbPath, key, null);
+
+        public async Task MigrateToEncryptedAsync(string dbPath, DatabaseKeyMaterial key, Func<Task>? commitAsync)
+        {
+            Started.TrySetResult();
+            await Continue.Task.ConfigureAwait(false);
+            await _inner.MigrateToEncryptedAsync(dbPath, key, commitAsync).ConfigureAwait(false);
         }
 
         public void RecoverIfNeeded(string dbPath) => _inner.RecoverIfNeeded(dbPath);

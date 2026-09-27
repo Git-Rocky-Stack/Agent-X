@@ -561,7 +561,7 @@
   <data name="UserGuide_BackupRestore_Restore_Title.Text" xml:space="preserve"><value>从备份还原</value></data>
   <data name="UserGuide_BackupRestore_Restore1.Text" xml:space="preserve"><value>在“从备份还原”下选择备份文件，然后单击“还原”。如果备份已加密，Agent-X 会要求输入密码。在进行任何更改之前，会先检查备份及其数据库。</value></data>
   <data name="UserGuide_BackupRestore_Restore2.Text" xml:space="preserve"><value>还原会用备份中的数据库替换整个数据库，并放回备份中的网页导入页面（同名文件会被覆盖）；不支持合并或部分还原。如果失败，会放回之前的数据库和文件。设置和 API 密钥不会更改。</value></data>
-  <data name="UserGuide_BackupRestore_Restore3.Text" xml:space="preserve"><value>还原完成后请重新启动 Agent-X；在此之前，已打开的页面和搜索索引仍显示之前的数据。如果 Agent-X 提示数据库正在使用，请等待索引或同步等后台工作完成，或重新启动 Agent-X，然后重试。这种情况下不会进行任何更改。</value></data>
+  <data name="UserGuide_BackupRestore_Restore3.Text" xml:space="preserve"><value>还原完成后请重新启动 Agent-X；在此之前，已打开的页面和缓存的搜索结果仍显示之前的数据。如果 Agent-X 提示数据库正在使用，说明有其他程序（例如第二个 Agent-X 窗口）打开了数据库文件：请将其关闭，然后重试。这种情况下不会进行任何更改。</value></data>
   <data name="UserGuide_BackupRestore_Migration_Title.Text" xml:space="preserve"><value>跨版本迁移</value></data>
   <data name="UserGuide_BackupRestore_Migration_Description.Text" xml:space="preserve"><value>可以还原由较早版本的 Agent-X 创建的备份：还原的数据库会在下次启动 Agent-X 时升级到当前版本。不支持还原由比已安装版本更新的版本创建的备份。</value></data>
   <data name="UserGuide_Export_Title.Text" xml:space="preserve"><value>导出与数据可携性</value></data>

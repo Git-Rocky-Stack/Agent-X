@@ -55,7 +55,7 @@ public sealed class EncryptionStateFile : IEncryptionStateFile
         var tempPath = $"{_filePath}.{Guid.NewGuid():N}.tmp";
         try
         {
-            await File.WriteAllTextAsync(tempPath, json);
+            await File.WriteAllTextAsync(tempPath, json).ConfigureAwait(false);
 
             // Restrict file ACL to current user only on Windows. Applied to the temp file so the
             // marker is never readable by other accounts, even for an instant after the move.

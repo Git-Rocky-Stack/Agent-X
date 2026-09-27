@@ -1,6 +1,7 @@
 using System.Data;
 using System.Data.Common;
 using AgentX.Core.Data;
+using AgentX.Core.Data.VectorDb;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -16,9 +17,13 @@ namespace AgentX.Core.Services.Security;
 /// PRAGMA key, which means EF Core treats it as externally opened and
 /// <c>Database.CloseConnection()</c> leaves it open. SQLite opens files without
 /// FILE_SHARE_DELETE, so on Windows any open handle makes the move or replace fail. Closing the
-/// DbConnection directly and clearing the SQLite pools releases every handle this process holds
-/// through Microsoft.Data.Sqlite (connections held open elsewhere, such as a vector store's own
-/// connection, are not affected and still block the swap).
+/// DbConnection directly and clearing the SQLite pools releases every idle handle this process
+/// holds through Microsoft.Data.Sqlite. A connection that is open elsewhere is not affected: the
+/// vector store keeps its own, so callers suspend it first (<see cref="TrySuspendVectorStoreAsync"/>).
+/// </para>
+/// <para>
+/// Callers hold <see cref="AgentXDbContext.EnterDatabaseGate"/> from the release to the reacquire,
+/// so EF work from other flows waits instead of reopening the connection on a file in mid-swap.
 /// </para>
 /// </summary>
 internal static class SharedDatabaseConnection
@@ -75,4 +80,52 @@ internal static class SharedDatabaseConnection
     /// built without the encrypted connection factory; EF Core then opens on demand.
     /// </summary>
     public static void Reacquire(AgentXDbContext db) => db.EnsureKeyApplied();
+
+    /// <summary>
+    /// Suspends the vector store, which keeps its own connection to the database file, before the
+    /// file is moved or replaced. Returns true when the store is suspended and must be resumed
+    /// with <see cref="ResumeVectorStoreAsync"/>. Returns false when there is no store or it could
+    /// not be suspended; the file operation then fails as "in use" on Windows and rolls back.
+    /// A cancelled wait propagates, so the caller can stop before changing anything.
+    /// </summary>
+    public static async Task<bool> TrySuspendVectorStoreAsync(IVectorStore? store, CancellationToken ct)
+    {
+        if (store is null)
+            return false;
+
+        try
+        {
+            await store.SuspendAsync(ct).ConfigureAwait(false);
+            return true;
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Could not suspend the vector store before changing the database file");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Resumes a vector store suspended by <see cref="TrySuspendVectorStoreAsync"/>. Returns false
+    /// when it could not reopen; that is logged, not thrown, because the file operation itself is
+    /// complete, and the store's operations report that it is not initialized until Agent-X
+    /// restarts.
+    /// </summary>
+    public static async Task<bool> ResumeVectorStoreAsync(IVectorStore store, bool reloadFromDatabase)
+    {
+        try
+        {
+            await store.ResumeAsync(reloadFromDatabase, CancellationToken.None).ConfigureAwait(false);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Could not reopen the vector store after changing the database file; semantic search is unavailable until Agent-X restarts");
+            return false;
+        }
+    }
 }
