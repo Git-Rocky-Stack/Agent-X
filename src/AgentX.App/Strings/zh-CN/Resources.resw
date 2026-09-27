@@ -296,28 +296,28 @@
   <data name="UserGuide_GettingHelp_Footer2.Text" xml:space="preserve"><value>面向每个人的本地优先 AI</value></data>
 
   <data name="UserGuide_TemporalIdentity_Title.Text" xml:space="preserve"><value>时序身份连贯性</value></data>
-  <data name="UserGuide_TemporalIdentity_Description.Text" xml:space="preserve"><value>时序身份会根据您在应用中的操作，在本地保存一份关于您如何思考和写作的简单记录：您在聊天消息中表达的观点、AI 回复中的洞见时刻、一个基础的文风画像，以及您打开某个对话或 Vault 文档的时长。它使用针对英语措辞的固定词语规则，而不是 AI 模型。“过往的自己”和仪表板会读取这份记录。</value></data>
+  <data name="UserGuide_TemporalIdentity_Description.Text" xml:space="preserve"><value>时序身份会根据您在应用中的操作，在本地保存一份关于您如何思考和写作的简单记录：您在聊天消息中表达的观点、AI 回复中的洞见时刻和您的注释、一个基础的文风画像，以及您打开某个对话或 Vault 文档的时长。这份记录由针对英语措辞的固定词语规则生成，而不是 AI 模型。“过往的自己”和仪表板会读取这份记录，“以我的口吻起草”会将其中一部分发送给您的 AI 提供商。</value></data>
   <data name="UserGuide_TemporalIdentity_Tracking_Title.Text" xml:space="preserve"><value>追踪内容</value></data>
   <data name="UserGuide_TemporalIdentity_Tracking1.Text" xml:space="preserve"><value>观点：每次回复后，系统会在您的消息中查找长度为 20 到 100 个字符、包含“I think”“I believe”或“I feel”且其后跟有“that”的句子。“that”之后的部分（4 到 49 个字符）成为一个观点的主题，每条消息最多五个；第一个提到该主题的句子成为您的立场，并用基于词表的分数（例如 good、agree、support 与 bad、disagree、wrong 的对比）记录其积极程度。其他措辞不会被追踪。</value></data>
-  <data name="UserGuide_TemporalIdentity_Tracking2.Text" xml:space="preserve"><value>洞见：每次回复后，系统还会在对话的 AI 回复中查找“key insight”“important”“realize”等标记词或感叹号，每条匹配的回复只会被保存一次，作为洞见。通过注释服务创建的高亮也会成为洞见，但应用目前还没有创建高亮的命令。参见“洞见采集”。</value></data>
+  <data name="UserGuide_TemporalIdentity_Tracking2.Text" xml:space="preserve"><value>洞见：每次回复后，系统还会在对话的 AI 回复中查找“key insight”“important”“realize”等标记词或感叹号，每条匹配的回复只会被保存一次，作为洞见。您在 Vault 预览中保存的每条注释也会成为洞见。参见“洞见采集”。</value></data>
   <data name="UserGuide_TemporalIdentity_Tracking3.Text" xml:space="preserve"><value>文风：您发送的每条消息都会更新文风画像中的两个移动平均值：每句的单词数，以及一个正式程度分数（出现“therefore”或“however”时上升，出现缩写等撇号时下降）。“过往的自己”会显示该画像，“以我的口吻起草”会使用它。</value></data>
   <data name="UserGuide_TemporalIdentity_Tracking4.Text" xml:space="preserve"><value>变化与阅读时长：当某个已知主题的积极程度分数变化超过 0.5 时，系统会记录这一变化以及之前和新的立场（参见“冲突检测”）。Agent-X 还会记录对话在 AI Chat 中、文档在 Knowledge Vault 预览中保持打开的时长；不足一秒的查看会被忽略，每次查看最多计为 30 分钟。目前还没有页面显示这些时长。</value></data>
   <data name="UserGuide_TemporalIdentity_BeliefEvolution_Title.Text" xml:space="preserve"><value>观点演变</value></data>
-  <data name="UserGuide_TemporalIdentity_BeliefEvolution_Description.Text" xml:space="preserve"><value>没有时间线视图。在“过往的自己”页面中，按记录时的原样输入主题，然后点击“显示观点演变”：页面会说明该观点从何时开始被追踪、是否发生过变化，并显示之前的立场及其变化时间。“获取活跃主题”会按原样列出过去 30 天内记录的主题。</value></data>
+  <data name="UserGuide_TemporalIdentity_BeliefEvolution_Description.Text" xml:space="preserve"><value>没有时间线视图。在“过往的自己”页面中，按记录时的措辞输入主题（不区分大小写），然后点击“显示观点演变”：页面会说明该观点从哪个月开始被追踪、是否发生过变化，并显示当前立场及其置信度。之前的立场显示在仪表板的观点卡片上，而不是这里。“获取活跃主题”会列出过去 30 天内记录的主题。</value></data>
   <data name="UserGuide_TemporalIdentity_Conflicts_Title.Text" xml:space="preserve"><value>冲突检测</value></data>
   <data name="UserGuide_TemporalIdentity_Conflicts_Description.Text" xml:space="preserve"><value>每一次记录下来的变化都是一个观点冲突。仪表板上的“您的观点演变”卡片按变化幅度从大到小列出最多五个未确认的冲突，并显示主题、之前和当前的立场以及变化幅度。确认某个冲突即可将其永久隐藏。没有可选择的处理方式，也没有置信度设置，确认操作也不会让检测变得更准确。</value></data>
   <data name="UserGuide_TemporalIdentity_Conflicts1.Text" xml:space="preserve"><value>请把冲突当作反思的提示，而不是结论。立场就是您写下的句子，变化只通过词表分数来衡量，因此换一种说法的句子可能看起来像改变了主意，而真正的转变却可能被忽略。</value></data>
   <data name="UserGuide_TemporalIdentity_Conflicts2.Text" xml:space="preserve"><value>冲突卡片显示主题、两种立场以及变化幅度（0.5 到 2 之间）。它不会链接到来源对话，不显示两种立场之间相隔的时间，也没有 AI 分析，并且无法添加注释。</value></data>
   <data name="UserGuide_PastSelf_Title.Text" xml:space="preserve"><value>过往的自己</value></data>
-  <data name="UserGuide_PastSelf_Description.Text" xml:space="preserve"><value>“过往的自己”根据时序身份保存的记录回答“我当时对这个主题怎么看？”，并提供“以我的口吻起草”。它按记录时的措辞查找主题，不会把您的对话当作自由文本阅读，也不会询问 AI 模型。</value></data>
+  <data name="UserGuide_PastSelf_Description.Text" xml:space="preserve"><value>“过往的自己”根据时序身份保存的记录回答“我当时对这个主题怎么看？”，并提供“以我的口吻起草”。它按记录时的措辞查找主题，不区分大小写；查找本身不会把您的对话当作自由文本阅读，也不会询问 AI 模型。只有“以我的口吻起草”会使用您的 AI 提供商。</value></data>
   <data name="UserGuide_PastSelf_Timeline_Title.Text" xml:space="preserve"><value>选择时间</value></data>
   <data name="UserGuide_PastSelf_Timeline_Description.Text" xml:space="preserve"><value>没有时间线。请通过“时间范围”选项选择要查询的时间点：全部时间、过去一周、过去一个月（默认选中）、过去一年或自定义日期。</value></data>
-  <data name="UserGuide_PastSelf_Timeline1.Text" xml:space="preserve"><value>“全部时间”查询最早记录的立场；其他选项查询您在那个时间点的立场，因此对于之后发生过变化的观点，您会看到之前的立场。从未变化过的观点，无论选择哪个选项都会显示相同的立场。</value></data>
-  <data name="UserGuide_PastSelf_Timeline2.Text" xml:space="preserve"><value>“搜索过往的自己”只能找到按记录原样输入的主题：首字母大写，其余小写。“获取活跃主题”会列出过去 30 天内记录的最多 15 个主题，方便您查看准确的措辞。</value></data>
+  <data name="UserGuide_PastSelf_Timeline1.Text" xml:space="preserve"><value>“全部时间”查询最早记录的立场；其他选项查询您在那个时间点的立场。因此，对于之后发生过变化的观点，您会看到之前的立场；在那个时间点之后才首次记录的观点则找不到。</value></data>
+  <data name="UserGuide_PastSelf_Timeline2.Text" xml:space="preserve"><value>“搜索过往的自己”可以找到按记录时的词语输入的主题；大小写以及首尾空格都不影响。“获取活跃主题”会打开“您一直在探索的主题”面板：列出您在过去 30 天内表达过观点的最多 15 个主题，每个主题都使用“搜索过往的自己”所查找的措辞，并显示首次和最近记录的时间。面板上方的搜索结果保持不变。</value></data>
   <data name="UserGuide_PastSelf_Timeline3.Text" xml:space="preserve"><value>没有并排比较两个时间段的功能。要查看某个观点是否发生了变化，请使用“显示观点演变”或仪表板上的观点卡片。</value></data>
   <data name="UserGuide_PastSelf_Querying_Title.Text" xml:space="preserve"><value>查询过往的自己</value></data>
-  <data name="UserGuide_PastSelf_Querying_Description.Text" xml:space="preserve"><value>输入一个主题，然后点击“搜索过往的自己”。找到后，页面会显示您在所选时间点的立场及置信度条、该观点最初被记录时那条消息的摘录、标题或文件名包含该主题且时间在该时间点前后 30 天内的对话和文档（各最多三个），以及在观点此后发生变化时您当前的立场。“获取相关洞见”会追加最多五条正文包含您输入的任一词语的洞见。</value></data>
-  <data name="UserGuide_PastSelf_QueryExample_Label.Text" xml:space="preserve"><value>“过往的自己”无法理解如下完整问句：</value></data>
+  <data name="UserGuide_PastSelf_Querying_Description.Text" xml:space="preserve"><value>输入一个主题，然后点击“搜索过往的自己”。找到后，页面会显示您在所选时间点的立场及置信度条、该观点最初被记录时那条消息的摘录，以及标题或文件名包含该主题且时间在该时间点前后 30 天内的对话和文档（各最多三个）；“相关会话”和“相关文档”只在有内容时显示。如果您的观点在所选时间点之后发生了变化，会显示“您的观点已发生演变”标签，并在当时的立场下方以“自 &lt;日期&gt; 起您的观点”显示您现在的立场。如果到那时还没有任何记录，则只显示未找到记录的提示。“获取相关洞见”会追加最多五条与您输入的任一词语匹配的洞见。</value></data>
+  <data name="UserGuide_PastSelf_QueryExample_Label.Text" xml:space="preserve"><value>查找示例（一个已记录的主题和一个“时间范围”选项）：</value></data>
   <data name="UserGuide_PastSelf_UseCases_Title.Text" xml:space="preserve"><value>使用场景</value></data>
   <data name="UserGuide_PastSelf_UseCase1_Title.Text" xml:space="preserve"><value>思想考古</value></data>
   <data name="UserGuide_PastSelf_UseCase1_Description.Text" xml:space="preserve"><value>查询您曾表达过看法的主题，即可看到最早记录的立场（“全部时间”）以及其来源消息的摘录。</value></data>
@@ -328,27 +328,27 @@
   <data name="UserGuide_PastSelf_UseCase4_Title.Text" xml:space="preserve"><value>成长追踪</value></data>
   <data name="UserGuide_PastSelf_UseCase4_Description.Text" xml:space="preserve"><value>“获取活跃主题”显示您在过去 30 天里表达过看法的主题，“加载画像”显示您的句子长度和正式程度目前稳定在什么水平。没有总结两个时间段之间思维变化的功能。</value></data>
   <data name="UserGuide_GenerativeIdentity_Title.Text" xml:space="preserve"><value>生成式身份：以我的口吻起草</value></data>
-  <data name="UserGuide_GenerativeIdentity_Description.Text" xml:space="preserve"><value>“过往的自己”页面上的“以我的口吻起草”会根据您对要写内容的简短描述和可选的目标，生成一份三到四句的初稿。初稿由固定的句子模板拼成，模板根据文风画像中的正式程度和句子长度来选择。不会调用 AI 模型，除此之外也不会模仿或引用您消息中的任何内容。</value></data>
+  <data name="UserGuide_GenerativeIdentity_Description.Text" xml:space="preserve"><value>“过往的自己”页面上的“以我的口吻起草”会让您当前的 AI 提供商根据您对要写内容的简短描述和可选的目标撰写一份草稿。请求会向模型说明您的文风画像（每句单词数和正式程度），引用最多五条截至页面上所选时间范围时您在与请求有共同词语的主题上记录的立场，并附上最多三条截至当时保存的相关洞见作为背景。系统要求模型只写草稿本身，使用请求的语言，并且不得编造关于您的事实或观点。使用云提供商时，这些文本会离开您的电脑。没有可用的 AI 提供商时，不会发送任何内容。</value></data>
   <data name="UserGuide_GenerativeIdentity_HowItWorks_Title.Text" xml:space="preserve"><value>工作原理</value></data>
   <data name="UserGuide_GenerativeIdentity_Step1.Text" xml:space="preserve"><value>您发送的每条聊天消息都会更新文风画像。“过往的自己”页面上的“加载画像”会显示样本数、平均句长和文风标签（Casual、Balanced 或 Formal）；在您发送第一条消息之前显示“Not enough data”。</value></data>
-  <data name="UserGuide_GenerativeIdentity_Step2.Text" xml:space="preserve"><value>输入上下文（您要写的内容）以及可选的目标，然后点击“生成草稿”。草稿以根据您的正式程度分数选择的句子开头，复述您的上下文和目标，并以一句固定的结束语收尾；在还没有任何文风样本时，会使用中性模板。</value></data>
-  <data name="UserGuide_GenerativeIdentity_Step3.Text" xml:space="preserve"><value>“复制”和“复制到聊天”都会把草稿放到剪贴板上，您可以将其粘贴到需要的地方。没有评分功能，不能调整设置后重新生成，也无法将草稿直接插入对话。</value></data>
+  <data name="UserGuide_GenerativeIdentity_Step2.Text" xml:space="preserve"><value>在页面顶部选择一个时间范围（“全部时间”会使用截至目前记录的所有内容），输入上下文以及可选的目标，然后点击“生成草稿”。草稿会随着模型的撰写逐步显示；点击“取消”会停止撰写且不保留任何内容。草稿下方的说明会指出由哪个模型撰写、是否参考了您的文风画像，以及使用了哪些截至哪一天记录的观点。如果无法连接 AI 提供商或提供商出错，该区域会说明原因且不显示草稿。</value></data>
+  <data name="UserGuide_GenerativeIdentity_Step3.Text" xml:space="preserve"><value>“复制”会把完成的草稿放到剪贴板上（撰写草稿期间不可用）；您可以将其粘贴到需要的地方，例如 AI Chat 的消息框。没有评分功能，不能调整设置后重新生成，也无法将草稿直接插入对话。</value></data>
   <data name="UserGuide_GenerativeIdentity_Voice_Title.Text" xml:space="preserve"><value>语气分析</value></data>
   <data name="UserGuide_GenerativeIdentity_Voice_Description.Text" xml:space="preserve"><value>文风画像包含两项指标，都根据您的聊天消息更新：</value></data>
-  <data name="UserGuide_GenerativeIdentity_Voice1.Text" xml:space="preserve"><value>句子长度：每句平均单词数，采用移动平均，每条新消息占 10% 的权重。平均值不超过 10 个单词时，草稿限制为三句；否则最多可有四句。</value></data>
-  <data name="UserGuide_GenerativeIdentity_Voice2.Text" xml:space="preserve"><value>正式程度：消息中使用“therefore”或“however”时上升、每出现一个撇号（如缩写）时下降的分数；每条新消息占 5% 的权重。不分析词汇、惯用语或标点习惯。</value></data>
+  <data name="UserGuide_GenerativeIdentity_Voice1.Text" xml:space="preserve"><value>句子长度：每句平均单词数。第一条消息确定初始值，前十条消息的权重相同，之后每条新消息占 10% 的权重。</value></data>
+  <data name="UserGuide_GenerativeIdentity_Voice2.Text" xml:space="preserve"><value>正式程度：取值 0 到 1 的分数。使用“therefore”或“however”的消息得 0.8，否则为 0.5 减去每个撇号（如缩写）0.05，最低为 0。前 20 条消息的权重相同，之后每条新消息占 5% 的权重。不分析词汇、惯用语或标点习惯。</value></data>
   <data name="UserGuide_GenerativeIdentity_Voice3.Text" xml:space="preserve"><value>文风标签：低于 0.3 显示为 Casual，低于 0.6 显示为 Balanced，更高则为 Formal。只有一个画像，没有可选择的不同语体，也无法在应用中编辑或重置。</value></data>
   <data name="UserGuide_GenerativeIdentity_Access_Title.Text" xml:space="preserve"><value>使用“以我之名起草”</value></data>
   <data name="UserGuide_GenerativeIdentity_Access_Description.Text" xml:space="preserve"><value>“以我的口吻起草”只在“过往的自己”页面中提供：</value></data>
-  <data name="UserGuide_GenerativeIdentity_Access1.Text" xml:space="preserve"><value>打开“过往的自己”，转到“以我的口吻起草”，填写上下文和可选的目标，然后点击“生成草稿”。没有长度、语气或时间段选项。</value></data>
+  <data name="UserGuide_GenerativeIdentity_Access1.Text" xml:space="preserve"><value>打开“过往的自己”，选择一个时间范围，转到“以我的口吻起草”，填写上下文和可选的目标，然后点击“生成草稿”。没有长度或语气选项。</value></data>
   <data name="UserGuide_GenerativeIdentity_Access2.Text" xml:space="preserve"><value>AI Chat 没有 /draft 或 /refine 命令，也无法从对话中启动“以我的口吻起草”。</value></data>
   <data name="UserGuide_InsightHarvesting_Title.Text" xml:space="preserve"><value>洞见采集</value></data>
-  <data name="UserGuide_InsightHarvesting_Description.Text" xml:space="preserve"><value>洞见采集会为看起来重要的时刻保存简短记录。每次回复后，Agent-X 会在对话的 AI 回复中查找标记词，并把每条匹配的回复保存一次，作为洞见。洞见保存在您的电脑上，只有在“过往的自己”页面中获取相关洞见时才会显示；它们不会出现在仪表板、每周摘要或搜索中。</value></data>
+  <data name="UserGuide_InsightHarvesting_Description.Text" xml:space="preserve"><value>洞见采集会为看起来重要的时刻保存简短记录。每次回复后，Agent-X 会在对话的 AI 回复中查找标记词，并把每条匹配的回复保存一次，作为洞见；您保存的每条注释也会成为洞见。洞见保存在您的电脑上，只是“以我的口吻起草”会把最多三条相关洞见放进发给 AI 提供商的请求中。只有在“过往的自己”页面中获取相关洞见时才能看到它们；它们不会出现在仪表板、每周摘要或搜索中。</value></data>
   <data name="UserGuide_InsightHarvesting_Automatic_Title.Text" xml:space="preserve"><value>自动检测</value></data>
   <data name="UserGuide_InsightHarvesting_Automatic_Description.Text" xml:space="preserve"><value>每次回复后，系统会使用固定词表，对对话中尚未采集的 AI 回复进行检测：</value></data>
   <data name="UserGuide_InsightHarvesting_Automatic1.Text" xml:space="preserve"><value>突破类词语：包含“breakthrough”“key insight”“important”“realize”“discover”“aha”或“eureka”的回复会被采集，这些词会使其基础重要性 0.6 增加 0.2。</value></data>
   <data name="UserGuide_InsightHarvesting_Automatic2.Text" xml:space="preserve"><value>兴奋标记：感叹号或“amazing”“incredible”“fascinating”“interesting”同样会使回复被采集，并增加 0.1。由于这些词很常见，许多普通回复也会被采集。</value></data>
-  <data name="UserGuide_InsightHarvesting_Automatic3.Text" xml:space="preserve"><value>高亮：通过注释服务创建的高亮会成为重要性为 0.7 的洞见，其主题取自备注或高亮文本。应用目前还没有创建高亮的命令，因此实际上洞见都来自聊天回复。不会检测新的关联或综合结论。</value></data>
+  <data name="UserGuide_InsightHarvesting_Automatic3.Text" xml:space="preserve"><value>高亮：您在 Vault 预览中保存的每条注释都会成为重要性为 0.7 的洞见，其主题取自备注；没有备注时取自高亮文本。不会检测新的关联或综合结论。</value></data>
   <data name="UserGuide_InsightHarvesting_Cards_Title.Text" xml:space="preserve"><value>保存的洞见</value></data>
   <data name="UserGuide_InsightHarvesting_Cards_Description.Text" xml:space="preserve"><value>每条洞见保存回复的前 500 个字符、一个主题（如果回复中有“I think that ...”的说法则取之，否则为 General Insight）、重要性分数以及采集时间。例如：</value></data>
   <data name="UserGuide_InsightHarvesting_CardExample_Title.Text" xml:space="preserve"><value>“The key insight is that productivity comes from doing less of what does not matter.”</value></data>
@@ -499,16 +499,16 @@
   <data name="UserGuide_PerformanceTuning_Local_Title.Text" xml:space="preserve"><value>本地模型调优</value></data>
   <data name="UserGuide_PerformanceTuning_Local.Text" xml:space="preserve"><value>对于 Ollama 模型，Q4_K_M 量化所需内存远少于 Q8_0 或 FP16，质量损失很小。“设置”中“推理”下的“上下文窗口”（默认 8,192）会传给 Ollama，并限制组装的对话上下文量；简短问题可调低，长文档在内存允许时可调高。GPU 卸载由 Ollama 自行决定，内置模型只有在 settings.json 中调高 localGpuLayers 后才会使用 GPU。对于嵌入，all-minilm 比 mxbai-embed-large 小得多、快得多。AI Chat 中的每条回复都会显示其 Token 数和速度，方便您在自己的电脑上比较模型。</value></data>
   <data name="UserGuide_Annotations_Title.Text" xml:space="preserve"><value>注释与高亮</value></data>
-  <data name="UserGuide_Annotations_Description.Text" xml:space="preserve"><value>注释页面列出附加在 Vault 文档上的高亮和备注。在此版本中，应用内没有任何功能可以创建注释：Vault 预览不支持高亮，聊天、网页搜索、浏览器扩展和 Quick Actions 也无法保存所选内容。该页面显示已经存在的注释（例如通过 Collaborative Sync 同步来的注释），并支持搜索、编辑、删除和导出。</value></data>
+  <data name="UserGuide_Annotations_Description.Text" xml:space="preserve"><value>注释是对 Vault 文档文本所做的高亮和备注。要添加注释，请在 Knowledge Vault 中通过“详情”打开文档预览，在“文档文本”下显示的段落中选择文本，根据需要添加备注，然后点击“保存注释”。注释页面列出所有注释，并支持搜索、编辑、删除和导出。</value></data>
   <data name="UserGuide_Annotations_Creating_Title.Text" xml:space="preserve"><value>使用注释</value></data>
   <data name="UserGuide_Annotations_Create1.Text" xml:space="preserve"><value>搜索与筛选：在搜索框中输入内容，即可找到高亮文本或备注中包含这些词语的注释；也可以在“按颜色筛选”中选择颜色，“分布”会显示每种颜色的注释数量。</value></data>
   <data name="UserGuide_Annotations_Create2.Text" xml:space="preserve"><value>编辑与删除：编辑注释可以更改其备注和颜色。删除会立即生效，不会先确认。不支持标签、备注中的 Markdown 以及注释之间的链接。</value></data>
   <data name="UserGuide_Annotations_Create3.Text" xml:space="preserve"><value>导出：“导出为 Markdown”会将所有注释保存到您命名的 Markdown 文件中。</value></data>
   <data name="UserGuide_Annotations_Surfacing_Title.Text" xml:space="preserve"><value>注释出现的位置</value></data>
-  <data name="UserGuide_Annotations_Surface1.Text" xml:space="preserve"><value>注释页面：注释唯一显示的地方。每个条目显示文档名称、高亮文本、备注和颜色。</value></data>
-  <data name="UserGuide_Annotations_Surface2.Text" xml:space="preserve"><value>不会显示在文档中：Vault 预览不显示高亮，也无法将带注释的文档导出为 PDF。</value></data>
+  <data name="UserGuide_Annotations_Surface1.Text" xml:space="preserve"><value>注释页面：列出每条注释及其文档名称、高亮文本、备注和颜色。Vault 预览会按从新到旧的顺序列出所显示文档的注释，每条都带有删除按钮。</value></data>
+  <data name="UserGuide_Annotations_Surface2.Text" xml:space="preserve"><value>不会在文本中标出：预览中的段落文本不会在有注释的位置高亮显示，也无法将带注释的文档导出为 PDF。</value></data>
   <data name="UserGuide_Annotations_Surface3.Text" xml:space="preserve"><value>不会用于回答：“向您的文件提问”和 AI Chat 不会提高带注释段落的权重，也不会向模型特别指出它们。</value></data>
-  <data name="UserGuide_Annotations_Surface4.Text" xml:space="preserve"><value>仅作为洞见：通过注释服务创建的注释会成为洞见（参见“洞见采集”）。注释不会出现在每周摘要或知识图谱中。</value></data>
+  <data name="UserGuide_Annotations_Surface4.Text" xml:space="preserve"><value>洞见：每条新注释也会成为洞见（参见“洞见采集”）。注释不会出现在每周摘要或知识图谱中。</value></data>
   <data name="UserGuide_AudioTranscription_Title.Text" xml:space="preserve"><value>音频转录</value></data>
   <data name="UserGuide_AudioTranscription_Description.Text" xml:space="preserve"><value>Agent-X 使用本地 Whisper 模型，在您自己的计算机上将语音转录为文本。将音频文件（WAV、MP3、M4A、FLAC、OGG、WebM）拖放到 Knowledge Vault 页面，每个文件都会作为带时间戳的转录文本导入，语义搜索、向您的文件提问、Quick Actions 和工作流都能像使用其他文档一样使用它。在 AI Chat 中，麦克风按钮可将语音转换为消息框中的文字。</value></data>
   <data name="UserGuide_AudioTranscription_HowItWorks_Title.Text" xml:space="preserve"><value>转录的工作方式</value></data>
