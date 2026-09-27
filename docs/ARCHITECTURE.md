@@ -791,6 +791,11 @@ At startup (`InitializeAsync`) the service initializes the vector store, sets do
 `processing` back to `pending` and jobs back to `queued`, enqueues every pending document, and
 starts the loop. A shutdown in the middle of a document hands it back to the queue.
 
+Step 2 reuses the text extracted at import while the file is unchanged. When it has to extract
+again (a re-index, a changed file, or a document still queued after a restart), it uses only the
+built-in processors, so a document whose format only a plugin processor reads fails there with "No
+processor found for file type".
+
 **`FileWatcherService`** monitors the enabled watch folders (managed under Settings, Watch Folders)
 with `FileSystemWatcher` when Auto-index watch folders is on. At startup it runs a catch-up scan
 for files added or changed while the app was closed. It imports files directly into the vault
@@ -1500,8 +1505,8 @@ OnLaunched
      i. IAiService.InitializeAsync()            (providers from settings)
      j. IFeatureFlagService.InitializeAsync()
      k. IThemeService.InitializeAsync() and ApplyTheme on the UI thread
-     l. IPluginService.ActivateEnabledPluginsAsync()   (before indexing, so plugin processors
-                                                        are available)
+     l. IPluginService.ActivateEnabledPluginsAsync()   (before indexing and watch folders, so
+                                                        imports can use plugin processors)
      m. IBackupService.StartScheduledBackupsAsync()    (only when a schedule is enabled)
      n. IIndexingService.InitializeAsync() on the thread pool (vector store, recovery,
         pending documents, background loop)
