@@ -816,6 +816,56 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
+    /// The file types the Import Files picker offers: every extension a document processor reads,
+    /// built in or from an active plugin, the same set folder imports use. Asked for each time the
+    /// picker opens, because plugins are enabled and disabled while the app runs.
+    /// </summary>
+    public IReadOnlyList<string> GetImportFileTypes() =>
+        ToPickerFileTypes(_documentService.GetSupportedExtensions());
+
+    /// <summary>
+    /// <paramref name="extensions"/> as a file picker accepts them: in lower case, each once and
+    /// in alphabetical order, starting with a dot and made of letters, digits, '-', '_', '+' and
+    /// inner dots (".tar.gz"). A plugin's "zzz" or "*.zzz" becomes ".zzz"; a blank entry, or one
+    /// with a wildcard, a space or another character the picker rejects, is left out.
+    /// </summary>
+    public static IReadOnlyList<string> ToPickerFileTypes(IEnumerable<string?> extensions)
+    {
+        var fileTypes = new SortedSet<string>(StringComparer.Ordinal);
+        foreach (var extension in extensions)
+        {
+            var fileType = extension?.Trim().ToLowerInvariant();
+            if (string.IsNullOrEmpty(fileType))
+            {
+                continue;
+            }
+
+            if (fileType.StartsWith("*.", StringComparison.Ordinal))
+            {
+                fileType = fileType[1..];
+            }
+
+            if (!fileType.StartsWith('.'))
+            {
+                fileType = "." + fileType;
+            }
+
+            if (IsPickerFileType(fileType))
+            {
+                fileTypes.Add(fileType);
+            }
+        }
+
+        return fileTypes.ToList();
+    }
+
+    private static bool IsPickerFileType(string fileType) =>
+        fileType.Length > 1 &&
+        !fileType.EndsWith('.') &&
+        !fileType.Contains("..", StringComparison.Ordinal) &&
+        fileType.Skip(1).All(c => char.IsLetterOrDigit(c) || c is '-' or '_' or '+' or '.');
+
+    /// <summary>
     /// Supported files under <paramref name="folderPath"/>, including subfolders. Subfolders
     /// the user cannot read are skipped instead of aborting the whole scan.
     /// </summary>

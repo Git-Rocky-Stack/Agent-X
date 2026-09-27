@@ -663,6 +663,43 @@ public sealed class KnowledgeVaultViewModelTests
         }
     }
 
+    // Import Files picker
+    // The picker offered a fixed list of types, so a format an active plugin adds could only be
+    // imported by drag and drop.
+
+    [Fact]
+    public void GetImportFileTypes_OffersEveryFormatTheProcessorsRead_IncludingAPluginsFormat()
+    {
+        _documentService.Setup(service => service.GetSupportedExtensions())
+            .Returns(new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".pdf", ".md", ".zzz" });
+
+        CreateViewModel().GetImportFileTypes().Should().Equal(".md", ".pdf", ".zzz");
+    }
+
+    [Fact]
+    public void GetImportFileTypes_AsksTheDocumentServiceEachTime_BecausePluginsComeAndGo()
+    {
+        var supported = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".pdf" };
+        _documentService.Setup(service => service.GetSupportedExtensions()).Returns(() => supported.ToHashSet());
+        var viewModel = CreateViewModel();
+
+        viewModel.GetImportFileTypes().Should().Equal(".pdf");
+        supported.Add(".zzz");
+        viewModel.GetImportFileTypes().Should().Equal(".pdf", ".zzz");
+    }
+
+    [Fact]
+    public void ToPickerFileTypes_KeepsThePickersRules()
+    {
+        // Every entry starts with a dot, appears once, and holds only characters the picker takes.
+        KnowledgeVaultViewModel.ToPickerFileTypes(new string?[]
+            {
+                ".PDF", ".pdf", " .md ", "zzz", "*.abc", ".tar.gz", ".c++",
+                null, "", "   ", ".", "*", ".*", ".a b", ".x;y", "..dup", ".end.", ".c\\d",
+            })
+            .Should().Equal(".abc", ".c++", ".md", ".pdf", ".tar.gz", ".zzz");
+    }
+
     // Preview versus multi-select
     // Opening a preview ticked the row's multi-select checkbox, and closing it unticked
     // the row, without changing the ids a bulk delete acts on.

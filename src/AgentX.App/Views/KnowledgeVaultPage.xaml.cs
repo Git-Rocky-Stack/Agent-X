@@ -106,27 +106,13 @@ public sealed partial class KnowledgeVaultPage : Page
             picker.ViewMode = PickerViewMode.List;
             picker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
 
-            // Add supported file types
-            // No legacy binary Word files: the OpenXml reader behind DocxProcessor cannot open them.
-            picker.FileTypeFilter.Add(".pdf");
-            picker.FileTypeFilter.Add(".docx");
-            picker.FileTypeFilter.Add(".txt");
-            picker.FileTypeFilter.Add(".md");
-            picker.FileTypeFilter.Add(".csv");
-            picker.FileTypeFilter.Add(".json");
-            picker.FileTypeFilter.Add(".html");
-            picker.FileTypeFilter.Add(".htm");
-            picker.FileTypeFilter.Add(".xml");
-            // No .rtf: nothing in Documents/Processors reads RTF, so offering it here only
-            // lets the user pick a file the import then rejects.
-            picker.FileTypeFilter.Add(".py");
-            picker.FileTypeFilter.Add(".cs");
-            picker.FileTypeFilter.Add(".js");
-            picker.FileTypeFilter.Add(".ts");
-            picker.FileTypeFilter.Add(".java");
-            picker.FileTypeFilter.Add(".cpp");
-            picker.FileTypeFilter.Add(".c");
-            picker.FileTypeFilter.Add(".h");
+            // Every format a document processor reads, the built-in ones and those of active
+            // plugins: the formats folder imports pick up, and nothing the import would reject.
+            // Each entry starts with a dot and appears once, as the picker requires.
+            foreach (var fileType in ViewModel.GetImportFileTypes())
+            {
+                picker.FileTypeFilter.Add(fileType);
+            }
 
             // Initialize the picker with the window handle
             var hwnd = WindowNative.GetWindowHandle(App.MainWindow);

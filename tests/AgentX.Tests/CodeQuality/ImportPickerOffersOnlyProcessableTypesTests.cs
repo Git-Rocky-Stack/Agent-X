@@ -1,87 +1,97 @@
 using System.Text.RegularExpressions;
+using AgentX.App.ViewModels;
+using AgentX.Core.Documents;
+using AgentX.Core.Documents.Processors;
+using AgentX.Core.Services.Audio;
+using AgentX.Core.Services.Web;
 using FluentAssertions;
+using Moq;
 using Xunit;
 
 namespace AgentX.Tests.CodeQuality;
 
 /// <summary>
-/// Guards the import file picker against offering a format nothing can read.
+/// Guards the import file picker against offering a format nothing can read, and against leaving
+/// out one a processor can.
 /// <para>
-/// The Knowledge Vault picker advertises a fixed extension list. Every entry on it is a
-/// promise: the user is shown a file, allowed to select it, and expects it in their vault.
-/// If no <c>IDocumentProcessor</c> claims that extension the import falls through to
-/// "unsupported format" after the user has already chosen the file, which reads as a bug in
-/// the app rather than a limit of it.
+/// The Knowledge Vault picker used to advertise a fixed extension list. Every entry on it is a
+/// promise: the user is shown a file, allowed to select it, and expects it in their vault. If no
+/// <c>IDocumentProcessor</c> claims that extension the import falls through to "unsupported
+/// format" after the user has already chosen the file. The fixed list also failed the other way:
+/// a format an active plugin adds could only be imported by drag and drop.
 /// </para>
 /// <para>
-/// This is the same defect class as an unregistered processor, approached from the other
-/// end: there the capability existed with no route to it, here the route exists with no
-/// capability behind it. Both look correct in isolation and only disagree when compared.
+/// The picker now offers <see cref="KnowledgeVaultViewModel.GetImportFileTypes"/>: the extensions
+/// <see cref="IDocumentService.GetSupportedExtensions"/> reports for the built-in and active plugin
+/// processors, in the form the picker accepts. These tests keep a fixed list from coming back and
+/// check that every built-in format survives the picker's rules.
 /// </para>
 /// </summary>
 public sealed class ImportPickerOffersOnlyProcessableTypesTests
 {
-    /// <summary>The picker also offers "*", which means "any file" and claims nothing.</summary>
-    private const string WildcardFilter = "*";
-
     [Fact]
-    public void EveryExtensionTheImportPickerOffers_HasAProcessor()
-    {
-        var offered = ReadPickerExtensions();
-        var handled = ReadProcessorExtensions();
-
-        offered.Should().NotBeEmpty("the picker scan must find the filter list, or this guard is vacuous");
-        handled.Should().NotBeEmpty("the processor scan must find extensions, or this guard is vacuous");
-
-        var unbacked = offered
-            .Where(ext => !handled.Contains(ext))
-            .OrderBy(ext => ext, StringComparer.Ordinal)
-            .ToList();
-
-        unbacked.Should().BeEmpty(
-            "the picker offers these but no IDocumentProcessor declares them, so selecting one "
-            + "fails after the user has already committed to the file. Either add the extension "
-            + "to the processor that should own it, or stop offering it. Unbacked:\n  "
-            + string.Join("\n  ", unbacked));
-    }
-
-    // ── Helpers ──────────────────────────────────────────────────────────────
-
-    /// <summary>
-    /// Extensions the Knowledge Vault import picker advertises, read from the source so the
-    /// guard cannot drift from the list a user actually sees.
-    /// </summary>
-    private static HashSet<string> ReadPickerExtensions()
+    public void TheImportPicker_OffersTheProcessorsFormats_NotAFixedList()
     {
         var source = File.ReadAllText(Path.Combine(
             ResolveSourceRoot(), "AgentX.App", "Views", "KnowledgeVaultPage.xaml.cs"));
+        var picker = ExtractMethod(source, "private async void OnImportFilesClick(");
 
-        return Regex.Matches(source, @"FileTypeFilter\.Add\(""([^""]+)""\)")
-            .Select(m => m.Groups[1].Value.ToLowerInvariant())
-            .Where(ext => ext != WildcardFilter)
-            .ToHashSet(StringComparer.Ordinal);
+        picker.Should().Contain("ViewModel.GetImportFileTypes()");
+        Regex.IsMatch(picker, @"FileTypeFilter\.Add\(""").Should().BeFalse(
+            "a literal extension drifts from the processors: either nothing reads it, or a format "
+            + "a processor reads is missing from the picker");
     }
 
-    /// <summary>
-    /// Every extension declared by any concrete document processor. Read as text rather than
-    /// by reflection so a processor that exists but is unregistered still counts here: this
-    /// guard is about the picker's promise, and a separate guard covers registration.
-    /// </summary>
-    private static HashSet<string> ReadProcessorExtensions()
+    [Fact]
+    public void EveryBuiltInFormat_SurvivesThePickerRules()
     {
-        var directory = Path.Combine(
-            ResolveSourceRoot(), "AgentX.Core", "Documents", "Processors");
+        var builtIn = BuiltInProcessors()
+            .SelectMany(processor => processor.SupportedExtensions)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        builtIn.Should().NotBeEmpty("the processor scan must find extensions, or this guard is vacuous");
 
-        var extensions = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var file in Directory.EnumerateFiles(directory, "*.cs"))
+        KnowledgeVaultViewModel.ToPickerFileTypes(builtIn).Should().BeEquivalentTo(
+            builtIn.Select(extension => extension.ToLowerInvariant()),
+            "the picker must keep offering every format the built-in processors read");
+    }
+
+    // Helpers
+
+    /// <summary>Every built-in document processor, as the app registers them.</summary>
+    private static IEnumerable<IDocumentProcessor> BuiltInProcessors() =>
+    [
+        new PdfProcessor(),
+        new DocxProcessor(),
+        new TextProcessor(),
+        new MarkdownProcessor(),
+        new CodeFileProcessor(),
+        new ImageProcessor(),
+        new AudioProcessor(Mock.Of<ITranscriptionService>()),
+        new WebProcessor(Mock.Of<IWebScraperService>()),
+    ];
+
+    /// <summary>Returns the method starting at <paramref name="signature"/>, up to its closing brace.</summary>
+    private static string ExtractMethod(string source, string signature)
+    {
+        var start = source.IndexOf(signature, StringComparison.Ordinal);
+        start.Should().BeGreaterThanOrEqualTo(0, $"the source declares {signature}");
+
+        var open = source.IndexOf('{', start);
+        var depth = 0;
+        for (var i = open; i < source.Length; i++)
         {
-            var source = File.ReadAllText(file);
-            foreach (Match match in Regex.Matches(source, @"""(\.[A-Za-z0-9]+)"""))
+            if (source[i] == '{')
             {
-                extensions.Add(match.Groups[1].Value.ToLowerInvariant());
+                depth++;
+            }
+            else if (source[i] == '}' && --depth == 0)
+            {
+                return source[start..(i + 1)];
             }
         }
-        return extensions;
+
+        throw new InvalidOperationException($"Unbalanced braces after {signature}.");
     }
 
     private static string ResolveSourceRoot()
