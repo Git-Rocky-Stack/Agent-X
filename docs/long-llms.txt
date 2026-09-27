@@ -1,22 +1,36 @@
 # Agent-X Extended AI Reference
 
-**Comprehensive documentation for AI systems**
+**Extended reference for language models and other automated readers**
 
 ---
 
 ## Project Overview
 
-**Agent-X** is a native Windows desktop application (v2.2.0) built on .NET 8.0 and WinUI 3 that transforms personal document collections into queryable, AI-augmented knowledge bases. It ships with Llama 3.2 3B bundled, supports Ollama for local models, and integrates OpenAI and Anthropic for cloud AI — all with a privacy-first, local-first architecture.
+**Agent-X** (version 2.2.0, "Command Console") is a native Windows desktop application built
+on .NET 8 and WinUI 3. It turns a personal document collection into a searchable knowledge
+base: you import documents, search them by meaning or keyword, and ask questions that are
+answered from the documents with citations. It is MIT-licensed; the source is at
+https://github.com/Git-Rocky-Stack/Agent-X.
 
-**Key Differentiators:**
-- **100% Local by Default** — Zero telemetry, no phone-home, offline-capable
-- **Bundled AI Model** — Llama 3.2 3B Instruct (~2 GB) included in installer
-- **Enterprise-Grade RAG** — 6-stage retrieval pipeline (multi-query, HyDE, reranking, parent expansion, compression)
-- **SQLCipher Encryption** — AES-256-CBC at-rest database encryption with tier-aware key management
-- **GPU Acceleration** — CUDA 12 support with automatic VRAM-based layer offloading
-- **REST API** — Embedded HTTP server (port 9846) for programmatic access
-- **Production Data Layer** — EF Core migrations, 37-table schema, HNSW ANN vector index
-- **Command Console UI** — A hardware-instrument design system (DESIGN.md): faceplate modules, LCD readouts, live status lamps with click-to-navigate, in dark / light / high-contrast themes, fully localized in six languages
+**Key characteristics:**
+- **Local by default.** The default AI provider is a built-in model (Llama 3.2 3B Instruct,
+  Q4_K_M GGUF) that runs on the user's computer through LLamaSharp. Nothing is sent to a cloud
+  service unless the user adds an OpenAI or Anthropic key, turns on Research Mode web search,
+  connects a calendar or email account, or imports pages from the web. Agent-X has no
+  telemetry.
+- **Four AI providers, one active at a time:** Built-in LLM (Local), Ollama (Local), OpenAI,
+  Anthropic Claude. Document embeddings are resolved separately from the chat provider.
+- **Grounded answers:** Ask Your Files retrieves passages with hybrid (semantic plus keyword)
+  search and answers with numbered citations. AI Chat does not search the documents.
+- **Optional encryption:** SQLCipher encryption of the database with a key tied to the Windows
+  account (off by default); API keys, the local API token and OAuth client secrets are always
+  stored DPAPI-encrypted.
+- **Local REST API** on `http://localhost:9846` (loopback only, bearer token) for the browser
+  extension and the Android companion.
+- **Plugins** for new document formats and Smart Inbox connectors. Plugins are not sandboxed.
+- **Command Console UI:** a hardware-instrument design system (DESIGN.md) with dark, light and
+  high-contrast themes, localized in six languages (English, German, Spanish, French,
+  Japanese, Simplified Chinese).
 
 ---
 
@@ -26,330 +40,410 @@
 
 | Layer | Technology |
 |-------|------------|
-| **Shell** | WinUI 3 (Windows App SDK 1.6) |
-| **Runtime** | .NET 8.0 |
-| **Database** | SQLite + SQLCipher |
-| **ORM** | Entity Framework Core 8.0 |
-| **Vector Search** | HNSW (Hierarchical Navigable Small World) |
-| **AI Models** | Llama 3.2 3B (bundled), Ollama, OpenAI, Anthropic |
-| **GPU** | CUDA 12 |
-| **Full-Text Search** | SQLite FTS5 |
-| **Logging** | Serilog |
-| **Testing** | xUnit + 3,029 unit tests |
+| Shell | WinUI 3, Windows App SDK 1.6 (self-contained, unpackaged) |
+| Runtime | .NET 8 (the installed app is self-contained) |
+| MVVM and DI | CommunityToolkit.Mvvm, Microsoft.Extensions.Hosting |
+| Database | SQLite through EF Core 8 on the SQLCipher provider; 37 tables, EF Core migrations |
+| Keyword search | SQLite FTS5 (BM25 ranking) |
+| Vector search | Exact scan for smaller vaults; HNSW index (HnswLite) above about 10,000 embedded chunks |
+| Built-in model | LLamaSharp 0.19 (CPU backend, CUDA 12 backend when the NVIDIA CUDA 12 Toolkit is installed) |
+| Other AI providers | Ollama (OllamaSharp), OpenAI and Anthropic HTTP APIs |
+| Speech to text | Whisper.Net with the Whisper base model, run locally |
+| Document parsing | PDFsharp (PDF), DocumentFormat.OpenXml (DOCX), Markdig (Markdown), HtmlAgilityPack (HTML), Windows OCR (images), Playwright Chromium (JavaScript-rendered web pages) |
+| Logging | Serilog, daily files, seven kept |
+| Tests | xUnit, FluentAssertions, Moq; coverage gate on AgentX.Core |
 
-### Component Architecture
+### Repository Layout
 
 ```
-AgentX.App (WinUI 3)
-├── Views/Pages
-│   ├── DashboardView
-│   ├── ChatView
-│   ├── VaultView
-│   ├── SearchView
-│   ├── GraphView
-│   ├── WorkflowsView
-│   ├── AnalyticsView
-│   └── SettingsView
-├── ViewModels (MVVM)
-│   └── CommunityToolkit.Mvvm
-├── Services (85+ services)
-│   ├── IAIService (multi-provider abstraction)
-│   ├── RetrievalService (6-stage RAG pipeline)
-│   ├── EmbeddingService (vector generation)
-│   ├── VaultService (document management)
-│   ├── WorkflowService (automation)
-│   └── ... (50+ more)
-├── Data Layer
-│   ├── SQLite + SQLCipher
-│   ├── EF Core migrations
-│   └── Repositories (documents, tags, collections, conversations)
-└── REST API
-    └── Embedded HTTP listener (port 9846)
+src/AgentX.App          WinUI 3 desktop app: views, view models, services, resources
+src/AgentX.Core         Core library: AI providers, documents, search, data, services
+src/AgentX.Mobile       .NET MAUI Android companion (outside AgentX.sln)
+tests/AgentX.Tests      Unit, integration and structural (CodeQuality) tests
+tests/LocaleAudit.Tests Locale snapshot tests
+tools/LocaleAudit       Localization coverage tool
+browser-extension       Manifest V3 web clipper (TypeScript)
+plugins/sample-plugin   Sample plugin (outside AgentX.sln)
+installer               Inno Setup script (SLIM and OFFLINE profiles)
+scripts                 Build, coverage, translation and release scripts
 ```
+
+### Pages
+
+The navigation rail has 29 pages in five groups, plus Settings; the setup wizard is a
+thirtieth page reached on first run or through Jump To:
+
+- **INTELLIGENCE:** Dashboard, Operations, Weekly Digest, Analytics, Past Self, AI Chat,
+  Ask Your Files, Quick Actions, Workflows
+- **KNOWLEDGE:** Knowledge Vault, Web Import, Collections, Semantic Search, Knowledge Graph,
+  Compare Documents, Annotations
+- **TRIAGE:** Smart Inbox
+- **SYSTEM:** Model Manager, Hardware Advisor, Backup & Restore, Workspace Profiles,
+  Plugin Manager, Collaborative Sync, Calendar, Email
+- **SUPPORT:** User Guide, Privacy Policy, Terms of Service
+- **Settings**
+
+---
+
+## Installation and First Run
+
+- **Requirements:** Windows 10 version 2004 (build 19041) or later, or Windows 11; x64.
+- **Installers:** `AgentX-Setup-<version>-x64.exe` (SLIM, no model; the built-in model, about
+  1.9 GB, is downloaded from Hugging Face on first run) and
+  `AgentX-Setup-<version>-x64-offline.exe` (OFFLINE, model bundled, hosted outside GitHub).
+  A per-user install needs no administrator rights and goes to
+  `%LOCALAPPDATA%\Programs\Agent-X`; installing for all users is also offered.
+- **Setup wizard (five steps):** Welcome; Connect to Ollama (optional Test Connection, or Skip
+  for now); Choose Your Models (lists the tested Ollama server's models for chat and
+  embeddings); Your AI is Ready (built-in model status and download, GPU acceleration line,
+  optional OpenAI and Anthropic keys); You're All Set! (summary, Launch Agent-X). On launch
+  the active provider becomes the built-in model if installed, else Ollama if the test
+  succeeded, else OpenAI or Anthropic if a key was entered. Leaving the wizard early counts as
+  skipping it. There is no passphrase on a new installation.
+- **Release verification:** a cosign-signed `SHA256SUMS.txt` on each release with assets
+  (docs/RELEASE-SIGNING.md).
 
 ---
 
 ## Feature Documentation
 
-### AI Chat Interface
+### AI Chat
 
-**Purpose:** Conversational interface for interacting with AI models using RAG
+- General conversation with the active provider's model; the model box lists that provider's
+  models.
+- Replies stream in and render Markdown, including code blocks with syntax highlighting and a
+  Copy button. Stop generation ends a reply early.
+- Per message: rate, copy, regenerate and delete replies; edit (Save & Resend), copy, branch
+  (Branch from here) and delete your own messages. Branches can be merged into the main thread
+  or compared side by side.
+- Conversations are saved locally, with search, pinning and folders (Work, Research, Personal,
+  Archive or a custom name), and can be exported (Markdown, HTML, PDF, JSON, plain text, CSV,
+  Word, PowerPoint).
+- Ten built-in system prompts (General Assistant, Code Helper, Writing Editor, Research
+  Analyst, Creative Writer, Data Analyzer, Summarizer, Translator, Technical Explainer,
+  Socratic Teacher); users cannot add their own.
+- Memory: after each reply the model is asked to note facts worth keeping; up to eight stored
+  facts that closely match a new message are added to the context. The context inspector lists
+  them and can delete them. Suggested follow-up questions appear after replies.
+- Modes: Solo, Multi (researcher, critic and synthesizer respond together) and Debate.
+- Research Mode (off by default; Settings > Research Mode with a Brave or Serper API key or a
+  SearXNG address) adds web search results to the answer and lists them under Web sources.
+- Voice input through the microphone button, once the speech-to-text model is installed.
+- **AI Chat does not search the Knowledge Vault.** The empty conversation states where
+  messages are sent and shows "100% Private" only when the model runs on the computer.
 
-**Key Features:**
-- Streaming responses with real-time rendering
-- Per-message actions (copy, delete, regenerate, feedback)
-- Message editing with "Save & Resend"
-- Code syntax highlighting (18 languages, One Dark Pro theme)
-- Conversation folders (Work, Research, Personal, Archive)
-- Conversation memory (facts, preferences, topics extracted)
-- Citation linking to source documents
+### Ask Your Files (RAG)
 
-**RAG Pipeline:**
+Pipeline for each question:
 
-1. **Query Embedding** — Convert user query to vector embedding
-2. **Multi-Query Expansion** — Generate 3-4 alternative query formulations
-3. **HyDE Embeddings** — Generate hypothetical ideal answer, embed it
-4. **Vector Search** — HNSW ANN search across document embeddings
-5. **LLM Reranking** — Re-score top-K results with LLM judgment
-6. **Context Compression** — Compress retrieved context to fit context window
+1. Multi-query expansion: the model writes a few rephrasings of the question.
+2. HyDE: for questions of 80 characters or more, a drafted hypothetical answer is searched too.
+3. Hybrid retrieval for every version: semantic search plus FTS5 keyword search, merged with
+   Reciprocal Rank Fusion (k=60), optionally limited to one collection.
+4. Heuristic reranking (deduplication, diversity across documents, query-term boost), then
+   reranking by the AI model.
+5. Parent-document expansion with neighboring text, then contextual compression.
+6. The passages go into the prompt as numbered context; the model is told to answer only from
+   them and to cite them.
+7. The answer streams in; each `[n]` that matches a passage becomes a card in the Sources panel
+   (document, page when available, match percentage, excerpt). Unmatched numbers are ignored.
+
+The number of passages is set by Settings > Knowledge Vault > Top-K Results (5 by default).
+Questions and answers on this page are not saved as conversations.
 
 ### Knowledge Vault
 
-**Purpose:** Document management and organization interface
+- **Import:** Import Files (picker for document, data and code formats), Import Folder (all
+  supported files, recursively), drag and drop onto the drop area while the vault is empty,
+  and watch folders (Settings > Knowledge Vault > Watch Folders, while Auto-index watch
+  folders is on).
+- **Duplicates:** exact content matches are reported before import (Skip Duplicates or Import
+  All); Import Folder skips them.
+- **Storage:** the extracted text and the original file's path; the file is not copied.
+- **Indexing** (background queue): text extraction, chunking (512 tokens with a 50-token
+  overlap by default), embedding, FTS5 keyword index. Status: Pending, Processing, Indexed or
+  Failed (with the reason). After indexing, the active model suggests up to five tags from the
+  first 2,000 characters.
+- **Per document:** AI Title, Detail (Document Preview with details, tags, the document text
+  and annotations), Workflow, Re-index, open file location, Delete (asks first; never deletes
+  the file on disk). Multi-select re-indexes or deletes several.
+- **Filters:** file type, status, tag, collection, import date, sort, and a name or tag filter.
 
-**Key Features:**
-- Import 20+ file formats (PDF, DOCX, TXT, MD, code files, etc.)
-- Auto-title generation (AI-generated descriptive titles)
-- Auto-tagging (confidence-scored tags from content analysis)
-- Batch operations (multi-select delete, re-index, collection assignment)
-- Advanced filtering (file type, collection, date range, indexing status)
-- Document preview panel (360px right-side panel with metadata)
-- SHA-256 duplicate detection (exact and near-duplicate)
+### Supported Formats
 
-**Document Processing Pipeline:**
+| Kind | Extensions |
+|------|------------|
+| Documents | .pdf, .docx, .md, .markdown, .mdx, .txt |
+| Data and config | .csv, .json, .xml, .log, .yaml, .yml, .toml, .ini, .cfg |
+| Code | .cs, .js, .ts, .py, .java, .cpp, .c, .h, .go, .rs, .swift, .kt, .rb, .php, .html, .htm, .css, .scss, .sql, .sh, .xaml |
+| Images (Windows OCR) | .png, .jpg, .jpeg, .bmp, .tiff |
+| Audio (local Whisper transcription) | .mp3, .wav, .m4a, .flac, .ogg, .webm |
+| Web shortcuts | .url, .webloc |
 
-1. **File Import** — Copy to vault storage
-2. **Text Extraction** — Format-specific parsers (PDF, DOCX, etc.)
-3. **Content Analysis** — AI generates title and tags
-4. **Chunking** — Split into 500-token overlapping chunks
-5. **Embedding Generation** — Create vectors for each chunk
-6. **Indexing** — Add to HNSW vector index and FTS5 keyword index
-7. **Deduplication** — SHA-256 hash check for duplicates
+Legacy .doc, RTF, EPUB, XLSX and PPTX are not supported. Plugins can add formats.
 
 ### Semantic Search
 
-**Purpose:** Natural language search across entire document collection
-
-**Search Modes:**
-
-| Mode | Technique | Best For |
+| Mode | Technique | Best for |
 |------|-----------|----------|
-| **Semantic** | Vector cosine similarity (HNSW ANN) | Concepts, meaning, related topics |
-| **Keyword** | SQLite FTS5 full-text search | Exact phrases, names, technical terms |
-| **Hybrid** | RRF (Reciprocal Rank Fusion, k=60) | Best of both worlds |
+| Semantic (default) | Cosine similarity over embeddings | Concepts and meaning |
+| Keyword | SQLite FTS5 with BM25 ranking | Names, identifiers, exact terms |
+| Hybrid | Both, merged with Reciprocal Rank Fusion, k=60 | Meaning and exact terms together |
 
-**Hybrid Search Formula:**
+Filters: collection; file type (PDF, DOCX, text, code, Markdown, calendar events, email);
+Advanced: minimum relevance (30% by default), maximum results (20 by default, up to 100),
+created-after and created-before dates; sort by relevance, date or file name. Save stores a
+search under Saved Filters; Search History keeps recent searches.
 
-```
-RRF(d) = Σ (1 / (k + rank_i(d)))
+RRF score of a document: the sum over the result lists of 1 / (60 + rank).
 
-Where:
-- d = document
-- k = constant (typically 60)
-- rank_i = rank of document d in method i
-```
+### Collections
+
+Named groups of documents; a document can be in several. Created on the Collections page;
+Add Documents picks files (new ones are imported, ones already in the vault are added as the
+existing document). Web Import and the Smart Inbox can also add to a collection. Collections
+nest one level deep (Move into...), can be renamed and exported, and deleting one never
+deletes its documents.
+
+### Compare Documents
+
+Two or more documents, an optional focus topic and a detail level produce a report with a
+summary, Similarities, Differences, Contradictions and Unique Points by Document, exportable
+as Markdown.
+
+### Quick Actions
+
+Summarize (layered summary of one indexed document), Key Points, Translate (pasted text),
+Duplicates (exact hash scan and semantic near-duplicate scan; report only) and Organize
+(collection and tag suggestions for up to 20 documents that are in no collection; not
+applied automatically).
 
 ### Knowledge Graph
 
-**Purpose:** Visual representation of document relationships
-
-**Visualization:**
-- Force-directed graph (spring-electric algorithm)
-- 100 iterations for layout convergence
-- Node types: Documents (blue), Collections (green), Tags (orange)
-- Edge weights: Shared membership count, tag co-occurrence frequency
-
-**Interaction:**
-- Click node to open document
-- Highlight related nodes on hover
-- Filter by node type
-- Zoom and pan controls
-- Export as PNG image
+Nodes: documents (sized by chunk count), collections and tags. Edges: a document to its
+collections and tags, and between documents that share a collection or tag. Force-directed
+layout of 100 steps; click a collection or tag to highlight its cluster; search, show and hide
+node types, zoom from 0.25x to 4x. There are no similarity edges.
 
 ### Workflows
 
-**Purpose:** Automate repetitive tasks and scheduled operations
+On-demand, multi-step text pipelines; each step's output feeds the next. Four built-in
+templates: Summarize & Act, Research Brief, Document Review, Content Repurpose. Use Template
+copies one for editing. Step types: `AiPrompt`, `DocumentLookup` (a question to the vault,
+optionally one collection), `TextTransform`, `ConditionalBranch`, `OutputFormat`. Prompt
+placeholders: `{{input}}` and `{{previous_output}}`. Results can be copied, saved to the vault
+or exported; Recent Runs stores past results. Workflows are shared as JSON (Export JSON copies
+to the clipboard, Import Workflow pastes). No schedules or triggers.
 
-**Built-in Workflows:**
+### Web Import, Smart Inbox and Browser Extension
 
-| Workflow | Description | Schedule |
-|----------|-------------|----------|
-| **Weekly Digest** | Aggregate activity summary | Weekly |
-| **Batch Reindex** | Regenerate embeddings | Manual |
-| **Tag Cleanup** | Merge duplicate tags | Manual |
-| **Import & Process** | Import with auto-tag | Manual |
+- **Web Import:** URLs (web articles and YouTube videos), one-time RSS or Atom feed import,
+  and sitemap import (up to 100 pages), optionally into a collection.
+- **Browser extension** ("AgentX Web Clipper", Manifest V3): clips a full page, a selection,
+  a reader view, or all open tabs to the Smart Inbox through the local API, after pairing with
+  the token from Settings > Connections.
+- **Smart Inbox:** triage of clips: AI previews suggest a collection and tags; Accept imports
+  into the vault, Defer keeps, Reject discards.
 
-**Workflow Steps:**
-- Import (files, folders)
-- Index (force reindex)
-- Chat (send prompt to AI)
-- Export (save results to file)
-- Digest (generate summary report)
+### Calendar and Email Connectors
 
-### Analytics Dashboard
+Google (Gmail and Google Calendar) and Microsoft (Outlook mail and calendar), read-only, over
+OAuth with the user's own OAuth client (OAuth App Credentials on the Calendar and Email
+pages). Synced events and messages become searchable documents in the vault. No CalDAV, IMAP
+or Exchange Web Services.
 
-**Purpose:** Usage statistics and conversation intelligence
+### Annotations
 
-**Metrics Displayed:**
+In the Document Preview, text selected in a passage can be saved as an annotation with a
+note. The Annotations page searches, filters by color, edits and deletes them, and exports
+them as Markdown.
 
-| Category | Metrics |
-|----------|---------|
-| **Usage** | Documents count, conversations count, tokens consumed, storage used |
-| **Performance** | Avg response time, embedding speed, search latency |
-| **File Types** | Document distribution by format |
-| **Conversation Intelligence** | Summary freshness, recent summary previews |
+### Past Self and Temporal Identity
 
-### Model Manager
+Agent-X keeps a local record of views stated in chat messages (sentences such as "I think...",
+English phrasing), insights and a basic writing-voice profile. Past Self looks up the stance
+recorded on a topic as of a time period, shows belief evolution and active topics, and hosts
+Draft as Me, where the active AI provider writes a draft guided by the voice profile and the
+recorded views.
 
-**Purpose:** Manage AI models and providers
+### Other Pages
 
-**Provider Support:**
+- **Dashboard:** AI provider status, vault and system figures, recent documents and
+  conversations, operations overview, belief evolution, next steps, quick tiles.
+- **Operations** and **Analytics:** background health (connectors, sync, indexing, workflows)
+  and usage statistics.
+- **Weekly Digest:** generated on demand: new documents, conversations, searches, tokens,
+  top searches and collections, conversation highlights; report history.
+- **Model Manager:** pulls, deletes and activates Ollama models; installs, cancels and removes
+  the speech-to-text model (Whisper base, about 142 MB).
+- **Hardware Advisor:** GPU, video memory, CPU and RAM, a performance tier and recommended
+  models (installable through Ollama).
+- **Backup & Restore:** `.agentxbak` backups, optionally AES-256-GCM encrypted with a password
+  and including indexed documents; scheduled backups; restore and history.
+- **Collaborative Sync:** keeps installations in step through a shared folder, encrypted with
+  a passphrase that must match on every installation (AES-GCM, PBKDF2).
+- **Workspace Profiles:** saved presets (name, description, model, collection IDs); selecting
+  one does not change settings.
+- **Plugin Manager:** installs `.agentx-plugin` packages (a ZIP with manifest.json); plugins
+  add document processors or Smart Inbox connectors and run with the user's rights.
 
-| Provider | Models | Type |
-|----------|--------|------|
-| **Bundled** | Llama 3.2 3B Instruct | Local (ships with app) |
-| **Ollama** | Llama 3.x, Phi 4, Mistral, etc. | Local (user-managed) |
-| **OpenAI** | GPT-4o, GPT-4o-mini | Cloud (API key) |
-| **Anthropic** | Claude 3.5 Sonnet, Haiku | Cloud (API key) |
+### Android Companion (AgentX.Mobile)
 
-**Model Operations:**
-- Download additional Ollama models
-- Refresh model list
-- View model details (size, parameters, capabilities)
-- Set default model per tier
+.NET MAUI app that reads the desktop's local API: browse documents and conversations, run
+searches. The desktop listens on loopback only, so the phone connects through the Android
+emulator (`10.0.2.2`) or USB with `adb reverse`; LAN connections are not supported. Details in
+docs/MOBILE-TRANSPORT.md.
 
 ---
 
 ## Configuration
 
-### Settings Categories
+### Settings Sections
 
-| Category | Options |
-|----------|---------|
-| **AI Runtime** | Model selection, context window, temperature, max tokens, GPU acceleration |
-| **AI Providers** | API keys for OpenAI, Anthropic; Ollama connection settings |
-| **Import** | Auto-title, auto-tagging, duplicate detection, chunk size |
-| **Search** | Default search mode, result count, RRF constant |
-| **Privacy** | Data retention, encryption tier, cloud provider usage |
-| **Appearance** | Theme (dark/light/system), font size, animations |
-| **Advanced** | Debug logging, database location, port configuration |
+| Section | Contents |
+|---------|----------|
+| AI Providers | Active Provider; Built-in LLM (Local): Automatic GPU layers, GPU Layers; Ollama (Local): Endpoint, Default Chat Model, Embedding Model, Test Connection; OpenAI and Anthropic Claude: API Key, Endpoint, Default Model, Test Connection |
+| Appearance | Theme (Dark, Light, System Default), Language |
+| Multi-Model Routing | Enable Auto-Routing; Routing Profile (Cost Optimized, Quality Optimized, Balanced) |
+| Cost Tracking | Estimated OpenAI and Anthropic spend: total, today, total tokens |
+| Inference | Temperature, Max Tokens, Context Window |
+| Knowledge Vault | Chunk Size (tokens), Chunk Overlap, Top-K Results, Auto-index watch folders, Watch Folders |
+| Research Mode | Enable Research Mode, Search Provider (Brave, Serper, SearXNG), API Key or Instance URL, Max Search Results, Cache Duration |
+| Storage | Data Location |
+| Database Encryption | Encrypted / Not encrypted |
+| Connections | Enable Local API, API Token (Show, Copy, Regenerate) |
 
-### GPU Acceleration Settings
+Save Settings applies the page. The theme applies at once; the language is saved at once and
+every page shows it after a restart.
 
-| VRAM Tier | Offloading | Speedup | VRAM Usage |
-|-----------|------------|---------|------------|
-| **2 GB** | Minimal (embeddings only) | 2-5x | ~2 GB |
-| **4 GB** | Partial (some layers) | 5-15x | ~4 GB |
-| **8 GB** | Significant (most layers) | 15-30x | ~8 GB |
-| **Max** | Aggressive (all layers) | 20-50x | 16+ GB |
+### GPU Acceleration (built-in model only)
 
-### Database Encryption
+| NVIDIA video memory | Automatic GPU layers |
+|---------------------|----------------------|
+| Under 2 GB | 0 (CPU) |
+| 2 to 4 GB | 16 |
+| 4 to 6 GB | 28 |
+| 6 GB or more | 33 |
 
-| Tier | Key Storage | Use Case |
-|------|------------|----------|
-| **Starter/Pro** | Windows DPAPI | Personal use, convenience |
-| **Ultimate** | PBKDF2-HMAC-SHA256 | Maximum security, passphrase-derived |
+Layers run on the GPU only when the NVIDIA CUDA 12 Toolkit is installed. With Automatic GPU
+layers off, GPU Layers sets the count (0 keeps the model on the CPU). Ollama manages its own
+GPU use.
+
+### Embeddings
+
+The Embedding Model setting decides which provider embeds documents: an OpenAI model id
+(`text-embedding-*`) uses OpenAI; a `.gguf` file name uses the built-in model; any other
+non-default name uses Ollama; the default (`all-minilm`) uses the built-in model when it is
+installed and Ollama's `all-minilm` otherwise. Anthropic is never used for embeddings.
+Changing the embedding model requires re-indexing.
 
 ---
 
 ## Data Storage
 
-### Database Schema (16 Tables)
+**Location:** `%LOCALAPPDATA%\AgentX\`
 
-**Core Tables:**
-- `documents` — Document metadata and content
-- `document_chunks` — Chunked content for embeddings
-- `embeddings` — Vector embeddings (HNSW index)
-- `tags` — Tag definitions
-- `document_tags` — Many-to-many tag assignments
-- `collections` — Collection definitions
-- `collection_items` — Collection memberships
-- `conversations` — Chat sessions
-- `messages` — Chat messages (user and AI)
-- `message_memories` — Extracted conversation memories
-- `workflows` — Workflow definitions
-- `workflow_runs` — Workflow execution history
-- `digest_reports` — Generated activity summaries
-- `analytics_events` — Usage metrics
-
-**Encryption:**
-- All data encrypted at rest with SQLCipher AES-256-CBC
-- Encryption keys stored separately in `encryption.info.json`
-- Unlock required before any database access
-
-### File Storage
-
-**Location:** `%LocalAppData%\AgentX\`
-
-**Structure:**
 ```
-%LocalAppData%\AgentX\
-├── data\
-│   ├── agentx.db              # Encrypted SQLite database
-│   ├── encryption.info.json    # Encryption key metadata
-│   └── hnsw_index\            # HNSW vector index files
-├── models\
-│   └── llama-3.2-3b\          # Bundled model files (~2 GB)
-├── vault\
-│   └── [imported files]       # Original imported documents
-├── logs\
-│   └── agentx-latest.log      # 7-day rolling logs
-├── backups\
-│   └── [timestamped backups]  # Automatic backups
-└── settings.json               # Application settings
+%LOCALAPPDATA%\AgentX\
+  agentx.db                 SQLite database (SQLCipher-encrypted when encryption is on)
+  settings.json             Settings; secrets inside are DPAPI-encrypted
+  Logs\                     agentx-YYYYMMDD.log, seven days kept
+  Models\                   Built-in model (llama-3.2-3b-instruct-q4_k_m.gguf)
+  Models\Whisper\           Speech-to-text model
+  Plugins\                  Installed plugins
+  Clips\                    Clips received from the browser extension
+  Exports\                  Default export folder
 ```
+
+When database encryption is on, `encryption.info.json` in the same folder records the key
+storage mode; the database key itself is DPAPI-wrapped and tied to the Windows account. Older
+vaults created with a passphrase ask for it at startup.
+
+---
+
+## Security and Privacy
+
+- Default operation is local: built-in model, local database, no telemetry.
+- Content leaves the machine only through features the user turns on or uses: OpenAI or
+  Anthropic as provider (chat messages, Ask Your Files questions with retrieved passages,
+  document text for tags and titles, Quick Actions and Workflows input), OpenAI embeddings,
+  Multi-Model Routing to a cloud provider, Research Mode web search, calendar and email
+  connectors, Web Import, and model downloads from Hugging Face or Ollama.
+- The local REST API listens on `localhost:9846` only; every route except
+  `/api/extension/health` requires the bearer token; CORS answers only browser-extension
+  origins.
+- Plugins load into their own assembly load context but are not sandboxed: they run with the
+  user's rights.
+- Backups can be encrypted with AES-256-GCM; the database with SQLCipher.
+- Vulnerabilities are reported privately through GitHub Security Advisories (SECURITY.md).
 
 ---
 
 ## API Reference
 
-### REST API Endpoints
+### Local REST API
 
-**Base URL:** `http://localhost:9846`
-
-**Endpoints:**
+**Base URL:** `http://localhost:9846` (loopback only). **Authentication:** `Authorization:
+Bearer <token>` from Settings > Connections. Responses use a `{success, data, error}`
+envelope. The API is on by default and can be turned off in Settings > Connections.
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET` | `/api/documents` | List all documents |
-| `POST` | `/api/documents` | Import new document |
-| `GET` | `/api/documents/{id}` | Get document details |
-| `DELETE` | `/api/documents/{id}` | Delete document |
+| `GET` | `/api/health` | Service health and counts |
+| `GET` | `/api/documents` | List documents |
+| `GET` | `/api/documents/{id}` | One document |
 | `GET` | `/api/conversations` | List conversations |
-| `POST` | `/api/conversations` | Create conversation |
-| `POST` | `/api/conversations/{id}/message` | Send chat message |
-| `GET` | `/api/search` | Semantic + keyword search |
+| `GET` | `/api/conversations/{id}` | One conversation |
 | `GET` | `/api/collections` | List collections |
-| `GET` | `/api/tags` | List tags |
-| `GET` | `/api/analytics` | Usage statistics |
+| `POST` | `/api/search` | Search the vault |
+| `POST` | `/api/inbox/clip` | Send a clip to the Smart Inbox |
+| `GET` | `/api/auth/check` | Check the token |
+| `GET` | `/api/extension/health` | Extension health check (no token needed, no user data) |
 
-**Authentication:** Bearer token in Authorization header
+See API_ENDPOINTS.md and docs/API-REFERENCE.md for request and response details.
 
 ---
 
 ## Glossary
 
-**AES-256-CBC:** Advanced Encryption Standard with 256-bit keys in Cipher Block Chaining mode. Used by SQLCipher for at-rest database encryption.
+**BM25:** The ranking function FTS5 uses for keyword search.
 
-**Chunking:** Splitting large documents into smaller segments (500 tokens with overlap) for embedding and retrieval.
+**Chunking:** Splitting a document into overlapping pieces (512 tokens with a 50-token overlap
+by default) that are embedded and searched.
 
-**CUDA:** NVIDIA's parallel computing platform. Agent-X uses CUDA 12 for GPU-accelerated inference.
+**CUDA:** NVIDIA's GPU computing platform. The built-in model uses the CUDA 12 backend when the
+CUDA 12 Toolkit is installed.
 
-**Embedding:** Vector representation of text capturing semantic meaning. Generated by AI models and used for semantic search.
+**DPAPI:** Windows Data Protection API. Agent-X uses it to encrypt secrets and the database
+key for the current Windows user.
 
-**FTS5:** SQLite Full-Text Search extension for keyword-based search.
+**Embedding:** A vector that represents a piece of text by meaning; used by semantic search.
 
-**HNSW:** Hierarchical Navigable Small World — efficient Approximate Nearest Neighbor (ANN) index for fast vector similarity search.
+**FTS5:** SQLite's full-text search extension, used for keyword search.
 
-**HyDE:** Hypothetical Document Embeddings — retrieval technique using AI-generated ideal answers to improve semantic search.
+**GGUF:** The model file format the built-in model uses.
 
-**LLM:** Large Language Model — AI model trained on vast text corpora for text generation and understanding.
+**HNSW:** Hierarchical Navigable Small World, an approximate nearest-neighbor index for vector
+search. Agent-X uses it above about 10,000 embedded chunks and an exact scan below.
 
-**Multi-Query:** Retrieval technique generating multiple search queries from a single user query to improve recall.
+**HyDE:** Hypothetical Document Embeddings: searching with a drafted answer as well as the
+question. Ask Your Files uses it for questions of 80 characters or more.
 
-**RAG:** Retrieval-Augmented Generation — AI responses generated using retrieved document context for factual grounding.
+**Multi-query:** Searching with several rephrasings of a question to improve recall.
 
-**Re-ranking:** Second-pass retrieval improvement using LLM scoring to refine initial search results.
+**RAG:** Retrieval-Augmented Generation: answering from retrieved passages, with citations.
 
-**RRF:** Reciprocal Rank Fusion — algorithm for combining multiple ranked result lists using harmonic mean.
+**Reranking:** Reordering retrieved passages: a heuristic pass, then a pass by the AI model.
 
-**SQLCipher:** SQLite extension providing transparent AES-256 encryption of database files.
+**RRF:** Reciprocal Rank Fusion: merging ranked lists by summing 1 / (k + rank) with k = 60.
 
-**Token:** Atomic unit of text processed by language models (~4 characters).
+**SQLCipher:** SQLite with transparent AES-256 encryption of the database file.
 
-**VRAM:** Video RAM — memory on GPU used for model weights and computation.
+**Token:** The unit of text a language model reads and writes.
 
-**WinUI 3:** Microsoft's native UI platform for Windows 11 and Windows 10.
+**VRAM:** Video memory on the GPU, which decides how many model layers fit there.
+
+**WinUI 3:** Microsoft's native UI framework for Windows desktop apps.
 
 ---
 
@@ -357,48 +451,60 @@ Where:
 
 ### For Users
 
-1. **Start with imported documents** — Organize before you explore
-2. **Use collections liberally** — Group related documents
-3. **Review auto-generated tags** — Clean up periodically
-4. **Enable GPU acceleration** — If you have an NVIDIA GPU
-5. **Schedule weekly digests** — Stay informed about activity
+1. **Check that documents are indexed** before asking about them.
+2. **Use Ask Your Files for questions about documents;** AI Chat does not read the vault.
+3. **Use collections** to focus answers and searches.
+4. **Check citations** for anything that matters.
+5. **Keep the built-in model or Ollama available for embeddings** when chatting through a
+   cloud provider.
+6. **Back up** before large reorganizations.
 
 ### For Developers
 
-1. **Use dependency injection** — All services support DI
-2. **Follow MVVM pattern** — ViewModels abstract UI logic
-3. **Write unit tests** — 3,029 tests provide coverage examples
-4. **Use structured logging** — Serilog with contextual information
-5. **Handle exceptions gracefully** — Typed exceptions with clear messages
+1. **Build with `dotnet build -p:Platform=x64`;** a bare `dotnet build` fails.
+2. **Follow MVVM and DI;** services are registered in `App.xaml.cs`.
+3. **Put user-facing strings in all six resw files;** LocaleAudit gates coverage at 98%.
+4. **Keep features reachable;** the CodeQuality tests fail on unwired controls and unbound
+   commands.
+5. **Raise, never lower, coverage floors** in `scripts/check-coverage.ps1`.
+6. **Read DESIGN.md** before any visual change.
 
 ---
 
 ## Troubleshooting
 
-### Common Issues
+**Ask Your Files or Semantic Search finds nothing:** make sure the documents show **Indexed**
+and that an embedding model is available (the built-in model installed, or Ollama running with
+`all-minilm`). A **Failed** document shows the reason; **Re-index** retries.
 
-**Application won't start:** Verify .NET 8.0 Desktop Runtime installed
+**Ollama not reachable:** start Ollama and use **Test Connection** in Settings > Ollama (Local);
+the default address is `http://localhost:11434`.
 
-**GPU not detected:** Update NVIDIA GPU drivers, verify CUDA 12 support
+**Slow answers:** give the built-in model GPU layers (NVIDIA GPU and CUDA 12 Toolkit), pick a
+smaller Ollama model, or lower **Top-K Results**.
 
-**Slow responses:** Enable GPU acceleration, use smaller model, reduce context window
+**GPU not used:** install the NVIDIA CUDA 12 Toolkit and restart Agent-X; check the line under
+the built-in model in the setup wizard or the Hardware Advisor page.
 
-**Search returns no results:** Verify documents are indexed, try different search mode
+**Audio file marked Failed:** install the speech-to-text model on the Model Manager page; the
+failed files are queued again afterwards.
 
-**Import fails:** Check file format support, remove password protection
+**Browser extension cannot connect:** Agent-X must be running with **Enable Local API** on, and
+the extension needs the token from Settings > Connections (regenerating it revokes the old one).
 
-**Database locked:** Close other Agent-X instances, restart application
+**Agent-X could not start:** the startup error explains the database problem; logs are in
+`%LOCALAPPDATA%\AgentX\Logs`.
 
 ---
 
 ## Support Resources
 
 **Documentation:** docs/README.md (main)
-**User Guide:** docs/user-guide/
+**User Guide:** docs/USER-GUIDE.md and docs/user-guide/
 **Developer Guide:** docs/DEVELOPER-GUIDE.md
 **API Reference:** docs/API-REFERENCE.md
-**GitHub Issues:** https://github.com/strategia-x/agent-x/issues
+**GitHub Issues:** https://github.com/Git-Rocky-Stack/Agent-X/issues
 
 ---
 
-*Last updated: 2026-05-03*
+*Last updated: 2026-09-27*

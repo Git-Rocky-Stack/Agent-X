@@ -1,105 +1,156 @@
 # Agent-X Documentation Index
 
-**AI-optimized documentation index for LLM consumption**
+**Documentation index for language models and other automated readers**
 
 ---
 
 ## Project Overview
 
 **Project:** Agent-X
-**Description:** Local-First AI-Powered Document Intelligence for Windows
-**Version:** 2.2.0 ("Command Console" - the Command Console design system across all 29 views, the full UI in six languages, and a defect class closed in which finished features had no route to the user)
-**Repository:** https://github.com/strategia-x/agent-x
-**Website:** https://strategia-x.com/agent-x
-**Documentation:** docs/README.md
+**Description:** Local-first AI document intelligence for Windows: import your documents,
+search them by meaning, and ask questions answered from them with citations. The AI runs on
+your computer by default; cloud providers and web search are opt-in.
+**Version:** 2.2.0 ("Command Console")
+**Repository:** https://github.com/Git-Rocky-Stack/Agent-X
+**License:** MIT
+**Main documentation:** docs/README.md
 
 ---
 
 ## Quick Links
 
 **Getting Started:**
-- Quick Start Guide: docs/user-guide/getting-started/quick-start.md
-- Installation: Download from releases or installer-output directory
-- First Launch: Create passphrase, import documents, start chatting
+- Quick Start: docs/user-guide/getting-started/quick-start.md
+- Installation: SLIM installer (built-in model downloaded on first run) or OFFLINE installer
+  (model bundled), from the GitHub Releases page
+- First run: a five-step setup wizard (Ollama connection, model choice, built-in model
+  download, optional OpenAI and Anthropic keys, summary). No passphrase.
 
-**Core Documentation:**
-- User Guide: docs/user-guide/comprehensive-user-guide.md
+**User Documentation:**
+- User Guide: docs/USER-GUIDE.md
 - FAQ: docs/user-guide/faq.md
 - Troubleshooting: docs/user-guide/troubleshooting.md
 - Glossary: docs/user-guide/glossary.md
 - Keyboard Shortcuts: docs/user-guide/keyboard-shortcuts.md
+- Scenarios: docs/user-guide/scenarios/README.md
+- Templates: docs/user-guide/templates/README.md
+- Known Issues: docs/KNOWN-ISSUES.md
 
 **Developers:**
+- Contributing: CONTRIBUTING.md
+- CI gates: docs/CI.md
+- Architecture: docs/ARCHITECTURE.md (and ARCHITECTURE.md at the repository root)
 - Developer Guide: docs/DEVELOPER-GUIDE.md
-- API Reference: docs/API-REFERENCE.md
+- API Reference: docs/API-REFERENCE.md and API_ENDPOINTS.md
 - Service Reference: docs/SERVICE-REFERENCE.md
+- Database Schema: DATABASE_SCHEMA.md
 - Plugin Development: docs/PLUGIN-DEVELOPMENT-GUIDE.md
-- Design System: DESIGN.md (Command Console - tokens, typography, hardware recipes, status semantics)
+- Mobile transport: docs/MOBILE-TRANSPORT.md
+- Design System: DESIGN.md (Command Console: tokens, typography, hardware recipes, lamp
+  semantics)
+- Release signing: docs/RELEASE-SIGNING.md
+- Security policy: SECURITY.md
 
 **Community:**
-- GitHub Issues: https://github.com/strategia-x/agent-x/issues
-- GitHub Discussions: https://github.com/strategia-x/agent-x/discussions
+- GitHub Issues: https://github.com/Git-Rocky-Stack/Agent-X/issues
+- Security reports: private GitHub Security Advisory (see SECURITY.md)
 
 ---
 
 ## Documentation Structure
 
 ```
+README.md                      Project overview and download links
+CHANGELOG.md                   Release history (Keep a Changelog)
+CONTRIBUTING.md                Build, tests, CI gates, conventions
+SECURITY.md                    Supported versions, private reporting
+DESIGN.md                      Command Console design system
+ARCHITECTURE.md                Architecture overview
+API_ENDPOINTS.md               Local REST API endpoints
+DATABASE_SCHEMA.md             Database tables
 docs/
-├── user-guide/
-│   ├── getting-started/
-│   │   └── quick-start.md                    # 10-minute setup guide
-│   ├── scenarios/                             # Real-world scenarios (5 scenarios)
-│   │   └── README.md                          # Research, meetings, code review, migration, PKB
-│   ├── templates/                             # Reusable templates
-│   │   ├── README.md                          # Templates overview
-│   │   ├── document-templates.md              # Project brief, meeting notes, research, spec
-│   │   └── chat-templates.md                   # Analysis, generation, research, technical
-│   ├── video-scripts/                         # Video tutorial scripts
-│   │   └── README.md                          # 5 video scripts with outlines
-│   ├── faq.md                                 # 100+ frequently asked questions
-│   ├── troubleshooting.md                      # Common issues and solutions
-│   ├── glossary.md                            # 100+ term glossary
-│   └── keyboard-shortcuts.md                   # Power user shortcuts
-├── developer-guide/
-│   ├── DEVELOPER-GUIDE.md                     # Developer-facing reference
-│   ├── API-REFERENCE.md                       # Public API documentation
-│   ├── SERVICE-REFERENCE.md                   # Internal service reference
-│   └── PLUGIN-DEVELOPMENT-GUIDE.md            # Plugin development
-├── ARCHITECTURE.md                            # System architecture
-├── README.md                                  # Main product documentation
-└── plans/                                     # Design and implementation plans
+  README.md                    Product documentation: features, install, build, configuration
+  USER-GUIDE.md                Complete user guide
+  user-guide/
+    getting-started/
+      quick-start.md           Install, setup wizard, import, first questions
+    scenarios/README.md        Worked scenarios built from existing features
+    templates/
+      README.md                System prompts, workflow templates, export templates
+      chat-templates.md        Prompts for Ask Your Files, AI Chat and workflow steps
+      document-templates.md    Markdown outlines to write and import
+    video-scripts/README.md    Tutorial video scripts
+    faq.md                     Frequently asked questions
+    troubleshooting.md         Common problems and fixes
+    glossary.md                Terms
+    keyboard-shortcuts.md      Shortcuts
+  ARCHITECTURE.md              System architecture
+  DEVELOPER-GUIDE.md           Developer reference
+  API-REFERENCE.md             API reference
+  SERVICE-REFERENCE.md         Service reference
+  PLUGIN-DEVELOPMENT-GUIDE.md  Writing plugins
+  MOBILE-TRANSPORT.md          Android companion connection and transport
+  CI.md                        CI workflows and local checks
+  KNOWN-ISSUES.md              Known issues
+  RELEASE-SIGNING.md           Release provenance and verification
+  v*-RELEASE-NOTES.md          Release notes of earlier versions
 ```
 
 ---
 
 ## Key Concepts
 
-**Agent-X:** Local-first Windows desktop app for document intelligence
-**Bundled Model:** Llama 3.2 3B Instruct — ships with installer (~2 GB)
-**RAG:** Retrieval-Augmented Generation — AI responses grounded in documents
-**Knowledge Vault:** Document management interface
-**Semantic Search:** Vector-based search finding conceptually similar content
-**Hybrid Search:** Combined semantic + keyword search using RRF
-**Knowledge Graph:** Visual relationship map of documents, tags, collections
-**GPU Acceleration:** CUDA 12 support for NVIDIA GPUs
-**SQLCipher:** AES-256-CBC database encryption
-**Workflow:** Automated sequence of operations
+**Agent-X:** Native Windows desktop app (.NET 8, WinUI 3) for working with your own documents
+and an AI model.
+**Built-in model:** Llama 3.2 3B Instruct (Q4_K_M GGUF, about 2 GB) run on your computer through
+LLamaSharp. The default AI provider.
+**Knowledge Vault:** The imported documents. Agent-X stores their extracted text and the path to
+the original file; the file itself is not copied.
+**Ask Your Files:** Retrieval-Augmented Generation (RAG) page: answers from your indexed
+documents with numbered citations.
+**AI Chat:** General conversation with the active model. It does not search the Knowledge
+Vault.
+**Semantic Search:** Search by meaning (vector similarity), by keyword (SQLite FTS5), or both
+(hybrid, merged with Reciprocal Rank Fusion, k=60).
+**Collections:** Groups of documents; Ask Your Files and Semantic Search can be limited to one.
+**Knowledge Graph:** Documents, collections and tags drawn as a network, linked by shared
+collections and tags.
+**Workflows:** Multi-step AI text pipelines run on demand, from four built-in templates or your
+own.
+**Research Mode:** Optional web search (Brave, Serper or SearXNG) that adds web results to AI
+Chat answers. Off by default.
+**Database encryption:** Optional SQLCipher encryption of the database with a key tied to your
+Windows account. Off by default.
 
 ---
 
 ## Core Features
 
-1. **Local-First AI** — Bundled Llama 3.2 3B, fully offline out of the box
-2. **Enterprise RAG** — 6-stage retrieval pipeline with multi-query, HyDE, reranking
-3. **Semantic Search** — Vector embeddings with cosine similarity search
-4. **Hybrid Search** — Parallel semantic + keyword with RRF merging
-5. **Knowledge Graph** — Force-directed visualization of relationships
-6. **Multi-Provider AI** — Bundled, Ollama, OpenAI, Anthropic
-7. **GPU Acceleration** — CUDA 12 with VRAM-based layer offloading
-8. **Workflows** — Automate import, indexing, digestion, reporting
-9. **REST API** — Embedded HTTP server for programmatic access
-10. **Database Encryption** — SQLCipher AES-256-CBC at-rest encryption
+1. **Local by default:** the built-in model runs on your computer; nothing is sent to a cloud
+   service unless you add a cloud provider, turn on Research Mode, connect a calendar or email
+   account, or import from the web.
+2. **Four AI providers:** Built-in LLM (Local), Ollama (Local), OpenAI and Anthropic Claude,
+   one active at a time. Embeddings are chosen separately (built-in model or Ollama by
+   default; OpenAI embedding models if set).
+3. **Knowledge Vault import:** Import Files, Import Folder, drag and drop on an empty vault,
+   watch folders; exact-duplicate check; automatic tags from the AI model.
+4. **Ask Your Files:** multi-query rephrasing, HyDE for long questions, hybrid retrieval,
+   reranking, and streamed answers with citations.
+5. **Semantic Search:** Semantic, Keyword and Hybrid modes with collection, file type, relevance
+   and date filters, saved filters and history.
+6. **Document tools:** Compare Documents, Quick Actions (layered summary, key points,
+   translation, duplicate scans, collection suggestions), annotations.
+7. **Web and inbox:** Web Import (URLs, YouTube videos, RSS or Atom feeds, sitemaps), the
+   browser extension and the Smart Inbox for triage, Google and Microsoft calendar and email
+   connectors.
+8. **Workflows:** five step types (AiPrompt, DocumentLookup, TextTransform, ConditionalBranch,
+   OutputFormat), JSON import and export.
+9. **Speech to text:** local Whisper transcription of imported audio files and AI Chat voice
+   input, once the speech-to-text model is installed from Model Manager.
+10. **Operations:** Backup & Restore (AES-256-GCM encrypted backups, optional schedule),
+    Collaborative Sync through a shared folder, plugins (not sandboxed), a token-protected
+    local REST API on localhost:9846, and an Android companion app.
+11. **Six UI languages:** English, German, Spanish, French, Japanese, Simplified Chinese.
 
 ---
 
@@ -107,74 +158,87 @@ docs/
 
 ### Keyboard Shortcuts
 
-- `Ctrl+K` — Command Palette
-- `Ctrl+I` — AI Chat
-- `Ctrl+L` — Knowledge Vault
-- `Ctrl+F` — Search
-- `Ctrl+G` — Knowledge Graph
-- `Ctrl+W` — Workflows
-- `Ctrl+A` — Analytics
-- `Ctrl+M` — Model Manager
-- `Ctrl+,` — Settings
+- `Ctrl+K` or `Ctrl+Shift+P`: Command Palette
+- `Ctrl+P`: Jump To (pages, documents, conversations)
+- `F1` or `Ctrl+Shift+/` (shown in the app as `Ctrl+Shift+?`): Keyboard shortcuts list
+- `Ctrl+N`: New conversation in AI Chat
+- `Ctrl+D`: Dashboard
+- `Ctrl+I`: Knowledge Vault
+- `Ctrl+F` or `Ctrl+Shift+F`: Semantic Search
+- `Ctrl+G`: Knowledge Graph
+- `Ctrl+Shift+W`: Workflows
+- `Ctrl+Shift+E`: Web Import
+- `Ctrl+Shift+A`: Analytics
+- `Ctrl+Shift+O`: Operations
+- `Ctrl+,`: Settings
+- `Ctrl+1` to `Ctrl+9`: Dashboard, AI Chat, Ask Your Files, Semantic Search, Knowledge Vault,
+  Collections, Workflows, Model Manager, Settings
+- `Win+Shift+A`: Quick Chat, from anywhere in Windows while Agent-X runs
 
 ### Supported File Formats
 
-PDF, DOCX, DOC, TXT, MD, JSON, XML, CSV, HTML, and all code formats
+- Documents: PDF, DOCX, Markdown (.md, .markdown, .mdx), TXT
+- Data and config: CSV, JSON, XML, LOG, YAML, TOML, INI, CFG
+- Code: C#, JavaScript, TypeScript, Python, Java, C, C++, Go, Rust, Swift, Kotlin, Ruby, PHP,
+  HTML, CSS, SCSS, SQL, shell, XAML
+- Images: PNG, JPG, JPEG, BMP, TIFF (text read with Windows OCR)
+- Audio: MP3, WAV, M4A, FLAC, OGG, WebM (transcribed locally with Whisper)
+- Web shortcuts: .url, .webloc
+- Not supported: legacy .doc, RTF, EPUB, XLSX, PPTX
 
 ### AI Providers
 
-- **Bundled:** Llama 3.2 3B Instruct (local, ships with app)
-- **Ollama:** Llama 3.x, Phi 4, Mistral, etc. (local, user-managed)
-- **OpenAI:** GPT-4o, GPT-4o-mini (cloud, API key)
-- **Anthropic:** Claude 3.5 Sonnet, Haiku (cloud, API key)
+- **Built-in LLM (Local):** Llama 3.2 3B Instruct via LLamaSharp; CPU, or NVIDIA GPU layers
+  when the CUDA 12 Toolkit is installed
+- **Ollama (Local):** any model you pull; defaults `llama3.2` (chat) and `all-minilm`
+  (embeddings)
+- **OpenAI:** API key; default model `gpt-4o-mini`
+- **Anthropic Claude:** API key; default model `claude-sonnet-5`; no embeddings
 
 ### Platform
 
-- **Windows 10 build 19041+** (version 2004)
-- **Windows 11** (fully supported and recommended)
-- **Architecture:** x64 only
-- **.NET 8.0** and **Windows App SDK 1.6** required
+- Windows 10 version 2004 (build 19041) or later, or Windows 11
+- x64 installers (Inno Setup); per-user install needs no administrator rights
+- .NET 8 and WinUI 3 (Windows App SDK 1.6, bundled with the app)
+- Data folder: `%LOCALAPPDATA%\AgentX`
 
 ---
 
 ## Common Use Cases
 
-**Document Intelligence:**
-- Import research papers and analyze with AI
-- Extract key information from contracts
-- Compare multiple documents
-- Generate summaries and citations
+**Document intelligence:**
+- Ask questions across research papers, contracts or notes and check the cited passages
+- Compare two or more documents: similarities, differences, contradictions
+- Summarize a long document section by section
 
-**Research & Analysis:**
-- Semantic search across entire document collection
-- Knowledge graph visualization of relationships
-- Identify connections between seemingly unrelated documents
-- Build personal knowledge base
+**Research and knowledge management:**
+- Semantic and keyword search across the whole vault
+- Collections and a knowledge graph to see how documents group
+- Web pages, videos and feeds imported next to local documents
 
 **Productivity:**
-- Automate document workflows
-- Generate meeting summaries
-- Create structured documentation
-- Track action items across meetings
+- Meeting notes turned into decisions and action items
+- Repeatable multi-step AI workflows
+- Weekly digest of what was imported, searched and discussed
 
 ---
 
 ## Support Resources
 
-**Documentation:** docs/README.md (main)
-**User Guide:** docs/user-guide/
-**Developer Guide:** docs/developer-guide/
-**GitHub Issues:** https://github.com/strategia-x/agent-x/issues
+**Documentation:** docs/README.md
+**User Guide:** docs/USER-GUIDE.md and docs/user-guide/
+**Developer Guide:** docs/DEVELOPER-GUIDE.md
+**GitHub Issues:** https://github.com/Git-Rocky-Stack/Agent-X/issues
 
 ---
 
 ## License
 
-**MIT License** — Copyright (c) 2026 Rocky Elsalaymeh. See LICENSE at the repository root.
+**MIT License.** Copyright (c) 2026 Rocky Elsalaymeh. See LICENSE at the repository root.
 
 ---
 
 ## Version
 
 **Documentation Version:** 2.2.0
-**Last Updated:** 2026-06-21
+**Last Updated:** 2026-09-27
