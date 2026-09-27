@@ -154,7 +154,7 @@
   <data name="UserGuide_KnowledgeVault_Importing_Title.Text" xml:space="preserve"><value>导入文档</value></data>
   <data name="UserGuide_KnowledgeVault_Importing_Description.Text" xml:space="preserve"><value>您可以通过以下方式向 Knowledge Vault 添加文档：</value></data>
   <data name="UserGuide_KnowledgeVault_Import1.Text" xml:space="preserve"><value>拖放：当 Knowledge Vault 列表为空时，页面上会显示一个拖放区，可将文件或文件夹拖到其中。列表中出现文档后就不再有拖放区，请改用“导入文件”或“导入文件夹”。系统会搜索文件夹及其所有子文件夹，只导入受支持的文件类型。导入前，Agent-X 会将每个文件的内容与 Vault 进行比较：与已有文档完全相同的文件会被列为重复项，您可以选择“跳过重复项”或“全部导入”。</value></data>
-  <data name="UserGuide_KnowledgeVault_Import2.Text" xml:space="preserve"><value>导入文件：点击“导入文件”并选择一个或多个文件，同样会进行重复检查。选择器只提供文档、数据和代码格式，因此图片和音频需要通过“导入文件夹”、监视文件夹或空 Vault 的拖放区导入。网页则通过“网页导入”页面或浏览器扩展导入。</value></data>
+  <data name="UserGuide_KnowledgeVault_Import2.Text" xml:space="preserve"><value>导入文件：点击“导入文件”并选择一个或多个文件，同样会进行重复检查。选择器提供 Agent-X 能读取的所有格式，包括图片、音频以及已启用插件添加的格式。网页则通过“网页导入”页面或浏览器扩展导入。</value></data>
   <data name="UserGuide_KnowledgeVault_Import3.Text" xml:space="preserve"><value>文件夹导入 - 单击“导入文件夹”，一次性导入文件夹及其子文件夹中所有受支持的文件。若要持续从某个文件夹导入，请在“设置”&gt;“Knowledge Vault”的“监视文件夹”中添加它：“自动索引监视文件夹”打开时，Agent-X 会导入其中已有的受支持文件，并在运行期间导入新增和更改的文件。</value></data>
   <data name="UserGuide_KnowledgeVault_Managing_Title.Text" xml:space="preserve"><value>管理文档</value></data>
   <data name="UserGuide_KnowledgeVault_Managing_Description.Text" xml:space="preserve"><value>每一行显示文件名、类型、索引状态、提取或生成的标题、页数、字数和分块数、大小、导入日期以及标签；失败的行还会显示索引失败的原因（将指针悬停其上可查看全文）。搜索框按文件名或标签的一部分筛选，不区分大小写；它不搜索文档内容，内容搜索由语义搜索和“向您的文件提问”完成。您还可以按文件类型、状态、标签、合集或导入日期筛选，并按名称、日期、大小或类型排序。对每个文档，您可以：</value></data>
@@ -512,7 +512,7 @@
   <data name="UserGuide_AudioTranscription_Title.Text" xml:space="preserve"><value>音频转录</value></data>
   <data name="UserGuide_AudioTranscription_Description.Text" xml:space="preserve"><value>在“模型管理器”页面安装本地 Whisper 模型后，Agent-X 会在您自己的计算机上将语音转录为文本。通过“导入文件夹”、监视文件夹或空 Vault 的拖放区将音频文件（WAV、MP3、M4A、FLAC、OGG、WebM）导入 Knowledge Vault，每个文件都会作为带时间戳的转录文本导入，语义搜索、向您的文件提问、Quick Actions 和工作流都能像使用其他文档一样使用它。在 AI Chat 中，麦克风按钮可将语音转换为消息框中的文字。</value></data>
   <data name="UserGuide_AudioTranscription_HowItWorks_Title.Text" xml:space="preserve"><value>转录的工作方式</value></data>
-  <data name="UserGuide_AudioTranscription_Step1.Text" xml:space="preserve"><value>导入音频：对包含音频文件的文件夹使用“导入文件夹”，或在“设置”的“监视文件夹”中添加该文件夹，或在 Knowledge Vault 列表为空时将音频文件拖到其拖放区；“导入文件”选择器只列出文档格式。每个文件在导入时即进行转录，因此较长的录音需要一段时间才会出现。在 AI Chat 中，点击麦克风开始录音，点击停止按钮结束；也可以右键点击麦克风选择现有的音频文件。文字会出现在消息框中，您可以在发送前检查。</value></data>
+  <data name="UserGuide_AudioTranscription_Step1.Text" xml:space="preserve"><value>导入音频：通过“导入文件”选择音频文件，对包含音频文件的文件夹使用“导入文件夹”，或在“设置”的“监视文件夹”中添加该文件夹，或在 Knowledge Vault 列表为空时将音频文件拖到其拖放区。每个文件在导入时即进行转录，因此较长的录音需要一段时间才会出现。在 AI Chat 中，点击麦克风开始录音，点击停止按钮结束；也可以右键点击麦克风选择现有的音频文件。文字会出现在消息框中，您可以在发送前检查。</value></data>
   <data name="UserGuide_AudioTranscription_Step2.Text" xml:space="preserve"><value>转换与转录：Whisper 只能读取 16 kHz 的 PCM WAV，因此其他音频会先被解码、混缩为单声道，并重采样为临时的 16 kHz WAV 文件，该文件随后会被删除。WAV 由应用自行解码；MP3、M4A、FLAC 和压缩 WAV 通过 Windows Media Foundation 解码器处理，而 OGG 和 WebM 只有在 Windows 安装了相应编解码器时才能解码。转录始终使用 Whisper base 模型，并在 CPU 上运行。语音的语言会自动检测，没有用于强制指定语言的设置。</value></data>
   <data name="UserGuide_AudioTranscription_Step3.Text" xml:space="preserve"><value>转录文本：导入的录音会成为一份文档，其文本以简短的标题信息（文件名、检测到的语言、时长、模型）开头，后面每个 Whisper 片段占一行，并以其时间范围开头，例如 [00:01:05 --&gt; 00:01:12]。它会像其他文档一样被分块并编入索引，因此搜索结果和“向您的文件提问”来源中显示的段落都包含这些时间范围，您可以在自己的音频播放器中找到对应位置；Agent-X 本身不播放音频。说话人分离尚未实现，因此转录文本不带说话人标签。</value></data>
   <data name="UserGuide_AudioTranscription_UseCases_Title.Text" xml:space="preserve"><value>使用场景</value></data>
