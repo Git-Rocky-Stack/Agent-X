@@ -1,3 +1,4 @@
+using AgentX.Core.AI.Providers;
 using AgentX.Core.Services.Backup.Models;
 using AgentX.Core.Services.Search;
 
@@ -38,7 +39,7 @@ public class AppSettings
     // Anthropic Provider
     public string? AnthropicApiKey { get; set; }
     public string AnthropicEndpoint { get; set; } = "https://api.anthropic.com/v1/";
-    public string? AnthropicDefaultModel { get; set; } = "claude-sonnet-4-20250514";
+    public string? AnthropicDefaultModel { get; set; } = AnthropicProvider.DefaultModelId;
 
     // Inference
     public double Temperature { get; set; } = 0.7;

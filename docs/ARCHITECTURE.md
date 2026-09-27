@@ -844,7 +844,7 @@ Results are serialized to JSON and persisted as a `DigestReportEntity`.
 | `OpenAiApiKey` | `null` | OpenAI key (optional) |
 | `OpenAiDefaultModel` | `"gpt-4o-mini"` | OpenAI default model |
 | `AnthropicApiKey` | `null` | Anthropic key (optional) |
-| `AnthropicDefaultModel` | `"claude-sonnet-4-20250514"` | Anthropic default model |
+| `AnthropicDefaultModel` | `AnthropicProvider.DefaultModelId` (`"claude-sonnet-5"`) | Anthropic default model |
 | `Temperature` | `0.7` | Inference temperature |
 | `MaxTokens` | `4096` | Max response tokens |
 | `ContextWindow` | `8192` | Context window size |

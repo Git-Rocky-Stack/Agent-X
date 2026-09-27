@@ -1,5 +1,6 @@
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
+using AgentX.Core.AI.Providers;
 using AgentX.Core.Services.Settings;
 using FluentAssertions;
 using Moq;
@@ -235,6 +236,21 @@ public sealed class AiServiceTests : IDisposable
         service.GetDefaultModelId("anthropic").Should().Be("claude-sonnet-5");
         service.GetDefaultModelId("local").Should().Be("llama-3.2-3b-instruct-q4_k_m.gguf");
         service.RegisteredProviderIds.Should().BeEquivalentTo("local", "ollama", "openai", "anthropic");
+    }
+
+    [Fact]
+    public async Task A_fresh_install_asks_Anthropic_for_the_provider_default_model()
+    {
+        // AppSettings defaulted to a retired, dated model id while the provider, the Settings
+        // page and its placeholder had moved on, so a new install requested the old model.
+        var fresh = new AppSettings { StoragePath = _storage, ActiveProviderId = "ollama", AnthropicApiKey = "sk-ant-test" };
+        fresh.AnthropicDefaultModel.Should().Be(AnthropicProvider.DefaultModelId);
+
+        _settingsService.Setup(s => s.GetSettingsAsync()).ReturnsAsync(fresh);
+        var service = CreateService();
+        await service.InitializeAsync();
+
+        service.GetDefaultModelId("anthropic").Should().Be(AnthropicProvider.DefaultModelId);
     }
 
     [Fact]

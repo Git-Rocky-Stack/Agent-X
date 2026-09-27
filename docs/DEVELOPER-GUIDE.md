@@ -1112,7 +1112,7 @@ private static string ResolveDefaultModel(AppSettings settings, string providerI
     return providerId.ToLowerInvariant() switch
     {
         "openai" => settings.OpenAiDefaultModel ?? "gpt-4o-mini",
-        "anthropic" => settings.AnthropicDefaultModel ?? "claude-sonnet-4-20250514",
+        "anthropic" => settings.AnthropicDefaultModel ?? AnthropicProvider.DefaultModelId,
         "mycustom" => settings.MyCustomDefaultModel ?? "mycustom-default",  // Add this
         _ => settings.DefaultModel
     };
@@ -2008,7 +2008,7 @@ if (selectedItem != null)
 var defaultModel = providerId.ToLowerInvariant() switch
 {
     "openai"    => settings.OpenAiDefaultModel ?? "gpt-4o-mini",
-    "anthropic" => settings.AnthropicDefaultModel ?? "claude-sonnet-4-20250514",
+    "anthropic" => settings.AnthropicDefaultModel ?? AnthropicProvider.DefaultModelId,
     _           => settings.DefaultModel
 };
 ```
