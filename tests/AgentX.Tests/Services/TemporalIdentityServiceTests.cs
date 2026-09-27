@@ -342,7 +342,8 @@ public sealed class TemporalIdentityServiceTests : IDisposable
         relevant.Should().NotContain(r => r.Insight == "php memories");
         relevant.Should().NotContain(r => r.Insight == "docker but insignificant");
         relevant[0].RelatedTopics.Should().Equal("docker");
-        relevant[0].Context.Should().Contain("From ");
+        relevant.Should().OnlyContain(r => r.Context.Length == 0,
+            "nothing shows it, so no English sentence (\"From ... on ...\") is built for it");
     }
 
     // ─── Engagement ──────────────────────────────────────────────────────────────

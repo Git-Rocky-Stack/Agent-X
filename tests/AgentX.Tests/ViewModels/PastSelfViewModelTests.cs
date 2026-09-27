@@ -170,8 +170,7 @@ public sealed class PastSelfViewModelTests
                 new AgentX.Core.Services.TemporalIdentity.Models.ResurfacedInsight
                 {
                     Insight = insight,
-                    RelatedTopics = ["remote work", "team rituals", "third topic"],
-                    Context = "chat"
+                    RelatedTopics = ["remote work", "team rituals", "third topic"]
                 }
             ]);
 

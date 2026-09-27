@@ -418,5 +418,11 @@ public class ResurfacedInsight
     public IReadOnlyList<string> RelatedTopics { get; set; } = [];
 
     public double Significance { get; set; }
-    public required string Context { get; set; }
+
+    /// <summary>
+    /// Left empty. It held an English sentence ("From UserExplicitSave on 2026-09-01") that no
+    /// page or prompt shows; the page words an insight's date and topics itself, from
+    /// <see cref="OriginalDate"/> and <see cref="RelatedTopics"/>.
+    /// </summary>
+    public string Context { get; set; } = string.Empty;
 }

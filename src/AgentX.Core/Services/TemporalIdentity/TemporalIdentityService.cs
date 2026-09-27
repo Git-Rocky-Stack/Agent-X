@@ -260,8 +260,6 @@ public class TemporalIdentityService : ITemporalIdentityService
                     OriginalDate = insight.CapturedAt,
                     RelatedTopics = insightTopics,
                     Significance = insight.SignificanceScore,
-                    Context = string.Create(
-                        CultureInfo.InvariantCulture, $"From {insight.SourceType} on {insight.CapturedAt:yyyy-MM-dd}"),
                 });
             }
         }
