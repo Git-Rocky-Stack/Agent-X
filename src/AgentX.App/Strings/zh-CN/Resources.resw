@@ -3083,6 +3083,10 @@
   <data name="CalSet_DisconnectCancelButton" xml:space="preserve"><value>取消</value></data>
   <data name="CalSet_AccountGoogle" xml:space="preserve"><value>Google 日历</value></data>
   <data name="CalSet_AccountOutlook" xml:space="preserve"><value>Outlook 日历</value></data>
+  <data name="Sync_HistoryDirectionExport" xml:space="preserve"><value>导出</value></data>
+  <data name="Sync_HistoryDirectionImport" xml:space="preserve"><value>导入</value></data>
+  <data name="Sync_HistoryStatusSuccess" xml:space="preserve"><value>成功</value></data>
+  <data name="Sync_HistoryStatusFailed" xml:space="preserve"><value>失败</value></data>
   <data name="Vault_SearchScopeHint.Text" xml:space="preserve"><value>匹配文件名和标签。要搜索文档内容，请使用“语义搜索”或“向您的文件提问”。</value></data>
   <data name="Vault_IndexingFailedReason.Text" xml:space="preserve"><value>索引失败原因</value></data>
   <data name="Vault_DocumentText.Text" xml:space="preserve"><value>文档文本</value></data>

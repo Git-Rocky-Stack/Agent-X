@@ -3083,6 +3083,10 @@
   <data name="CalSet_DisconnectCancelButton" xml:space="preserve"><value>Abbrechen</value></data>
   <data name="CalSet_AccountGoogle" xml:space="preserve"><value>Google Kalender</value></data>
   <data name="CalSet_AccountOutlook" xml:space="preserve"><value>Outlook-Kalender</value></data>
+  <data name="Sync_HistoryDirectionExport" xml:space="preserve"><value>Export</value></data>
+  <data name="Sync_HistoryDirectionImport" xml:space="preserve"><value>Import</value></data>
+  <data name="Sync_HistoryStatusSuccess" xml:space="preserve"><value>Erfolgreich</value></data>
+  <data name="Sync_HistoryStatusFailed" xml:space="preserve"><value>Fehlgeschlagen</value></data>
   <data name="Vault_SearchScopeHint.Text" xml:space="preserve"><value>Durchsucht Dateinamen und Tags. Um in Dokumenten zu suchen, verwenden Sie „Semantische Suche“ oder „Fragen Sie Ihre Dateien“.</value></data>
   <data name="Vault_IndexingFailedReason.Text" xml:space="preserve"><value>WARUM DIE INDEXIERUNG FEHLSCHLUG</value></data>
   <data name="Vault_DocumentText.Text" xml:space="preserve"><value>DOKUMENTTEXT</value></data>

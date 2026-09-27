@@ -576,4 +576,52 @@ public sealed class SyncSettingsViewModelTests
         viewModel.HasStatusMessage.Should().BeTrue();
         viewModel.HasFocusedSyncLanding.Should().BeFalse();
     }
+
+    [Fact]
+    public async Task HistoryRows_NameTheirDirectionAndStatus_InTheUsersLanguage()
+    {
+        // The rows showed "Export" or "Import" and "Success" or "Failed" in every language.
+        var german = ReswLocalization.For("de");
+        _syncService.Setup(service => service.GetConfigurationAsync())
+            .ReturnsAsync(new SyncConfiguration { SyncFolderPath = @"C:\Sync", EncryptionKey = "secret" });
+        _syncService.Setup(service => service.GetSyncHistoryAsync(It.IsAny<int>()))
+            .ReturnsAsync(
+            [
+                new SyncLogEntity { Id = 1, Direction = "export", IsSuccess = true, SyncedAt = DateTime.UtcNow.AddMinutes(-3) },
+                new SyncLogEntity { Id = 2, Direction = "import", IsSuccess = false, SyncedAt = DateTime.UtcNow.AddMinutes(-1) }
+            ]);
+        var viewModel = new SyncSettingsViewModel(_syncService.Object, _collectionService.Object, german, _operationsDrillInService.Object);
+
+        await viewModel.InitializeAsync();
+
+        var export = viewModel.SyncHistory.Single(row => row.Id == 1);
+        var import = viewModel.SyncHistory.Single(row => row.Id == 2);
+        export.DirectionDisplay.Should().Be(german.GetString("Sync_HistoryDirectionExport"));
+        export.StatusText.Should().Be(german.GetString("Sync_HistoryStatusSuccess")).And.NotBe("Success");
+        import.DirectionDisplay.Should().Be(german.GetString("Sync_HistoryDirectionImport"));
+        import.StatusText.Should().Be(german.GetString("Sync_HistoryStatusFailed")).And.NotBe("Failed");
+        import.StatusLabel.Should().Be(german.GetString("Sync_HistoryStatusFailed").ToUpperInvariant());
+        export.Direction.Should().Be("export", "the stored direction token stays as it is");
+    }
+
+    [Fact]
+    public async Task HistoryRows_ReadTheSameEnglishAsBefore()
+    {
+        _syncService.Setup(service => service.GetConfigurationAsync())
+            .ReturnsAsync(new SyncConfiguration { SyncFolderPath = @"C:\Sync", EncryptionKey = "secret" });
+        _syncService.Setup(service => service.GetSyncHistoryAsync(It.IsAny<int>()))
+            .ReturnsAsync(
+            [
+                new SyncLogEntity { Id = 1, Direction = "export", IsSuccess = true, SyncedAt = DateTime.UtcNow.AddMinutes(-3) },
+                new SyncLogEntity { Id = 2, Direction = "import", IsSuccess = false, SyncedAt = DateTime.UtcNow.AddMinutes(-1) }
+            ]);
+        var viewModel = new SyncSettingsViewModel(_syncService.Object, _collectionService.Object, EnglishResources.Create(), _operationsDrillInService.Object);
+
+        await viewModel.InitializeAsync();
+
+        var export = viewModel.SyncHistory.Single(row => row.Id == 1);
+        var import = viewModel.SyncHistory.Single(row => row.Id == 2);
+        (export.DirectionDisplay, export.StatusText, export.StatusLabel).Should().Be(("Export", "Success", "SUCCESS"));
+        (import.DirectionDisplay, import.StatusText, import.StatusLabel).Should().Be(("Import", "Failed", "FAILED"));
+    }
 }

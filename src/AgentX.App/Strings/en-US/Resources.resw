@@ -3422,6 +3422,10 @@
   <data name="CalSet_DisconnectCancelButton" xml:space="preserve"><value>Cancel</value></data>
   <data name="CalSet_AccountGoogle" xml:space="preserve"><value>Google Calendar</value></data>
   <data name="CalSet_AccountOutlook" xml:space="preserve"><value>Outlook Calendar</value></data>
+  <data name="Sync_HistoryDirectionExport" xml:space="preserve"><value>Export</value></data>
+  <data name="Sync_HistoryDirectionImport" xml:space="preserve"><value>Import</value></data>
+  <data name="Sync_HistoryStatusSuccess" xml:space="preserve"><value>Success</value></data>
+  <data name="Sync_HistoryStatusFailed" xml:space="preserve"><value>Failed</value></data>
   <data name="Vault_SearchScopeHint.Text" xml:space="preserve"><value>Matches file names and tags. To search inside documents, use Semantic Search or Ask Your Files.</value></data>
   <data name="Vault_IndexingFailedReason.Text" xml:space="preserve"><value>WHY INDEXING FAILED</value></data>
   <data name="Vault_DocumentText.Text" xml:space="preserve"><value>DOCUMENT TEXT</value></data>

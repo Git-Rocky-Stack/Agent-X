@@ -988,7 +988,7 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
     /// Maps a raw <see cref="SyncLogEntity"/> to a <see cref="SyncHistoryItem"/>
     /// with all string formatting applied, ready for direct binding.
     /// </summary>
-    private static SyncHistoryItem MapToDisplayItem(SyncLogEntity entry) => new()
+    private SyncHistoryItem MapToDisplayItem(SyncLogEntity entry) => new()
     {
         Id = entry.Id,
         Direction = entry.Direction,
@@ -999,7 +999,11 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
         SyncedAtFormatted = FormatHelper.TimeAgoWithMonths(entry.SyncedAt),
         SyncedAtFull = entry.SyncedAt.ToLocalTime().ToString("MMM d, yyyy h:mm tt"),
         DurationFormatted = FormatHelper.FormatDuration(entry.DurationMs),
-        ErrorMessage = entry.ErrorMessage
+        ErrorMessage = entry.ErrorMessage,
+        ExportLabel = _localization.GetString("Sync_HistoryDirectionExport"),
+        ImportLabel = _localization.GetString("Sync_HistoryDirectionImport"),
+        SuccessLabel = _localization.GetString("Sync_HistoryStatusSuccess"),
+        FailedLabel = _localization.GetString("Sync_HistoryStatusFailed")
     };
 
     private void ApplyPendingOperationsRequest()
