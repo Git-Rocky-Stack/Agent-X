@@ -3066,6 +3066,23 @@
   <data name="WfBuilder_CategoryWriting" xml:space="preserve"><value>ライティング</value></data>
   <data name="WfBuilder_CategoryAnalysis" xml:space="preserve"><value>分析</value></data>
   <data name="WfBuilder_CategoryProductivity" xml:space="preserve"><value>生産性</value></data>
+  <data name="Settings_ShortcutSaveSettings" xml:space="preserve"><value>設定を保存</value></data>
+  <data name="Settings_ShortcutCategory" xml:space="preserve"><value>設定</value></data>
+  <data name="Settings_ResetConfirmTitle" xml:space="preserve"><value>既定値にリセットしますか?</value></data>
+  <data name="Settings_ResetConfirmMessage" xml:space="preserve"><value>このページのすべての設定を既定値に戻します。現在の構成は失われます。続行しますか?</value></data>
+  <data name="Settings_ResetConfirmButton" xml:space="preserve"><value>リセット</value></data>
+  <data name="Settings_ResetCancelButton" xml:space="preserve"><value>キャンセル</value></data>
+  <data name="EmailSet_DisconnectConfirmTitle" xml:space="preserve"><value>{0} を切断しますか?</value></data>
+  <data name="EmailSet_DisconnectConfirmMessage" xml:space="preserve"><value>{0} との接続を削除し、同期を停止します。再び使用するには、再接続して再度承認する必要があります。続行しますか?</value></data>
+  <data name="EmailSet_DisconnectConfirmButton" xml:space="preserve"><value>切断</value></data>
+  <data name="EmailSet_DisconnectCancelButton" xml:space="preserve"><value>キャンセル</value></data>
+  <data name="EmailSet_AccountOutlook" xml:space="preserve"><value>Outlook メール</value></data>
+  <data name="CalSet_DisconnectConfirmTitle" xml:space="preserve"><value>{0} を切断しますか?</value></data>
+  <data name="CalSet_DisconnectConfirmMessage" xml:space="preserve"><value>{0} との接続を削除し、同期を停止します。再び使用するには、再接続して再度承認する必要があります。続行しますか?</value></data>
+  <data name="CalSet_DisconnectConfirmButton" xml:space="preserve"><value>切断</value></data>
+  <data name="CalSet_DisconnectCancelButton" xml:space="preserve"><value>キャンセル</value></data>
+  <data name="CalSet_AccountGoogle" xml:space="preserve"><value>Google カレンダー</value></data>
+  <data name="CalSet_AccountOutlook" xml:space="preserve"><value>Outlook 予定表</value></data>
   <data name="Vault_SearchScopeHint.Text" xml:space="preserve"><value>ファイル名とタグで絞り込みます。ドキュメントの内容を検索するには、「セマンティック検索」または「ファイルに質問する」を使用してください。</value></data>
   <data name="Vault_IndexingFailedReason.Text" xml:space="preserve"><value>インデックス作成に失敗した理由</value></data>
   <data name="Vault_DocumentText.Text" xml:space="preserve"><value>ドキュメントのテキスト</value></data>

@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using AgentX.App.Helpers;
 using AgentX.App.ViewModels;
+using AgentX.Core.Services.Localization;
 using AgentX.Core.Services.Shortcuts;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -41,14 +42,15 @@ public sealed partial class SettingsPage : Page
     protected override void OnNavigatedTo(NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
+        var localization = App.GetService<ILocalizationService>();
         _shortcutScope = _shortcutRegistry.RegisterShortcuts(
             new AgentX.Core.Services.Shortcuts.ShortcutDescriptor(
                 "settings.save",
-                "Save settings",
+                localization.GetString("Settings_ShortcutSaveSettings"),
                 new ShortcutScope(nameof(SettingsPage)),
                 new[] { new KeyChord(KeyModifiers.Ctrl, VirtualKeyCode.S) },
                 _ => ViewModel.SaveSettingsCommand.ExecuteAsync(null),
-                "Settings"));
+                localization.GetString("Settings_ShortcutCategory")));
     }
 
     protected override void OnNavigatedFrom(NavigationEventArgs e)
@@ -132,13 +134,13 @@ public sealed partial class SettingsPage : Page
     /// </summary>
     private async void OnResetToDefaultsClick(object sender, RoutedEventArgs e)
     {
+        var localization = App.GetService<ILocalizationService>();
         var dialog = new ContentDialog
         {
-            Title = "Reset to Defaults?",
-            Content = "This restores every setting on this page to its default value. " +
-                      "Your current configuration will be lost. Continue?",
-            PrimaryButtonText = "Reset",
-            CloseButtonText = "Cancel",
+            Title = localization.GetString("Settings_ResetConfirmTitle"),
+            Content = localization.GetString("Settings_ResetConfirmMessage"),
+            PrimaryButtonText = localization.GetString("Settings_ResetConfirmButton"),
+            CloseButtonText = localization.GetString("Settings_ResetCancelButton"),
             DefaultButton = ContentDialogButton.Close,
             XamlRoot = this.XamlRoot
         };

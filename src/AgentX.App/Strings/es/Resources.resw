@@ -3066,6 +3066,23 @@
   <data name="WfBuilder_CategoryWriting" xml:space="preserve"><value>Redacción</value></data>
   <data name="WfBuilder_CategoryAnalysis" xml:space="preserve"><value>Análisis</value></data>
   <data name="WfBuilder_CategoryProductivity" xml:space="preserve"><value>Productividad</value></data>
+  <data name="Settings_ShortcutSaveSettings" xml:space="preserve"><value>Guardar configuración</value></data>
+  <data name="Settings_ShortcutCategory" xml:space="preserve"><value>Configuración</value></data>
+  <data name="Settings_ResetConfirmTitle" xml:space="preserve"><value>¿Restablecer valores predeterminados?</value></data>
+  <data name="Settings_ResetConfirmMessage" xml:space="preserve"><value>Esto restablece todos los ajustes de esta página a su valor predeterminado. Se perderá su configuración actual. ¿Desea continuar?</value></data>
+  <data name="Settings_ResetConfirmButton" xml:space="preserve"><value>Restablecer</value></data>
+  <data name="Settings_ResetCancelButton" xml:space="preserve"><value>Cancelar</value></data>
+  <data name="EmailSet_DisconnectConfirmTitle" xml:space="preserve"><value>¿Desconectar {0}?</value></data>
+  <data name="EmailSet_DisconnectConfirmMessage" xml:space="preserve"><value>Esto quita la conexión con {0} y detiene la sincronización. Para volver a usarla, tendrá que conectarse y autorizarla de nuevo. ¿Desea continuar?</value></data>
+  <data name="EmailSet_DisconnectConfirmButton" xml:space="preserve"><value>Desconectar</value></data>
+  <data name="EmailSet_DisconnectCancelButton" xml:space="preserve"><value>Cancelar</value></data>
+  <data name="EmailSet_AccountOutlook" xml:space="preserve"><value>Correo de Outlook</value></data>
+  <data name="CalSet_DisconnectConfirmTitle" xml:space="preserve"><value>¿Desconectar {0}?</value></data>
+  <data name="CalSet_DisconnectConfirmMessage" xml:space="preserve"><value>Esto quita la conexión con {0} y detiene la sincronización. Para volver a usarla, tendrá que conectarse y autorizarla de nuevo. ¿Desea continuar?</value></data>
+  <data name="CalSet_DisconnectConfirmButton" xml:space="preserve"><value>Desconectar</value></data>
+  <data name="CalSet_DisconnectCancelButton" xml:space="preserve"><value>Cancelar</value></data>
+  <data name="CalSet_AccountGoogle" xml:space="preserve"><value>Google Calendar</value></data>
+  <data name="CalSet_AccountOutlook" xml:space="preserve"><value>Calendario de Outlook</value></data>
   <data name="Vault_SearchScopeHint.Text" xml:space="preserve"><value>Busca en nombres de archivo y etiquetas. Para buscar dentro de los documentos, use «Búsqueda semántica» o «Pregunta a tus archivos».</value></data>
   <data name="Vault_IndexingFailedReason.Text" xml:space="preserve"><value>POR QUÉ FALLÓ LA INDEXACIÓN</value></data>
   <data name="Vault_DocumentText.Text" xml:space="preserve"><value>TEXTO DEL DOCUMENTO</value></data>

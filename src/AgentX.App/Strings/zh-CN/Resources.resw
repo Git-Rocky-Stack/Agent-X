@@ -3066,6 +3066,23 @@
   <data name="WfBuilder_CategoryWriting" xml:space="preserve"><value>写作</value></data>
   <data name="WfBuilder_CategoryAnalysis" xml:space="preserve"><value>分析</value></data>
   <data name="WfBuilder_CategoryProductivity" xml:space="preserve"><value>效率</value></data>
+  <data name="Settings_ShortcutSaveSettings" xml:space="preserve"><value>保存设置</value></data>
+  <data name="Settings_ShortcutCategory" xml:space="preserve"><value>设置</value></data>
+  <data name="Settings_ResetConfirmTitle" xml:space="preserve"><value>恢复默认值？</value></data>
+  <data name="Settings_ResetConfirmMessage" xml:space="preserve"><value>这将把此页面上的所有设置恢复为默认值。您当前的配置将会丢失。是否继续？</value></data>
+  <data name="Settings_ResetConfirmButton" xml:space="preserve"><value>重置</value></data>
+  <data name="Settings_ResetCancelButton" xml:space="preserve"><value>取消</value></data>
+  <data name="EmailSet_DisconnectConfirmTitle" xml:space="preserve"><value>断开 {0} 的连接？</value></data>
+  <data name="EmailSet_DisconnectConfirmMessage" xml:space="preserve"><value>这将移除与 {0} 的连接并停止同步。若要再次使用，需要重新连接并重新授权。是否继续？</value></data>
+  <data name="EmailSet_DisconnectConfirmButton" xml:space="preserve"><value>断开连接</value></data>
+  <data name="EmailSet_DisconnectCancelButton" xml:space="preserve"><value>取消</value></data>
+  <data name="EmailSet_AccountOutlook" xml:space="preserve"><value>Outlook 邮件</value></data>
+  <data name="CalSet_DisconnectConfirmTitle" xml:space="preserve"><value>断开 {0} 的连接？</value></data>
+  <data name="CalSet_DisconnectConfirmMessage" xml:space="preserve"><value>这将移除与 {0} 的连接并停止同步。若要再次使用，需要重新连接并重新授权。是否继续？</value></data>
+  <data name="CalSet_DisconnectConfirmButton" xml:space="preserve"><value>断开连接</value></data>
+  <data name="CalSet_DisconnectCancelButton" xml:space="preserve"><value>取消</value></data>
+  <data name="CalSet_AccountGoogle" xml:space="preserve"><value>Google 日历</value></data>
+  <data name="CalSet_AccountOutlook" xml:space="preserve"><value>Outlook 日历</value></data>
   <data name="Vault_SearchScopeHint.Text" xml:space="preserve"><value>匹配文件名和标签。要搜索文档内容，请使用“语义搜索”或“向您的文件提问”。</value></data>
   <data name="Vault_IndexingFailedReason.Text" xml:space="preserve"><value>索引失败原因</value></data>
   <data name="Vault_DocumentText.Text" xml:space="preserve"><value>文档文本</value></data>

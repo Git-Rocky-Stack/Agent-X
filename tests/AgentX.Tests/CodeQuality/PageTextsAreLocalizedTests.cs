@@ -1,0 +1,120 @@
+using System.Text.RegularExpressions;
+using AgentX.App.ViewModels;
+using AgentX.Tests.Helpers;
+using FluentAssertions;
+using Xunit;
+
+namespace AgentX.Tests.CodeQuality;
+
+/// <summary>
+/// Page code-behind built its dialogs, status lines and shortcut names from English literals,
+/// and some rows showed stored tokens ("manual", "Research"), so those texts stayed English in
+/// every language. The pages live in the WinUI project, which this test project cannot compile,
+/// so the rules are checked on their source: the texts are read from the localization service,
+/// the rows bind the translated names, and every text that names something keeps its
+/// placeholder in all six languages.
+/// </summary>
+public sealed class PageTextsAreLocalizedTests
+{
+    private static readonly string[] Locales = { "en-US", "de", "es", "fr", "ja", "zh-CN" };
+
+    /// <summary>A dialog or control text assigned a string literal.</summary>
+    private static readonly Regex LiteralText = new(
+        @"\b(Title|Content|PrimaryButtonText|CloseButtonText|SecondaryButtonText|PlaceholderText|Header|Text|StatusMessage)\s*=\s*\$?""");
+
+    [Theory]
+    [InlineData("BackupRestorePage.xaml.cs")]
+    [InlineData("WorkflowBuilderPage.xaml.cs")]
+    [InlineData("SettingsPage.xaml.cs")]
+    [InlineData("EmailSettingsPage.xaml.cs")]
+    [InlineData("CalendarSettingsPage.xaml.cs")]
+    public void Dialog_texts_come_from_the_resources(string codeBehind)
+    {
+        var source = ReadView(codeBehind);
+
+        LiteralText.Matches(source).Select(match => match.Value).Should().BeEmpty(
+            "{0} shows these texts to the user, so it reads them from the localization service", codeBehind);
+    }
+
+    [Fact]
+    public void Texts_passed_to_dialogs_and_shortcuts_come_from_the_resources()
+    {
+        ReadView("WorkflowBuilderPage.xaml.cs").Should().NotContain("\"Export Workflow Result\"")
+            .And.NotContain("Export Stored Run (")
+            .And.NotContain("new TextBlock { Text = \"Format\" }");
+        ReadView("SettingsPage.xaml.cs").Should().NotContain("\"Save settings\"")
+            .And.NotContain("\"Settings\")");
+        ReadView("EmailSettingsPage.xaml.cs").Should().NotContain("\"Outlook Email\"");
+        ReadView("CalendarSettingsPage.xaml.cs").Should().NotContain("\"Google Calendar\"")
+            .And.NotContain("\"Outlook Calendar\"");
+    }
+
+    [Fact]
+    public void Backup_history_rows_show_the_translated_backup_type()
+    {
+        var xaml = ReadView("BackupRestorePage.xaml");
+
+        xaml.Should().Contain($"Text=\"{{x:Bind {nameof(BackupHistoryItem.BackupTypeLabel)}}}\"");
+        xaml.Should().NotContain("Text=\"{x:Bind BackupType}\"", "that is the stored type token");
+    }
+
+    [Fact]
+    public void Workflow_categories_are_shown_by_their_translated_names()
+    {
+        var xaml = ReadView("WorkflowBuilderPage.xaml");
+
+        // WorkflowListItem rows and WorkflowStarterTemplateDisplayItem cards both carry CategoryLabel.
+        Regex.Matches(xaml, Regex.Escape($"Text=\"{{x:Bind {nameof(WorkflowListItem.CategoryLabel)}}}\""))
+            .Should().HaveCount(2, "the workflow list and the template cards both name the category");
+        xaml.Should().NotContain("Text=\"{x:Bind Category}\"", "that is the stored category");
+        xaml.Should().Contain($"ItemsSource=\"{{x:Bind ViewModel.{nameof(WorkflowBuilderViewModel.CategoryOptions)}}}\"");
+        xaml.Should().Contain(
+            $"SelectedIndex=\"{{x:Bind ViewModel.{nameof(WorkflowBuilderViewModel.SelectedCategoryIndex)}, Mode=TwoWay}}\"");
+        xaml.Should().NotContain("SelectedItem=\"{x:Bind ViewModel.EditCategory");
+    }
+
+    [Fact]
+    public void Texts_that_name_something_keep_their_placeholder_in_every_language()
+    {
+        var keys = new[]
+        {
+            "EmailSet_DisconnectConfirmTitle",
+            "EmailSet_DisconnectConfirmMessage",
+            "CalSet_DisconnectConfirmTitle",
+            "CalSet_DisconnectConfirmMessage",
+            "WfBuilder_WorkflowCopied",
+            "WfBuilder_ExportStoredRunTitle",
+        };
+
+        foreach (var locale in Locales)
+        {
+            var localization = ReswLocalization.For(locale);
+            foreach (var key in keys)
+            {
+                localization.GetString(key, "[[name]]").Should().Contain(
+                    "[[name]]", "the {0} text of {1} must show the name it is given", locale, key);
+            }
+        }
+    }
+
+    private static string ReadView(string fileName) =>
+        File.ReadAllText(Path.Combine(ResolveSourceRoot(), "AgentX.App", "Views", fileName));
+
+    private static string ResolveSourceRoot()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null)
+        {
+            var candidate = Path.Combine(directory.FullName, "src");
+            if (Directory.Exists(Path.Combine(candidate, "AgentX.App")) &&
+                Directory.Exists(Path.Combine(candidate, "AgentX.Core")))
+            {
+                return candidate;
+            }
+
+            directory = directory.Parent;
+        }
+
+        throw new DirectoryNotFoundException("Could not locate the Agent-X source root from the test output directory.");
+    }
+}

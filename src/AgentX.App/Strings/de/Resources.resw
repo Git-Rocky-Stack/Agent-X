@@ -3066,6 +3066,23 @@
   <data name="WfBuilder_CategoryWriting" xml:space="preserve"><value>Schreiben</value></data>
   <data name="WfBuilder_CategoryAnalysis" xml:space="preserve"><value>Analyse</value></data>
   <data name="WfBuilder_CategoryProductivity" xml:space="preserve"><value>Produktivität</value></data>
+  <data name="Settings_ShortcutSaveSettings" xml:space="preserve"><value>Einstellungen speichern</value></data>
+  <data name="Settings_ShortcutCategory" xml:space="preserve"><value>Einstellungen</value></data>
+  <data name="Settings_ResetConfirmTitle" xml:space="preserve"><value>Auf Standard zurücksetzen?</value></data>
+  <data name="Settings_ResetConfirmMessage" xml:space="preserve"><value>Dadurch werden alle Einstellungen auf dieser Seite auf ihren Standardwert zurückgesetzt. Ihre aktuelle Konfiguration geht verloren. Fortfahren?</value></data>
+  <data name="Settings_ResetConfirmButton" xml:space="preserve"><value>Zurücksetzen</value></data>
+  <data name="Settings_ResetCancelButton" xml:space="preserve"><value>Abbrechen</value></data>
+  <data name="EmailSet_DisconnectConfirmTitle" xml:space="preserve"><value>{0} trennen?</value></data>
+  <data name="EmailSet_DisconnectConfirmMessage" xml:space="preserve"><value>Dadurch wird die Verbindung zu {0} entfernt und die Synchronisierung beendet. Um sie wieder zu nutzen, müssen Sie die Verbindung erneut herstellen und autorisieren. Fortfahren?</value></data>
+  <data name="EmailSet_DisconnectConfirmButton" xml:space="preserve"><value>Trennen</value></data>
+  <data name="EmailSet_DisconnectCancelButton" xml:space="preserve"><value>Abbrechen</value></data>
+  <data name="EmailSet_AccountOutlook" xml:space="preserve"><value>Outlook-E-Mail</value></data>
+  <data name="CalSet_DisconnectConfirmTitle" xml:space="preserve"><value>{0} trennen?</value></data>
+  <data name="CalSet_DisconnectConfirmMessage" xml:space="preserve"><value>Dadurch wird die Verbindung zu {0} entfernt und die Synchronisierung beendet. Um sie wieder zu nutzen, müssen Sie die Verbindung erneut herstellen und autorisieren. Fortfahren?</value></data>
+  <data name="CalSet_DisconnectConfirmButton" xml:space="preserve"><value>Trennen</value></data>
+  <data name="CalSet_DisconnectCancelButton" xml:space="preserve"><value>Abbrechen</value></data>
+  <data name="CalSet_AccountGoogle" xml:space="preserve"><value>Google Kalender</value></data>
+  <data name="CalSet_AccountOutlook" xml:space="preserve"><value>Outlook-Kalender</value></data>
   <data name="Vault_SearchScopeHint.Text" xml:space="preserve"><value>Durchsucht Dateinamen und Tags. Um in Dokumenten zu suchen, verwenden Sie „Semantische Suche“ oder „Fragen Sie Ihre Dateien“.</value></data>
   <data name="Vault_IndexingFailedReason.Text" xml:space="preserve"><value>WARUM DIE INDEXIERUNG FEHLSCHLUG</value></data>
   <data name="Vault_DocumentText.Text" xml:space="preserve"><value>DOKUMENTTEXT</value></data>

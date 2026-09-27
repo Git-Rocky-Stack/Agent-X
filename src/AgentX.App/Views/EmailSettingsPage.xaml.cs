@@ -1,4 +1,5 @@
 using AgentX.App.ViewModels;
+using AgentX.Core.Services.Localization;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
@@ -21,6 +22,7 @@ public sealed partial class EmailSettingsPage : Page
 
     private async void OnDisconnectGoogleClick(object sender, RoutedEventArgs e)
     {
+        // Gmail is a product name, the same in every language.
         if (await ConfirmDisconnectAsync("Gmail"))
         {
             await ViewModel.DisconnectGoogleCommand.ExecuteAsync(null);
@@ -29,7 +31,8 @@ public sealed partial class EmailSettingsPage : Page
 
     private async void OnDisconnectMicrosoftClick(object sender, RoutedEventArgs e)
     {
-        if (await ConfirmDisconnectAsync("Outlook Email"))
+        var accountName = App.GetService<ILocalizationService>().GetString("EmailSet_AccountOutlook");
+        if (await ConfirmDisconnectAsync(accountName))
         {
             await ViewModel.DisconnectMicrosoftCommand.ExecuteAsync(null);
         }
@@ -41,13 +44,13 @@ public sealed partial class EmailSettingsPage : Page
     /// </summary>
     private async System.Threading.Tasks.Task<bool> ConfirmDisconnectAsync(string accountName)
     {
+        var localization = App.GetService<ILocalizationService>();
         var dialog = new ContentDialog
         {
-            Title = $"Disconnect {accountName}?",
-            Content = $"This removes the {accountName} connection and stops syncing. " +
-                      "You'll need to reconnect and re-authorize to use it again. Continue?",
-            PrimaryButtonText = "Disconnect",
-            CloseButtonText = "Cancel",
+            Title = localization.GetString("EmailSet_DisconnectConfirmTitle", accountName),
+            Content = localization.GetString("EmailSet_DisconnectConfirmMessage", accountName),
+            PrimaryButtonText = localization.GetString("EmailSet_DisconnectConfirmButton"),
+            CloseButtonText = localization.GetString("EmailSet_DisconnectCancelButton"),
             DefaultButton = ContentDialogButton.Close,
             XamlRoot = this.XamlRoot
         };

@@ -3066,6 +3066,23 @@
   <data name="WfBuilder_CategoryWriting" xml:space="preserve"><value>Rédaction</value></data>
   <data name="WfBuilder_CategoryAnalysis" xml:space="preserve"><value>Analyse</value></data>
   <data name="WfBuilder_CategoryProductivity" xml:space="preserve"><value>Productivité</value></data>
+  <data name="Settings_ShortcutSaveSettings" xml:space="preserve"><value>Enregistrer les paramètres</value></data>
+  <data name="Settings_ShortcutCategory" xml:space="preserve"><value>Paramètres</value></data>
+  <data name="Settings_ResetConfirmTitle" xml:space="preserve"><value>Rétablir les valeurs par défaut ?</value></data>
+  <data name="Settings_ResetConfirmMessage" xml:space="preserve"><value>Tous les paramètres de cette page vont être rétablis à leur valeur par défaut. Votre configuration actuelle sera perdue. Continuer ?</value></data>
+  <data name="Settings_ResetConfirmButton" xml:space="preserve"><value>Rétablir</value></data>
+  <data name="Settings_ResetCancelButton" xml:space="preserve"><value>Annuler</value></data>
+  <data name="EmailSet_DisconnectConfirmTitle" xml:space="preserve"><value>Déconnecter {0} ?</value></data>
+  <data name="EmailSet_DisconnectConfirmMessage" xml:space="preserve"><value>La connexion à {0} sera supprimée et la synchronisation arrêtée. Pour l'utiliser de nouveau, vous devrez vous reconnecter et autoriser de nouveau l'accès. Continuer ?</value></data>
+  <data name="EmailSet_DisconnectConfirmButton" xml:space="preserve"><value>Déconnecter</value></data>
+  <data name="EmailSet_DisconnectCancelButton" xml:space="preserve"><value>Annuler</value></data>
+  <data name="EmailSet_AccountOutlook" xml:space="preserve"><value>E-mail Outlook</value></data>
+  <data name="CalSet_DisconnectConfirmTitle" xml:space="preserve"><value>Déconnecter {0} ?</value></data>
+  <data name="CalSet_DisconnectConfirmMessage" xml:space="preserve"><value>La connexion à {0} sera supprimée et la synchronisation arrêtée. Pour l'utiliser de nouveau, vous devrez vous reconnecter et autoriser de nouveau l'accès. Continuer ?</value></data>
+  <data name="CalSet_DisconnectConfirmButton" xml:space="preserve"><value>Déconnecter</value></data>
+  <data name="CalSet_DisconnectCancelButton" xml:space="preserve"><value>Annuler</value></data>
+  <data name="CalSet_AccountGoogle" xml:space="preserve"><value>Google Agenda</value></data>
+  <data name="CalSet_AccountOutlook" xml:space="preserve"><value>Calendrier Outlook</value></data>
   <data name="Vault_SearchScopeHint.Text" xml:space="preserve"><value>Porte sur les noms de fichiers et les tags. Pour chercher dans le contenu des documents, utilisez « Recherche sémantique » ou « Interroger vos fichiers ».</value></data>
   <data name="Vault_IndexingFailedReason.Text" xml:space="preserve"><value>POURQUOI L'INDEXATION A ÉCHOUÉ</value></data>
   <data name="Vault_DocumentText.Text" xml:space="preserve"><value>TEXTE DU DOCUMENT</value></data>
