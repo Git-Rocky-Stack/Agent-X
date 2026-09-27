@@ -2448,6 +2448,97 @@
   <data name="QuickAct_StatusNeedsAttention" xml:space="preserve"><value>Requiere atención</value></data>
   <data name="QuickAct_StatusNeedsReview" xml:space="preserve"><value>Requiere revisión</value></data>
   <data name="QuickAct_DrillInSourceLabel" xml:space="preserve"><value>Recomendación de Quick Actions "{0}" abierta</value></data>
+  <data name="Dash_NoModelLoaded" xml:space="preserve"><value>Ningún modelo cargado</value></data>
+  <data name="Dash_CheckingConnection" xml:space="preserve"><value>Comprobando la conexión...</value></data>
+  <data name="Dash_Detecting" xml:space="preserve"><value>Detectando...</value></data>
+  <data name="Dash_TotalRam" xml:space="preserve"><value>{0} en total</value></data>
+  <data name="Dash_GpuVram" xml:space="preserve"><value>{0} de VRAM</value></data>
+  <data name="Dash_IntegratedGpu" xml:space="preserve"><value>GPU integrada</value></data>
+  <data name="Dash_RecallInactive" xml:space="preserve"><value>Recuerdo duradero inactivo</value></data>
+  <data name="Dash_RecallNoSummaries" xml:space="preserve"><value>Aún no hay resúmenes de conversaciones guardados.</value></data>
+  <data name="Dash_SyncNotConfigured" xml:space="preserve"><value>Sin configurar</value></data>
+  <data name="Dash_SyncOff" xml:space="preserve"><value>Collaborative Sync está desactivada</value></data>
+  <data name="Dash_SyncConfigureHint" xml:space="preserve"><value>Configure una carpeta compartida para sincronizar varias instalaciones.</value></data>
+  <data name="Dash_InboxQueueClear" xml:space="preserve"><value>Cola vacía</value></data>
+  <data name="Dash_InboxNoItems" xml:space="preserve"><value>No hay elementos pendientes de clasificación.</value></data>
+  <data name="Dash_NoPluginsInstalled" xml:space="preserve"><value>No hay plugins instalados</value></data>
+  <data name="Dash_ConnectorsInstallHint" xml:space="preserve"><value>Instale o active plugins para incorporar datos externos y extensiones de workflows a la aplicación.</value></data>
+  <data name="Dash_WorkflowReady" xml:space="preserve"><value>Listo para automatizar</value></data>
+  <data name="Dash_WorkflowNoRecentRuns" xml:space="preserve"><value>No hay ejecuciones recientes</value></data>
+  <data name="Dash_WorkflowAvgUnavailable" xml:space="preserve"><value>Duración media no disponible</value></data>
+  <data name="Dash_WorkflowNone" xml:space="preserve"><value>Aún no hay workflows disponibles.</value></data>
+  <data name="Dash_PrivacyLocalTitle" xml:space="preserve"><value>100 % privado</value></data>
+  <data name="Dash_PrivacyLocalSummary" xml:space="preserve"><value>Todo el procesamiento de IA se ejecuta localmente en su hardware. Sus datos nunca salen de este equipo.</value></data>
+  <data name="Dash_PrivacyCloudTitle" xml:space="preserve"><value>Servicios en la nube activos</value></data>
+  <data name="Dash_PrivacyCloudSummary" xml:space="preserve"><value>Algunas funciones que ha activado envían datos fuera de este equipo:</value></data>
+  <data name="Dash_PrivacyUnavailableTitle" xml:space="preserve"><value>Estado de privacidad no disponible</value></data>
+  <data name="Dash_PrivacyUnavailableSummary" xml:space="preserve"><value>Agent-X no pudo confirmar qué servicios están activos. Abra Configuración para revisarlo.</value></data>
+  <data name="Dash_SetupRequired" xml:space="preserve"><value>Configuración necesaria</value></data>
+  <data name="Dash_AiStarting" xml:space="preserve"><value>Iniciando el servicio de IA...</value></data>
+  <data name="Dash_Initializing" xml:space="preserve"><value>Inicializando...</value></data>
+  <data name="Dash_UntitledConversation" xml:space="preserve"><value>Conversación sin título</value></data>
+  <data name="Dash_ConversationMessagesOne" xml:space="preserve"><value>1 mensaje</value></data>
+  <data name="Dash_ConversationMessagesMany" xml:space="preserve"><value>{0} mensajes</value></data>
+  <data name="Dash_CollectionDocsOne" xml:space="preserve"><value>1 doc.</value></data>
+  <data name="Dash_CollectionDocsMany" xml:space="preserve"><value>{0} docs.</value></data>
+  <data name="Dash_RecallOpenAnalytics" xml:space="preserve"><value>Abra Analytics para revisar la cobertura de los resúmenes.</value></data>
+  <data name="Dash_SyncUnavailableHeadline" xml:space="preserve"><value>No disponible</value></data>
+  <data name="Dash_SyncStatusUnavailable" xml:space="preserve"><value>Estado de sincronización no disponible</value></data>
+  <data name="Dash_SyncOpenForDetails" xml:space="preserve"><value>Abra Collaborative Sync para ver los detalles.</value></data>
+  <data name="Dash_InboxWatchFoldersHint" xml:space="preserve"><value>Las carpetas vigiladas y los conectores activados mostrarán aquí los elementos nuevos.</value></data>
+  <data name="Dash_ConnectorsOpenPluginManager" xml:space="preserve"><value>Abra el Gestor de plugins para activar conectores y extensiones.</value></data>
+  <data name="Dash_WorkflowOpenHint" xml:space="preserve"><value>Abra Workflows para crear o ejecutar automatizaciones.</value></data>
+  <data name="Dash_ActionCategorySetup" xml:space="preserve"><value>Configuración</value></data>
+  <data name="Dash_ActionCategoryAttention" xml:space="preserve"><value>Atención</value></data>
+  <data name="Dash_ActionCategoryAutomation" xml:space="preserve"><value>Automatización</value></data>
+  <data name="Dash_ActionOpenOperations" xml:space="preserve"><value>Abrir Operations</value></data>
+  <data name="Dash_ActionOpenAnalytics" xml:space="preserve"><value>Abrir Analytics</value></data>
+  <data name="Dash_ActionAiSetupTitle" xml:space="preserve"><value>Termine de configurar la IA local</value></data>
+  <data name="Dash_ActionAiSetupDetail" xml:space="preserve"><value>El chat, la búsqueda semántica y la inteligencia documental aportarán más valor en cuanto haya un modelo local conectado.</value></data>
+  <data name="Dash_ActionAiSetupCommand" xml:space="preserve"><value>Configurar IA</value></data>
+  <data name="Dash_ActionIndexingTitle" xml:space="preserve"><value>Ponga al día la cola de indexación</value></data>
+  <data name="Dash_ActionIndexingDetailOne" xml:space="preserve"><value>1 elemento importado aún necesita revisión o reintento de la indexación.</value></data>
+  <data name="Dash_ActionIndexingDetailMany" xml:space="preserve"><value>{0} elementos importados aún necesitan revisión o reintento de la indexación.</value></data>
+  <data name="Dash_ActionReviewDocument" xml:space="preserve"><value>Revisar documento</value></data>
+  <data name="Dash_ActionTriageTitle" xml:space="preserve"><value>Clasifique el contenido nuevo entrante</value></data>
+  <data name="Dash_ActionTriageDetailOne" xml:space="preserve"><value>1 elemento de Smart Inbox espera clasificación, enrutamiento o generación de vista previa.</value></data>
+  <data name="Dash_ActionTriageDetailMany" xml:space="preserve"><value>{0} elementos de Smart Inbox esperan clasificación, enrutamiento o generación de vista previa.</value></data>
+  <data name="Dash_ActionOpenInbox" xml:space="preserve"><value>Abrir bandeja</value></data>
+  <data name="Dash_ActionOpenItem" xml:space="preserve"><value>Abrir elemento</value></data>
+  <data name="Dash_ActionSyncTitle" xml:space="preserve"><value>Configure la sincronización del espacio de trabajo</value></data>
+  <data name="Dash_ActionSyncDetail" xml:space="preserve"><value>Collaborative Sync aún no está lista del todo. Configúrela para mantener alineadas varias instalaciones de Agent-X.</value></data>
+  <data name="Dash_ActionOpenSync" xml:space="preserve"><value>Abrir sincronización</value></data>
+  <data name="Dash_ActionCategoryExpansion" xml:space="preserve"><value>Ampliación</value></data>
+  <data name="Dash_ActionConnectTitle" xml:space="preserve"><value>Conecte una fuente activa</value></data>
+  <data name="Dash_ActionConnectDetail" xml:space="preserve"><value>Active plugins y conectores para que el correo, el calendario o el contenido externo recientes lleguen al espacio de trabajo.</value></data>
+  <data name="Dash_ActionOpenPlugins" xml:space="preserve"><value>Abrir plugins</value></data>
+  <data name="Dash_ActionOpenConnector" xml:space="preserve"><value>Abrir conector</value></data>
+  <data name="Dash_ActionCategoryMemory" xml:space="preserve"><value>Memoria</value></data>
+  <data name="Dash_ActionRecallTitle" xml:space="preserve"><value>Refuerce el recuerdo duradero</value></data>
+  <data name="Dash_ActionRecallDetail" xml:space="preserve"><value>Los resúmenes de conversaciones aún no dan a la aplicación suficiente cobertura de memoria a largo plazo.</value></data>
+  <data name="Dash_ActionReviewRunTitle" xml:space="preserve"><value>Revise {0}</value></data>
+  <data name="Dash_ActionReviewRunDetail" xml:space="preserve"><value>Una ejecución reciente de un workflow falló o se canceló. Revise los detalles antes de volver a confiar en esa automatización.</value></data>
+  <data name="Dash_ActionReviewRun" xml:space="preserve"><value>Revisar ejecución</value></data>
+  <data name="Dash_ActionWorkflowTitle" xml:space="preserve"><value>Cree un workflow reutilizable</value></data>
+  <data name="Dash_ActionWorkflowDetail" xml:space="preserve"><value>Convierta una tarea recurrente en una automatización que devuelva los resultados a la bóveda.</value></data>
+  <data name="Dash_ActionOpenWorkflows" xml:space="preserve"><value>Abrir workflows</value></data>
+  <data name="Dash_ActionCategoryExplore" xml:space="preserve"><value>Explorar</value></data>
+  <data name="Dash_ActionAskTitle" xml:space="preserve"><value>Pregunte a toda su bóveda</value></data>
+  <data name="Dash_ActionImportTitle" xml:space="preserve"><value>Importe más material de origen</value></data>
+  <data name="Dash_ActionAskDetail" xml:space="preserve"><value>Use Pregunta a tus archivos para convertir el conocimiento indexado en respuestas que cruzan documentos.</value></data>
+  <data name="Dash_ActionImportDetail" xml:space="preserve"><value>Incorpore archivos valiosos a la bóveda para que el resto de funciones de inteligencia tengan más con qué trabajar.</value></data>
+  <data name="Dash_ActionOpenAskFiles" xml:space="preserve"><value>Abrir Pregunta a tus archivos</value></data>
+  <data name="Dash_ActionOpenVault" xml:space="preserve"><value>Abrir bóveda</value></data>
+  <data name="Dash_ActionCategoryReview" xml:space="preserve"><value>Revisión</value></data>
+  <data name="Dash_ActionHealthTitle" xml:space="preserve"><value>Revise el estado de todo el sistema</value></data>
+  <data name="Dash_ActionHealthDetail" xml:space="preserve"><value>Abra Operations para revisar en un solo lugar la sincronización, los workflows, los conectores, la carga de la bandeja y el estado del recuerdo.</value></data>
+  <data name="Dash_ActionCategoryInsight" xml:space="preserve"><value>Análisis</value></data>
+  <data name="Dash_ActionTrendsTitle" xml:space="preserve"><value>Revise las tendencias de inteligencia</value></data>
+  <data name="Dash_ActionTrendsDetail" xml:space="preserve"><value>Use Analytics para revisar la cobertura del recuerdo, los temas y el impulso de los workflows en todo el espacio de trabajo.</value></data>
+  <data name="Dash_DrillInSourceLabel" xml:space="preserve"><value>Recomendación del panel "{0}" abierta</value></data>
+  <data name="Dash_UnknownTopic" xml:space="preserve"><value>Tema desconocido</value></data>
+  <data name="Dash_IndexedRun.Text" xml:space="preserve"><value>% indexado</value></data>
+  <data name="Dash_IndexedMeter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Porcentaje indexado</value></data>
   <data name="PastSelf_CancelDraft.Content" xml:space="preserve"><value>Cancelar</value></data>
   <data name="PastSelf_DraftWriting.Text" xml:space="preserve"><value>Escribiendo el borrador...</value></data>
   <data name="PastSelf_DraftNeedsContext" xml:space="preserve"><value>Primero describa en Contexto lo que quiere escribir.</value></data>

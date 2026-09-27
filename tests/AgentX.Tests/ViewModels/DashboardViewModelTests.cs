@@ -797,6 +797,156 @@ public sealed class DashboardViewModelTests
         _documentService.Verify(service => service.GetTotalDocumentCountAsync(), Times.Never);
     }
 
+    // ── Texts in the user's language ──────────────────────────────────────────
+    // The system card, the recommendations, the placeholders and the operations fallback were
+    // English literals, and Core formats hardware sizes but words nothing.
+
+    [Fact]
+    public async Task InitializeAsync_WordsTheSystemCardInTheUsersLanguage()
+    {
+        _hardwareDetector.Setup(detector => detector.DetectAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new HardwareCapability
+            {
+                GpuName = "Unknown GPU",
+                GpuVramBytes = 0,
+                TotalRamBytes = 32_000_000_000,
+                AvailableRamBytes = 24_000_000_000
+            });
+        var viewModel = CreateViewModel(localization: ReswLocalization.For("de"));
+
+        await viewModel.InitializeAsync();
+
+        viewModel.GpuName.Should().Be("Keine GPU erkannt", "a placeholder GPU name reads as the Hardware Advisor shows it");
+        viewModel.GpuVramInfo.Should().Be("Integrierte GPU");
+        viewModel.TotalRamInfo.Should().Be(new HardwareCapability { TotalRamBytes = 32_000_000_000 }.TotalRamFormatted + " gesamt");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task InitializeAsync_NamesTheVramAndTotalRam(bool withEnglishResources)
+    {
+        var hardware = new HardwareCapability
+        {
+            GpuName = "RTX Test",
+            GpuVramBytes = 8_000_000_000,
+            TotalRamBytes = 32_000_000_000,
+            AvailableRamBytes = 24_000_000_000
+        };
+        var viewModel = CreateViewModel(localization: EnglishOrNone(withEnglishResources));
+
+        await viewModel.InitializeAsync();
+
+        viewModel.GpuName.Should().Be("RTX Test");
+        viewModel.GpuVramInfo.Should().Be($"{hardware.GpuVramFormatted} VRAM");
+        viewModel.TotalRamInfo.Should().Be($"{hardware.TotalRamFormatted} total");
+        viewModel.AvailableRam.Should().Be(hardware.AvailableRamFormatted);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_SaysWhenWindowsReportedNoMemory()
+    {
+        _hardwareDetector.Setup(detector => detector.DetectAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new HardwareCapability { GpuName = "RTX Test", GpuVramBytes = 8_000_000_000 });
+        var viewModel = CreateViewModel(localization: ReswLocalization.For("fr"));
+
+        await viewModel.InitializeAsync();
+
+        viewModel.AvailableRam.Should().Be("Non détectée");
+        viewModel.TotalRamInfo.Should().Be("Non détectée");
+    }
+
+    [Fact]
+    public async Task InitializeAsync_WhenDetectionFails_SaysSoInTheUsersLanguage()
+    {
+        _hardwareDetector.Setup(detector => detector.DetectAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("WMI unavailable"));
+        var viewModel = CreateViewModel(localization: ReswLocalization.For("es"));
+
+        await viewModel.InitializeAsync();
+
+        viewModel.GpuName.Should().Be("Error de detección");
+        viewModel.AvailableRam.Should().Be("Desconocido");
+        viewModel.GpuVramInfo.Should().Be("Desconocido");
+    }
+
+    [Fact]
+    public void Placeholders_ReadInTheUsersLanguageBeforeAnythingLoads()
+    {
+        var viewModel = CreateViewModel(localization: ReswLocalization.For("ja"));
+
+        viewModel.ConnectionStatus.Should().Be("接続を確認しています...");
+        viewModel.GpuName.Should().Be("検出しています...");
+        viewModel.PrivacyTitle.Should().Be("100% プライベート");
+        viewModel.SyncHealthHeadline.Should().Be("未構成");
+    }
+
+    [Fact]
+    public async Task InitializeAsync_ShowsTheRecommendationsInTheUsersLanguage()
+    {
+        var viewModel = CreateViewModel(localization: ReswLocalization.For("fr"));
+
+        await viewModel.InitializeAsync();
+
+        var backlog = viewModel.RecommendedActions[0];
+        backlog.Route.Should().Be("Operations");
+        backlog.CategoryLabel.Should().Be("Attention");
+        backlog.Title.Should().Be("Résorbez le retard d'indexation");
+        backlog.Detail.Should().Be("2 éléments importés doivent encore être vérifiés ou réindexés.");
+        backlog.CommandText.Should().Be("Ouvrir Operations");
+        viewModel.RecommendedActions[1].Detail.Should()
+            .Be("4 éléments de la Smart Inbox attendent une classification, une orientation ou la génération d'un aperçu.");
+    }
+
+    [Fact]
+    public async Task InitializeAsync_WhenTheOperationsOverviewFails_ShowsItsFallbackInTheUsersLanguage()
+    {
+        _operationsOverviewService.Setup(service => service.GetSnapshotAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("overview unavailable"));
+        var viewModel = CreateViewModel(localization: ReswLocalization.For("zh-CN"));
+
+        await viewModel.InitializeAsync();
+
+        viewModel.SyncHealthHeadline.Should().Be("不可用");
+        viewModel.SyncHealthStatus.Should().Be("同步状态不可用");
+        viewModel.ConnectorsStatus.Should().Be("未安装插件");
+        viewModel.WorkflowDetail.Should().Be("打开工作流以创建或运行自动化。");
+    }
+
+    [Fact]
+    public async Task InitializeAsync_CountsCollectionDocumentsInTheSingularForOne()
+    {
+        _collectionService.Setup(service => service.GetAllCollectionsAsync())
+            .ReturnsAsync(new[]
+            {
+                new CollectionEntity { Id = 1, Name = "Research", DocumentCount = 3 },
+                new CollectionEntity { Id = 2, Name = "Receipts", DocumentCount = 1 }
+            });
+        var viewModel = CreateViewModel();
+
+        await viewModel.InitializeAsync();
+
+        viewModel.TopCollections.Select(item => item.CountLabel).Should().Equal("3 docs", "1 doc");
+    }
+
+    [Fact]
+    public void OpenRecommendedActionCommand_NamesTheRecommendationInTheUsersLanguage()
+    {
+        var viewModel = CreateViewModel(localization: ReswLocalization.For("de"));
+
+        viewModel.OpenRecommendedActionCommand.Execute(new DashboardRecommendedActionItem
+        {
+            Title = "Connector verbinden",
+            Route = "PluginManager",
+            TargetId = 7
+        });
+
+        _operationsDrillInService.Verify(service => service.StagePluginRequest(
+            It.Is<OperationsPluginDrillInRequest>(request =>
+                request.PluginId == 7 &&
+                request.SourceLabel == "Dashboard-Empfehlung „Connector verbinden“ geöffnet")), Times.Once);
+    }
+
     /// <summary>
     /// The shipped en-US resources, or none: the view model then uses its English fallbacks, which
     /// must read the same.

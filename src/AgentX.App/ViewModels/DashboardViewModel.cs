@@ -19,6 +19,10 @@ using Serilog;
 
 namespace AgentX.App.ViewModels;
 
+/// <summary>
+/// The Dashboard. Every text it builds comes from the localized resources; without a localization
+/// service (unit tests), or for a missing resource, the English text is used.
+/// </summary>
 public partial class DashboardViewModel : ObservableObject, IDisposable
 {
     // ── Services ─────────────────────────────────────────────
@@ -38,9 +42,11 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     private OperationsOverviewSnapshot _operationsSnapshot = new();
 
     // ── AI Status ───────────────────────────────────────────
+    // IsOllamaConnected is true while the active provider answers, whichever provider it is. It
+    // drives the connection card's status dot.
     [ObservableProperty] private bool _isOllamaConnected;
-    [ObservableProperty] private string _activeModelName = "No model loaded";
-    [ObservableProperty] private string _connectionStatus = "Checking connection...";
+    [ObservableProperty] private string _activeModelName = string.Empty;
+    [ObservableProperty] private string _connectionStatus = string.Empty;
 
     /// <summary>
     /// What to check about the active provider, shown under the connection card only while that
@@ -64,31 +70,31 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     [ObservableProperty] private long _totalTokensUsed;
 
     // ── System ──────────────────────────────────────────────
-    [ObservableProperty] private string _gpuName = "Detecting...";
-    [ObservableProperty] private string _availableRam = "Detecting...";
+    [ObservableProperty] private string _gpuName = string.Empty;
+    [ObservableProperty] private string _availableRam = string.Empty;
     [ObservableProperty] private bool _hasNpu;
     [ObservableProperty] private string _appVersion = "1.1.0";
-    [ObservableProperty] private string _totalRamInfo = "-- GB total";
-    [ObservableProperty] private string _gpuVramInfo = "-- VRAM";
+    [ObservableProperty] private string _totalRamInfo = string.Empty;
+    [ObservableProperty] private string _gpuVramInfo = string.Empty;
 
     // ── Operations Overview ───────────────────────────────────
     [ObservableProperty] private string _conversationIntelligenceHeadline = "0";
-    [ObservableProperty] private string _conversationIntelligenceStatus = "Durable recall inactive";
-    [ObservableProperty] private string _conversationIntelligenceDetail = "No stored conversation summaries yet.";
-    [ObservableProperty] private string _syncHealthHeadline = "Not configured";
-    [ObservableProperty] private string _syncHealthStatus = "Collaborative sync is off";
-    [ObservableProperty] private string _syncHealthDetail = "Configure a shared folder to synchronize multiple installations.";
+    [ObservableProperty] private string _conversationIntelligenceStatus = string.Empty;
+    [ObservableProperty] private string _conversationIntelligenceDetail = string.Empty;
+    [ObservableProperty] private string _syncHealthHeadline = string.Empty;
+    [ObservableProperty] private string _syncHealthStatus = string.Empty;
+    [ObservableProperty] private string _syncHealthDetail = string.Empty;
     [ObservableProperty] private string _inboxHeadline = "0";
-    [ObservableProperty] private string _inboxStatus = "Queue clear";
-    [ObservableProperty] private string _inboxDetail = "No items awaiting triage.";
+    [ObservableProperty] private string _inboxStatus = string.Empty;
+    [ObservableProperty] private string _inboxDetail = string.Empty;
     [ObservableProperty] private string _connectorsHeadline = "0";
-    [ObservableProperty] private string _connectorsStatus = "No plugins installed";
-    [ObservableProperty] private string _connectorsDetail = "Install or enable plugins to bring external data and workflow extensions into the app.";
+    [ObservableProperty] private string _connectorsStatus = string.Empty;
+    [ObservableProperty] private string _connectorsDetail = string.Empty;
     [ObservableProperty] private string _workflowHeadline = "0";
-    [ObservableProperty] private string _workflowStatus = "Ready to automate";
-    [ObservableProperty] private string _workflowRecentActivity = "No recent runs";
-    [ObservableProperty] private string _workflowAverageDuration = "Avg duration unavailable";
-    [ObservableProperty] private string _workflowDetail = "No workflows available yet.";
+    [ObservableProperty] private string _workflowStatus = string.Empty;
+    [ObservableProperty] private string _workflowRecentActivity = string.Empty;
+    [ObservableProperty] private string _workflowAverageDuration = string.Empty;
+    [ObservableProperty] private string _workflowDetail = string.Empty;
 
     // ── Indexing ─────────────────────────────────────────────
     [ObservableProperty] private int _indexedPercent;
@@ -127,10 +133,8 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     // IPrivacyStatusService over the user's actual settings; the footer shows the strong local-only
     // assurance only when nothing is configured to leave the machine.
     [ObservableProperty] private bool _isFullyPrivate = true;
-    [ObservableProperty] private string _privacyTitle = "100% Private";
-    [ObservableProperty]
-    private string _privacySummary =
-        "All AI processing runs locally on your hardware. Your data never leaves this machine.";
+    [ObservableProperty] private string _privacyTitle = string.Empty;
+    [ObservableProperty] private string _privacySummary = string.Empty;
     [ObservableProperty] private ObservableCollection<DashboardPrivacyDisclosureItem> _privacyDisclosures = new();
 
     // ── Navigation ────────────────────────────────────────────
@@ -164,7 +168,59 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         _privacyStatusService = privacyStatusService;
         _operationsDrillInService = operationsDrillInService;
         _localization = localization;
+        ShowPlaceholderTexts();
         Log.Debug("DashboardViewModel created with services");
+    }
+
+    /// <summary>What the cards say until their data has been read.</summary>
+    private void ShowPlaceholderTexts()
+    {
+        ActiveModelName = ProviderStatusText.Resolve(
+            _localization?.GetString("Dash_NoModelLoaded"), "Dash_NoModelLoaded", "No model loaded");
+        ConnectionStatus = ProviderStatusText.Resolve(
+            _localization?.GetString("Dash_CheckingConnection"), "Dash_CheckingConnection", "Checking connection...");
+
+        var detecting = ProviderStatusText.Resolve(
+            _localization?.GetString("Dash_Detecting"), "Dash_Detecting", "Detecting...");
+        GpuName = detecting;
+        AvailableRam = detecting;
+        TotalRamInfo = ProviderStatusText.Resolve(
+            _localization?.GetString("Dash_TotalRam", "-- GB"), "Dash_TotalRam", "{0} total", "-- GB");
+        GpuVramInfo = ProviderStatusText.Resolve(
+            _localization?.GetString("Dash_GpuVram", "--"), "Dash_GpuVram", "{0} VRAM", "--");
+
+        ConversationIntelligenceStatus = ProviderStatusText.Resolve(
+            _localization?.GetString("Dash_RecallInactive"), "Dash_RecallInactive", "Durable recall inactive");
+        ConversationIntelligenceDetail = ProviderStatusText.Resolve(
+            _localization?.GetString("Dash_RecallNoSummaries"), "Dash_RecallNoSummaries", "No stored conversation summaries yet.");
+        SyncHealthHeadline = ProviderStatusText.Resolve(
+            _localization?.GetString("Dash_SyncNotConfigured"), "Dash_SyncNotConfigured", "Not configured");
+        SyncHealthStatus = ProviderStatusText.Resolve(
+            _localization?.GetString("Dash_SyncOff"), "Dash_SyncOff", "Collaborative sync is off");
+        SyncHealthDetail = ProviderStatusText.Resolve(
+            _localization?.GetString("Dash_SyncConfigureHint"),
+            "Dash_SyncConfigureHint",
+            "Configure a shared folder to synchronize multiple installations.");
+        InboxStatus = ProviderStatusText.Resolve(
+            _localization?.GetString("Dash_InboxQueueClear"), "Dash_InboxQueueClear", "Queue clear");
+        InboxDetail = ProviderStatusText.Resolve(
+            _localization?.GetString("Dash_InboxNoItems"), "Dash_InboxNoItems", "No items awaiting triage.");
+        ConnectorsStatus = ProviderStatusText.Resolve(
+            _localization?.GetString("Dash_NoPluginsInstalled"), "Dash_NoPluginsInstalled", "No plugins installed");
+        ConnectorsDetail = ProviderStatusText.Resolve(
+            _localization?.GetString("Dash_ConnectorsInstallHint"),
+            "Dash_ConnectorsInstallHint",
+            "Install or enable plugins to bring external data and workflow extensions into the app.");
+        WorkflowStatus = ProviderStatusText.Resolve(
+            _localization?.GetString("Dash_WorkflowReady"), "Dash_WorkflowReady", "Ready to automate");
+        WorkflowRecentActivity = ProviderStatusText.Resolve(
+            _localization?.GetString("Dash_WorkflowNoRecentRuns"), "Dash_WorkflowNoRecentRuns", "No recent runs");
+        WorkflowAverageDuration = ProviderStatusText.Resolve(
+            _localization?.GetString("Dash_WorkflowAvgUnavailable"), "Dash_WorkflowAvgUnavailable", "Avg duration unavailable");
+        WorkflowDetail = ProviderStatusText.Resolve(
+            _localization?.GetString("Dash_WorkflowNone"), "Dash_WorkflowNone", "No workflows available yet.");
+
+        ShowFullyLocalPrivacy();
     }
 
     public async Task InitializeAsync()
@@ -203,6 +259,17 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         Log.Information("Dashboard initialized");
     }
 
+    private void ShowFullyLocalPrivacy()
+    {
+        IsFullyPrivate = true;
+        PrivacyTitle = ProviderStatusText.Resolve(
+            _localization?.GetString("Dash_PrivacyLocalTitle"), "Dash_PrivacyLocalTitle", "100% Private");
+        PrivacySummary = ProviderStatusText.Resolve(
+            _localization?.GetString("Dash_PrivacyLocalSummary"),
+            "Dash_PrivacyLocalSummary",
+            "All AI processing runs locally on your hardware. Your data never leaves this machine.");
+    }
+
     private async Task LoadPrivacyStatusAsync()
     {
         try
@@ -212,16 +279,17 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
             PrivacyDisclosures.Clear();
             if (status.IsFullyLocal)
             {
-                IsFullyPrivate = true;
-                PrivacyTitle = "100% Private";
-                PrivacySummary =
-                    "All AI processing runs locally on your hardware. Your data never leaves this machine.";
+                ShowFullyLocalPrivacy();
             }
             else
             {
                 IsFullyPrivate = false;
-                PrivacyTitle = "Cloud services active";
-                PrivacySummary = "Some features you've enabled send data off this machine:";
+                PrivacyTitle = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_PrivacyCloudTitle"), "Dash_PrivacyCloudTitle", "Cloud services active");
+                PrivacySummary = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_PrivacyCloudSummary"),
+                    "Dash_PrivacyCloudSummary",
+                    "Some features you've enabled send data off this machine:");
                 foreach (var disclosure in status.Disclosures)
                 {
                     PrivacyDisclosures.Add(new DashboardPrivacyDisclosureItem
@@ -238,8 +306,14 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
             // the false assurance AX-QA-008 is about. Show an honest, neutral state instead.
             Log.Warning(ex, "Failed to evaluate dashboard privacy status");
             IsFullyPrivate = false;
-            PrivacyTitle = "Privacy status unavailable";
-            PrivacySummary = "Agent-X couldn't confirm which services are active. Open Settings to review.";
+            PrivacyTitle = ProviderStatusText.Resolve(
+                _localization?.GetString("Dash_PrivacyUnavailableTitle"),
+                "Dash_PrivacyUnavailableTitle",
+                "Privacy status unavailable");
+            PrivacySummary = ProviderStatusText.Resolve(
+                _localization?.GetString("Dash_PrivacyUnavailableSummary"),
+                "Dash_PrivacyUnavailableSummary",
+                "Agent-X couldn't confirm which services are active. Open Settings to review.");
             PrivacyDisclosures.Clear();
         }
     }
@@ -249,6 +323,8 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         // The status names the active provider (the built-in model is the default), not Ollama.
         var providerName = ProviderStatusText.GenericName(_localization);
         string? providerId = null;
+        var setupRequired = ProviderStatusText.Resolve(
+            _localization?.GetString("Dash_SetupRequired"), "Dash_SetupRequired", "Setup required");
         try
         {
             IAiProvider activeProvider;
@@ -260,8 +336,10 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
             {
                 Log.Debug("Dashboard AI status deferred until AI service initialization completes");
                 IsOllamaConnected = false;
-                ConnectionStatus = "AI service starting...";
-                ActiveModelName = "Initializing...";
+                ConnectionStatus = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_AiStarting"), "Dash_AiStarting", "AI service starting...");
+                ActiveModelName = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_Initializing"), "Dash_Initializing", "Initializing...");
                 ProviderAttentionHint = string.Empty;
                 return;
             }
@@ -279,7 +357,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
                 : ProviderStatusText.NotAvailable(_localization, providerName);
             ActiveModelName = connected && !string.IsNullOrEmpty(_aiService.ActiveModelId)
                 ? _aiService.ActiveModelId
-                : "Setup required";
+                : setupRequired;
 
             // Only a provider that cannot be reached needs attention, and the advice is for it.
             ProviderAttentionHint = connected
@@ -291,7 +369,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
             Log.Warning(ex, "Failed to check AI connection status for dashboard");
             IsOllamaConnected = false;
             ConnectionStatus = ProviderStatusText.NotAvailable(_localization, providerName);
-            ActiveModelName = "Setup required";
+            ActiveModelName = setupRequired;
             ProviderAttentionHint = ProviderStatusText.CheckHint(_localization, providerId, providerName);
         }
     }
@@ -337,26 +415,62 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         }
     }
 
+    /// <summary>
+    /// The system card, in the user's language. Core formats sizes but words nothing, so the words
+    /// around them and the texts for values Windows did not report come from the resources, the
+    /// same ones the Hardware Advisor uses where the text is the same.
+    /// </summary>
     private async Task LoadSystemInfoAsync()
     {
         try
         {
             var hw = await _hardwareDetector.DetectAsync();
-            GpuName = hw.GpuName;
-            AvailableRam = hw.AvailableRamFormatted;
+            var ramNotDetected = ProviderStatusText.Resolve(
+                _localization?.GetString("HwAdvisor_RamNotDetected"), "HwAdvisor_RamNotDetected", "Not detected");
+
+            GpuName = IsHardwarePlaceholder(hw.GpuName)
+                ? ProviderStatusText.Resolve(
+                    _localization?.GetString("HwAdvisor_GpuNotDetected"), "HwAdvisor_GpuNotDetected", "GPU not detected")
+                : hw.GpuName.Trim();
+            AvailableRam = hw.TotalRamBytes > 0 ? hw.AvailableRamFormatted : ramNotDetected;
             HasNpu = hw.HasNpu;
-            TotalRamInfo = $"{hw.TotalRamFormatted} total";
-            GpuVramInfo = hw.GpuVramBytes > 0 ? $"{hw.GpuVramFormatted} VRAM" : "Integrated GPU";
+            TotalRamInfo = hw.TotalRamBytes > 0
+                ? ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_TotalRam", hw.TotalRamFormatted), "Dash_TotalRam", "{0} total", hw.TotalRamFormatted)
+                : ramNotDetected;
+            GpuVramInfo = hw.GpuVramBytes > 0
+                ? ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_GpuVram", hw.GpuVramFormatted), "Dash_GpuVram", "{0} VRAM", hw.GpuVramFormatted)
+                : ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_IntegratedGpu"), "Dash_IntegratedGpu", "Integrated GPU");
         }
         catch (Exception ex)
         {
             Log.Warning(ex, "Failed to detect hardware for dashboard");
-            GpuName = "Detection failed";
-            AvailableRam = "Unknown";
+            var unknown = ProviderStatusText.Resolve(
+                _localization?.GetString("HwAdvisor_Unknown"), "HwAdvisor_Unknown", "Unknown");
+            GpuName = ProviderStatusText.Resolve(
+                _localization?.GetString("HwAdvisor_DetectionFailed"), "HwAdvisor_DetectionFailed", "Detection failed");
+            AvailableRam = unknown;
             HasNpu = false;
-            TotalRamInfo = "Unknown";
-            GpuVramInfo = "Unknown";
+            TotalRamInfo = unknown;
+            GpuVramInfo = unknown;
         }
+    }
+
+    /// <summary>
+    /// True for an empty GPU name or one of the placeholders detection reports when a read fails or
+    /// is blocked, which the Hardware Advisor also treats as "not detected".
+    /// </summary>
+    private static bool IsHardwarePlaceholder(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return true;
+
+        var v = value.Trim();
+        return v.Equals("Unknown", StringComparison.OrdinalIgnoreCase)
+            || v.Equals("Unknown GPU", StringComparison.OrdinalIgnoreCase)
+            || v.Equals("Detection failed", StringComparison.OrdinalIgnoreCase)
+            || v.Contains("Microsoft Basic", StringComparison.OrdinalIgnoreCase);
     }
 
     private async Task LoadRecentActivityAsync()
@@ -376,12 +490,21 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
             RecentDocuments = new ObservableCollection<DashboardRecentDocumentItem>(recentDocs);
             HasRecentDocuments = RecentDocuments.Count > 0;
 
+            var untitled = ProviderStatusText.Resolve(
+                _localization?.GetString("Dash_UntitledConversation"), "Dash_UntitledConversation", "Untitled Conversation");
             var conversations = await _conversationService.GetRecentConversationsAsync(5);
             var recentConvos = conversations.Take(5).Select(c => new DashboardRecentConversationItem
             {
                 Id = c.Id,
-                Title = string.IsNullOrWhiteSpace(c.Title) ? "Untitled Conversation" : c.Title,
-                Preview = $"{c.MessageCount} messages",
+                Title = string.IsNullOrWhiteSpace(c.Title) ? untitled : c.Title,
+                Preview = c.MessageCount == 1
+                    ? ProviderStatusText.Resolve(
+                        _localization?.GetString("Dash_ConversationMessagesOne"), "Dash_ConversationMessagesOne", "1 message")
+                    : ProviderStatusText.Resolve(
+                        _localization?.GetString("Dash_ConversationMessagesMany", c.MessageCount),
+                        "Dash_ConversationMessagesMany",
+                        "{0} messages",
+                        c.MessageCount),
                 TimeAgo = FormatHelper.TimeAgoWithMonths(c.UpdatedAt),
                 MessageCount = c.MessageCount
             });
@@ -438,7 +561,15 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
             {
                 Name = c.Name,
                 DocumentCount = c.DocumentCount,
-                BarWidthPercent = c.DocumentCount * 100.0 / maxDocCount
+                BarWidthPercent = c.DocumentCount * 100.0 / maxDocCount,
+                CountLabel = c.DocumentCount == 1
+                    ? ProviderStatusText.Resolve(
+                        _localization?.GetString("Dash_CollectionDocsOne"), "Dash_CollectionDocsOne", "1 doc")
+                    : ProviderStatusText.Resolve(
+                        _localization?.GetString("Dash_CollectionDocsMany", c.DocumentCount),
+                        "Dash_CollectionDocsMany",
+                        "{0} docs",
+                        c.DocumentCount)
             });
 
             TopCollections = new ObservableCollection<DashboardTopCollectionItem>(topColItems);
@@ -487,87 +618,106 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     {
         try
         {
-            var snapshot = await _operationsOverviewService.GetSnapshotAsync();
-            _operationsSnapshot = snapshot;
-
-            ConversationIntelligenceHeadline = snapshot.ConversationIntelligence.Headline;
-            ConversationIntelligenceStatus = snapshot.ConversationIntelligence.Status;
-            ConversationIntelligenceDetail = snapshot.ConversationIntelligence.Detail;
-
-            SyncHealthHeadline = snapshot.SyncHealth.Headline;
-            SyncHealthStatus = snapshot.SyncHealth.Status;
-            SyncHealthDetail = snapshot.SyncHealth.Detail;
-
-            InboxHeadline = snapshot.IngestionBacklog.Headline;
-            InboxStatus = snapshot.IngestionBacklog.Status;
-            InboxDetail = snapshot.IngestionBacklog.Detail;
-
-            ConnectorsHeadline = snapshot.Connectors.Headline;
-            ConnectorsStatus = snapshot.Connectors.Status;
-            ConnectorsDetail = snapshot.Connectors.Detail;
-
-            WorkflowHeadline = snapshot.WorkflowActivity.Headline;
-            WorkflowStatus = snapshot.WorkflowActivity.Status;
-            WorkflowRecentActivity = snapshot.WorkflowActivity.SupportingPrimary;
-            WorkflowAverageDuration = snapshot.WorkflowActivity.SupportingSecondary;
-            WorkflowDetail = snapshot.WorkflowActivity.Detail;
+            ApplyOperationsSnapshot(await _operationsOverviewService.GetSnapshotAsync());
         }
         catch (Exception ex)
         {
             Log.Warning(ex, "Failed to load dashboard operations overview");
-            _operationsSnapshot = new OperationsOverviewSnapshot
-            {
-                ConversationIntelligence = new OperationsCardSnapshot
-                {
-                    Headline = "0",
-                    Status = "Durable recall inactive",
-                    Detail = "Open Analytics to inspect summary coverage."
-                },
-                SyncHealth = new OperationsCardSnapshot
-                {
-                    Headline = "Unavailable",
-                    Status = "Sync status unavailable",
-                    Detail = "Open Collaborative Sync for details."
-                },
-                IngestionBacklog = new OperationsCardSnapshot
-                {
-                    Headline = "0",
-                    Status = "Queue clear",
-                    Detail = "Watch folders and enabled connectors will surface new items here."
-                },
-                Connectors = new OperationsCardSnapshot
-                {
-                    Headline = "0",
-                    Status = "No plugins installed",
-                    Detail = "Open Plugin Manager to enable connectors and extensions."
-                },
-                WorkflowActivity = new OperationsCardSnapshot
-                {
-                    Headline = "0",
-                    Status = "Ready to automate",
-                    SupportingPrimary = "No recent runs",
-                    SupportingSecondary = "Avg duration unavailable",
-                    Detail = "Open Workflows to create or run automations."
-                }
-            };
-            ConversationIntelligenceHeadline = "0";
-            ConversationIntelligenceStatus = "Durable recall inactive";
-            ConversationIntelligenceDetail = "Open Analytics to inspect summary coverage.";
-            ConnectorsHeadline = "0";
-            ConnectorsStatus = "No plugins installed";
-            ConnectorsDetail = "Open Plugin Manager to enable connectors and extensions.";
-            InboxHeadline = "0";
-            InboxStatus = "Queue clear";
-            InboxDetail = "Watch folders and enabled connectors will surface new items here.";
-            WorkflowHeadline = "0";
-            WorkflowStatus = "Ready to automate";
-            WorkflowRecentActivity = "No recent runs";
-            WorkflowAverageDuration = "Avg duration unavailable";
-            WorkflowDetail = "Open Workflows to create or run automations.";
-            SyncHealthHeadline = "Unavailable";
-            SyncHealthStatus = "Sync status unavailable";
-            SyncHealthDetail = "Open Collaborative Sync for details.";
+            ApplyOperationsSnapshot(BuildUnavailableOperationsSnapshot());
         }
+    }
+
+    private void ApplyOperationsSnapshot(OperationsOverviewSnapshot snapshot)
+    {
+        _operationsSnapshot = snapshot;
+
+        ConversationIntelligenceHeadline = snapshot.ConversationIntelligence.Headline;
+        ConversationIntelligenceStatus = snapshot.ConversationIntelligence.Status;
+        ConversationIntelligenceDetail = snapshot.ConversationIntelligence.Detail;
+
+        SyncHealthHeadline = snapshot.SyncHealth.Headline;
+        SyncHealthStatus = snapshot.SyncHealth.Status;
+        SyncHealthDetail = snapshot.SyncHealth.Detail;
+
+        InboxHeadline = snapshot.IngestionBacklog.Headline;
+        InboxStatus = snapshot.IngestionBacklog.Status;
+        InboxDetail = snapshot.IngestionBacklog.Detail;
+
+        ConnectorsHeadline = snapshot.Connectors.Headline;
+        ConnectorsStatus = snapshot.Connectors.Status;
+        ConnectorsDetail = snapshot.Connectors.Detail;
+
+        WorkflowHeadline = snapshot.WorkflowActivity.Headline;
+        WorkflowStatus = snapshot.WorkflowActivity.Status;
+        WorkflowRecentActivity = snapshot.WorkflowActivity.SupportingPrimary;
+        WorkflowAverageDuration = snapshot.WorkflowActivity.SupportingSecondary;
+        WorkflowDetail = snapshot.WorkflowActivity.Detail;
+    }
+
+    /// <summary>What the operations cards say when the overview could not be read.</summary>
+    private OperationsOverviewSnapshot BuildUnavailableOperationsSnapshot()
+    {
+        var queueClear = ProviderStatusText.Resolve(
+            _localization?.GetString("Dash_InboxQueueClear"), "Dash_InboxQueueClear", "Queue clear");
+        var noPlugins = ProviderStatusText.Resolve(
+            _localization?.GetString("Dash_NoPluginsInstalled"), "Dash_NoPluginsInstalled", "No plugins installed");
+
+        return new OperationsOverviewSnapshot
+        {
+            ConversationIntelligence = new OperationsCardSnapshot
+            {
+                Headline = "0",
+                Status = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_RecallInactive"), "Dash_RecallInactive", "Durable recall inactive"),
+                Detail = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_RecallOpenAnalytics"),
+                    "Dash_RecallOpenAnalytics",
+                    "Open Analytics to inspect summary coverage.")
+            },
+            SyncHealth = new OperationsCardSnapshot
+            {
+                Headline = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_SyncUnavailableHeadline"), "Dash_SyncUnavailableHeadline", "Unavailable"),
+                Status = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_SyncStatusUnavailable"), "Dash_SyncStatusUnavailable", "Sync status unavailable"),
+                Detail = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_SyncOpenForDetails"),
+                    "Dash_SyncOpenForDetails",
+                    "Open Collaborative Sync for details.")
+            },
+            IngestionBacklog = new OperationsCardSnapshot
+            {
+                Headline = "0",
+                Status = queueClear,
+                Detail = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_InboxWatchFoldersHint"),
+                    "Dash_InboxWatchFoldersHint",
+                    "Watch folders and enabled connectors will surface new items here.")
+            },
+            Connectors = new OperationsCardSnapshot
+            {
+                Headline = "0",
+                Status = noPlugins,
+                Detail = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_ConnectorsOpenPluginManager"),
+                    "Dash_ConnectorsOpenPluginManager",
+                    "Open Plugin Manager to enable connectors and extensions.")
+            },
+            WorkflowActivity = new OperationsCardSnapshot
+            {
+                Headline = "0",
+                Status = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_WorkflowReady"), "Dash_WorkflowReady", "Ready to automate"),
+                SupportingPrimary = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_WorkflowNoRecentRuns"), "Dash_WorkflowNoRecentRuns", "No recent runs"),
+                SupportingSecondary = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_WorkflowAvgUnavailable"), "Dash_WorkflowAvgUnavailable", "Avg duration unavailable"),
+                Detail = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_WorkflowOpenHint"),
+                    "Dash_WorkflowOpenHint",
+                    "Open Workflows to create or run automations.")
+            }
+        };
     }
 
     private void BuildRecommendedActions()
@@ -597,15 +747,31 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
             items.Add(item);
         }
 
+        var categorySetup = ProviderStatusText.Resolve(
+            _localization?.GetString("Dash_ActionCategorySetup"), "Dash_ActionCategorySetup", "Setup");
+        var categoryAttention = ProviderStatusText.Resolve(
+            _localization?.GetString("Dash_ActionCategoryAttention"), "Dash_ActionCategoryAttention", "Attention");
+        var categoryAutomation = ProviderStatusText.Resolve(
+            _localization?.GetString("Dash_ActionCategoryAutomation"), "Dash_ActionCategoryAutomation", "Automation");
+        var openOperations = ProviderStatusText.Resolve(
+            _localization?.GetString("Dash_ActionOpenOperations"), "Dash_ActionOpenOperations", "Open Operations");
+        var openAnalytics = ProviderStatusText.Resolve(
+            _localization?.GetString("Dash_ActionOpenAnalytics"), "Dash_ActionOpenAnalytics", "Open Analytics");
+
         if (!IsOllamaConnected)
         {
             AddAction(new DashboardRecommendedActionItem
             {
-                CategoryLabel = "Setup",
-                IconGlyph = "\uE8BD",
-                Title = "Finish local AI setup",
-                Detail = "Chat, semantic search, and document intelligence will create more value once a local model is connected.",
-                CommandText = "Setup AI",
+                CategoryLabel = categorySetup,
+                IconGlyph = "",
+                Title = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_ActionAiSetupTitle"), "Dash_ActionAiSetupTitle", "Finish local AI setup"),
+                Detail = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_ActionAiSetupDetail"),
+                    "Dash_ActionAiSetupDetail",
+                    "Chat, semantic search, and document intelligence will create more value once a local model is connected."),
+                CommandText = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_ActionAiSetupCommand"), "Dash_ActionAiSetupCommand", "Setup AI"),
                 Route = "Settings"
             });
         }
@@ -614,11 +780,24 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         {
             AddAction(new DashboardRecommendedActionItem
             {
-                CategoryLabel = "Attention",
-                IconGlyph = "\uE721",
-                Title = "Clear the indexing backlog",
-                Detail = $"{PendingIndexCount} imported item{(PendingIndexCount == 1 ? string.Empty : "s")} still need indexing review or retry handling.",
-                CommandText = targetImportedDocument is null ? "Open Operations" : "Review Document",
+                CategoryLabel = categoryAttention,
+                IconGlyph = "",
+                Title = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_ActionIndexingTitle"), "Dash_ActionIndexingTitle", "Clear the indexing backlog"),
+                Detail = PendingIndexCount == 1
+                    ? ProviderStatusText.Resolve(
+                        _localization?.GetString("Dash_ActionIndexingDetailOne"),
+                        "Dash_ActionIndexingDetailOne",
+                        "1 imported item still needs indexing review or retry handling.")
+                    : ProviderStatusText.Resolve(
+                        _localization?.GetString("Dash_ActionIndexingDetailMany", PendingIndexCount),
+                        "Dash_ActionIndexingDetailMany",
+                        "{0} imported items still need indexing review or retry handling.",
+                        PendingIndexCount),
+                CommandText = targetImportedDocument is null
+                    ? openOperations
+                    : ProviderStatusText.Resolve(
+                        _localization?.GetString("Dash_ActionReviewDocument"), "Dash_ActionReviewDocument", "Review Document"),
                 Route = targetImportedDocument is null ? "Operations" : "KnowledgeVault",
                 TargetId = targetImportedDocument?.DocumentId ?? 0
             });
@@ -628,11 +807,25 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         {
             AddAction(new DashboardRecommendedActionItem
             {
-                CategoryLabel = "Attention",
-                IconGlyph = "\uE8B7",
-                Title = "Triage new incoming content",
-                Detail = $"{inboxCount} Smart Inbox item{(inboxCount == 1 ? string.Empty : "s")} are waiting for classification, routing, or preview generation.",
-                CommandText = targetInboxItem is null ? "Open Inbox" : "Open Item",
+                CategoryLabel = categoryAttention,
+                IconGlyph = "",
+                Title = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_ActionTriageTitle"), "Dash_ActionTriageTitle", "Triage new incoming content"),
+                Detail = inboxCount == 1
+                    ? ProviderStatusText.Resolve(
+                        _localization?.GetString("Dash_ActionTriageDetailOne"),
+                        "Dash_ActionTriageDetailOne",
+                        "1 Smart Inbox item is waiting for classification, routing, or preview generation.")
+                    : ProviderStatusText.Resolve(
+                        _localization?.GetString("Dash_ActionTriageDetailMany", inboxCount),
+                        "Dash_ActionTriageDetailMany",
+                        "{0} Smart Inbox items are waiting for classification, routing, or preview generation.",
+                        inboxCount),
+                CommandText = targetInboxItem is null
+                    ? ProviderStatusText.Resolve(
+                        _localization?.GetString("Dash_ActionOpenInbox"), "Dash_ActionOpenInbox", "Open Inbox")
+                    : ProviderStatusText.Resolve(
+                        _localization?.GetString("Dash_ActionOpenItem"), "Dash_ActionOpenItem", "Open Item"),
                 Route = "Inbox",
                 TargetId = targetInboxItem?.ItemId ?? 0
             });
@@ -642,11 +835,16 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         {
             AddAction(new DashboardRecommendedActionItem
             {
-                CategoryLabel = "Setup",
-                IconGlyph = "\uE895",
-                Title = "Configure workspace sync",
-                Detail = "Collaborative sync is not fully ready. Configure it to keep multiple Agent-X installations aligned.",
-                CommandText = "Open Sync",
+                CategoryLabel = categorySetup,
+                IconGlyph = "",
+                Title = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_ActionSyncTitle"), "Dash_ActionSyncTitle", "Configure workspace sync"),
+                Detail = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_ActionSyncDetail"),
+                    "Dash_ActionSyncDetail",
+                    "Collaborative sync is not fully ready. Configure it to keep multiple Agent-X installations aligned."),
+                CommandText = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_ActionOpenSync"), "Dash_ActionOpenSync", "Open Sync"),
                 Route = "SyncSettings"
             });
         }
@@ -655,11 +853,20 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         {
             AddAction(new DashboardRecommendedActionItem
             {
-                CategoryLabel = "Expansion",
-                IconGlyph = "\uE943",
-                Title = "Connect a live source",
-                Detail = "Enable plugins and connectors so fresh email, calendar, or external content can flow into the workspace.",
-                CommandText = targetConnector is null ? "Open Plugins" : "Open Connector",
+                CategoryLabel = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_ActionCategoryExpansion"), "Dash_ActionCategoryExpansion", "Expansion"),
+                IconGlyph = "",
+                Title = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_ActionConnectTitle"), "Dash_ActionConnectTitle", "Connect a live source"),
+                Detail = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_ActionConnectDetail"),
+                    "Dash_ActionConnectDetail",
+                    "Enable plugins and connectors so fresh email, calendar, or external content can flow into the workspace."),
+                CommandText = targetConnector is null
+                    ? ProviderStatusText.Resolve(
+                        _localization?.GetString("Dash_ActionOpenPlugins"), "Dash_ActionOpenPlugins", "Open Plugins")
+                    : ProviderStatusText.Resolve(
+                        _localization?.GetString("Dash_ActionOpenConnector"), "Dash_ActionOpenConnector", "Open Connector"),
                 Route = "PluginManager",
                 TargetId = targetConnector?.PluginId ?? 0
             });
@@ -669,11 +876,16 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         {
             AddAction(new DashboardRecommendedActionItem
             {
-                CategoryLabel = "Memory",
-                IconGlyph = "\uE9D2",
-                Title = "Strengthen durable recall",
-                Detail = "Conversation summaries are not yet giving the app enough long-lived memory coverage.",
-                CommandText = "Open Analytics",
+                CategoryLabel = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_ActionCategoryMemory"), "Dash_ActionCategoryMemory", "Memory"),
+                IconGlyph = "",
+                Title = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_ActionRecallTitle"), "Dash_ActionRecallTitle", "Strengthen durable recall"),
+                Detail = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_ActionRecallDetail"),
+                    "Dash_ActionRecallDetail",
+                    "Conversation summaries are not yet giving the app enough long-lived memory coverage."),
+                CommandText = openAnalytics,
                 Route = "Analytics"
             });
         }
@@ -682,11 +894,19 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         {
             AddAction(new DashboardRecommendedActionItem
             {
-                CategoryLabel = "Automation",
-                IconGlyph = "\uE8C7",
-                Title = $"Review {targetWorkflowRun.Title}",
-                Detail = "A recent workflow run failed or was cancelled. Review the run details before trusting that automation again.",
-                CommandText = "Review Run",
+                CategoryLabel = categoryAutomation,
+                IconGlyph = "",
+                Title = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_ActionReviewRunTitle", targetWorkflowRun.Title),
+                    "Dash_ActionReviewRunTitle",
+                    "Review {0}",
+                    targetWorkflowRun.Title),
+                Detail = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_ActionReviewRunDetail"),
+                    "Dash_ActionReviewRunDetail",
+                    "A recent workflow run failed or was cancelled. Review the run details before trusting that automation again."),
+                CommandText = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_ActionReviewRun"), "Dash_ActionReviewRun", "Review Run"),
                 Route = "Workflows",
                 TargetId = targetWorkflowRun.WorkflowId,
                 SecondaryTargetId = targetWorkflowRun.RunId
@@ -696,11 +916,16 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         {
             AddAction(new DashboardRecommendedActionItem
             {
-                CategoryLabel = "Automation",
-                IconGlyph = "\uE8C7",
-                Title = "Create a repeatable workflow",
-                Detail = "Package a recurring task into an automation that can feed results back into the vault.",
-                CommandText = "Open Workflows",
+                CategoryLabel = categoryAutomation,
+                IconGlyph = "",
+                Title = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_ActionWorkflowTitle"), "Dash_ActionWorkflowTitle", "Create a repeatable workflow"),
+                Detail = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_ActionWorkflowDetail"),
+                    "Dash_ActionWorkflowDetail",
+                    "Package a recurring task into an automation that can feed results back into the vault."),
+                CommandText = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_ActionOpenWorkflows"), "Dash_ActionOpenWorkflows", "Open Workflows"),
                 Route = "Workflows"
             });
         }
@@ -709,33 +934,58 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         {
             AddAction(new DashboardRecommendedActionItem
             {
-                CategoryLabel = "Explore",
-                IconGlyph = IsOllamaConnected ? "\uE9D9" : "\uE8B5",
-                Title = IsOllamaConnected ? "Ask across your vault" : "Import more source material",
+                CategoryLabel = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_ActionCategoryExplore"), "Dash_ActionCategoryExplore", "Explore"),
+                IconGlyph = IsOllamaConnected ? "" : "",
+                Title = IsOllamaConnected
+                    ? ProviderStatusText.Resolve(
+                        _localization?.GetString("Dash_ActionAskTitle"), "Dash_ActionAskTitle", "Ask across your vault")
+                    : ProviderStatusText.Resolve(
+                        _localization?.GetString("Dash_ActionImportTitle"), "Dash_ActionImportTitle", "Import more source material"),
                 Detail = IsOllamaConnected
-                    ? "Use Ask Your Files to turn indexed knowledge into cross-document answers."
-                    : "Bring high-value files into the vault so the rest of the intelligence surfaces have more to work with.",
-                CommandText = IsOllamaConnected ? "Open Ask Your Files" : "Open Vault",
+                    ? ProviderStatusText.Resolve(
+                        _localization?.GetString("Dash_ActionAskDetail"),
+                        "Dash_ActionAskDetail",
+                        "Use Ask Your Files to turn indexed knowledge into cross-document answers.")
+                    : ProviderStatusText.Resolve(
+                        _localization?.GetString("Dash_ActionImportDetail"),
+                        "Dash_ActionImportDetail",
+                        "Bring high-value files into the vault so the rest of the intelligence surfaces have more to work with."),
+                CommandText = IsOllamaConnected
+                    ? ProviderStatusText.Resolve(
+                        _localization?.GetString("Dash_ActionOpenAskFiles"), "Dash_ActionOpenAskFiles", "Open Ask Your Files")
+                    : ProviderStatusText.Resolve(
+                        _localization?.GetString("Dash_ActionOpenVault"), "Dash_ActionOpenVault", "Open Vault"),
                 Route = IsOllamaConnected ? "AskFiles" : "KnowledgeVault"
             });
 
             AddAction(new DashboardRecommendedActionItem
             {
-                CategoryLabel = "Review",
-                IconGlyph = "\uE946",
-                Title = "Review system-wide health",
-                Detail = "Open Operations for a single place to inspect sync, workflows, connectors, inbox pressure, and recall posture.",
-                CommandText = "Open Operations",
+                CategoryLabel = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_ActionCategoryReview"), "Dash_ActionCategoryReview", "Review"),
+                IconGlyph = "",
+                Title = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_ActionHealthTitle"), "Dash_ActionHealthTitle", "Review system-wide health"),
+                Detail = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_ActionHealthDetail"),
+                    "Dash_ActionHealthDetail",
+                    "Open Operations for a single place to inspect sync, workflows, connectors, inbox pressure, and recall posture."),
+                CommandText = openOperations,
                 Route = "Operations"
             });
 
             AddAction(new DashboardRecommendedActionItem
             {
-                CategoryLabel = "Insight",
-                IconGlyph = "\uE9D2",
-                Title = "Review intelligence trends",
-                Detail = "Use Analytics to inspect recall coverage, themes, and workflow momentum across the workspace.",
-                CommandText = "Open Analytics",
+                CategoryLabel = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_ActionCategoryInsight"), "Dash_ActionCategoryInsight", "Insight"),
+                IconGlyph = "",
+                Title = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_ActionTrendsTitle"), "Dash_ActionTrendsTitle", "Review intelligence trends"),
+                Detail = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_ActionTrendsDetail"),
+                    "Dash_ActionTrendsDetail",
+                    "Use Analytics to inspect recall coverage, themes, and workflow momentum across the workspace."),
+                CommandText = openAnalytics,
                 Route = "Analytics"
             });
         }
@@ -934,7 +1184,11 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
             return;
         }
 
-        var sourceLabel = $"Opened dashboard recommendation \"{action.Title}\"";
+        var sourceLabel = ProviderStatusText.Resolve(
+            _localization?.GetString("Dash_DrillInSourceLabel", action.Title),
+            "Dash_DrillInSourceLabel",
+            "Opened dashboard recommendation \"{0}\"",
+            action.Title);
         switch (action.Route)
         {
             case "Inbox" when action.TargetId > 0:
@@ -975,10 +1229,12 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
 
             if (conflicts.Any())
             {
+                var unknownTopic = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_UnknownTopic"), "Dash_UnknownTopic", "Unknown Topic");
                 BeliefConflicts = new ObservableCollection<BeliefConflictDisplayItem>(
                     conflicts.Take(5).Select(c => new BeliefConflictDisplayItem
                     {
-                        Topic = c.Belief?.Topic ?? "Unknown Topic",
+                        Topic = c.Belief?.Topic ?? unknownTopic,
                         PreviousStance = c.PreviousStance,
                         CurrentStance = c.CurrentStance,
                         ConflictMagnitude = c.ConflictMagnitude,
@@ -1156,13 +1412,13 @@ public class DashboardRecentDocumentItem
 
     public string FileTypeIcon => FileType.ToLowerInvariant() switch
     {
-        "pdf" => "\uEA90",
-        "docx" or "doc" => "\uE8A5",
-        "txt" => "\uE8A4",
-        "md" => "\uE943",
-        "cs" or "py" or "js" or "ts" => "\uE943",
-        "png" or "jpg" or "jpeg" or "gif" => "\uEB9F",
-        _ => "\uE7C3"
+        "pdf" => "",
+        "docx" or "doc" => "",
+        "txt" => "",
+        "md" => "",
+        "cs" or "py" or "js" or "ts" => "",
+        "png" or "jpg" or "jpeg" or "gif" => "",
+        _ => ""
     };
 }
 
@@ -1199,7 +1455,9 @@ public class DashboardTopCollectionItem
     public string Name { get; init; } = string.Empty;
     public int DocumentCount { get; init; }
     public double BarWidthPercent { get; init; } // 0-100 relative to largest
-    public string CountLabel => $"{DocumentCount} docs";
+
+    /// <summary>The document count in words, set by the view model in the user's language.</summary>
+    public string CountLabel { get; init; } = string.Empty;
 }
 
 /// <summary>

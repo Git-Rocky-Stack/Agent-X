@@ -2448,6 +2448,97 @@
   <data name="QuickAct_StatusNeedsAttention" xml:space="preserve"><value>需要处理</value></data>
   <data name="QuickAct_StatusNeedsReview" xml:space="preserve"><value>需要审核</value></data>
   <data name="QuickAct_DrillInSourceLabel" xml:space="preserve"><value>已打开 Quick Actions 推荐“{0}”</value></data>
+  <data name="Dash_NoModelLoaded" xml:space="preserve"><value>未加载模型</value></data>
+  <data name="Dash_CheckingConnection" xml:space="preserve"><value>正在检查连接...</value></data>
+  <data name="Dash_Detecting" xml:space="preserve"><value>正在检测...</value></data>
+  <data name="Dash_TotalRam" xml:space="preserve"><value>共 {0}</value></data>
+  <data name="Dash_GpuVram" xml:space="preserve"><value>显存 {0}</value></data>
+  <data name="Dash_IntegratedGpu" xml:space="preserve"><value>集成显卡</value></data>
+  <data name="Dash_RecallInactive" xml:space="preserve"><value>持久回忆未启用</value></data>
+  <data name="Dash_RecallNoSummaries" xml:space="preserve"><value>尚无已保存的会话摘要。</value></data>
+  <data name="Dash_SyncNotConfigured" xml:space="preserve"><value>未配置</value></data>
+  <data name="Dash_SyncOff" xml:space="preserve"><value>Collaborative Sync 已关闭</value></data>
+  <data name="Dash_SyncConfigureHint" xml:space="preserve"><value>配置共享文件夹以同步多个安装。</value></data>
+  <data name="Dash_InboxQueueClear" xml:space="preserve"><value>队列已清空</value></data>
+  <data name="Dash_InboxNoItems" xml:space="preserve"><value>没有待分拣的项目。</value></data>
+  <data name="Dash_NoPluginsInstalled" xml:space="preserve"><value>未安装插件</value></data>
+  <data name="Dash_ConnectorsInstallHint" xml:space="preserve"><value>安装或启用插件，将外部数据和工作流扩展引入应用。</value></data>
+  <data name="Dash_WorkflowReady" xml:space="preserve"><value>可以开始自动化</value></data>
+  <data name="Dash_WorkflowNoRecentRuns" xml:space="preserve"><value>最近没有运行</value></data>
+  <data name="Dash_WorkflowAvgUnavailable" xml:space="preserve"><value>平均时长不可用</value></data>
+  <data name="Dash_WorkflowNone" xml:space="preserve"><value>暂无可用的工作流。</value></data>
+  <data name="Dash_PrivacyLocalTitle" xml:space="preserve"><value>100% 私密</value></data>
+  <data name="Dash_PrivacyLocalSummary" xml:space="preserve"><value>所有 AI 处理都在您的硬件上本地运行。您的数据永远不会离开这台电脑。</value></data>
+  <data name="Dash_PrivacyCloudTitle" xml:space="preserve"><value>云服务已启用</value></data>
+  <data name="Dash_PrivacyCloudSummary" xml:space="preserve"><value>您启用的部分功能会将数据发送到这台电脑之外：</value></data>
+  <data name="Dash_PrivacyUnavailableTitle" xml:space="preserve"><value>隐私状态不可用</value></data>
+  <data name="Dash_PrivacyUnavailableSummary" xml:space="preserve"><value>Agent-X 无法确认哪些服务处于启用状态。请打开“设置”进行检查。</value></data>
+  <data name="Dash_SetupRequired" xml:space="preserve"><value>需要设置</value></data>
+  <data name="Dash_AiStarting" xml:space="preserve"><value>AI 服务正在启动...</value></data>
+  <data name="Dash_Initializing" xml:space="preserve"><value>正在初始化...</value></data>
+  <data name="Dash_UntitledConversation" xml:space="preserve"><value>未命名会话</value></data>
+  <data name="Dash_ConversationMessagesOne" xml:space="preserve"><value>1 条消息</value></data>
+  <data name="Dash_ConversationMessagesMany" xml:space="preserve"><value>{0} 条消息</value></data>
+  <data name="Dash_CollectionDocsOne" xml:space="preserve"><value>1 个文档</value></data>
+  <data name="Dash_CollectionDocsMany" xml:space="preserve"><value>{0} 个文档</value></data>
+  <data name="Dash_RecallOpenAnalytics" xml:space="preserve"><value>打开 Analytics 查看摘要覆盖情况。</value></data>
+  <data name="Dash_SyncUnavailableHeadline" xml:space="preserve"><value>不可用</value></data>
+  <data name="Dash_SyncStatusUnavailable" xml:space="preserve"><value>同步状态不可用</value></data>
+  <data name="Dash_SyncOpenForDetails" xml:space="preserve"><value>打开 Collaborative Sync 查看详细信息。</value></data>
+  <data name="Dash_InboxWatchFoldersHint" xml:space="preserve"><value>监视文件夹和已启用的连接器带来的新项目将显示在此处。</value></data>
+  <data name="Dash_ConnectorsOpenPluginManager" xml:space="preserve"><value>打开插件管理器以启用连接器和扩展。</value></data>
+  <data name="Dash_WorkflowOpenHint" xml:space="preserve"><value>打开工作流以创建或运行自动化。</value></data>
+  <data name="Dash_ActionCategorySetup" xml:space="preserve"><value>设置</value></data>
+  <data name="Dash_ActionCategoryAttention" xml:space="preserve"><value>需关注</value></data>
+  <data name="Dash_ActionCategoryAutomation" xml:space="preserve"><value>自动化</value></data>
+  <data name="Dash_ActionOpenOperations" xml:space="preserve"><value>打开 Operations</value></data>
+  <data name="Dash_ActionOpenAnalytics" xml:space="preserve"><value>打开 Analytics</value></data>
+  <data name="Dash_ActionAiSetupTitle" xml:space="preserve"><value>完成本地 AI 设置</value></data>
+  <data name="Dash_ActionAiSetupDetail" xml:space="preserve"><value>连接本地模型后，聊天、语义搜索和文档智能将发挥更大价值。</value></data>
+  <data name="Dash_ActionAiSetupCommand" xml:space="preserve"><value>设置 AI</value></data>
+  <data name="Dash_ActionIndexingTitle" xml:space="preserve"><value>清理索引积压</value></data>
+  <data name="Dash_ActionIndexingDetailOne" xml:space="preserve"><value>1 个已导入项目仍需检查索引或重试。</value></data>
+  <data name="Dash_ActionIndexingDetailMany" xml:space="preserve"><value>{0} 个已导入项目仍需检查索引或重试。</value></data>
+  <data name="Dash_ActionReviewDocument" xml:space="preserve"><value>查看文档</value></data>
+  <data name="Dash_ActionTriageTitle" xml:space="preserve"><value>分拣新的传入内容</value></data>
+  <data name="Dash_ActionTriageDetailOne" xml:space="preserve"><value>Smart Inbox 中有 1 个项目正在等待分类、分派或生成预览。</value></data>
+  <data name="Dash_ActionTriageDetailMany" xml:space="preserve"><value>Smart Inbox 中有 {0} 个项目正在等待分类、分派或生成预览。</value></data>
+  <data name="Dash_ActionOpenInbox" xml:space="preserve"><value>打开收件箱</value></data>
+  <data name="Dash_ActionOpenItem" xml:space="preserve"><value>打开项目</value></data>
+  <data name="Dash_ActionSyncTitle" xml:space="preserve"><value>配置工作区同步</value></data>
+  <data name="Dash_ActionSyncDetail" xml:space="preserve"><value>Collaborative Sync 尚未完全就绪。配置后可让多个 Agent-X 安装保持一致。</value></data>
+  <data name="Dash_ActionOpenSync" xml:space="preserve"><value>打开同步</value></data>
+  <data name="Dash_ActionCategoryExpansion" xml:space="preserve"><value>扩展</value></data>
+  <data name="Dash_ActionConnectTitle" xml:space="preserve"><value>连接实时来源</value></data>
+  <data name="Dash_ActionConnectDetail" xml:space="preserve"><value>启用插件和连接器，让新的电子邮件、日历或外部内容流入工作区。</value></data>
+  <data name="Dash_ActionOpenPlugins" xml:space="preserve"><value>打开插件</value></data>
+  <data name="Dash_ActionOpenConnector" xml:space="preserve"><value>打开连接器</value></data>
+  <data name="Dash_ActionCategoryMemory" xml:space="preserve"><value>记忆</value></data>
+  <data name="Dash_ActionRecallTitle" xml:space="preserve"><value>加强持久回忆</value></data>
+  <data name="Dash_ActionRecallDetail" xml:space="preserve"><value>会话摘要尚未为应用提供足够的长期记忆覆盖。</value></data>
+  <data name="Dash_ActionReviewRunTitle" xml:space="preserve"><value>查看 {0}</value></data>
+  <data name="Dash_ActionReviewRunDetail" xml:space="preserve"><value>最近一次工作流运行失败或被取消。请先查看运行详情，再继续信任该自动化。</value></data>
+  <data name="Dash_ActionReviewRun" xml:space="preserve"><value>查看运行</value></data>
+  <data name="Dash_ActionWorkflowTitle" xml:space="preserve"><value>创建可重复使用的工作流</value></data>
+  <data name="Dash_ActionWorkflowDetail" xml:space="preserve"><value>将重复任务打包成自动化，并把结果写回 Knowledge Vault。</value></data>
+  <data name="Dash_ActionOpenWorkflows" xml:space="preserve"><value>打开工作流</value></data>
+  <data name="Dash_ActionCategoryExplore" xml:space="preserve"><value>探索</value></data>
+  <data name="Dash_ActionAskTitle" xml:space="preserve"><value>向整个 Knowledge Vault 提问</value></data>
+  <data name="Dash_ActionImportTitle" xml:space="preserve"><value>导入更多源资料</value></data>
+  <data name="Dash_ActionAskDetail" xml:space="preserve"><value>使用“向您的文件提问”，将已索引的知识转化为跨文档的答案。</value></data>
+  <data name="Dash_ActionImportDetail" xml:space="preserve"><value>将高价值文件导入 Knowledge Vault，让其他智能功能有更多可用材料。</value></data>
+  <data name="Dash_ActionOpenAskFiles" xml:space="preserve"><value>打开“向您的文件提问”</value></data>
+  <data name="Dash_ActionOpenVault" xml:space="preserve"><value>打开 Knowledge Vault</value></data>
+  <data name="Dash_ActionCategoryReview" xml:space="preserve"><value>审查</value></data>
+  <data name="Dash_ActionHealthTitle" xml:space="preserve"><value>查看全系统运行状况</value></data>
+  <data name="Dash_ActionHealthDetail" xml:space="preserve"><value>打开 Operations，在一个地方查看同步、工作流、连接器、收件箱压力和回忆状态。</value></data>
+  <data name="Dash_ActionCategoryInsight" xml:space="preserve"><value>洞察</value></data>
+  <data name="Dash_ActionTrendsTitle" xml:space="preserve"><value>查看智能趋势</value></data>
+  <data name="Dash_ActionTrendsDetail" xml:space="preserve"><value>使用 Analytics 查看整个工作区的回忆覆盖、主题和工作流势头。</value></data>
+  <data name="Dash_DrillInSourceLabel" xml:space="preserve"><value>已打开仪表板推荐“{0}”</value></data>
+  <data name="Dash_UnknownTopic" xml:space="preserve"><value>未知主题</value></data>
+  <data name="Dash_IndexedRun.Text" xml:space="preserve"><value>% 已索引</value></data>
+  <data name="Dash_IndexedMeter.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>已索引百分比</value></data>
   <data name="PastSelf_CancelDraft.Content" xml:space="preserve"><value>取消</value></data>
   <data name="PastSelf_DraftWriting.Text" xml:space="preserve"><value>正在撰写草稿...</value></data>
   <data name="PastSelf_DraftNeedsContext" xml:space="preserve"><value>请先在“上下文”中描述您要写的内容。</value></data>

@@ -69,8 +69,18 @@
 
                     <StackPanel Spacing="12">
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <Ellipse Width="10" Height="10"
-                                     Fill="{ThemeResource OfflineBrush}" />
+                            <!-- Connection lamp, bound to the provider's state like the MDL lamp
+                                 on the instrument strip: steady GO while it answers, steady HOLD
+                                 while it is being checked, is starting or cannot be reached. Both
+                                 are theme brushes, so HighContrast draws them in system colors. -->
+                            <Grid VerticalAlignment="Center">
+                                <Ellipse Width="10" Height="10"
+                                         Fill="{ThemeResource LedGoLampBrush}"
+                                         Visibility="{x:Bind ViewModel.IsOllamaConnected, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+                                <Ellipse Width="10" Height="10"
+                                         Fill="{ThemeResource LedHoldLampBrush}"
+                                         Visibility="{x:Bind ViewModel.IsOllamaConnected, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}" />
+                            </Grid>
                             <TextBlock Text="{x:Bind ViewModel.ConnectionStatus, Mode=OneWay}"
                                        Style="{StaticResource BodyStyle}"
                                        Foreground="{ThemeResource TextSecondaryBrush}" />
@@ -190,10 +200,11 @@
                                     <Run Text="{x:Bind ViewModel.IndexedPercent, Mode=OneWay}"
                                          FontWeight="SemiBold"
                                          Foreground="{ThemeResource TextSecondaryBrush}" />
-                                    <Run Text="% indexed" />
+                                    <Run x:Uid="Dash_IndexedRun" Text="% indexed" />
                                 </TextBlock>
                                 <controls:SegmentMeter Value="{x:Bind ViewModel.IndexedPercent, Mode=OneWay}"
                                                        Maximum="100"
+                                                       x:Uid="Dash_IndexedMeter"
                                                        AutomationProperties.Name="Indexed percent" />
                             </StackPanel>
                         </StackPanel>
