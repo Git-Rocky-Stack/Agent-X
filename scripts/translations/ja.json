@@ -1149,7 +1149,7 @@
   "QuickAct_Tags.Text": "タグ:",
   "QuickAct_Reasoning.Text": "根拠",
   "QuickAct_DocumentsAvailable.Text": " 件のドキュメントが利用可能",
-  "ModelMgr_ManageYourLocalAi.Text": "Ollama を利用してローカル AI モデルを管理します。",
+  "ModelMgr_ManageYourLocalAi.Text": "このコンピューターで動作する AI モデル (Ollama モデルと音声テキスト変換モデル) を管理します。",
   "ModelMgr_Refresh.Content": "更新",
   "ModelMgr_Models.Text": " モデル",
   "ModelMgr_BrowseModels.Text": "モデルを参照",

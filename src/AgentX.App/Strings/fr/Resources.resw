@@ -1513,7 +1513,7 @@
   <data name="QuickAct_Tags.Text" xml:space="preserve"><value>Tags :</value></data>
   <data name="QuickAct_Reasoning.Text" xml:space="preserve"><value>Raisonnement</value></data>
   <data name="QuickAct_DocumentsAvailable.Text" xml:space="preserve"><value> documents disponibles</value></data>
-  <data name="ModelMgr_ManageYourLocalAi.Text" xml:space="preserve"><value>Gérez vos modèles d'IA locaux propulsés par Ollama.</value></data>
+  <data name="ModelMgr_ManageYourLocalAi.Text" xml:space="preserve"><value>Gérez les modèles d'IA qui s'exécutent sur cet ordinateur : les modèles Ollama et le modèle de reconnaissance vocale.</value></data>
   <data name="ModelMgr_Refresh.Content" xml:space="preserve"><value>Actualiser</value></data>
   <data name="ModelMgr_Models.Text" xml:space="preserve"><value> Modèles</value></data>
   <data name="ModelMgr_BrowseModels.Text" xml:space="preserve"><value>Parcourir les modèles</value></data>

@@ -1149,7 +1149,7 @@
   "QuickAct_Tags.Text": "标签:",
   "QuickAct_Reasoning.Text": "推理依据",
   "QuickAct_DocumentsAvailable.Text": " 个文档可用",
-  "ModelMgr_ManageYourLocalAi.Text": "管理由 Ollama 驱动的本地 AI 模型。",
+  "ModelMgr_ManageYourLocalAi.Text": "管理在此计算机上运行的 AI 模型：Ollama 模型和语音转文字模型。",
   "ModelMgr_Refresh.Content": "刷新",
   "ModelMgr_Models.Text": " 个模型",
   "ModelMgr_BrowseModels.Text": "浏览模型",

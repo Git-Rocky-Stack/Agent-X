@@ -1149,7 +1149,7 @@
   "QuickAct_Tags.Text": "Tags :",
   "QuickAct_Reasoning.Text": "Raisonnement",
   "QuickAct_DocumentsAvailable.Text": " documents disponibles",
-  "ModelMgr_ManageYourLocalAi.Text": "Gérez vos modèles d'IA locaux propulsés par Ollama.",
+  "ModelMgr_ManageYourLocalAi.Text": "Gérez les modèles d'IA qui s'exécutent sur cet ordinateur : les modèles Ollama et le modèle de reconnaissance vocale.",
   "ModelMgr_Refresh.Content": "Actualiser",
   "ModelMgr_Models.Text": " Modèles",
   "ModelMgr_BrowseModels.Text": "Parcourir les modèles",

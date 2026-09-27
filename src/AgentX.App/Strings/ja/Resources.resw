@@ -1513,7 +1513,7 @@
   <data name="QuickAct_Tags.Text" xml:space="preserve"><value>タグ:</value></data>
   <data name="QuickAct_Reasoning.Text" xml:space="preserve"><value>根拠</value></data>
   <data name="QuickAct_DocumentsAvailable.Text" xml:space="preserve"><value> 件のドキュメントが利用可能</value></data>
-  <data name="ModelMgr_ManageYourLocalAi.Text" xml:space="preserve"><value>Ollama を利用してローカル AI モデルを管理します。</value></data>
+  <data name="ModelMgr_ManageYourLocalAi.Text" xml:space="preserve"><value>このコンピューターで動作する AI モデル (Ollama モデルと音声テキスト変換モデル) を管理します。</value></data>
   <data name="ModelMgr_Refresh.Content" xml:space="preserve"><value>更新</value></data>
   <data name="ModelMgr_Models.Text" xml:space="preserve"><value> モデル</value></data>
   <data name="ModelMgr_BrowseModels.Text" xml:space="preserve"><value>モデルを参照</value></data>

@@ -1513,7 +1513,7 @@
   <data name="QuickAct_Tags.Text" xml:space="preserve"><value>标签:</value></data>
   <data name="QuickAct_Reasoning.Text" xml:space="preserve"><value>推理依据</value></data>
   <data name="QuickAct_DocumentsAvailable.Text" xml:space="preserve"><value> 个文档可用</value></data>
-  <data name="ModelMgr_ManageYourLocalAi.Text" xml:space="preserve"><value>管理由 Ollama 驱动的本地 AI 模型。</value></data>
+  <data name="ModelMgr_ManageYourLocalAi.Text" xml:space="preserve"><value>管理在此计算机上运行的 AI 模型：Ollama 模型和语音转文字模型。</value></data>
   <data name="ModelMgr_Refresh.Content" xml:space="preserve"><value>刷新</value></data>
   <data name="ModelMgr_Models.Text" xml:space="preserve"><value> 个模型</value></data>
   <data name="ModelMgr_BrowseModels.Text" xml:space="preserve"><value>浏览模型</value></data>

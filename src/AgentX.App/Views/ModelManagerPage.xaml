@@ -45,7 +45,7 @@
                 <StackPanel Spacing="4">
                     <TextBlock x:Uid="ModelMgr_PageTitle" Text="Model Manager"
                                Style="{StaticResource DisplaySmallStyle}" />
-                    <TextBlock x:Uid="ModelMgr_ManageYourLocalAi" Text="Manage your local AI models powered by Ollama."
+                    <TextBlock x:Uid="ModelMgr_ManageYourLocalAi" Text="Manage the AI models that run on this computer: Ollama models and the speech-to-text model."
                                Style="{StaticResource BodySecondaryStyle}" />
                 </StackPanel>
 

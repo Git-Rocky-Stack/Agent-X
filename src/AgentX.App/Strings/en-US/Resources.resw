@@ -1635,7 +1635,7 @@
   <data name="QuickAct_Tags.Text" xml:space="preserve"><value>Tags:</value></data>
   <data name="QuickAct_Reasoning.Text" xml:space="preserve"><value>Reasoning</value></data>
   <data name="QuickAct_DocumentsAvailable.Text" xml:space="preserve"><value> documents available</value></data>
-  <data name="ModelMgr_ManageYourLocalAi.Text" xml:space="preserve"><value>Manage your local AI models powered by Ollama.</value></data>
+  <data name="ModelMgr_ManageYourLocalAi.Text" xml:space="preserve"><value>Manage the AI models that run on this computer: Ollama models and the speech-to-text model.</value></data>
   <data name="ModelMgr_Refresh.Content" xml:space="preserve"><value>Refresh</value></data>
   <data name="ModelMgr_Models.Text" xml:space="preserve"><value> Models</value></data>
   <data name="ModelMgr_BrowseModels.Text" xml:space="preserve"><value>Browse Models</value></data>
