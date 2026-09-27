@@ -79,8 +79,8 @@ public sealed class DashboardViewModelTests
 
         _temporalIdentity.Setup(service => service.GetBeliefConflictsAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<BeliefConflictEntity>());
-        _temporalIdentity.Setup(service => service.GetActiveTopicsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<string>());
+        _temporalIdentity.Setup(service => service.GetActiveTopicDetailsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<ActiveTopic>());
 
         _operationsOverviewService.Setup(service => service.GetSnapshotAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new OperationsOverviewSnapshot
@@ -433,8 +433,8 @@ public sealed class DashboardViewModelTests
     [InlineData(true)]
     public async Task InitializeAsync_with_no_recorded_beliefs_does_not_claim_they_are_consistent(bool withEnglishResources)
     {
-        _temporalIdentity.Setup(service => service.GetActiveTopicsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<string>());
+        _temporalIdentity.Setup(service => service.GetActiveTopicDetailsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<ActiveTopic>());
 
         var viewModel = CreateViewModel(localization: EnglishOrNone(withEnglishResources));
 
@@ -452,8 +452,12 @@ public sealed class DashboardViewModelTests
     [InlineData(true)]
     public async Task InitializeAsync_with_recorded_beliefs_and_no_conflict_says_they_are_consistent(bool withEnglishResources)
     {
-        _temporalIdentity.Setup(service => service.GetActiveTopicsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<string> { "Microservices" });
+        // A view recorded twice was compared with itself over time.
+        _temporalIdentity.Setup(service => service.GetActiveTopicDetailsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<ActiveTopic>
+            {
+                new("Microservices", new DateTime(2026, 5, 1, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 9, 1, 0, 0, 0, DateTimeKind.Utc))
+            });
 
         var viewModel = CreateViewModel(localization: EnglishOrNone(withEnglishResources));
 
@@ -465,6 +469,20 @@ public sealed class DashboardViewModelTests
     }
 
     [Fact]
+    public async Task InitializeAsync_with_views_recorded_only_once_says_there_is_nothing_to_compare()
+    {
+        var once = new DateTime(2026, 9, 1, 0, 0, 0, DateTimeKind.Utc);
+        _temporalIdentity.Setup(service => service.GetActiveTopicDetailsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<ActiveTopic> { new("Microservices", once, once) });
+
+        var viewModel = CreateViewModel();
+
+        await viewModel.InitializeAsync();
+
+        viewModel.BeliefConflictsStatus.Should().Be("No beliefs to compare yet");
+    }
+
+    [Fact]
     public async Task InitializeAsync_asks_for_every_recorded_belief_not_only_recent_ones()
     {
         // A belief recorded a year ago still makes "consistent" a claim about something.
@@ -473,7 +491,7 @@ public sealed class DashboardViewModelTests
         await viewModel.InitializeAsync();
 
         _temporalIdentity.Verify(
-            service => service.GetActiveTopicsAsync(It.Is<int>(days => days >= 36_500), It.IsAny<CancellationToken>()),
+            service => service.GetActiveTopicDetailsAsync(It.Is<int>(days => days >= 36_500), It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -540,8 +558,8 @@ public sealed class DashboardViewModelTests
     [Fact]
     public async Task The_belief_card_is_read_from_the_users_language()
     {
-        _temporalIdentity.Setup(service => service.GetActiveTopicsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<string>());
+        _temporalIdentity.Setup(service => service.GetActiveTopicDetailsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<ActiveTopic>());
 
         var viewModel = CreateViewModel(localization: ReswLocalization.For("fr"));
 

@@ -1216,7 +1216,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     // ── Temporal Identity: Belief Conflicts ────────────────────────
 
     /// <summary>
-    /// Days back <see cref="ITemporalIdentityService.GetActiveTopicsAsync"/> looks for beliefs when
+    /// Days back <see cref="ITemporalIdentityService.GetActiveTopicDetailsAsync"/> looks for beliefs when
     /// the card asks whether any were recorded at all.
     /// </summary>
     private const int AllRecordedBeliefsDays = 36_500;
@@ -1265,13 +1265,13 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
             HasBeliefConflicts = false;
             BeliefConflictsHeadline = "0";
 
-            // "Consistent" needs something to compare. With no belief recorded nothing was checked,
-            // which the card used to report as "Your beliefs are consistent". The query lists every
-            // belief observed since it was stamped; the only rows it misses are beliefs seen once
-            // before LastObservedAt was set on creation, and a view seen once has nothing to be
-            // compared with either, which is what the card says.
-            var recordedTopics = await _temporalIdentity.GetActiveTopicsAsync(days: AllRecordedBeliefsDays);
-            if (recordedTopics is not { Count: > 0 })
+            // "Consistent" needs something compared: a view recorded at least twice. With no belief,
+            // or only views recorded once, nothing was checked, which the card used to report as
+            // "Your beliefs are consistent". The lookup returns the most confident recent topics,
+            // so a view seen twice outside them makes the card say too little, never too much.
+            var recordedTopics = await _temporalIdentity.GetActiveTopicDetailsAsync(days: AllRecordedBeliefsDays);
+            var anyViewComparedOverTime = recordedTopics?.Any(topic => topic.LastRecordedAt > topic.FirstRecordedAt) == true;
+            if (!anyViewComparedOverTime)
             {
                 BeliefConflictsStatus = ProviderStatusText.Resolve(
                     _localization?.GetString("Dash_BeliefNoneStatus"),
