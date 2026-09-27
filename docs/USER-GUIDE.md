@@ -437,7 +437,7 @@ AI Chat is the full conversational workspace. Quick Chat is the tray/shortcut-st
 - Right-click a conversation to pin, unpin, or delete it (deletion asks first). The folder button in the top bar moves the open conversation to Work, Research, Personal, Archive, or a named folder. Conversations cannot be renamed, and there is no clear-all command.
 - `Ctrl+N` (anywhere) or `Ctrl+Shift+N` (on the chat page) starts a new conversation; `Ctrl+B` shows or hides the conversation list.
 - Each conversation has its own message list and model context.
-- Export saves selected conversations as portable text/Markdown artifacts.
+- **Export conversation** (top bar) saves the open conversation as Markdown, HTML, PDF, JSON, plain text, CSV, Word (.docx), or PowerPoint (.pptx), with switches for **Include citations**, **Include model info**, **Include metadata**, and **Include timestamps**; a Markdown export can follow a template (Research Report, Executive Summary, or Annotated Bibliography). **Copy as Markdown** in the same dialog puts the conversation on the clipboard instead. **Export all conversations** (bottom of the conversation list) saves every listed conversation in one Markdown file. Files go to the Exports folder under the Agent-X data folder, and Agent-X says where.
 - Every answer is saved with the name of the model that wrote it, and a Research Mode answer with the web pages it was given. In the export dialog, **Include citations** lists each answer's sources under it (numbered as its [n] markers) and **Include model info** names its model.
 
 ### Prompt and context tools
@@ -450,7 +450,7 @@ AI Chat is the full conversational workspace. Quick Chat is the tray/shortcut-st
 | Context inspection | Helps explain what Agent-X assembled before sending a prompt |
 | Branching | **Branch from here** on one of your own messages continues in a separate branch; the Branches list opens, merges, or deletes branches, and **Compare branches** shows the main thread next to the first branch |
 | Suggested questions | Continue a thread with relevant follow-ups |
-| Research Mode | The Research mode toggle beside the message box adds web search results to your next answers (Research Mode must also be enabled in Settings, with a web search provider configured); the pages an answer used are listed under it as numbered sources, and clicking one opens it in your browser |
+| Research Mode | The Research mode toggle beside the message box adds web search results to your next answers (Research Mode must also be enabled in Settings, with a web search provider configured); the search results an answer was given (title, address, and snippet only; pages are not fetched) are listed under it as numbered sources, and clicking one opens it in your browser. The message text is the search query, only the selected provider is used, and AI Chat never searches the Knowledge Vault |
 | Voice input | Click the microphone to dictate into the message box, or right-click it to transcribe an audio file; uses the local Whisper base model (see [Audio](#audio)) |
 
 ### Message behavior

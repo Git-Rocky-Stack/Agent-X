@@ -1,0 +1,111 @@
+{
+  "_comment": "Web Search and Research Mode accuracy pass 2026-09 (requested by the lead after the chat workstream). What ships: Research Mode in AI Chat only, gated by Enable Research Mode in Settings and the globe toggle beside the message box (MessagingCoordinator.BuildResearchContextAsync). The message text is the query, sent to the one selected provider (Brave, Serper or SearXNG; SettingsAwareWebSearchService, no fallback) with Max Search Results (1 to 20, default 10) and a 15-second timeout; only titles, URLs and snippets go to the model (no page fetch, readability extraction or Playwright). Answers cite [n]; the sources show as numbered chips under the answer (http/https only), are saved with the message and exported with Include citations. There is no automatic detection, /search prefix, Web button, Vault/Web provenance tag, vault retrieval in chat, web search in Ask Your Files, or right-click import of a citation. Results are cached for Cache Duration (60 minutes by default). Apply with python scripts/apply-guide-accuracy.py scripts/translations/websearch-accuracy-2026-09.json",
+  "removePrefixes": [],
+  "update": {
+    "UserGuide_WebSearch_Description.Text": {
+      "en-US": "Research Mode adds live web search results to AI Chat answers. You choose one search provider in Settings (Brave Search, Serper or a SearXNG instance) and turn Research Mode on there, then switch it on in the chat with the globe button beside the message box. The text of each message you send becomes the search query, and the titles, addresses and snippets of the results go to the model with your question. Results are cached for the Cache Duration set in Settings.",
+      "de": "Der Recherchemodus ergänzt Antworten in AI Chat um aktuelle Websuchergebnisse. Sie wählen in den Einstellungen einen Suchanbieter (Brave Search, Serper oder eine SearXNG-Instanz) und aktivieren dort den Recherchemodus; im Chat schalten Sie ihn dann mit der Globus-Schaltfläche neben dem Nachrichtenfeld ein. Der Text jeder gesendeten Nachricht wird zur Suchanfrage, und Titel, Adressen und Textauszüge der Ergebnisse gehen zusammen mit Ihrer Frage an das Modell. Ergebnisse werden für die in den Einstellungen festgelegte Cache-Dauer zwischengespeichert.",
+      "es": "El modo investigación añade resultados de búsqueda web en directo a las respuestas de AI Chat. Elija un proveedor de búsqueda en Configuración (Brave Search, Serper o una instancia de SearXNG) y active allí el modo investigación; después actívelo en el chat con el botón del globo situado junto al cuadro de mensaje. El texto de cada mensaje que envía se convierte en la consulta de búsqueda, y los títulos, direcciones y fragmentos de los resultados llegan al modelo junto con su pregunta. Los resultados se guardan en caché durante la Duración de caché definida en Configuración.",
+      "fr": "Le mode recherche ajoute des résultats de recherche web en direct aux réponses d'AI Chat. Choisissez un fournisseur de recherche dans les Paramètres (Brave Search, Serper ou une instance SearXNG) et activez-y le mode recherche, puis activez-le dans le chat avec le bouton en forme de globe à côté de la zone de message. Le texte de chaque message envoyé devient la requête de recherche, et les titres, adresses et extraits des résultats sont transmis au modèle avec votre question. Les résultats sont mis en cache pendant la Durée du cache définie dans les Paramètres.",
+      "ja": "リサーチ モードは、AI Chat の回答にリアルタイムの Web 検索結果を加えます。設定で検索プロバイダー (Brave Search、Serper、または SearXNG インスタンス) を 1 つ選んでリサーチ モードを有効にし、チャットではメッセージ ボックスの横にある地球儀ボタンでオンにします。送信したメッセージのテキストがそのまま検索クエリになり、検索結果のタイトル、アドレス、スニペットが質問とともにモデルに渡されます。結果は、設定の [キャッシュ期間] の間キャッシュされます。",
+      "zh-CN": "研究模式会在 AI Chat 的回答中加入实时网页搜索结果。在“设置”中选择一个搜索提供商（Brave Search、Serper 或 SearXNG 实例）并启用研究模式，然后在聊天中点击消息框旁的地球按钮将其打开。您发送的每条消息的文本都会作为搜索查询，搜索结果的标题、地址和摘要会与您的问题一起发送给模型。结果会在“设置”中指定的缓存时长内被缓存。"
+    },
+    "UserGuide_WebSearch_Step1.Text": {
+      "en-US": "Set up a provider - In Settings, under Research Mode, choose the Search Provider: Brave Search or Serper (paste its API key) or SearXNG (enter your instance URL, for example http://localhost:8080). Only the selected provider is used, with no fallback to another one if it fails. Max Search Results (1 to 20, 10 by default) sets how many results an answer gets.",
+      "de": "Anbieter einrichten - Wählen Sie in den Einstellungen unter „Recherchemodus“ den Suchanbieter: Brave Search oder Serper (API-Schlüssel einfügen) oder SearXNG (URL Ihrer Instanz eingeben, zum Beispiel http://localhost:8080). Verwendet wird nur der ausgewählte Anbieter; fällt er aus, wird nicht auf einen anderen ausgewichen. „Max. Suchergebnisse“ (1 bis 20, standardmäßig 10) legt fest, wie viele Ergebnisse eine Antwort erhält.",
+      "es": "Configure un proveedor - En Configuración, en Modo investigación, elija el Proveedor de búsqueda: Brave Search o Serper (pegue su clave de API) o SearXNG (escriba la URL de su instancia, por ejemplo http://localhost:8080). Solo se usa el proveedor seleccionado; si falla, no se recurre a otro. Resultados de búsqueda máx. (de 1 a 20, 10 de forma predeterminada) fija cuántos resultados recibe una respuesta.",
+      "fr": "Configurer un fournisseur - Dans les Paramètres, sous Mode recherche, choisissez le Fournisseur de recherche : Brave Search ou Serper (collez sa clé d'API) ou SearXNG (saisissez l'URL de votre instance, par exemple http://localhost:8080). Seul le fournisseur sélectionné est utilisé ; s'il échoue, aucun autre ne prend le relais. Résultats de recherche max. (de 1 à 20, 10 par défaut) fixe le nombre de résultats fournis à une réponse.",
+      "ja": "プロバイダーの設定：設定の [リサーチ モード] で検索プロバイダーを選びます。Brave Search または Serper (API キーを貼り付け)、SearXNG (インスタンスの URL を入力、例: http://localhost:8080) のいずれかです。使われるのは選んだプロバイダーだけで、失敗しても別のプロバイダーには切り替わりません。[最大検索結果数] (1～20、既定は 10) で、1 回の回答に使う結果の数を指定します。",
+      "zh-CN": "设置提供商：在“设置”的“研究模式”下选择搜索提供商：Brave Search 或 Serper（粘贴其 API 密钥），或 SearXNG（输入实例 URL，例如 http://localhost:8080）。只会使用所选的提供商，失败时不会改用其他提供商。“最多搜索结果数”（1 到 20，默认 10）决定每个回答获得多少条结果。"
+    },
+    "UserGuide_WebSearch_Step2.Text": {
+      "en-US": "Search - With Enable Research Mode on in Settings and the globe button on in the chat, each message you send is searched as it is (the search gives up after 15 seconds). Pages are not opened or downloaded: only each result's title, address and snippet reach the model. If the search fails, times out or finds nothing, the answer is written without web results and a notice says so.",
+      "de": "Suche - Ist in den Einstellungen „Recherchemodus aktivieren“ und im Chat die Globus-Schaltfläche eingeschaltet, wird jede gesendete Nachricht unverändert als Suchanfrage verwendet (die Suche gibt nach 15 Sekunden auf). Seiten werden weder geöffnet noch heruntergeladen: Nur Titel, Adresse und Textauszug jedes Ergebnisses erreichen das Modell. Schlägt die Suche fehl, dauert sie zu lange oder findet sie nichts, wird die Antwort ohne Webergebnisse geschrieben, und ein Hinweis sagt es Ihnen.",
+      "es": "Búsqueda - Con Activar modo investigación encendido en Configuración y el botón del globo activado en el chat, cada mensaje que envía se busca tal cual (la búsqueda se abandona a los 15 segundos). Las páginas no se abren ni se descargan: al modelo solo llegan el título, la dirección y el fragmento de cada resultado. Si la búsqueda falla, se agota el tiempo o no encuentra nada, la respuesta se redacta sin resultados web y un aviso lo indica.",
+      "fr": "Recherche - Avec Activer le mode recherche activé dans les Paramètres et le bouton en forme de globe activé dans le chat, chaque message envoyé est recherché tel quel (la recherche abandonne au bout de 15 secondes). Les pages ne sont ni ouvertes ni téléchargées : seuls le titre, l'adresse et l'extrait de chaque résultat parviennent au modèle. Si la recherche échoue, expire ou ne trouve rien, la réponse est rédigée sans résultats web et un avis le signale.",
+      "ja": "検索：設定の [リサーチ モードを有効化] と、チャットの地球儀ボタンの両方がオンの場合、送信したメッセージがそのまま検索されます (検索は 15 秒で打ち切られます)。ページを開いたりダウンロードしたりはせず、モデルに渡されるのは各結果のタイトル、アドレス、スニペットだけです。検索が失敗した、時間切れになった、何も見つからなかった場合は、Web の結果なしで回答が作成され、その旨が通知されます。",
+      "zh-CN": "搜索：当“设置”中的“启用研究模式”和聊天中的地球按钮都打开时，您发送的每条消息都会原样作为查询进行搜索（搜索 15 秒后放弃）。不会打开或下载网页：只有每条结果的标题、地址和摘要会发送给模型。如果搜索失败、超时或没有结果，回答将不使用网页结果，并会显示提示说明原因。"
+    },
+    "UserGuide_WebSearch_Step3.Text": {
+      "en-US": "Answer - The model is asked to cite the results it uses as [1], [2] and so on. Under the answer, Web sources lists the results as numbered chips; click one to open the page in your browser (only http and https addresses open). The sources are saved with the message and come back when you reopen the conversation.",
+      "de": "Antwort - Das Modell wird gebeten, die verwendeten Ergebnisse als [1], [2] usw. zu zitieren. Unter der Antwort listet „Webquellen“ die Ergebnisse als nummerierte Chips auf; ein Klick öffnet die Seite im Browser (nur http- und https-Adressen werden geöffnet). Die Quellen werden mit der Nachricht gespeichert und erscheinen wieder, wenn Sie die Unterhaltung erneut öffnen.",
+      "es": "Respuesta - Se pide al modelo que cite los resultados que usa como [1], [2], etc. Debajo de la respuesta, Fuentes web muestra los resultados como fichas numeradas; haga clic en una para abrir la página en el navegador (solo se abren direcciones http y https). Las fuentes se guardan con el mensaje y vuelven a aparecer al reabrir la conversación.",
+      "fr": "Réponse - Le modèle est invité à citer les résultats qu'il utilise sous la forme [1], [2], etc. Sous la réponse, Sources web liste les résultats sous forme de puces numérotées ; cliquez sur l'une d'elles pour ouvrir la page dans votre navigateur (seules les adresses http et https s'ouvrent). Les sources sont enregistrées avec le message et réapparaissent quand vous rouvrez la conversation.",
+      "ja": "回答：モデルには、使った結果を [1]、[2] のように引用するよう指示されます。回答の下の「Web ソース」に結果が番号付きのチップとして表示され、クリックするとブラウザーでページが開きます (開くのは http と https のアドレスだけです)。ソースはメッセージとともに保存され、会話を開き直しても表示されます。",
+      "zh-CN": "回答：模型会被要求以 [1]、[2] 等形式引用所用的结果。回答下方的“网页来源”以编号标签列出这些结果；点击其中一个即可在浏览器中打开该网页（仅打开 http 和 https 地址）。来源会随消息一起保存，重新打开对话时仍会显示。"
+    },
+    "UserGuide_WebSearch_Modes_Title.Text": {
+      "en-US": "Using Research Mode",
+      "de": "Recherchemodus verwenden",
+      "es": "Uso del modo investigación",
+      "fr": "Utiliser le mode recherche",
+      "ja": "リサーチ モードの使い方",
+      "zh-CN": "使用研究模式"
+    },
+    "UserGuide_WebSearch_Mode1_Title.Text": {
+      "en-US": "Two Switches",
+      "de": "Zwei Schalter",
+      "es": "Dos interruptores",
+      "fr": "Deux interrupteurs",
+      "ja": "2 つのスイッチ",
+      "zh-CN": "两个开关"
+    },
+    "UserGuide_WebSearch_Mode1_Description.Text": {
+      "en-US": "Research Mode needs both Enable Research Mode in Settings and the globe button beside the chat's message box. If the Settings switch is off or no provider is set up, the chat says once why no web search was made and answers without web results. Nothing detects on its own that a question needs current information.",
+      "de": "Der Recherchemodus braucht beides: „Recherchemodus aktivieren“ in den Einstellungen und die Globus-Schaltfläche neben dem Nachrichtenfeld im Chat. Ist der Schalter in den Einstellungen aus oder kein Anbieter eingerichtet, erklärt der Chat einmal, warum keine Websuche stattfand, und antwortet ohne Webergebnisse. Nichts erkennt von selbst, dass eine Frage aktuelle Informationen braucht.",
+      "es": "El modo investigación necesita las dos cosas: Activar modo investigación en Configuración y el botón del globo junto al cuadro de mensaje del chat. Si el interruptor de Configuración está apagado o no hay ningún proveedor configurado, el chat explica una vez por qué no se hizo ninguna búsqueda web y responde sin resultados web. Nada detecta por sí solo que una pregunta necesita información actual.",
+      "fr": "Le mode recherche nécessite les deux : Activer le mode recherche dans les Paramètres et le bouton en forme de globe à côté de la zone de message du chat. Si l'interrupteur des Paramètres est désactivé ou qu'aucun fournisseur n'est configuré, le chat explique une fois pourquoi aucune recherche web n'a eu lieu et répond sans résultats web. Rien ne détecte de lui-même qu'une question demande des informations récentes.",
+      "ja": "リサーチ モードを使うには、設定の [リサーチ モードを有効化] と、チャットのメッセージ ボックスの横にある地球儀ボタンの両方が必要です。設定のスイッチがオフの場合やプロバイダーが設定されていない場合、チャットは Web 検索を行わなかった理由を一度だけ表示し、Web の結果なしで回答します。質問に最新情報が必要かどうかを自動で判断する機能はありません。",
+      "zh-CN": "研究模式需要两个开关同时打开：“设置”中的“启用研究模式”和聊天消息框旁的地球按钮。如果“设置”中的开关关闭或未配置提供商，聊天会提示一次未进行网页搜索的原因，并在不使用网页结果的情况下回答。系统不会自动判断问题是否需要最新信息。"
+    },
+    "UserGuide_WebSearch_Mode2_Title.Text": {
+      "en-US": "Sources in Exports",
+      "de": "Quellen in Exporten",
+      "es": "Fuentes en las exportaciones",
+      "fr": "Sources dans les exports",
+      "ja": "エクスポートでのソース",
+      "zh-CN": "导出中的来源"
+    },
+    "UserGuide_WebSearch_Mode2_Description.Text": {
+      "en-US": "Because the sources are stored with each answer, a conversation export can include them: turn on Include citations in the export dialog to list each answer's sources under it, numbered as its [n] markers. There is no /search prefix and no separate Web button in the message box.",
+      "de": "Da die Quellen mit jeder Antwort gespeichert werden, kann ein Export der Unterhaltung sie enthalten: Schalten Sie im Exportdialog „Quellenangaben einschließen“ ein, um die Quellen jeder Antwort darunter aufzulisten, nummeriert wie ihre [n]-Markierungen. Ein Präfix /search oder eine eigene Web-Schaltfläche im Nachrichtenfeld gibt es nicht.",
+      "es": "Como las fuentes se guardan con cada respuesta, una exportación de la conversación puede incluirlas: active Incluir citas en el cuadro de exportación para mostrar las fuentes de cada respuesta debajo de ella, numeradas como sus marcas [n]. No existe el prefijo /search ni un botón Web aparte en el cuadro de mensaje.",
+      "fr": "Comme les sources sont enregistrées avec chaque réponse, l'export d'une conversation peut les inclure : activez Inclure les citations dans la boîte d'export pour lister les sources de chaque réponse sous celle-ci, numérotées comme ses repères [n]. Il n'existe ni préfixe /search ni bouton Web distinct dans la zone de message.",
+      "ja": "ソースは回答ごとに保存されるため、会話のエクスポートに含めることができます。エクスポート ダイアログで [引用を含める] をオンにすると、各回答の下にそのソースが [n] の番号どおりに一覧表示されます。メッセージ ボックスに /search プレフィックスや専用の Web ボタンはありません。",
+      "zh-CN": "由于来源随每个回答一起保存，导出对话时可以包含它们：在导出对话框中打开“包含引用”，即可在每个回答下方按其 [n] 标记的编号列出来源。消息框中没有 /search 前缀，也没有单独的 Web 按钮。"
+    },
+    "UserGuide_WebSearch_Mode3_Title.Text": {
+      "en-US": "Vault and Web Stay Separate",
+      "de": "Tresor und Web bleiben getrennt",
+      "es": "Bóveda y web por separado",
+      "fr": "Coffre-fort et web restent séparés",
+      "ja": "Vault と Web は別々",
+      "zh-CN": "Vault 与网页分开"
+    },
+    "UserGuide_WebSearch_Mode3_Description.Text": {
+      "en-US": "Research Mode works in AI Chat only, and AI Chat does not search your Knowledge Vault, so an answer never mixes vault and web sources and its citations carry no Vault or Web tag. To ask about your own documents, use Ask Your Files, which does not search the web.",
+      "de": "Der Recherchemodus funktioniert nur in AI Chat, und AI Chat durchsucht Ihren Wissens-Tresor nicht. Eine Antwort mischt daher nie Tresor- und Webquellen, und ihre Quellenangaben tragen keine Kennzeichnung „Tresor“ oder „Web“. Für Fragen zu Ihren eigenen Dokumenten verwenden Sie „Fragen Sie Ihre Dateien“, das nicht im Web sucht.",
+      "es": "El modo investigación solo funciona en AI Chat, y AI Chat no busca en su Bóveda de Conocimiento, así que una respuesta nunca mezcla fuentes de la bóveda y de la web, y sus citas no llevan etiqueta de Bóveda o Web. Para preguntar por sus propios documentos, use Pregunta a tus archivos, que no busca en la web.",
+      "fr": "Le mode recherche ne fonctionne que dans AI Chat, et AI Chat ne cherche pas dans votre Coffre-fort de Connaissances : une réponse ne mélange donc jamais sources du coffre-fort et sources web, et ses citations ne portent aucune étiquette Coffre-fort ou Web. Pour interroger vos propres documents, utilisez Interroger vos fichiers, qui ne cherche pas sur le web.",
+      "ja": "リサーチ モードが使えるのは AI Chat だけで、AI Chat は Knowledge Vault を検索しません。そのため、回答で Vault と Web のソースが混ざることはなく、引用に「Vault」や「Web」のタグも付きません。自分のドキュメントについて質問するには、Web を検索しない「ファイルに質問する」を使います。",
+      "zh-CN": "研究模式仅在 AI Chat 中可用，而 AI Chat 不会搜索您的 Knowledge Vault，因此回答不会混合 Vault 和网页来源，引用也不带“Vault”或“Web”标签。要就您自己的文档提问，请使用不搜索网页的“向您的文件提问”。"
+    },
+    "UserGuide_WebSearch_Tip1.Text": {
+      "en-US": "Open a source - Click a numbered chip under an answer to read the page in your default browser. To keep a page, import it with Web Import; citations have no right-click import.",
+      "de": "Quelle öffnen - Klicken Sie unter einer Antwort auf einen nummerierten Chip, um die Seite in Ihrem Standardbrowser zu lesen. Um eine Seite zu behalten, importieren Sie sie mit dem Web-Import; Quellenangaben lassen sich nicht per Rechtsklick importieren.",
+      "es": "Abrir una fuente - Haga clic en una ficha numerada bajo una respuesta para leer la página en su navegador predeterminado. Para conservar una página, impórtela con Importación web; las citas no tienen importación con clic derecho.",
+      "fr": "Ouvrir une source - Cliquez sur une puce numérotée sous une réponse pour lire la page dans votre navigateur par défaut. Pour conserver une page, importez-la avec Import Web ; les citations ne proposent pas d'import par clic droit.",
+      "ja": "ソースを開く：回答の下にある番号付きのチップをクリックすると、既定のブラウザーでページを読めます。ページを残すには Web インポートで取り込みます。引用を右クリックしてインポートする機能はありません。",
+      "zh-CN": "打开来源：点击回答下方的编号标签，即可在默认浏览器中阅读该网页。要保留网页，请使用网页导入；引用不支持右键导入。"
+    },
+    "UserGuide_WebSearch_Tip2.Text": {
+      "en-US": "Fresh results - The same query within the Cache Duration (60 minutes by default) reuses the cached results, so shorten the duration in Settings when a topic changes quickly. Wording such as 'as of today' does not start a search on its own; Research Mode has to be on.",
+      "de": "Aktuelle Ergebnisse - Dieselbe Anfrage innerhalb der Cache-Dauer (standardmäßig 60 Minuten) verwendet die zwischengespeicherten Ergebnisse erneut; verkürzen Sie die Dauer daher in den Einstellungen, wenn sich ein Thema schnell ändert. Formulierungen wie „Stand heute“ starten von sich aus keine Suche; der Recherchemodus muss eingeschaltet sein.",
+      "es": "Resultados recientes - La misma consulta dentro de la Duración de caché (60 minutos de forma predeterminada) reutiliza los resultados guardados, así que acorte la duración en Configuración cuando un tema cambie rápido. Expresiones como «a día de hoy» no inician una búsqueda por sí solas; el modo investigación tiene que estar activado.",
+      "fr": "Résultats récents - La même requête pendant la Durée du cache (60 minutes par défaut) réutilise les résultats mis en cache : raccourcissez donc la durée dans les Paramètres quand un sujet évolue vite. Des formulations comme « à ce jour » ne déclenchent pas de recherche d'elles-mêmes ; le mode recherche doit être activé.",
+      "ja": "新しい結果を得る：[キャッシュ期間] (既定は 60 分) 内に同じクエリを送ると、キャッシュされた結果が再利用されます。変化の速い話題では、設定で期間を短くしてください。「今日時点で」のような言い回しだけでは検索は始まりません。リサーチ モードをオンにする必要があります。",
+      "zh-CN": "获取最新结果：在缓存时长（默认 60 分钟）内重复相同的查询会重用缓存的结果，因此对于变化较快的话题，请在“设置”中缩短时长。“截至今天”之类的措辞本身不会触发搜索，必须打开研究模式。"
+    }
+  },
+  "add": {}
+}
