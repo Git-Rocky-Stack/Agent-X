@@ -10,6 +10,7 @@
 
     <Page.Resources>
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibility" />
+        <converters:BoolToVisibilityConverter x:Key="InverseBoolToVisibility" IsInverted="True" />
         <converters:StringToVisibilityConverter x:Key="StringToVisibility" />
     </Page.Resources>
 
@@ -436,6 +437,69 @@
 
                     <ToggleSwitch x:Uid="Settings_AutoIndexWatchFolders" Header="Auto-index watch folders"
                                   IsOn="{x:Bind ViewModel.AutoIndexWatchFolders, Mode=TwoWay}" />
+
+                    <!-- Watch folders (WatchFolderSettingsViewModel). Adding and removing act at once;
+                         the switch above is applied to the watcher when settings are saved. -->
+                    <StackPanel Spacing="8">
+                        <TextBlock x:Uid="Settings_WatchFolders" Text="Watch Folders"
+                                   Style="{StaticResource LabelStyle}" />
+                        <TextBlock x:Uid="Settings_WatchFoldersDescription"
+                                   Text="While the switch is on, Agent-X imports the supported files in these folders and keeps importing new and changed ones while it runs. Adding or removing a folder takes effect at once; the switch takes effect when you save settings."
+                                   Style="{StaticResource CaptionStyle}"
+                                   TextWrapping="Wrap" />
+
+                        <ItemsRepeater ItemsSource="{x:Bind ViewModel.WatchFolders.Folders}">
+                            <ItemsRepeater.Layout>
+                                <StackLayout Spacing="8" />
+                            </ItemsRepeater.Layout>
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate x:DataType="vm:WatchFolderItem">
+                                    <Border Style="{StaticResource CardInsetStyle}" Padding="12">
+                                        <Grid ColumnSpacing="12">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Spacing="2" VerticalAlignment="Center">
+                                                <TextBlock Text="{x:Bind Path}"
+                                                           Style="{StaticResource MonoSmallStyle}"
+                                                           TextTrimming="CharacterEllipsis" />
+                                                <TextBlock Text="{x:Bind Details}"
+                                                           Style="{StaticResource CaptionStyle}" />
+                                            </StackPanel>
+                                            <Button Grid.Column="1"
+                                                    Content="&#xE74D;"
+                                                    FontFamily="{ThemeResource SymbolThemeFontFamily}"
+                                                    x:Uid="Settings_RemoveWatchFolder" ToolTipService.ToolTip="Remove watch folder"
+                                                    AutomationProperties.Name="Remove watch folder"
+                                                    Style="{StaticResource GhostButtonStyle}"
+                                                    Tag="{x:Bind Id}"
+                                                    Click="OnRemoveWatchFolderClick"
+                                                    Padding="8" MinWidth="0" MinHeight="0" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
+
+                        <TextBlock x:Uid="Settings_NoWatchFolders" Text="No watch folders yet."
+                                   Style="{StaticResource CaptionStyle}"
+                                   Visibility="{x:Bind ViewModel.WatchFolders.HasFolders, Mode=OneWay, Converter={StaticResource InverseBoolToVisibility}}" />
+
+                        <StackPanel Orientation="Horizontal" Spacing="16">
+                            <Button x:Uid="Settings_AddWatchFolder" Content="Add Folder"
+                                    Click="OnAddWatchFolderClick"
+                                    Style="{StaticResource SecondaryButtonStyle}" />
+                            <CheckBox x:Uid="Settings_WatchIncludeSubfolders" Content="Include subfolders"
+                                      IsChecked="{x:Bind ViewModel.WatchFolders.IncludeSubfolders, Mode=TwoWay}"
+                                      VerticalAlignment="Center" />
+                        </StackPanel>
+
+                        <TextBlock Text="{x:Bind ViewModel.WatchFolders.StatusMessage, Mode=OneWay}"
+                                   Style="{StaticResource CaptionStyle}"
+                                   TextWrapping="Wrap"
+                                   Visibility="{x:Bind ViewModel.WatchFolders.StatusMessage, Mode=OneWay, Converter={StaticResource StringToVisibility}}" />
+                    </StackPanel>
                 </StackPanel>
             </controls:Faceplate>
 

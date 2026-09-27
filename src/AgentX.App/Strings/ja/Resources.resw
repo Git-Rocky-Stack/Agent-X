@@ -155,7 +155,7 @@
   <data name="UserGuide_KnowledgeVault_Importing_Description.Text" xml:space="preserve"><value>Knowledge Vault にドキュメントを追加するには、次の 5 つの方法があります:</value></data>
   <data name="UserGuide_KnowledgeVault_Import1.Text" xml:space="preserve"><value>Drag and drop — Drag files or folders directly onto the Knowledge Vault page. Agent-X will import all supported file types.</value></data>
   <data name="UserGuide_KnowledgeVault_Import2.Text" xml:space="preserve"><value>File picker — Click the Import button and select individual files from the system file picker dialog.</value></data>
-  <data name="UserGuide_KnowledgeVault_Import3.Text" xml:space="preserve"><value>Folder import — Select an entire folder to recursively import all supported files. Subfolders are scanned automatically.</value></data>
+  <data name="UserGuide_KnowledgeVault_Import3.Text" xml:space="preserve"><value>フォルダーのインポート - 「フォルダーをインポート」をクリックすると、フォルダーとそのサブフォルダー内のサポートされているすべてのファイルを一度にインポートできます。フォルダーから継続してインポートするには、「設定」&gt;「Knowledge Vault」の「監視フォルダー」に追加します。「監視フォルダーを自動インデックス」がオンの間、Agent-X はフォルダー内の既存のサポートされているファイルをインポートし、実行中は新しいファイルや変更されたファイルもインポートします。</value></data>
   <data name="UserGuide_KnowledgeVault_Managing_Title.Text" xml:space="preserve"><value>ドキュメントの管理</value></data>
   <data name="UserGuide_KnowledgeVault_Managing_Description.Text" xml:space="preserve"><value>Each document in the vault shows its file name, format, size, import date, chunk count, and indexing status. You can:</value></data>
   <data name="UserGuide_KnowledgeVault_Manage1.Text" xml:space="preserve"><value>View document details including full text preview, metadata, and chunk breakdown.</value></data>
@@ -227,7 +227,7 @@
   <data name="UserGuide_Settings_Group2_Title.Text" xml:space="preserve"><value>推論</value></data>
   <data name="UserGuide_Settings_Group2_Description.Text" xml:space="preserve"><value>Temperature (creativity), max tokens (response length), and context window size for conversation memory.</value></data>
   <data name="UserGuide_Settings_Group3_Title.Text" xml:space="preserve"><value>Knowledge Vault</value></data>
-  <data name="UserGuide_Settings_Group3_Description.Text" xml:space="preserve"><value>Chunk size, chunk overlap, and top-K results for retrieval. Controls how documents are split and how many chunks are retrieved per query.</value></data>
+  <data name="UserGuide_Settings_Group3_Description.Text" xml:space="preserve"><value>インデックス作成の動作を制御します: チャンク サイズ (既定は 512 トークン)、チャンクの重なり (既定は 50 トークン)、クエリごとに取得するチャンク数 (上位 K 件、既定は 5)。「監視フォルダー」には、Agent-X が自動でインポートするフォルダーが一覧表示されます。「フォルダーを追加」でサブフォルダーを含めるかどうかを選んで追加するか、削除します。「監視フォルダーを自動インデックス」スイッチは、保存時にこれらのフォルダーからのインポートをオンまたはオフにします。</value></data>
   <data name="UserGuide_Settings_Group4_Title.Text" xml:space="preserve"><value>コスト トラッキング</value></data>
   <data name="UserGuide_Settings_Group4_Description.Text" xml:space="preserve"><value>Monitor and track cloud API usage costs for OpenAI and Anthropic providers. View per-session and cumulative spending with detailed breakdowns.</value></data>
   <data name="UserGuide_Settings_Shortcut.Text" xml:space="preserve"><value>Use Ctrl+, to quickly jump to Settings from anywhere in the app.</value></data>
@@ -2081,4 +2081,23 @@
   <data name="Backup_ScheduleFolderInvalid" xml:space="preserve"><value>スケジュールは保存されませんでした: フォルダーを作成できません ({0})。</value></data>
   <data name="Backup_ScheduleNotSaved" xml:space="preserve"><value>スケジュールは保存されませんでした: {0}</value></data>
   <data name="Backup_ScheduleNotApplied" xml:space="preserve"><value>スケジュールは保存されましたが、スケジュール バックアップを開始できませんでした: {0}</value></data>
+
+  <!-- Settings: watch folders section and messages -->
+  <data name="Settings_WatchFolders.Text" xml:space="preserve"><value>監視フォルダー</value></data>
+  <data name="Settings_WatchFoldersDescription.Text" xml:space="preserve"><value>スイッチがオンの間、Agent-X はこれらのフォルダー内のサポートされているファイルをインポートし、実行中は新しいファイルや変更されたファイルを引き続きインポートします。フォルダーの追加と削除はすぐに反映され、スイッチは設定を保存したときに反映されます。</value></data>
+  <data name="Settings_RemoveWatchFolder.ToolTipService.ToolTip" xml:space="preserve"><value>監視フォルダーを削除</value></data>
+  <data name="Settings_RemoveWatchFolder.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>監視フォルダーを削除</value></data>
+  <data name="Settings_NoWatchFolders.Text" xml:space="preserve"><value>監視フォルダーはまだありません。</value></data>
+  <data name="Settings_AddWatchFolder.Content" xml:space="preserve"><value>フォルダーを追加</value></data>
+  <data name="Settings_WatchIncludeSubfolders.Content" xml:space="preserve"><value>サブフォルダーを含める</value></data>
+  <data name="Settings_WatchFoldersLoadFailed" xml:space="preserve"><value>監視フォルダーを読み込めませんでした: {0}</value></data>
+  <data name="Settings_WatchFolderNotFound" xml:space="preserve"><value>{0} が見つかりませんでした。</value></data>
+  <data name="Settings_WatchFolderAlreadyAdded" xml:space="preserve"><value>{0} は既に監視フォルダーです。</value></data>
+  <data name="Settings_WatchFolderAddFailed" xml:space="preserve"><value>フォルダーを追加できませんでした: {0}</value></data>
+  <data name="Settings_WatchFolderAdded" xml:space="preserve"><value>{0} を監視しています。フォルダー内の既存のサポートされているファイルをインポートしています。</value></data>
+  <data name="Settings_WatchFolderAddedPaused" xml:space="preserve"><value>{0} を追加しました。「監視フォルダーを自動インデックス」がオフの間は何もインポートされません。開始するには、オンにして設定を保存してください。</value></data>
+  <data name="Settings_WatchFolderRemoved" xml:space="preserve"><value>{0} の監視を停止しました。既にインポートされたドキュメントは Knowledge Vault に残ります。</value></data>
+  <data name="Settings_WatchFolderRemoveFailed" xml:space="preserve"><value>フォルダーを削除できませんでした: {0}</value></data>
+  <data name="Settings_WatchFolderWithSubfolders" xml:space="preserve"><value>サブフォルダーを含む。インポートしたファイル: {0}</value></data>
+  <data name="Settings_WatchFolderTopLevelOnly" xml:space="preserve"><value>このフォルダーのみ。インポートしたファイル: {0}</value></data>
 </root>

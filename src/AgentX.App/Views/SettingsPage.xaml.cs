@@ -5,6 +5,8 @@ using AgentX.Core.Services.Shortcuts;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
+using Windows.Storage.Pickers;
+using WinRT.Interop;
 
 namespace AgentX.App.Views;
 
@@ -15,6 +17,9 @@ public sealed partial class SettingsPage : Page
     private bool _isLoaded;
 
     public SettingsViewModel ViewModel { get; }
+
+    /// <summary>The Watch Folders section of the page.</summary>
+    private WatchFolderSettingsViewModel WatchFolders => ViewModel.WatchFolders;
 
     public SettingsPage()
     {
@@ -80,6 +85,44 @@ public sealed partial class SettingsPage : Page
         // A declined or failed request can leave EncryptionEnabled unchanged (no PropertyChanged),
         // so always show the real state once the request settles.
         SyncEncryptionToggle();
+    }
+
+    /// <summary>
+    /// Picks a folder to watch and adds it, including its subfolders when Include subfolders is on.
+    /// </summary>
+    private async void OnAddWatchFolderClick(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var folderPicker = new FolderPicker();
+            folderPicker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
+            folderPicker.FileTypeFilter.Add("*");
+
+            var hwnd = WindowNative.GetWindowHandle(App.MainWindow);
+            InitializeWithWindow.Initialize(folderPicker, hwnd);
+
+            var folder = await folderPicker.PickSingleFolderAsync();
+            if (folder is not null)
+            {
+                await WatchFolders.AddFolderCommand.ExecuteAsync(folder.Path);
+            }
+        }
+        catch (Exception ex)
+        {
+            Serilog.Log.Warning(ex, "Adding a watch folder failed");
+        }
+    }
+
+    /// <summary>
+    /// Stops watching the folder of the row and forgets it. No confirmation: documents already
+    /// imported from it stay in the vault, and the folder can be added again.
+    /// </summary>
+    private async void OnRemoveWatchFolderClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { Tag: long watchFolderId })
+        {
+            await WatchFolders.RemoveFolderCommand.ExecuteAsync(watchFolderId);
+        }
     }
 
     /// <summary>

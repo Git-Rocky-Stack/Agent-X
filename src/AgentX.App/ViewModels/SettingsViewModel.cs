@@ -3,6 +3,8 @@ using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
 using AgentX.Core.AI.Routing;
 using AgentX.Core.Services.Api;
+using AgentX.Core.Services.Indexing;
+using AgentX.Core.Services.Localization;
 using AgentX.Core.Services.Search;
 using AgentX.Core.Services.Security;
 using AgentX.Core.Services.Settings;
@@ -58,6 +60,9 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private int _chunkOverlap = 50;
     [ObservableProperty] private int _topKResults = 5;
     [ObservableProperty] private bool _autoIndexWatchFolders = true;
+
+    /// <summary>The Watch Folders section next to the Auto-index watch folders switch.</summary>
+    public WatchFolderSettingsViewModel WatchFolders { get; }
 
     // ── Appearance ──────────────────────────────────────────
     [ObservableProperty] private bool _compactMode;
@@ -143,6 +148,8 @@ public partial class SettingsViewModel : ObservableObject
         ISecurityStatusService securityStatusService,
         IEncryptionStateFile encryptionStateFile,
         IApiHostLifecycleService apiHostLifecycle,
+        IFileWatcherService fileWatcherService,
+        ILocalizationService localization,
         IModelRouterService? modelRouterService = null,
         IDatabaseEncryptionManager? databaseEncryptionManager = null)
     {
@@ -155,6 +162,7 @@ public partial class SettingsViewModel : ObservableObject
         _apiHostLifecycle = apiHostLifecycle;
         _modelRouterService = modelRouterService;
         _databaseEncryptionManager = databaseEncryptionManager;
+        WatchFolders = new WatchFolderSettingsViewModel(fileWatcherService, settingsService, localization);
 
         StoragePath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -230,6 +238,9 @@ public partial class SettingsViewModel : ObservableObject
         // Load security status
         AreKeysEncrypted = _securityStatusService.AreKeysEncrypted;
         EncryptionStatusDescription = _securityStatusService.GetEncryptionStatusDescription();
+
+        // Watch folders and the saved state of their switch
+        await WatchFolders.LoadAsync();
 
         Log.Information("Settings loaded");
     }
@@ -310,6 +321,9 @@ public partial class SettingsViewModel : ObservableObject
 
         // Turning the Local API on or off takes effect now, not on the next launch.
         await ApplyLocalApiSettingsAsync();
+
+        // So does turning watch folders on or off.
+        await WatchFolders.ApplyAutoIndexAsync(settings.AutoIndexWatchFolders);
 
         // Re-initialize AI service so provider changes take effect
         try

@@ -228,7 +228,7 @@ The summary screen provides a complete readiness report:
 1. **Database Initialization**: EF Core migrations create or upgrade the schema (conversations, messages, documents, chunks, collections, tags, memories, workflows, and more)
 2. **Vector Store Setup**: HNSW ANN index initializes for semantic search (or linear-scan fallback for small vaults)
 3. **Indexing Pipeline**: The background indexer starts. Documents left pending or interrupted in an earlier session are queued again, and every import is chunked, embedded and full-text indexed in the background, so it becomes searchable without further action
-4. **File System Watcher**: With **Auto-index watch folders** on, the watch-folder service starts and catches up on files added or changed while the app was closed, but the app has no UI to add a watch folder yet, so there is nothing for it to watch. Import files from the Knowledge Vault instead.
+4. **File System Watcher**: With **Auto-index watch folders** on, Agent-X starts watching the folders listed under **Watch Folders** (Settings > Knowledge Vault) and catches up on files added or changed there while the app was closed.
 5. **Dashboard Loads**: Your operational command center surfaces recent activity, recommended actions, and system health
 
 ### Re-running Onboarding
@@ -481,6 +481,7 @@ The Knowledge Vault is the document repository and indexing control center.
 
 - File picker for selected files.
 - Folder import for batches.
+- Watch folders (Settings > Knowledge Vault > Watch Folders): folders Agent-X keeps importing from. Add one with **Add Folder**, with or without its subfolders. While **Auto-index watch folders** is on, Agent-X imports the supported files already in it, then new and changed files while it runs. Removing a folder stops watching it; documents already imported stay. Turning the switch on or off takes effect when you save settings.
 - Drag and drop from Windows Explorer.
 - Web Import and Smart Inbox handoff.
 - Workflow result save-to-vault.
@@ -1012,7 +1013,7 @@ Settings is the control plane for provider, inference, indexing, security, stora
 | --- | --- |
 | AI Provider | Ollama endpoint, active provider, OpenAI key, Anthropic key |
 | Inference | Temperature, max tokens, context window |
-| Knowledge Vault | Chunk size, chunk overlap, top-K, indexing behavior |
+| Knowledge Vault | Chunk size, chunk overlap (smaller than the chunk size), top-K, watch folders and the Auto-index watch folders switch |
 | Research Mode | Web search on or off, the search provider, and its credential: the API key for Brave or Serper, or the instance URL for SearXNG |
 | Database Encryption | SQLCipher enablement and key/passphrase flow |
 | Language/UI | Locale follows Windows display language |

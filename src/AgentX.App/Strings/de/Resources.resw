@@ -155,7 +155,7 @@
   <data name="UserGuide_KnowledgeVault_Importing_Description.Text" xml:space="preserve"><value>Es gibt fünf Möglichkeiten, Dokumente zu Ihrem Knowledge Vault hinzuzufügen:</value></data>
   <data name="UserGuide_KnowledgeVault_Import1.Text" xml:space="preserve"><value>Drag and drop — Drag files or folders directly onto the Knowledge Vault page. Agent-X will import all supported file types.</value></data>
   <data name="UserGuide_KnowledgeVault_Import2.Text" xml:space="preserve"><value>File picker — Click the Import button and select individual files from the system file picker dialog.</value></data>
-  <data name="UserGuide_KnowledgeVault_Import3.Text" xml:space="preserve"><value>Folder import — Select an entire folder to recursively import all supported files. Subfolders are scanned automatically.</value></data>
+  <data name="UserGuide_KnowledgeVault_Import3.Text" xml:space="preserve"><value>Ordnerimport - Klicken Sie auf „Ordner importieren“, um alle unterstützten Dateien eines Ordners und seiner Unterordner in einem Durchgang zu importieren. Um laufend aus einem Ordner zu importieren, fügen Sie ihn unter Einstellungen &gt; Wissens-Tresor bei „Überwachte Ordner“ hinzu: Solange „Überwachte Ordner automatisch indexieren“ eingeschaltet ist, importiert Agent-X die dort bereits vorhandenen unterstützten Dateien und danach, während es läuft, neue und geänderte.</value></data>
   <data name="UserGuide_KnowledgeVault_Managing_Title.Text" xml:space="preserve"><value>Dokumente verwalten</value></data>
   <data name="UserGuide_KnowledgeVault_Managing_Description.Text" xml:space="preserve"><value>Each document in the vault shows its file name, format, size, import date, chunk count, and indexing status. You can:</value></data>
   <data name="UserGuide_KnowledgeVault_Manage1.Text" xml:space="preserve"><value>View document details including full text preview, metadata, and chunk breakdown.</value></data>
@@ -227,7 +227,7 @@
   <data name="UserGuide_Settings_Group2_Title.Text" xml:space="preserve"><value>Inferenz</value></data>
   <data name="UserGuide_Settings_Group2_Description.Text" xml:space="preserve"><value>Temperature (creativity), max tokens (response length), and context window size for conversation memory.</value></data>
   <data name="UserGuide_Settings_Group3_Title.Text" xml:space="preserve"><value>Wissens-Tresor</value></data>
-  <data name="UserGuide_Settings_Group3_Description.Text" xml:space="preserve"><value>Chunk size, chunk overlap, and top-K results for retrieval. Controls how documents are split and how many chunks are retrieved per query.</value></data>
+  <data name="UserGuide_Settings_Group3_Description.Text" xml:space="preserve"><value>Steuern Sie die Indexierung: Chunk-Größe (Standard 512 Tokens), Chunk-Überlappung (Standard 50 Tokens) und wie viele Chunks pro Anfrage abgerufen werden (Top-K, Standard 5). „Überwachte Ordner“ listet die Ordner, aus denen Agent-X selbstständig importiert: Fügen Sie mit „Ordner hinzufügen“ einen Ordner mit oder ohne Unterordner hinzu, oder entfernen Sie ihn. Der Schalter „Überwachte Ordner automatisch indexieren“ schaltet den Import aus diesen Ordnern beim Speichern ein oder aus.</value></data>
   <data name="UserGuide_Settings_Group4_Title.Text" xml:space="preserve"><value>Kostenverfolgung</value></data>
   <data name="UserGuide_Settings_Group4_Description.Text" xml:space="preserve"><value>Monitor and track cloud API usage costs for OpenAI and Anthropic providers. View per-session and cumulative spending with detailed breakdowns.</value></data>
   <data name="UserGuide_Settings_Shortcut.Text" xml:space="preserve"><value>Use Ctrl+, to quickly jump to Settings from anywhere in the app.</value></data>
@@ -2081,4 +2081,23 @@
   <data name="Backup_ScheduleFolderInvalid" xml:space="preserve"><value>Der Zeitplan wurde nicht gespeichert: Der Ordner kann nicht erstellt werden ({0}).</value></data>
   <data name="Backup_ScheduleNotSaved" xml:space="preserve"><value>Der Zeitplan wurde nicht gespeichert: {0}</value></data>
   <data name="Backup_ScheduleNotApplied" xml:space="preserve"><value>Der Zeitplan wurde gespeichert, aber geplante Backups konnten nicht gestartet werden: {0}</value></data>
+
+  <!-- Settings: watch folders section and messages -->
+  <data name="Settings_WatchFolders.Text" xml:space="preserve"><value>Überwachte Ordner</value></data>
+  <data name="Settings_WatchFoldersDescription.Text" xml:space="preserve"><value>Solange der Schalter eingeschaltet ist, importiert Agent-X die unterstützten Dateien in diesen Ordnern und importiert, während es läuft, laufend neue und geänderte. Das Hinzufügen oder Entfernen eines Ordners wirkt sofort; der Schalter wirkt, wenn Sie die Einstellungen speichern.</value></data>
+  <data name="Settings_RemoveWatchFolder.ToolTipService.ToolTip" xml:space="preserve"><value>Überwachten Ordner entfernen</value></data>
+  <data name="Settings_RemoveWatchFolder.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Überwachten Ordner entfernen</value></data>
+  <data name="Settings_NoWatchFolders.Text" xml:space="preserve"><value>Noch keine überwachten Ordner.</value></data>
+  <data name="Settings_AddWatchFolder.Content" xml:space="preserve"><value>Ordner hinzufügen</value></data>
+  <data name="Settings_WatchIncludeSubfolders.Content" xml:space="preserve"><value>Unterordner einbeziehen</value></data>
+  <data name="Settings_WatchFoldersLoadFailed" xml:space="preserve"><value>Die überwachten Ordner konnten nicht geladen werden: {0}</value></data>
+  <data name="Settings_WatchFolderNotFound" xml:space="preserve"><value>{0} wurde nicht gefunden.</value></data>
+  <data name="Settings_WatchFolderAlreadyAdded" xml:space="preserve"><value>{0} ist bereits ein überwachter Ordner.</value></data>
+  <data name="Settings_WatchFolderAddFailed" xml:space="preserve"><value>Der Ordner konnte nicht hinzugefügt werden: {0}</value></data>
+  <data name="Settings_WatchFolderAdded" xml:space="preserve"><value>{0} wird überwacht. Die darin bereits vorhandenen unterstützten Dateien werden importiert.</value></data>
+  <data name="Settings_WatchFolderAddedPaused" xml:space="preserve"><value>{0} wurde hinzugefügt. Solange „Überwachte Ordner automatisch indexieren“ ausgeschaltet ist, wird nichts importiert; schalten Sie die Option ein und speichern Sie die Einstellungen, um zu beginnen.</value></data>
+  <data name="Settings_WatchFolderRemoved" xml:space="preserve"><value>{0} wird nicht mehr überwacht. Bereits daraus importierte Dokumente bleiben im Tresor.</value></data>
+  <data name="Settings_WatchFolderRemoveFailed" xml:space="preserve"><value>Der Ordner konnte nicht entfernt werden: {0}</value></data>
+  <data name="Settings_WatchFolderWithSubfolders" xml:space="preserve"><value>Mit Unterordnern. Importierte Dateien: {0}</value></data>
+  <data name="Settings_WatchFolderTopLevelOnly" xml:space="preserve"><value>Nur dieser Ordner. Importierte Dateien: {0}</value></data>
 </root>

@@ -186,7 +186,7 @@
   <data name="UserGuide_KnowledgeVault_Importing_Description.Text" xml:space="preserve"><value>There are five ways to add documents to your Knowledge Vault:</value></data>
   <data name="UserGuide_KnowledgeVault_Import1.Text" xml:space="preserve"><value>Drag and drop — Drag files or entire folders onto the Knowledge Vault page. Supported formats are imported automatically; unsupported formats are skipped with a clear log entry. Folder imports preserve relative paths as searchable metadata.</value></data>
   <data name="UserGuide_KnowledgeVault_Import2.Text" xml:space="preserve"><value>Import button — Use the Import button to open a multi-select system file picker, or paste URLs to ingest web content directly via the built-in scraper (Web Import). The Import flow batches submissions to the indexing queue so the UI stays responsive while large folders process.</value></data>
-  <data name="UserGuide_KnowledgeVault_Import3.Text" xml:space="preserve"><value>Folder import - Click Import Folder to import every supported file in a folder and its subfolders in one pass. Watch folders, which would pick up new files on their own, are not available yet: Settings shows an Auto-index watch folders switch, but the app has no way to add a folder to watch, so import new files yourself.</value></data>
+  <data name="UserGuide_KnowledgeVault_Import3.Text" xml:space="preserve"><value>Folder import - Click Import Folder to import every supported file in a folder and its subfolders in one pass. To keep importing from a folder, add it under Watch Folders in Settings &gt; Knowledge Vault: while Auto-index watch folders is on, Agent-X imports the supported files already there, then new and changed ones while it runs.</value></data>
   <data name="UserGuide_KnowledgeVault_Managing_Title.Text" xml:space="preserve"><value>Managing Documents</value></data>
   <data name="UserGuide_KnowledgeVault_Managing_Description.Text" xml:space="preserve"><value>Each row in the Knowledge Vault surfaces file name, format, size, import timestamp, chunk count, indexing status, AI-generated tags, and source path. From the row context menu and side preview pane you can:</value></data>
   <data name="UserGuide_KnowledgeVault_Manage1.Text" xml:space="preserve"><value>Preview the full extracted text, view per-chunk breakdown with token counts, inspect metadata (author, page count, language detected), and see which Collections the document belongs to.</value></data>
@@ -272,7 +272,7 @@
   <data name="UserGuide_Settings_Group2_Title.Text" xml:space="preserve"><value>Inference</value></data>
   <data name="UserGuide_Settings_Group2_Description.Text" xml:space="preserve"><value>Tune generation parameters: temperature (0.0 deterministic → 1.0 creative), top_p, top_k, frequency/presence penalties, max_tokens per response, default context window size, and stop sequences. Per-conversation overrides exist in Chat — these are the system-wide defaults for new conversations.</value></data>
   <data name="UserGuide_Settings_Group3_Title.Text" xml:space="preserve"><value>Knowledge Vault</value></data>
-  <data name="UserGuide_Settings_Group3_Description.Text" xml:space="preserve"><value>Control indexing behavior: chunk size (default 512 tokens), chunk overlap (default 50 tokens), and how many chunks are retrieved per query (top-K, default 5). The Auto-index watch folders switch lives here too, but the app has no way to add a watch folder yet, so the switch has nothing to act on.</value></data>
+  <data name="UserGuide_Settings_Group3_Description.Text" xml:space="preserve"><value>Control indexing behavior: chunk size (default 512 tokens), chunk overlap (default 50 tokens), and how many chunks are retrieved per query (top-K, default 5). Watch Folders lists the folders Agent-X imports from on its own: add one with Add Folder, with or without its subfolders, or remove it. The Auto-index watch folders switch turns importing from them on or off when you save.</value></data>
   <data name="UserGuide_Settings_Group4_Title.Text" xml:space="preserve"><value>Cost Tracking</value></data>
   <data name="UserGuide_Settings_Group4_Description.Text" xml:space="preserve"><value>For cloud providers, track per-message token usage and dollar cost against the live OpenAI and Anthropic rate cards. Drill into per-session, daily, weekly, and lifetime spend; break down by model, conversation, and feature (Chat, RAG, Quick Action, Workflow). Set monthly soft and hard budget caps that pause cloud calls automatically when exceeded.</value></data>
   <data name="UserGuide_Settings_Shortcut.Text" xml:space="preserve"><value>Press Ctrl+, from anywhere in the app to jump to Settings. Use the search bar at the top of Settings to find any specific option in seconds.</value></data>
@@ -2191,4 +2191,23 @@
   <data name="Backup_ScheduleFolderInvalid" xml:space="preserve"><value>The schedule was not saved: the folder cannot be created ({0}).</value></data>
   <data name="Backup_ScheduleNotSaved" xml:space="preserve"><value>The schedule was not saved: {0}</value></data>
   <data name="Backup_ScheduleNotApplied" xml:space="preserve"><value>The schedule was saved, but scheduled backups could not be started: {0}</value></data>
+
+  <!-- Settings: watch folders section and messages -->
+  <data name="Settings_WatchFolders.Text" xml:space="preserve"><value>Watch Folders</value></data>
+  <data name="Settings_WatchFoldersDescription.Text" xml:space="preserve"><value>While the switch is on, Agent-X imports the supported files in these folders and keeps importing new and changed ones while it runs. Adding or removing a folder takes effect at once; the switch takes effect when you save settings.</value></data>
+  <data name="Settings_RemoveWatchFolder.ToolTipService.ToolTip" xml:space="preserve"><value>Remove watch folder</value></data>
+  <data name="Settings_RemoveWatchFolder.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Remove watch folder</value></data>
+  <data name="Settings_NoWatchFolders.Text" xml:space="preserve"><value>No watch folders yet.</value></data>
+  <data name="Settings_AddWatchFolder.Content" xml:space="preserve"><value>Add Folder</value></data>
+  <data name="Settings_WatchIncludeSubfolders.Content" xml:space="preserve"><value>Include subfolders</value></data>
+  <data name="Settings_WatchFoldersLoadFailed" xml:space="preserve"><value>Watch folders could not be loaded: {0}</value></data>
+  <data name="Settings_WatchFolderNotFound" xml:space="preserve"><value>{0} was not found.</value></data>
+  <data name="Settings_WatchFolderAlreadyAdded" xml:space="preserve"><value>{0} is already a watch folder.</value></data>
+  <data name="Settings_WatchFolderAddFailed" xml:space="preserve"><value>The folder could not be added: {0}</value></data>
+  <data name="Settings_WatchFolderAdded" xml:space="preserve"><value>Watching {0}. The supported files already in it are being imported.</value></data>
+  <data name="Settings_WatchFolderAddedPaused" xml:space="preserve"><value>Added {0}. Nothing is imported while Auto-index watch folders is off; turn it on and save settings to start.</value></data>
+  <data name="Settings_WatchFolderRemoved" xml:space="preserve"><value>Stopped watching {0}. Documents already imported from it stay in the vault.</value></data>
+  <data name="Settings_WatchFolderRemoveFailed" xml:space="preserve"><value>The folder could not be removed: {0}</value></data>
+  <data name="Settings_WatchFolderWithSubfolders" xml:space="preserve"><value>Includes subfolders. Files imported: {0}</value></data>
+  <data name="Settings_WatchFolderTopLevelOnly" xml:space="preserve"><value>This folder only. Files imported: {0}</value></data>
 </root>
