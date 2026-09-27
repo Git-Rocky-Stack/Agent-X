@@ -1842,6 +1842,27 @@
   <data name="AskFiles_DocumentsBeingIndexed" xml:space="preserve"><value>Indexation des documents en cours...</value></data>
   <data name="AskFiles_ImportToGetStarted" xml:space="preserve"><value>Importez des documents pour commencer</value></data>
   <data name="AskFiles_StatusUnavailable" xml:space="preserve"><value>État indisponible</value></data>
+  <data name="Graph_LoadingGraph" xml:space="preserve"><value>Chargement du graphe...</value></data>
+  <data name="Graph_BuildingGraph" xml:space="preserve"><value>Construction du graphe de connaissances...</value></data>
+  <data name="Graph_NodeCountOne" xml:space="preserve"><value>{0} nœud</value></data>
+  <data name="Graph_NodeCountMany" xml:space="preserve"><value>{0} nœuds</value></data>
+  <data name="Graph_ConnectionCountOne" xml:space="preserve"><value>{0} connexion</value></data>
+  <data name="Graph_ConnectionCountMany" xml:space="preserve"><value>{0} connexions</value></data>
+  <data name="Graph_GraphSummary" xml:space="preserve"><value>{0}, {1}</value></data>
+  <data name="Graph_BuildFailed" xml:space="preserve"><value>Impossible de construire le graphe</value></data>
+  <data name="Digest_NoReportsYet" xml:space="preserve"><value>Pas encore de rapports de résumé</value></data>
+  <data name="Digest_LastGenerated" xml:space="preserve"><value>Dernière génération : {0}</value></data>
+  <data name="Digest_NoReportsYetGenerateOne" xml:space="preserve"><value>Pas encore de rapports de résumé. Générez-en un pour voir votre synthèse hebdomadaire.</value></data>
+  <data name="Digest_LoadReportsFailed" xml:space="preserve"><value>Impossible de charger les rapports</value></data>
+  <data name="Digest_GeneratingDigest" xml:space="preserve"><value>Génération du résumé hebdomadaire...</value></data>
+  <data name="Digest_DigestGenerated" xml:space="preserve"><value>Résumé généré avec succès</value></data>
+  <data name="Digest_GenerateDigestFailed" xml:space="preserve"><value>Impossible de générer le résumé</value></data>
+  <data name="Digest_GeneratedAtFormat" xml:space="preserve"><value>{0:d MMM yyyy} à {0:HH:mm}</value></data>
+  <data name="Digest_PeriodFormat" xml:space="preserve"><value>{0:d MMM} - {1:d MMM yyyy}</value></data>
+  <data name="Digest_ShortPeriodFormat" xml:space="preserve"><value>{0:d MMM} - {1:d MMM}</value></data>
+  <data name="Digest_TrendNew" xml:space="preserve"><value>nouveau sur cette période</value></data>
+  <data name="Digest_TrendChange" xml:space="preserve"><value>{0} par rapport à la période précédente</value></data>
+  <data name="Digest_TrendFlat" xml:space="preserve"><value>stable par rapport à la période précédente</value></data>
   <data name="WfBuilder_RecentRuns.Text" xml:space="preserve"><value>Exécutions récentes</value></data>
   <data name="WfBuilder_StoredWorkflowResultsYou.Text" xml:space="preserve"><value>Résultats de flux de travail enregistrés que vous pouvez rouvrir sans les relancer.</value></data>
   <data name="WfBuilder_OpenedFromOperations.Text" xml:space="preserve"><value>Ouvert depuis Operations</value></data>

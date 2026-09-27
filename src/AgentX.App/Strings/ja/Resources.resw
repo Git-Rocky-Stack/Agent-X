@@ -1842,6 +1842,27 @@
   <data name="AskFiles_DocumentsBeingIndexed" xml:space="preserve"><value>ドキュメントのインデックスを作成しています...</value></data>
   <data name="AskFiles_ImportToGetStarted" xml:space="preserve"><value>ドキュメントをインポートして始めましょう</value></data>
   <data name="AskFiles_StatusUnavailable" xml:space="preserve"><value>状態を取得できません</value></data>
+  <data name="Graph_LoadingGraph" xml:space="preserve"><value>グラフを読み込んでいます...</value></data>
+  <data name="Graph_BuildingGraph" xml:space="preserve"><value>ナレッジ グラフを構築しています...</value></data>
+  <data name="Graph_NodeCountOne" xml:space="preserve"><value>{0} 個のノード</value></data>
+  <data name="Graph_NodeCountMany" xml:space="preserve"><value>{0} 個のノード</value></data>
+  <data name="Graph_ConnectionCountOne" xml:space="preserve"><value>{0} 個の接続</value></data>
+  <data name="Graph_ConnectionCountMany" xml:space="preserve"><value>{0} 個の接続</value></data>
+  <data name="Graph_GraphSummary" xml:space="preserve"><value>{0}、{1}</value></data>
+  <data name="Graph_BuildFailed" xml:space="preserve"><value>グラフを構築できませんでした</value></data>
+  <data name="Digest_NoReportsYet" xml:space="preserve"><value>ダイジェスト レポートはまだありません</value></data>
+  <data name="Digest_LastGenerated" xml:space="preserve"><value>最終生成: {0}</value></data>
+  <data name="Digest_NoReportsYetGenerateOne" xml:space="preserve"><value>ダイジェスト レポートはまだありません。生成すると週次のまとめを確認できます。</value></data>
+  <data name="Digest_LoadReportsFailed" xml:space="preserve"><value>レポートを読み込めませんでした</value></data>
+  <data name="Digest_GeneratingDigest" xml:space="preserve"><value>週次ダイジェストを生成しています...</value></data>
+  <data name="Digest_DigestGenerated" xml:space="preserve"><value>ダイジェストを生成しました</value></data>
+  <data name="Digest_GenerateDigestFailed" xml:space="preserve"><value>ダイジェストを生成できませんでした</value></data>
+  <data name="Digest_GeneratedAtFormat" xml:space="preserve"><value>{0:yyyy年M月d日} {0:H:mm}</value></data>
+  <data name="Digest_PeriodFormat" xml:space="preserve"><value>{0:M月d日} - {1:yyyy年M月d日}</value></data>
+  <data name="Digest_ShortPeriodFormat" xml:space="preserve"><value>{0:M月d日} - {1:M月d日}</value></data>
+  <data name="Digest_TrendNew" xml:space="preserve"><value>今期間の新規</value></data>
+  <data name="Digest_TrendChange" xml:space="preserve"><value>前期間比 {0}</value></data>
+  <data name="Digest_TrendFlat" xml:space="preserve"><value>前期間から変化なし</value></data>
   <data name="WfBuilder_RecentRuns.Text" xml:space="preserve"><value>最近の実行</value></data>
   <data name="WfBuilder_StoredWorkflowResultsYou.Text" xml:space="preserve"><value>再実行せずに開ける、保存済みのワークフロー結果です。</value></data>
   <data name="WfBuilder_OpenedFromOperations.Text" xml:space="preserve"><value>Operations から開きました</value></data>

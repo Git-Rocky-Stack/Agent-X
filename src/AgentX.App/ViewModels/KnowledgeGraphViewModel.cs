@@ -1,5 +1,6 @@
 using AgentX.Core.Services.Intelligence;
 using AgentX.Core.Services.Intelligence.Models;
+using AgentX.Core.Services.Localization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Serilog;
@@ -15,6 +16,7 @@ namespace AgentX.App.ViewModels;
 public partial class KnowledgeGraphViewModel : ObservableObject
 {
     private readonly IKnowledgeGraphService _graphService;
+    private readonly ILocalizationService _localization;
 
     // ── Observable Properties ─────────────────────────────────────────
 
@@ -40,7 +42,7 @@ public partial class KnowledgeGraphViewModel : ObservableObject
     private int _edgeCount;
 
     [ObservableProperty]
-    private string _statusMessage = "Loading graph...";
+    private string _statusMessage = string.Empty;
 
     [ObservableProperty]
     private bool _showDocuments = true;
@@ -78,9 +80,11 @@ public partial class KnowledgeGraphViewModel : ObservableObject
     /// <summary>IDs of nodes that match the search or belong to the highlighted cluster.</summary>
     public HashSet<string> HighlightedNodeIds { get; } = new();
 
-    public KnowledgeGraphViewModel(IKnowledgeGraphService graphService)
+    public KnowledgeGraphViewModel(IKnowledgeGraphService graphService, ILocalizationService localization)
     {
         _graphService = graphService ?? throw new ArgumentNullException(nameof(graphService));
+        _localization = localization ?? throw new ArgumentNullException(nameof(localization));
+        StatusMessage = _localization.GetString("Graph_LoadingGraph");
     }
 
     /// <summary>The build in progress, if any; a new build or leaving the page cancels it.</summary>
@@ -99,7 +103,7 @@ public partial class KnowledgeGraphViewModel : ObservableObject
         _buildCts = cts;
 
         IsLoading = true;
-        StatusMessage = "Building knowledge graph...";
+        StatusMessage = _localization.GetString("Graph_BuildingGraph");
 
         try
         {
@@ -109,7 +113,13 @@ public partial class KnowledgeGraphViewModel : ObservableObject
             CollectionCount = GraphData.CollectionCount;
             TagCount = GraphData.TagCount;
             EdgeCount = GraphData.Edges.Count;
-            StatusMessage = $"{GraphData.Nodes.Count} nodes, {GraphData.Edges.Count} connections";
+            var nodes = GraphData.Nodes.Count == 1
+                ? _localization.GetString("Graph_NodeCountOne", GraphData.Nodes.Count)
+                : _localization.GetString("Graph_NodeCountMany", GraphData.Nodes.Count);
+            var connections = GraphData.Edges.Count == 1
+                ? _localization.GetString("Graph_ConnectionCountOne", GraphData.Edges.Count)
+                : _localization.GetString("Graph_ConnectionCountMany", GraphData.Edges.Count);
+            StatusMessage = _localization.GetString("Graph_GraphSummary", nodes, connections);
 
             Log.Information(
                 "Knowledge graph loaded: {Nodes} nodes, {Edges} edges",
@@ -122,7 +132,7 @@ public partial class KnowledgeGraphViewModel : ObservableObject
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to build knowledge graph");
-            StatusMessage = "Failed to build graph";
+            StatusMessage = _localization.GetString("Graph_BuildFailed");
         }
         finally
         {

@@ -2181,6 +2181,27 @@
   <data name="AskFiles_DocumentsBeingIndexed" xml:space="preserve"><value>Documents are being indexed...</value></data>
   <data name="AskFiles_ImportToGetStarted" xml:space="preserve"><value>Import documents to get started</value></data>
   <data name="AskFiles_StatusUnavailable" xml:space="preserve"><value>Status unavailable</value></data>
+  <data name="Graph_LoadingGraph" xml:space="preserve"><value>Loading graph...</value></data>
+  <data name="Graph_BuildingGraph" xml:space="preserve"><value>Building knowledge graph...</value></data>
+  <data name="Graph_NodeCountOne" xml:space="preserve"><value>{0} node</value></data>
+  <data name="Graph_NodeCountMany" xml:space="preserve"><value>{0} nodes</value></data>
+  <data name="Graph_ConnectionCountOne" xml:space="preserve"><value>{0} connection</value></data>
+  <data name="Graph_ConnectionCountMany" xml:space="preserve"><value>{0} connections</value></data>
+  <data name="Graph_GraphSummary" xml:space="preserve"><value>{0}, {1}</value></data>
+  <data name="Graph_BuildFailed" xml:space="preserve"><value>Failed to build graph</value></data>
+  <data name="Digest_NoReportsYet" xml:space="preserve"><value>No digest reports yet</value></data>
+  <data name="Digest_LastGenerated" xml:space="preserve"><value>Last generated {0}</value></data>
+  <data name="Digest_NoReportsYetGenerateOne" xml:space="preserve"><value>No digest reports yet. Generate one to see your weekly summary.</value></data>
+  <data name="Digest_LoadReportsFailed" xml:space="preserve"><value>Failed to load reports</value></data>
+  <data name="Digest_GeneratingDigest" xml:space="preserve"><value>Generating weekly digest...</value></data>
+  <data name="Digest_DigestGenerated" xml:space="preserve"><value>Digest generated successfully</value></data>
+  <data name="Digest_GenerateDigestFailed" xml:space="preserve"><value>Failed to generate digest</value></data>
+  <data name="Digest_GeneratedAtFormat" xml:space="preserve"><value>{0:MMM d, yyyy} at {0:h:mm tt}</value></data>
+  <data name="Digest_PeriodFormat" xml:space="preserve"><value>{0:MMM d} - {1:MMM d, yyyy}</value></data>
+  <data name="Digest_ShortPeriodFormat" xml:space="preserve"><value>{0:MMM d} - {1:MMM d}</value></data>
+  <data name="Digest_TrendNew" xml:space="preserve"><value>new this period</value></data>
+  <data name="Digest_TrendChange" xml:space="preserve"><value>{0} vs prior period</value></data>
+  <data name="Digest_TrendFlat" xml:space="preserve"><value>flat vs prior period</value></data>
   <data name="WfBuilder_RecentRuns.Text" xml:space="preserve"><value>Recent Runs</value></data>
   <data name="WfBuilder_StoredWorkflowResultsYou.Text" xml:space="preserve"><value>Stored workflow results you can reopen without rerunning.</value></data>
   <data name="WfBuilder_OpenedFromOperations.Text" xml:space="preserve"><value>Opened from Operations</value></data>

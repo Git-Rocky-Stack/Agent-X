@@ -1842,6 +1842,27 @@
   <data name="AskFiles_DocumentsBeingIndexed" xml:space="preserve"><value>正在为文档建立索引...</value></data>
   <data name="AskFiles_ImportToGetStarted" xml:space="preserve"><value>导入文档即可开始</value></data>
   <data name="AskFiles_StatusUnavailable" xml:space="preserve"><value>状态不可用</value></data>
+  <data name="Graph_LoadingGraph" xml:space="preserve"><value>正在加载图谱...</value></data>
+  <data name="Graph_BuildingGraph" xml:space="preserve"><value>正在构建知识图谱...</value></data>
+  <data name="Graph_NodeCountOne" xml:space="preserve"><value>{0} 个节点</value></data>
+  <data name="Graph_NodeCountMany" xml:space="preserve"><value>{0} 个节点</value></data>
+  <data name="Graph_ConnectionCountOne" xml:space="preserve"><value>{0} 个连接</value></data>
+  <data name="Graph_ConnectionCountMany" xml:space="preserve"><value>{0} 个连接</value></data>
+  <data name="Graph_GraphSummary" xml:space="preserve"><value>{0}，{1}</value></data>
+  <data name="Graph_BuildFailed" xml:space="preserve"><value>无法构建图谱</value></data>
+  <data name="Digest_NoReportsYet" xml:space="preserve"><value>暂无摘要报告</value></data>
+  <data name="Digest_LastGenerated" xml:space="preserve"><value>上次生成时间：{0}</value></data>
+  <data name="Digest_NoReportsYetGenerateOne" xml:space="preserve"><value>暂无摘要报告。生成一份即可查看您的每周总结。</value></data>
+  <data name="Digest_LoadReportsFailed" xml:space="preserve"><value>无法加载报告</value></data>
+  <data name="Digest_GeneratingDigest" xml:space="preserve"><value>正在生成每周摘要...</value></data>
+  <data name="Digest_DigestGenerated" xml:space="preserve"><value>摘要已成功生成</value></data>
+  <data name="Digest_GenerateDigestFailed" xml:space="preserve"><value>无法生成摘要</value></data>
+  <data name="Digest_GeneratedAtFormat" xml:space="preserve"><value>{0:yyyy年M月d日} {0:HH:mm}</value></data>
+  <data name="Digest_PeriodFormat" xml:space="preserve"><value>{0:M月d日} - {1:yyyy年M月d日}</value></data>
+  <data name="Digest_ShortPeriodFormat" xml:space="preserve"><value>{0:M月d日} - {1:M月d日}</value></data>
+  <data name="Digest_TrendNew" xml:space="preserve"><value>本时段新增</value></data>
+  <data name="Digest_TrendChange" xml:space="preserve"><value>较上一时段 {0}</value></data>
+  <data name="Digest_TrendFlat" xml:space="preserve"><value>与上一时段持平</value></data>
   <data name="WfBuilder_RecentRuns.Text" xml:space="preserve"><value>最近运行</value></data>
   <data name="WfBuilder_StoredWorkflowResultsYou.Text" xml:space="preserve"><value>已保存的工作流结果,无需重新运行即可再次打开。</value></data>
   <data name="WfBuilder_OpenedFromOperations.Text" xml:space="preserve"><value>从 Operations 打开</value></data>

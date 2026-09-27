@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Text.Json;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Services.Intelligence;
+using AgentX.Core.Services.Localization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Serilog;
@@ -18,20 +19,23 @@ namespace AgentX.App.ViewModels;
 public partial class DigestViewModel : ObservableObject
 {
     private readonly IDigestService _digestService;
+    private readonly ILocalizationService _localization;
 
     // ── Page State ─────────────────────────────────────────────
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private bool _isGenerating;
     [ObservableProperty] private DigestReportDisplay? _currentReport;
     [ObservableProperty] private bool _hasReport;
-    [ObservableProperty] private string _statusMessage = "No digest reports yet";
+    [ObservableProperty] private string _statusMessage = string.Empty;
 
     // ── Report History ────────────────────────────────────────
     public ObservableCollection<DigestReportDisplay> ReportHistory { get; } = new();
 
-    public DigestViewModel(IDigestService digestService)
+    public DigestViewModel(IDigestService digestService, ILocalizationService localization)
     {
         _digestService = digestService ?? throw new ArgumentNullException(nameof(digestService));
+        _localization = localization ?? throw new ArgumentNullException(nameof(localization));
+        StatusMessage = _localization.GetString("Digest_NoReportsYet");
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -66,13 +70,13 @@ public partial class DigestViewModel : ObservableObject
             }
 
             StatusMessage = HasReport
-                ? $"Last generated {CurrentReport!.GeneratedAtFormatted}"
-                : "No digest reports yet. Generate one to see your weekly summary.";
+                ? _localization.GetString("Digest_LastGenerated", CurrentReport!.GeneratedAtFormatted)
+                : _localization.GetString("Digest_NoReportsYetGenerateOne");
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to load digest reports");
-            StatusMessage = "Failed to load reports";
+            StatusMessage = _localization.GetString("Digest_LoadReportsFailed");
         }
         finally
         {
@@ -91,7 +95,7 @@ public partial class DigestViewModel : ObservableObject
     private async Task GenerateDigestAsync()
     {
         IsGenerating = true;
-        StatusMessage = "Generating weekly digest...";
+        StatusMessage = _localization.GetString("Digest_GeneratingDigest");
 
         try
         {
@@ -103,13 +107,13 @@ public partial class DigestViewModel : ObservableObject
             // Insert at the top of the history
             ReportHistory.Insert(0, display);
 
-            StatusMessage = "Digest generated successfully";
+            StatusMessage = _localization.GetString("Digest_DigestGenerated");
             Log.Information("Digest report generated via UI");
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to generate digest");
-            StatusMessage = "Failed to generate digest";
+            StatusMessage = _localization.GetString("Digest_GenerateDigestFailed");
         }
         finally
         {
@@ -139,14 +143,21 @@ public partial class DigestViewModel : ObservableObject
         PropertyNameCaseInsensitive = true
     };
 
-    private static DigestReportDisplay MapToDisplay(DigestReportEntity entity)
+    private DigestReportDisplay MapToDisplay(DigestReportEntity entity)
     {
         var display = new DigestReportDisplay
         {
             Id = entity.Id,
             GeneratedAt = entity.GeneratedAt,
+            // The date patterns are in the resources, so each language orders the date and
+            // time its own way (en-US: "MMM d, yyyy 'at' h:mm tt").
+            GeneratedAtFormatted = _localization.GetString("Digest_GeneratedAtFormat", entity.GeneratedAt.ToLocalTime()),
             PeriodStart = entity.PeriodStart,
             PeriodEnd = entity.PeriodEnd,
+            PeriodFormatted = _localization.GetString(
+                "Digest_PeriodFormat", entity.PeriodStart.ToLocalTime(), entity.PeriodEnd.ToLocalTime()),
+            ShortPeriodFormatted = _localization.GetString(
+                "Digest_ShortPeriodFormat", entity.PeriodStart.ToLocalTime(), entity.PeriodEnd.ToLocalTime()),
             NewDocumentsCount = entity.NewDocumentsCount,
             NewConversationsCount = entity.NewConversationsCount,
             TotalSearches = entity.TotalSearches,
@@ -185,6 +196,21 @@ public partial class DigestViewModel : ObservableObject
         catch (JsonException ex)
         {
             Log.Warning(ex, "Failed to parse JSON detail fields for digest report {ReportId}", entity.Id);
+        }
+
+        foreach (var item in display.TopSearches)
+        {
+            item.TrendLabel = DigestTrendFormatter.FormatTrendLabel(_localization, item.Trend, item.DeltaCount, item.PreviousCount);
+        }
+
+        foreach (var item in display.TopCollections)
+        {
+            item.TrendLabel = DigestTrendFormatter.FormatTrendLabel(_localization, item.Trend, item.DeltaCount, item.PreviousCount);
+        }
+
+        foreach (var item in display.FileTypeBreakdown)
+        {
+            item.TrendLabel = DigestTrendFormatter.FormatTrendLabel(_localization, item.Trend, item.DeltaCount, item.PreviousCount);
         }
 
         return display;
@@ -232,17 +258,20 @@ public class DigestReportDisplay
     public List<HighlightItem> Highlights { get; set; } = new();
 
     // ── Formatted Properties for Display ────────────────────────
-    public string GeneratedAtFormatted =>
-        GeneratedAt.ToLocalTime().ToString("MMM d, yyyy 'at' h:mm tt");
 
-    public string PeriodFormatted =>
-        $"{PeriodStart.ToLocalTime():MMM d} - {PeriodEnd.ToLocalTime():MMM d, yyyy}";
+    // The date texts are set by the view model, in local time and the UI language.
+
+    /// <summary>When the report was generated.</summary>
+    public string GeneratedAtFormatted { get; set; } = string.Empty;
+
+    /// <summary>The period the report covers, with the year.</summary>
+    public string PeriodFormatted { get; set; } = string.Empty;
 
     public string TokensFormatted =>
         TotalTokensUsed > 1000 ? $"{TotalTokensUsed / 1000.0:F1}K" : TotalTokensUsed.ToString();
 
-    public string ShortPeriodFormatted =>
-        $"{PeriodStart.ToLocalTime():MMM d} - {PeriodEnd.ToLocalTime():MMM d}";
+    /// <summary>The period the report covers, without the year.</summary>
+    public string ShortPeriodFormatted { get; set; } = string.Empty;
 }
 
 // ── JSON Deserialization Models ──────────────────────────────────
@@ -254,7 +283,9 @@ public class TopSearchItem
     public int PreviousCount { get; set; }
     public int DeltaCount { get; set; }
     public string Trend { get; set; } = string.Empty;
-    public string TrendLabel => DigestTrendFormatter.FormatTrendLabel(Trend, DeltaCount, PreviousCount);
+
+    /// <summary>The trend in words, set by the view model in the UI language.</summary>
+    public string TrendLabel { get; set; } = string.Empty;
 }
 
 public class TopCollectionItem
@@ -265,7 +296,9 @@ public class TopCollectionItem
     public int PreviousCount { get; set; }
     public int DeltaCount { get; set; }
     public string Trend { get; set; } = string.Empty;
-    public string TrendLabel => DigestTrendFormatter.FormatTrendLabel(Trend, DeltaCount, PreviousCount);
+
+    /// <summary>The trend in words, set by the view model in the UI language.</summary>
+    public string TrendLabel { get; set; } = string.Empty;
 }
 
 public class FileTypeItem
@@ -275,19 +308,21 @@ public class FileTypeItem
     public int PreviousCount { get; set; }
     public int DeltaCount { get; set; }
     public string Trend { get; set; } = string.Empty;
-    public string TrendLabel => DigestTrendFormatter.FormatTrendLabel(Trend, DeltaCount, PreviousCount);
+
+    /// <summary>The trend in words, set by the view model in the UI language.</summary>
+    public string TrendLabel { get; set; } = string.Empty;
 }
 
 internal static class DigestTrendFormatter
 {
-    public static string FormatTrendLabel(string trend, int deltaCount, int previousCount)
+    public static string FormatTrendLabel(ILocalizationService localization, string trend, int deltaCount, int previousCount)
     {
         return trend switch
         {
-            "new" => "new this period",
-            "up" => $"+{deltaCount} vs prior period",
-            "down" => $"{deltaCount} vs prior period",
-            _ when previousCount > 0 => "flat vs prior period",
+            "new" => localization.GetString("Digest_TrendNew"),
+            "up" => localization.GetString("Digest_TrendChange", $"+{deltaCount}"),
+            "down" => localization.GetString("Digest_TrendChange", deltaCount),
+            _ when previousCount > 0 => localization.GetString("Digest_TrendFlat"),
             _ => string.Empty
         };
     }
