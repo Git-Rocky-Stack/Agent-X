@@ -886,6 +886,8 @@
   "Chat_MessageTokensOne": "{0} 个 Token",
   "Chat_MessageTokensMany": "{0} 个 Token",
   "Chat_MessageTokenSpeed": "{0} token/秒",
+  "Settings_EnableScreenAwareness.Header": "快速聊天的屏幕上下文",
+  "Settings_ScreenAwarenessDescription.Text": "快速聊天会在这台电脑上使用 Windows 内置的 OCR 读取您调出它时位于前台的窗口中的文字，并将其添加到您的问题中。",
   "Chat_ShortcutNewConversation": "新对话",
   "Chat_ShortcutToggleConversationPane": "显示或隐藏对话窗格",
   "Chat_ShortcutCategory": "聊天",

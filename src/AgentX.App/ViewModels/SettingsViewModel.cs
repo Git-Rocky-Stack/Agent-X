@@ -113,6 +113,10 @@ public partial class SettingsViewModel : ObservableObject
     /// </summary>
     public IReadOnlyList<string> WebSearchProviderOptions { get; } = WebSearchProviderChoices.DisplayNames;
 
+    // Screen Awareness: Quick Chat adds the text of the window in front to a question, read with
+    // Windows OCR by ScreenCaptureService, only while this is on. Off by default.
+    [ObservableProperty] private bool _enableScreenAwareness;
+
     // ── Local REST API (browser extension) ───────────────
     [ObservableProperty] private bool _localApiEnabled = true;
 
@@ -258,6 +262,9 @@ public partial class SettingsViewModel : ObservableObject
             MaxSearchResults = settings.MaxSearchResults;
             SearchCacheTtlMinutes = settings.SearchCacheTtlMinutes;
 
+            // Screen Awareness
+            EnableScreenAwareness = settings.EnableScreenAwareness;
+
             // Local REST API (browser extension)
             LocalApiEnabled = settings.LocalApiEnabled;
             LocalApiToken = settings.LocalApiToken ?? string.Empty;
@@ -343,6 +350,9 @@ public partial class SettingsViewModel : ObservableObject
         settings.WebSearchApiKey = string.IsNullOrWhiteSpace(WebSearchApiKey) ? null : WebSearchApiKey;
         settings.MaxSearchResults = MaxSearchResults;
         settings.SearchCacheTtlMinutes = SearchCacheTtlMinutes;
+
+        // Screen Awareness
+        settings.EnableScreenAwareness = EnableScreenAwareness;
 
         // Local REST API (browser extension). The token is only ever created by the host or by
         // Regenerate, so never clear a stored token just because this page loaded before the
@@ -509,6 +519,9 @@ public partial class SettingsViewModel : ObservableObject
         WebSearchApiKey = null;
         MaxSearchResults = 10;
         SearchCacheTtlMinutes = 60;
+
+        // Screen Awareness
+        EnableScreenAwareness = false;
 
         // Clear connection statuses
         OllamaConnectionStatus = string.Empty;

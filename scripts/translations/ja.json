@@ -886,6 +886,8 @@
   "Chat_MessageTokensOne": "{0} トークン",
   "Chat_MessageTokensMany": "{0} トークン",
   "Chat_MessageTokenSpeed": "{0} トークン/秒",
+  "Settings_EnableScreenAwareness.Header": "クイック チャットの画面コンテキスト",
+  "Settings_ScreenAwarenessDescription.Text": "クイック チャットは、呼び出したときに前面にあったウィンドウのテキストを、この PC 上で Windows に組み込まれた OCR で読み取り、質問に追加します。",
   "Chat_ShortcutNewConversation": "新しい会話",
   "Chat_ShortcutToggleConversationPane": "会話ペインの表示/非表示を切り替え",
   "Chat_ShortcutCategory": "チャット",

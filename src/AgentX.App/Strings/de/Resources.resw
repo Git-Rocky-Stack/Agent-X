@@ -1253,6 +1253,8 @@
   <data name="Chat_MessageTokensOne" xml:space="preserve"><value>{0} Token</value></data>
   <data name="Chat_MessageTokensMany" xml:space="preserve"><value>{0} Tokens</value></data>
   <data name="Chat_MessageTokenSpeed" xml:space="preserve"><value>{0} Tok./s</value></data>
+  <data name="Settings_EnableScreenAwareness.Header" xml:space="preserve"><value>Bildschirmkontext in Quick Chat</value></data>
+  <data name="Settings_ScreenAwarenessDescription.Text" xml:space="preserve"><value>Quick Chat liest den Text des Fensters, das beim Aufrufen im Vordergrund war, mit der in Windows integrierten Texterkennung auf diesem Computer und fügt ihn Ihrer Frage hinzu.</value></data>
   <data name="Chat_ShortcutNewConversation" xml:space="preserve"><value>Neue Unterhaltung</value></data>
   <data name="Chat_ShortcutToggleConversationPane" xml:space="preserve"><value>Unterhaltungsbereich ein- oder ausblenden</value></data>
   <data name="Chat_ShortcutCategory" xml:space="preserve"><value>Chat</value></data>

@@ -1592,6 +1592,8 @@
   <data name="Chat_MessageTokensOne" xml:space="preserve"><value>{0} token</value></data>
   <data name="Chat_MessageTokensMany" xml:space="preserve"><value>{0} tokens</value></data>
   <data name="Chat_MessageTokenSpeed" xml:space="preserve"><value>{0} tok/s</value></data>
+  <data name="Settings_EnableScreenAwareness.Header" xml:space="preserve"><value>Screen awareness in Quick Chat</value></data>
+  <data name="Settings_ScreenAwarenessDescription.Text" xml:space="preserve"><value>Quick Chat reads the text of the window that was in front when you summoned it, with Windows OCR on this computer, and adds it to your question.</value></data>
   <data name="Chat_ShortcutNewConversation" xml:space="preserve"><value>New conversation</value></data>
   <data name="Chat_ShortcutToggleConversationPane" xml:space="preserve"><value>Toggle conversation pane</value></data>
   <data name="Chat_ShortcutCategory" xml:space="preserve"><value>Chat</value></data>

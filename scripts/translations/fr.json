@@ -886,6 +886,8 @@
   "Chat_MessageTokensOne": "{0} token",
   "Chat_MessageTokensMany": "{0} tokens",
   "Chat_MessageTokenSpeed": "{0} tok/s",
+  "Settings_EnableScreenAwareness.Header": "Contexte de l'écran dans le chat rapide",
+  "Settings_ScreenAwarenessDescription.Text": "Le chat rapide lit le texte de la fenêtre qui était au premier plan quand vous l'avez ouvert, avec l'OCR intégré à Windows sur cet ordinateur, et l'ajoute à votre question.",
   "Chat_ShortcutNewConversation": "Nouvelle conversation",
   "Chat_ShortcutToggleConversationPane": "Afficher ou masquer le volet des conversations",
   "Chat_ShortcutCategory": "Chat",

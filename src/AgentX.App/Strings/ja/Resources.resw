@@ -1253,6 +1253,8 @@
   <data name="Chat_MessageTokensOne" xml:space="preserve"><value>{0} トークン</value></data>
   <data name="Chat_MessageTokensMany" xml:space="preserve"><value>{0} トークン</value></data>
   <data name="Chat_MessageTokenSpeed" xml:space="preserve"><value>{0} トークン/秒</value></data>
+  <data name="Settings_EnableScreenAwareness.Header" xml:space="preserve"><value>クイック チャットの画面コンテキスト</value></data>
+  <data name="Settings_ScreenAwarenessDescription.Text" xml:space="preserve"><value>クイック チャットは、呼び出したときに前面にあったウィンドウのテキストを、この PC 上で Windows に組み込まれた OCR で読み取り、質問に追加します。</value></data>
   <data name="Chat_ShortcutNewConversation" xml:space="preserve"><value>新しい会話</value></data>
   <data name="Chat_ShortcutToggleConversationPane" xml:space="preserve"><value>会話ペインの表示/非表示を切り替え</value></data>
   <data name="Chat_ShortcutCategory" xml:space="preserve"><value>チャット</value></data>

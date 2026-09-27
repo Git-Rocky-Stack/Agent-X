@@ -545,7 +545,7 @@
             </controls:Faceplate>
 
             <!-- ════════════════════════════════════════════════════════
-                 LICENSE
+                 RESEARCH MODE AND SCREEN AWARENESS
                  ════════════════════════════════════════════════════════ -->
             <controls:Faceplate Grid.Row="7" Kicker="MOD - RSRCH - 07">
                 <StackPanel Spacing="16">
@@ -610,6 +610,19 @@
                                            Minimum="5" Maximum="1440" SpinButtonPlacementMode="Compact" />
                             </StackPanel>
                         </Grid>
+                    </StackPanel>
+
+                    <!-- Screen awareness (AppSettings.EnableScreenAwareness, off by default) sits with
+                         Research Mode as the other opt-in source of context for answers.
+                         ScreenCaptureService reads the window Quick Chat recorded when it was
+                         summoned, with the OCR built into Windows. -->
+                    <StackPanel Spacing="4">
+                        <ToggleSwitch x:Uid="Settings_EnableScreenAwareness" Header="Screen awareness in Quick Chat"
+                                      IsOn="{x:Bind ViewModel.EnableScreenAwareness, Mode=TwoWay}" />
+                        <TextBlock x:Uid="Settings_ScreenAwarenessDescription"
+                                   Text="Quick Chat reads the text of the window that was in front when you summoned it, with Windows OCR on this computer, and adds it to your question."
+                                   Style="{StaticResource CaptionStyle}"
+                                   TextWrapping="Wrap" />
                     </StackPanel>
                 </StackPanel>
             </controls:Faceplate>

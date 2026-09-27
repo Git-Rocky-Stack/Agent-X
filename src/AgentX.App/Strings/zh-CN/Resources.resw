@@ -1253,6 +1253,8 @@
   <data name="Chat_MessageTokensOne" xml:space="preserve"><value>{0} 个 Token</value></data>
   <data name="Chat_MessageTokensMany" xml:space="preserve"><value>{0} 个 Token</value></data>
   <data name="Chat_MessageTokenSpeed" xml:space="preserve"><value>{0} token/秒</value></data>
+  <data name="Settings_EnableScreenAwareness.Header" xml:space="preserve"><value>快速聊天的屏幕上下文</value></data>
+  <data name="Settings_ScreenAwarenessDescription.Text" xml:space="preserve"><value>快速聊天会在这台电脑上使用 Windows 内置的 OCR 读取您调出它时位于前台的窗口中的文字，并将其添加到您的问题中。</value></data>
   <data name="Chat_ShortcutNewConversation" xml:space="preserve"><value>新对话</value></data>
   <data name="Chat_ShortcutToggleConversationPane" xml:space="preserve"><value>显示或隐藏对话窗格</value></data>
   <data name="Chat_ShortcutCategory" xml:space="preserve"><value>聊天</value></data>

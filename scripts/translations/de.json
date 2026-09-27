@@ -886,6 +886,8 @@
   "Chat_MessageTokensOne": "{0} Token",
   "Chat_MessageTokensMany": "{0} Tokens",
   "Chat_MessageTokenSpeed": "{0} Tok./s",
+  "Settings_EnableScreenAwareness.Header": "Bildschirmkontext in Quick Chat",
+  "Settings_ScreenAwarenessDescription.Text": "Quick Chat liest den Text des Fensters, das beim Aufrufen im Vordergrund war, mit der in Windows integrierten Texterkennung auf diesem Computer und fügt ihn Ihrer Frage hinzu.",
   "Chat_ShortcutNewConversation": "Neue Unterhaltung",
   "Chat_ShortcutToggleConversationPane": "Unterhaltungsbereich ein- oder ausblenden",
   "Chat_ShortcutCategory": "Chat",

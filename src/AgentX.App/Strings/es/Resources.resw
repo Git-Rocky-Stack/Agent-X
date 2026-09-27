@@ -1253,6 +1253,8 @@
   <data name="Chat_MessageTokensOne" xml:space="preserve"><value>{0} token</value></data>
   <data name="Chat_MessageTokensMany" xml:space="preserve"><value>{0} tokens</value></data>
   <data name="Chat_MessageTokenSpeed" xml:space="preserve"><value>{0} tok/s</value></data>
+  <data name="Settings_EnableScreenAwareness.Header" xml:space="preserve"><value>Contexto de pantalla en el chat rápido</value></data>
+  <data name="Settings_ScreenAwarenessDescription.Text" xml:space="preserve"><value>El chat rápido lee el texto de la ventana que estaba en primer plano cuando lo abrió, con el OCR integrado en Windows en este equipo, y lo añade a su pregunta.</value></data>
   <data name="Chat_ShortcutNewConversation" xml:space="preserve"><value>Nueva conversación</value></data>
   <data name="Chat_ShortcutToggleConversationPane" xml:space="preserve"><value>Mostrar u ocultar el panel de conversaciones</value></data>
   <data name="Chat_ShortcutCategory" xml:space="preserve"><value>Chat</value></data>

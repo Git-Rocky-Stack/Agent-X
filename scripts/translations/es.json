@@ -886,6 +886,8 @@
   "Chat_MessageTokensOne": "{0} token",
   "Chat_MessageTokensMany": "{0} tokens",
   "Chat_MessageTokenSpeed": "{0} tok/s",
+  "Settings_EnableScreenAwareness.Header": "Contexto de pantalla en el chat rápido",
+  "Settings_ScreenAwarenessDescription.Text": "El chat rápido lee el texto de la ventana que estaba en primer plano cuando lo abrió, con el OCR integrado en Windows en este equipo, y lo añade a su pregunta.",
   "Chat_ShortcutNewConversation": "Nueva conversación",
   "Chat_ShortcutToggleConversationPane": "Mostrar u ocultar el panel de conversaciones",
   "Chat_ShortcutCategory": "Chat",
