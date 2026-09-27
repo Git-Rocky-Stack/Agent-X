@@ -798,7 +798,6 @@ through `DocumentService`, into the folder's target collection when one is set.
 
 **Relevant files:**
 - `src/AgentX.Core/Services/Indexing/IndexingService.cs`
-- `src/AgentX.Core/Services/Indexing/IndexingQueueService.cs`
 - `src/AgentX.Core/Services/Indexing/FileWatcherService.cs`
 
 ### 6.5 Search and RAG Pipeline
@@ -988,7 +987,8 @@ confidence. Failures are logged and never fail indexing.
 | `MaxSearchResults` / `SearchCacheTtlMinutes` | `10` / `60` | Web search results and cache time |
 | `EnableScreenAwareness` | `false` | Screen capture for Quick Chat |
 | `LocalApiEnabled` / `LocalApiToken` | `true` / generated on first start | Local REST API |
-| `EnableHnswIndex`, `HnswM`, `HnswEfConstruction`, `HnswEfSearch`, `HnswFallbackThreshold` | `true`, 16, 200, 50, 10000 | Vector index |
+| `EnableHnswIndex`, `HnswM`, `HnswEfConstruction`, `HnswFallbackThreshold` | `true`, 16, 200, 10000 | Vector index |
+| `HnswEfSearch` | 50 | Minimum HNSW search breadth (ef). A query already searches at least max(`HnswEfConstruction`, 2 x candidates), so only a larger value widens it (better recall, slower); the default changes nothing |
 | `OAuth` | client ids empty | OAuth client credentials, refresh buffer (5 min), consent timeout (300 s) |
 | `CalendarConnector`, `EmailConnector` | sync off | Connector settings |
 | `BackupSchedule` | off, every 168 hours, keep 5 | Scheduled backups |
@@ -1185,7 +1185,9 @@ CREATE INDEX IF NOT EXISTS idx_vec_chunk ON vec_embeddings(chunk_id);
 
 - **`HnswVectorStore`** (when `EnableHnswIndex` is on, the default): SQLite stays the source of
   truth, and an HNSW index (HnswLite, `M` 16, `efConstruction` 200) answers searches when there are
-  more than `HnswFallbackThreshold` (10,000) embeddings; below that it scans linearly. The index
+  more than `HnswFallbackThreshold` (10,000) embeddings; below that it scans linearly. A query
+  searches at least max(`efConstruction`, 2 x candidates) wide; `HnswEfSearch` (default 50) is a
+  minimum on top of that, so only a larger value widens the search (better recall, slower). The index
   serves the current embedding size: its dimension comes from the embedding service, a vector of a
   new size rebuilds it, rows of other sizes stay searchable by the linear scan, and sizes above
   HnswLite's limit of 4096 always use the scan. The index is saved to `hnsw-index.bin`,
@@ -1380,7 +1382,7 @@ suppressed; navigating away from the wizard by any other route ends onboarding (
 
 ## 10. Dependency Injection Configuration
 
-All registrations are in `App.xaml.cs` `ConfigureServices()`: 157 singleton registrations, two
+All registrations are in `App.xaml.cs` `ConfigureServices()`: the services as singletons, two
 options bindings, 32 transient view models and 30 transient pages. Grouped:
 
 | Group | Registrations (interface -> implementation; singleton unless noted) |
@@ -1398,7 +1400,7 @@ options bindings, 32 transient view models and 30 transient pages. Grouped:
 | Chat | `IConversationService`, `IConversationRecallService`, `IConversationSummaryService`, `ISystemPromptService`, `IConversationMemoryService`, `ISemanticMemoryService`, `IChatService`, `IConversationBranchService` |
 | Chat coordinators | `IConversationCoordinator`, `IMessagingCoordinator`, `IVoiceCoordinator`, `IBranchingCoordinator` |
 | Documents | `IDocumentProcessor` x 8 (`PdfProcessor`, `DocxProcessor`, `TextProcessor`, `MarkdownProcessor`, `CodeFileProcessor`, `ImageProcessor`, `AudioProcessor`, `WebProcessor`), `IDocumentService`, `IChunkingService` (factory with `ITokenCounter` and `IAdaptiveChunkingService`), `IAdaptiveChunkingService` (factory) |
-| Indexing | `IIndexingQueueService`, `IIndexingService`, `IFileWatcherService` |
+| Indexing | `IIndexingService` (it keeps its own queue and the `indexing_jobs` rows), `IFileWatcherService` |
 | Collections and tags | `ICollectionService`, `IAutoTagService` |
 | Search and RAG | `ISemanticSearchService`, `IKeywordSearchService`, `ISearchCacheService`, `IHybridSearchOrchestrator`, `ICitationService`, `IRagReranker`, `IMultiQueryGenerator`, `IHydeService`, `ILlmReranker`, `IParentDocumentRetriever`, `IContextualCompressor`, `IRagEvaluator`, `IRagMetrics` (factory, with embedding cache statistics), `IPiiDetector` (factory), `IRagPipeline` |
 | Web search | `WebSearchCache`, `IWebSearchService` (factory: `SettingsAwareWebSearchService`) |
@@ -1659,7 +1661,7 @@ batch sizes the code uses:
 | Embedding batch | 32 texts | `Rag:EmbeddingBatchSize` |
 | Embedding cache | bounded LRU, keyed by model version | `CachedEmbeddingService` |
 | HNSW threshold | above 10,000 embeddings; linear scan below | `HnswFallbackThreshold` |
-| HNSW parameters | `M` 16, `efConstruction` 200, `efSearch` 50 | settings |
+| HNSW parameters | `M` 16, `efConstruction` 200; search breadth at least max(`efConstruction`, 2 x candidates), raised only by an `HnswEfSearch` above that | settings |
 | Hybrid candidates | `TopK x 3`, at most 500 per backend | `Rag:RetrievalMultiplier`, `Rag:RetrievalCap` |
 | RAG answer | max 2048 tokens, temperature 0.3 | `RagPipeline` |
 | Chat context reserve | 1,024 tokens for the answer | `AppConstants.ContextWindowTokenReserve` |
