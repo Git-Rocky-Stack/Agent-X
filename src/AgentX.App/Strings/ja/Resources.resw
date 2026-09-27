@@ -1810,10 +1810,10 @@
   <data name="Settings_TopKResults.Text" xml:space="preserve"><value>上位 K 件の結果</value></data>
   <data name="Settings_AutoIndexWatchFolders.Header" xml:space="preserve"><value>監視フォルダーを自動インデックス</value></data>
   <data name="Settings_ResearchMode.Text" xml:space="preserve"><value>リサーチ モード</value></data>
-  <data name="Settings_AugmentAiAnswersWith.Text" xml:space="preserve"><value>AI の回答をライブの Web ソースで補強します。有効にすると、クエリは Web を検索し、結果をローカルの Knowledge Vault と組み合わせます。</value></data>
+  <data name="Settings_AugmentAiAnswersWith.Text" xml:space="preserve"><value>チャットの回答をライブの Web ソースで補強します。有効にしてチャットでリサーチ モードをオンにすると、質問が下の検索プロバイダーに送信され、結果が出典付きで回答に追加されます。</value></data>
   <data name="Settings_EnableResearchMode.Header" xml:space="preserve"><value>リサーチ モードを有効化</value></data>
-  <data name="Settings_EnableResearchMode.OffContent" xml:space="preserve"><value>ローカル ボールトのみ</value></data>
-  <data name="Settings_EnableResearchMode.OnContent" xml:space="preserve"><value>ローカル ボールト + Web 検索</value></data>
+  <data name="Settings_EnableResearchMode.OffContent" xml:space="preserve"><value>Web 検索なし</value></data>
+  <data name="Settings_EnableResearchMode.OnContent" xml:space="preserve"><value>チャットで Web の結果を追加できます</value></data>
   <data name="Settings_SearchProvider.Text" xml:space="preserve"><value>検索プロバイダー</value></data>
   <data name="Settings_SearchApiKey.Text" xml:space="preserve"><value>API キーまたはインスタンス URL</value></data>
   <data name="Settings_EnterYourSearchApiPh.PlaceholderText" xml:space="preserve"><value>Brave または Serper の API キー、または SearXNG の URL</value></data>

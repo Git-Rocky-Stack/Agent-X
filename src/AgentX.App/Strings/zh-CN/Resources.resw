@@ -1810,10 +1810,10 @@
   <data name="Settings_TopKResults.Text" xml:space="preserve"><value>Top-K 结果数</value></data>
   <data name="Settings_AutoIndexWatchFolders.Header" xml:space="preserve"><value>自动索引监视文件夹</value></data>
   <data name="Settings_ResearchMode.Text" xml:space="preserve"><value>研究模式</value></data>
-  <data name="Settings_AugmentAiAnswersWith.Text" xml:space="preserve"><value>用实时网络来源增强 AI 回答。启用后,查询将搜索网络,并将结果与本地 Knowledge Vault 融合。</value></data>
+  <data name="Settings_AugmentAiAnswersWith.Text" xml:space="preserve"><value>用实时网络来源增强聊天回答。启用此项并在聊天中开启研究模式后，您的问题会发送到下方的搜索提供商，搜索结果会连同来源一起添加到回答中。</value></data>
   <data name="Settings_EnableResearchMode.Header" xml:space="preserve"><value>启用研究模式</value></data>
-  <data name="Settings_EnableResearchMode.OffContent" xml:space="preserve"><value>仅本地知识库</value></data>
-  <data name="Settings_EnableResearchMode.OnContent" xml:space="preserve"><value>本地知识库 + 网络搜索</value></data>
+  <data name="Settings_EnableResearchMode.OffContent" xml:space="preserve"><value>不进行网络搜索</value></data>
+  <data name="Settings_EnableResearchMode.OnContent" xml:space="preserve"><value>聊天可添加网络结果</value></data>
   <data name="Settings_SearchProvider.Text" xml:space="preserve"><value>搜索提供商</value></data>
   <data name="Settings_SearchApiKey.Text" xml:space="preserve"><value>API 密钥或实例 URL</value></data>
   <data name="Settings_EnterYourSearchApiPh.PlaceholderText" xml:space="preserve"><value>Brave 或 Serper API 密钥，或 SearXNG URL</value></data>

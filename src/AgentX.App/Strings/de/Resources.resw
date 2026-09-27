@@ -1810,10 +1810,10 @@
   <data name="Settings_TopKResults.Text" xml:space="preserve"><value>Top-K-Ergebnisse</value></data>
   <data name="Settings_AutoIndexWatchFolders.Header" xml:space="preserve"><value>Überwachte Ordner automatisch indexieren</value></data>
   <data name="Settings_ResearchMode.Text" xml:space="preserve"><value>Recherchemodus</value></data>
-  <data name="Settings_AugmentAiAnswersWith.Text" xml:space="preserve"><value>Ergänzen Sie KI-Antworten mit Live-Webquellen. Wenn aktiviert, durchsuchen Anfragen das Web und kombinieren die Ergebnisse mit Ihrem lokalen Wissens-Tresor.</value></data>
+  <data name="Settings_AugmentAiAnswersWith.Text" xml:space="preserve"><value>Ergänzen Sie Chat-Antworten mit Live-Webquellen. Wenn aktiviert und der Recherchemodus im Chat eingeschaltet ist, wird Ihre Frage an den unten gewählten Suchanbieter gesendet, und die Ergebnisse werden mit ihren Quellen zur Antwort hinzugefügt.</value></data>
   <data name="Settings_EnableResearchMode.Header" xml:space="preserve"><value>Recherchemodus aktivieren</value></data>
-  <data name="Settings_EnableResearchMode.OffContent" xml:space="preserve"><value>Nur lokaler Tresor</value></data>
-  <data name="Settings_EnableResearchMode.OnContent" xml:space="preserve"><value>Lokaler Tresor + Websuche</value></data>
+  <data name="Settings_EnableResearchMode.OffContent" xml:space="preserve"><value>Keine Websuche</value></data>
+  <data name="Settings_EnableResearchMode.OnContent" xml:space="preserve"><value>Chat kann Webergebnisse hinzufügen</value></data>
   <data name="Settings_SearchProvider.Text" xml:space="preserve"><value>Suchanbieter</value></data>
   <data name="Settings_SearchApiKey.Text" xml:space="preserve"><value>API-Schlüssel oder Instanz-URL</value></data>
   <data name="Settings_EnterYourSearchApiPh.PlaceholderText" xml:space="preserve"><value>Brave- oder Serper-API-Schlüssel oder SearXNG-URL</value></data>

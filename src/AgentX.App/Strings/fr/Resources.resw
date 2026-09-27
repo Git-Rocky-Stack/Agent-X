@@ -1810,10 +1810,10 @@
   <data name="Settings_TopKResults.Text" xml:space="preserve"><value>Résultats Top-K</value></data>
   <data name="Settings_AutoIndexWatchFolders.Header" xml:space="preserve"><value>Indexer automatiquement les dossiers surveillés</value></data>
   <data name="Settings_ResearchMode.Text" xml:space="preserve"><value>Mode recherche</value></data>
-  <data name="Settings_AugmentAiAnswersWith.Text" xml:space="preserve"><value>Enrichissez les réponses de l'IA avec des sources web en direct. Une fois activé, les requêtes interrogent le web et combinent les résultats avec votre coffre-fort de connaissances local.</value></data>
+  <data name="Settings_AugmentAiAnswersWith.Text" xml:space="preserve"><value>Enrichissez les réponses du chat avec des sources web en direct. Lorsque cette option est activée et que le mode recherche est allumé dans le chat, votre question est envoyée au fournisseur de recherche ci-dessous et les résultats sont ajoutés à la réponse avec leurs sources.</value></data>
   <data name="Settings_EnableResearchMode.Header" xml:space="preserve"><value>Activer le mode recherche</value></data>
-  <data name="Settings_EnableResearchMode.OffContent" xml:space="preserve"><value>Coffre-fort local uniquement</value></data>
-  <data name="Settings_EnableResearchMode.OnContent" xml:space="preserve"><value>Coffre-fort local + recherche web</value></data>
+  <data name="Settings_EnableResearchMode.OffContent" xml:space="preserve"><value>Aucune recherche web</value></data>
+  <data name="Settings_EnableResearchMode.OnContent" xml:space="preserve"><value>Le chat peut ajouter des résultats web</value></data>
   <data name="Settings_SearchProvider.Text" xml:space="preserve"><value>Fournisseur de recherche</value></data>
   <data name="Settings_SearchApiKey.Text" xml:space="preserve"><value>Clé API ou URL de l’instance</value></data>
   <data name="Settings_EnterYourSearchApiPh.PlaceholderText" xml:space="preserve"><value>Clé API Brave ou Serper, ou URL SearXNG</value></data>

@@ -1932,10 +1932,10 @@
   <data name="Settings_TopKResults.Text" xml:space="preserve"><value>Top-K Results</value></data>
   <data name="Settings_AutoIndexWatchFolders.Header" xml:space="preserve"><value>Auto-index watch folders</value></data>
   <data name="Settings_ResearchMode.Text" xml:space="preserve"><value>Research Mode</value></data>
-  <data name="Settings_AugmentAiAnswersWith.Text" xml:space="preserve"><value>Augment AI answers with live web sources. When enabled, queries will search the web and blend results with your local Knowledge Vault.</value></data>
+  <data name="Settings_AugmentAiAnswersWith.Text" xml:space="preserve"><value>Augment chat answers with live web sources. When enabled and Research Mode is on in chat, your question is sent to the search provider below and the results are added to the answer with their sources.</value></data>
   <data name="Settings_EnableResearchMode.Header" xml:space="preserve"><value>Enable Research Mode</value></data>
-  <data name="Settings_EnableResearchMode.OffContent" xml:space="preserve"><value>Local vault only</value></data>
-  <data name="Settings_EnableResearchMode.OnContent" xml:space="preserve"><value>Local vault + web search</value></data>
+  <data name="Settings_EnableResearchMode.OffContent" xml:space="preserve"><value>No web search</value></data>
+  <data name="Settings_EnableResearchMode.OnContent" xml:space="preserve"><value>Chat can add web results</value></data>
   <data name="Settings_SearchProvider.Text" xml:space="preserve"><value>Search Provider</value></data>
   <data name="Settings_SearchApiKey.Text" xml:space="preserve"><value>API Key or Instance URL</value></data>
   <data name="Settings_EnterYourSearchApiPh.PlaceholderText" xml:space="preserve"><value>Brave or Serper API key, or SearXNG URL</value></data>

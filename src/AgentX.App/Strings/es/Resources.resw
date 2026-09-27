@@ -1810,10 +1810,10 @@
   <data name="Settings_TopKResults.Text" xml:space="preserve"><value>Resultados Top-K</value></data>
   <data name="Settings_AutoIndexWatchFolders.Header" xml:space="preserve"><value>Indexar automáticamente carpetas vigiladas</value></data>
   <data name="Settings_ResearchMode.Text" xml:space="preserve"><value>Modo investigación</value></data>
-  <data name="Settings_AugmentAiAnswersWith.Text" xml:space="preserve"><value>Complemente las respuestas de la IA con fuentes web en vivo. Al activarlo, las consultas buscarán en la web y combinarán los resultados con su bóveda de conocimiento local.</value></data>
+  <data name="Settings_AugmentAiAnswersWith.Text" xml:space="preserve"><value>Complemente las respuestas del chat con fuentes web en vivo. Si está activado y el modo investigación está encendido en el chat, su pregunta se envía al proveedor de búsqueda indicado abajo y los resultados se añaden a la respuesta con sus fuentes.</value></data>
   <data name="Settings_EnableResearchMode.Header" xml:space="preserve"><value>Activar modo investigación</value></data>
-  <data name="Settings_EnableResearchMode.OffContent" xml:space="preserve"><value>Solo bóveda local</value></data>
-  <data name="Settings_EnableResearchMode.OnContent" xml:space="preserve"><value>Bóveda local + búsqueda web</value></data>
+  <data name="Settings_EnableResearchMode.OffContent" xml:space="preserve"><value>Sin búsqueda web</value></data>
+  <data name="Settings_EnableResearchMode.OnContent" xml:space="preserve"><value>El chat puede añadir resultados web</value></data>
   <data name="Settings_SearchProvider.Text" xml:space="preserve"><value>Proveedor de búsqueda</value></data>
   <data name="Settings_SearchApiKey.Text" xml:space="preserve"><value>Clave de API o URL de la instancia</value></data>
   <data name="Settings_EnterYourSearchApiPh.PlaceholderText" xml:space="preserve"><value>Clave de API de Brave o Serper, o URL de SearXNG</value></data>
