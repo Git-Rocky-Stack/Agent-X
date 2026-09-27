@@ -209,7 +209,7 @@ Names in **bold** inside a definition are the labels the app shows.
 | **Saved Filters** | Searches saved on the Search page with their mode, advanced settings and sort order. |
 | **Semantic Search** | Vector-based search that finds text by meaning. Also the name of the search page. |
 | **Settings** | The page for AI providers, appearance and language, model routing, cost tracking, inference, the Knowledge Vault, Research Mode, storage, database encryption and the local API. |
-| **Smart Inbox** | The triage queue for pages clipped with the browser extension; you accept, defer or reject each one. Calendar, email and plugin items are accepted into the vault automatically and appear under the accepted status. |
+| **Smart Inbox** | The triage queue for pages clipped with the browser extension; you accept, defer or reject each one. Calendar and email items are accepted into the vault automatically and appear under the accepted status; a plugin connector can add items either for review or as already accepted. |
 | **Sparse Retrieval** | Keyword-based search that matches exact terms. |
 | **Speech-to-Text Model** | The Whisper base model (about 142 MB) that transcribes imported audio and voice input on your computer. Installed with **Download** on the Model Manager page. |
 | **SQLCipher** | The SQLite build that encrypts the whole database file with AES-256. |
