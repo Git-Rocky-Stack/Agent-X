@@ -1348,9 +1348,9 @@
   <data name="WebImport_Words2.Text" xml:space="preserve"><value>mots</value></data>
   <data name="WebImport_ClearResults.Content" xml:space="preserve"><value>Effacer les résultats</value></data>
   <data name="WebImport_RssAtomFeed.Text" xml:space="preserve"><value>Flux RSS / Atom</value></data>
-  <data name="WebImport_SubscribeToAFeed.Text" xml:space="preserve"><value>Abonnez-vous à un flux et importez tous ses éléments dans votre coffre-fort de connaissances.</value></data>
+  <data name="WebImport_SubscribeToAFeed.Text" xml:space="preserve"><value>Importez dans votre coffre-fort de connaissances tous les éléments qu'un flux contient à cet instant. Le flux n'est lu qu'une fois : les nouveaux éléments ne sont pas récupérés par la suite.</value></data>
   <data name="WebImport_FeedUrl.Header" xml:space="preserve"><value>URL du flux</value></data>
-  <data name="WebImport_SubscribeImport.Content" xml:space="preserve"><value>S'abonner et importer</value></data>
+  <data name="WebImport_SubscribeImport.Content" xml:space="preserve"><value>Importer le flux</value></data>
   <data name="WebImport_SitemapImport.Text" xml:space="preserve"><value>Import de sitemap</value></data>
   <data name="WebImport_ImportPagesDiscoveredFrom.Text" xml:space="preserve"><value>Importez des pages découvertes dans un fichier sitemap.xml. Jusqu'à 100 pages seront importées.</value></data>
   <data name="WebImport_SitemapUrl.Header" xml:space="preserve"><value>URL du sitemap</value></data>

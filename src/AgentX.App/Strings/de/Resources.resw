@@ -1348,9 +1348,9 @@
   <data name="WebImport_Words2.Text" xml:space="preserve"><value>Wörter</value></data>
   <data name="WebImport_ClearResults.Content" xml:space="preserve"><value>Ergebnisse leeren</value></data>
   <data name="WebImport_RssAtomFeed.Text" xml:space="preserve"><value>RSS-/Atom-Feed</value></data>
-  <data name="WebImport_SubscribeToAFeed.Text" xml:space="preserve"><value>Abonnieren Sie einen Feed und importieren Sie alle Einträge in Ihren Wissens-Tresor.</value></data>
+  <data name="WebImport_SubscribeToAFeed.Text" xml:space="preserve"><value>Importieren Sie alle Einträge, die ein Feed gerade enthält, in Ihren Wissens-Tresor. Der Feed wird einmal gelesen; neue Einträge werden später nicht abgerufen.</value></data>
   <data name="WebImport_FeedUrl.Header" xml:space="preserve"><value>Feed-URL</value></data>
-  <data name="WebImport_SubscribeImport.Content" xml:space="preserve"><value>Abonnieren &amp; importieren</value></data>
+  <data name="WebImport_SubscribeImport.Content" xml:space="preserve"><value>Feed importieren</value></data>
   <data name="WebImport_SitemapImport.Text" xml:space="preserve"><value>Sitemap-Import</value></data>
   <data name="WebImport_ImportPagesDiscoveredFrom.Text" xml:space="preserve"><value>Importieren Sie Seiten aus einer sitemap.xml-Datei. Bis zu 100 Seiten werden importiert.</value></data>
   <data name="WebImport_SitemapUrl.Header" xml:space="preserve"><value>Sitemap-URL</value></data>

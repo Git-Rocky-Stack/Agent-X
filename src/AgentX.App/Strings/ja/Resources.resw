@@ -1348,9 +1348,9 @@
   <data name="WebImport_Words2.Text" xml:space="preserve"><value>語</value></data>
   <data name="WebImport_ClearResults.Content" xml:space="preserve"><value>結果をクリア</value></data>
   <data name="WebImport_RssAtomFeed.Text" xml:space="preserve"><value>RSS / Atom フィード</value></data>
-  <data name="WebImport_SubscribeToAFeed.Text" xml:space="preserve"><value>フィードを購読して、すべてのアイテムを Knowledge Vault にインポートします。</value></data>
+  <data name="WebImport_SubscribeToAFeed.Text" xml:space="preserve"><value>フィードに現在含まれているすべてのアイテムを Knowledge Vault にインポートします。フィードの読み込みは 1 回だけで、新しいアイテムは後から取得されません。</value></data>
   <data name="WebImport_FeedUrl.Header" xml:space="preserve"><value>フィード URL</value></data>
-  <data name="WebImport_SubscribeImport.Content" xml:space="preserve"><value>購読してインポート</value></data>
+  <data name="WebImport_SubscribeImport.Content" xml:space="preserve"><value>フィードをインポート</value></data>
   <data name="WebImport_SitemapImport.Text" xml:space="preserve"><value>サイトマップ インポート</value></data>
   <data name="WebImport_ImportPagesDiscoveredFrom.Text" xml:space="preserve"><value>sitemap.xml ファイルから検出されたページをインポートします。最大 100 ページまでインポートされます。</value></data>
   <data name="WebImport_SitemapUrl.Header" xml:space="preserve"><value>サイトマップ URL</value></data>

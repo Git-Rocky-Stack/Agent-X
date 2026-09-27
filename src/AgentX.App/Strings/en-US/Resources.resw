@@ -1470,9 +1470,9 @@
   <data name="WebImport_Words2.Text" xml:space="preserve"><value>words</value></data>
   <data name="WebImport_ClearResults.Content" xml:space="preserve"><value>Clear Results</value></data>
   <data name="WebImport_RssAtomFeed.Text" xml:space="preserve"><value>RSS / Atom Feed</value></data>
-  <data name="WebImport_SubscribeToAFeed.Text" xml:space="preserve"><value>Subscribe to a feed and import all items into your Knowledge Vault.</value></data>
+  <data name="WebImport_SubscribeToAFeed.Text" xml:space="preserve"><value>Import every item a feed lists right now into your Knowledge Vault. The feed is read once; new items are not fetched later.</value></data>
   <data name="WebImport_FeedUrl.Header" xml:space="preserve"><value>Feed URL</value></data>
-  <data name="WebImport_SubscribeImport.Content" xml:space="preserve"><value>Subscribe &amp; Import</value></data>
+  <data name="WebImport_SubscribeImport.Content" xml:space="preserve"><value>Import Feed</value></data>
   <data name="WebImport_SitemapImport.Text" xml:space="preserve"><value>Sitemap Import</value></data>
   <data name="WebImport_ImportPagesDiscoveredFrom.Text" xml:space="preserve"><value>Import pages discovered from a sitemap.xml file. Up to 100 pages will be imported.</value></data>
   <data name="WebImport_SitemapUrl.Header" xml:space="preserve"><value>Sitemap URL</value></data>

@@ -1348,9 +1348,9 @@
   <data name="WebImport_Words2.Text" xml:space="preserve"><value>词</value></data>
   <data name="WebImport_ClearResults.Content" xml:space="preserve"><value>清空结果</value></data>
   <data name="WebImport_RssAtomFeed.Text" xml:space="preserve"><value>RSS / Atom 源</value></data>
-  <data name="WebImport_SubscribeToAFeed.Text" xml:space="preserve"><value>订阅源并将所有条目导入 Knowledge Vault。</value></data>
+  <data name="WebImport_SubscribeToAFeed.Text" xml:space="preserve"><value>将源中当前列出的所有条目导入 Knowledge Vault。源只读取一次，之后不会获取新条目。</value></data>
   <data name="WebImport_FeedUrl.Header" xml:space="preserve"><value>源 URL</value></data>
-  <data name="WebImport_SubscribeImport.Content" xml:space="preserve"><value>订阅并导入</value></data>
+  <data name="WebImport_SubscribeImport.Content" xml:space="preserve"><value>导入源</value></data>
   <data name="WebImport_SitemapImport.Text" xml:space="preserve"><value>站点地图导入</value></data>
   <data name="WebImport_ImportPagesDiscoveredFrom.Text" xml:space="preserve"><value>从 sitemap.xml 文件中发现并导入页面。最多导入 100 个页面。</value></data>
   <data name="WebImport_SitemapUrl.Header" xml:space="preserve"><value>站点地图 URL</value></data>

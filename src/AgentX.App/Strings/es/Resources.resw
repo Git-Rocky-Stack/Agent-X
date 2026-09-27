@@ -1348,9 +1348,9 @@
   <data name="WebImport_Words2.Text" xml:space="preserve"><value>palabras</value></data>
   <data name="WebImport_ClearResults.Content" xml:space="preserve"><value>Borrar resultados</value></data>
   <data name="WebImport_RssAtomFeed.Text" xml:space="preserve"><value>Fuente RSS / Atom</value></data>
-  <data name="WebImport_SubscribeToAFeed.Text" xml:space="preserve"><value>Suscríbase a una fuente e importe todos los elementos a su bóveda de conocimiento.</value></data>
+  <data name="WebImport_SubscribeToAFeed.Text" xml:space="preserve"><value>Importe a su bóveda de conocimiento todos los elementos que una fuente contiene en este momento. La fuente se lee una sola vez; los elementos nuevos no se obtienen más adelante.</value></data>
   <data name="WebImport_FeedUrl.Header" xml:space="preserve"><value>URL de la fuente</value></data>
-  <data name="WebImport_SubscribeImport.Content" xml:space="preserve"><value>Suscribirse e importar</value></data>
+  <data name="WebImport_SubscribeImport.Content" xml:space="preserve"><value>Importar fuente</value></data>
   <data name="WebImport_SitemapImport.Text" xml:space="preserve"><value>Importación de sitemap</value></data>
   <data name="WebImport_ImportPagesDiscoveredFrom.Text" xml:space="preserve"><value>Importe páginas descubiertas desde un archivo sitemap.xml. Se importarán hasta 100 páginas.</value></data>
   <data name="WebImport_SitemapUrl.Header" xml:space="preserve"><value>URL del sitemap</value></data>

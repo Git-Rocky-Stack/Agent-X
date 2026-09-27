@@ -536,7 +536,7 @@ Web Import turns URLs into vault documents.
 
 ### Batch and discovery flows
 
-Web Import also accepts several URLs at once (one per line), an RSS/Atom feed URL (it imports the items the feed lists at that moment; feeds are not re-checked on a schedule, so import the feed again for new items), and a sitemap URL (it imports every page the sitemap lists). Results show success/failure counts, imported document names, word counts, and error messages for failed URLs.
+Web Import also accepts several URLs at once (one per line), an RSS/Atom feed URL (it imports the items the feed lists at that moment; feeds are not re-checked on a schedule, so import the feed again for new items), and a sitemap URL (it imports the first 100 pages the sitemap lists). Results show success/failure counts, imported document names, word counts, and error messages for failed URLs.
 
 A URL you type may point to this computer or your local network, so intranet pages import normally. Links that come from remote content (the items of a public feed or sitemap, a redirect from a public page, and what a public page loads when it is rendered) may not; they fail with a "Blocked" message. The check is repeated when the connection is opened, against the address the name resolved to when it was checked. Cloud metadata endpoints such as 169.254.169.254 are never read, even from a URL you type.
 
