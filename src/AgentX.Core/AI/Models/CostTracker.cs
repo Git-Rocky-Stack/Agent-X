@@ -1,3 +1,8 @@
+using System.Text;
+using System.Text.Json;
+using AgentX.Core.Helpers;
+using Serilog;
+
 namespace AgentX.Core.AI.Models;
 
 /// <summary>
@@ -100,18 +105,84 @@ public interface ICostTracker
 }
 
 /// <summary>
-/// Thread-safe in-memory implementation of <see cref="ICostTracker"/>.
+/// Thread-safe implementation of <see cref="ICostTracker"/>.
 /// Maintains a running log of usage records and provides cost calculations
 /// based on known per-model pricing data for OpenAI and Anthropic models.
 /// Local models (built-in and Ollama) are tracked as zero-cost.
+/// <para>
+/// The records outlive a restart: they are kept in <see cref="HistoryFileName"/> in the app data
+/// folder, loaded when the tracker is created and written atomically (a temporary file moved over
+/// the old one) a moment after new usage, and when the app shuts down. The history is bounded: a
+/// record is kept for <see cref="HistoryRetention"/>, and at most <see cref="MaxStoredRecords"/> of
+/// them. What a dropped record cost and used is carried into the totals, so the total cost and
+/// token counts cover all tracked usage while <see cref="GetCostForPeriod"/> and
+/// <see cref="GetUsageHistory"/> see the kept records only. Totals before this history existed
+/// were never saved and are not included.
+/// </para>
 /// </summary>
-public class CostTracker : ICostTracker
+public class CostTracker : ICostTracker, IDisposable
 {
     private const double CacheWriteMultiplier = 1.25;
     private const double DefaultCacheReadMultiplier = 0.1;
 
+    /// <summary>The usage history file, in the app data folder.</summary>
+    public const string HistoryFileName = "usage-history.json";
+
+    /// <summary>How long a usage record is kept.</summary>
+    public static readonly TimeSpan HistoryRetention = TimeSpan.FromDays(90);
+
+    /// <summary>The most usage records kept, the newest ones, whatever their age.</summary>
+    public const int MaxStoredRecords = 20_000;
+
+    /// <summary>New usage is saved this long after the first unsaved record, so a burst is one write.</summary>
+    private static readonly TimeSpan SaveDelay = TimeSpan.FromSeconds(2);
+
+    private static readonly JsonSerializerOptions HistoryJsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    };
+
     private readonly List<UsageRecord> _records = new();
     private readonly object _lock = new();
+
+    // Persistence; a null path keeps the usage in memory only.
+    private readonly string? _historyPath;
+    private readonly Func<DateTime> _utcNow;
+    private readonly int _maxStoredRecords;
+    private readonly Timer? _saveTimer;
+    private readonly object _saveLock = new();
+    private CarriedUsageTotals _carriedOver = new();
+    private bool _dirty;
+    private bool _saveScheduled;
+    private bool _persistenceDisabled;
+    private bool _disposed;
+
+    private static ILogger Logger => Log.ForContext<CostTracker>();
+
+    /// <summary>
+    /// Keeps the usage history in <see cref="HistoryFileName"/> in the app data folder and loads
+    /// what an earlier session saved there.
+    /// </summary>
+    public CostTracker()
+        : this(Path.Combine(PathHelper.GetAppDataPath(), HistoryFileName))
+    {
+    }
+
+    /// <param name="historyFilePath">The history file, or null to keep usage in memory only.</param>
+    /// <param name="utcNow">The clock that stamps and ages records; the real one unless a test sets it.</param>
+    /// <param name="maxStoredRecords">The most records kept; <see cref="MaxStoredRecords"/> unless a test sets it.</param>
+    internal CostTracker(string? historyFilePath, Func<DateTime>? utcNow = null, int maxStoredRecords = MaxStoredRecords)
+    {
+        _historyPath = historyFilePath;
+        _utcNow = utcNow ?? (() => DateTime.UtcNow);
+        _maxStoredRecords = maxStoredRecords;
+
+        if (_historyPath is not null)
+        {
+            _saveTimer = new Timer(_ => SaveNow(), null, Timeout.Infinite, Timeout.Infinite);
+            Load();
+        }
+    }
 
     /// <summary>
     /// Known pricing for cloud models, per 1,000 tokens (as of 2026-09). Model ids with a date
@@ -196,8 +267,10 @@ public class CostTracker : ICostTracker
                 CacheCreationInputTokens = cacheCreationInputTokens,
                 CacheReadInputTokens = cacheReadInputTokens,
                 EstimatedCostUsd = cost,
-                Timestamp = DateTime.UtcNow
+                Timestamp = _utcNow()
             });
+
+            ScheduleSave();
         }
     }
 
@@ -206,7 +279,7 @@ public class CostTracker : ICostTracker
     {
         lock (_lock)
         {
-            return _records.Sum(r => r.EstimatedCostUsd);
+            return _carriedOver.EstimatedCostUsd + _records.Sum(r => r.EstimatedCostUsd);
         }
     }
 
@@ -235,20 +308,221 @@ public class CostTracker : ICostTracker
     }
 
     /// <inheritdoc />
+    /// <remarks>Summed as a long and capped at <see cref="int.MaxValue"/>, which a saved history can reach.</remarks>
     public int GetTotalInputTokens()
     {
         lock (_lock)
         {
-            return _records.Sum(r => r.InputTokens);
+            return CapToInt(_carriedOver.InputTokens + _records.Sum(r => (long)r.InputTokens));
         }
     }
 
     /// <inheritdoc />
+    /// <remarks>Summed as a long and capped at <see cref="int.MaxValue"/>, which a saved history can reach.</remarks>
     public int GetTotalOutputTokens()
     {
         lock (_lock)
         {
-            return _records.Sum(r => r.OutputTokens);
+            return CapToInt(_carriedOver.OutputTokens + _records.Sum(r => (long)r.OutputTokens));
+        }
+    }
+
+    private static int CapToInt(long value) => (int)Math.Clamp(value, 0, int.MaxValue);
+
+    /// <summary>Saves what is unsaved. The app disposes the tracker when it shuts down.</summary>
+    public void Dispose()
+    {
+        lock (_lock)
+        {
+            if (_disposed)
+                return;
+            _disposed = true;
+        }
+
+        _saveTimer?.Dispose();
+        SaveNow();
+    }
+
+    // -- Usage history file --------------------------------------------------
+
+    /// <summary>
+    /// Marks the records unsaved and, unless a save is already due, starts the save delay. Called
+    /// under the lock.
+    /// </summary>
+    private void ScheduleSave()
+    {
+        _dirty = true;
+        if (_saveTimer is null || _disposed || _persistenceDisabled || _saveScheduled)
+            return;
+
+        _saveScheduled = true;
+        _saveTimer.Change(SaveDelay, Timeout.InfiniteTimeSpan);
+    }
+
+    /// <summary>
+    /// Writes the history file now when something is unsaved: records past the retention window
+    /// or the record cap are folded into the carried totals first. Never throws; a failed write
+    /// is retried with the next save.
+    /// </summary>
+    internal void SaveNow()
+    {
+        if (_historyPath is null)
+            return;
+
+        try
+        {
+            lock (_saveLock)
+            {
+                UsageHistoryDocument document;
+                lock (_lock)
+                {
+                    _saveScheduled = false;
+                    if (!_dirty || _persistenceDisabled)
+                        return;
+
+                    Prune(_utcNow());
+                    document = new UsageHistoryDocument
+                    {
+                        CarriedOver = _carriedOver.Copy(),
+                        Records = _records.ToList(),
+                    };
+                    _dirty = false;
+                }
+
+                try
+                {
+                    WriteAtomically(_historyPath, JsonSerializer.Serialize(document, HistoryJsonOptions));
+                }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                {
+                    lock (_lock)
+                    {
+                        _dirty = true;
+                    }
+
+                    Logger.Warning(ex, "Could not save the usage history to {Path}; it is retried with the next save", _historyPath);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            // A timer callback must not throw.
+            Logger.Error(ex, "Saving the usage history failed");
+        }
+    }
+
+    /// <summary>
+    /// Loads the records and carried totals an earlier session saved. A corrupt file is kept as
+    /// <c>{path}.corrupt</c> and a new history starts; a file that cannot be read at all (locked,
+    /// no access) is left alone, and this session keeps its usage in memory rather than replace it.
+    /// </summary>
+    private void Load()
+    {
+        var path = _historyPath!;
+        if (!File.Exists(path))
+            return;
+
+        string json;
+        try
+        {
+            json = File.ReadAllText(path);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            _persistenceDisabled = true;
+            Logger.Warning(ex, "Could not read the usage history at {Path}; this session's usage is not saved", path);
+            return;
+        }
+
+        UsageHistoryDocument? document;
+        try
+        {
+            document = JsonSerializer.Deserialize<UsageHistoryDocument>(json, HistoryJsonOptions);
+        }
+        catch (JsonException ex)
+        {
+            Logger.Warning(ex, "The usage history at {Path} is corrupt; a new history starts", path);
+            KeepCorruptFile(path);
+            return;
+        }
+
+        if (document is null)
+            return;
+
+        _carriedOver = document.CarriedOver ?? new CarriedUsageTotals();
+        _records.AddRange((document.Records ?? new List<UsageRecord>())
+            .Where(record => record is not null)
+            .OrderBy(record => record.Timestamp));
+
+        // Records that aged out since the last session are folded in with the next save.
+        if (Prune(_utcNow()))
+            _dirty = true;
+
+        Logger.Debug("Loaded {Count} usage records from {Path}", _records.Count, path);
+    }
+
+    /// <summary>
+    /// Drops the records older than the retention window, then the oldest beyond the record cap,
+    /// and adds what they cost and used to the carried totals. Called under the lock; the records
+    /// are in time order. Returns whether anything was dropped.
+    /// </summary>
+    private bool Prune(DateTime nowUtc)
+    {
+        var cutoff = nowUtc - HistoryRetention;
+        var drop = 0;
+        while (drop < _records.Count &&
+               (_records[drop].Timestamp < cutoff || _records.Count - drop > _maxStoredRecords))
+        {
+            var record = _records[drop];
+            _carriedOver.EstimatedCostUsd += record.EstimatedCostUsd;
+            _carriedOver.InputTokens += record.InputTokens;
+            _carriedOver.OutputTokens += record.OutputTokens;
+            drop++;
+        }
+
+        if (drop == 0)
+            return false;
+
+        _records.RemoveRange(0, drop);
+        return true;
+    }
+
+    /// <summary>
+    /// Writes a sibling temporary file, flushed to disk, and moves it over the history, so a crash
+    /// or a full disk mid-write leaves the previous file whole.
+    /// </summary>
+    private static void WriteAtomically(string path, string json)
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path))!);
+        var tempPath = $"{path}.{Guid.NewGuid():N}.tmp";
+        try
+        {
+            using (var stream = new FileStream(tempPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            {
+                stream.Write(new UTF8Encoding(encoderShouldEmitUTF8Identifier: false).GetBytes(json));
+                stream.Flush(flushToDisk: true);
+            }
+
+            File.Move(tempPath, path, overwrite: true);
+        }
+        finally
+        {
+            if (File.Exists(tempPath))
+            {
+                try { File.Delete(tempPath); } catch (IOException) { } catch (UnauthorizedAccessException) { }
+            }
+        }
+    }
+
+    private static void KeepCorruptFile(string path)
+    {
+        try
+        {
+            File.Move(path, path + ".corrupt", overwrite: true);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            Logger.Debug(ex, "Could not set aside the corrupt usage history {Path}", path);
         }
     }
 
@@ -313,4 +587,31 @@ public class CostTracker : ICostTracker
                (cacheReadInputTokens / 1000.0 * cacheReadPrice) +
                (outputTokens / 1000.0 * info.OutputCostPer1KTokens);
     }
+}
+
+/// <summary>The usage history file: the kept records and the totals of those dropped from it.</summary>
+internal sealed class UsageHistoryDocument
+{
+    public int Version { get; set; } = 1;
+
+    public CarriedUsageTotals? CarriedOver { get; set; }
+
+    public List<UsageRecord>? Records { get; set; }
+}
+
+/// <summary>What the usage records dropped from the history (by age or by the record cap) cost and used.</summary>
+internal sealed class CarriedUsageTotals
+{
+    public double EstimatedCostUsd { get; set; }
+
+    public long InputTokens { get; set; }
+
+    public long OutputTokens { get; set; }
+
+    public CarriedUsageTotals Copy() => new()
+    {
+        EstimatedCostUsd = EstimatedCostUsd,
+        InputTokens = InputTokens,
+        OutputTokens = OutputTokens,
+    };
 }

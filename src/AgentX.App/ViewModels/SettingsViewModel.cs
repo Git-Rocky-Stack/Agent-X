@@ -563,10 +563,12 @@ public partial class SettingsViewModel : ObservableObject
     {
         try
         {
+            // The usage history outlives a restart, so "today" is the user's calendar day (local
+            // midnight onward), not the UTC day.
             TotalCostDisplay = $"${_costTracker.GetTotalCostUsd():F4}";
-            var todayStart = DateTime.UtcNow.Date;
+            var todayStart = DateTime.Today.ToUniversalTime();
             TodayCostDisplay = $"${_costTracker.GetCostForPeriod(todayStart, DateTime.UtcNow):F4}";
-            var totalTokens = _costTracker.GetTotalInputTokens() + _costTracker.GetTotalOutputTokens();
+            var totalTokens = (long)_costTracker.GetTotalInputTokens() + _costTracker.GetTotalOutputTokens();
             TotalTokensDisplay = totalTokens.ToString("N0");
         }
         catch (Exception ex)
