@@ -2293,6 +2293,51 @@
   <data name="Settings_DefaultModel.Text" xml:space="preserve"><value>既定のモデル</value></data>
   <data name="Settings_TestConnection2.Content" xml:space="preserve"><value>接続をテスト</value></data>
   <data name="Settings_Cloud2.Text" xml:space="preserve"><value>クラウド</value></data>
+  <data name="Plugin_StatusReady" xml:space="preserve"><value>準備完了</value></data>
+  <data name="Plugin_LoadFailed" xml:space="preserve"><value>インストール済みのプラグインを読み込めませんでした。もう一度お試しください。</value></data>
+  <data name="Plugin_Installing" xml:space="preserve"><value>プラグインをインストールしています...</value></data>
+  <data name="Plugin_InstallSucceeded" xml:space="preserve"><value>{0} をインストールしました</value></data>
+  <data name="Plugin_InstallFailedDetail" xml:space="preserve"><value>インストールに失敗しました: {0}</value></data>
+  <data name="Plugin_InstallFailed" xml:space="preserve"><value>インストールに失敗しました</value></data>
+  <data name="Plugin_Uninstalling" xml:space="preserve"><value>{0} をアンインストールしています...</value></data>
+  <data name="Plugin_UninstalledLeftoverError" xml:space="preserve"><value>{0} はアンインストールされましたが、一部のファイルを削除できませんでした。Agent-X を再起動してから {1} を削除してください。</value></data>
+  <data name="Plugin_UninstalledLeftoverStatus" xml:space="preserve"><value>{0} をアンインストールしました。削除できなかったファイルが残っています</value></data>
+  <data name="Plugin_UninstallSucceeded" xml:space="preserve"><value>{0} をアンインストールしました</value></data>
+  <data name="Plugin_UninstallFailedDetail" xml:space="preserve"><value>プラグインをアンインストールできませんでした。{0}</value></data>
+  <data name="Plugin_UninstallFailed" xml:space="preserve"><value>アンインストールに失敗しました</value></data>
+  <data name="Plugin_FallbackName" xml:space="preserve"><value>プラグイン #{0}</value></data>
+  <data name="Plugin_Enabled" xml:space="preserve"><value>{0} を有効にしました</value></data>
+  <data name="Plugin_EnableFailed" xml:space="preserve"><value>プラグインを有効にできませんでした。{0}</value></data>
+  <data name="Plugin_Disabled" xml:space="preserve"><value>{0} を無効にしました</value></data>
+  <data name="Plugin_DisableFailed" xml:space="preserve"><value>プラグインを無効にできませんでした。{0}</value></data>
+  <data name="Plugin_BulkEnablingOne" xml:space="preserve"><value>1 件のプラグインを有効にしています...</value></data>
+  <data name="Plugin_BulkEnablingMany" xml:space="preserve"><value>{0} 件のプラグインを有効にしています...</value></data>
+  <data name="Plugin_BulkEnabledOne" xml:space="preserve"><value>1 件のプラグインを有効にしました</value></data>
+  <data name="Plugin_BulkEnabledMany" xml:space="preserve"><value>{0} 件のプラグインを有効にしました</value></data>
+  <data name="Plugin_BulkEnableFailedDetail" xml:space="preserve"><value>一括有効化に失敗しました: {0}</value></data>
+  <data name="Plugin_BulkEnableFailed" xml:space="preserve"><value>一括有効化に失敗しました</value></data>
+  <data name="Plugin_BulkDisablingOne" xml:space="preserve"><value>1 件のプラグインを無効にしています...</value></data>
+  <data name="Plugin_BulkDisablingMany" xml:space="preserve"><value>{0} 件のプラグインを無効にしています...</value></data>
+  <data name="Plugin_BulkDisabledOne" xml:space="preserve"><value>1 件のプラグインを無効にしました</value></data>
+  <data name="Plugin_BulkDisabledMany" xml:space="preserve"><value>{0} 件のプラグインを無効にしました</value></data>
+  <data name="Plugin_BulkDisableFailedDetail" xml:space="preserve"><value>一括無効化に失敗しました: {0}</value></data>
+  <data name="Plugin_BulkDisableFailed" xml:space="preserve"><value>一括無効化に失敗しました</value></data>
+  <data name="Plugin_BulkUninstallingOne" xml:space="preserve"><value>1 件のプラグインをアンインストールしています...</value></data>
+  <data name="Plugin_BulkUninstallingMany" xml:space="preserve"><value>{0} 件のプラグインをアンインストールしています...</value></data>
+  <data name="Plugin_BulkUninstalledOne" xml:space="preserve"><value>1 件のプラグインをアンインストールしました</value></data>
+  <data name="Plugin_BulkUninstalledMany" xml:space="preserve"><value>{0} 件のプラグインをアンインストールしました</value></data>
+  <data name="Plugin_BulkLeftoverError" xml:space="preserve"><value>一部のプラグイン ファイルを削除できませんでした。Agent-X を再起動してから、次を削除してください: {0}</value></data>
+  <data name="Plugin_BulkUninstalledLeftoverOne" xml:space="preserve"><value>1 件のプラグインをアンインストールしました。削除できなかったファイルが残っています</value></data>
+  <data name="Plugin_BulkUninstalledLeftoverMany" xml:space="preserve"><value>{0} 件のプラグインをアンインストールしました。削除できなかったファイルが残っています</value></data>
+  <data name="Plugin_BulkUninstallFailedDetail" xml:space="preserve"><value>一括アンインストールに失敗しました: {0}</value></data>
+  <data name="Plugin_BulkUninstallFailed" xml:space="preserve"><value>一括アンインストールに失敗しました</value></data>
+  <data name="Plugin_TypeExtension" xml:space="preserve"><value>拡張機能</value></data>
+  <data name="Plugin_NeverActivated" xml:space="preserve"><value>なし</value></data>
+  <data name="Plugin_ResolvedFocused" xml:space="preserve"><value>「{0}」を有効にして解決しました。</value></data>
+  <data name="Plugin_ResolvedFocusedUnnamed" xml:space="preserve"><value>対象のコネクタを有効にして解決しました。</value></data>
+  <data name="Plugin_NoneInstalled" xml:space="preserve"><value>プラグインはインストールされていません</value></data>
+  <data name="Plugin_InstalledOne" xml:space="preserve"><value>1 件のプラグインがインストールされています</value></data>
+  <data name="Plugin_InstalledMany" xml:space="preserve"><value>{0} 件のプラグインがインストールされています</value></data>
   <data name="PastSelf_CancelDraft.Content" xml:space="preserve"><value>キャンセル</value></data>
   <data name="PastSelf_DraftWriting.Text" xml:space="preserve"><value>下書きを作成しています...</value></data>
   <data name="PastSelf_DraftNeedsContext" xml:space="preserve"><value>まず「コンテキスト」に書きたい内容を入力してください。</value></data>

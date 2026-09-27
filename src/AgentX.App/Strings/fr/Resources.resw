@@ -2293,6 +2293,51 @@
   <data name="Settings_DefaultModel.Text" xml:space="preserve"><value>Modèle par défaut</value></data>
   <data name="Settings_TestConnection2.Content" xml:space="preserve"><value>Tester la connexion</value></data>
   <data name="Settings_Cloud2.Text" xml:space="preserve"><value>CLOUD</value></data>
+  <data name="Plugin_StatusReady" xml:space="preserve"><value>Prêt</value></data>
+  <data name="Plugin_LoadFailed" xml:space="preserve"><value>Impossible de charger les plugins installés. Réessayez.</value></data>
+  <data name="Plugin_Installing" xml:space="preserve"><value>Installation du plugin...</value></data>
+  <data name="Plugin_InstallSucceeded" xml:space="preserve"><value>{0} a été installé</value></data>
+  <data name="Plugin_InstallFailedDetail" xml:space="preserve"><value>Échec de l'installation : {0}</value></data>
+  <data name="Plugin_InstallFailed" xml:space="preserve"><value>Échec de l'installation</value></data>
+  <data name="Plugin_Uninstalling" xml:space="preserve"><value>Désinstallation de {0}...</value></data>
+  <data name="Plugin_UninstalledLeftoverError" xml:space="preserve"><value>{0} a été désinstallé, mais certains fichiers n'ont pas pu être supprimés. Supprimez {1} après avoir redémarré Agent-X.</value></data>
+  <data name="Plugin_UninstalledLeftoverStatus" xml:space="preserve"><value>{0} désinstallé ; des fichiers résiduels subsistent</value></data>
+  <data name="Plugin_UninstallSucceeded" xml:space="preserve"><value>{0} a été désinstallé</value></data>
+  <data name="Plugin_UninstallFailedDetail" xml:space="preserve"><value>Impossible de désinstaller le plugin. {0}</value></data>
+  <data name="Plugin_UninstallFailed" xml:space="preserve"><value>Échec de la désinstallation</value></data>
+  <data name="Plugin_FallbackName" xml:space="preserve"><value>plugin #{0}</value></data>
+  <data name="Plugin_Enabled" xml:space="preserve"><value>{0} activé</value></data>
+  <data name="Plugin_EnableFailed" xml:space="preserve"><value>Impossible d'activer le plugin. {0}</value></data>
+  <data name="Plugin_Disabled" xml:space="preserve"><value>{0} désactivé</value></data>
+  <data name="Plugin_DisableFailed" xml:space="preserve"><value>Impossible de désactiver le plugin. {0}</value></data>
+  <data name="Plugin_BulkEnablingOne" xml:space="preserve"><value>Activation de 1 plugin...</value></data>
+  <data name="Plugin_BulkEnablingMany" xml:space="preserve"><value>Activation de {0} plugins...</value></data>
+  <data name="Plugin_BulkEnabledOne" xml:space="preserve"><value>1 plugin activé</value></data>
+  <data name="Plugin_BulkEnabledMany" xml:space="preserve"><value>{0} plugins activés</value></data>
+  <data name="Plugin_BulkEnableFailedDetail" xml:space="preserve"><value>Échec de l'activation groupée : {0}</value></data>
+  <data name="Plugin_BulkEnableFailed" xml:space="preserve"><value>Échec de l'activation groupée</value></data>
+  <data name="Plugin_BulkDisablingOne" xml:space="preserve"><value>Désactivation de 1 plugin...</value></data>
+  <data name="Plugin_BulkDisablingMany" xml:space="preserve"><value>Désactivation de {0} plugins...</value></data>
+  <data name="Plugin_BulkDisabledOne" xml:space="preserve"><value>1 plugin désactivé</value></data>
+  <data name="Plugin_BulkDisabledMany" xml:space="preserve"><value>{0} plugins désactivés</value></data>
+  <data name="Plugin_BulkDisableFailedDetail" xml:space="preserve"><value>Échec de la désactivation groupée : {0}</value></data>
+  <data name="Plugin_BulkDisableFailed" xml:space="preserve"><value>Échec de la désactivation groupée</value></data>
+  <data name="Plugin_BulkUninstallingOne" xml:space="preserve"><value>Désinstallation de 1 plugin...</value></data>
+  <data name="Plugin_BulkUninstallingMany" xml:space="preserve"><value>Désinstallation de {0} plugins...</value></data>
+  <data name="Plugin_BulkUninstalledOne" xml:space="preserve"><value>1 plugin désinstallé</value></data>
+  <data name="Plugin_BulkUninstalledMany" xml:space="preserve"><value>{0} plugins désinstallés</value></data>
+  <data name="Plugin_BulkLeftoverError" xml:space="preserve"><value>Certains fichiers de plugins n'ont pas pu être supprimés. Après avoir redémarré Agent-X, supprimez : {0}</value></data>
+  <data name="Plugin_BulkUninstalledLeftoverOne" xml:space="preserve"><value>1 plugin désinstallé ; des fichiers résiduels subsistent</value></data>
+  <data name="Plugin_BulkUninstalledLeftoverMany" xml:space="preserve"><value>{0} plugins désinstallés ; des fichiers résiduels subsistent</value></data>
+  <data name="Plugin_BulkUninstallFailedDetail" xml:space="preserve"><value>Échec de la désinstallation groupée : {0}</value></data>
+  <data name="Plugin_BulkUninstallFailed" xml:space="preserve"><value>Échec de la désinstallation groupée</value></data>
+  <data name="Plugin_TypeExtension" xml:space="preserve"><value>Extension</value></data>
+  <data name="Plugin_NeverActivated" xml:space="preserve"><value>Jamais</value></data>
+  <data name="Plugin_ResolvedFocused" xml:space="preserve"><value>« {0} » a été résolu en l'activant.</value></data>
+  <data name="Plugin_ResolvedFocusedUnnamed" xml:space="preserve"><value>Le connecteur ciblé a été résolu en l'activant.</value></data>
+  <data name="Plugin_NoneInstalled" xml:space="preserve"><value>Aucun plugin installé</value></data>
+  <data name="Plugin_InstalledOne" xml:space="preserve"><value>1 plugin installé</value></data>
+  <data name="Plugin_InstalledMany" xml:space="preserve"><value>{0} plugins installés</value></data>
   <data name="PastSelf_CancelDraft.Content" xml:space="preserve"><value>Annuler</value></data>
   <data name="PastSelf_DraftWriting.Text" xml:space="preserve"><value>Rédaction du brouillon...</value></data>
   <data name="PastSelf_DraftNeedsContext" xml:space="preserve"><value>Décrivez d'abord dans Contexte ce que vous voulez écrire.</value></data>

@@ -2293,6 +2293,51 @@
   <data name="Settings_DefaultModel.Text" xml:space="preserve"><value>默认模型</value></data>
   <data name="Settings_TestConnection2.Content" xml:space="preserve"><value>测试连接</value></data>
   <data name="Settings_Cloud2.Text" xml:space="preserve"><value>云端</value></data>
+  <data name="Plugin_StatusReady" xml:space="preserve"><value>就绪</value></data>
+  <data name="Plugin_LoadFailed" xml:space="preserve"><value>无法加载已安装的插件。请重试。</value></data>
+  <data name="Plugin_Installing" xml:space="preserve"><value>正在安装插件...</value></data>
+  <data name="Plugin_InstallSucceeded" xml:space="preserve"><value>已成功安装 {0}</value></data>
+  <data name="Plugin_InstallFailedDetail" xml:space="preserve"><value>安装失败：{0}</value></data>
+  <data name="Plugin_InstallFailed" xml:space="preserve"><value>安装失败</value></data>
+  <data name="Plugin_Uninstalling" xml:space="preserve"><value>正在卸载 {0}...</value></data>
+  <data name="Plugin_UninstalledLeftoverError" xml:space="preserve"><value>{0} 已卸载，但部分文件无法删除。请在重新启动 Agent-X 后删除 {1}。</value></data>
+  <data name="Plugin_UninstalledLeftoverStatus" xml:space="preserve"><value>已卸载 {0}；仍有残留文件</value></data>
+  <data name="Plugin_UninstallSucceeded" xml:space="preserve"><value>已成功卸载 {0}</value></data>
+  <data name="Plugin_UninstallFailedDetail" xml:space="preserve"><value>无法卸载插件。{0}</value></data>
+  <data name="Plugin_UninstallFailed" xml:space="preserve"><value>卸载失败</value></data>
+  <data name="Plugin_FallbackName" xml:space="preserve"><value>插件 #{0}</value></data>
+  <data name="Plugin_Enabled" xml:space="preserve"><value>已启用 {0}</value></data>
+  <data name="Plugin_EnableFailed" xml:space="preserve"><value>无法启用插件。{0}</value></data>
+  <data name="Plugin_Disabled" xml:space="preserve"><value>已禁用 {0}</value></data>
+  <data name="Plugin_DisableFailed" xml:space="preserve"><value>无法禁用插件。{0}</value></data>
+  <data name="Plugin_BulkEnablingOne" xml:space="preserve"><value>正在启用 1 个插件...</value></data>
+  <data name="Plugin_BulkEnablingMany" xml:space="preserve"><value>正在启用 {0} 个插件...</value></data>
+  <data name="Plugin_BulkEnabledOne" xml:space="preserve"><value>已成功启用 1 个插件</value></data>
+  <data name="Plugin_BulkEnabledMany" xml:space="preserve"><value>已成功启用 {0} 个插件</value></data>
+  <data name="Plugin_BulkEnableFailedDetail" xml:space="preserve"><value>批量启用失败：{0}</value></data>
+  <data name="Plugin_BulkEnableFailed" xml:space="preserve"><value>批量启用失败</value></data>
+  <data name="Plugin_BulkDisablingOne" xml:space="preserve"><value>正在禁用 1 个插件...</value></data>
+  <data name="Plugin_BulkDisablingMany" xml:space="preserve"><value>正在禁用 {0} 个插件...</value></data>
+  <data name="Plugin_BulkDisabledOne" xml:space="preserve"><value>已成功禁用 1 个插件</value></data>
+  <data name="Plugin_BulkDisabledMany" xml:space="preserve"><value>已成功禁用 {0} 个插件</value></data>
+  <data name="Plugin_BulkDisableFailedDetail" xml:space="preserve"><value>批量禁用失败：{0}</value></data>
+  <data name="Plugin_BulkDisableFailed" xml:space="preserve"><value>批量禁用失败</value></data>
+  <data name="Plugin_BulkUninstallingOne" xml:space="preserve"><value>正在卸载 1 个插件...</value></data>
+  <data name="Plugin_BulkUninstallingMany" xml:space="preserve"><value>正在卸载 {0} 个插件...</value></data>
+  <data name="Plugin_BulkUninstalledOne" xml:space="preserve"><value>已成功卸载 1 个插件</value></data>
+  <data name="Plugin_BulkUninstalledMany" xml:space="preserve"><value>已成功卸载 {0} 个插件</value></data>
+  <data name="Plugin_BulkLeftoverError" xml:space="preserve"><value>部分插件文件无法删除。请在重新启动 Agent-X 后删除：{0}</value></data>
+  <data name="Plugin_BulkUninstalledLeftoverOne" xml:space="preserve"><value>已卸载 1 个插件；仍有残留文件</value></data>
+  <data name="Plugin_BulkUninstalledLeftoverMany" xml:space="preserve"><value>已卸载 {0} 个插件；仍有残留文件</value></data>
+  <data name="Plugin_BulkUninstallFailedDetail" xml:space="preserve"><value>批量卸载失败：{0}</value></data>
+  <data name="Plugin_BulkUninstallFailed" xml:space="preserve"><value>批量卸载失败</value></data>
+  <data name="Plugin_TypeExtension" xml:space="preserve"><value>扩展</value></data>
+  <data name="Plugin_NeverActivated" xml:space="preserve"><value>从未</value></data>
+  <data name="Plugin_ResolvedFocused" xml:space="preserve"><value>已通过启用“{0}”解决。</value></data>
+  <data name="Plugin_ResolvedFocusedUnnamed" xml:space="preserve"><value>已通过启用目标连接器解决。</value></data>
+  <data name="Plugin_NoneInstalled" xml:space="preserve"><value>未安装插件</value></data>
+  <data name="Plugin_InstalledOne" xml:space="preserve"><value>已安装 1 个插件</value></data>
+  <data name="Plugin_InstalledMany" xml:space="preserve"><value>已安装 {0} 个插件</value></data>
   <data name="PastSelf_CancelDraft.Content" xml:space="preserve"><value>取消</value></data>
   <data name="PastSelf_DraftWriting.Text" xml:space="preserve"><value>正在撰写草稿...</value></data>
   <data name="PastSelf_DraftNeedsContext" xml:space="preserve"><value>请先在“上下文”中描述您要写的内容。</value></data>

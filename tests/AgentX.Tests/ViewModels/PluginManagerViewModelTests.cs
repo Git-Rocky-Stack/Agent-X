@@ -1,8 +1,10 @@
 using AgentX.App.Services;
 using AgentX.App.ViewModels;
 using AgentX.Core.Data.Entities;
+using AgentX.Core.Helpers;
 using AgentX.Core.Services.Localization;
 using AgentX.Core.Services.Plugins;
+using AgentX.Tests.Helpers;
 using FluentAssertions;
 using Moq;
 using Xunit;
@@ -276,7 +278,7 @@ public sealed class PluginManagerViewModelTests
         SetupTwoPlugins();
         _pluginService.Setup(service => service.UninstallPluginAsync(11))
             .ReturnsAsync(new PluginUninstallResult(Found: true, LeftoverDirectory: null));
-        var viewModel = CreateViewModel();
+        var viewModel = CreateViewModel(KeyEchoingLocalization().Object);
         await viewModel.InitializeAsync();
         var requests = new List<ConfirmationRequest>();
         viewModel.ConfirmDestructiveActionAsync = request =>
@@ -330,7 +332,7 @@ public sealed class PluginManagerViewModelTests
     public async Task BulkUninstallCommand_AsksWithTheCount_AndKeepsTheSelectionWhenCancelled()
     {
         SetupTwoPlugins();
-        var viewModel = CreateViewModel();
+        var viewModel = CreateViewModel(KeyEchoingLocalization().Object);
         await viewModel.InitializeAsync();
         viewModel.ToggleMultiSelectCommand.Execute(null);
         viewModel.SelectAllPluginsCommand.Execute(null);
@@ -371,6 +373,93 @@ public sealed class PluginManagerViewModelTests
         viewModel.IsMultiSelectMode.Should().BeFalse();
     }
 
+    // -- Texts in the user's language --
+    // The status line, errors, "Never" and the type fallback were English literals.
+
+    [Fact]
+    public async Task InitializeAsync_ShowsTheStatusAndNeverActivatedInTheUsersLanguage()
+    {
+        _pluginService.Setup(service => service.GetInstalledPluginsAsync())
+            .ReturnsAsync(
+            [
+                CreatePlugin(11, "Calendar Connector", enabled: false),
+                CreatePlugin(12, "Email Connector", enabled: false),
+            ]);
+        var viewModel = CreateViewModel(ReswLocalization.For("de"));
+
+        await viewModel.InitializeAsync();
+
+        viewModel.StatusMessage.Should().Be("2 Plugins installiert");
+        viewModel.Plugins.Should().OnlyContain(plugin => plugin.LastActivatedAtFormatted == "Nie");
+    }
+
+    [Fact]
+    public async Task InitializeAsync_WithOnePlugin_SaysPluginInTheSingular()
+    {
+        _pluginService.Setup(service => service.GetInstalledPluginsAsync())
+            .ReturnsAsync([CreatePlugin(11, "Calendar Connector", enabled: true)]);
+        var viewModel = CreateViewModel();
+
+        await viewModel.InitializeAsync();
+
+        viewModel.StatusMessage.Should().Be("1 plugin installed");
+    }
+
+    [Fact]
+    public async Task InitializeAsync_NamesAPluginWithoutATypeAnExtension()
+    {
+        var untyped = CreatePlugin(11, "Calendar Connector", enabled: true);
+        untyped.PluginType = string.Empty;
+        _pluginService.Setup(service => service.GetInstalledPluginsAsync())
+            .ReturnsAsync([untyped, CreatePlugin(12, "Email Connector", enabled: true)]);
+        var viewModel = CreateViewModel(ReswLocalization.For("fr"));
+
+        await viewModel.InitializeAsync();
+
+        viewModel.Plugins.Single(plugin => plugin.Id == 11).TypeLabel.Should().Be("Extension");
+        viewModel.Plugins.Single(plugin => plugin.Id == 12).TypeLabel.Should().Be("Connector");
+    }
+
+    [Fact]
+    public async Task InstallPluginCommand_WhenInstallFails_ExplainsInTheUsersLanguage()
+    {
+        SetupTwoPlugins();
+        _pluginService.Setup(service => service.InstallPluginAsync(It.IsAny<string>()))
+            .ThrowsAsync(new InvalidOperationException("manifest.json is missing"));
+        var viewModel = CreateViewModel(ReswLocalization.For("es"));
+        viewModel.FilePickerRequested += () => Task.FromResult<string?>(@"C:\Downloads\broken.zip");
+        await viewModel.InitializeAsync();
+
+        await viewModel.InstallPluginCommand.ExecuteAsync(null);
+
+        viewModel.HasError.Should().BeTrue();
+        viewModel.ErrorMessage.Should().Be("Error en la instalación: manifest.json is missing");
+        viewModel.StatusMessage.Should().Be("Error en la instalación");
+    }
+
+    // -- Activation time --
+    // Enabling a plugin stamped the row with the local time, which TimeAgo reads as UTC: west
+    // of UTC a plugin enabled a moment ago read "5h ago".
+
+    [Fact]
+    public async Task EnablePluginCommand_StampsTheActivationInUtc()
+    {
+        _pluginService.Setup(service => service.GetInstalledPluginsAsync())
+            .ReturnsAsync([CreatePlugin(11, "Calendar Connector", enabled: false)]);
+        _pluginService.Setup(service => service.EnablePluginAsync(11)).Returns(Task.CompletedTask);
+        var viewModel = CreateViewModel();
+        await viewModel.InitializeAsync();
+
+        await viewModel.EnablePluginCommand.ExecuteAsync(11L);
+
+        var plugin = viewModel.Plugins.Single();
+        plugin.LastActivatedAt.Should().NotBeNull();
+        plugin.LastActivatedAt!.Value.Kind.Should().Be(DateTimeKind.Utc);
+        plugin.LastActivatedAt.Value.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromMinutes(1));
+        plugin.LastActivatedAtFormatted.Should().Be(FormatHelper.TimeAgoWithMonths(plugin.LastActivatedAt.Value));
+        viewModel.StatusMessage.Should().Be("Enabled Calendar Connector");
+    }
+
     private void SetupTwoPlugins() =>
         _pluginService.Setup(service => service.GetInstalledPluginsAsync())
             .ReturnsAsync(
@@ -381,10 +470,11 @@ public sealed class PluginManagerViewModelTests
 
     /// <summary>
     /// A view model whose page confirms every uninstall, as a user who clicks Uninstall would.
-    /// Tests of the confirmation itself replace the handler.
+    /// Tests of the confirmation itself replace the handler. Without a localization service it
+    /// reads the en-US resources the app ships.
     /// </summary>
-    private PluginManagerViewModel CreateViewModel() =>
-        new(_pluginService.Object, KeyEchoingLocalization().Object, _operationsDrillInService.Object)
+    private PluginManagerViewModel CreateViewModel(ILocalizationService? localization = null) =>
+        new(_pluginService.Object, localization ?? EnglishResources.Create(), _operationsDrillInService.Object)
         {
             ConfirmDestructiveActionAsync = _ => Task.FromResult(true)
         };
