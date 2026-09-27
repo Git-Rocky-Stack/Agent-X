@@ -8,14 +8,13 @@ namespace AgentX.Core.Search;
 
 /// <summary>
 /// HyDE (Hypothetical Document Embeddings) implementation.
-/// Uses the LLM to generate a plausible answer passage for the user's question,
-/// then embeds that passage. The resulting vector is closer in semantic space to
-/// actual answer documents than the raw question embedding would be.
+/// Uses the LLM to generate a plausible answer passage for the user's question. The RAG
+/// pipeline searches with that passage as an extra query, and its embedding is closer in
+/// semantic space to actual answer documents than the raw question embedding would be.
 /// </summary>
 public sealed class HydeService : IHydeService
 {
     private readonly IAiService _aiService;
-    private readonly IEmbeddingService _embeddingService;
     private readonly IRagPromptCatalog? _promptCatalog;
     private readonly IRagConfiguration? _ragConfiguration;
     private readonly ILogger _logger;
@@ -27,29 +26,26 @@ public sealed class HydeService : IHydeService
     private string SystemPrompt
         => _promptCatalog?.HydeSystem ?? RagPromptDefaults.HydeSystem;
 
-    public HydeService(IAiService aiService, IEmbeddingService embeddingService, ILogger logger)
-        : this(aiService, embeddingService, null, logger)
+    public HydeService(IAiService aiService, ILogger logger)
+        : this(aiService, null, logger)
     {
     }
 
     public HydeService(
         IAiService aiService,
-        IEmbeddingService embeddingService,
         IRagPromptCatalog? promptCatalog,
         ILogger logger)
-        : this(aiService, embeddingService, promptCatalog, null, logger)
+        : this(aiService, promptCatalog, null, logger)
     {
     }
 
     public HydeService(
         IAiService aiService,
-        IEmbeddingService embeddingService,
         IRagPromptCatalog? promptCatalog,
         IRagConfiguration? ragConfiguration,
         ILogger logger)
     {
         _aiService = aiService ?? throw new ArgumentNullException(nameof(aiService));
-        _embeddingService = embeddingService ?? throw new ArgumentNullException(nameof(embeddingService));
         _promptCatalog = promptCatalog;
         _ragConfiguration = ragConfiguration;
         _logger = logger?.ForContext<HydeService>() ?? throw new ArgumentNullException(nameof(logger));
@@ -90,18 +86,5 @@ public sealed class HydeService : IHydeService
         _logger.Debug("Generated hypothetical document ({Length} chars)", hypotheticalDoc.Length);
 
         return hypotheticalDoc;
-    }
-
-    /// <inheritdoc />
-    public async Task<float[]> GenerateHypotheticalEmbeddingAsync(
-        string query,
-        CancellationToken ct = default)
-    {
-        var hypotheticalDoc = await GenerateHypotheticalDocumentAsync(query, ct).ConfigureAwait(false);
-
-        var embedding = await _embeddingService.EmbedAsync(hypotheticalDoc, ct)
-            .ConfigureAwait(false);
-
-        return embedding;
     }
 }

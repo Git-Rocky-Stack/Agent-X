@@ -908,16 +908,6 @@ Retrieves all documents with optional filtering. Results are ordered by `Importe
 
 ---
 
-##### GetDocumentsByCollectionAsync
-
-```csharp
-Task<IReadOnlyList<DocumentEntity>> GetDocumentsByCollectionAsync(long collectionId);
-```
-
-Retrieves all documents belonging to a specific collection.
-
----
-
 ##### DeleteDocumentAsync
 
 ```csharp

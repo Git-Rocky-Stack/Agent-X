@@ -665,75 +665,6 @@ public sealed class KeywordSearchServiceTests : IDisposable
         (await _db.Tags.CountAsync()).Should().Be(4 * 25);
     }
 
-    // ─── RebuildFtsIndexAsync ────────────────────────────────────────────────────
-
-    [Fact]
-    public async Task Rebuild_reindexes_completed_docs_with_chunks_and_reports_progress()
-    {
-        await _service.InitializeFtsAsync();
-        var done1 = SeedDocument("d1.pdf", chunkContents: new[] { "first done content" });
-        var done2 = SeedDocument("d2.pdf", chunkContents: new[] { "second done content" });
-        var pending = SeedDocument("p.pdf", status: "pending", chunkContents: new[] { "pending content" });
-        var noChunks = SeedDocument("n.pdf"); // completed but ChunkCount 0
-
-        // Stale row that must be cleared by the rebuild.
-        await _service.IndexDocumentChunksAsync(pending.Id);
-
-        var reports = new List<(int Processed, int Total)>();
-        var progress = new Progress<(int, int)>(t => { lock (reports) reports.Add(t); });
-
-        await _service.RebuildFtsIndexAsync(progress);
-
-        (await CountFtsRowsAsync(done1.Id)).Should().Be(1);
-        (await CountFtsRowsAsync(done2.Id)).Should().Be(1);
-        (await CountFtsRowsAsync(pending.Id)).Should().Be(0);
-        (await CountFtsRowsAsync(noChunks.Id)).Should().Be(0);
-
-        // Progress<T> posts asynchronously; poll briefly for both reports.
-        for (int i = 0; i < 50 && reports.Count < 2; i++) await Task.Delay(20);
-        reports.Should().BeEquivalentTo(new[] { (1, 2), (2, 2) });
-    }
-
-    [Fact]
-    public async Task Rebuild_continues_past_a_document_that_fails_to_index()
-    {
-        await _service.InitializeFtsAsync();
-        SeedDocument("ok.pdf", chunkContents: new[] { "fine content" });
-        SeedDocument("ok2.pdf", chunkContents: new[] { "fine content too" });
-
-        // Sabotage from the progress callback fired after doc 1: dropping the FTS table
-        // makes doc 2's IndexDocumentChunksAsync throw, exercising the warn-and-continue arm.
-        var completed = new TaskCompletionSource();
-        int calls = 0;
-        var progress = new SynchronousProgress(t =>
-        {
-            if (Interlocked.Increment(ref calls) == 1)
-            {
-                ExecuteRawAsync("DROP TABLE fts_chunks;").GetAwaiter().GetResult();
-            }
-            if (t.Processed == t.Total) completed.TrySetResult();
-        });
-
-        await _service.RebuildFtsIndexAsync(progress);
-
-        await completed.Task.WaitAsync(TimeSpan.FromSeconds(5));
-        calls.Should().Be(2); // both docs processed despite the second failing
-    }
-
-    [Fact]
-    public async Task Rebuild_honors_cancellation_between_documents()
-    {
-        await _service.InitializeFtsAsync();
-        SeedDocument("c1.pdf", chunkContents: new[] { "cancel content one" });
-        SeedDocument("c2.pdf", chunkContents: new[] { "cancel content two" });
-
-        using var cts = new CancellationTokenSource();
-        var progress = new SynchronousProgress(_ => cts.Cancel());
-
-        await FluentActions.Awaiting(() => _service.RebuildFtsIndexAsync(progress, cts.Token))
-            .Should().ThrowAsync<OperationCanceledException>();
-    }
-
     [Fact]
     public async Task InitializeFts_opens_a_closed_connection()
     {
@@ -746,14 +677,5 @@ public sealed class KeywordSearchServiceTests : IDisposable
         var service = new KeywordSearchService(db, _logger);
 
         await service.InitializeFtsAsync(); // must open the connection itself, then succeed
-    }
-
-    /// <summary>Synchronous IProgress: Rebuild's sabotage/cancel hooks must run inline,
-    /// not on a captured SynchronizationContext like <see cref="Progress{T}"/>.</summary>
-    private sealed class SynchronousProgress : IProgress<(int Processed, int Total)>
-    {
-        private readonly Action<(int Processed, int Total)> _handler;
-        public SynchronousProgress(Action<(int Processed, int Total)> handler) => _handler = handler;
-        public void Report((int Processed, int Total) value) => _handler(value);
     }
 }

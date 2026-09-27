@@ -120,11 +120,6 @@ public interface IDocumentService
         CancellationToken ct = default);
 
     /// <summary>
-    /// Retrieves all documents belonging to a specific collection.
-    /// </summary>
-    Task<IReadOnlyList<DocumentEntity>> GetDocumentsByCollectionAsync(long collectionId);
-
-    /// <summary>
     /// Retrieves the most recently imported documents, ordered newest first.
     /// Used by overview surfaces that only need a small recent slice.
     /// </summary>

@@ -517,16 +517,6 @@ public sealed class DocumentService : IDocumentService
     }
 
     /// <inheritdoc />
-    public async Task<IReadOnlyList<DocumentEntity>> GetDocumentsByCollectionAsync(long collectionId)
-    {
-        return await _db.DocumentCollections
-            .Where(dc => dc.CollectionId == collectionId)
-            .Select(dc => dc.Document)
-            .OrderByDescending(d => d.ImportedAt)
-            .ToListAsync();
-    }
-
-    /// <inheritdoc />
     public async Task<IReadOnlyList<DocumentEntity>> GetRecentDocumentsAsync(int limit = 5, CancellationToken ct = default)
     {
         var normalizedLimit = Math.Max(1, limit);

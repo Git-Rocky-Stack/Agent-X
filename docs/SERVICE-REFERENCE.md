@@ -1106,19 +1106,6 @@ var recentDocs = await documentService.GetAllDocumentsAsync(
 );
 ```
 
-##### GetDocumentsByCollectionAsync
-
-```csharp
-Task<IReadOnlyList<DocumentEntity>> GetDocumentsByCollectionAsync(long collectionId)
-```
-
-Retrieves all documents belonging to a specific collection.
-
-**Parameters**:
-- `collectionId` (long): The collection ID
-
-**Returns**: `Task<IReadOnlyList<DocumentEntity>>` — All documents in the collection
-
 ##### DeleteDocumentAsync
 
 ```csharp
@@ -1481,10 +1468,6 @@ Removes a document's chunks from the FTS index.
 ##### SearchAsync
 
 Performs a keyword search and returns ranked results.
-
-##### RebuildFtsIndexAsync
-
-Rebuilds the FTS index from scratch.
 
 ---
 

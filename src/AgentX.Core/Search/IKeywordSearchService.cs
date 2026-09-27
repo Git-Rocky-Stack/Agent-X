@@ -40,12 +40,4 @@ public interface IKeywordSearchService
     /// <param name="ct">Cancellation token.</param>
     /// <returns>Ordered list of search results, highest relevance first.</returns>
     Task<IReadOnlyList<Models.SearchResult>> SearchAsync(Models.SearchQuery query, CancellationToken ct = default);
-
-    /// <summary>
-    /// Drops and rebuilds the entire FTS5 index from all existing document chunks.
-    /// Useful after schema changes or data corruption.
-    /// </summary>
-    /// <param name="progress">Optional progress reporter with (processed, total) counts.</param>
-    /// <param name="ct">Cancellation token.</param>
-    Task RebuildFtsIndexAsync(IProgress<(int Processed, int Total)>? progress = null, CancellationToken ct = default);
 }

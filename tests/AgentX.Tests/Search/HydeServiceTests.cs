@@ -17,7 +17,6 @@ public sealed class HydeServiceTests
 {
     private static readonly ILogger Silent = new LoggerConfiguration().CreateLogger();
     private readonly Mock<IAiService> _ai = new();
-    private readonly Mock<IEmbeddingService> _embedding = new();
     private ChatOptions? _options;
 
     public HydeServiceTests()
@@ -34,7 +33,7 @@ public sealed class HydeServiceTests
         var config = new Mock<IRagConfiguration>();
         config.SetupGet(c => c.HydeMaxTokens).Returns(256);
 
-        await new HydeService(_ai.Object, _embedding.Object, null, config.Object, Silent)
+        await new HydeService(_ai.Object, null, config.Object, Silent)
             .GenerateHypotheticalDocumentAsync("What changed in the travel policy?");
 
         _options!.MaxTokens.Should().Be(256);
@@ -43,7 +42,7 @@ public sealed class HydeServiceTests
     [Fact]
     public async Task GenerateHypotheticalDocumentAsync_WithoutConfiguration_FallsBackToTheConstant()
     {
-        await new HydeService(_ai.Object, _embedding.Object, Silent)
+        await new HydeService(_ai.Object, Silent)
             .GenerateHypotheticalDocumentAsync("What changed in the travel policy?");
 
         _options!.MaxTokens.Should().Be(AppConstants.HydeMaxTokens);

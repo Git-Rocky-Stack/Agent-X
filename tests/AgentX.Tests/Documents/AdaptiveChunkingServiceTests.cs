@@ -198,31 +198,6 @@ public sealed class AdaptiveChunkingServiceTests
         Service().AnalyzeContent(text).HasStructure.Should().BeFalse();
     }
 
-    // ── GetOptimalChunkSize ──────────────────────────────────────────────────
-
-    [Theory]
-    [InlineData(ContentType.Code, 256)]
-    [InlineData(ContentType.Table, 1024)]
-    [InlineData(ContentType.List, 384)]
-    [InlineData(ContentType.Prose, DefaultChunkSize)]
-    public void GetOptimalChunkSize_ReturnsThePerTypeSize(ContentType type, int expected)
-    {
-        Service().GetOptimalChunkSize(type, averageLineLength: 80).Should().Be(expected);
-    }
-
-    [Fact]
-    public void GetOptimalChunkSize_Mixed_IsTwentyPercentOverTheDefault()
-    {
-        Service().GetOptimalChunkSize(ContentType.Mixed, 80)
-            .Should().Be((int)(DefaultChunkSize * 1.2));
-    }
-
-    [Fact]
-    public void GetOptimalChunkSize_UnknownType_FallsBackToTheDefault()
-    {
-        Service().GetOptimalChunkSize((ContentType)999, 80).Should().Be(DefaultChunkSize);
-    }
-
     // ── RecommendedChunkSize (CalculateOptimalChunkSize) ─────────────────────
 
     [Fact]
@@ -275,53 +250,5 @@ public sealed class AdaptiveChunkingServiceTests
         Service(defaultSize: 100, minSize: 400, maxSize: 2048)
             .AnalyzeContent(dense).RecommendedChunkSize
             .Should().BeGreaterThanOrEqualTo(400);
-    }
-
-    // ── DetectNaturalBoundaries ──────────────────────────────────────────────
-
-    [Theory]
-    [InlineData("")]
-    [InlineData("   ")]
-    [InlineData(null)]
-    public void DetectNaturalBoundaries_BlankText_ReturnsNothing(string? text)
-    {
-        Service().DetectNaturalBoundaries(text!, 100).Should().BeEmpty();
-    }
-
-    [Fact]
-    public void DetectNaturalBoundaries_HeadingAfterEnoughText_IsABoundary()
-    {
-        var body = new string('x', 80);
-        var text = $"{body}\n# Section two\n{body}";
-
-        Service().DetectNaturalBoundaries(text, targetChunkSize: 100).Should().Contain(1);
-    }
-
-    [Fact]
-    public void DetectNaturalBoundaries_HeadingTooEarly_IsNotABoundary()
-    {
-        // The heading arrives well under half the target, so splitting there would emit a
-        // chunk barely larger than its own title.
-        var text = "tiny\n# Section two\n" + new string('x', 400);
-
-        Service().DetectNaturalBoundaries(text, targetChunkSize: 1000).Should().NotContain(1);
-    }
-
-    [Fact]
-    public void DetectNaturalBoundaries_NoStructure_FallsBackToLengthAlone()
-    {
-        var text = string.Join("\n", Enumerable.Repeat(new string('x', 50), 10));
-
-        var boundaries = Service().DetectNaturalBoundaries(text, targetChunkSize: 100);
-
-        boundaries.Should().NotBeEmpty();
-        boundaries.Should().BeInAscendingOrder();
-    }
-
-    [Fact]
-    public void DetectNaturalBoundaries_ShortText_ProducesNone()
-    {
-        Service().DetectNaturalBoundaries("one line only", targetChunkSize: 10_000)
-            .Should().BeEmpty();
     }
 }

@@ -1147,41 +1147,8 @@ public sealed class DocumentServiceTests : IDisposable
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
-    //  GetDocumentsByCollectionAsync / GetRecentDocumentsAsync
+    //  GetRecentDocumentsAsync
     // ═══════════════════════════════════════════════════════════════════════════
-
-    [Fact]
-    public async Task GetDocumentsByCollectionAsync_ReturnsMembersNewestFirst()
-    {
-        var h = NewHarness();
-        long collId = 0;
-        var t0 = new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc);
-        h.Seed(ctx =>
-        {
-            var d1 = NewDoc(fileName: "first.txt", importedAt: t0);
-            var d2 = NewDoc(fileName: "second.txt", importedAt: t0.AddHours(1));
-            ctx.Documents.AddRange(d1, d2);
-            var c = new CollectionEntity { Name = "C", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
-            ctx.Collections.Add(c);
-            ctx.SaveChanges();
-            collId = c.Id;
-            ctx.DocumentCollections.Add(new DocumentCollectionEntity { DocumentId = d1.Id, CollectionId = c.Id, AddedAt = DateTime.UtcNow });
-            ctx.DocumentCollections.Add(new DocumentCollectionEntity { DocumentId = d2.Id, CollectionId = c.Id, AddedAt = DateTime.UtcNow });
-            ctx.SaveChanges();
-        });
-
-        var result = await h.Service.GetDocumentsByCollectionAsync(collId);
-
-        result.Should().HaveCount(2);
-        result[0].FileName.Should().Be("second.txt");
-    }
-
-    [Fact]
-    public async Task GetDocumentsByCollectionAsync_EmptyCollection_ReturnsEmpty()
-    {
-        var h = NewHarness();
-        (await h.Service.GetDocumentsByCollectionAsync(777)).Should().BeEmpty();
-    }
 
     [Fact]
     public async Task GetRecentDocumentsAsync_RespectsLimitAndOrder()

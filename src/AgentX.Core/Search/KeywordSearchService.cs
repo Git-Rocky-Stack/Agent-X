@@ -361,58 +361,6 @@ public sealed class KeywordSearchService : IKeywordSearchService
         return finalResults;
     }
 
-    /// <inheritdoc />
-    public async Task RebuildFtsIndexAsync(IProgress<(int Processed, int Total)>? progress = null, CancellationToken ct = default)
-    {
-        _logger.Information("Starting FTS5 index rebuild");
-
-        // Held for the whole rebuild, so no document is indexed between the clear and the re-insert.
-        using var gate = EnterRawSqlSection();
-        var connection = _db.Database.GetDbConnection();
-        await EnsureConnectionOpenAsync(connection, ct).ConfigureAwait(false);
-
-        // Clear existing FTS data
-        using (var clearCmd = connection.CreateCommand())
-        {
-            clearCmd.CommandText = "DELETE FROM fts_chunks;";
-            await clearCmd.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
-        }
-
-        _logger.Debug("Cleared existing FTS5 index data");
-
-        // Get all documents that have chunks
-        var documentIds = await _db.Documents
-            .AsNoTracking()
-            .Where(d => d.IndexingStatus == "completed" && d.ChunkCount > 0)
-            .Select(d => d.Id)
-            .ToListAsync(ct)
-            .ConfigureAwait(false);
-
-        var total = documentIds.Count;
-        var processed = 0;
-
-        _logger.Information("Rebuilding FTS5 index for {Total} documents", total);
-
-        foreach (var docId in documentIds)
-        {
-            ct.ThrowIfCancellationRequested();
-
-            try
-            {
-                await IndexDocumentChunksAsync(docId, ct).ConfigureAwait(false);
-            }
-            catch (Exception ex) when (ex is not OperationCanceledException)
-            {
-                _logger.Warning(ex, "Failed to FTS-index document {DocumentId} during rebuild; continuing", docId);
-            }
-
-            processed++;
-            progress?.Report((processed, total));
-        }
-
-        _logger.Information("FTS5 index rebuild completed: {Processed}/{Total} documents indexed", processed, total);
-    }
-
     // ═══════════════════════════════════════════════════════════════════
     //  Private helpers
     // ═══════════════════════════════════════════════════════════════════
