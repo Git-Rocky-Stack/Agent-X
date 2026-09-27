@@ -319,6 +319,36 @@ public sealed class PastSelfViewModelTests
         viewModel.CurrentResult!.Confidence.Should().Be(0.8);
     }
 
+    [Fact]
+    public async Task ShowBeliefEvolutionAsync_ForAChangedView_ShowsTheEarlierViewAndTodaysSinceWhen()
+    {
+        // The result carried only today's stance, so the earlier view never appeared.
+        var changedAt = new DateTime(2026, 8, 3, 10, 0, 0, DateTimeKind.Utc);
+        _temporalIdentity
+            .Setup(service => service.GetBeliefEvolutionAsync("monoliths", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new TemporalBeliefEntity
+            {
+                Topic = "Monoliths",
+                PreviousStance = "I think that monoliths never scale",
+                CurrentStance = "Monoliths are fine at small scale",
+                HasEvolved = true,
+                StanceChangedAt = changedAt,
+                ConfidenceLevel = 0.7,
+                FirstDetectedAt = new DateTime(2026, 1, 5, 0, 0, 0, DateTimeKind.Utc),
+            });
+        var viewModel = CreateViewModel(EnglishResources.Create());
+        viewModel.SearchQuery = "monoliths";
+
+        await viewModel.ShowBeliefEvolutionCommand.ExecuteAsync(null);
+
+        var result = viewModel.CurrentResult!;
+        result.Stance.Should().Be("I think that monoliths never scale", "the earlier view leads");
+        result.ShowsEvolution.Should().BeTrue();
+        result.CurrentStance.Should().Be("Monoliths are fine at small scale");
+        result.CurrentStanceLabel.Should().Be(
+            "Your view since " + changedAt.ToLocalTime().ToString("d", CultureInfo.CurrentCulture));
+    }
+
     // --- A view that changed after the chosen time ---
     // The page's "Your view has evolved" badge was hard-coded Collapsed, and today's stance and
     // when it changed, which the lookup returns, were never shown.

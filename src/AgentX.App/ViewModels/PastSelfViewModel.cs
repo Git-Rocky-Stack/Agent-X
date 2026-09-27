@@ -197,12 +197,21 @@ public partial class PastSelfViewModel : ObservableObject
             else
             {
                 var since = belief.FirstDetectedAt.ToString("Y", CultureInfo.CurrentCulture);
+
+                // An evolved belief leads with the earlier stance and shows today's below it,
+                // labelled with when it changed, as a Past Self answer does. The result carried
+                // only today's stance, so the earlier one never appeared.
+                var showsChange = belief.HasEvolved && !string.IsNullOrWhiteSpace(belief.PreviousStance);
                 CurrentResult = new PastSelfResult
                 {
                     Topic = belief.Topic,
                     Found = true,
                     HasEvolved = belief.HasEvolved,
-                    Stance = belief.CurrentStance,
+                    Stance = showsChange ? belief.PreviousStance : belief.CurrentStance,
+                    CurrentStance = showsChange ? belief.CurrentStance : null,
+                    CurrentStanceLabel = showsChange && belief.StanceChangedAt is { } changedAt
+                        ? _localization.GetString("PastSelf_ViewSince", FormatDate(changedAt))
+                        : string.Empty,
                     // The page's Confidence bar showed 0 for every belief here: the stored
                     // confidence was never copied onto the result.
                     Confidence = belief.ConfidenceLevel,
