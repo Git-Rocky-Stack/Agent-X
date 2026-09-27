@@ -2879,7 +2879,7 @@
   "Settings_ShortcutSaveSettings": "保存设置",
   "Settings_ShortcutCategory": "设置",
   "Settings_ResetConfirmTitle": "恢复默认值？",
-  "Settings_ResetConfirmMessage": "这将把此页面上的所有设置恢复为默认值。您当前的配置将会丢失。是否继续？",
+  "Settings_ResetConfirmMessage": "这将把此页面上的设置恢复为默认值，并清除您输入的 API 密钥和实例 URL。主题、语言、监视文件夹、本地 API 令牌和数据库加密将保持不变。是否继续？",
   "Settings_ResetConfirmButton": "重置",
   "Settings_ResetCancelButton": "取消",
   "EmailSet_DisconnectConfirmTitle": "断开 {0} 的连接？",

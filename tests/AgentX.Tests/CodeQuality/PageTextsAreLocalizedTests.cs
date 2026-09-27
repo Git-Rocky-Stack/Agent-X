@@ -146,6 +146,28 @@ public sealed class PageTextsAreLocalizedTests
             .Should().Be("Encryption failed: Disk full. Your database was left unencrypted.");
     }
 
+    [Fact]
+    public void Settings_reset_confirmation_says_what_the_reset_keeps()
+    {
+        // The dialog promised to restore every setting on the page, but the reset leaves the
+        // theme, the language, the watch folders, the Local API token and the database
+        // encryption as they are.
+        var reset = ExtractMethod(ReadViewModel("SettingsViewModel.cs"), "private async Task ResetToDefaultsAsync()");
+        reset.Should().NotContain("ThemeIndex")
+            .And.NotContain("LanguageIndex")
+            .And.NotContain("WatchFolders.")
+            .And.NotContain("LocalApiToken =")
+            .And.NotContain("Encryption");
+        reset.Should().Contain("OpenAiApiKey = string.Empty")
+            .And.Contain("AnthropicApiKey = string.Empty")
+            .And.Contain("WebSearchApiKey = null");
+
+        var message = ReswLocalization.For("en-US").GetString("Settings_ResetConfirmMessage");
+        message.Should().NotContain("every setting")
+            .And.Contain("clears the API keys and instance URL")
+            .And.Contain("Your theme, language, watch folders, Local API token and database encryption stay as they are.");
+    }
+
     [Theory]
     [InlineData("Settings_ConnectionError")]
     [InlineData("Settings_EncryptionReopenFailed")]
@@ -260,6 +282,29 @@ public sealed class PageTextsAreLocalizedTests
 
     private static string ReadViewModel(string fileName) =>
         File.ReadAllText(Path.Combine(ResolveSourceRoot(), "AgentX.App", "ViewModels", fileName));
+
+    /// <summary>Returns the method starting at <paramref name="signature"/>, up to its closing brace.</summary>
+    private static string ExtractMethod(string source, string signature)
+    {
+        var start = source.IndexOf(signature, StringComparison.Ordinal);
+        start.Should().BeGreaterThanOrEqualTo(0, $"the source declares {signature}");
+
+        var open = source.IndexOf('{', start);
+        var depth = 0;
+        for (var i = open; i < source.Length; i++)
+        {
+            if (source[i] == '{')
+            {
+                depth++;
+            }
+            else if (source[i] == '}' && --depth == 0)
+            {
+                return source[start..(i + 1)];
+            }
+        }
+
+        throw new InvalidOperationException($"Unbalanced braces after {signature}.");
+    }
 
     private static string ResolveSourceRoot()
     {

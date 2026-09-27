@@ -3242,7 +3242,7 @@
   <data name="Settings_ShortcutSaveSettings" xml:space="preserve"><value>保存设置</value></data>
   <data name="Settings_ShortcutCategory" xml:space="preserve"><value>设置</value></data>
   <data name="Settings_ResetConfirmTitle" xml:space="preserve"><value>恢复默认值？</value></data>
-  <data name="Settings_ResetConfirmMessage" xml:space="preserve"><value>这将把此页面上的所有设置恢复为默认值。您当前的配置将会丢失。是否继续？</value></data>
+  <data name="Settings_ResetConfirmMessage" xml:space="preserve"><value>这将把此页面上的设置恢复为默认值，并清除您输入的 API 密钥和实例 URL。主题、语言、监视文件夹、本地 API 令牌和数据库加密将保持不变。是否继续？</value></data>
   <data name="Settings_ResetConfirmButton" xml:space="preserve"><value>重置</value></data>
   <data name="Settings_ResetCancelButton" xml:space="preserve"><value>取消</value></data>
   <data name="EmailSet_DisconnectConfirmTitle" xml:space="preserve"><value>断开 {0} 的连接？</value></data>

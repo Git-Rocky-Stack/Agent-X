@@ -2879,7 +2879,7 @@
   "Settings_ShortcutSaveSettings": "Einstellungen speichern",
   "Settings_ShortcutCategory": "Einstellungen",
   "Settings_ResetConfirmTitle": "Auf Standard zurücksetzen?",
-  "Settings_ResetConfirmMessage": "Dadurch werden alle Einstellungen auf dieser Seite auf ihren Standardwert zurückgesetzt. Ihre aktuelle Konfiguration geht verloren. Fortfahren?",
+  "Settings_ResetConfirmMessage": "Dadurch werden die Einstellungen auf dieser Seite auf ihre Standardwerte zurückgesetzt und die eingegebenen API-Schlüssel und die Instanz-URL gelöscht. Design, Sprache, überwachte Ordner, das Token der lokalen API und die Datenbankverschlüsselung bleiben unverändert. Fortfahren?",
   "Settings_ResetConfirmButton": "Zurücksetzen",
   "Settings_ResetCancelButton": "Abbrechen",
   "EmailSet_DisconnectConfirmTitle": "{0} trennen?",

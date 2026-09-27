@@ -2879,7 +2879,7 @@
   "Settings_ShortcutSaveSettings": "設定を保存",
   "Settings_ShortcutCategory": "設定",
   "Settings_ResetConfirmTitle": "既定値にリセットしますか?",
-  "Settings_ResetConfirmMessage": "このページのすべての設定を既定値に戻します。現在の構成は失われます。続行しますか?",
+  "Settings_ResetConfirmMessage": "このページの設定を既定値に戻し、入力した API キーとインスタンス URL を消去します。テーマ、言語、監視フォルダー、ローカル API のトークン、データベースの暗号化はそのまま残ります。続行しますか?",
   "Settings_ResetConfirmButton": "リセット",
   "Settings_ResetCancelButton": "キャンセル",
   "EmailSet_DisconnectConfirmTitle": "{0} を切断しますか?",

@@ -3581,7 +3581,7 @@
   <data name="Settings_ShortcutSaveSettings" xml:space="preserve"><value>Save settings</value></data>
   <data name="Settings_ShortcutCategory" xml:space="preserve"><value>Settings</value></data>
   <data name="Settings_ResetConfirmTitle" xml:space="preserve"><value>Reset to Defaults?</value></data>
-  <data name="Settings_ResetConfirmMessage" xml:space="preserve"><value>This restores every setting on this page to its default value. Your current configuration will be lost. Continue?</value></data>
+  <data name="Settings_ResetConfirmMessage" xml:space="preserve"><value>This restores the settings on this page to their defaults and clears the API keys and instance URL you entered. Your theme, language, watch folders, Local API token and database encryption stay as they are. Continue?</value></data>
   <data name="Settings_ResetConfirmButton" xml:space="preserve"><value>Reset</value></data>
   <data name="Settings_ResetCancelButton" xml:space="preserve"><value>Cancel</value></data>
   <data name="EmailSet_DisconnectConfirmTitle" xml:space="preserve"><value>Disconnect {0}?</value></data>

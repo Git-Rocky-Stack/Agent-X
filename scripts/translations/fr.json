@@ -2879,7 +2879,7 @@
   "Settings_ShortcutSaveSettings": "Enregistrer les paramètres",
   "Settings_ShortcutCategory": "Paramètres",
   "Settings_ResetConfirmTitle": "Rétablir les valeurs par défaut ?",
-  "Settings_ResetConfirmMessage": "Tous les paramètres de cette page vont être rétablis à leur valeur par défaut. Votre configuration actuelle sera perdue. Continuer ?",
+  "Settings_ResetConfirmMessage": "Les paramètres de cette page vont être rétablis à leur valeur par défaut, et les clés API et l'URL de l'instance que vous avez saisies seront effacées. Le thème, la langue, les dossiers surveillés, le jeton de l'API locale et le chiffrement de la base de données restent inchangés. Continuer ?",
   "Settings_ResetConfirmButton": "Rétablir",
   "Settings_ResetCancelButton": "Annuler",
   "EmailSet_DisconnectConfirmTitle": "Déconnecter {0} ?",

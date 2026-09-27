@@ -3242,7 +3242,7 @@
   <data name="Settings_ShortcutSaveSettings" xml:space="preserve"><value>Einstellungen speichern</value></data>
   <data name="Settings_ShortcutCategory" xml:space="preserve"><value>Einstellungen</value></data>
   <data name="Settings_ResetConfirmTitle" xml:space="preserve"><value>Auf Standard zurücksetzen?</value></data>
-  <data name="Settings_ResetConfirmMessage" xml:space="preserve"><value>Dadurch werden alle Einstellungen auf dieser Seite auf ihren Standardwert zurückgesetzt. Ihre aktuelle Konfiguration geht verloren. Fortfahren?</value></data>
+  <data name="Settings_ResetConfirmMessage" xml:space="preserve"><value>Dadurch werden die Einstellungen auf dieser Seite auf ihre Standardwerte zurückgesetzt und die eingegebenen API-Schlüssel und die Instanz-URL gelöscht. Design, Sprache, überwachte Ordner, das Token der lokalen API und die Datenbankverschlüsselung bleiben unverändert. Fortfahren?</value></data>
   <data name="Settings_ResetConfirmButton" xml:space="preserve"><value>Zurücksetzen</value></data>
   <data name="Settings_ResetCancelButton" xml:space="preserve"><value>Abbrechen</value></data>
   <data name="EmailSet_DisconnectConfirmTitle" xml:space="preserve"><value>{0} trennen?</value></data>

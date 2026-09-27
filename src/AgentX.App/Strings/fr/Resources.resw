@@ -3242,7 +3242,7 @@
   <data name="Settings_ShortcutSaveSettings" xml:space="preserve"><value>Enregistrer les paramètres</value></data>
   <data name="Settings_ShortcutCategory" xml:space="preserve"><value>Paramètres</value></data>
   <data name="Settings_ResetConfirmTitle" xml:space="preserve"><value>Rétablir les valeurs par défaut ?</value></data>
-  <data name="Settings_ResetConfirmMessage" xml:space="preserve"><value>Tous les paramètres de cette page vont être rétablis à leur valeur par défaut. Votre configuration actuelle sera perdue. Continuer ?</value></data>
+  <data name="Settings_ResetConfirmMessage" xml:space="preserve"><value>Les paramètres de cette page vont être rétablis à leur valeur par défaut, et les clés API et l'URL de l'instance que vous avez saisies seront effacées. Le thème, la langue, les dossiers surveillés, le jeton de l'API locale et le chiffrement de la base de données restent inchangés. Continuer ?</value></data>
   <data name="Settings_ResetConfirmButton" xml:space="preserve"><value>Rétablir</value></data>
   <data name="Settings_ResetCancelButton" xml:space="preserve"><value>Annuler</value></data>
   <data name="EmailSet_DisconnectConfirmTitle" xml:space="preserve"><value>Déconnecter {0} ?</value></data>
