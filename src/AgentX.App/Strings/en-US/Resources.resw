@@ -167,6 +167,36 @@
   <data name="Workspace_CopyName" xml:space="preserve"><value>{0} (Copy)</value></data>
   <data name="Workspace_ProfileDuplicated" xml:space="preserve"><value>Profile duplicated as "{0}".</value></data>
   <data name="Workspace_DuplicateFailed" xml:space="preserve"><value>Failed to duplicate profile: {0}</value></data>
+  <data name="Onb_DetectingHardware" xml:space="preserve"><value>Detecting hardware...</value></data>
+  <data name="Onb_Checking" xml:space="preserve"><value>Checking...</value></data>
+  <data name="Onb_SummaryNotConfigured" xml:space="preserve"><value>Not configured</value></data>
+  <data name="Onb_SummaryDefaultModel" xml:space="preserve"><value>Default ({0})</value></data>
+  <data name="Onb_SummaryNotDetected" xml:space="preserve"><value>Not detected</value></data>
+  <data name="Onb_SummaryNoneConfigured" xml:space="preserve"><value>None configured</value></data>
+  <data name="Onb_TestingConnection" xml:space="preserve"><value>Testing connection...</value></data>
+  <data name="Onb_EndpointInvalid" xml:space="preserve"><value>Enter the Ollama address as a URL, for example http://localhost:11434.</value></data>
+  <data name="Onb_OllamaConnected" xml:space="preserve"><value>Connected to Ollama successfully!</value></data>
+  <data name="Onb_OllamaNotReachable" xml:space="preserve"><value>Could not connect to Ollama. Make sure Ollama is running.</value></data>
+  <data name="Onb_ConnectionFailed" xml:space="preserve"><value>Connection failed. Check that Ollama is installed and running.</value></data>
+  <data name="Onb_HardwareSummary" xml:space="preserve"><value>{0}  |  {1} RAM  |  {2}</value></data>
+  <data name="Onb_HardwareUnavailable" xml:space="preserve"><value>Hardware detection unavailable</value></data>
+  <data name="Onb_LocalModelReady" xml:space="preserve"><value>Ready ({0} MB)</value></data>
+  <data name="Onb_LocalModelNotInstalled" xml:space="preserve"><value>Not installed yet. Download it for fully-offline AI (~1.9 GB), or just add a cloud API key below.</value></data>
+  <data name="Onb_LocalModelUnverified" xml:space="preserve"><value>Unable to verify model</value></data>
+  <data name="Onb_GpuCpuOnly" xml:space="preserve"><value>CPU inference (no NVIDIA GPU detected)</value></data>
+  <data name="Onb_GpuTooLittleMemory" xml:space="preserve"><value>CPU inference (GPU layers need an NVIDIA GPU with 2 GB of video memory or more)</value></data>
+  <data name="Onb_GpuCudaAvailable" xml:space="preserve"><value>CUDA acceleration available ({0} VRAM, {1} layers)</value></data>
+  <data name="Onb_GpuNeedsCudaToolkit" xml:space="preserve"><value>NVIDIA GPU detected ({0} VRAM). GPU acceleration needs the NVIDIA CUDA 12 Toolkit.</value></data>
+  <data name="Onb_DownloadStarting" xml:space="preserve"><value>Starting download...</value></data>
+  <data name="Onb_DownloadComplete" xml:space="preserve"><value>Download complete.</value></data>
+  <data name="Onb_DownloadIncomplete" xml:space="preserve"><value>Download did not complete. You can retry or use cloud models.</value></data>
+  <data name="Onb_DownloadFailed" xml:space="preserve"><value>Download failed: {0}</value></data>
+  <data name="Onb_DownloadProgress" xml:space="preserve"><value>{0} / {1} GB  ({2}%)</value></data>
+  <data name="Onb_SummaryOllamaConnected" xml:space="preserve"><value>Connected ({0})</value></data>
+  <data name="Onb_SummaryOllamaNotConnected" xml:space="preserve"><value>Not connected (can be configured in Settings)</value></data>
+  <data name="Onb_SummaryLocalModelReady" xml:space="preserve"><value>{0} (ready)</value></data>
+  <data name="Onb_SummaryLocalModelMissing" xml:space="preserve"><value>Not found (reinstall to restore)</value></data>
+  <data name="Onb_SummaryNoCloudProviders" xml:space="preserve"><value>None (can be added later in Settings)</value></data>
   <data name="Palette_OpenHint.Text" xml:space="preserve"><value>Open</value></data>
   <data name="Palette_CloseHint.Text" xml:space="preserve"><value>Close</value></data>
   <data name="Palette_Actions" xml:space="preserve"><value>ACTIONS</value></data>

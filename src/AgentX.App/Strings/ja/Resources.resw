@@ -2449,6 +2449,36 @@
   <data name="Workspace_CopyName" xml:space="preserve"><value>{0} (コピー)</value></data>
   <data name="Workspace_ProfileDuplicated" xml:space="preserve"><value>プロファイルを「{0}」として複製しました。</value></data>
   <data name="Workspace_DuplicateFailed" xml:space="preserve"><value>プロファイルを複製できませんでした: {0}</value></data>
+  <data name="Onb_DetectingHardware" xml:space="preserve"><value>ハードウェアを検出しています...</value></data>
+  <data name="Onb_Checking" xml:space="preserve"><value>確認しています...</value></data>
+  <data name="Onb_SummaryNotConfigured" xml:space="preserve"><value>未構成</value></data>
+  <data name="Onb_SummaryDefaultModel" xml:space="preserve"><value>既定 ({0})</value></data>
+  <data name="Onb_SummaryNotDetected" xml:space="preserve"><value>検出されません</value></data>
+  <data name="Onb_SummaryNoneConfigured" xml:space="preserve"><value>構成されていません</value></data>
+  <data name="Onb_TestingConnection" xml:space="preserve"><value>接続をテストしています...</value></data>
+  <data name="Onb_EndpointInvalid" xml:space="preserve"><value>Ollama のアドレスを URL で入力してください (例: http://localhost:11434)。</value></data>
+  <data name="Onb_OllamaConnected" xml:space="preserve"><value>Ollama に接続しました。</value></data>
+  <data name="Onb_OllamaNotReachable" xml:space="preserve"><value>Ollama に接続できませんでした。Ollama が実行中であることを確認してください。</value></data>
+  <data name="Onb_ConnectionFailed" xml:space="preserve"><value>接続に失敗しました。Ollama がインストールされ、実行されていることを確認してください。</value></data>
+  <data name="Onb_HardwareSummary" xml:space="preserve"><value>{0}  |  RAM {1}  |  {2}</value></data>
+  <data name="Onb_HardwareUnavailable" xml:space="preserve"><value>ハードウェアを検出できません</value></data>
+  <data name="Onb_LocalModelReady" xml:space="preserve"><value>準備完了 ({0} MB)</value></data>
+  <data name="Onb_LocalModelNotInstalled" xml:space="preserve"><value>まだインストールされていません。完全オフラインの AI 用にダウンロードする (約 1.9 GB) か、下でクラウド API キーを追加してください。</value></data>
+  <data name="Onb_LocalModelUnverified" xml:space="preserve"><value>モデルを確認できません</value></data>
+  <data name="Onb_GpuCpuOnly" xml:space="preserve"><value>CPU で推論 (NVIDIA GPU は検出されませんでした)</value></data>
+  <data name="Onb_GpuTooLittleMemory" xml:space="preserve"><value>CPU で推論 (GPU レイヤーには 2 GB 以上のビデオ メモリを備えた NVIDIA GPU が必要です)</value></data>
+  <data name="Onb_GpuCudaAvailable" xml:space="preserve"><value>CUDA アクセラレーションを利用できます (VRAM {0}、{1} レイヤー)</value></data>
+  <data name="Onb_GpuNeedsCudaToolkit" xml:space="preserve"><value>NVIDIA GPU を検出しました (VRAM {0})。GPU アクセラレーションには NVIDIA CUDA 12 Toolkit のインストールが必要です。</value></data>
+  <data name="Onb_DownloadStarting" xml:space="preserve"><value>ダウンロードを開始しています...</value></data>
+  <data name="Onb_DownloadComplete" xml:space="preserve"><value>ダウンロードが完了しました。</value></data>
+  <data name="Onb_DownloadIncomplete" xml:space="preserve"><value>ダウンロードが完了しませんでした。再試行するか、クラウド モデルを使用してください。</value></data>
+  <data name="Onb_DownloadFailed" xml:space="preserve"><value>ダウンロードに失敗しました: {0}</value></data>
+  <data name="Onb_DownloadProgress" xml:space="preserve"><value>{0} / {1} GB  ({2}%)</value></data>
+  <data name="Onb_SummaryOllamaConnected" xml:space="preserve"><value>接続済み ({0})</value></data>
+  <data name="Onb_SummaryOllamaNotConnected" xml:space="preserve"><value>未接続 (設定で構成できます)</value></data>
+  <data name="Onb_SummaryLocalModelReady" xml:space="preserve"><value>{0} (準備完了)</value></data>
+  <data name="Onb_SummaryLocalModelMissing" xml:space="preserve"><value>見つかりません (再インストールで復元できます)</value></data>
+  <data name="Onb_SummaryNoCloudProviders" xml:space="preserve"><value>なし (後で設定から追加できます)</value></data>
   <data name="Palette_OpenHint.Text" xml:space="preserve"><value>開く</value></data>
   <data name="Palette_CloseHint.Text" xml:space="preserve"><value>閉じる</value></data>
   <data name="Palette_Actions" xml:space="preserve"><value>アクション</value></data>

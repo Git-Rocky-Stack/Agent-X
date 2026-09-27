@@ -2449,6 +2449,36 @@
   <data name="Workspace_CopyName" xml:space="preserve"><value>{0}（副本）</value></data>
   <data name="Workspace_ProfileDuplicated" xml:space="preserve"><value>已将配置文件复制为“{0}”。</value></data>
   <data name="Workspace_DuplicateFailed" xml:space="preserve"><value>无法复制配置文件：{0}</value></data>
+  <data name="Onb_DetectingHardware" xml:space="preserve"><value>正在检测硬件...</value></data>
+  <data name="Onb_Checking" xml:space="preserve"><value>正在检查...</value></data>
+  <data name="Onb_SummaryNotConfigured" xml:space="preserve"><value>未配置</value></data>
+  <data name="Onb_SummaryDefaultModel" xml:space="preserve"><value>默认（{0}）</value></data>
+  <data name="Onb_SummaryNotDetected" xml:space="preserve"><value>未检测到</value></data>
+  <data name="Onb_SummaryNoneConfigured" xml:space="preserve"><value>未配置任何服务商</value></data>
+  <data name="Onb_TestingConnection" xml:space="preserve"><value>正在测试连接...</value></data>
+  <data name="Onb_EndpointInvalid" xml:space="preserve"><value>请以 URL 形式输入 Ollama 地址，例如 http://localhost:11434。</value></data>
+  <data name="Onb_OllamaConnected" xml:space="preserve"><value>已成功连接到 Ollama！</value></data>
+  <data name="Onb_OllamaNotReachable" xml:space="preserve"><value>无法连接到 Ollama。请确保 Ollama 正在运行。</value></data>
+  <data name="Onb_ConnectionFailed" xml:space="preserve"><value>连接失败。请检查 Ollama 是否已安装并正在运行。</value></data>
+  <data name="Onb_HardwareSummary" xml:space="preserve"><value>{0}  |  {1} 内存  |  {2}</value></data>
+  <data name="Onb_HardwareUnavailable" xml:space="preserve"><value>硬件检测不可用</value></data>
+  <data name="Onb_LocalModelReady" xml:space="preserve"><value>已就绪（{0} MB）</value></data>
+  <data name="Onb_LocalModelNotInstalled" xml:space="preserve"><value>尚未安装。可下载以使用完全离线的 AI（约 1.9 GB），或直接在下方添加云 API 密钥。</value></data>
+  <data name="Onb_LocalModelUnverified" xml:space="preserve"><value>无法验证模型</value></data>
+  <data name="Onb_GpuCpuOnly" xml:space="preserve"><value>CPU 推理（未检测到 NVIDIA GPU）</value></data>
+  <data name="Onb_GpuTooLittleMemory" xml:space="preserve"><value>CPU 推理（GPU 层需要至少 2 GB 显存的 NVIDIA GPU）</value></data>
+  <data name="Onb_GpuCudaAvailable" xml:space="preserve"><value>可使用 CUDA 加速（{0} 显存，{1} 层）</value></data>
+  <data name="Onb_GpuNeedsCudaToolkit" xml:space="preserve"><value>检测到 NVIDIA GPU（{0} 显存）。GPU 加速需要安装 NVIDIA CUDA 12 Toolkit。</value></data>
+  <data name="Onb_DownloadStarting" xml:space="preserve"><value>正在开始下载...</value></data>
+  <data name="Onb_DownloadComplete" xml:space="preserve"><value>下载完成。</value></data>
+  <data name="Onb_DownloadIncomplete" xml:space="preserve"><value>下载未完成。您可以重试或使用云端模型。</value></data>
+  <data name="Onb_DownloadFailed" xml:space="preserve"><value>下载失败：{0}</value></data>
+  <data name="Onb_DownloadProgress" xml:space="preserve"><value>{0} / {1} GB（{2}%）</value></data>
+  <data name="Onb_SummaryOllamaConnected" xml:space="preserve"><value>已连接（{0}）</value></data>
+  <data name="Onb_SummaryOllamaNotConnected" xml:space="preserve"><value>未连接（可在设置中配置）</value></data>
+  <data name="Onb_SummaryLocalModelReady" xml:space="preserve"><value>{0}（已就绪）</value></data>
+  <data name="Onb_SummaryLocalModelMissing" xml:space="preserve"><value>未找到（重新安装即可恢复）</value></data>
+  <data name="Onb_SummaryNoCloudProviders" xml:space="preserve"><value>无（可稍后在设置中添加）</value></data>
   <data name="Palette_OpenHint.Text" xml:space="preserve"><value>打开</value></data>
   <data name="Palette_CloseHint.Text" xml:space="preserve"><value>关闭</value></data>
   <data name="Palette_Actions" xml:space="preserve"><value>操作</value></data>

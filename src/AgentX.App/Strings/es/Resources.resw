@@ -2449,6 +2449,36 @@
   <data name="Workspace_CopyName" xml:space="preserve"><value>{0} (copia)</value></data>
   <data name="Workspace_ProfileDuplicated" xml:space="preserve"><value>Perfil duplicado como "{0}".</value></data>
   <data name="Workspace_DuplicateFailed" xml:space="preserve"><value>No se pudo duplicar el perfil: {0}</value></data>
+  <data name="Onb_DetectingHardware" xml:space="preserve"><value>Detectando hardware...</value></data>
+  <data name="Onb_Checking" xml:space="preserve"><value>Comprobando...</value></data>
+  <data name="Onb_SummaryNotConfigured" xml:space="preserve"><value>Sin configurar</value></data>
+  <data name="Onb_SummaryDefaultModel" xml:space="preserve"><value>Predeterminado ({0})</value></data>
+  <data name="Onb_SummaryNotDetected" xml:space="preserve"><value>No detectado</value></data>
+  <data name="Onb_SummaryNoneConfigured" xml:space="preserve"><value>Ninguno configurado</value></data>
+  <data name="Onb_TestingConnection" xml:space="preserve"><value>Probando la conexión...</value></data>
+  <data name="Onb_EndpointInvalid" xml:space="preserve"><value>Escriba la dirección de Ollama como una URL, por ejemplo http://localhost:11434.</value></data>
+  <data name="Onb_OllamaConnected" xml:space="preserve"><value>¡Conectado con Ollama correctamente!</value></data>
+  <data name="Onb_OllamaNotReachable" xml:space="preserve"><value>No se pudo conectar con Ollama. Asegúrese de que Ollama está en ejecución.</value></data>
+  <data name="Onb_ConnectionFailed" xml:space="preserve"><value>Error de conexión. Compruebe que Ollama está instalado y en ejecución.</value></data>
+  <data name="Onb_HardwareSummary" xml:space="preserve"><value>{0}  |  {1} de RAM  |  {2}</value></data>
+  <data name="Onb_HardwareUnavailable" xml:space="preserve"><value>Detección de hardware no disponible</value></data>
+  <data name="Onb_LocalModelReady" xml:space="preserve"><value>Listo ({0} MB)</value></data>
+  <data name="Onb_LocalModelNotInstalled" xml:space="preserve"><value>Aún no está instalado. Descárguelo para usar IA totalmente sin conexión (~1,9 GB) o simplemente añada una clave de API en la nube a continuación.</value></data>
+  <data name="Onb_LocalModelUnverified" xml:space="preserve"><value>No se pudo verificar el modelo</value></data>
+  <data name="Onb_GpuCpuOnly" xml:space="preserve"><value>Inferencia en la CPU (no se detectó ninguna GPU NVIDIA)</value></data>
+  <data name="Onb_GpuTooLittleMemory" xml:space="preserve"><value>Inferencia en la CPU (las capas de GPU requieren una GPU NVIDIA con al menos 2 GB de memoria de vídeo)</value></data>
+  <data name="Onb_GpuCudaAvailable" xml:space="preserve"><value>Aceleración CUDA disponible ({0} de VRAM, {1} capas)</value></data>
+  <data name="Onb_GpuNeedsCudaToolkit" xml:space="preserve"><value>Se detectó una GPU NVIDIA ({0} de VRAM). La aceleración por GPU requiere que esté instalado NVIDIA CUDA 12 Toolkit.</value></data>
+  <data name="Onb_DownloadStarting" xml:space="preserve"><value>Iniciando la descarga...</value></data>
+  <data name="Onb_DownloadComplete" xml:space="preserve"><value>Descarga completada.</value></data>
+  <data name="Onb_DownloadIncomplete" xml:space="preserve"><value>La descarga no se completó. Puede volver a intentarlo o usar modelos en la nube.</value></data>
+  <data name="Onb_DownloadFailed" xml:space="preserve"><value>Error en la descarga: {0}</value></data>
+  <data name="Onb_DownloadProgress" xml:space="preserve"><value>{0} / {1} GB  ({2} %)</value></data>
+  <data name="Onb_SummaryOllamaConnected" xml:space="preserve"><value>Conectado ({0})</value></data>
+  <data name="Onb_SummaryOllamaNotConnected" xml:space="preserve"><value>No conectado (se puede configurar en Configuración)</value></data>
+  <data name="Onb_SummaryLocalModelReady" xml:space="preserve"><value>{0} (listo)</value></data>
+  <data name="Onb_SummaryLocalModelMissing" xml:space="preserve"><value>No encontrado (reinstale para restaurarlo)</value></data>
+  <data name="Onb_SummaryNoCloudProviders" xml:space="preserve"><value>Ninguno (se pueden añadir más tarde en Configuración)</value></data>
   <data name="Palette_OpenHint.Text" xml:space="preserve"><value>Abrir</value></data>
   <data name="Palette_CloseHint.Text" xml:space="preserve"><value>Cerrar</value></data>
   <data name="Palette_Actions" xml:space="preserve"><value>ACCIONES</value></data>
