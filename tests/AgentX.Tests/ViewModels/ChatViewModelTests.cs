@@ -1398,6 +1398,26 @@ public sealed class ChatViewModelTests
         item.FormattedTokens.Should().Be("12 tokens");
     }
 
+    [Fact]
+    public void ChatMessageItem_FormattedTime_UsesTheUsersShortTimeFormat()
+    {
+        // The time was always "h:mm tt", so a German user read "2:05 PM" instead of "14:05".
+        var item = new ChatMessageItem { Timestamp = new DateTime(2026, 9, 27, 14, 5, 0, DateTimeKind.Local) };
+        var previous = System.Globalization.CultureInfo.CurrentCulture;
+        try
+        {
+            System.Globalization.CultureInfo.CurrentCulture = new System.Globalization.CultureInfo("de-DE");
+            item.FormattedTime.Should().Be("14:05");
+
+            System.Globalization.CultureInfo.CurrentCulture = new System.Globalization.CultureInfo("en-US");
+            item.FormattedTime.Should().StartWith("2:05").And.EndWith("PM");
+        }
+        finally
+        {
+            System.Globalization.CultureInfo.CurrentCulture = previous;
+        }
+    }
+
     // --- Web sources ---
     // Research Mode answers showed no sources in the bubble, and chat saved none to reload.
 

@@ -1,3 +1,4 @@
+using System.Globalization;
 using AgentX.App.Helpers;
 using AgentX.Core.Search.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -169,7 +170,8 @@ public class ChatMessageItem : ObservableObject
         set => SetProperty(ref _editContent, value);
     }
 
-    public string FormattedTime => Timestamp.ToLocalTime().ToString("h:mm tt");
+    /// <summary>The time of day the message was sent, in the user's short time format.</summary>
+    public string FormattedTime => Timestamp.ToLocalTime().ToString("t", CultureInfo.CurrentCulture);
 
     public string FormattedTokens => TokenCount > 0
         ? $"{TokenCount} tokens"
