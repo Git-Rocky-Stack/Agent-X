@@ -24,7 +24,9 @@ public class AppSettings
     // Built-in Local LLM (LLamaSharp)
     public string LocalModelFileName { get; set; } = "llama-3.2-3b-instruct-q4_k_m.gguf";
     public int LocalContextSize { get; set; } = 8192;
-    public int LocalGpuLayers { get; set; } = 0; // 0 = CPU only; increase for GPU offloading
+    // Layers on the GPU: 0 = automatic (NVIDIA GPU detected by video memory), a positive count =
+    // that many, negative = none (CPU only). See LocalLlmProvider.ResolveGpuLayers.
+    public int LocalGpuLayers { get; set; } = 0;
 
     // Ollama Provider
     public string OllamaEndpoint { get; set; } = "http://localhost:11434";

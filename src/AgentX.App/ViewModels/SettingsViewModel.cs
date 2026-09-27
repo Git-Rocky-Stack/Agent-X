@@ -32,6 +32,9 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private int _activeProviderIndex;
     [ObservableProperty] private string _activeProviderId = "local";
 
+    /// <summary>The Built-in LLM block: GPU layers of the built-in model.</summary>
+    public BuiltInModelSettingsViewModel BuiltInModel { get; } = new();
+
     // ── Ollama ────────────────────────────────────────────────
     [ObservableProperty] private string _ollamaEndpoint = "http://localhost:11434";
     [ObservableProperty] private string _defaultModel = "llama3.2";
@@ -194,6 +197,9 @@ public partial class SettingsViewModel : ObservableObject
             ActiveProviderId = string.IsNullOrWhiteSpace(settings.ActiveProviderId) ? "local" : settings.ActiveProviderId;
             ActiveProviderIndex = ProviderChoices.IndexOf(ActiveProviderId);
 
+            // Built-in LLM
+            BuiltInModel.Load(settings);
+
             // Ollama
             OllamaEndpoint = settings.OllamaEndpoint;
             DefaultModel = settings.DefaultModel;
@@ -276,6 +282,9 @@ public partial class SettingsViewModel : ObservableObject
         // Provider
         settings.ActiveProviderId = resolvedProviderId;
         ActiveProviderId = resolvedProviderId;
+
+        // Built-in LLM (a changed value reloads the model when the AI service is re-initialized below)
+        BuiltInModel.ApplyTo(settings);
 
         // Ollama
         settings.OllamaEndpoint = OllamaEndpoint;
@@ -435,6 +444,7 @@ public partial class SettingsViewModel : ObservableObject
         // Provider defaults (the built-in model, as for a new install)
         ActiveProviderId = "local";
         ActiveProviderIndex = ProviderChoices.IndexOf(ActiveProviderId);
+        BuiltInModel.Reset();
 
         // Ollama
         OllamaEndpoint = "http://localhost:11434";

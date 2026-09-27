@@ -1540,6 +1540,10 @@
   <data name="HwAdvisor_ModelLlama32Latest" xml:space="preserve"><value>Meta Llama 3.2 (3B) -- Schnelle, effiziente Wahl für kurze Alltagsaufgaben.</value></data>
   <data name="HwAdvisor_ModelQwen25Coder32b" xml:space="preserve"><value>Qwen 2.5 Coder (32B) -- Spitzen-Codemodell für komplexe Aufgaben über mehrere Dateien.</value></data>
   <data name="HwAdvisor_ModelMxbaiEmbedLarge" xml:space="preserve"><value>Mixedbread Embed Large -- Embeddings auf dem neuesten Stand für RAG und Suche.</value></data>
+  <data name="Settings_BuiltInLlm.Text" xml:space="preserve"><value>Integriertes LLM (lokal)</value></data>
+  <data name="Settings_GpuLayersAutomatic.Header" xml:space="preserve"><value>GPU-Schichten automatisch</value></data>
+  <data name="Settings_GpuLayers.Text" xml:space="preserve"><value>GPU-Schichten</value></data>
+  <data name="Settings_GpuLayersHint.Text" xml:space="preserve"><value>Automatisch wählt 16 bis 33 Schichten nach dem Videospeicher einer NVIDIA-GPU (unter 2 GB keine); 0 lässt das Modell auf der CPU. Die Schichten laufen nur dann auf der GPU, wenn das NVIDIA CUDA 12 Toolkit installiert ist. Beim Speichern wird das integrierte Modell neu geladen.</value></data>
   <data name="Digest_NoDigestReportsYet.Text" xml:space="preserve"><value>Noch keine Digest-Berichte</value></data>
   <data name="Digest_GenerateYourFirstWeekly.Text" xml:space="preserve"><value>Erstellen Sie Ihren ersten Wochen-Digest, um Aktivitätszusammenfassungen, Suchtrends und Konversations-Highlights zu sehen.</value></data>
   <data name="Digest_GenerateFirstDigest.Text" xml:space="preserve"><value>Ersten Digest erstellen</value></data>

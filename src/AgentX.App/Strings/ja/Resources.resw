@@ -1540,6 +1540,10 @@
   <data name="HwAdvisor_ModelLlama32Latest" xml:space="preserve"><value>Meta Llama 3.2 (3B) -- 日常のちょっとした作業に向く、高速で効率的な選択肢。</value></data>
   <data name="HwAdvisor_ModelQwen25Coder32b" xml:space="preserve"><value>Qwen 2.5 Coder (32B) -- 複数ファイルにまたがる複雑な作業に向くトップクラスのコード モデル。</value></data>
   <data name="HwAdvisor_ModelMxbaiEmbedLarge" xml:space="preserve"><value>Mixedbread Embed Large -- RAG と検索向けの最先端の埋め込み。</value></data>
+  <data name="Settings_BuiltInLlm.Text" xml:space="preserve"><value>組み込み LLM (ローカル)</value></data>
+  <data name="Settings_GpuLayersAutomatic.Header" xml:space="preserve"><value>GPU レイヤーを自動設定</value></data>
+  <data name="Settings_GpuLayers.Text" xml:space="preserve"><value>GPU レイヤー</value></data>
+  <data name="Settings_GpuLayersHint.Text" xml:space="preserve"><value>自動では NVIDIA GPU のビデオ メモリに応じて 16 から 33 のレイヤーを選びます (2 GB 未満では 0)。0 にするとモデルは CPU で動作します。レイヤーが GPU で動作するのは NVIDIA CUDA 12 Toolkit がインストールされている場合だけです。保存すると組み込みモデルが再読み込みされます。</value></data>
   <data name="Digest_NoDigestReportsYet.Text" xml:space="preserve"><value>ダイジェスト レポートはまだありません</value></data>
   <data name="Digest_GenerateYourFirstWeekly.Text" xml:space="preserve"><value>最初の週次ダイジェストを生成すると、アクティビティの概要、検索トレンド、会話のハイライトが表示されます。</value></data>
   <data name="Digest_GenerateFirstDigest.Text" xml:space="preserve"><value>最初のダイジェストを生成</value></data>

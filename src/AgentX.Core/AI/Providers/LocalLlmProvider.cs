@@ -489,13 +489,7 @@ public sealed class LocalLlmProvider : IAiProvider
         if (!File.Exists(modelPath))
             throw new FileNotFoundException($"GGUF model not found: {modelPath}", modelPath);
 
-        // Auto-detect GPU layers: if user set 0 (default), try to detect NVIDIA GPU
-        var effectiveGpuLayers = _gpuLayers;
-        if (effectiveGpuLayers == 0)
-        {
-            _detectedGpuLayers ??= DetectRecommendedGpuLayers();
-            effectiveGpuLayers = _detectedGpuLayers.Value;
-        }
+        var effectiveGpuLayers = ResolveGpuLayers(_gpuLayers, () => _detectedGpuLayers ??= DetectRecommendedGpuLayers());
 
         _logger.Information(
             "Loading local LLM from {ModelPath} (GPU layers: {GpuLayers})...",
@@ -1018,6 +1012,25 @@ public sealed class LocalLlmProvider : IAiProvider
 
         return name;
     }
+
+    /// <summary>
+    /// The number of layers the model is loaded with on the GPU, from the saved setting
+    /// (AppSettings.LocalGpuLayers): 0 is Automatic and asks <paramref name="detect"/> (an NVIDIA
+    /// GPU gets 16, 28 or 33 layers by its video memory, anything else none), a positive count is
+    /// used as it is, and a negative value keeps every layer on the CPU.
+    /// <para>
+    /// The layers only reach the GPU when LLamaSharp loads its CUDA 12 backend. It tries that
+    /// backend only when the NVIDIA CUDA Toolkit is installed (CUDA_PATH, major version 12), since
+    /// the backend needs cudart64_12.dll and cublas64_12.dll, which Agent-X does not ship;
+    /// otherwise the CPU backend runs and the count has no effect.
+    /// </para>
+    /// </summary>
+    internal static int ResolveGpuLayers(int configuredLayers, Func<int> detect) => configuredLayers switch
+    {
+        0 => detect(),
+        < 0 => 0,
+        _ => configuredLayers
+    };
 
     /// <summary>
     /// Detects NVIDIA GPU via WMI and returns recommended GPU layer count.

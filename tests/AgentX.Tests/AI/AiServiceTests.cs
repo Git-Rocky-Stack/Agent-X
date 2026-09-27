@@ -114,6 +114,22 @@ public sealed class AiServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Reinitialize_after_a_GPU_layers_change_rebuilds_the_built_in_provider()
+    {
+        // The Settings page saves the GPU layers and re-initializes the service; the built-in
+        // model must then be loaded again with the new value, without a restart.
+        var service = CreateService();
+        await service.InitializeAsync();
+        var local = service.GetProvider("local");
+
+        _settings.LocalGpuLayers = -1;
+        await service.InitializeAsync();
+
+        service.GetProvider("local").Should().NotBeNull()
+            .And.NotBeSameAs(local, "a new GPU layer count takes effect by reloading the model");
+    }
+
+    [Fact]
     public async Task Switch_to_an_unreachable_provider_keeps_the_current_one()
     {
         Fake("anthropic", connected: false);

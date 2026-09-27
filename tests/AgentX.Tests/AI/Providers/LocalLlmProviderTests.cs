@@ -788,4 +788,41 @@ public sealed class LocalLlmProviderTests : IDisposable
         // Real WMI probe: 0 on CPU-only machines/CI, a fixed tier when an NVIDIA GPU exists.
         layers.Should().BeOneOf(0, 16, 28, 33);
     }
+
+    // The saved LocalGpuLayers: 0 (the default) is Automatic, so the provider detects an NVIDIA
+    // GPU; a positive count is used as it is; a negative value keeps the model on the CPU. A
+    // negative count used to reach llama.cpp as it was.
+
+    [Fact]
+    public void ResolveGpuLayers_Zero_IsAutomatic()
+    {
+        LocalLlmProvider.ResolveGpuLayers(0, () => 28).Should().Be(28);
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(33)]
+    [InlineData(999)]
+    public void ResolveGpuLayers_APositiveCount_IsUsedWithoutDetecting(int configured)
+    {
+        var detected = false;
+
+        var layers = LocalLlmProvider.ResolveGpuLayers(configured, () => { detected = true; return 16; });
+
+        layers.Should().Be(configured);
+        detected.Should().BeFalse();
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(-40)]
+    public void ResolveGpuLayers_ANegativeValue_KeepsEveryLayerOnTheCpu(int configured)
+    {
+        var detected = false;
+
+        var layers = LocalLlmProvider.ResolveGpuLayers(configured, () => { detected = true; return 33; });
+
+        layers.Should().Be(0);
+        detected.Should().BeFalse();
+    }
 }

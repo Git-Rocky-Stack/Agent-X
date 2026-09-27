@@ -1540,6 +1540,10 @@
   <data name="HwAdvisor_ModelLlama32Latest" xml:space="preserve"><value>Meta Llama 3.2 (3B) -- Opción rápida y eficiente para tareas cotidianas breves.</value></data>
   <data name="HwAdvisor_ModelQwen25Coder32b" xml:space="preserve"><value>Qwen 2.5 Coder (32B) -- Modelo de código de primer nivel para tareas complejas con varios archivos.</value></data>
   <data name="HwAdvisor_ModelMxbaiEmbedLarge" xml:space="preserve"><value>Mixedbread Embed Large -- Embeddings de última generación para RAG y búsqueda.</value></data>
+  <data name="Settings_BuiltInLlm.Text" xml:space="preserve"><value>LLM integrado (local)</value></data>
+  <data name="Settings_GpuLayersAutomatic.Header" xml:space="preserve"><value>Capas de GPU automáticas</value></data>
+  <data name="Settings_GpuLayers.Text" xml:space="preserve"><value>Capas de GPU</value></data>
+  <data name="Settings_GpuLayersHint.Text" xml:space="preserve"><value>Automático elige de 16 a 33 capas según la memoria de vídeo de una GPU NVIDIA (ninguna por debajo de 2 GB); 0 mantiene el modelo en la CPU. Las capas solo se ejecutan en la GPU si está instalado NVIDIA CUDA 12 Toolkit. Al guardar se vuelve a cargar el modelo integrado.</value></data>
   <data name="Digest_NoDigestReportsYet.Text" xml:space="preserve"><value>Aún no hay informes de resumen</value></data>
   <data name="Digest_GenerateYourFirstWeekly.Text" xml:space="preserve"><value>Genere su primer resumen semanal para ver resúmenes de actividad, tendencias de búsqueda y momentos destacados de las conversaciones.</value></data>
   <data name="Digest_GenerateFirstDigest.Text" xml:space="preserve"><value>Generar primer resumen</value></data>

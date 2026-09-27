@@ -122,6 +122,8 @@
          and the requeue of audio waiting for the model). -->
     <Compile Include="..\..\src\AgentX.App\ViewModels\ModelManagerViewModel.cs" Link="ViewModels\ModelManagerViewModel.cs" />
     <Compile Include="..\..\src\AgentX.App\ViewModels\SpeechModelViewModel.cs" Link="ViewModels\SpeechModelViewModel.cs" />
+    <!-- BuiltInModelSettingsViewModel is the WinUI-free GPU layers block of Settings. -->
+    <Compile Include="..\..\src\AgentX.App\ViewModels\BuiltInModelSettingsViewModel.cs" Link="ViewModels\BuiltInModelSettingsViewModel.cs" />
     <!-- ShortcutInputRouter dispatch core is pure; WinUI attach lives in a separate file. -->
     <Compile Include="..\..\src\AgentX.App\Services\ShortcutInputRouter.cs" Link="Services\ShortcutInputRouter.cs" />
     <!-- ShortcutRegistrationExtensions is pure registry composition for page-scoped shortcuts. -->

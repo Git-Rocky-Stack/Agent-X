@@ -1662,6 +1662,10 @@
   <data name="HwAdvisor_ModelLlama32Latest" xml:space="preserve"><value>Meta Llama 3.2 (3B) -- Fast, efficient option for quick everyday tasks.</value></data>
   <data name="HwAdvisor_ModelQwen25Coder32b" xml:space="preserve"><value>Qwen 2.5 Coder (32B) -- Top-tier code model for complex multi-file tasks.</value></data>
   <data name="HwAdvisor_ModelMxbaiEmbedLarge" xml:space="preserve"><value>Mixedbread Embed Large -- State-of-the-art embeddings for RAG and search.</value></data>
+  <data name="Settings_BuiltInLlm.Text" xml:space="preserve"><value>Built-in LLM (Local)</value></data>
+  <data name="Settings_GpuLayersAutomatic.Header" xml:space="preserve"><value>Automatic GPU layers</value></data>
+  <data name="Settings_GpuLayers.Text" xml:space="preserve"><value>GPU Layers</value></data>
+  <data name="Settings_GpuLayersHint.Text" xml:space="preserve"><value>Automatic picks 16 to 33 layers from an NVIDIA GPU's video memory (none below 2 GB); 0 keeps the model on the CPU. Layers run on the GPU only when the NVIDIA CUDA 12 Toolkit is installed. Saving reloads the built-in model.</value></data>
   <data name="Digest_NoDigestReportsYet.Text" xml:space="preserve"><value>No Digest Reports Yet</value></data>
   <data name="Digest_GenerateYourFirstWeekly.Text" xml:space="preserve"><value>Generate your first weekly digest to see activity summaries, search trends, and conversation highlights.</value></data>
   <data name="Digest_GenerateFirstDigest.Text" xml:space="preserve"><value>Generate First Digest</value></data>

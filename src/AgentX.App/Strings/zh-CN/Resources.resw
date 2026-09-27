@@ -1540,6 +1540,10 @@
   <data name="HwAdvisor_ModelLlama32Latest" xml:space="preserve"><value>Meta Llama 3.2 (3B) -- 快速高效，适合处理日常小任务。</value></data>
   <data name="HwAdvisor_ModelQwen25Coder32b" xml:space="preserve"><value>Qwen 2.5 Coder (32B) -- 顶级代码模型，适合复杂的多文件任务。</value></data>
   <data name="HwAdvisor_ModelMxbaiEmbedLarge" xml:space="preserve"><value>Mixedbread Embed Large -- 用于 RAG 和搜索的先进嵌入模型。</value></data>
+  <data name="Settings_BuiltInLlm.Text" xml:space="preserve"><value>内置 LLM(本地)</value></data>
+  <data name="Settings_GpuLayersAutomatic.Header" xml:space="preserve"><value>自动设置 GPU 层</value></data>
+  <data name="Settings_GpuLayers.Text" xml:space="preserve"><value>GPU 层数</value></data>
+  <data name="Settings_GpuLayersHint.Text" xml:space="preserve"><value>自动模式会根据 NVIDIA GPU 的显存选择 16 到 33 层（低于 2 GB 时为 0）；设为 0 则模型在 CPU 上运行。仅当安装了 NVIDIA CUDA 12 Toolkit 时，这些层才会在 GPU 上运行。保存后会重新加载内置模型。</value></data>
   <data name="Digest_NoDigestReportsYet.Text" xml:space="preserve"><value>暂无摘要报告</value></data>
   <data name="Digest_GenerateYourFirstWeekly.Text" xml:space="preserve"><value>生成您的第一份每周摘要,查看活动汇总、搜索趋势和会话亮点。</value></data>
   <data name="Digest_GenerateFirstDigest.Text" xml:space="preserve"><value>生成第一份摘要</value></data>

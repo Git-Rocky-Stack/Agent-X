@@ -67,6 +67,34 @@
                     <!-- Separator -->
                     <Border Style="{StaticResource SeparatorStyle}" />
 
+                    <!-- Built-in LLM: GPU layers (BuiltInModelSettingsViewModel). Saved with the
+                         page; saving reloads the built-in model with the new value. -->
+                    <StackPanel Spacing="12">
+                        <TextBlock x:Uid="Settings_BuiltInLlm" Text="Built-in LLM (Local)"
+                                   Style="{StaticResource HeadingSmallStyle}" />
+
+                        <ToggleSwitch x:Uid="Settings_GpuLayersAutomatic" Header="Automatic GPU layers"
+                                      IsOn="{x:Bind ViewModel.BuiltInModel.IsGpuLayersAutomatic, Mode=TwoWay}" />
+
+                        <StackPanel Spacing="4"
+                                    Visibility="{x:Bind ViewModel.BuiltInModel.IsGpuLayersAutomatic, Mode=OneWay, Converter={StaticResource InverseBoolToVisibility}}">
+                            <TextBlock x:Name="GpuLayersLabel" x:Uid="Settings_GpuLayers" Text="GPU Layers"
+                                       Style="{StaticResource LabelStyle}" />
+                            <NumberBox Value="{x:Bind ViewModel.BuiltInModel.GpuLayers, Mode=TwoWay}"
+                                       Minimum="0" Maximum="999" SpinButtonPlacementMode="Compact"
+                                       HorizontalAlignment="Left" MinWidth="160"
+                                       AutomationProperties.LabeledBy="{x:Bind GpuLayersLabel}" />
+                        </StackPanel>
+
+                        <TextBlock x:Uid="Settings_GpuLayersHint"
+                                   Text="Automatic picks 16 to 33 layers from an NVIDIA GPU's video memory (none below 2 GB); 0 keeps the model on the CPU. Layers run on the GPU only when the NVIDIA CUDA 12 Toolkit is installed. Saving reloads the built-in model."
+                                   Style="{StaticResource CaptionStyle}"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+
+                    <!-- Separator -->
+                    <Border Style="{StaticResource SeparatorStyle}" />
+
                     <!-- ── Ollama (Local) ─────────────────────────── -->
                     <StackPanel Spacing="12">
                         <StackPanel Orientation="Horizontal" Spacing="8">
