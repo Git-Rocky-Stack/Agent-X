@@ -2720,7 +2720,7 @@
   <data name="Chat_ConnectionConnected" xml:space="preserve"><value>Conectado</value></data>
   <data name="Chat_ConnectionDisconnected" xml:space="preserve"><value>Desconectado</value></data>
   <data name="Chat_ResearchModeOnTooltip" xml:space="preserve"><value>Modo investigación ACTIVADO: las respuestas añaden resultados de búsqueda web citados (requiere el modo investigación y un proveedor de búsqueda web en Configuración)</value></data>
-  <data name="Chat_ResearchModeOffTooltip" xml:space="preserve"><value>Modo investigación DESACTIVADO: las respuestas solo usan su conocimiento local</value></data>
+  <data name="Chat_ResearchModeOffTooltip" xml:space="preserve"><value>Modo investigación DESACTIVADO: las respuestas provienen del modelo de IA y de la conversación, sin resultados de búsqueda web</value></data>
   <data name="Chat_OrchestrationParallelTooltip" xml:space="preserve"><value>Modo multiagente en paralelo: el investigador, el crítico y el sintetizador responden juntos</value></data>
   <data name="Chat_OrchestrationDebateTooltip" xml:space="preserve"><value>Modo multiagente en debate: los agentes cuestionan las posturas antes de la síntesis final</value></data>
   <data name="Chat_OrchestrationSoloTooltip" xml:space="preserve"><value>Modo individual: respuesta de chat estándar de Agent-X</value></data>

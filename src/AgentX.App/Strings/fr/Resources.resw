@@ -2720,7 +2720,7 @@
   <data name="Chat_ConnectionConnected" xml:space="preserve"><value>Connecté</value></data>
   <data name="Chat_ConnectionDisconnected" xml:space="preserve"><value>Déconnecté</value></data>
   <data name="Chat_ResearchModeOnTooltip" xml:space="preserve"><value>Mode recherche ACTIVÉ : les réponses ajoutent des résultats de recherche web cités (nécessite le mode recherche et un fournisseur de recherche web dans les Paramètres)</value></data>
-  <data name="Chat_ResearchModeOffTooltip" xml:space="preserve"><value>Mode recherche DÉSACTIVÉ : les réponses n'utilisent que vos connaissances locales</value></data>
+  <data name="Chat_ResearchModeOffTooltip" xml:space="preserve"><value>Mode recherche DÉSACTIVÉ : les réponses proviennent du modèle d'IA et de la conversation, sans résultats de recherche web</value></data>
   <data name="Chat_OrchestrationParallelTooltip" xml:space="preserve"><value>Mode multi-agent en parallèle : le chercheur, le critique et le synthétiseur répondent ensemble</value></data>
   <data name="Chat_OrchestrationDebateTooltip" xml:space="preserve"><value>Mode multi-agent en débat : les agents remettent en cause les positions avant la synthèse finale</value></data>
   <data name="Chat_OrchestrationSoloTooltip" xml:space="preserve"><value>Mode solo : réponse de chat standard d'Agent-X</value></data>

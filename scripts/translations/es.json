@@ -2356,7 +2356,7 @@
   "Chat_ConnectionConnected": "Conectado",
   "Chat_ConnectionDisconnected": "Desconectado",
   "Chat_ResearchModeOnTooltip": "Modo investigación ACTIVADO: las respuestas añaden resultados de búsqueda web citados (requiere el modo investigación y un proveedor de búsqueda web en Configuración)",
-  "Chat_ResearchModeOffTooltip": "Modo investigación DESACTIVADO: las respuestas solo usan su conocimiento local",
+  "Chat_ResearchModeOffTooltip": "Modo investigación DESACTIVADO: las respuestas provienen del modelo de IA y de la conversación, sin resultados de búsqueda web",
   "Chat_OrchestrationParallelTooltip": "Modo multiagente en paralelo: el investigador, el crítico y el sintetizador responden juntos",
   "Chat_OrchestrationDebateTooltip": "Modo multiagente en debate: los agentes cuestionan las posturas antes de la síntesis final",
   "Chat_OrchestrationSoloTooltip": "Modo individual: respuesta de chat estándar de Agent-X",

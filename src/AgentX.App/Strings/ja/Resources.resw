@@ -2720,7 +2720,7 @@
   <data name="Chat_ConnectionConnected" xml:space="preserve"><value>接続済み</value></data>
   <data name="Chat_ConnectionDisconnected" xml:space="preserve"><value>未接続</value></data>
   <data name="Chat_ResearchModeOnTooltip" xml:space="preserve"><value>リサーチ モード オン: 回答に出典付きの Web 検索結果が加わります (設定でリサーチ モードと Web 検索プロバイダーが必要です)</value></data>
-  <data name="Chat_ResearchModeOffTooltip" xml:space="preserve"><value>リサーチ モード オフ: 回答にはローカルの知識だけを使います</value></data>
+  <data name="Chat_ResearchModeOffTooltip" xml:space="preserve"><value>リサーチ モード オフ: 回答は AI モデルと会話をもとに作られ、Web 検索結果は加わりません</value></data>
   <data name="Chat_OrchestrationParallelTooltip" xml:space="preserve"><value>マルチエージェント並列モード: リサーチャー、批評家、統合役が一緒に回答します</value></data>
   <data name="Chat_OrchestrationDebateTooltip" xml:space="preserve"><value>マルチエージェント討論モード: 最終的な統合の前に、エージェント同士が主張を検証し合います</value></data>
   <data name="Chat_OrchestrationSoloTooltip" xml:space="preserve"><value>ソロ モード: 通常の Agent-X のチャット応答</value></data>

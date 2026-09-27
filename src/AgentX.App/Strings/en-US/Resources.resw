@@ -3056,7 +3056,7 @@
   <data name="Chat_ConnectionConnected" xml:space="preserve"><value>Connected</value></data>
   <data name="Chat_ConnectionDisconnected" xml:space="preserve"><value>Disconnected</value></data>
   <data name="Chat_ResearchModeOnTooltip" xml:space="preserve"><value>Research Mode ON: answers add cited web search results (needs Research Mode and a web search provider in Settings)</value></data>
-  <data name="Chat_ResearchModeOffTooltip" xml:space="preserve"><value>Research Mode OFF: answers use your local knowledge only</value></data>
+  <data name="Chat_ResearchModeOffTooltip" xml:space="preserve"><value>Research Mode OFF: answers come from the AI model and the conversation, without web search results</value></data>
   <data name="Chat_OrchestrationParallelTooltip" xml:space="preserve"><value>Multi-agent parallel mode — researcher, critic, and synthesizer respond together</value></data>
   <data name="Chat_OrchestrationDebateTooltip" xml:space="preserve"><value>Multi-agent debate mode — agents challenge positions before the final synthesis</value></data>
   <data name="Chat_OrchestrationSoloTooltip" xml:space="preserve"><value>Solo mode — standard Agent-X chat response</value></data>

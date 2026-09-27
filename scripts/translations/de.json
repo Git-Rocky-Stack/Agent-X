@@ -2356,7 +2356,7 @@
   "Chat_ConnectionConnected": "Verbunden",
   "Chat_ConnectionDisconnected": "Getrennt",
   "Chat_ResearchModeOnTooltip": "Recherchemodus AN: Antworten ergänzen zitierte Websuchergebnisse (erfordert den Recherchemodus und einen Websuchanbieter in den Einstellungen)",
-  "Chat_ResearchModeOffTooltip": "Recherchemodus AUS: Antworten nutzen nur Ihr lokales Wissen",
+  "Chat_ResearchModeOffTooltip": "Recherchemodus AUS: Antworten stammen aus dem KI-Modell und der Unterhaltung, ohne Websuchergebnisse",
   "Chat_OrchestrationParallelTooltip": "Multi-Agent parallel: Rechercheur, Kritiker und Synthesizer antworten gemeinsam",
   "Chat_OrchestrationDebateTooltip": "Multi-Agent Debatte: Die Agenten hinterfragen Positionen vor der abschließenden Synthese",
   "Chat_OrchestrationSoloTooltip": "Solomodus: normale Agent-X-Chatantwort",

@@ -5,12 +5,24 @@ using Xunit;
 namespace AgentX.Tests.Services.Localization;
 
 /// <summary>
-/// Texts that say what stays on this computer have to hold whatever is set up. The Dashboard
-/// subtitle said "Everything runs on your machine", which is false once a cloud AI provider or
-/// web search is in use.
+/// Texts that say what stays on this computer, or where an answer comes from, have to hold
+/// whatever is set up. The Dashboard subtitle said "Everything runs on your machine", which is
+/// false once a cloud AI provider or web search is in use, and the Research Mode OFF tooltip
+/// said answers use "your local knowledge", although AI Chat never searches the Knowledge Vault
+/// (Ask Your Files does).
 /// </summary>
 public sealed class LocalOnlyClaimTextTests
 {
+    [Fact]
+    public void Research_mode_off_says_answers_come_from_the_model_and_the_conversation()
+    {
+        var tooltip = ReswLocalization.For("en-US").GetString("Chat_ResearchModeOffTooltip");
+
+        tooltip.Should().NotContainEquivalentOf("local knowledge")
+            .And.Contain("AI model")
+            .And.Contain("conversation");
+    }
+
     [Fact]
     public void The_dashboard_subtitle_names_what_can_take_data_off_the_computer()
     {

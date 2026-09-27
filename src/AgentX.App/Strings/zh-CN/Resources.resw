@@ -2720,7 +2720,7 @@
   <data name="Chat_ConnectionConnected" xml:space="preserve"><value>已连接</value></data>
   <data name="Chat_ConnectionDisconnected" xml:space="preserve"><value>未连接</value></data>
   <data name="Chat_ResearchModeOnTooltip" xml:space="preserve"><value>研究模式已开启：回答会加入带引用的网络搜索结果（需要在“设置”中启用研究模式并配置网络搜索提供商）</value></data>
-  <data name="Chat_ResearchModeOffTooltip" xml:space="preserve"><value>研究模式已关闭：回答仅使用您的本地知识</value></data>
+  <data name="Chat_ResearchModeOffTooltip" xml:space="preserve"><value>研究模式已关闭：回答来自 AI 模型和对话内容，不加入网络搜索结果</value></data>
   <data name="Chat_OrchestrationParallelTooltip" xml:space="preserve"><value>多智能体并行模式：研究者、评论者和综合者共同回答</value></data>
   <data name="Chat_OrchestrationDebateTooltip" xml:space="preserve"><value>多智能体辩论模式：各智能体在最终综合前相互质疑观点</value></data>
   <data name="Chat_OrchestrationSoloTooltip" xml:space="preserve"><value>单一模式：标准的 Agent-X 聊天回复</value></data>

@@ -2356,7 +2356,7 @@
   "Chat_ConnectionConnected": "接続済み",
   "Chat_ConnectionDisconnected": "未接続",
   "Chat_ResearchModeOnTooltip": "リサーチ モード オン: 回答に出典付きの Web 検索結果が加わります (設定でリサーチ モードと Web 検索プロバイダーが必要です)",
-  "Chat_ResearchModeOffTooltip": "リサーチ モード オフ: 回答にはローカルの知識だけを使います",
+  "Chat_ResearchModeOffTooltip": "リサーチ モード オフ: 回答は AI モデルと会話をもとに作られ、Web 検索結果は加わりません",
   "Chat_OrchestrationParallelTooltip": "マルチエージェント並列モード: リサーチャー、批評家、統合役が一緒に回答します",
   "Chat_OrchestrationDebateTooltip": "マルチエージェント討論モード: 最終的な統合の前に、エージェント同士が主張を検証し合います",
   "Chat_OrchestrationSoloTooltip": "ソロ モード: 通常の Agent-X のチャット応答",

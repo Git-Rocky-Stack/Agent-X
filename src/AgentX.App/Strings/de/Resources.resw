@@ -2720,7 +2720,7 @@
   <data name="Chat_ConnectionConnected" xml:space="preserve"><value>Verbunden</value></data>
   <data name="Chat_ConnectionDisconnected" xml:space="preserve"><value>Getrennt</value></data>
   <data name="Chat_ResearchModeOnTooltip" xml:space="preserve"><value>Recherchemodus AN: Antworten ergänzen zitierte Websuchergebnisse (erfordert den Recherchemodus und einen Websuchanbieter in den Einstellungen)</value></data>
-  <data name="Chat_ResearchModeOffTooltip" xml:space="preserve"><value>Recherchemodus AUS: Antworten nutzen nur Ihr lokales Wissen</value></data>
+  <data name="Chat_ResearchModeOffTooltip" xml:space="preserve"><value>Recherchemodus AUS: Antworten stammen aus dem KI-Modell und der Unterhaltung, ohne Websuchergebnisse</value></data>
   <data name="Chat_OrchestrationParallelTooltip" xml:space="preserve"><value>Multi-Agent parallel: Rechercheur, Kritiker und Synthesizer antworten gemeinsam</value></data>
   <data name="Chat_OrchestrationDebateTooltip" xml:space="preserve"><value>Multi-Agent Debatte: Die Agenten hinterfragen Positionen vor der abschließenden Synthese</value></data>
   <data name="Chat_OrchestrationSoloTooltip" xml:space="preserve"><value>Solomodus: normale Agent-X-Chatantwort</value></data>
