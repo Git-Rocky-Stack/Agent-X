@@ -770,6 +770,7 @@ public partial class App : Application
 
         // ── Temporal Identity ─────────────────────────────────────
         services.AddSingleton<ITemporalIdentityService, TemporalIdentityService>();
+        services.AddSingleton<IVoiceDraftService, VoiceDraftService>();
 
         // ── Notifications ────────────────────────────────────────
         services.AddSingleton<INotificationService, NotificationService>();
