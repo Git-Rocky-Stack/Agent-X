@@ -1250,6 +1250,9 @@
   <data name="Settings_EncryptionReopenFailed" xml:space="preserve"><value>已应用加密，但无法重新打开数据库：{0} 请重新启动 Agent-X。</value></data>
   <data name="Settings_EncryptionFailed" xml:space="preserve"><value>加密失败：{0} 您的数据库仍未加密。</value></data>
   <data name="Settings_EncryptionOff" xml:space="preserve"><value>未启用加密。</value></data>
+  <data name="Chat_MessageTokensOne" xml:space="preserve"><value>{0} 个 Token</value></data>
+  <data name="Chat_MessageTokensMany" xml:space="preserve"><value>{0} 个 Token</value></data>
+  <data name="Chat_MessageTokenSpeed" xml:space="preserve"><value>{0} token/秒</value></data>
   <data name="Chat_ShortcutNewConversation" xml:space="preserve"><value>新对话</value></data>
   <data name="Chat_ShortcutToggleConversationPane" xml:space="preserve"><value>显示或隐藏对话窗格</value></data>
   <data name="Chat_ShortcutCategory" xml:space="preserve"><value>聊天</value></data>

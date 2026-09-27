@@ -5,6 +5,7 @@ using AgentX.App.ViewModels.Coordinators;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Context;
 using AgentX.Core.AI.Models;
+using AgentX.Core.Helpers;
 using AgentX.Core.Search.Models;
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Chat.Models;
@@ -1396,6 +1397,116 @@ public sealed class ChatViewModelTests
             nameof(ChatMessageItem.FormattedTokenSpeed)
         ]);
         item.FormattedTokens.Should().Be("12 tokens");
+    }
+
+    [Fact]
+    public async Task SendMessageAsync_WordsTheReplyStatsInTheUsersLanguage()
+    {
+        // The bubble read "12 tokens" and "25.0 tok/s" in every language.
+        SetupSend("Wie gehe ich vor?", new SendMessageResult
+        {
+            ConversationId = 42,
+            ResponseContent = "Antwort",
+            TokenCount = 12,
+            GenerationTimeMs = 480,
+            UserMessageId = 1001,
+            UserMessageSortOrder = 4,
+            AssistantMessageId = 1002,
+            AssistantMessageSortOrder = 5
+        });
+        var viewModel = CreateViewModel(ReswLocalization.For("de"));
+        viewModel.Conversations.Add(new ConversationListItem { Id = 42, Title = "Startanalyse" });
+        viewModel.ActiveConversationId = 42;
+        viewModel.UserInput = "Wie gehe ich vor?";
+
+        await viewModel.SendMessageCommand.ExecuteAsync(null);
+
+        var answer = viewModel.Messages[1];
+        answer.FormattedTokens.Should().Be("12 Tokens");
+        answer.FormattedTokenSpeed.Should().Be(
+            25.0.ToString("F1", System.Globalization.CultureInfo.CurrentCulture) + " Tok./s");
+    }
+
+    [Fact]
+    public async Task SelectConversationAsync_WordsTheStatsOfSavedRepliesInTheUsersLanguage()
+    {
+        _conversationCoordinator
+            .Setup(service => service.LoadMessagesAsync(42))
+            .ReturnsAsync(
+            [
+                new MessageSummary
+                {
+                    MessageId = 1001,
+                    ConversationId = 42,
+                    SortOrder = 1,
+                    Role = "user",
+                    Content = "Question",
+                    Timestamp = DateTime.UtcNow.AddMinutes(-3)
+                },
+                new MessageSummary
+                {
+                    MessageId = 1002,
+                    ConversationId = 42,
+                    SortOrder = 2,
+                    Role = "assistant",
+                    Content = "Answer",
+                    Timestamp = DateTime.UtcNow.AddMinutes(-2),
+                    TokenCount = 1,
+                    GenerationTimeMs = 100
+                }
+            ]);
+        var viewModel = CreateViewModel(ReswLocalization.For("ja"));
+        viewModel.Conversations.Add(new ConversationListItem { Id = 42, Title = "Startup", UpdatedAt = DateTime.UtcNow });
+
+        await viewModel.SelectConversationCommand.ExecuteAsync(42L);
+
+        viewModel.Messages[1].FormattedTokens.Should().Be("1 トークン");
+        viewModel.Messages[1].FormattedTokenSpeed.Should().EndWith(" トークン/秒");
+    }
+
+    [Theory]
+    [InlineData(0, "")]
+    [InlineData(1, "1 token")]
+    [InlineData(1234, "1234 tokens")]
+    public void ChatMessageItem_FormattedTokens_InEnglish_IsSingularForOneToken(int tokens, string expected)
+    {
+        // A bubble built without the view model's localization service words its stats in English,
+        // and one token is no longer "1 tokens".
+        new ChatMessageItem { TokenCount = tokens }.FormattedTokens.Should().Be(expected);
+        new ChatMessageItem { TokenCount = tokens, Localization = _localization }.FormattedTokens.Should().Be(expected);
+    }
+
+    [Fact]
+    public void ConversationListItem_FormattedTime_IsTheSharedRelativeTime()
+    {
+        // The sidebar said "now", "5m ago" and "Sep 3" in every language, apart from the
+        // helpers every other page uses.
+        new ConversationListItem { UpdatedAt = DateTime.UtcNow.AddMinutes(-5.5) }.FormattedTime.Should().Be("5m ago");
+        new ConversationListItem { UpdatedAt = DateTime.UtcNow.AddSeconds(-10) }.FormattedTime.Should().Be("just now");
+
+        var threeWeeksAgo = DateTime.UtcNow.AddDays(-21);
+        new ConversationListItem { UpdatedAt = threeWeeksAgo }.FormattedTime
+            .Should().Be(FormatHelper.TimeAgoWithMonths(threeWeeksAgo)).And.Be("3w ago");
+    }
+
+    [Fact]
+    public void AskFilesMessage_FormattedTime_UsesTheUsersShortTimeFormat()
+    {
+        // Ask Your Files always wrote "h:mm tt", so a German user read "2:05 PM" instead of "14:05".
+        var message = new AskFilesMessage { Timestamp = new DateTime(2026, 9, 27, 14, 5, 0, DateTimeKind.Local) };
+        var previous = System.Globalization.CultureInfo.CurrentCulture;
+        try
+        {
+            System.Globalization.CultureInfo.CurrentCulture = new System.Globalization.CultureInfo("de-DE");
+            message.FormattedTime.Should().Be("14:05");
+
+            System.Globalization.CultureInfo.CurrentCulture = new System.Globalization.CultureInfo("en-US");
+            message.FormattedTime.Should().StartWith("2:05").And.EndWith("PM");
+        }
+        finally
+        {
+            System.Globalization.CultureInfo.CurrentCulture = previous;
+        }
     }
 
     [Fact]

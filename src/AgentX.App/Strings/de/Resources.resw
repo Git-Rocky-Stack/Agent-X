@@ -1250,6 +1250,9 @@
   <data name="Settings_EncryptionReopenFailed" xml:space="preserve"><value>Die Verschlüsselung wurde angewendet, aber die Datenbank konnte nicht erneut geöffnet werden: {0} Starten Sie Agent-X neu.</value></data>
   <data name="Settings_EncryptionFailed" xml:space="preserve"><value>Die Verschlüsselung ist fehlgeschlagen: {0} Ihre Datenbank bleibt unverschlüsselt.</value></data>
   <data name="Settings_EncryptionOff" xml:space="preserve"><value>Die Verschlüsselung ist nicht aktiviert.</value></data>
+  <data name="Chat_MessageTokensOne" xml:space="preserve"><value>{0} Token</value></data>
+  <data name="Chat_MessageTokensMany" xml:space="preserve"><value>{0} Tokens</value></data>
+  <data name="Chat_MessageTokenSpeed" xml:space="preserve"><value>{0} Tok./s</value></data>
   <data name="Chat_ShortcutNewConversation" xml:space="preserve"><value>Neue Unterhaltung</value></data>
   <data name="Chat_ShortcutToggleConversationPane" xml:space="preserve"><value>Unterhaltungsbereich ein- oder ausblenden</value></data>
   <data name="Chat_ShortcutCategory" xml:space="preserve"><value>Chat</value></data>

@@ -976,7 +976,8 @@ public partial class ChatViewModel : ObservableObject, IDisposable
             IsUser = true,
             IsAssistant = false,
             IsSystem = false,
-            IsStreaming = false
+            IsStreaming = false,
+            Localization = _localization
         };
         Messages.Add(userMessage);
         OnPropertyChanged(nameof(HasNoMessages));
@@ -1005,7 +1006,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
                     userContent, conversationId, systemPrompt, modelId, isResearchMode, orchestrationMode));
     }
 
-    private static ChatMessageItem CreateStreamingAssistantMessage() => new()
+    private ChatMessageItem CreateStreamingAssistantMessage() => new()
     {
         Role = "assistant",
         Content = "",
@@ -1013,7 +1014,8 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         IsUser = false,
         IsAssistant = true,
         IsSystem = false,
-        IsStreaming = true
+        IsStreaming = true,
+        Localization = _localization
     };
 
     /// <summary>
@@ -2112,7 +2114,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         FolderName = s.FolderName
     };
 
-    private static ChatMessageItem MapToChatMessageItem(MessageSummary ms) => new()
+    private ChatMessageItem MapToChatMessageItem(MessageSummary ms) => new()
     {
         MessageId = ms.MessageId,
         ConversationId = ms.ConversationId,
@@ -2126,7 +2128,8 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         TokenCount = ms.TokenCount,
         GenerationTimeMs = ms.GenerationTimeMs,
         FeedbackRating = ms.FeedbackRating,
-        WebCitations = ms.WebCitations.Count > 0 ? ms.WebCitations : null
+        WebCitations = ms.WebCitations.Count > 0 ? ms.WebCitations : null,
+        Localization = _localization
     };
 
     private void ReapplyInlineContextNote(ChatMessageItem message)

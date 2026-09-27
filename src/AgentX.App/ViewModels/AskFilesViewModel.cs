@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Globalization;
 using AgentX.Core.Documents;
 using AgentX.Core.Search;
 using AgentX.Core.Search.Models;
@@ -426,10 +427,8 @@ public partial class AskFilesMessage : ObservableObject
     /// </summary>
     public bool IsAssistant => !IsUser;
 
-    /// <summary>
-    /// Formatted timestamp for display.
-    /// </summary>
-    public string FormattedTime => Timestamp.ToLocalTime().ToString("h:mm tt");
+    /// <summary>The time of day the message was sent, in the user's short time format.</summary>
+    public string FormattedTime => Timestamp.ToLocalTime().ToString("t", CultureInfo.CurrentCulture);
 }
 
 // =============================================================================

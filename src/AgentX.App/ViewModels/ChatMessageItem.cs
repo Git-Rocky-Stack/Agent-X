@@ -1,6 +1,7 @@
 using System.Globalization;
 using AgentX.App.Helpers;
 using AgentX.Core.Search.Models;
+using AgentX.Core.Services.Localization;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace AgentX.App.ViewModels;
@@ -54,6 +55,12 @@ public class ChatMessageItem : ObservableObject
     public bool IsUser { get; set; }
     public bool IsAssistant { get; set; }
     public bool IsSystem { get; set; }
+
+    /// <summary>
+    /// Words the response stats in the user's language. The chat view model sets it on every
+    /// bubble it builds; a bubble without it words them in English.
+    /// </summary>
+    public ILocalizationService? Localization { get; init; }
 
     /// <summary>
     /// Token count of the response. Set when a streamed reply completes, after the bubble is
@@ -173,17 +180,42 @@ public class ChatMessageItem : ObservableObject
     /// <summary>The time of day the message was sent, in the user's short time format.</summary>
     public string FormattedTime => Timestamp.ToLocalTime().ToString("t", CultureInfo.CurrentCulture);
 
-    public string FormattedTokens => TokenCount > 0
-        ? $"{TokenCount} tokens"
-        : string.Empty;
+    /// <summary>The response's token count, for example "12 tokens".</summary>
+    public string FormattedTokens => TokenCount switch
+    {
+        <= 0 => string.Empty,
+        1 => Wording(
+            Localization?.GetString("Chat_MessageTokensOne", TokenCount), "Chat_MessageTokensOne", "1 token"),
+        _ => Wording(
+            Localization?.GetString("Chat_MessageTokensMany", TokenCount), "Chat_MessageTokensMany", $"{TokenCount} tokens"),
+    };
 
     public string FormattedGenerationTime => GenerationTimeMs > 0
         ? $"{GenerationTimeMs:F0}ms"
         : string.Empty;
 
-    public string FormattedTokenSpeed => TokenCount > 0 && GenerationTimeMs > 0
-        ? $"{TokenCount / (GenerationTimeMs / 1000.0):F1} tok/s"
-        : string.Empty;
+    /// <summary>How fast the response was generated, for example "24.5 tok/s".</summary>
+    public string FormattedTokenSpeed
+    {
+        get
+        {
+            if (TokenCount <= 0 || GenerationTimeMs <= 0)
+            {
+                return string.Empty;
+            }
+
+            var speed = (TokenCount / (GenerationTimeMs / 1000.0)).ToString("F1", CultureInfo.CurrentCulture);
+            return Wording(
+                Localization?.GetString("Chat_MessageTokenSpeed", speed), "Chat_MessageTokenSpeed", $"{speed} tok/s");
+        }
+    }
+
+    /// <summary>
+    /// The resource read for <paramref name="key"/>, or <paramref name="english"/> without a
+    /// localization service or when the resource is missing, which the service answers with the key.
+    /// </summary>
+    private static string Wording(string? localized, string key, string english) =>
+        string.IsNullOrEmpty(localized) || localized == key ? english : localized;
 
     /// <summary>Whether this message is a point where one or more branches diverge.</summary>
     private bool _isBranchPoint;

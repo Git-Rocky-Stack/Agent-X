@@ -1250,6 +1250,9 @@
   <data name="Settings_EncryptionReopenFailed" xml:space="preserve"><value>暗号化は適用されましたが、データベースを再度開けませんでした: {0} Agent-X を再起動してください。</value></data>
   <data name="Settings_EncryptionFailed" xml:space="preserve"><value>暗号化に失敗しました: {0} データベースは暗号化されていないままです。</value></data>
   <data name="Settings_EncryptionOff" xml:space="preserve"><value>暗号化は有効になっていません。</value></data>
+  <data name="Chat_MessageTokensOne" xml:space="preserve"><value>{0} トークン</value></data>
+  <data name="Chat_MessageTokensMany" xml:space="preserve"><value>{0} トークン</value></data>
+  <data name="Chat_MessageTokenSpeed" xml:space="preserve"><value>{0} トークン/秒</value></data>
   <data name="Chat_ShortcutNewConversation" xml:space="preserve"><value>新しい会話</value></data>
   <data name="Chat_ShortcutToggleConversationPane" xml:space="preserve"><value>会話ペインの表示/非表示を切り替え</value></data>
   <data name="Chat_ShortcutCategory" xml:space="preserve"><value>チャット</value></data>

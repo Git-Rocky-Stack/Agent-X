@@ -1589,6 +1589,9 @@
   <data name="Settings_EncryptionReopenFailed" xml:space="preserve"><value>Encryption was applied, but the database could not be reopened: {0} Restart Agent-X.</value></data>
   <data name="Settings_EncryptionFailed" xml:space="preserve"><value>Encryption failed: {0} Your database was left unencrypted.</value></data>
   <data name="Settings_EncryptionOff" xml:space="preserve"><value>Encryption is not enabled.</value></data>
+  <data name="Chat_MessageTokensOne" xml:space="preserve"><value>{0} token</value></data>
+  <data name="Chat_MessageTokensMany" xml:space="preserve"><value>{0} tokens</value></data>
+  <data name="Chat_MessageTokenSpeed" xml:space="preserve"><value>{0} tok/s</value></data>
   <data name="Chat_ShortcutNewConversation" xml:space="preserve"><value>New conversation</value></data>
   <data name="Chat_ShortcutToggleConversationPane" xml:space="preserve"><value>Toggle conversation pane</value></data>
   <data name="Chat_ShortcutCategory" xml:space="preserve"><value>Chat</value></data>

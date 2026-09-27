@@ -1250,6 +1250,9 @@
   <data name="Settings_EncryptionReopenFailed" xml:space="preserve"><value>Le chiffrement a été appliqué, mais la base de données n'a pas pu être rouverte : {0} Redémarrez Agent-X.</value></data>
   <data name="Settings_EncryptionFailed" xml:space="preserve"><value>Échec du chiffrement : {0} Votre base de données n'a pas été chiffrée.</value></data>
   <data name="Settings_EncryptionOff" xml:space="preserve"><value>Le chiffrement n'est pas activé.</value></data>
+  <data name="Chat_MessageTokensOne" xml:space="preserve"><value>{0} token</value></data>
+  <data name="Chat_MessageTokensMany" xml:space="preserve"><value>{0} tokens</value></data>
+  <data name="Chat_MessageTokenSpeed" xml:space="preserve"><value>{0} tok/s</value></data>
   <data name="Chat_ShortcutNewConversation" xml:space="preserve"><value>Nouvelle conversation</value></data>
   <data name="Chat_ShortcutToggleConversationPane" xml:space="preserve"><value>Afficher ou masquer le volet des conversations</value></data>
   <data name="Chat_ShortcutCategory" xml:space="preserve"><value>Chat</value></data>
