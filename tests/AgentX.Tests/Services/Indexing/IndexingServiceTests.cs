@@ -202,6 +202,35 @@ public sealed class IndexingServiceTests : IDisposable
         await StopAsync(service);
     }
 
+    [Fact]
+    public async Task DocumentExtractedByTheIndexer_GetsItsWordCountRefreshed_ButKeepsItsTitle()
+    {
+        // Audio queued again once the speech model is installed (and anything recovered at
+        // startup) is extracted by the indexer itself. Its counts used to keep describing the
+        // previous extraction, so a transcribed recording still showed 0 words.
+        var id = SeedDocument("talk.txt", WriteFile("talk.txt", "four words right here"), status: "pending");
+        using (var db = NewContext())
+        {
+            var seeded = await db.Documents.SingleAsync(d => d.Id == id);
+            seeded.WordCount = 0;
+            seeded.ExtractedTitle = "Title recorded at import";
+            await db.SaveChangesAsync();
+        }
+
+        var service = NewService();
+        var indexed = WhenIndexed(service);
+        await service.InitializeAsync();
+
+        (await indexed.WaitAsync(WaitLimit)).Should().Be(id);
+        await StopAsync(service);
+
+        using var check = NewContext();
+        var document = await check.Documents.SingleAsync(d => d.Id == id);
+        document.WordCount.Should().Be(4);
+        document.PageCount.Should().Be(1);
+        document.ExtractedTitle.Should().Be("Title recorded at import");
+    }
+
     // Recovery and queue state
 
     [Fact]

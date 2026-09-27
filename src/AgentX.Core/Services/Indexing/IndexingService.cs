@@ -634,7 +634,26 @@ public sealed class IndexingService : IIndexingService
 
             stopwatch.Stop();
 
-            // 10. Update document with indexing results
+            // 10. Update document with indexing results. When this pass extracted the text
+            //     itself (startup recovery, audio queued again once the speech model is
+            //     installed), the counts still describe the previous extraction, so a
+            //     transcribed recording kept showing 0 words. Only the text-derived fields
+            //     are refreshed: the title and metadata can hold what an import recorded
+            //     (a web page's title and source URL) and stay as they are.
+            if (handedOver is null)
+            {
+                document.WordCount = processed.WordCount;
+                if (processed.PageCount > 0)
+                {
+                    document.PageCount = processed.PageCount;
+                }
+
+                if (!string.IsNullOrWhiteSpace(processed.Language))
+                {
+                    document.Language = processed.Language;
+                }
+            }
+
             document.ChunkCount = chunkEntities.Count;
             document.IndexingStatus = "completed";
             document.IndexingError = null;
