@@ -304,37 +304,8 @@ public class ChatService : IChatService
         // 5. Build chat options from settings
         var options = await BuildChatOptionsAsync();
 
-        // 5b. Apply model routing if enabled and available
-        if (_modelRouterService is not null)
-        {
-            try
-            {
-                var routingSettings = await _settingsService.GetSettingsAsync();
-                if (routingSettings.EnableModelRouting)
-                {
-                    var routingDecision = await _modelRouterService.RouteAsync(currentQuery, ct);
-
-                    _log.Information(
-                        "Auto-routing applied: Provider={ProviderId}, Model={ModelId}, Task={TaskType}, Reason={Reason}",
-                        routingDecision.ProviderId, routingDecision.ModelId,
-                        routingDecision.TaskType.Name, routingDecision.Reason);
-
-                    // Switch to the routed provider if different from current
-                    var switched = await _aiService.SwitchProviderAsync(routingDecision.ProviderId, ct);
-                    if (switched)
-                    {
-                        await _aiService.SetActiveModelAsync(routingDecision.ModelId, ct);
-                    }
-
-                    // Notify listeners (UI indicators, telemetry, etc.)
-                    RoutingDecisionMade?.Invoke(this, routingDecision);
-                }
-            }
-            catch (Exception ex)
-            {
-                _log.Warning(ex, "Model routing failed, proceeding with current provider");
-            }
-        }
+        // 5b. Model routing picks the provider and model for this reply only
+        var routedTarget = await RouteReplyAsync(currentQuery, ct);
 
         // 6. Assemble context with semantic selection and graceful fallback
         var memoryContext = await LoadMemoryContextAsync(conversationId, currentQuery, ct);
@@ -374,8 +345,11 @@ public class ChatService : IChatService
         var responseBuilder = new StringBuilder();
         var tokenCount = 0;
 
-        await foreach (var token in _aiService.StreamChatAsync(
-            chatMessages, systemPrompt, options, ct))
+        var stream = routedTarget is null
+            ? _aiService.StreamChatAsync(chatMessages, systemPrompt, options, ct)
+            : StreamFromRoutedProviderAsync(routedTarget, chatMessages, systemPrompt, options, ct);
+
+        await foreach (var token in stream)
         {
             responseBuilder.Append(token);
             tokenCount++;
@@ -428,6 +402,93 @@ public class ChatService : IChatService
                 conversationId);
         }
     }
+
+    /// <summary>
+    /// Asks the model router for this reply's provider and model when routing is on. The
+    /// decision applies to this reply only: the app-wide provider, the active model and the
+    /// saved settings stay as the operator set them. (It used to switch the app-wide provider
+    /// and save the routed model, so every routed message silently changed what Settings showed
+    /// as active.) Returns null to answer with the active provider: routing is off, or the
+    /// routed provider is not registered or not reachable.
+    /// </summary>
+    private async Task<RoutedTarget?> RouteReplyAsync(string currentQuery, CancellationToken ct)
+    {
+        if (_modelRouterService is null)
+        {
+            return null;
+        }
+
+        try
+        {
+            var routingSettings = await _settingsService.GetSettingsAsync();
+            if (!routingSettings.EnableModelRouting)
+            {
+                return null;
+            }
+
+            var routingDecision = await _modelRouterService.RouteAsync(currentQuery, ct);
+
+            _log.Information(
+                "Routing this reply: Provider={ProviderId}, Model={ModelId}, Task={TaskType}, Reason={Reason}",
+                routingDecision.ProviderId, routingDecision.ModelId,
+                routingDecision.TaskType.Name, routingDecision.Reason);
+
+            // Notify listeners (UI indicators, telemetry, etc.)
+            RoutingDecisionMade?.Invoke(this, routingDecision);
+
+            var provider = _aiService.GetProvider(routingDecision.ProviderId);
+            if (provider is null || string.IsNullOrWhiteSpace(routingDecision.ModelId))
+            {
+                _log.Warning(
+                    "Routed provider {ProviderId} is not registered; answering with the active provider",
+                    routingDecision.ProviderId);
+                return null;
+            }
+
+            if (!await _aiService.IsProviderAvailableAsync(routingDecision.ProviderId, ct))
+            {
+                _log.Warning(
+                    "Routed provider {ProviderId} is not reachable; answering with the active provider",
+                    routingDecision.ProviderId);
+                return null;
+            }
+
+            return new RoutedTarget(provider, routingDecision.ModelId.Trim());
+        }
+        catch (Exception ex) when (!ct.IsCancellationRequested)
+        {
+            _log.Warning(ex, "Model routing failed, answering with the active provider");
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Streams the reply from the routed provider with the routed model, the way
+    /// <see cref="IAiService.StreamChatAsync"/> would for the active one: the system prompt goes
+    /// first, and the caller's options are copied rather than changed.
+    /// </summary>
+    private static IAsyncEnumerable<string> StreamFromRoutedProviderAsync(
+        RoutedTarget target,
+        IReadOnlyList<ChatMessage> chatMessages,
+        string? systemPrompt,
+        ChatOptions? options,
+        CancellationToken ct)
+    {
+        var messages = new List<ChatMessage>(chatMessages.Count + 1);
+        if (!string.IsNullOrEmpty(systemPrompt))
+        {
+            messages.Add(ChatMessage.System(systemPrompt));
+        }
+
+        messages.AddRange(chatMessages);
+
+        var routedOptions = options?.ShallowCopy() ?? new ChatOptions();
+        routedOptions.ModelId = target.ModelId;
+        return target.Provider.StreamChatAsync(messages, routedOptions, ct);
+    }
+
+    /// <summary>The provider and model a routed reply is answered with.</summary>
+    private sealed record RoutedTarget(IAiProvider Provider, string ModelId);
 
     /// <summary>
     /// Removes the answer a regeneration replaced. The new answer is already saved, so a
