@@ -412,6 +412,7 @@
                                     <TextBlock x:Uid="QuickAct_TargetLanguage" Text="Target Language" Style="{StaticResource LabelStyle}" />
                                     <ComboBox ItemsSource="{x:Bind ViewModel.AvailableLanguages, Mode=OneWay}"
                                               SelectedItem="{x:Bind ViewModel.SelectedLanguage, Mode=TwoWay}"
+                                              DisplayMemberPath="DisplayName"
                                               HorizontalAlignment="Stretch"
                                               CornerRadius="{StaticResource RControl}" />
                                 </StackPanel>
