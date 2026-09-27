@@ -1311,6 +1311,57 @@
   <data name="Ops_DrillInSyncEntry" xml:space="preserve"><value>已从 Operations 打开同步历史记录条目“{0}”</value></data>
   <data name="Ops_DrillInConnector" xml:space="preserve"><value>已从 Operations 打开连接器“{0}”</value></data>
   <data name="Ops_DrillInRecommendation" xml:space="preserve"><value>已打开 Operations 推荐“{0}”</value></data>
+  <data name="Chat_StorySummaryOnly" xml:space="preserve"><value>尚未捕获新组装的回复上下文，因此仅显示摘要。</value></data>
+  <data name="Chat_StoryLimited" xml:space="preserve"><value>此回复使用了可见性受限的路径，因此只能查看部分聊天上下文详情。</value></data>
+  <data name="Chat_StoryLegacy" xml:space="preserve"><value>此回复使用了旧版上下文路径，因此只能部分查看组装的上下文脉络。</value></data>
+  <data name="Chat_StoryLeadLexical" xml:space="preserve"><value>Agent-X 通过词法回退选择了对话上下文</value></data>
+  <data name="Chat_StoryLeadStaleOne" xml:space="preserve"><value>正在使用已过时的持久摘要（还有 1 条较新的消息未纳入）</value></data>
+  <data name="Chat_StoryLeadStaleMany" xml:space="preserve"><value>正在使用已过时的持久摘要（还有 {0} 条较新的消息未纳入）</value></data>
+  <data name="Chat_StoryLeadStale" xml:space="preserve"><value>正在使用已过时的持久摘要（较新的对话更改正等待纳入）</value></data>
+  <data name="Chat_StoryLeadCurrent" xml:space="preserve"><value>正在使用最新的持久摘要</value></data>
+  <data name="Chat_StoryLeadLive" xml:space="preserve"><value>正在使用实时对话上下文（没有持久摘要快照）</value></data>
+  <data name="Chat_StoryRecallOne" xml:space="preserve"><value>来自其他对话的 1 条回忆消息</value></data>
+  <data name="Chat_StoryRecallMany" xml:space="preserve"><value>来自其他对话的 {0} 条回忆消息</value></data>
+  <data name="Chat_StoryOverflow" xml:space="preserve"><value>压缩的溢出上下文</value></data>
+  <data name="Chat_StorySentence" xml:space="preserve"><value>{0}。</value></data>
+  <data name="Chat_StorySentenceOne" xml:space="preserve"><value>{0}，并加入了{1}。</value></data>
+  <data name="Chat_StorySentenceTwo" xml:space="preserve"><value>{0}，并加入了{1}和{2}。</value></data>
+  <data name="Chat_ChipLimitedVisibility" xml:space="preserve"><value>可见性受限</value></data>
+  <data name="Chat_ChipSummaryOnly" xml:space="preserve"><value>仅摘要</value></data>
+  <data name="Chat_ChipLegacyFallback" xml:space="preserve"><value>旧版回退</value></data>
+  <data name="Chat_ChipLexicalFallback" xml:space="preserve"><value>词法回退</value></data>
+  <data name="Chat_ChipStaleSummary" xml:space="preserve"><value>摘要已过时</value></data>
+  <data name="Chat_ChipCurrentSummary" xml:space="preserve"><value>摘要为最新</value></data>
+  <data name="Chat_ChipRecallMatchOne" xml:space="preserve"><value>1 条回忆匹配</value></data>
+  <data name="Chat_ChipRecallMatchesMany" xml:space="preserve"><value>{0} 条回忆匹配</value></data>
+  <data name="Chat_ChipCompressedOverflow" xml:space="preserve"><value>已压缩溢出</value></data>
+  <data name="Chat_ExplainAssemblyLimited" xml:space="preserve"><value>Agent-X 在未使用完整上下文组装流程的情况下生成了回复。</value></data>
+  <data name="Chat_ExplainCompressionLimited" xml:space="preserve"><value>此回复路径不提供压缩详情。</value></data>
+  <data name="Chat_ExplainRecallLimited" xml:space="preserve"><value>此回复路径不提供持久回忆详情。</value></data>
+  <data name="Chat_ExplainAssemblySummaryOnly" xml:space="preserve"><value>持久摘要已刷新，但未捕获新的回复上下文。</value></data>
+  <data name="Chat_ExplainCompressionSummaryOnly" xml:space="preserve"><value>在聊天中组装回复之前，无法查看压缩详情。</value></data>
+  <data name="Chat_ExplainRecallSummaryOnly" xml:space="preserve"><value>在聊天中组装回复之前，无法查看持久回忆详情。</value></data>
+  <data name="Chat_ExplainAssemblyLegacy" xml:space="preserve"><value>Agent-X 为此回复使用了旧版上下文适配路径。</value></data>
+  <data name="Chat_ExplainAssemblyLexical" xml:space="preserve"><value>Agent-X 在为此回复选择消息上下文时使用了词法回退。</value></data>
+  <data name="Chat_ExplainAssemblyBounded" xml:space="preserve"><value>Agent-X 选择了对话中有限的一部分，并根据剩余预算评估了溢出上下文。</value></data>
+  <data name="Chat_ExplainAssemblyFit" xml:space="preserve"><value>Agent-X 无需裁剪或回退即可容纳当前对话。</value></data>
+  <data name="Chat_ExplainCompressionAdded" xml:space="preserve"><value>Agent-X 添加了压缩的溢出摘要，以便在可用预算内保留较早的上下文。</value></data>
+  <data name="Chat_ExplainCompressionHistoryFit" xml:space="preserve"><value>当前历史记录未超出可用预算，因此无需溢出摘要。</value></data>
+  <data name="Chat_ExplainCompressionError" xml:space="preserve"><value>由于压缩失败，已跳过溢出压缩。</value></data>
+  <data name="Chat_ExplainCompressionExceeded" xml:space="preserve"><value>已生成溢出压缩，但超出了剩余的 Token 预算。</value></data>
+  <data name="Chat_ExplainCompressionNone" xml:space="preserve"><value>此回复未添加溢出摘要。</value></data>
+  <data name="Chat_ExplainCompressionSkipped" xml:space="preserve"><value>未添加溢出摘要（{0}）。</value></data>
+  <data name="Chat_ExplainRecallAddedOne" xml:space="preserve"><value>Agent-X 添加了来自其他对话的 1 条回忆消息作为辅助上下文。</value></data>
+  <data name="Chat_ExplainRecallAddedMany" xml:space="preserve"><value>Agent-X 添加了来自其他对话的 {0} 条回忆消息作为辅助上下文。</value></data>
+  <data name="Chat_ExplainRecallNoMatches" xml:space="preserve"><value>持久回忆未在其他对话中找到与此回复相关的匹配项。</value></data>
+  <data name="Chat_ExplainRecallDuplicate" xml:space="preserve"><value>持久回忆找到了匹配项，但它们与已选择的上下文重复。</value></data>
+  <data name="Chat_ExplainRecallInsufficientBudget" xml:space="preserve"><value>选择核心上下文后剩余的 Token 预算太少，因此跳过了持久回忆。</value></data>
+  <data name="Chat_ExplainRecallBudgetExceeded" xml:space="preserve"><value>持久回忆找到了有用的匹配项，但添加它们会超出剩余的 Token 预算。</value></data>
+  <data name="Chat_ExplainRecallLegacy" xml:space="preserve"><value>由于使用了旧版上下文回退路径，无法查看持久回忆详情。</value></data>
+  <data name="Chat_ExplainRecallUnavailable" xml:space="preserve"><value>此回复无法使用持久回忆。</value></data>
+  <data name="Chat_ExplainRecallNoConversation" xml:space="preserve"><value>由于此回复未关联到已保存的对话，无法使用持久回忆。</value></data>
+  <data name="Chat_ExplainRecallNone" xml:space="preserve"><value>此回复未添加持久回忆。</value></data>
+  <data name="Chat_ExplainRecallSkipped" xml:space="preserve"><value>未添加持久回忆（{0}）。</value></data>
   <data name="Chat_PrivacyLocal" xml:space="preserve"><value>{0} 在这台电脑上运行，因此您的消息会保留在此设备上。</value></data>
   <data name="Chat_PrivacyLocalUnnamed" xml:space="preserve"><value>AI 模型在这台电脑上运行，因此您的消息会保留在此设备上。</value></data>
   <data name="Chat_PrivacyCloud" xml:space="preserve"><value>您的消息会发送到 {0} 进行处理。</value></data>

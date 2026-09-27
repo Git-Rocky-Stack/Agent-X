@@ -1311,6 +1311,57 @@
   <data name="Ops_DrillInSyncEntry" xml:space="preserve"><value>Entrée de l'historique de synchronisation « {0} » ouverte depuis Operations</value></data>
   <data name="Ops_DrillInConnector" xml:space="preserve"><value>Connecteur « {0} » ouvert depuis Operations</value></data>
   <data name="Ops_DrillInRecommendation" xml:space="preserve"><value>Recommandation Operations « {0} » ouverte</value></data>
+  <data name="Chat_StorySummaryOnly" xml:space="preserve"><value>Seul le résumé est affiché, car aucun contexte de réponse nouvellement assemblé n'a encore été capturé.</value></data>
+  <data name="Chat_StoryLimited" xml:space="preserve"><value>Cette réponse a utilisé un mode à visibilité limitée ; seuls certains détails du contexte de la conversation sont disponibles.</value></data>
+  <data name="Chat_StoryLegacy" xml:space="preserve"><value>Cette réponse a utilisé le mode de contexte hérité ; le récit du contexte assemblé n'est que partiellement consultable.</value></data>
+  <data name="Chat_StoryLeadLexical" xml:space="preserve"><value>Contexte utilisé : le contexte du fil sélectionné avec le repli lexical</value></data>
+  <data name="Chat_StoryLeadStaleOne" xml:space="preserve"><value>Contexte utilisé : un résumé durable obsolète (1 message plus récent pas encore intégré)</value></data>
+  <data name="Chat_StoryLeadStaleMany" xml:space="preserve"><value>Contexte utilisé : un résumé durable obsolète ({0} messages plus récents pas encore intégrés)</value></data>
+  <data name="Chat_StoryLeadStale" xml:space="preserve"><value>Contexte utilisé : un résumé durable obsolète (les modifications récentes du fil attendent d'être intégrées)</value></data>
+  <data name="Chat_StoryLeadCurrent" xml:space="preserve"><value>Contexte utilisé : un résumé durable à jour</value></data>
+  <data name="Chat_StoryLeadLive" xml:space="preserve"><value>Contexte utilisé : le contexte du fil en direct (sans instantané du résumé durable)</value></data>
+  <data name="Chat_StoryRecallOne" xml:space="preserve"><value>1 message rappelé d'une autre conversation</value></data>
+  <data name="Chat_StoryRecallMany" xml:space="preserve"><value>{0} messages rappelés d'autres conversations</value></data>
+  <data name="Chat_StoryOverflow" xml:space="preserve"><value>un contexte de débordement compressé</value></data>
+  <data name="Chat_StorySentence" xml:space="preserve"><value>{0}.</value></data>
+  <data name="Chat_StorySentenceOne" xml:space="preserve"><value>{0} et {1}.</value></data>
+  <data name="Chat_StorySentenceTwo" xml:space="preserve"><value>{0}, {1} et {2}.</value></data>
+  <data name="Chat_ChipLimitedVisibility" xml:space="preserve"><value>Visibilité limitée</value></data>
+  <data name="Chat_ChipSummaryOnly" xml:space="preserve"><value>Résumé seul</value></data>
+  <data name="Chat_ChipLegacyFallback" xml:space="preserve"><value>Repli hérité</value></data>
+  <data name="Chat_ChipLexicalFallback" xml:space="preserve"><value>Repli lexical</value></data>
+  <data name="Chat_ChipStaleSummary" xml:space="preserve"><value>Résumé obsolète</value></data>
+  <data name="Chat_ChipCurrentSummary" xml:space="preserve"><value>Résumé à jour</value></data>
+  <data name="Chat_ChipRecallMatchOne" xml:space="preserve"><value>1 correspondance de rappel</value></data>
+  <data name="Chat_ChipRecallMatchesMany" xml:space="preserve"><value>{0} correspondances de rappel</value></data>
+  <data name="Chat_ChipCompressedOverflow" xml:space="preserve"><value>Débordement compressé</value></data>
+  <data name="Chat_ExplainAssemblyLimited" xml:space="preserve"><value>Agent-X a généré une réponse sans le pipeline complet d'assemblage du contexte.</value></data>
+  <data name="Chat_ExplainCompressionLimited" xml:space="preserve"><value>Les détails de compression ne sont pas disponibles pour ce mode de réponse.</value></data>
+  <data name="Chat_ExplainRecallLimited" xml:space="preserve"><value>Les détails du rappel durable ne sont pas disponibles pour ce mode de réponse.</value></data>
+  <data name="Chat_ExplainAssemblySummaryOnly" xml:space="preserve"><value>Un résumé durable a été actualisé sans contexte de réponse nouvellement capturé.</value></data>
+  <data name="Chat_ExplainCompressionSummaryOnly" xml:space="preserve"><value>Les détails de compression seront disponibles une fois qu'une réponse aura été assemblée dans le chat.</value></data>
+  <data name="Chat_ExplainRecallSummaryOnly" xml:space="preserve"><value>Les détails du rappel durable seront disponibles une fois qu'une réponse aura été assemblée dans le chat.</value></data>
+  <data name="Chat_ExplainAssemblyLegacy" xml:space="preserve"><value>Agent-X a utilisé le mode hérité d'ajustement du contexte pour cette réponse.</value></data>
+  <data name="Chat_ExplainAssemblyLexical" xml:space="preserve"><value>Agent-X a utilisé le repli lexical pour sélectionner le contexte des messages de cette réponse.</value></data>
+  <data name="Chat_ExplainAssemblyBounded" xml:space="preserve"><value>Agent-X a sélectionné un sous-ensemble limité du fil et évalué le contexte de débordement par rapport au budget restant.</value></data>
+  <data name="Chat_ExplainAssemblyFit" xml:space="preserve"><value>Agent-X a pu intégrer le fil actif sans rien couper ni recourir à un repli.</value></data>
+  <data name="Chat_ExplainCompressionAdded" xml:space="preserve"><value>Agent-X a ajouté un résumé de débordement compressé pour conserver le contexte plus ancien dans le budget disponible.</value></data>
+  <data name="Chat_ExplainCompressionHistoryFit" xml:space="preserve"><value>L'historique actif tenait dans le budget disponible ; aucun résumé de débordement n'a donc été nécessaire.</value></data>
+  <data name="Chat_ExplainCompressionError" xml:space="preserve"><value>La compression du débordement a été ignorée, car la compression a échoué.</value></data>
+  <data name="Chat_ExplainCompressionExceeded" xml:space="preserve"><value>La compression du débordement a été générée, mais elle dépassait le budget de tokens restant.</value></data>
+  <data name="Chat_ExplainCompressionNone" xml:space="preserve"><value>Aucun résumé de débordement n'a été ajouté pour cette réponse.</value></data>
+  <data name="Chat_ExplainCompressionSkipped" xml:space="preserve"><value>Aucun résumé de débordement n'a été ajouté ({0}).</value></data>
+  <data name="Chat_ExplainRecallAddedOne" xml:space="preserve"><value>Agent-X a ajouté 1 message rappelé d'une autre conversation comme contexte d'appui.</value></data>
+  <data name="Chat_ExplainRecallAddedMany" xml:space="preserve"><value>Agent-X a ajouté {0} messages rappelés d'autres conversations comme contexte d'appui.</value></data>
+  <data name="Chat_ExplainRecallNoMatches" xml:space="preserve"><value>Le rappel durable n'a trouvé aucune correspondance pertinente dans d'autres conversations pour cette réponse.</value></data>
+  <data name="Chat_ExplainRecallDuplicate" xml:space="preserve"><value>Le rappel durable a trouvé des correspondances, mais elles faisaient doublon avec le contexte déjà sélectionné.</value></data>
+  <data name="Chat_ExplainRecallInsufficientBudget" xml:space="preserve"><value>Le rappel durable a été ignoré, car il restait trop peu de budget de tokens après la sélection du contexte principal.</value></data>
+  <data name="Chat_ExplainRecallBudgetExceeded" xml:space="preserve"><value>Le rappel durable a trouvé des correspondances utiles, mais les ajouter aurait dépassé le budget de tokens restant.</value></data>
+  <data name="Chat_ExplainRecallLegacy" xml:space="preserve"><value>Les détails du rappel durable ne sont pas disponibles, car le mode de repli hérité du contexte a été utilisé.</value></data>
+  <data name="Chat_ExplainRecallUnavailable" xml:space="preserve"><value>Le rappel durable n'était pas disponible pour cette réponse.</value></data>
+  <data name="Chat_ExplainRecallNoConversation" xml:space="preserve"><value>Le rappel durable n'était pas disponible, car la réponse n'était pas liée à une conversation enregistrée.</value></data>
+  <data name="Chat_ExplainRecallNone" xml:space="preserve"><value>Aucun rappel durable n'a été ajouté pour cette réponse.</value></data>
+  <data name="Chat_ExplainRecallSkipped" xml:space="preserve"><value>Aucun rappel durable n'a été ajouté ({0}).</value></data>
   <data name="Chat_PrivacyLocal" xml:space="preserve"><value>{0} s'exécute sur cet ordinateur, vos messages restent donc sur cet appareil.</value></data>
   <data name="Chat_PrivacyLocalUnnamed" xml:space="preserve"><value>Le modèle d'IA s'exécute sur cet ordinateur, vos messages restent donc sur cet appareil.</value></data>
   <data name="Chat_PrivacyCloud" xml:space="preserve"><value>Vos messages sont envoyés à {0} pour être traités.</value></data>

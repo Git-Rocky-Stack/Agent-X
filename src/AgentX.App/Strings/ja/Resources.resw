@@ -1311,6 +1311,57 @@
   <data name="Ops_DrillInSyncEntry" xml:space="preserve"><value>Operations から同期履歴のエントリ「{0}」を開きました</value></data>
   <data name="Ops_DrillInConnector" xml:space="preserve"><value>Operations からコネクタ「{0}」を開きました</value></data>
   <data name="Ops_DrillInRecommendation" xml:space="preserve"><value>Operations のおすすめ「{0}」を開きました</value></data>
+  <data name="Chat_StorySummaryOnly" xml:space="preserve"><value>新しく組み立てた応答のコンテキストがまだ記録されていないため、要約のみを表示しています。</value></data>
+  <data name="Chat_StoryLimited" xml:space="preserve"><value>この応答は表示が制限された経路を使用したため、チャットのコンテキストの詳細は一部しか確認できません。</value></data>
+  <data name="Chat_StoryLegacy" xml:space="preserve"><value>この応答は従来方式のコンテキスト経路を使用したため、組み立てたコンテキスト ストーリーは一部しか確認できません。</value></data>
+  <data name="Chat_StoryLeadLexical" xml:space="preserve"><value>Agent-X は語彙ベースのフォールバックでスレッドのコンテキストを選択しました</value></data>
+  <data name="Chat_StoryLeadStaleOne" xml:space="preserve"><value>古い永続的な要約を使用しています (新しいメッセージ 1 件が未反映)</value></data>
+  <data name="Chat_StoryLeadStaleMany" xml:space="preserve"><value>古い永続的な要約を使用しています (新しいメッセージ {0} 件が未反映)</value></data>
+  <data name="Chat_StoryLeadStale" xml:space="preserve"><value>古い永続的な要約を使用しています (スレッドの新しい変更は反映待ち)</value></data>
+  <data name="Chat_StoryLeadCurrent" xml:space="preserve"><value>最新の永続的な要約を使用しています</value></data>
+  <data name="Chat_StoryLeadLive" xml:space="preserve"><value>永続的な要約のスナップショットなしで、スレッドの現在のコンテキストを使用しています</value></data>
+  <data name="Chat_StoryRecallOne" xml:space="preserve"><value>別の会話からリコールしたメッセージ 1 件</value></data>
+  <data name="Chat_StoryRecallMany" xml:space="preserve"><value>他の会話からリコールしたメッセージ {0} 件</value></data>
+  <data name="Chat_StoryOverflow" xml:space="preserve"><value>圧縮したオーバーフローのコンテキスト</value></data>
+  <data name="Chat_StorySentence" xml:space="preserve"><value>{0}。</value></data>
+  <data name="Chat_StorySentenceOne" xml:space="preserve"><value>{0}。さらに、{1}も加えています。</value></data>
+  <data name="Chat_StorySentenceTwo" xml:space="preserve"><value>{0}。さらに、{1}と{2}も加えています。</value></data>
+  <data name="Chat_ChipLimitedVisibility" xml:space="preserve"><value>表示制限あり</value></data>
+  <data name="Chat_ChipSummaryOnly" xml:space="preserve"><value>要約のみ</value></data>
+  <data name="Chat_ChipLegacyFallback" xml:space="preserve"><value>従来方式へのフォールバック</value></data>
+  <data name="Chat_ChipLexicalFallback" xml:space="preserve"><value>語彙ベースのフォールバック</value></data>
+  <data name="Chat_ChipStaleSummary" xml:space="preserve"><value>古い要約</value></data>
+  <data name="Chat_ChipCurrentSummary" xml:space="preserve"><value>最新の要約</value></data>
+  <data name="Chat_ChipRecallMatchOne" xml:space="preserve"><value>リコール一致 1 件</value></data>
+  <data name="Chat_ChipRecallMatchesMany" xml:space="preserve"><value>リコール一致 {0} 件</value></data>
+  <data name="Chat_ChipCompressedOverflow" xml:space="preserve"><value>圧縮したオーバーフロー</value></data>
+  <data name="Chat_ExplainAssemblyLimited" xml:space="preserve"><value>Agent-X は、完全なコンテキスト組み立てパイプラインを使わずに応答を生成しました。</value></data>
+  <data name="Chat_ExplainCompressionLimited" xml:space="preserve"><value>この応答経路では圧縮の詳細を確認できません。</value></data>
+  <data name="Chat_ExplainRecallLimited" xml:space="preserve"><value>この応答経路では永続リコールの詳細を確認できません。</value></data>
+  <data name="Chat_ExplainAssemblySummaryOnly" xml:space="preserve"><value>新しく記録した応答のコンテキストなしで、永続的な要約が更新されました。</value></data>
+  <data name="Chat_ExplainCompressionSummaryOnly" xml:space="preserve"><value>チャットで応答が組み立てられるまで、圧縮の詳細は確認できません。</value></data>
+  <data name="Chat_ExplainRecallSummaryOnly" xml:space="preserve"><value>チャットで応答が組み立てられるまで、永続リコールの詳細は確認できません。</value></data>
+  <data name="Chat_ExplainAssemblyLegacy" xml:space="preserve"><value>Agent-X はこの応答に、従来方式のコンテキスト調整経路を使用しました。</value></data>
+  <data name="Chat_ExplainAssemblyLexical" xml:space="preserve"><value>Agent-X はこの応答のメッセージ コンテキストを選択する際に、語彙ベースのフォールバックを使用しました。</value></data>
+  <data name="Chat_ExplainAssemblyBounded" xml:space="preserve"><value>Agent-X はスレッドの一部に絞って選択し、残りの予算に照らしてオーバーフローのコンテキストを評価しました。</value></data>
+  <data name="Chat_ExplainAssemblyFit" xml:space="preserve"><value>Agent-X は、切り詰めやフォールバックなしで現在のスレッドを収めました。</value></data>
+  <data name="Chat_ExplainCompressionAdded" xml:space="preserve"><value>Agent-X は、使用可能な予算内で古いコンテキストを残すために、圧縮したオーバーフローの要約を追加しました。</value></data>
+  <data name="Chat_ExplainCompressionHistoryFit" xml:space="preserve"><value>現在の履歴が使用可能な予算内に収まったため、オーバーフローの要約は不要でした。</value></data>
+  <data name="Chat_ExplainCompressionError" xml:space="preserve"><value>圧縮に失敗したため、オーバーフローの圧縮はスキップされました。</value></data>
+  <data name="Chat_ExplainCompressionExceeded" xml:space="preserve"><value>オーバーフローの圧縮は生成されましたが、残りのトークン予算を超えていました。</value></data>
+  <data name="Chat_ExplainCompressionNone" xml:space="preserve"><value>この応答にはオーバーフローの要約は追加されませんでした。</value></data>
+  <data name="Chat_ExplainCompressionSkipped" xml:space="preserve"><value>オーバーフローの要約は追加されませんでした ({0})。</value></data>
+  <data name="Chat_ExplainRecallAddedOne" xml:space="preserve"><value>Agent-X は、別の会話からリコールしたメッセージ 1 件を補足コンテキストとして追加しました。</value></data>
+  <data name="Chat_ExplainRecallAddedMany" xml:space="preserve"><value>Agent-X は、他の会話からリコールしたメッセージ {0} 件を補足コンテキストとして追加しました。</value></data>
+  <data name="Chat_ExplainRecallNoMatches" xml:space="preserve"><value>永続リコールでは、この応答に関連する他の会話の一致は見つかりませんでした。</value></data>
+  <data name="Chat_ExplainRecallDuplicate" xml:space="preserve"><value>永続リコールで一致が見つかりましたが、既に選択済みのコンテキストと重複していました。</value></data>
+  <data name="Chat_ExplainRecallInsufficientBudget" xml:space="preserve"><value>主要なコンテキストの選択後に残ったトークン予算が少なすぎたため、永続リコールはスキップされました。</value></data>
+  <data name="Chat_ExplainRecallBudgetExceeded" xml:space="preserve"><value>永続リコールで有用な一致が見つかりましたが、追加すると残りのトークン予算を超えてしまうため追加しませんでした。</value></data>
+  <data name="Chat_ExplainRecallLegacy" xml:space="preserve"><value>従来方式のコンテキストへのフォールバック経路が使われたため、永続リコールの詳細は確認できません。</value></data>
+  <data name="Chat_ExplainRecallUnavailable" xml:space="preserve"><value>この応答では永続リコールを利用できませんでした。</value></data>
+  <data name="Chat_ExplainRecallNoConversation" xml:space="preserve"><value>応答が保存済みの会話に関連付けられていなかったため、永続リコールを利用できませんでした。</value></data>
+  <data name="Chat_ExplainRecallNone" xml:space="preserve"><value>この応答には永続リコールは追加されませんでした。</value></data>
+  <data name="Chat_ExplainRecallSkipped" xml:space="preserve"><value>永続リコールは追加されませんでした ({0})。</value></data>
   <data name="Chat_PrivacyLocal" xml:space="preserve"><value>{0} はこの PC 上で動作するため、メッセージはこのデバイスから出ません。</value></data>
   <data name="Chat_PrivacyLocalUnnamed" xml:space="preserve"><value>AI モデルはこの PC 上で動作するため、メッセージはこのデバイスから出ません。</value></data>
   <data name="Chat_PrivacyCloud" xml:space="preserve"><value>メッセージは処理のために {0} に送信されます。</value></data>

@@ -92,6 +92,15 @@ public sealed class PageTextsAreLocalizedTests
     [InlineData("Ops_DrillInSyncEntry")]
     [InlineData("Ops_DrillInConnector")]
     [InlineData("Ops_DrillInRecommendation")]
+    [InlineData("Chat_StoryLeadStaleMany")]
+    [InlineData("Chat_StoryRecallMany")]
+    [InlineData("Chat_StorySentence")]
+    [InlineData("Chat_StorySentenceOne")]
+    [InlineData("Chat_StorySentenceTwo")]
+    [InlineData("Chat_ChipRecallMatchesMany")]
+    [InlineData("Chat_ExplainCompressionSkipped")]
+    [InlineData("Chat_ExplainRecallAddedMany")]
+    [InlineData("Chat_ExplainRecallSkipped")]
     public void Templates_keep_every_placeholder_in_every_language(string key)
     {
         var english = Placeholders(ReswLocalization.For("en-US").GetString(key));

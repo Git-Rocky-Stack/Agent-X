@@ -7,6 +7,7 @@ using AgentX.Core.AI.Context;
 using AgentX.Core.AI.Models;
 using AgentX.Core.AI.Routing;
 using AgentX.Core.Constants;
+using AgentX.Core.Helpers;
 using AgentX.Core.Services.Chat.Models;
 using AgentX.Core.Services.Settings;
 using Serilog;
@@ -114,6 +115,7 @@ public class ChatService : IChatService
             }
             else
             {
+                var words = LocalizedWords.Current;
                 updatedSnapshot = new ChatContextInspectionSnapshot
                 {
                     ConversationId = conversationId,
@@ -122,9 +124,15 @@ public class ChatService : IChatService
                     Summary = summaryInspection,
                     HasLimitedVisibility = true,
                     LimitedVisibilityReason = "summary_only_refresh",
-                    AssemblyExplanation = "A durable summary was refreshed without a newly captured response context.",
-                    CompressionExplanation = "Compression details are unavailable until a response has been assembled in chat.",
-                    RecallExplanation = "Durable recall details are unavailable until a response has been assembled in chat."
+                    AssemblyExplanation = words.GetString(
+                        "Chat_ExplainAssemblySummaryOnly",
+                        "A durable summary was refreshed without a newly captured response context."),
+                    CompressionExplanation = words.GetString(
+                        "Chat_ExplainCompressionSummaryOnly",
+                        "Compression details are unavailable until a response has been assembled in chat."),
+                    RecallExplanation = words.GetString(
+                        "Chat_ExplainRecallSummaryOnly",
+                        "Durable recall details are unavailable until a response has been assembled in chat.")
                 };
             }
 
@@ -733,60 +741,115 @@ public class ChatService : IChatService
         _latestContextInspections[conversationId] = snapshot;
     }
 
-    private static string BuildAssemblyExplanation(ContextAssemblyDiagnostics diagnostics)
+    // The explanations are shown in the chat context inspector, so they are worded in the
+    // user's language (English until the app sets FormatHelper.LocalizedText). A skip reason
+    // this code does not know is shown as its code, with spaces for underscores.
+
+    internal static string BuildAssemblyExplanation(ContextAssemblyDiagnostics diagnostics)
     {
+        var words = LocalizedWords.Current;
+
         if (diagnostics.UsedLegacyFallback)
         {
-            return "Agent-X used the legacy context fitting path for this response.";
+            return words.GetString(
+                "Chat_ExplainAssemblyLegacy",
+                "Agent-X used the legacy context fitting path for this response.");
         }
 
         if (diagnostics.UsedLexicalFallback)
         {
-            return "Agent-X used lexical fallback while selecting message context for this response.";
+            return words.GetString(
+                "Chat_ExplainAssemblyLexical",
+                "Agent-X used lexical fallback while selecting message context for this response.");
         }
 
         return diagnostics.OverflowMessageCount > 0
-            ? "Agent-X selected a bounded subset of the thread and evaluated overflow context against the remaining budget."
-            : "Agent-X fit the active thread without needing to trim or fall back.";
+            ? words.GetString(
+                "Chat_ExplainAssemblyBounded",
+                "Agent-X selected a bounded subset of the thread and evaluated overflow context against the remaining budget.")
+            : words.GetString(
+                "Chat_ExplainAssemblyFit",
+                "Agent-X fit the active thread without needing to trim or fall back.");
     }
 
-    private static string BuildCompressionExplanation(ContextAssemblyDiagnostics diagnostics)
+    internal static string BuildCompressionExplanation(ContextAssemblyDiagnostics diagnostics)
     {
+        var words = LocalizedWords.Current;
+
         if (diagnostics.AddedOverflowSummary)
         {
-            return "Agent-X added a compressed overflow summary to preserve older context within the available budget.";
+            return words.GetString(
+                "Chat_ExplainCompressionAdded",
+                "Agent-X added a compressed overflow summary to preserve older context within the available budget.");
         }
 
         return diagnostics.CompressionSkipReason switch
         {
-            "history_fit_without_recall" => "The active history fit inside the available budget, so no overflow summary was needed.",
-            "compression_error" => "Overflow compression was skipped because compression failed.",
-            "summary_exceeded_unused_budget" => "Overflow compression was generated but exceeded the remaining token budget.",
-            null or "" => "No overflow summary was added for this response.",
-            _ => $"No overflow summary was added ({diagnostics.CompressionSkipReason.Replace('_', ' ')})."
+            "history_fit_without_recall" => words.GetString(
+                "Chat_ExplainCompressionHistoryFit",
+                "The active history fit inside the available budget, so no overflow summary was needed."),
+            "compression_error" => words.GetString(
+                "Chat_ExplainCompressionError",
+                "Overflow compression was skipped because compression failed."),
+            "summary_exceeded_unused_budget" => words.GetString(
+                "Chat_ExplainCompressionExceeded",
+                "Overflow compression was generated but exceeded the remaining token budget."),
+            null or "" => words.GetString(
+                "Chat_ExplainCompressionNone",
+                "No overflow summary was added for this response."),
+            _ => words.GetString(
+                "Chat_ExplainCompressionSkipped",
+                "No overflow summary was added ({0}).",
+                diagnostics.CompressionSkipReason.Replace('_', ' '))
         };
     }
 
-    private static string BuildRecallExplanation(ContextAssemblyDiagnostics diagnostics)
+    internal static string BuildRecallExplanation(ContextAssemblyDiagnostics diagnostics)
     {
+        var words = LocalizedWords.Current;
+
         if (diagnostics.AddedDurableRecall)
         {
             return diagnostics.RecalledMessageCount == 1
-                ? "Agent-X added 1 recalled message from another conversation as supporting context."
-                : $"Agent-X added {diagnostics.RecalledMessageCount} recalled messages from other conversations as supporting context.";
+                ? words.GetString(
+                    "Chat_ExplainRecallAddedOne",
+                    "Agent-X added 1 recalled message from another conversation as supporting context.")
+                : words.GetString(
+                    "Chat_ExplainRecallAddedMany",
+                    "Agent-X added {0} recalled messages from other conversations as supporting context.",
+                    diagnostics.RecalledMessageCount);
         }
 
         return diagnostics.DurableRecallSkipReason switch
         {
-            "no_recall_matches" => "Durable recall found no relevant cross-conversation matches for this response.",
-            "duplicate_to_selected_context" => "Durable recall found matches, but they duplicated the already selected context.",
-            "insufficient_recall_budget" => "Durable recall was skipped because too little token budget remained after core context selection.",
-            "recall_budget_exceeded" => "Durable recall found useful matches, but adding them would have exceeded the remaining token budget.",
-            "legacy_fallback" => "Durable recall details are unavailable because the legacy context fallback path was used.",
-            "recall_service_unavailable" => "Durable recall was unavailable for this response.",
-            "no_conversation_id" => "Durable recall was unavailable because the response was not tied to a persisted conversation.",
-            null or "" => "Durable recall was not added for this response.",
-            _ => $"Durable recall was not added ({diagnostics.DurableRecallSkipReason.Replace('_', ' ')})."
+            "no_recall_matches" => words.GetString(
+                "Chat_ExplainRecallNoMatches",
+                "Durable recall found no relevant cross-conversation matches for this response."),
+            "duplicate_to_selected_context" => words.GetString(
+                "Chat_ExplainRecallDuplicate",
+                "Durable recall found matches, but they duplicated the already selected context."),
+            "insufficient_recall_budget" => words.GetString(
+                "Chat_ExplainRecallInsufficientBudget",
+                "Durable recall was skipped because too little token budget remained after core context selection."),
+            "recall_budget_exceeded" => words.GetString(
+                "Chat_ExplainRecallBudgetExceeded",
+                "Durable recall found useful matches, but adding them would have exceeded the remaining token budget."),
+            "legacy_fallback" => words.GetString(
+                "Chat_ExplainRecallLegacy",
+                "Durable recall details are unavailable because the legacy context fallback path was used."),
+            "recall_service_unavailable" => words.GetString(
+                "Chat_ExplainRecallUnavailable",
+                "Durable recall was unavailable for this response."),
+            "no_conversation_id" => words.GetString(
+                "Chat_ExplainRecallNoConversation",
+                "Durable recall was unavailable because the response was not tied to a persisted conversation."),
+            null or "" => words.GetString(
+                "Chat_ExplainRecallNone",
+                "Durable recall was not added for this response."),
+            _ => words.GetString(
+                "Chat_ExplainRecallSkipped",
+                "Durable recall was not added ({0}).",
+                diagnostics.DurableRecallSkipReason.Replace('_', ' '))
         };
     }
 

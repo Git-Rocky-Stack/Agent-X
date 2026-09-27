@@ -1311,6 +1311,57 @@
   <data name="Ops_DrillInSyncEntry" xml:space="preserve"><value>Entrada del historial de sincronización "{0}" abierta desde Operations</value></data>
   <data name="Ops_DrillInConnector" xml:space="preserve"><value>Conector "{0}" abierto desde Operations</value></data>
   <data name="Ops_DrillInRecommendation" xml:space="preserve"><value>Recomendación de Operations "{0}" abierta</value></data>
+  <data name="Chat_StorySummaryOnly" xml:space="preserve"><value>Se muestra solo el resumen porque aún no se ha capturado ningún contexto de respuesta recién ensamblado.</value></data>
+  <data name="Chat_StoryLimited" xml:space="preserve"><value>Esta respuesta usó una vía de visibilidad limitada, por lo que solo hay detalles parciales del contexto del chat.</value></data>
+  <data name="Chat_StoryLegacy" xml:space="preserve"><value>Esta respuesta usó la vía de contexto heredada, por lo que la historia del contexto ensamblado solo puede revisarse en parte.</value></data>
+  <data name="Chat_StoryLeadLexical" xml:space="preserve"><value>Contexto usado: el contexto del hilo seleccionado con la alternativa léxica</value></data>
+  <data name="Chat_StoryLeadStaleOne" xml:space="preserve"><value>Contexto usado: un resumen duradero desactualizado (1 mensaje más reciente aún sin incorporar)</value></data>
+  <data name="Chat_StoryLeadStaleMany" xml:space="preserve"><value>Contexto usado: un resumen duradero desactualizado ({0} mensajes más recientes aún sin incorporar)</value></data>
+  <data name="Chat_StoryLeadStale" xml:space="preserve"><value>Contexto usado: un resumen duradero desactualizado (los cambios recientes del hilo aún esperan incorporarse)</value></data>
+  <data name="Chat_StoryLeadCurrent" xml:space="preserve"><value>Contexto usado: un resumen duradero actualizado</value></data>
+  <data name="Chat_StoryLeadLive" xml:space="preserve"><value>Contexto usado: el contexto del hilo en vivo (sin instantánea del resumen duradero)</value></data>
+  <data name="Chat_StoryRecallOne" xml:space="preserve"><value>1 mensaje recordado de otra conversación</value></data>
+  <data name="Chat_StoryRecallMany" xml:space="preserve"><value>{0} mensajes recordados de otras conversaciones</value></data>
+  <data name="Chat_StoryOverflow" xml:space="preserve"><value>contexto de desbordamiento comprimido</value></data>
+  <data name="Chat_StorySentence" xml:space="preserve"><value>{0}.</value></data>
+  <data name="Chat_StorySentenceOne" xml:space="preserve"><value>{0} y {1}.</value></data>
+  <data name="Chat_StorySentenceTwo" xml:space="preserve"><value>{0}, {1} y {2}.</value></data>
+  <data name="Chat_ChipLimitedVisibility" xml:space="preserve"><value>Visibilidad limitada</value></data>
+  <data name="Chat_ChipSummaryOnly" xml:space="preserve"><value>Solo resumen</value></data>
+  <data name="Chat_ChipLegacyFallback" xml:space="preserve"><value>Alternativa heredada</value></data>
+  <data name="Chat_ChipLexicalFallback" xml:space="preserve"><value>Alternativa léxica</value></data>
+  <data name="Chat_ChipStaleSummary" xml:space="preserve"><value>Resumen desactualizado</value></data>
+  <data name="Chat_ChipCurrentSummary" xml:space="preserve"><value>Resumen actualizado</value></data>
+  <data name="Chat_ChipRecallMatchOne" xml:space="preserve"><value>1 coincidencia de recuerdo</value></data>
+  <data name="Chat_ChipRecallMatchesMany" xml:space="preserve"><value>{0} coincidencias de recuerdo</value></data>
+  <data name="Chat_ChipCompressedOverflow" xml:space="preserve"><value>Desbordamiento comprimido</value></data>
+  <data name="Chat_ExplainAssemblyLimited" xml:space="preserve"><value>Agent-X generó una respuesta sin la canalización completa de ensamblado del contexto.</value></data>
+  <data name="Chat_ExplainCompressionLimited" xml:space="preserve"><value>Los detalles de compresión no están disponibles para esta vía de respuesta.</value></data>
+  <data name="Chat_ExplainRecallLimited" xml:space="preserve"><value>Los detalles del recuerdo duradero no están disponibles para esta vía de respuesta.</value></data>
+  <data name="Chat_ExplainAssemblySummaryOnly" xml:space="preserve"><value>Se actualizó un resumen duradero sin un contexto de respuesta recién capturado.</value></data>
+  <data name="Chat_ExplainCompressionSummaryOnly" xml:space="preserve"><value>Los detalles de compresión no estarán disponibles hasta que se ensamble una respuesta en el chat.</value></data>
+  <data name="Chat_ExplainRecallSummaryOnly" xml:space="preserve"><value>Los detalles del recuerdo duradero no estarán disponibles hasta que se ensamble una respuesta en el chat.</value></data>
+  <data name="Chat_ExplainAssemblyLegacy" xml:space="preserve"><value>Agent-X usó la vía heredada de ajuste del contexto para esta respuesta.</value></data>
+  <data name="Chat_ExplainAssemblyLexical" xml:space="preserve"><value>Agent-X usó la alternativa léxica al seleccionar el contexto de mensajes para esta respuesta.</value></data>
+  <data name="Chat_ExplainAssemblyBounded" xml:space="preserve"><value>Agent-X seleccionó un subconjunto limitado del hilo y evaluó el contexto de desbordamiento con el presupuesto restante.</value></data>
+  <data name="Chat_ExplainAssemblyFit" xml:space="preserve"><value>Agent-X ajustó el hilo activo sin necesidad de recortar ni recurrir a alternativas.</value></data>
+  <data name="Chat_ExplainCompressionAdded" xml:space="preserve"><value>Agent-X añadió un resumen de desbordamiento comprimido para conservar el contexto anterior dentro del presupuesto disponible.</value></data>
+  <data name="Chat_ExplainCompressionHistoryFit" xml:space="preserve"><value>El historial activo cabía en el presupuesto disponible, así que no fue necesario un resumen de desbordamiento.</value></data>
+  <data name="Chat_ExplainCompressionError" xml:space="preserve"><value>Se omitió la compresión del desbordamiento porque la compresión falló.</value></data>
+  <data name="Chat_ExplainCompressionExceeded" xml:space="preserve"><value>Se generó la compresión del desbordamiento, pero superó el presupuesto de tokens restante.</value></data>
+  <data name="Chat_ExplainCompressionNone" xml:space="preserve"><value>No se añadió ningún resumen de desbordamiento para esta respuesta.</value></data>
+  <data name="Chat_ExplainCompressionSkipped" xml:space="preserve"><value>No se añadió ningún resumen de desbordamiento ({0}).</value></data>
+  <data name="Chat_ExplainRecallAddedOne" xml:space="preserve"><value>Agent-X añadió 1 mensaje recordado de otra conversación como contexto de apoyo.</value></data>
+  <data name="Chat_ExplainRecallAddedMany" xml:space="preserve"><value>Agent-X añadió {0} mensajes recordados de otras conversaciones como contexto de apoyo.</value></data>
+  <data name="Chat_ExplainRecallNoMatches" xml:space="preserve"><value>El recuerdo duradero no encontró coincidencias relevantes en otras conversaciones para esta respuesta.</value></data>
+  <data name="Chat_ExplainRecallDuplicate" xml:space="preserve"><value>El recuerdo duradero encontró coincidencias, pero duplicaban el contexto ya seleccionado.</value></data>
+  <data name="Chat_ExplainRecallInsufficientBudget" xml:space="preserve"><value>Se omitió el recuerdo duradero porque quedaba muy poco presupuesto de tokens tras seleccionar el contexto principal.</value></data>
+  <data name="Chat_ExplainRecallBudgetExceeded" xml:space="preserve"><value>El recuerdo duradero encontró coincidencias útiles, pero añadirlas habría superado el presupuesto de tokens restante.</value></data>
+  <data name="Chat_ExplainRecallLegacy" xml:space="preserve"><value>Los detalles del recuerdo duradero no están disponibles porque se usó la vía alternativa heredada del contexto.</value></data>
+  <data name="Chat_ExplainRecallUnavailable" xml:space="preserve"><value>El recuerdo duradero no estaba disponible para esta respuesta.</value></data>
+  <data name="Chat_ExplainRecallNoConversation" xml:space="preserve"><value>El recuerdo duradero no estaba disponible porque la respuesta no estaba vinculada a una conversación guardada.</value></data>
+  <data name="Chat_ExplainRecallNone" xml:space="preserve"><value>No se añadió recuerdo duradero para esta respuesta.</value></data>
+  <data name="Chat_ExplainRecallSkipped" xml:space="preserve"><value>No se añadió recuerdo duradero ({0}).</value></data>
   <data name="Chat_PrivacyLocal" xml:space="preserve"><value>{0} se ejecuta en este equipo, así que sus mensajes permanecen en este dispositivo.</value></data>
   <data name="Chat_PrivacyLocalUnnamed" xml:space="preserve"><value>El modelo de IA se ejecuta en este equipo, así que sus mensajes permanecen en este dispositivo.</value></data>
   <data name="Chat_PrivacyCloud" xml:space="preserve"><value>Sus mensajes se envían a {0} para su procesamiento.</value></data>

@@ -1650,6 +1650,57 @@
   <data name="Ops_DrillInSyncEntry" xml:space="preserve"><value>Opened sync history entry "{0}" from Operations</value></data>
   <data name="Ops_DrillInConnector" xml:space="preserve"><value>Opened connector "{0}" from Operations</value></data>
   <data name="Ops_DrillInRecommendation" xml:space="preserve"><value>Opened Operations recommendation "{0}"</value></data>
+  <data name="Chat_StorySummaryOnly" xml:space="preserve"><value>Showing a summary-only view because no newly assembled response context has been captured yet.</value></data>
+  <data name="Chat_StoryLimited" xml:space="preserve"><value>This response used a limited-visibility path, so only partial chat context details are available.</value></data>
+  <data name="Chat_StoryLegacy" xml:space="preserve"><value>This response used the legacy context path, so the assembled context story is only partially inspectable.</value></data>
+  <data name="Chat_StoryLeadLexical" xml:space="preserve"><value>Agent-X selected thread context with lexical fallback</value></data>
+  <data name="Chat_StoryLeadStaleOne" xml:space="preserve"><value>Using a stale durable summary with 1 newer message still outside it</value></data>
+  <data name="Chat_StoryLeadStaleMany" xml:space="preserve"><value>Using a stale durable summary with {0} newer messages still outside it</value></data>
+  <data name="Chat_StoryLeadStale" xml:space="preserve"><value>Using a stale durable summary while newer thread changes wait to be folded in</value></data>
+  <data name="Chat_StoryLeadCurrent" xml:space="preserve"><value>Using a current durable summary</value></data>
+  <data name="Chat_StoryLeadLive" xml:space="preserve"><value>Using live thread context without a durable summary snapshot</value></data>
+  <data name="Chat_StoryRecallOne" xml:space="preserve"><value>1 recalled message from another conversation</value></data>
+  <data name="Chat_StoryRecallMany" xml:space="preserve"><value>{0} recalled messages from other conversations</value></data>
+  <data name="Chat_StoryOverflow" xml:space="preserve"><value>compressed overflow context</value></data>
+  <data name="Chat_StorySentence" xml:space="preserve"><value>{0}.</value></data>
+  <data name="Chat_StorySentenceOne" xml:space="preserve"><value>{0} and {1}.</value></data>
+  <data name="Chat_StorySentenceTwo" xml:space="preserve"><value>{0}, {1}, and {2}.</value></data>
+  <data name="Chat_ChipLimitedVisibility" xml:space="preserve"><value>Limited Visibility</value></data>
+  <data name="Chat_ChipSummaryOnly" xml:space="preserve"><value>Summary Only</value></data>
+  <data name="Chat_ChipLegacyFallback" xml:space="preserve"><value>Legacy Fallback</value></data>
+  <data name="Chat_ChipLexicalFallback" xml:space="preserve"><value>Lexical Fallback</value></data>
+  <data name="Chat_ChipStaleSummary" xml:space="preserve"><value>Stale Summary</value></data>
+  <data name="Chat_ChipCurrentSummary" xml:space="preserve"><value>Current Summary</value></data>
+  <data name="Chat_ChipRecallMatchOne" xml:space="preserve"><value>1 Recall Match</value></data>
+  <data name="Chat_ChipRecallMatchesMany" xml:space="preserve"><value>{0} Recall Matches</value></data>
+  <data name="Chat_ChipCompressedOverflow" xml:space="preserve"><value>Compressed Overflow</value></data>
+  <data name="Chat_ExplainAssemblyLimited" xml:space="preserve"><value>Agent-X generated a response without the full context assembly pipeline.</value></data>
+  <data name="Chat_ExplainCompressionLimited" xml:space="preserve"><value>Compression details are unavailable for this response path.</value></data>
+  <data name="Chat_ExplainRecallLimited" xml:space="preserve"><value>Durable recall details are unavailable for this response path.</value></data>
+  <data name="Chat_ExplainAssemblySummaryOnly" xml:space="preserve"><value>A durable summary was refreshed without a newly captured response context.</value></data>
+  <data name="Chat_ExplainCompressionSummaryOnly" xml:space="preserve"><value>Compression details are unavailable until a response has been assembled in chat.</value></data>
+  <data name="Chat_ExplainRecallSummaryOnly" xml:space="preserve"><value>Durable recall details are unavailable until a response has been assembled in chat.</value></data>
+  <data name="Chat_ExplainAssemblyLegacy" xml:space="preserve"><value>Agent-X used the legacy context fitting path for this response.</value></data>
+  <data name="Chat_ExplainAssemblyLexical" xml:space="preserve"><value>Agent-X used lexical fallback while selecting message context for this response.</value></data>
+  <data name="Chat_ExplainAssemblyBounded" xml:space="preserve"><value>Agent-X selected a bounded subset of the thread and evaluated overflow context against the remaining budget.</value></data>
+  <data name="Chat_ExplainAssemblyFit" xml:space="preserve"><value>Agent-X fit the active thread without needing to trim or fall back.</value></data>
+  <data name="Chat_ExplainCompressionAdded" xml:space="preserve"><value>Agent-X added a compressed overflow summary to preserve older context within the available budget.</value></data>
+  <data name="Chat_ExplainCompressionHistoryFit" xml:space="preserve"><value>The active history fit inside the available budget, so no overflow summary was needed.</value></data>
+  <data name="Chat_ExplainCompressionError" xml:space="preserve"><value>Overflow compression was skipped because compression failed.</value></data>
+  <data name="Chat_ExplainCompressionExceeded" xml:space="preserve"><value>Overflow compression was generated but exceeded the remaining token budget.</value></data>
+  <data name="Chat_ExplainCompressionNone" xml:space="preserve"><value>No overflow summary was added for this response.</value></data>
+  <data name="Chat_ExplainCompressionSkipped" xml:space="preserve"><value>No overflow summary was added ({0}).</value></data>
+  <data name="Chat_ExplainRecallAddedOne" xml:space="preserve"><value>Agent-X added 1 recalled message from another conversation as supporting context.</value></data>
+  <data name="Chat_ExplainRecallAddedMany" xml:space="preserve"><value>Agent-X added {0} recalled messages from other conversations as supporting context.</value></data>
+  <data name="Chat_ExplainRecallNoMatches" xml:space="preserve"><value>Durable recall found no relevant cross-conversation matches for this response.</value></data>
+  <data name="Chat_ExplainRecallDuplicate" xml:space="preserve"><value>Durable recall found matches, but they duplicated the already selected context.</value></data>
+  <data name="Chat_ExplainRecallInsufficientBudget" xml:space="preserve"><value>Durable recall was skipped because too little token budget remained after core context selection.</value></data>
+  <data name="Chat_ExplainRecallBudgetExceeded" xml:space="preserve"><value>Durable recall found useful matches, but adding them would have exceeded the remaining token budget.</value></data>
+  <data name="Chat_ExplainRecallLegacy" xml:space="preserve"><value>Durable recall details are unavailable because the legacy context fallback path was used.</value></data>
+  <data name="Chat_ExplainRecallUnavailable" xml:space="preserve"><value>Durable recall was unavailable for this response.</value></data>
+  <data name="Chat_ExplainRecallNoConversation" xml:space="preserve"><value>Durable recall was unavailable because the response was not tied to a persisted conversation.</value></data>
+  <data name="Chat_ExplainRecallNone" xml:space="preserve"><value>Durable recall was not added for this response.</value></data>
+  <data name="Chat_ExplainRecallSkipped" xml:space="preserve"><value>Durable recall was not added ({0}).</value></data>
   <data name="Chat_PrivacyLocal" xml:space="preserve"><value>{0} runs on this computer, so your messages stay on this device.</value></data>
   <data name="Chat_PrivacyLocalUnnamed" xml:space="preserve"><value>The AI model runs on this computer, so your messages stay on this device.</value></data>
   <data name="Chat_PrivacyCloud" xml:space="preserve"><value>Your messages are sent to {0} for processing.</value></data>
