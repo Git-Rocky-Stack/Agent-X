@@ -128,7 +128,7 @@ Agent-X keeps its database, settings, models and logs in `%LOCALAPPDATA%\AgentX`
 | You install and enable a plugin | Whatever the plugin does: plugins run with the same rights as Agent-X and are not sandboxed | Plugin-dependent |
 | Collaborative Sync is configured | Encrypted `.axs` packages written to the sync folder you choose; if a cloud service syncs that folder, the packages travel with it | Your sync folder |
 
-With `enableScreenAwareness` set to `true` in `settings.json` (off by default, with no switch in the UI), Quick Chat adds text read by OCR from the window in front to its question, and that text goes to the active provider.
+With **Screen awareness in Quick Chat** turned on in Settings (Research Mode section; off by default), Quick Chat adds text read by OCR from the window in front to its question, and that text goes to the active provider.
 
 The Dashboard's privacy line and the LOCAL/NET lamp report a cloud or remote AI provider, model routing with a cloud key, a configured web search provider, and calendar or email sync. They do not report an OpenAI embedding model.
 
@@ -310,7 +310,7 @@ The version appears at the bottom of the page ("Agent-X v2.2.0") and in the stat
 | `autoIndexWatchFolders` | `true` | Auto-index watch folders (the folders themselves are kept in the database) |
 | `enableModelRouting`, `activeRoutingProfileId` | `false`, `"balanced"` | Multi-Model Routing |
 | `enableResearchMode`, `webSearchProvider`, `webSearchApiKey`, `maxSearchResults`, `searchCacheTtlMinutes` | `false`, `0`, none, `10`, `60` | Research Mode (`webSearchProvider`: `0` Brave, `1` Serper, `2` SearXNG) |
-| `enableScreenAwareness` | `false` | File only: lets Quick Chat add OCR text from the window in front |
+| `enableScreenAwareness` | `false` | Screen awareness in Quick Chat: lets Quick Chat add OCR text from the window in front |
 | `localApiEnabled`, `localApiToken` | `true`, generated | Connections |
 | `enableHnswIndex`, `hnswM`, `hnswEfConstruction`, `hnswEfSearch`, `hnswFallbackThreshold` | `true`, `16`, `200`, `50`, `10000` | File only: the vector index |
 | `oAuth` | Empty Google and Microsoft client IDs and secrets; redirect URIs `http://localhost:8400/oauth/callback` (Google) and `http://localhost:8401/oauth/callback` (Microsoft); Microsoft `tenantId` `"common"`; `tokenRefreshBufferMinutes` `5`; `authTimeoutSeconds` `300` | OAuth App Credentials on the Calendar and Email pages (client IDs and secret); the rest file only |
@@ -515,7 +515,7 @@ The database uses WAL journal mode, so searches can run while documents are inde
 | `.mp3`, `.wav`, `.m4a`, `.flac`, `.ogg`, `.webm` | `AudioProcessor` | Whisper base (`ggml-base.bin`, about 142 MB) on the CPU, once it is downloaded in Model Manager; language detected automatically, no speaker labels. Without the model the file is saved as Failed and transcribed after the download |
 | `.url`, `.webloc` | `WebProcessor` | Fetches the linked page; addresses on this computer or the local network are refused |
 
-Plugins can add formats that no built-in processor handles. The Import Files picker lists only `.pdf`, `.docx`, `.txt`, `.md`, `.csv`, `.json`, `.html`, `.htm`, `.xml`, `.py`, `.cs`, `.js`, `.ts`, `.java`, `.cpp`, `.c` and `.h`; drag and drop and Import Folder take every supported format.
+Plugins can add formats that no built-in processor handles. The Import Files picker, drag and drop and Import Folder all take every supported format, including those of active plugins (the picker asks for the list each time it opens).
 
 ### Retrieval Pipeline (Ask Your Files)
 
@@ -635,7 +635,7 @@ The Calendar page connects Google Calendar or Outlook Calendar, and the Email pa
 
 1. Agent-X ships no OAuth client credentials. Under **OAuth App Credentials** on either page, enter your own: for Google a **Client ID** and **Client secret** of an OAuth client of type Desktop app; for Microsoft the **Application (client) ID** of an app registration (the **Redirect URI** is shown to copy into it). **Save Credentials** applies them at once. Disconnect an account before changing its client ID.
 2. **Connect** opens the provider's sign-in in the browser; the consent must be completed within 300 seconds. Tokens are stored encrypted with DPAPI in `oauth_credentials`. An account whose token cannot be refreshed shows "Reconnect required".
-3. Sync settings: on the Calendar page **Calendar sync**, **Sync interval (minutes)** (15), **Sync range: past days** (90), **Sync range: future days** (30), **Conflict resolution** (saved but not used), **Include attendee details** and **Include event descriptions**; on the Email page **Email sync**, **Sync interval (minutes)** (10), **Max messages per sync** (50), **Sync days back** (30), **Include attachment names in search index** and **Folders to sync** (the inbox by default; with no folder selected nothing is synced). **Save Settings** and **Sync Now** are on both pages.
+3. Sync settings: on the Calendar page **Calendar sync**, **Sync interval (minutes)** (15), **Sync range: past days** (90), **Sync range: future days** (30), **Include attendee details** and **Include event descriptions**; on the Email page **Email sync**, **Sync interval (minutes)** (10), **Max messages per sync** (50), **Sync days back** (30), **Include attachment names in search index** and **Folders to sync** (the inbox by default; with no folder selected nothing is synced). **Save Settings** and **Sync Now** are on both pages.
 
 Synced events and messages are accepted into the vault automatically as documents. Only Google and Microsoft are supported; there is no IMAP, CalDAV or Exchange Web Services.
 

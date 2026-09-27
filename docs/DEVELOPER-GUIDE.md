@@ -915,11 +915,11 @@ services.AddSingleton<IDocumentProcessor, SubtitleProcessor>();
 has no registration line; two processors once shipped unregistered and their formats were silently
 rejected.
 
-**Step 3: Offer the extension in the import picker** (`KnowledgeVaultPage.xaml.cs`, the
-`FileTypeFilter` list), if users should be able to pick it there.
-`ImportPickerOffersOnlyProcessableTypesTests` fails when the picker offers an extension that no
-processor claims. Watch folders need no change: `FileWatcherService` asks
-`DocumentService.CanProcess`.
+Nothing else is needed. The Import Files picker is built from
+`IDocumentService.GetSupportedExtensions()` each time it opens
+(`KnowledgeVaultViewModel.GetImportFileTypes`), so a registered processor's extensions appear there,
+and `ImportPickerOffersOnlyProcessableTypesTests` keeps the picker from going back to a fixed list.
+Watch folders ask `DocumentService.CanProcess`.
 
 **From a plugin.** A plugin can contribute a processor by implementing `IDocumentProcessorPlugin`
 (`IPlugin` plus `IDocumentProcessor`). `DocumentService` tries plugin processors after the built-in

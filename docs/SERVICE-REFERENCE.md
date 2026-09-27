@@ -1756,7 +1756,7 @@ Application settings live in `%LOCALAPPDATA%\AgentX\settings.json` and are cache
 | Generation | `Temperature` (0.7), `MaxTokens` (4,096), `ContextWindow` (8,192), `EnableModelRouting` (false), `ActiveRoutingProfileId` (`balanced`) |
 | Documents and search | `ChunkSize` (512), `ChunkOverlap` (50), `TopKResults` (5), `AutoIndexWatchFolders` (true), `EnableHnswIndex` (true), `HnswM` (16), `HnswEfConstruction` (200), `HnswEfSearch` (50), `HnswFallbackThreshold` (10,000) |
 | Research Mode | `EnableResearchMode` (false), `WebSearchProvider` (`Brave`), `WebSearchApiKey`, `MaxSearchResults` (10), `SearchCacheTtlMinutes` (60) |
-| Other features | `EnableScreenAwareness` (false; no page changes it), `LocalApiEnabled` (true), `LocalApiToken` |
+| Other features | `EnableScreenAwareness` (false; Settings, Screen awareness in Quick Chat), `LocalApiEnabled` (true), `LocalApiToken` |
 | `OAuth` | `Google` and `Microsoft` (`ClientId`, `ClientSecret`, `RedirectUri`, and `TenantId` for Microsoft), `TokenRefreshBufferMinutes` (5), `AuthTimeoutSeconds` (300) |
 | `CalendarConnector` | `EnableCalendarSync` (false), `SyncIntervalMinutes` (15), `DaysPastToSync` (90), `DaysFutureToSync` (30), `ConflictResolution`, `IncludeAttendeeDetails`, `IncludeDescriptions` |
 | `EmailConnector` | `EnableEmailSync` (false), `SyncIntervalMinutes` (10), `MessagesPerSync` (50), `DaysBackToSync` (30), `IncludeAttachmentMetadata` (false), and `EnableAiCategorization` and `IncludeBodyContent`, which nothing applies (the connector's own `EmailSyncSettings.IncludeHtmlBody` decides whether bodies are kept) |

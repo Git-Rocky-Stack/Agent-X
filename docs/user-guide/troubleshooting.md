@@ -300,8 +300,8 @@ Fix the cause, then click **Re-index** on the row, or **Retry Index** on the Ope
 1. **Check the format**
    - See the supported formats in the [FAQ](faq.md#what-file-formats-does-agent-x-support); legacy `.doc`, `.rtf`, Excel, PowerPoint and EPUB files are not supported
 
-2. **Use drag and drop for other formats**
-   - The Import Files picker lists document, data and code formats only; drag images, audio and `.url` files onto the Knowledge Vault page, or use Import Folder
+2. **Check the plugin for plugin formats**
+   - The Import Files picker lists every format Agent-X can read at that moment; a format added by a plugin is listed, and imported, only while that plugin is active in the Plugin Manager
 
 ### Documents Stay Pending or Processing
 

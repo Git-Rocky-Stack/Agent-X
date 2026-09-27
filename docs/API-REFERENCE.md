@@ -1907,7 +1907,7 @@ The contents of `settings.json`.
 | `WebSearchApiKey` | `string?` | `null` | Brave or Serper API key, or the SearXNG instance URL (encrypted on disk). |
 | `MaxSearchResults` | `int` | `10` | Web results per search, used up to 20. |
 | `SearchCacheTtlMinutes` | `int` | `60` | Web result cache duration, used up to 1440. |
-| `EnableScreenAwareness` | `bool` | `false` | Screen capture for Screen Awareness. |
+| `EnableScreenAwareness` | `bool` | `false` | Lets Quick Chat add OCR text from the window in front (Settings, Screen awareness in Quick Chat). |
 | `LocalApiEnabled` | `bool` | `true` | Enable Local API. |
 | `LocalApiToken` | `string?` | `null` | Local REST API bearer token (encrypted on disk); created the first time the API starts. |
 | `EnableHnswIndex` | `bool` | `true` | Use the HNSW vector store. |

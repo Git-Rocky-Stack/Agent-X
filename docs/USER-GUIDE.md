@@ -370,7 +370,7 @@ Replies render basic Markdown: headings, lists, bold, inline code, and code bloc
 
 ### Quick Chat
 
-Press `Win+Shift+A` anywhere in Windows, or choose **Quick Chat** in the tray menu, to open a small always-on-top window. It sends one question at a time to the active AI provider and shows the reply; it does not search the Knowledge Vault, and questions and replies are not saved. When `enableScreenAwareness` is set to `true` in `settings.json` (it is off by default and has no switch in Settings), Quick Chat also reads the title and the on-screen text (OCR) of the window that was in front when you opened it and adds them to the question; with a cloud provider, that text is sent too.
+Press `Win+Shift+A` anywhere in Windows, or choose **Quick Chat** in the tray menu, to open a small always-on-top window. It sends one question at a time to the active AI provider and shows the reply; it does not search the Knowledge Vault, and questions and replies are not saved. When **Screen awareness in Quick Chat** is on (Settings, Research Mode section; off by default), Quick Chat also reads the title and the on-screen text (OCR) of the window that was in front when you opened it and adds them to the question; with a cloud provider, that text is sent too.
 
 ---
 
@@ -404,7 +404,7 @@ The Knowledge Vault (`Ctrl+I`) is the document repository and indexing control c
 
 ### Import methods
 
-- **Import Files**: pick one or more files. The picker offers document, data, and code formats only (no images or audio).
+- **Import Files**: pick one or more files. The picker offers every format Agent-X can read, including images, audio, web shortcuts and formats added by active plugins.
 - **Import Folder**: imports every supported file in a folder and its subfolders, including images and audio.
 - **Drag and drop**: while the vault list is empty, a drop zone fills the page; drop files or folders on it. Once documents are listed there is no drop area.
 - **Watch folders** (Settings > Knowledge Vault > Watch Folders): folders Agent-X keeps importing from. Add one with **Add Folder**, with or without its subfolders. While **Auto-index watch folders** is on, Agent-X imports the supported files already in it, then new and changed files while it runs. Removing a folder stops watching it; documents already imported stay. Adding or removing a folder takes effect at once, and turning the switch on or off takes effect when you save settings.
@@ -916,7 +916,6 @@ Calendar sync supports:
 - **Sync Now**.
 - **Sync interval (minutes)** (15 by default).
 - **Sync range: past days** and **future days** (90 and 30 by default).
-- **Conflict resolution**: remote wins, local wins, or merge.
 - **Include attendee details** and **Include event descriptions**.
 - Last synced and next sync indicators.
 
@@ -1258,7 +1257,7 @@ Excel, PowerPoint, EPUB, and RTF files are not supported.
 | `.bmp` | Image | Windows OCR in the languages of your Windows profile |
 | `.tiff` | Image | Windows OCR in the languages of your Windows profile |
 
-An image without text is kept with nothing to search; with no OCR language installed, the import fails with a message. Images are not sent to a vision model. The Import Files picker does not list images; use Import Folder, a watch folder, or the drop zone of an empty vault.
+An image without text is kept with nothing to search; with no OCR language installed, the import fails with a message. Images are not sent to a vision model.
 
 ### Web shortcuts
 
@@ -1301,7 +1300,7 @@ Audio is transcribed on your machine with the Whisper base model, on the CPU. Th
 - Transcription needs the speech-to-text model. Install it with **Download** under **Speech-to-Text Model** on the Model Manager page; nothing downloads it on its own. The model file is `ggml-base.bin` in `%LOCALAPPDATA%\AgentX\Models\Whisper`.
 - Without the model, voice input in AI Chat says to install it there, and an imported audio file is marked Failed with the reason "The speech-to-text model is not installed. Install it on the Model Manager page to transcribe this audio file." After the download, those files, and audio that earlier versions imported with a placeholder transcript, are queued for transcription again.
 - Audio that cannot be decoded, or a Whisper runtime that cannot load on this computer, also marks the file Failed with its reason.
-- The Import Files picker does not list audio: use Import Folder, a watch folder, or the drop zone of an empty vault.
+- Pick audio files with Import Files, or use Import Folder, a watch folder, or the drop zone of an empty vault.
 - In AI Chat, click the microphone to dictate, or right-click it to pick an audio file; the text lands in the message box.
 
 ---

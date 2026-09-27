@@ -60,7 +60,7 @@ A few things to know:
 
 - **Not supported:** legacy `.doc` (save it as `.docx`), `.rtf`, Excel, PowerPoint and EPUB files.
 - **PDFs** are read from their text layer. A scanned PDF without one is recorded as Failed with the reason; there is no OCR for PDFs.
-- **The Import Files picker** lists document, data and code formats only. Bring in images, audio, web shortcuts and plugin formats by dragging them onto the Knowledge Vault page or with Import Folder.
+- **The Import Files picker** lists every format Agent-X can read, including images, audio, web shortcuts and formats added by active plugins. You can also drag files onto the Knowledge Vault page or use Import Folder.
 - **Audio** is transcribed on your computer by the speech-to-text model (Whisper base, about 142 MB). Install it with **Download** under Speech-to-Text Model on the Model Manager page; nothing downloads it on its own. Without it an audio file is imported as Failed with a message saying so, and it is transcribed after you install the model. OGG and WebM need a Windows codec.
 - **A file that cannot be read** (encrypted, damaged, no text) is kept in the vault as Failed, and its row and the Document Preview show why.
 

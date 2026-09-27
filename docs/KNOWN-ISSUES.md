@@ -93,11 +93,6 @@ PDF text is read from the file's text layer. A scanned PDF without one, or a PDF
 no Unicode mapping, is recorded as Failed with the reason; there is no OCR for PDFs (images are
 read with Windows OCR). Legacy `.doc`, RTF, Excel, PowerPoint and EPUB files are not supported.
 
-### Import Files does not list every format
-The Import Files picker offers document, data and code formats only. Images, audio, `.url` and
-`.webloc` shortcuts and formats added by plugins are imported by dragging them onto the Knowledge
-Vault page or with Import Folder.
-
 ### Re-indexing needs the original file
 The vault keeps a document's extracted text and the path to its file; the file itself is not
 copied (pages saved by Web Import are the exception). Re-index reads the file again, so when the
@@ -148,10 +143,6 @@ as a test user), or a Microsoft Entra app registration with the "Mobile and desk
 platform. The Microsoft tenant (`common` by default) and the redirect addresses can only be
 changed in `settings.json`, with Agent-X closed. The connectors only read, and only Google and
 Microsoft are supported (no IMAP, CalDAV or Exchange Web Services).
-
-### The Calendar page's Conflict resolution choice has no effect
-The value is saved, but the calendar sync never reads it: the connector only reads events and
-never writes them back, so there is nothing to resolve.
 
 ### Collaborative Sync carries records, not files or messages
 A sync package carries document records, Collections, tags, conversations, annotations and system
