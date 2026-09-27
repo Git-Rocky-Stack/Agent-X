@@ -19,6 +19,7 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
     // ── Services ──────────────────────────────────────────────
     private readonly IModelManager _modelManager;
     private readonly IAiService _aiService;
+    private readonly ILocalizationService _localization;
     private CancellationTokenSource? _downloadCts;
 
     // ── Page Properties ────────────────────────────────────────
@@ -27,7 +28,9 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _downloadModelName = string.Empty;
     [ObservableProperty] private double _downloadProgress;
     [ObservableProperty] private string _downloadStatus = string.Empty;
-    [ObservableProperty] private string _connectionStatus = "Checking...";
+
+    // "Checking..." in the user's language, set by the constructor.
+    [ObservableProperty] private string _connectionStatus;
     [ObservableProperty] private bool _isConnected;
     [ObservableProperty] private int _totalModels;
     [ObservableProperty] private string _totalModelSize = "0 MB";
@@ -53,6 +56,8 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
     {
         _modelManager = modelManager;
         _aiService = aiService;
+        _localization = localization ?? throw new ArgumentNullException(nameof(localization));
+        _connectionStatus = _localization.GetString("ModelMgr_CheckingConnection");
         SpeechModel = new SpeechModelViewModel(transcriptionService, documentService, localization, notifications);
         Log.Debug("ModelManagerViewModel created with services");
     }
@@ -73,9 +78,9 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "ModelManager initialization failed");
-            ConnectionStatus = "Connection failed";
+            ConnectionStatus = _localization.GetString("ModelMgr_ConnectionFailed");
             IsConnected = false;
-            SetError($"Failed to connect to {ActiveProviderName()}. Check the AI provider in Settings.");
+            SetError(_localization.GetString("ModelMgr_ConnectFailed", ActiveProviderName()));
         }
     }
 
@@ -91,11 +96,12 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
         }
         catch (InvalidOperationException)
         {
-            return "AI provider"; // not initialized yet
+            return ProviderStatusText.GenericName(_localization); // not initialized yet
         }
     }
 
     // ── Connection Check ───────────────────────────────────────
+    // Worded like the status strip and the dashboard, through ProviderStatusText.
     private async Task CheckConnectionAsync()
     {
         var providerName = ActiveProviderName();
@@ -103,12 +109,14 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
         {
             var connected = await _aiService.ActiveProvider.CheckConnectionAsync();
             IsConnected = connected;
-            ConnectionStatus = connected ? $"Connected to {providerName}" : $"{providerName} not available";
+            ConnectionStatus = connected
+                ? ProviderStatusText.ConnectedTo(_localization, providerName)
+                : ProviderStatusText.NotAvailable(_localization, providerName);
         }
         catch
         {
             IsConnected = false;
-            ConnectionStatus = $"{providerName} not available";
+            ConnectionStatus = ProviderStatusText.NotAvailable(_localization, providerName);
         }
     }
 
@@ -150,7 +158,7 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to load models");
-            SetError($"Failed to load the model list. Check the {ActiveProviderName()} connection.");
+            SetError(_localization.GetString("ModelMgr_LoadModelsFailed", ActiveProviderName()));
         }
         finally
         {
@@ -177,7 +185,7 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
 
         IsDownloading = true;
         DownloadProgress = 0;
-        DownloadStatus = $"Preparing to download {modelName}...";
+        DownloadStatus = _localization.GetString("ModelMgr_PreparingDownload", modelName);
         ClearError();
 
         _downloadCts = new CancellationTokenSource();
@@ -191,7 +199,7 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
             });
             await _modelManager.PullModelAsync(modelName, progressReporter, _downloadCts.Token);
 
-            DownloadStatus = $"Successfully downloaded {modelName}";
+            DownloadStatus = _localization.GetString("ModelMgr_Downloaded", modelName);
             DownloadModelName = string.Empty;
 
             // Refresh model list after download
@@ -199,14 +207,14 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
         }
         catch (OperationCanceledException)
         {
-            DownloadStatus = "Download cancelled";
+            DownloadStatus = _localization.GetString("ModelMgr_DownloadCancelled");
             Log.Information("Model download cancelled: {ModelName}", modelName);
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to pull model: {ModelName}", modelName);
-            DownloadStatus = $"Download failed: {ex.Message}";
-            SetError($"Failed to download {modelName}. Ensure {ActiveProviderName()} is available and the model name is correct.");
+            DownloadStatus = _localization.GetString("ModelMgr_DownloadFailedStatus", ex.Message);
+            SetError(_localization.GetString("ModelMgr_DownloadFailed", modelName, ActiveProviderName()));
         }
         finally
         {
@@ -251,7 +259,7 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to delete model: {ModelId}", modelId);
-            SetError($"Failed to delete model. {ex.Message}");
+            SetError(_localization.GetString("ModelMgr_DeleteFailed", ex.Message));
         }
     }
 
@@ -285,7 +293,7 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to set active model: {ModelId}", modelId);
-            SetError($"Failed to set active model. {ex.Message}");
+            SetError(_localization.GetString("ModelMgr_SetActiveFailed", ex.Message));
         }
     }
 
