@@ -2338,6 +2338,14 @@
   <data name="Plugin_NoneInstalled" xml:space="preserve"><value>Aucun plugin installé</value></data>
   <data name="Plugin_InstalledOne" xml:space="preserve"><value>1 plugin installé</value></data>
   <data name="Plugin_InstalledMany" xml:space="preserve"><value>{0} plugins installés</value></data>
+  <data name="CollMgr_LoadFailed" xml:space="preserve"><value>Impossible de charger les collections. Essayez d'actualiser.</value></data>
+  <data name="CollMgr_CreateFailed" xml:space="preserve"><value>Impossible de créer la collection : {0}</value></data>
+  <data name="CollMgr_RenameFailed" xml:space="preserve"><value>Impossible de renommer la collection : {0}</value></data>
+  <data name="CollMgr_DeleteFailed" xml:space="preserve"><value>Impossible de supprimer la collection : {0}</value></data>
+  <data name="CollMgr_AddDocumentsFailed" xml:space="preserve"><value>Impossible d'ajouter les documents : {0}</value></data>
+  <data name="CollMgr_AddDocumentsFirstFailure" xml:space="preserve"><value>{0} {1} : {2}</value></data>
+  <data name="CollMgr_RemoveDocumentFailed" xml:space="preserve"><value>Impossible de retirer le document : {0}</value></data>
+  <data name="CollMgr_BulkDeleteFailed" xml:space="preserve"><value>Impossible de supprimer les collections : {0}</value></data>
   <data name="PastSelf_CancelDraft.Content" xml:space="preserve"><value>Annuler</value></data>
   <data name="PastSelf_DraftWriting.Text" xml:space="preserve"><value>Rédaction du brouillon...</value></data>
   <data name="PastSelf_DraftNeedsContext" xml:space="preserve"><value>Décrivez d'abord dans Contexte ce que vous voulez écrire.</value></data>

@@ -2338,6 +2338,14 @@
   <data name="Plugin_NoneInstalled" xml:space="preserve"><value>No hay plugins instalados</value></data>
   <data name="Plugin_InstalledOne" xml:space="preserve"><value>1 plugin instalado</value></data>
   <data name="Plugin_InstalledMany" xml:space="preserve"><value>{0} plugins instalados</value></data>
+  <data name="CollMgr_LoadFailed" xml:space="preserve"><value>No se pudieron cargar las colecciones. Intente actualizar.</value></data>
+  <data name="CollMgr_CreateFailed" xml:space="preserve"><value>No se pudo crear la colección: {0}</value></data>
+  <data name="CollMgr_RenameFailed" xml:space="preserve"><value>No se pudo cambiar el nombre de la colección: {0}</value></data>
+  <data name="CollMgr_DeleteFailed" xml:space="preserve"><value>No se pudo eliminar la colección: {0}</value></data>
+  <data name="CollMgr_AddDocumentsFailed" xml:space="preserve"><value>No se pudieron añadir los documentos: {0}</value></data>
+  <data name="CollMgr_AddDocumentsFirstFailure" xml:space="preserve"><value>{0} {1}: {2}</value></data>
+  <data name="CollMgr_RemoveDocumentFailed" xml:space="preserve"><value>No se pudo quitar el documento: {0}</value></data>
+  <data name="CollMgr_BulkDeleteFailed" xml:space="preserve"><value>No se pudieron eliminar las colecciones: {0}</value></data>
   <data name="PastSelf_CancelDraft.Content" xml:space="preserve"><value>Cancelar</value></data>
   <data name="PastSelf_DraftWriting.Text" xml:space="preserve"><value>Escribiendo el borrador...</value></data>
   <data name="PastSelf_DraftNeedsContext" xml:space="preserve"><value>Primero describa en Contexto lo que quiere escribir.</value></data>

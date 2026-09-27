@@ -2338,6 +2338,14 @@
   <data name="Plugin_NoneInstalled" xml:space="preserve"><value>Keine Plugins installiert</value></data>
   <data name="Plugin_InstalledOne" xml:space="preserve"><value>1 Plugin installiert</value></data>
   <data name="Plugin_InstalledMany" xml:space="preserve"><value>{0} Plugins installiert</value></data>
+  <data name="CollMgr_LoadFailed" xml:space="preserve"><value>Die Sammlungen konnten nicht geladen werden. Versuchen Sie, die Ansicht zu aktualisieren.</value></data>
+  <data name="CollMgr_CreateFailed" xml:space="preserve"><value>Die Sammlung konnte nicht erstellt werden: {0}</value></data>
+  <data name="CollMgr_RenameFailed" xml:space="preserve"><value>Die Sammlung konnte nicht umbenannt werden: {0}</value></data>
+  <data name="CollMgr_DeleteFailed" xml:space="preserve"><value>Die Sammlung konnte nicht gelöscht werden: {0}</value></data>
+  <data name="CollMgr_AddDocumentsFailed" xml:space="preserve"><value>Die Dokumente konnten nicht hinzugefügt werden: {0}</value></data>
+  <data name="CollMgr_AddDocumentsFirstFailure" xml:space="preserve"><value>{0} {1}: {2}</value></data>
+  <data name="CollMgr_RemoveDocumentFailed" xml:space="preserve"><value>Das Dokument konnte nicht entfernt werden: {0}</value></data>
+  <data name="CollMgr_BulkDeleteFailed" xml:space="preserve"><value>Die Sammlungen konnten nicht gelöscht werden: {0}</value></data>
   <data name="PastSelf_CancelDraft.Content" xml:space="preserve"><value>Abbrechen</value></data>
   <data name="PastSelf_DraftWriting.Text" xml:space="preserve"><value>Der Entwurf wird geschrieben...</value></data>
   <data name="PastSelf_DraftNeedsContext" xml:space="preserve"><value>Beschreiben Sie zuerst unter „Kontext“, was Sie schreiben möchten.</value></data>

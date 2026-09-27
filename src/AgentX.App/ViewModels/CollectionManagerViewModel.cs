@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Globalization;
 using AgentX.App.Services;
 using AgentX.Core.Documents;
 using AgentX.Core.Helpers;
@@ -93,7 +94,7 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
 
     /// <param name="collectionService">Collection reads and writes.</param>
     /// <param name="documentService">Imports the files picked for "Add Documents".</param>
-    /// <param name="localization">Texts of the delete confirmations and the "Add Documents" summary.</param>
+    /// <param name="localization">Every text the page shows: errors, dates, the delete confirmations and the "Add Documents" summary.</param>
     /// <param name="notifications">Shows the "Add Documents" summary; no summary without it.</param>
     public CollectionManagerViewModel(
         ICollectionService collectionService,
@@ -126,7 +127,7 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to initialize CollectionManagerViewModel");
-            SetError("Failed to load collections. Please try refreshing.");
+            SetError(_localization.GetString("CollMgr_LoadFailed"));
         }
         finally
         {
@@ -162,7 +163,7 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(HasSelectedCollection));
     }
 
-    private static CollectionDisplayItem MapCollectionToDisplay(AgentX.Core.Data.Entities.CollectionEntity entity)
+    private CollectionDisplayItem MapCollectionToDisplay(AgentX.Core.Data.Entities.CollectionEntity entity)
     {
         var item = new CollectionDisplayItem
         {
@@ -176,7 +177,7 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
             // The document links are not loaded with the tree, so counting them showed 0
             // (or whatever links happened to be tracked already).
             DocumentCount = entity.DocumentCount,
-            CreatedAtFormatted = entity.CreatedAt.ToString("MMM d, yyyy"),
+            CreatedAtFormatted = FormatDate(entity.CreatedAt),
             UpdatedAtFormatted = FormatHelper.TimeAgoWithMonths(entity.UpdatedAt)
         };
 
@@ -229,17 +230,9 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
                 name,
                 string.IsNullOrEmpty(description) ? null : description);
 
-            var newCollection = new CollectionDisplayItem
-            {
-                Id = entity.Id,
-                Name = entity.Name,
-                Description = entity.Description,
-                IconGlyph = "\uF168",
-                ColorHex = "#AA2024",
-                DocumentCount = 0,
-                CreatedAtFormatted = "Just now",
-                UpdatedAtFormatted = "Just now"
-            };
+            // Shown the way the list shows every collection: its creation date, and "just now"
+            // in the user's language as the last update.
+            var newCollection = MapCollectionToDisplay(entity);
 
             Collections.Add(newCollection);
             TotalCollections = await _collectionService.GetCollectionCountAsync();
@@ -254,7 +247,7 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to create collection: {Name}", name);
-            SetError($"Failed to create collection: {ex.Message}");
+            SetError(_localization.GetString("CollMgr_CreateFailed", ex.Message));
         }
     }
 
@@ -299,7 +292,7 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to rename collection {CollectionId}", target.Id);
-            SetError($"Failed to rename collection: {ex.Message}");
+            SetError(_localization.GetString("CollMgr_RenameFailed", ex.Message));
             return;
         }
         finally
@@ -500,7 +493,7 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to delete collection: {CollectionId}", id);
-            SetError($"Failed to delete collection: {ex.Message}");
+            SetError(_localization.GetString("CollMgr_DeleteFailed", ex.Message));
         }
     }
 
@@ -570,7 +563,7 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to add documents to collection");
-            SetError($"Failed to add documents: {ex.Message}");
+            SetError(_localization.GetString("CollMgr_AddDocumentsFailed", ex.Message));
             return;
         }
 
@@ -612,9 +605,10 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
         }
 
         var first = outcome.Failures[0];
+        var fileName = Path.GetFileName(first.FilePath);
         _notifications.ShowError(
             _localization.GetString("CollMgr_AddDocumentsIncomplete"),
-            $"{counts} {Path.GetFileName(first.FilePath)}: {first.Reason}",
+            _localization.GetString("CollMgr_AddDocumentsFirstFailure", counts, fileName, first.Reason),
             durationMs: 10000);
     }
 
@@ -644,7 +638,7 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to remove document from collection");
-            SetError($"Failed to remove document: {ex.Message}");
+            SetError(_localization.GetString("CollMgr_RemoveDocumentFailed", ex.Message));
         }
     }
 
@@ -783,7 +777,7 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Bulk delete collections failed");
-            SetError($"Failed to delete collections: {ex.Message}");
+            SetError(_localization.GetString("CollMgr_BulkDeleteFailed", ex.Message));
         }
         finally
         {
@@ -832,6 +826,29 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
         }
 
         OnPropertyChanged(nameof(HasSelectedCollectionDocuments));
+    }
+
+    /// <summary>
+    /// A date in the order the user's language writes one ("Sep 27, 2026" in English), from the
+    /// pattern relative times use once they show the date itself.
+    /// </summary>
+    private string FormatDate(DateTime date)
+    {
+        const string EnglishPattern = "MMM d, yyyy";
+        var pattern = _localization.GetString("TimeAgo_DateFormat");
+        if (string.IsNullOrWhiteSpace(pattern) || pattern == "TimeAgo_DateFormat")
+        {
+            pattern = EnglishPattern;
+        }
+
+        try
+        {
+            return date.ToString(pattern, CultureInfo.CurrentCulture);
+        }
+        catch (FormatException)
+        {
+            return date.ToString(EnglishPattern, CultureInfo.CurrentCulture);
+        }
     }
 
     private static string GetFileTypeIcon(string fileType) => fileType.ToLowerInvariant() switch

@@ -2338,6 +2338,14 @@
   <data name="Plugin_NoneInstalled" xml:space="preserve"><value>プラグインはインストールされていません</value></data>
   <data name="Plugin_InstalledOne" xml:space="preserve"><value>1 件のプラグインがインストールされています</value></data>
   <data name="Plugin_InstalledMany" xml:space="preserve"><value>{0} 件のプラグインがインストールされています</value></data>
+  <data name="CollMgr_LoadFailed" xml:space="preserve"><value>コレクションを読み込めませんでした。更新してみてください。</value></data>
+  <data name="CollMgr_CreateFailed" xml:space="preserve"><value>コレクションを作成できませんでした: {0}</value></data>
+  <data name="CollMgr_RenameFailed" xml:space="preserve"><value>コレクションの名前を変更できませんでした: {0}</value></data>
+  <data name="CollMgr_DeleteFailed" xml:space="preserve"><value>コレクションを削除できませんでした: {0}</value></data>
+  <data name="CollMgr_AddDocumentsFailed" xml:space="preserve"><value>ドキュメントを追加できませんでした: {0}</value></data>
+  <data name="CollMgr_AddDocumentsFirstFailure" xml:space="preserve"><value>{0} {1}: {2}</value></data>
+  <data name="CollMgr_RemoveDocumentFailed" xml:space="preserve"><value>ドキュメントをコレクションから外せませんでした: {0}</value></data>
+  <data name="CollMgr_BulkDeleteFailed" xml:space="preserve"><value>コレクションを削除できませんでした: {0}</value></data>
   <data name="PastSelf_CancelDraft.Content" xml:space="preserve"><value>キャンセル</value></data>
   <data name="PastSelf_DraftWriting.Text" xml:space="preserve"><value>下書きを作成しています...</value></data>
   <data name="PastSelf_DraftNeedsContext" xml:space="preserve"><value>まず「コンテキスト」に書きたい内容を入力してください。</value></data>

@@ -2677,6 +2677,14 @@
   <data name="Plugin_NoneInstalled" xml:space="preserve"><value>No plugins installed</value></data>
   <data name="Plugin_InstalledOne" xml:space="preserve"><value>1 plugin installed</value></data>
   <data name="Plugin_InstalledMany" xml:space="preserve"><value>{0} plugins installed</value></data>
+  <data name="CollMgr_LoadFailed" xml:space="preserve"><value>Failed to load collections. Please try refreshing.</value></data>
+  <data name="CollMgr_CreateFailed" xml:space="preserve"><value>Failed to create collection: {0}</value></data>
+  <data name="CollMgr_RenameFailed" xml:space="preserve"><value>Failed to rename collection: {0}</value></data>
+  <data name="CollMgr_DeleteFailed" xml:space="preserve"><value>Failed to delete collection: {0}</value></data>
+  <data name="CollMgr_AddDocumentsFailed" xml:space="preserve"><value>Failed to add documents: {0}</value></data>
+  <data name="CollMgr_AddDocumentsFirstFailure" xml:space="preserve"><value>{0} {1}: {2}</value></data>
+  <data name="CollMgr_RemoveDocumentFailed" xml:space="preserve"><value>Failed to remove document: {0}</value></data>
+  <data name="CollMgr_BulkDeleteFailed" xml:space="preserve"><value>Failed to delete collections: {0}</value></data>
   <data name="PastSelf_CancelDraft.Content" xml:space="preserve"><value>Cancel</value></data>
   <data name="PastSelf_DraftWriting.Text" xml:space="preserve"><value>Writing the draft...</value></data>
   <data name="PastSelf_DraftNeedsContext" xml:space="preserve"><value>Describe what you want to write in Context first.</value></data>

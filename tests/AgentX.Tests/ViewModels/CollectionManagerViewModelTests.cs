@@ -2,8 +2,10 @@ using AgentX.App.Services;
 using AgentX.App.ViewModels;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Documents;
+using AgentX.Core.Helpers;
 using AgentX.Core.Services.Collections;
 using AgentX.Core.Services.Localization;
+using AgentX.Tests.Helpers;
 using FluentAssertions;
 using Moq;
 using Xunit;
@@ -521,6 +523,8 @@ public sealed class CollectionManagerViewModelTests
         localization.Setup(l => l.GetString(It.IsAny<string>())).Returns((string key) => $"[{key}]");
         localization.Setup(l => l.GetString("CollMgr_AddDocumentsCounts", It.IsAny<object[]>()))
             .Returns((string _, object[] args) => $"added {args[0]}, already {args[1]}, failed {args[2]}.");
+        localization.Setup(l => l.GetString("CollMgr_AddDocumentsFirstFailure", It.IsAny<object[]>()))
+            .Returns((string _, object[] args) => $"{args[0]} {args[1]}: {args[2]}");
         var notifications = new Mock<INotificationService>();
         var viewModel = await CreateViewModelWithSelectedCollectionAsync(3, localization.Object, notifications.Object);
 
@@ -585,8 +589,64 @@ public sealed class CollectionManagerViewModelTests
     /// A view model whose page confirms every delete, as a user who clicks Delete would.
     /// Tests of the confirmation itself replace the handler.
     /// </summary>
-    private CollectionManagerViewModel CreateViewModel() =>
-        new(_collectionService.Object, _documentService.Object, _localization.Object)
+    // -- Texts in the user's language --
+    // Errors, the add-documents failure line and the new collection's "Just now" were English
+    // literals, and dates were always written in the English order.
+
+    [Fact]
+    public async Task CreateCollectionCommand_WhenTheServiceFails_ExplainsInTheUsersLanguage()
+    {
+        _collectionService.Setup(service => service.CreateCollectionAsync("Research", null, null))
+            .ThrowsAsync(new InvalidOperationException("disk full"));
+        var viewModel = CreateViewModel(ReswLocalization.For("fr"));
+        viewModel.NewCollectionName = "Research";
+
+        await viewModel.CreateCollectionCommand.ExecuteAsync(null);
+
+        viewModel.HasError.Should().BeTrue();
+        viewModel.ErrorMessage.Should().Be("Impossible de créer la collection : disk full");
+    }
+
+    [Fact]
+    public async Task CreateCollectionCommand_ShowsTheNewCollectionsDateInTheUsersOrder()
+    {
+        var created = new DateTime(2026, 9, 27, 10, 0, 0, DateTimeKind.Utc);
+        _collectionService.Setup(service => service.CreateCollectionAsync("Research", null, null))
+            .ReturnsAsync(new CollectionEntity { Id = 9, Name = "Research", CreatedAt = created, UpdatedAt = created });
+        var viewModel = CreateViewModel(ReswLocalization.For("ja"));
+        viewModel.NewCollectionName = "Research";
+
+        await viewModel.CreateCollectionCommand.ExecuteAsync(null);
+
+        var item = viewModel.Collections.Should().ContainSingle().Subject;
+        item.CreatedAtFormatted.Should().Be("2026年9月27日");
+        item.UpdatedAtFormatted.Should().Be(FormatHelper.TimeAgoWithMonths(created));
+        item.UpdatedAtFormatted.Should().NotBe("Just now");
+    }
+
+    [Fact]
+    public async Task AddFilesToCollectionCommand_NamesTheFirstFailureInTheUsersLanguage()
+    {
+        var path = Path.Combine("docs", "notes.zzz");
+        var report = new DocumentImportReport();
+        report.Failed.Add(new DocumentImportFailure(path, "unsupported"));
+        _documentService.Setup(s => s.ImportFilesWithReportAsync(
+                It.IsAny<IReadOnlyList<string>>(), null, false, null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(report);
+        var notifications = new Mock<INotificationService>();
+        var viewModel = await CreateViewModelWithSelectedCollectionAsync(
+            3, ReswLocalization.For("zh-CN"), notifications.Object);
+
+        await viewModel.AddFilesToCollectionCommand.ExecuteAsync(new[] { path });
+
+        notifications.Verify(n => n.ShowError(
+            "部分文档未能添加",
+            "已添加：0 个。已在此合集中：0 个。失败：1 个。notes.zzz：unsupported",
+            It.IsAny<int>()), Times.Once);
+    }
+
+    private CollectionManagerViewModel CreateViewModel(ILocalizationService? localization = null) =>
+        new(_collectionService.Object, _documentService.Object, localization ?? _localization.Object)
         {
             ConfirmDestructiveActionAsync = _ => Task.FromResult(true)
         };
