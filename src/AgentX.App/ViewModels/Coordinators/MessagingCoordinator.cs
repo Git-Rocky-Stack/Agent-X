@@ -38,6 +38,12 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
     // so a newer one never shares or disposes an older one's, and Stop reaches the newest.
     private CancellationTokenSource? _generationCts;
 
+    // The notice last shown because Research Mode cannot run at all (web search unavailable,
+    // switched off in Settings, or no provider configured). That lasts until the configuration
+    // changes, so it is shown once instead of on every send; a send with Research Mode off, or
+    // a configuration that lets the search run, arms it again.
+    private string? _researchUnavailableNotice;
+
     public event EventHandler<string>? TokenReceived;
     public event EventHandler<StreamingCompletedEventArgs>? StreamingCompleted;
     public event EventHandler<string>? GenerationError;
@@ -89,6 +95,10 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
     {
         var generation = BeginGeneration();
         var exchange = new Exchange(conversationId);
+        if (!isResearchMode)
+        {
+            _researchUnavailableNotice = null;
+        }
 
         try
         {
@@ -679,21 +689,24 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
     {
         if (_webSearchService is null)
         {
-            NotifyNoWebSources("Web search is not available in this session, so this answer uses your local knowledge only.");
+            NotifyResearchUnavailable("Web search is not available in this session, so answers use your local knowledge only.");
             return null;
         }
 
         if (!await IsResearchModeEnabledAsync())
         {
-            NotifyNoWebSources("Research Mode is turned off in Settings, so no web search was made. Turn it on in Settings to add web sources to answers.");
+            NotifyResearchUnavailable("Research Mode is turned off in Settings, so no web search was made. Turn it on in Settings to add web sources to answers.");
             return null;
         }
 
         if (!_webSearchService.IsConfigured)
         {
-            NotifyNoWebSources("No web search provider is configured. Add a Brave or Serper API key, or a SearXNG address, in Settings to add web sources to answers.");
+            NotifyResearchUnavailable("No web search provider is configured. Add a Brave or Serper API key, or a SearXNG address, in Settings to add web sources to answers.");
             return null;
         }
+
+        // The search can run, so a later configuration problem is news again.
+        _researchUnavailableNotice = null;
 
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
         timeout.CancelAfter(ResearchSearchTimeout);
@@ -776,6 +789,20 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
             Log.Warning(ex, "Failed to read the Research Mode setting");
             return false;
         }
+    }
+
+    /// <summary>
+    /// Says why Research Mode cannot run, once: the same reason is not repeated on every send.
+    /// </summary>
+    private void NotifyResearchUnavailable(string message)
+    {
+        if (string.Equals(_researchUnavailableNotice, message, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        _researchUnavailableNotice = message;
+        NotifyNoWebSources(message);
     }
 
     private void NotifyNoWebSources(string message) =>

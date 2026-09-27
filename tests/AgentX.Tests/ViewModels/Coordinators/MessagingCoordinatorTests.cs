@@ -733,6 +733,40 @@ public class MessagingCoordinatorTests
     }
 
     [Fact]
+    public async Task SendMessageAsync_InResearchMode_WhileItCannotRun_SaysWhyOnceNotOnEverySend()
+    {
+        var (coordinator, _, _) = CreateResearchCoordinator(researchEnabled: true, configured: false);
+        _chatService
+            .Setup(s => s.SendMessageAsync(1, It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Returns(() => CreateTokenStream("Local answer"));
+        var notices = new List<NotificationRequestEventArgs>();
+        coordinator.NotificationRequested += (_, e) => notices.Add(e);
+
+        await coordinator.SendMessageAsync("first", 1, null, null, true);
+        await coordinator.SendMessageAsync("second", 1, null, null, true);
+        await coordinator.SendMessageAsync("third", 1, null, null, true);
+
+        notices.Should().ContainSingle(notice => notice.Title == "No web sources");
+    }
+
+    [Fact]
+    public async Task SendMessageAsync_InResearchMode_TurnedBackOnAfterASendWithItOff_SaysWhyAgain()
+    {
+        var (coordinator, _, _) = CreateResearchCoordinator(researchEnabled: true, configured: false);
+        _chatService
+            .Setup(s => s.SendMessageAsync(1, It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Returns(() => CreateTokenStream("Local answer"));
+        var notices = new List<NotificationRequestEventArgs>();
+        coordinator.NotificationRequested += (_, e) => notices.Add(e);
+
+        await coordinator.SendMessageAsync("first", 1, null, null, true);
+        await coordinator.SendMessageAsync("research off", 1, null, null, false);
+        await coordinator.SendMessageAsync("research on again", 1, null, null, true);
+
+        notices.Where(notice => notice.Title == "No web sources").Should().HaveCount(2);
+    }
+
+    [Fact]
     public async Task SendMessageAsync_OutsideResearchMode_NeverSearchesTheWeb()
     {
         var (coordinator, webSearch, _) = CreateResearchCoordinator(researchEnabled: true, configured: true);
