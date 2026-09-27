@@ -67,6 +67,10 @@ public sealed class HnswVectorStore : IVectorStore
     private bool _disposed;
     private bool _initialized;
     private bool _indexDirty;
+    private bool _reopenOnResume;
+
+    /// <summary>Closes the connection while the database file is replaced or re-encrypted.</summary>
+    private readonly VectorStoreSuspension _suspension = new();
 
     /// <summary>
     /// Vector size of the current embedding space: the HNSW index holds only vectors of this
@@ -182,6 +186,8 @@ public sealed class HnswVectorStore : IVectorStore
     public async Task InitializeAsync(CancellationToken ct = default)
     {
         ThrowIfDisposed();
+        using var operation = await _suspension.EnterAsync(ct).ConfigureAwait(false);
+        ThrowIfDisposed();
 
         if (_initialized)
         {
@@ -202,33 +208,9 @@ public sealed class HnswVectorStore : IVectorStore
                 _logger.Debug("Created storage directory: {Path}", _storagePath);
             }
 
-            // Open SQLite connection (same schema as SqliteVecStore) via the encrypted
-            // connection factory — PRAGMA key is applied automatically when encryption
-            // is enabled, and the call is a plaintext open when no key is loaded.
-            var dbPath = Path.Combine(_storagePath, DatabaseFileName);
-            _connection = _connectionFactory.OpenKeyed(dbPath);
+            await OpenAndPrepareAsync(ct).ConfigureAwait(false);
 
-            _logger.Debug("SQLite connection opened: {Path}", dbPath);
-
-            await ExecuteNonQueryAsync("PRAGMA journal_mode=WAL;", ct).ConfigureAwait(false);
-
-            const string createTableSql = """
-                CREATE TABLE IF NOT EXISTS vec_embeddings (
-                    chunk_id  INTEGER PRIMARY KEY,
-                    embedding BLOB NOT NULL,
-                    magnitude REAL NOT NULL
-                );
-                """;
-
-            await ExecuteNonQueryAsync(createTableSql, ct).ConfigureAwait(false);
-
-            const string createIndexSql = """
-                CREATE INDEX IF NOT EXISTS idx_vec_chunk ON vec_embeddings(chunk_id);
-                """;
-
-            await ExecuteNonQueryAsync(createIndexSql, ct).ConfigureAwait(false);
-
-            var embeddingCount = await GetEmbeddingCountAsync(ct).ConfigureAwait(false);
+            var embeddingCount = await CountEmbeddingsAsync(ct).ConfigureAwait(false);
 
             // The index serves the current embedding space: its dimension comes from the
             // embedding model, not from whatever happens to be stored.
@@ -267,6 +249,8 @@ public sealed class HnswVectorStore : IVectorStore
     /// <inheritdoc />
     public async Task<long> InsertEmbeddingAsync(long chunkId, float[] embedding, CancellationToken ct = default)
     {
+        ThrowIfDisposed();
+        using var operation = await _suspension.EnterAsync(ct).ConfigureAwait(false);
         ThrowIfDisposed();
         EnsureInitialized();
         ArgumentNullException.ThrowIfNull(embedding);
@@ -355,6 +339,8 @@ public sealed class HnswVectorStore : IVectorStore
         CancellationToken ct = default)
     {
         ThrowIfDisposed();
+        using var operation = await _suspension.EnterAsync(ct).ConfigureAwait(false);
+        ThrowIfDisposed();
         EnsureInitialized();
         ArgumentNullException.ThrowIfNull(queryEmbedding);
 
@@ -364,7 +350,7 @@ public sealed class HnswVectorStore : IVectorStore
         if (topK <= 0)
             throw new ArgumentOutOfRangeException(nameof(topK), topK, "topK must be a positive integer.");
 
-        var embeddingCount = await GetEmbeddingCountAsync(ct).ConfigureAwait(false);
+        var embeddingCount = await CountEmbeddingsAsync(ct).ConfigureAwait(false);
 
         // Check if stale entries exceed threshold — trigger rebuild if so.
         await CheckStaleRebuildAsync(embeddingCount, ct).ConfigureAwait(false);
@@ -394,6 +380,8 @@ public sealed class HnswVectorStore : IVectorStore
     /// <inheritdoc />
     public async Task DeleteEmbeddingAsync(long chunkId, CancellationToken ct = default)
     {
+        ThrowIfDisposed();
+        using var operation = await _suspension.EnterAsync(ct).ConfigureAwait(false);
         ThrowIfDisposed();
         EnsureInitialized();
 
@@ -448,6 +436,8 @@ public sealed class HnswVectorStore : IVectorStore
         IReadOnlyList<long> chunkIds,
         CancellationToken ct = default)
     {
+        ThrowIfDisposed();
+        using var operation = await _suspension.EnterAsync(ct).ConfigureAwait(false);
         ThrowIfDisposed();
         EnsureInitialized();
         ArgumentNullException.ThrowIfNull(chunkIds);
@@ -525,25 +515,17 @@ public sealed class HnswVectorStore : IVectorStore
     public async Task<long> GetEmbeddingCountAsync(CancellationToken ct = default)
     {
         ThrowIfDisposed();
+        using var operation = await _suspension.EnterAsync(ct).ConfigureAwait(false);
+        ThrowIfDisposed();
 
-        if (_connection is null || _connection.State != System.Data.ConnectionState.Open)
-        {
-            throw new InvalidOperationException(
-                "Vector store is not initialized. Call InitializeAsync before performing operations.");
-        }
-
-        const string sql = "SELECT COUNT(*) FROM vec_embeddings;";
-
-        await using var cmd = _connection.CreateCommand();
-        cmd.CommandText = sql;
-
-        var result = await cmd.ExecuteScalarAsync(ct).ConfigureAwait(false);
-        return Convert.ToInt64(result);
+        return await CountEmbeddingsAsync(ct).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
     public async Task OptimizeAsync(CancellationToken ct = default)
     {
+        ThrowIfDisposed();
+        using var operation = await _suspension.EnterAsync(ct).ConfigureAwait(false);
         ThrowIfDisposed();
         EnsureInitialized();
 
@@ -563,12 +545,81 @@ public sealed class HnswVectorStore : IVectorStore
     }
 
     /// <inheritdoc />
+    /// <remarks>
+    /// The in-memory index is kept but not persisted: after a restore it no longer matches the
+    /// database, and next to a database that is being encrypted it must not be written in plain
+    /// text. <see cref="ResumeAsync"/> decides what happens to it.
+    /// </remarks>
+    public Task SuspendAsync(CancellationToken ct = default)
+    {
+        ThrowIfDisposed();
+
+        // The close runs once no operation is running; new ones wait for the last resume.
+        return _suspension.SuspendAsync(
+            () =>
+            {
+                _reopenOnResume = _initialized && _connection is not null;
+                CloseConnection();
+                _logger.Information("HnswVectorStore suspended: database connection closed");
+            },
+            ct);
+    }
+
+    /// <inheritdoc />
+    public Task ResumeAsync(bool reloadFromDatabase, CancellationToken ct = default)
+        => _suspension.ResumeAsync(reloadFromDatabase, reload => ReopenAsync(reload, ct));
+
+    /// <summary>
+    /// Reopens the connection after a suspension. On a reload the index and the index files are
+    /// rebuilt from the database, because both describe the file that was replaced (a loaded
+    /// index file is only checked by its count, which a restored database can match by chance).
+    /// Otherwise the index is kept, and index files are removed when the database is now
+    /// encrypted.
+    /// </summary>
+    private async Task ReopenAsync(bool reload, CancellationToken ct)
+    {
+        if (!_reopenOnResume || _disposed)
+            return;
+
+        _reopenOnResume = false;
+        await OpenAndPrepareAsync(ct).ConfigureAwait(false);
+
+        if (reload)
+        {
+            DeleteIndexFiles("the database was replaced");
+            await _mutationLock.WaitAsync(ct).ConfigureAwait(false);
+            try
+            {
+                await RebuildIndexAsync(ResolveCurrentDimensions(), ct).ConfigureAwait(false);
+            }
+            finally
+            {
+                _mutationLock.Release();
+            }
+
+            _logger.Information(
+                "HnswVectorStore resumed and rebuilt its index from the database ({Count} embeddings)",
+                _chunkIdToGuid.Count);
+        }
+        else
+        {
+            if (IsDatabaseEncrypted())
+                DeleteIndexFiles("the database is encrypted");
+
+            _logger.Information("HnswVectorStore resumed");
+        }
+    }
+
+    /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
         if (_disposed)
             return;
 
         _disposed = true;
+
+        // Operations waiting on a suspension wake up and report the disposal.
+        _suspension.Abandon();
 
         // Persist dirty index before disposal.
         if (_indexDirty && _hnswIndex is not null && _storagePath is not null)
@@ -876,7 +927,7 @@ public sealed class HnswVectorStore : IVectorStore
         // trust (or keep) index files next to it, rebuild from the database instead.
         if (IsDatabaseEncrypted())
         {
-            DeleteIndexFiles();
+            DeleteIndexFiles("the database is encrypted");
             return false;
         }
 
@@ -1027,7 +1078,7 @@ public sealed class HnswVectorStore : IVectorStore
 
         if (IsDatabaseEncrypted())
         {
-            DeleteIndexFiles();
+            DeleteIndexFiles("the database is encrypted");
             _indexDirty = false;
             _logger.Debug("Database is encrypted; the HNSW index stays in memory and is rebuilt from the database on start");
             return;
@@ -1065,7 +1116,7 @@ public sealed class HnswVectorStore : IVectorStore
             }
 
             // Serialize and write metadata.
-            var embeddingCount = await GetEmbeddingCountAsync(ct).ConfigureAwait(false);
+            var embeddingCount = await CountEmbeddingsAsync(ct).ConfigureAwait(false);
             var metadata = new HnswIndexMetadata
             {
                 Count = embeddingCount,
@@ -1170,8 +1221,8 @@ public sealed class HnswVectorStore : IVectorStore
         }
     }
 
-    /// <summary>Removes persisted index files (best effort).</summary>
-    private void DeleteIndexFiles()
+    /// <summary>Removes persisted index files (best effort); <paramref name="reason"/> is logged.</summary>
+    private void DeleteIndexFiles(string reason)
     {
         if (_storagePath is null)
             return;
@@ -1184,7 +1235,7 @@ public sealed class HnswVectorStore : IVectorStore
                 if (File.Exists(path))
                 {
                     File.Delete(path);
-                    _logger.Information("Removed plaintext HNSW index file {File} next to the encrypted database", name);
+                    _logger.Information("Removed HNSW index file {File} because {Reason}", name, reason);
                 }
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
@@ -1237,6 +1288,86 @@ public sealed class HnswVectorStore : IVectorStore
         await using var cmd = _connection!.CreateCommand();
         cmd.CommandText = sql;
         await cmd.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Opens the connection to the database in <see cref="_storagePath"/> and makes sure the
+    /// embeddings table exists (a restored database may predate it). Used by initialization and
+    /// by resume.
+    /// </summary>
+    private async Task OpenAndPrepareAsync(CancellationToken ct)
+    {
+        // A connection left from an earlier attempt would keep the file open.
+        CloseConnection();
+
+        // Open SQLite connection (same schema as SqliteVecStore) via the encrypted
+        // connection factory: PRAGMA key is applied automatically when encryption
+        // is enabled, and the call is a plaintext open when no key is loaded.
+        var dbPath = Path.Combine(_storagePath!, DatabaseFileName);
+        _connection = _connectionFactory.OpenKeyed(dbPath);
+
+        _logger.Debug("SQLite connection opened: {Path}", dbPath);
+
+        await ExecuteNonQueryAsync("PRAGMA journal_mode=WAL;", ct).ConfigureAwait(false);
+
+        const string createTableSql = """
+            CREATE TABLE IF NOT EXISTS vec_embeddings (
+                chunk_id  INTEGER PRIMARY KEY,
+                embedding BLOB NOT NULL,
+                magnitude REAL NOT NULL
+            );
+            """;
+
+        await ExecuteNonQueryAsync(createTableSql, ct).ConfigureAwait(false);
+
+        const string createIndexSql = """
+            CREATE INDEX IF NOT EXISTS idx_vec_chunk ON vec_embeddings(chunk_id);
+            """;
+
+        await ExecuteNonQueryAsync(createIndexSql, ct).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Counts the stored embeddings on the open connection. For use inside an operation that
+    /// already entered the suspension gate, and while suspended by resume itself.
+    /// </summary>
+    private async Task<long> CountEmbeddingsAsync(CancellationToken ct)
+    {
+        if (_connection is null || _connection.State != System.Data.ConnectionState.Open)
+        {
+            throw new InvalidOperationException(
+                "Vector store is not initialized. Call InitializeAsync before performing operations.");
+        }
+
+        const string sql = "SELECT COUNT(*) FROM vec_embeddings;";
+
+        await using var cmd = _connection.CreateCommand();
+        cmd.CommandText = sql;
+
+        var result = await cmd.ExecuteScalarAsync(ct).ConfigureAwait(false);
+        return Convert.ToInt64(result);
+    }
+
+    /// <summary>
+    /// Closes the connection and clears its pool, so no handle on the database file remains
+    /// (a pooled connection keeps the file open after it is disposed).
+    /// </summary>
+    private void CloseConnection()
+    {
+        var connection = _connection;
+        _connection = null;
+        if (connection is null)
+            return;
+
+        try
+        {
+            SqliteConnection.ClearPool(connection);
+            connection.Dispose();
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning(ex, "Error closing the HnswVectorStore connection");
+        }
     }
 
     /// <summary>
