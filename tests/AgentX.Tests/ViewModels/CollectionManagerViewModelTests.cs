@@ -295,6 +295,145 @@ public sealed class CollectionManagerViewModelTests
         viewModel.IsMultiSelectMode.Should().BeTrue();
     }
 
+    // --- Move into... ---
+    // The service could nest collections (MoveCollectionAsync) but nothing in the page called
+    // it, so every collection stayed where it was created: at the top level.
+
+    [Fact]
+    public void BeginMoveCollectionCommand_ForATopLevelCollection_OffersTheOtherTopLevelCollections()
+    {
+        var viewModel = CreateViewModel();
+        var research = new CollectionDisplayItem { Id = 1, Name = "Research" };
+        viewModel.Collections.Add(research);
+        viewModel.Collections.Add(new CollectionDisplayItem { Id = 2, Name = "Finance" });
+        viewModel.Collections.Add(new CollectionDisplayItem { Id = 3, Name = "Travel" });
+
+        viewModel.BeginMoveCollectionCommand.Execute(research);
+
+        viewModel.IsMoving.Should().BeTrue();
+        viewModel.MoveTarget.Should().BeSameAs(research);
+        viewModel.MoveDestinations.Should().Equal(
+            new CollectionMoveDestination(2, "Finance"),
+            new CollectionMoveDestination(3, "Travel"));
+        viewModel.SelectedMoveDestination.Should().Be(new CollectionMoveDestination(2, "Finance"));
+        viewModel.HasMoveDestinations.Should().BeTrue();
+        viewModel.MoveCollectionCommand.CanExecute(null).Should().BeTrue();
+    }
+
+    [Fact]
+    public void BeginMoveCollectionCommand_ForASubCollection_OffersTheTopLevelAndTheOtherParents()
+    {
+        var viewModel = CreateViewModel();
+        var parent = new CollectionDisplayItem { Id = 1, Name = "Research" };
+        var child = new CollectionDisplayItem { Id = 4, Name = "Papers", ParentCollectionId = 1 };
+        parent.Children.Add(child);
+        viewModel.Collections.Add(parent);
+        viewModel.Collections.Add(new CollectionDisplayItem { Id = 2, Name = "Finance" });
+
+        viewModel.BeginMoveCollectionCommand.Execute(child);
+
+        viewModel.MoveDestinations.Should().Equal(
+            new CollectionMoveDestination(null, "[CollMgr_MoveToTopLevel]"),
+            new CollectionMoveDestination(2, "Finance"));
+    }
+
+    [Fact]
+    public void BeginMoveCollectionCommand_ForACollectionWithSubCollections_OffersNowhere()
+    {
+        // The list shows two levels: its sub-collections would sink to a third one.
+        var viewModel = CreateViewModel();
+        var parent = new CollectionDisplayItem { Id = 1, Name = "Research" };
+        parent.Children.Add(new CollectionDisplayItem { Id = 4, Name = "Papers", ParentCollectionId = 1 });
+        viewModel.Collections.Add(parent);
+        viewModel.Collections.Add(new CollectionDisplayItem { Id = 2, Name = "Finance" });
+
+        viewModel.BeginMoveCollectionCommand.Execute(parent);
+
+        viewModel.IsMoving.Should().BeTrue();
+        viewModel.MoveDestinations.Should().BeEmpty();
+        viewModel.HasMoveDestinations.Should().BeFalse();
+        viewModel.MoveCollectionCommand.CanExecute(null).Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task MoveCollectionCommand_NestsATopLevelCollectionUnderAnother()
+    {
+        var viewModel = CreateViewModel();
+        var research = new CollectionDisplayItem { Id = 1, Name = "Research" };
+        var finance = new CollectionDisplayItem { Id = 2, Name = "Finance" };
+        viewModel.Collections.Add(research);
+        viewModel.Collections.Add(finance);
+        viewModel.BeginMoveCollectionCommand.Execute(research);
+        viewModel.SelectedMoveDestination = viewModel.MoveDestinations.Single(d => d.ParentId == 2);
+
+        await viewModel.MoveCollectionCommand.ExecuteAsync(null);
+
+        _collectionService.Verify(service => service.MoveCollectionAsync(1, 2), Times.Once);
+        viewModel.Collections.Should().Equal(finance);
+        finance.Children.Should().Equal(research);
+        research.ParentCollectionId.Should().Be(2);
+        viewModel.IsMoving.Should().BeFalse();
+        viewModel.MoveDestinations.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task MoveCollectionCommand_MovesASubCollectionToTheTopLevel()
+    {
+        var viewModel = CreateViewModel();
+        var parent = new CollectionDisplayItem { Id = 1, Name = "Research" };
+        var child = new CollectionDisplayItem { Id = 4, Name = "Papers", ParentCollectionId = 1 };
+        parent.Children.Add(child);
+        viewModel.Collections.Add(parent);
+        viewModel.BeginMoveCollectionCommand.Execute(child);
+
+        await viewModel.MoveCollectionCommand.ExecuteAsync(null);
+
+        _collectionService.Verify(service => service.MoveCollectionAsync(4, null), Times.Once);
+        parent.Children.Should().BeEmpty();
+        viewModel.Collections.Should().Equal(parent, child);
+        child.ParentCollectionId.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task MoveCollectionCommand_WhenTheServiceFails_LeavesTheListAndSaysWhy()
+    {
+        _collectionService.Setup(service => service.MoveCollectionAsync(1, 2))
+            .ThrowsAsync(new InvalidOperationException("Target parent collection 2 not found."));
+        var viewModel = CreateViewModel();
+        var research = new CollectionDisplayItem { Id = 1, Name = "Research" };
+        var finance = new CollectionDisplayItem { Id = 2, Name = "Finance" };
+        viewModel.Collections.Add(research);
+        viewModel.Collections.Add(finance);
+        viewModel.BeginMoveCollectionCommand.Execute(research);
+
+        await viewModel.MoveCollectionCommand.ExecuteAsync(null);
+
+        viewModel.Collections.Should().Equal(research, finance);
+        finance.Children.Should().BeEmpty();
+        research.ParentCollectionId.Should().BeNull();
+        viewModel.HasError.Should().BeTrue();
+        viewModel.ErrorMessage.Should().Be("[CollMgr_MoveFailed] Target parent collection 2 not found.");
+        viewModel.IsMoving.Should().BeFalse();
+    }
+
+    [Fact]
+    public void CancelMoveCommand_ClosesTheEditorWithoutMoving()
+    {
+        var viewModel = CreateViewModel();
+        var research = new CollectionDisplayItem { Id = 1, Name = "Research" };
+        viewModel.Collections.Add(research);
+        viewModel.Collections.Add(new CollectionDisplayItem { Id = 2, Name = "Finance" });
+        viewModel.BeginMoveCollectionCommand.Execute(research);
+
+        viewModel.CancelMoveCommand.Execute(null);
+
+        viewModel.IsMoving.Should().BeFalse();
+        viewModel.MoveTarget.Should().BeNull();
+        viewModel.MoveDestinations.Should().BeEmpty();
+        _collectionService.Verify(
+            service => service.MoveCollectionAsync(It.IsAny<long>(), It.IsAny<long?>()), Times.Never);
+    }
+
     [Fact]
     public async Task InitializeAsync_ShowsTheStoredDocumentCount()
     {

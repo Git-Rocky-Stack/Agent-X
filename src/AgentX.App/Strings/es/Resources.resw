@@ -1484,6 +1484,14 @@
   <data name="Plugin_BulkUninstallConfirmMessage" xml:space="preserve"><value>Plugins seleccionados: {0}. Se eliminan sus carpetas, junto con los datos que los plugins guardan en ellas. Esta acción no se puede deshacer.</value></data>
   <data name="Plugin_UninstallConfirmButton" xml:space="preserve"><value>Desinstalar</value></data>
   <data name="Plugin_ConfirmCancelButton" xml:space="preserve"><value>Cancelar</value></data>
+  <data name="CollMgr_MoveInto.Text" xml:space="preserve"><value>Mover a...</value></data>
+  <data name="CollMgr_MoveTitle.Text" xml:space="preserve"><value>Mover colección</value></data>
+  <data name="CollMgr_MoveDestination.Text" xml:space="preserve"><value>Destino</value></data>
+  <data name="CollMgr_MoveNowhere.Text" xml:space="preserve"><value>No hay ningún lugar al que mover esta colección. Las colecciones solo se anidan un nivel, así que una colección con subcolecciones permanece en el nivel superior.</value></data>
+  <data name="CollMgr_MoveCancel.Content" xml:space="preserve"><value>Cancelar</value></data>
+  <data name="CollMgr_MoveConfirm.Content" xml:space="preserve"><value>Mover</value></data>
+  <data name="CollMgr_MoveToTopLevel" xml:space="preserve"><value>Nivel superior</value></data>
+  <data name="CollMgr_MoveFailed" xml:space="preserve"><value>No se pudo mover la colección: {0}</value></data>
   <data name="Digest_NoDigestReportsYet.Text" xml:space="preserve"><value>Aún no hay informes de resumen</value></data>
   <data name="Digest_GenerateYourFirstWeekly.Text" xml:space="preserve"><value>Genere su primer resumen semanal para ver resúmenes de actividad, tendencias de búsqueda y momentos destacados de las conversaciones.</value></data>
   <data name="Digest_GenerateFirstDigest.Text" xml:space="preserve"><value>Generar primer resumen</value></data>

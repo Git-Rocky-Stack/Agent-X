@@ -1606,6 +1606,14 @@
   <data name="Plugin_BulkUninstallConfirmMessage" xml:space="preserve"><value>Selected plugins: {0}. Their folders are deleted, together with any data the plugins keep there. This cannot be undone.</value></data>
   <data name="Plugin_UninstallConfirmButton" xml:space="preserve"><value>Uninstall</value></data>
   <data name="Plugin_ConfirmCancelButton" xml:space="preserve"><value>Cancel</value></data>
+  <data name="CollMgr_MoveInto.Text" xml:space="preserve"><value>Move into...</value></data>
+  <data name="CollMgr_MoveTitle.Text" xml:space="preserve"><value>Move Collection</value></data>
+  <data name="CollMgr_MoveDestination.Text" xml:space="preserve"><value>Destination</value></data>
+  <data name="CollMgr_MoveNowhere.Text" xml:space="preserve"><value>There is nowhere to move this collection. Collections nest one level deep, so a collection with sub-collections stays at the top level.</value></data>
+  <data name="CollMgr_MoveCancel.Content" xml:space="preserve"><value>Cancel</value></data>
+  <data name="CollMgr_MoveConfirm.Content" xml:space="preserve"><value>Move</value></data>
+  <data name="CollMgr_MoveToTopLevel" xml:space="preserve"><value>Top level</value></data>
+  <data name="CollMgr_MoveFailed" xml:space="preserve"><value>Failed to move the collection: {0}</value></data>
   <data name="Digest_NoDigestReportsYet.Text" xml:space="preserve"><value>No Digest Reports Yet</value></data>
   <data name="Digest_GenerateYourFirstWeekly.Text" xml:space="preserve"><value>Generate your first weekly digest to see activity summaries, search trends, and conversation highlights.</value></data>
   <data name="Digest_GenerateFirstDigest.Text" xml:space="preserve"><value>Generate First Digest</value></data>

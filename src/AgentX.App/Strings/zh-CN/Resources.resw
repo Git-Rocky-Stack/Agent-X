@@ -1484,6 +1484,14 @@
   <data name="Plugin_BulkUninstallConfirmMessage" xml:space="preserve"><value>已选插件：{0} 个。它们的文件夹及插件保存在其中的所有数据都会被删除。此操作无法撤消。</value></data>
   <data name="Plugin_UninstallConfirmButton" xml:space="preserve"><value>卸载</value></data>
   <data name="Plugin_ConfirmCancelButton" xml:space="preserve"><value>取消</value></data>
+  <data name="CollMgr_MoveInto.Text" xml:space="preserve"><value>移动到...</value></data>
+  <data name="CollMgr_MoveTitle.Text" xml:space="preserve"><value>移动合集</value></data>
+  <data name="CollMgr_MoveDestination.Text" xml:space="preserve"><value>目标位置</value></data>
+  <data name="CollMgr_MoveNowhere.Text" xml:space="preserve"><value>此合集无处可移动。合集只能嵌套一层，因此包含子合集的合集会保留在顶层。</value></data>
+  <data name="CollMgr_MoveCancel.Content" xml:space="preserve"><value>取消</value></data>
+  <data name="CollMgr_MoveConfirm.Content" xml:space="preserve"><value>移动</value></data>
+  <data name="CollMgr_MoveToTopLevel" xml:space="preserve"><value>顶层</value></data>
+  <data name="CollMgr_MoveFailed" xml:space="preserve"><value>无法移动合集：{0}</value></data>
   <data name="Digest_NoDigestReportsYet.Text" xml:space="preserve"><value>暂无摘要报告</value></data>
   <data name="Digest_GenerateYourFirstWeekly.Text" xml:space="preserve"><value>生成您的第一份每周摘要,查看活动汇总、搜索趋势和会话亮点。</value></data>
   <data name="Digest_GenerateFirstDigest.Text" xml:space="preserve"><value>生成第一份摘要</value></data>

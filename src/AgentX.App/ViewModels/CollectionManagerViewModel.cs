@@ -51,6 +51,22 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
 
     public ObservableCollection<long> SelectedCollectionIds { get; } = new();
 
+    // -- Move Editor ("Move into...") --
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(MoveCollectionCommand))]
+    private bool _isMoving;
+
+    [ObservableProperty] private CollectionDisplayItem? _moveTarget;
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(MoveCollectionCommand))]
+    private CollectionMoveDestination? _selectedMoveDestination;
+
+    [ObservableProperty] private bool _hasMoveDestinations;
+
+    /// <summary>Where the collection in the move editor can go.</summary>
+    public ObservableCollection<CollectionMoveDestination> MoveDestinations { get; } = new();
+
     // ── Stats ────────────────────────────────────────────────
     [ObservableProperty] private int _totalCollections;
 
@@ -302,6 +318,115 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
         IsRenaming = false;
         RenameTarget = null;
         RenameName = string.Empty;
+    }
+
+    /// <summary>
+    /// Opens the move editor ("Move into...") on a collection with the places it can go. The
+    /// list shows two levels, top-level collections and their sub-collections, so a collection
+    /// can move to the top level or into another top-level collection, and only one without
+    /// sub-collections of its own can become a sub-collection (its children would otherwise
+    /// sink to a third level the list does not show).
+    /// </summary>
+    [RelayCommand]
+    private void BeginMoveCollection(CollectionDisplayItem? item)
+    {
+        if (item is null)
+        {
+            return;
+        }
+
+        MoveDestinations.Clear();
+
+        if (item.ParentCollectionId is not null)
+        {
+            MoveDestinations.Add(new CollectionMoveDestination(null, _localization.GetString("CollMgr_MoveToTopLevel")));
+        }
+
+        if (item.Children.Count == 0)
+        {
+            foreach (var candidate in Collections)
+            {
+                if (candidate.Id != item.Id && candidate.Id != item.ParentCollectionId)
+                {
+                    MoveDestinations.Add(new CollectionMoveDestination(candidate.Id, candidate.Name));
+                }
+            }
+        }
+
+        MoveTarget = item;
+        HasMoveDestinations = MoveDestinations.Count > 0;
+        SelectedMoveDestination = MoveDestinations.FirstOrDefault();
+        IsMoving = true;
+    }
+
+    private bool CanMoveCollection() => IsMoving && MoveTarget is not null && SelectedMoveDestination is not null;
+
+    /// <summary>
+    /// Moves the collection in the move editor to the chosen place and shows it there, at the
+    /// end of its new siblings, where the collection service puts it too.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanMoveCollection))]
+    private async Task MoveCollectionAsync()
+    {
+        var target = MoveTarget;
+        var destination = SelectedMoveDestination;
+        if (target is null || destination is null)
+        {
+            return;
+        }
+
+        ClearError();
+
+        try
+        {
+            await _collectionService.MoveCollectionAsync(target.Id, destination.ParentId);
+
+            var oldSiblings = FindParentCollection(target.Id)?.Children ?? Collections;
+            oldSiblings.Remove(target);
+            target.ParentCollectionId = destination.ParentId;
+
+            if (destination.ParentId is null)
+            {
+                Collections.Add(target);
+            }
+            else if (FindCollectionById(destination.ParentId.Value) is { } parent)
+            {
+                parent.Children.Add(target);
+            }
+            else
+            {
+                // The destination left the list in the meantime; show the stored tree.
+                await LoadCollectionsAsync();
+            }
+
+            OnPropertyChanged(nameof(HasCollections));
+            Log.Information("Moved collection {CollectionId} under {ParentId}",
+                target.Id, destination.ParentId?.ToString() ?? "the top level");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to move collection {CollectionId}", target.Id);
+            SetError(_localization.GetString("CollMgr_MoveFailed", ex.Message));
+        }
+        finally
+        {
+            CloseMoveEditor();
+        }
+    }
+
+    /// <summary>
+    /// Closes the move editor without moving anything.
+    /// </summary>
+    [RelayCommand]
+    private void CancelMove() => CloseMoveEditor();
+
+    private void CloseMoveEditor()
+    {
+        IsMoving = false;
+        MoveTarget = null;
+        SelectedMoveDestination = null;
+        MoveDestinations.Clear();
+        HasMoveDestinations = false;
     }
 
     /// <summary>
@@ -838,6 +963,12 @@ public sealed record CollectionAddOutcome(int Added, int AlreadyInCollection, IR
 
 /// <summary>A file "Add Documents" could not put in the collection, and why.</summary>
 public sealed record CollectionAddFailure(string FilePath, string Reason);
+
+/// <summary>
+/// A place "Move into..." offers: a top-level collection (its id), or the top level itself
+/// (<paramref name="ParentId"/> null).
+/// </summary>
+public sealed record CollectionMoveDestination(long? ParentId, string Name);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // COLLECTION DISPLAY ITEM

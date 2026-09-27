@@ -1484,6 +1484,14 @@
   <data name="Plugin_BulkUninstallConfirmMessage" xml:space="preserve"><value>選択したプラグイン: {0} 件。各フォルダーは、プラグインがそこに保存しているデータと一緒に削除されます。この操作は元に戻せません。</value></data>
   <data name="Plugin_UninstallConfirmButton" xml:space="preserve"><value>アンインストール</value></data>
   <data name="Plugin_ConfirmCancelButton" xml:space="preserve"><value>キャンセル</value></data>
+  <data name="CollMgr_MoveInto.Text" xml:space="preserve"><value>移動先を選択...</value></data>
+  <data name="CollMgr_MoveTitle.Text" xml:space="preserve"><value>コレクションを移動</value></data>
+  <data name="CollMgr_MoveDestination.Text" xml:space="preserve"><value>移動先</value></data>
+  <data name="CollMgr_MoveNowhere.Text" xml:space="preserve"><value>このコレクションの移動先はありません。コレクションは 1 階層までしか入れ子にできないため、サブコレクションを持つコレクションは最上位に置かれたままになります。</value></data>
+  <data name="CollMgr_MoveCancel.Content" xml:space="preserve"><value>キャンセル</value></data>
+  <data name="CollMgr_MoveConfirm.Content" xml:space="preserve"><value>移動</value></data>
+  <data name="CollMgr_MoveToTopLevel" xml:space="preserve"><value>最上位</value></data>
+  <data name="CollMgr_MoveFailed" xml:space="preserve"><value>コレクションを移動できませんでした: {0}</value></data>
   <data name="Digest_NoDigestReportsYet.Text" xml:space="preserve"><value>ダイジェスト レポートはまだありません</value></data>
   <data name="Digest_GenerateYourFirstWeekly.Text" xml:space="preserve"><value>最初の週次ダイジェストを生成すると、アクティビティの概要、検索トレンド、会話のハイライトが表示されます。</value></data>
   <data name="Digest_GenerateFirstDigest.Text" xml:space="preserve"><value>最初のダイジェストを生成</value></data>

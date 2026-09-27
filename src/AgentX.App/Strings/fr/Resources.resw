@@ -1484,6 +1484,14 @@
   <data name="Plugin_BulkUninstallConfirmMessage" xml:space="preserve"><value>Plugins sélectionnés : {0}. Leurs dossiers sont supprimés, avec toutes les données que les plugins y conservent. Cette action est irréversible.</value></data>
   <data name="Plugin_UninstallConfirmButton" xml:space="preserve"><value>Désinstaller</value></data>
   <data name="Plugin_ConfirmCancelButton" xml:space="preserve"><value>Annuler</value></data>
+  <data name="CollMgr_MoveInto.Text" xml:space="preserve"><value>Déplacer vers...</value></data>
+  <data name="CollMgr_MoveTitle.Text" xml:space="preserve"><value>Déplacer la collection</value></data>
+  <data name="CollMgr_MoveDestination.Text" xml:space="preserve"><value>Destination</value></data>
+  <data name="CollMgr_MoveNowhere.Text" xml:space="preserve"><value>Cette collection ne peut être déplacée nulle part. Les collections ne s'imbriquent que sur un niveau : une collection qui a des sous-collections reste au niveau supérieur.</value></data>
+  <data name="CollMgr_MoveCancel.Content" xml:space="preserve"><value>Annuler</value></data>
+  <data name="CollMgr_MoveConfirm.Content" xml:space="preserve"><value>Déplacer</value></data>
+  <data name="CollMgr_MoveToTopLevel" xml:space="preserve"><value>Niveau supérieur</value></data>
+  <data name="CollMgr_MoveFailed" xml:space="preserve"><value>Impossible de déplacer la collection : {0}</value></data>
   <data name="Digest_NoDigestReportsYet.Text" xml:space="preserve"><value>Pas encore de rapports de résumé</value></data>
   <data name="Digest_GenerateYourFirstWeekly.Text" xml:space="preserve"><value>Générez votre premier résumé hebdomadaire pour voir les synthèses d'activité, les tendances de recherche et les temps forts des conversations.</value></data>
   <data name="Digest_GenerateFirstDigest.Text" xml:space="preserve"><value>Générer le premier résumé</value></data>

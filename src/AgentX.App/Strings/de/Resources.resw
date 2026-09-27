@@ -1484,6 +1484,14 @@
   <data name="Plugin_BulkUninstallConfirmMessage" xml:space="preserve"><value>Ausgewählte Plugins: {0}. Ihre Ordner werden gelöscht, zusammen mit allen Daten, die die Plugins dort speichern. Dies kann nicht rückgängig gemacht werden.</value></data>
   <data name="Plugin_UninstallConfirmButton" xml:space="preserve"><value>Deinstallieren</value></data>
   <data name="Plugin_ConfirmCancelButton" xml:space="preserve"><value>Abbrechen</value></data>
+  <data name="CollMgr_MoveInto.Text" xml:space="preserve"><value>Verschieben nach...</value></data>
+  <data name="CollMgr_MoveTitle.Text" xml:space="preserve"><value>Sammlung verschieben</value></data>
+  <data name="CollMgr_MoveDestination.Text" xml:space="preserve"><value>Ziel</value></data>
+  <data name="CollMgr_MoveNowhere.Text" xml:space="preserve"><value>Diese Sammlung kann nirgendwohin verschoben werden. Sammlungen lassen sich nur eine Ebene tief verschachteln, daher bleibt eine Sammlung mit Untersammlungen auf der obersten Ebene.</value></data>
+  <data name="CollMgr_MoveCancel.Content" xml:space="preserve"><value>Abbrechen</value></data>
+  <data name="CollMgr_MoveConfirm.Content" xml:space="preserve"><value>Verschieben</value></data>
+  <data name="CollMgr_MoveToTopLevel" xml:space="preserve"><value>Oberste Ebene</value></data>
+  <data name="CollMgr_MoveFailed" xml:space="preserve"><value>Die Sammlung konnte nicht verschoben werden: {0}</value></data>
   <data name="Digest_NoDigestReportsYet.Text" xml:space="preserve"><value>Noch keine Digest-Berichte</value></data>
   <data name="Digest_GenerateYourFirstWeekly.Text" xml:space="preserve"><value>Erstellen Sie Ihren ersten Wochen-Digest, um Aktivitätszusammenfassungen, Suchtrends und Konversations-Highlights zu sehen.</value></data>
   <data name="Digest_GenerateFirstDigest.Text" xml:space="preserve"><value>Ersten Digest erstellen</value></data>

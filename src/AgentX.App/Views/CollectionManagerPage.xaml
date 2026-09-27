@@ -469,16 +469,30 @@
                                        Visibility="{x:Bind ViewModel.SelectedCollection.Description, Mode=OneWay, Converter={StaticResource StringToVis}}" />
                         </StackPanel>
 
-                        <Button Grid.Column="1"
-                                Style="{StaticResource AccentButtonStyle}"
-                                Click="OnAddDocumentsClick"
-                                VerticalAlignment="Top"
-                                AutomationProperties.LabeledBy="{x:Bind AddDocumentsLabel}">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <FontIcon Glyph="&#xE710;" FontSize="14" />
-                                <TextBlock x:Name="AddDocumentsLabel" x:Uid="CollMgr_AddDocuments" Text="Add Documents" />
-                            </StackPanel>
-                        </Button>
+                        <StackPanel Grid.Column="1"
+                                    Orientation="Horizontal"
+                                    Spacing="8"
+                                    VerticalAlignment="Top">
+                            <!-- Opens the move editor below on this collection -->
+                            <Button Style="{StaticResource SecondaryButtonStyle}"
+                                    Command="{x:Bind ViewModel.BeginMoveCollectionCommand}"
+                                    CommandParameter="{x:Bind ViewModel.SelectedCollection, Mode=OneWay}"
+                                    AutomationProperties.LabeledBy="{x:Bind MoveIntoLabel}">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon Glyph="&#xE8DE;" FontSize="14" />
+                                    <TextBlock x:Name="MoveIntoLabel" x:Uid="CollMgr_MoveInto" Text="Move into..." />
+                                </StackPanel>
+                            </Button>
+
+                            <Button Style="{StaticResource AccentButtonStyle}"
+                                    Click="OnAddDocumentsClick"
+                                    AutomationProperties.LabeledBy="{x:Bind AddDocumentsLabel}">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon Glyph="&#xE710;" FontSize="14" />
+                                    <TextBlock x:Name="AddDocumentsLabel" x:Uid="CollMgr_AddDocuments" Text="Add Documents" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
                     </Grid>
 
                     <!-- Row 1: Stats badges -->
@@ -681,6 +695,68 @@
                                 Style="{StaticResource SecondaryButtonStyle}" />
                         <Button x:Uid="CollMgr_RenameSave" Content="Rename"
                                 Command="{x:Bind ViewModel.RenameCollectionCommand}"
+                                Style="{StaticResource AccentButtonStyle}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- MOVE COLLECTION PANEL ("Move into...")
+             The same modal layer as the rename panel. The list shows two
+             levels, so the view model offers the top level and the other
+             top-level collections only. -->
+        <Grid Grid.Column="0" Grid.ColumnSpan="2"
+              Background="{ThemeResource OverlayBrush}"
+              Visibility="{x:Bind ViewModel.IsMoving, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+            <Border Background="{ThemeResource CardGradientBrush}"
+                    BorderBrush="{ThemeResource BorderSubtleBrush}"
+                    BorderThickness="1"
+                    CornerRadius="{StaticResource RControl}"
+                    Padding="24"
+                    MinWidth="380"
+                    MaxWidth="480"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+                <StackPanel Spacing="16">
+                    <TextBlock x:Uid="CollMgr_MoveTitle" Text="Move Collection"
+                               Style="{StaticResource HeadingSmallStyle}"
+                               AutomationProperties.HeadingLevel="Level2" />
+
+                    <TextBlock Text="{x:Bind ViewModel.MoveTarget.Name, Mode=OneWay}"
+                               Style="{StaticResource BodySecondaryStyle}"
+                               MaxLines="1"
+                               TextTrimming="CharacterEllipsis" />
+
+                    <StackPanel Spacing="4"
+                                Visibility="{x:Bind ViewModel.HasMoveDestinations, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                        <TextBlock x:Name="MoveDestinationLabel" x:Uid="CollMgr_MoveDestination" Text="Destination"
+                                   Style="{StaticResource LabelStyle}" />
+                        <ComboBox ItemsSource="{x:Bind ViewModel.MoveDestinations}"
+                                  SelectedItem="{x:Bind ViewModel.SelectedMoveDestination, Mode=TwoWay}"
+                                  HorizontalAlignment="Stretch"
+                                  AutomationProperties.LabeledBy="{x:Bind MoveDestinationLabel}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate x:DataType="vm:CollectionMoveDestination">
+                                    <TextBlock Text="{x:Bind Name}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <TextBlock x:Uid="CollMgr_MoveNowhere"
+                               Text="There is nowhere to move this collection. Collections nest one level deep, so a collection with sub-collections stays at the top level."
+                               Style="{StaticResource BodySmallStyle}"
+                               TextWrapping="Wrap"
+                               Visibility="{x:Bind ViewModel.HasMoveDestinations, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}" />
+
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="8"
+                                HorizontalAlignment="Right">
+                        <Button x:Uid="CollMgr_MoveCancel" Content="Cancel"
+                                Command="{x:Bind ViewModel.CancelMoveCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}" />
+                        <Button x:Uid="CollMgr_MoveConfirm" Content="Move"
+                                Command="{x:Bind ViewModel.MoveCollectionCommand}"
                                 Style="{StaticResource AccentButtonStyle}" />
                     </StackPanel>
                 </StackPanel>
