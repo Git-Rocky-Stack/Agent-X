@@ -792,9 +792,9 @@ At startup (`InitializeAsync`) the service initializes the vector store, sets do
 starts the loop. A shutdown in the middle of a document hands it back to the queue.
 
 Step 2 reuses the text extracted at import while the file is unchanged. When it has to extract
-again (a re-index, a changed file, or a document still queued after a restart), it uses only the
-built-in processors, so a document whose format only a plugin processor reads fails there with "No
-processor found for file type".
+again (a re-index, a changed file, or a document still queued after a restart), it picks the
+processor the way the import does: the built-in processors first, then the processors of active
+plugins (`IPluginDocumentProcessorSource`).
 
 **`FileWatcherService`** monitors the enabled watch folders (managed under Settings, Watch Folders)
 with `FileSystemWatcher` when Auto-index watch folders is on. At startup it runs a catch-up scan

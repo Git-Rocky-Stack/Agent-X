@@ -923,9 +923,9 @@ processor claims. Watch folders need no change: `FileWatcherService` asks
 
 **From a plugin.** A plugin can contribute a processor by implementing `IDocumentProcessorPlugin`
 (`IPlugin` plus `IDocumentProcessor`). `DocumentService` tries plugin processors after the built-in
-ones, so a plugin only handles formats no built-in processor accepts. `IndexingService` only knows
-the built-in processors: it indexes a plugin-format document from the text extracted at import, but
-cannot extract it again (a re-index, or a document still queued when the app restarted). See
+ones, so a plugin only handles formats no built-in processor accepts. `IndexingService` does the
+same when it has to extract a document again (a re-index, or a document still queued when the app
+restarted), so a plugin-format document is re-read while its plugin is active. See
 [PLUGIN-DEVELOPMENT-GUIDE.md](PLUGIN-DEVELOPMENT-GUIDE.md) and `plugins/sample-plugin/`.
 
 ### 5.4 Adding a New AI Provider

@@ -313,7 +313,7 @@ How the host uses it:
 - **Failures.** Throw `DocumentExtractionException` (namespace `AgentX.Core.Documents`) with a message written for the user: the document is kept with the status Failed and that message as its reason, shown on its card and in its preview. Any other exception is recorded as "Text extraction failed: " followed by its message. Cancellation propagates. An exception from `CanProcess` counts as "no" and one from `SupportedExtensions` as "no formats"; both are logged, so a faulty plugin cannot break imports of other files.
 - **Only while active.** Return false from `CanProcess` once the plugin is deactivated, as the example does: the host stops offering files to a deactivated plugin, but an import that already picked it may still be running.
 
-Known limitation: the indexer reuses the text extracted at import. When that text is no longer at hand, for example because Agent-X restarted before the document was indexed, the indexer reads the file with the built-in processors only, and a plugin-format document then fails with "No processor found for file type". Re-index it from the Knowledge Vault while the plugin is active.
+Re-reading: the indexer reuses the text extracted at import. When that text is no longer at hand (a re-index, or a document still queued when Agent-X restarted), the indexer reads the file again with the same selection: built-in processors first, then active plugins. A plugin-format document is therefore re-read only while its plugin is active; otherwise it fails with "No processor found for file type".
 
 ### Data Connector
 
