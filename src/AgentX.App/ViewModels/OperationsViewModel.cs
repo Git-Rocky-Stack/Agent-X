@@ -140,7 +140,7 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
     private bool CanRunManualSync() =>
         !IsLoading &&
         !IsRunningManualSync &&
-        !SyncHealth.Headline.Equals("Not configured", StringComparison.OrdinalIgnoreCase);
+        SyncHealth.StatusKind != OperationsStatusKind.SyncNotConfigured;
 
     [RelayCommand(CanExecute = nameof(CanRefreshConversationSummaries))]
     private async Task RefreshConversationSummariesAsync(CancellationToken ct = default)
@@ -547,10 +547,13 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
         Connectors = CreateDefaultConnectorsCard()
     };
 
+    // The defaults carry the kinds their English text stands for, so the checks below, which
+    // read the kinds, treat them as before.
     private static OperationsCardSnapshot CreateDefaultConversationCard() => new()
     {
         Headline = "0",
         Status = "Durable recall inactive",
+        StatusKind = OperationsStatusKind.RecallInactive,
         Detail = "Open Analytics to inspect summary coverage and durable recall detail."
     };
 
@@ -558,6 +561,7 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
     {
         Headline = "Not configured",
         Status = "Collaborative sync is off",
+        StatusKind = OperationsStatusKind.SyncNotConfigured,
         Detail = "Configure a shared folder to keep multiple installations aligned."
     };
 
@@ -565,6 +569,7 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
     {
         Headline = "0",
         Status = "Queue clear",
+        StatusKind = OperationsStatusKind.BacklogClear,
         Detail = "Watch folders and enabled connectors will surface new items here."
     };
 
@@ -572,7 +577,9 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
     {
         Headline = "0",
         Status = "Ready to automate",
+        StatusKind = OperationsStatusKind.WorkflowReadyToAutomate,
         SupportingPrimary = "No recent runs",
+        SupportingPrimaryKind = OperationsStatusKind.WorkflowsNoRecentRuns,
         SupportingSecondary = "Avg duration unavailable",
         Detail = "Create or launch a workflow from Vault or Search to start automating multi-step tasks."
     };
@@ -581,6 +588,7 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
     {
         Headline = "0",
         Status = "No plugins installed",
+        StatusKind = OperationsStatusKind.NoPluginsInstalled,
         Detail = "Install or enable plugins to bring external data and workflow extensions into the app."
     };
 
@@ -591,31 +599,31 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
             snapshot.ConversationIntelligence.Headline,
             snapshot.ConversationIntelligence.Status,
             "Analytics",
-            "Open Analytics"),
+            "Open Analytics") { StatusToneToken = snapshot.ConversationIntelligence.StatusToneToken },
         new OperationsOverviewStatusTile(
             "Sync",
             snapshot.SyncHealth.Headline,
             snapshot.SyncHealth.Status,
             "SyncSettings",
-            "Open Sync"),
+            "Open Sync") { StatusToneToken = snapshot.SyncHealth.StatusToneToken },
         new OperationsOverviewStatusTile(
             "Backlog",
             snapshot.IngestionBacklog.Headline,
             snapshot.IngestionBacklog.Status,
             "Inbox",
-            "Open Inbox"),
+            "Open Inbox") { StatusToneToken = snapshot.IngestionBacklog.StatusToneToken },
         new OperationsOverviewStatusTile(
             "Workflows",
             snapshot.WorkflowActivity.Headline,
             snapshot.WorkflowActivity.Status,
             "Workflows",
-            "Open Workflows"),
+            "Open Workflows") { StatusToneToken = snapshot.WorkflowActivity.StatusToneToken },
         new OperationsOverviewStatusTile(
             "Connectors",
             snapshot.Connectors.Headline,
             snapshot.Connectors.Status,
             "PluginManager",
-            "Open Plugins")
+            "Open Plugins") { StatusToneToken = snapshot.Connectors.StatusToneToken }
     ];
 
     private static IReadOnlyList<OperationsRecommendedActionItem> BuildRecommendedActions(OperationsOverviewSnapshot snapshot)
@@ -624,12 +632,11 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
 
         var documentNeedingAttention = snapshot.RecentImportedDocuments.FirstOrDefault(preview =>
             preview.DocumentId > 0 &&
-            preview.HealthStatus.Equals("Needs Attention", StringComparison.OrdinalIgnoreCase));
+            preview.Health == OperationsDocumentHealth.NeedsAttention);
         var connectorToEnable = snapshot.ConnectorPreviews.FirstOrDefault(preview => preview.CanEnableFromOperations);
         var failedWorkflowRun = snapshot.RecentWorkflowRuns.FirstOrDefault(preview =>
             preview.RunId > 0 &&
-            (preview.Status.Equals("Failed", StringComparison.OrdinalIgnoreCase) ||
-             preview.Status.Equals("Cancelled", StringComparison.OrdinalIgnoreCase)));
+            preview.NeedsReview);
 
         if (NeedsConversationAttention(snapshot.ConversationIntelligence))
         {
@@ -641,14 +648,15 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
                 snapshot.ConversationIntelligence.Status,
                 "Refresh Summaries",
                 "Analytics",
-                OperationsRecommendedActionKind.RefreshConversationSummaries));
+                OperationsRecommendedActionKind.RefreshConversationSummaries)
+            {
+                StatusToneToken = snapshot.ConversationIntelligence.StatusToneToken
+            });
         }
 
         if (NeedsSyncAttention(snapshot.SyncHealth))
         {
-            var requiresSetup =
-                snapshot.SyncHealth.Headline.Equals("Not configured", StringComparison.OrdinalIgnoreCase) ||
-                snapshot.SyncHealth.Status.Contains("off", StringComparison.OrdinalIgnoreCase);
+            var requiresSetup = snapshot.SyncHealth.StatusKind == OperationsStatusKind.SyncNotConfigured;
 
             items.Add(new OperationsRecommendedActionItem(
                 requiresSetup ? "Setup" : "Sync",
@@ -662,7 +670,10 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
                 "SyncSettings",
                 requiresSetup
                     ? OperationsRecommendedActionKind.Navigate
-                    : OperationsRecommendedActionKind.RunManualSync));
+                    : OperationsRecommendedActionKind.RunManualSync)
+            {
+                StatusToneToken = snapshot.SyncHealth.StatusToneToken
+            });
         }
 
         if (ParseCompactNumber(snapshot.IngestionBacklog.Headline) > 0)
@@ -675,7 +686,10 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
                 snapshot.IngestionBacklog.Status,
                 "Generate Previews",
                 "Inbox",
-                OperationsRecommendedActionKind.GenerateInboxPreviews));
+                OperationsRecommendedActionKind.GenerateInboxPreviews)
+            {
+                StatusToneToken = snapshot.IngestionBacklog.StatusToneToken
+            });
         }
 
         if (documentNeedingAttention is not null)
@@ -689,7 +703,10 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
                 "Retry Index",
                 "KnowledgeVault",
                 OperationsRecommendedActionKind.RetryImportedDocumentIndexing,
-                documentNeedingAttention.DocumentId));
+                documentNeedingAttention.DocumentId)
+            {
+                StatusToneToken = documentNeedingAttention.HealthToneToken
+            });
         }
 
         if (connectorToEnable is not null)
@@ -703,21 +720,27 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
                 "Enable Connector",
                 "PluginManager",
                 OperationsRecommendedActionKind.EnableConnector,
-                connectorToEnable.PluginId));
+                connectorToEnable.PluginId)
+            {
+                StatusToneToken = connectorToEnable.StatusToneToken
+            });
         }
         else if (snapshot.Connectors.Headline.Equals("0", StringComparison.OrdinalIgnoreCase) ||
-                 snapshot.Connectors.Status.Contains("no plugins installed", StringComparison.OrdinalIgnoreCase) ||
-                 snapshot.Connectors.Status.Contains("no connectors", StringComparison.OrdinalIgnoreCase))
+                 snapshot.Connectors.StatusKind == OperationsStatusKind.NoPluginsInstalled)
         {
+            var noStatus = string.IsNullOrWhiteSpace(snapshot.Connectors.Status);
             items.Add(new OperationsRecommendedActionItem(
                 "Expansion",
                 "\uE943",
                 "Connect a live source",
                 "Bring in fresh external content so the rest of the workspace has more real intake to triage, search, and automate.",
-                string.IsNullOrWhiteSpace(snapshot.Connectors.Status) ? "No connectors enabled" : snapshot.Connectors.Status,
+                noStatus ? "No connectors enabled" : snapshot.Connectors.Status,
                 "Open Plugins",
                 "PluginManager",
-                OperationsRecommendedActionKind.Navigate));
+                OperationsRecommendedActionKind.Navigate)
+            {
+                StatusToneToken = noStatus ? "No connectors enabled" : snapshot.Connectors.StatusToneToken
+            });
         }
 
         if (failedWorkflowRun is not null)
@@ -732,7 +755,10 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
                 "Workflows",
                 OperationsRecommendedActionKind.Navigate,
                 failedWorkflowRun.WorkflowId,
-                failedWorkflowRun.RunId));
+                failedWorkflowRun.RunId)
+            {
+                StatusToneToken = failedWorkflowRun.StatusToneToken
+            });
         }
 
         if (items.Count == 0)
@@ -745,7 +771,10 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
                 snapshot.ConversationIntelligence.Status,
                 "Open Analytics",
                 "Analytics",
-                OperationsRecommendedActionKind.Navigate));
+                OperationsRecommendedActionKind.Navigate)
+            {
+                StatusToneToken = snapshot.ConversationIntelligence.StatusToneToken
+            });
             items.Add(new OperationsRecommendedActionItem(
                 "Review",
                 "\uE895",
@@ -754,7 +783,10 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
                 snapshot.SyncHealth.Status,
                 "Open Sync",
                 "SyncSettings",
-                OperationsRecommendedActionKind.Navigate));
+                OperationsRecommendedActionKind.Navigate)
+            {
+                StatusToneToken = snapshot.SyncHealth.StatusToneToken
+            });
             items.Add(new OperationsRecommendedActionItem(
                 "Review",
                 "\uE8C7",
@@ -763,7 +795,10 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
                 snapshot.WorkflowActivity.Status,
                 "Open Workflows",
                 "Workflows",
-                OperationsRecommendedActionKind.Navigate));
+                OperationsRecommendedActionKind.Navigate)
+            {
+                StatusToneToken = snapshot.WorkflowActivity.StatusToneToken
+            });
         }
 
         return items.Take(4).ToArray();
@@ -806,27 +841,22 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
         return count;
     }
 
+    // The status texts are in the user's language, so these read the snapshot's kinds.
     private static bool NeedsConversationAttention(OperationsCardSnapshot card) =>
-        card.Status.Contains("pending", StringComparison.OrdinalIgnoreCase) ||
-        card.Status.Contains("stale", StringComparison.OrdinalIgnoreCase);
+        card.StatusKind is OperationsStatusKind.RecallRefreshesPending or OperationsStatusKind.RecallStaleSummaries;
 
     private static bool NeedsSyncAttention(OperationsCardSnapshot card) =>
-        card.Headline.Equals("Not configured", StringComparison.OrdinalIgnoreCase) ||
-        card.Status.Contains("conflict", StringComparison.OrdinalIgnoreCase) ||
-        card.Status.Contains("attention", StringComparison.OrdinalIgnoreCase) ||
-        card.Status.Contains("off", StringComparison.OrdinalIgnoreCase);
+        card.StatusKind is OperationsStatusKind.SyncNotConfigured or OperationsStatusKind.SyncConflict;
 
     private static bool NeedsImportedDocumentAttention(IReadOnlyList<OperationsImportedDocumentPreview> previews) =>
         previews.Any(preview => preview.DocumentId > 0 &&
-                                preview.HealthStatus.Equals("Needs Attention", StringComparison.OrdinalIgnoreCase));
+                                preview.Health == OperationsDocumentHealth.NeedsAttention);
 
     private static bool NeedsConnectorAttention(IReadOnlyList<OperationsConnectorPreview> previews) =>
         previews.Any(preview => preview.CanEnableFromOperations);
 
     private static bool NeedsWorkflowRunAttention(IReadOnlyList<OperationsWorkflowRunPreview> previews) =>
-        previews.Any(preview => preview.RunId > 0 &&
-                                (preview.Status.Equals("Failed", StringComparison.OrdinalIgnoreCase) ||
-                                 preview.Status.Equals("Cancelled", StringComparison.OrdinalIgnoreCase)));
+        previews.Any(preview => preview.RunId > 0 && preview.NeedsReview);
 
     private void StageRecommendedActionDrillIn(OperationsRecommendedActionItem action)
     {
@@ -937,7 +967,11 @@ public sealed record OperationsOverviewStatusTile(
     string Headline,
     string Status,
     string Route,
-    string NavigationLabel);
+    string NavigationLabel)
+{
+    /// <summary>The tone token the status is colored with; the status text is translated.</summary>
+    public string StatusToneToken { get; init; } = string.Empty;
+}
 
 public enum OperationsRecommendedActionKind
 {
@@ -959,4 +993,8 @@ public sealed record OperationsRecommendedActionItem(
     string Route,
     OperationsRecommendedActionKind Kind,
     long TargetId = 0,
-    long SecondaryTargetId = 0);
+    long SecondaryTargetId = 0)
+{
+    /// <summary>The tone token the status is colored with; the status text is translated.</summary>
+    public string StatusToneToken { get; init; } = string.Empty;
+}

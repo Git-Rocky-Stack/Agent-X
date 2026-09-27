@@ -726,6 +726,127 @@
   <data name="ModelMgr_DownloadFailed" xml:space="preserve"><value>无法下载 {0}。请确保 {1} 可用且模型名称正确。</value></data>
   <data name="ModelMgr_DeleteFailed" xml:space="preserve"><value>无法删除模型。{0}</value></data>
   <data name="ModelMgr_SetActiveFailed" xml:space="preserve"><value>无法设置当前模型。{0}</value></data>
+  <data name="Ops_RecallRefreshesPending" xml:space="preserve"><value>{0} 项刷新待处理</value></data>
+  <data name="Ops_RecallRefreshPending" xml:space="preserve"><value>1 项刷新待处理</value></data>
+  <data name="Ops_RecallStaleSummaries" xml:space="preserve"><value>{0} 条过期摘要</value></data>
+  <data name="Ops_RecallStaleSummary" xml:space="preserve"><value>1 条过期摘要</value></data>
+  <data name="Ops_RecallCurrent" xml:space="preserve"><value>持久回忆已是最新</value></data>
+  <data name="Ops_RecallInactive" xml:space="preserve"><value>持久回忆未启用</value></data>
+  <data name="Ops_RecallDetailNoSummaries" xml:space="preserve"><value>打开 Analytics 查看摘要覆盖范围和最近的快照。</value></data>
+  <data name="Ops_RecallDetailSnapshots" xml:space="preserve"><value>已存快照：{0} 个，最新 {1}</value></data>
+  <data name="Ops_SummaryRefreshError" xml:space="preserve"><value>刷新出错</value></data>
+  <data name="Ops_SummaryStale" xml:space="preserve"><value>已过期</value></data>
+  <data name="Ops_SummaryPending" xml:space="preserve"><value>{0} 条待处理</value></data>
+  <data name="Ops_SummaryCurrent" xml:space="preserve"><value>最新</value></data>
+  <data name="Ops_SummaryUntitled" xml:space="preserve"><value>未命名会话</value></data>
+  <data name="Ops_TextWithTime" xml:space="preserve"><value>{0}（{1}）</value></data>
+  <data name="Ops_SummaryCovered" xml:space="preserve"><value>已覆盖消息：{0} 条，{1}</value></data>
+  <data name="Ops_SummariesEmptyTitle" xml:space="preserve"><value>尚无已存摘要</value></data>
+  <data name="Ops_PlaceholderAnalytics" xml:space="preserve"><value>Analytics</value></data>
+  <data name="Ops_SummariesEmptyDetail" xml:space="preserve"><value>会话刷新后，持久摘要预览将显示在此处。</value></data>
+  <data name="Ops_SyncNotConfigured" xml:space="preserve"><value>未配置</value></data>
+  <data name="Ops_SyncOff" xml:space="preserve"><value>Collaborative Sync 已关闭</value></data>
+  <data name="Ops_SyncSetupHint" xml:space="preserve"><value>配置共享文件夹，使多个安装保持一致。</value></data>
+  <data name="Ops_SyncHeadlineSyncing" xml:space="preserve"><value>正在同步</value></data>
+  <data name="Ops_SyncHeadlineConflict" xml:space="preserve"><value>检测到冲突</value></data>
+  <data name="Ops_SyncHeadlineError" xml:space="preserve"><value>需要处理</value></data>
+  <data name="Ops_SyncHeadlineConfigured" xml:space="preserve"><value>已配置</value></data>
+  <data name="Ops_SyncStatusRunning" xml:space="preserve"><value>正在交换</value></data>
+  <data name="Ops_SyncStatusConflict" xml:space="preserve"><value>解决同步冲突</value></data>
+  <data name="Ops_SyncStatusError" xml:space="preserve"><value>检查同步状况</value></data>
+  <data name="Ops_SyncChangesPending" xml:space="preserve"><value>{0} 项本地更改待同步</value></data>
+  <data name="Ops_SyncChangePending" xml:space="preserve"><value>1 项本地更改待同步</value></data>
+  <data name="Ops_SyncStandingBy" xml:space="preserve"><value>待命</value></data>
+  <data name="Ops_SyncScopeSelected" xml:space="preserve"><value>仅限所选合集。</value></data>
+  <data name="Ops_SyncScopeFull" xml:space="preserve"><value>正在同步整个工作区。</value></data>
+  <data name="Ops_SyncPassFailed" xml:space="preserve"><value>失败</value></data>
+  <data name="Ops_SyncPassConflictOne" xml:space="preserve"><value>1 项冲突</value></data>
+  <data name="Ops_SyncPassConflictsMany" xml:space="preserve"><value>{0} 项冲突</value></data>
+  <data name="Ops_SyncPassSucceeded" xml:space="preserve"><value>成功</value></data>
+  <data name="Ops_SyncPassDetail" xml:space="preserve"><value>更改 {0} 项，{1}，{2}</value></data>
+  <data name="Ops_SyncPassesEmptyTitle" xml:space="preserve"><value>尚无同步记录</value></data>
+  <data name="Ops_PlaceholderHistory" xml:space="preserve"><value>历史记录</value></data>
+  <data name="Ops_SyncPassesEmptyDetail" xml:space="preserve"><value>同步运行后，最近的导入和导出活动将显示在此处。</value></data>
+  <data name="Ops_SyncPassImport" xml:space="preserve"><value>导入同步</value></data>
+  <data name="Ops_SyncPassExport" xml:space="preserve"><value>导出同步</value></data>
+  <data name="Ops_SyncPassOther" xml:space="preserve"><value>{0} 同步</value></data>
+  <data name="Ops_BacklogDetailPending" xml:space="preserve"><value>打开 Smart Inbox 分拣来自连接器和监视文件夹的导入。</value></data>
+  <data name="Ops_BacklogDetailConnectors" xml:space="preserve"><value>来自连接器和监视文件夹的导入将显示在此处。</value></data>
+  <data name="Ops_BacklogDetailIdle" xml:space="preserve"><value>来自监视文件夹和已启用连接器的新项目将显示在此处。</value></data>
+  <data name="Ops_BacklogWaitingMany" xml:space="preserve"><value>{0} 项待分拣</value></data>
+  <data name="Ops_BacklogWaitingOne" xml:space="preserve"><value>1 项待分拣</value></data>
+  <data name="Ops_BacklogClear" xml:space="preserve"><value>队列已清空</value></data>
+  <data name="Ops_InboxUntitled" xml:space="preserve"><value>未命名收件项</value></data>
+  <data name="Ops_InboxDetail" xml:space="preserve"><value>{0}，{1}</value></data>
+  <data name="Ops_InboxDetailSuggested" xml:space="preserve"><value>{0}，建议：{1}，{2}</value></data>
+  <data name="Ops_InboxEmptyTitle" xml:space="preserve"><value>收件箱已清空</value></data>
+  <data name="Ops_PlaceholderQueue" xml:space="preserve"><value>队列</value></data>
+  <data name="Ops_InboxEmptyDetail" xml:space="preserve"><value>监视文件夹和连接器带来新项目后，待处理的导入将显示在此处。</value></data>
+  <data name="Ops_ImportedEmptyTitle" xml:space="preserve"><value>没有最近导入的文档</value></data>
+  <data name="Ops_PlaceholderVault" xml:space="preserve"><value>Vault</value></data>
+  <data name="Ops_ImportedEmptyDetail" xml:space="preserve"><value>从连接器进入 Knowledge Vault 的文档将显示在此处。</value></data>
+  <data name="Ops_ImportedUntitled" xml:space="preserve"><value>已导入的文档</value></data>
+  <data name="Ops_HealthSearchable" xml:space="preserve"><value>可搜索</value></data>
+  <data name="Ops_HealthProcessing" xml:space="preserve"><value>处理中</value></data>
+  <data name="Ops_HealthNeedsAttention" xml:space="preserve"><value>需要处理</value></data>
+  <data name="Ops_HealthReviewLink" xml:space="preserve"><value>检查 Vault 链接</value></data>
+  <data name="Ops_HealthSearchableSince" xml:space="preserve"><value>可搜索（{0}）</value></data>
+  <data name="Ops_HealthSearchableNow" xml:space="preserve"><value>现已可搜索</value></data>
+  <data name="Ops_HealthQueued" xml:space="preserve"><value>已加入索引队列</value></data>
+  <data name="Ops_HealthIndexing" xml:space="preserve"><value>正在建立索引</value></data>
+  <data name="Ops_HealthReviewIndexing" xml:space="preserve"><value>检查索引状态</value></data>
+  <data name="Ops_ImportedToCollection" xml:space="preserve"><value>存入 {0}</value></data>
+  <data name="Ops_WorkflowSuccessRate" xml:space="preserve"><value>成功率 {0}%</value></data>
+  <data name="Ops_WorkflowRunsRecorded" xml:space="preserve"><value>已记录 {0} 次运行</value></data>
+  <data name="Ops_WorkflowRunRecorded" xml:space="preserve"><value>已记录 1 次运行</value></data>
+  <data name="Ops_WorkflowReady" xml:space="preserve"><value>可以开始自动化</value></data>
+  <data name="Ops_WorkflowsActiveMany" xml:space="preserve"><value>30 天内 {0} 个活跃</value></data>
+  <data name="Ops_WorkflowsActiveOne" xml:space="preserve"><value>30 天内 1 个活跃</value></data>
+  <data name="Ops_WorkflowsEnabledMany" xml:space="preserve"><value>已启用 {0} 个</value></data>
+  <data name="Ops_WorkflowsEnabledOne" xml:space="preserve"><value>已启用 1 个</value></data>
+  <data name="Ops_WorkflowsNoRecentRuns" xml:space="preserve"><value>最近没有运行</value></data>
+  <data name="Ops_WorkflowTop" xml:space="preserve"><value>最常用工作流：{0}，运行 {1} 次</value></data>
+  <data name="Ops_WorkflowsEnabledInBuilderMany" xml:space="preserve"><value>已在构建器中启用 {0} 个工作流。</value></data>
+  <data name="Ops_WorkflowsEnabledInBuilderOne" xml:space="preserve"><value>已在构建器中启用 1 个工作流。</value></data>
+  <data name="Ops_WorkflowCreateHint" xml:space="preserve"><value>从 Vault 或搜索创建或启动工作流，开始自动化多步骤任务。</value></data>
+  <data name="Ops_WorkflowAvgRun" xml:space="preserve"><value>平均运行 {0}</value></data>
+  <data name="Ops_WorkflowAvgUnavailable" xml:space="preserve"><value>平均时长不可用</value></data>
+  <data name="Ops_RunUntitled" xml:space="preserve"><value>工作流运行</value></data>
+  <data name="Ops_RunsEmptyTitle" xml:space="preserve"><value>最近没有工作流运行</value></data>
+  <data name="Ops_RunsEmptyDetail" xml:space="preserve"><value>执行或重新打开工作流后，已存储的运行结果将显示在此处。</value></data>
+  <data name="Ops_ConnectorsEnabledMany" xml:space="preserve"><value>已启用 {0} 个连接器</value></data>
+  <data name="Ops_ConnectorsEnabledOne" xml:space="preserve"><value>已启用 1 个连接器</value></data>
+  <data name="Ops_PluginsEnabledMany" xml:space="preserve"><value>已启用 {0} 个插件</value></data>
+  <data name="Ops_PluginsEnabledOne" xml:space="preserve"><value>已启用 1 个插件</value></data>
+  <data name="Ops_PluginsInstalledMany" xml:space="preserve"><value>已安装 {0} 个插件</value></data>
+  <data name="Ops_PluginsInstalledOne" xml:space="preserve"><value>已安装 1 个插件</value></data>
+  <data name="Ops_NoPluginsInstalled" xml:space="preserve"><value>未安装插件</value></data>
+  <data name="Ops_ConnectorsDetailOpenManager" xml:space="preserve"><value>打开插件管理器以启用连接器和扩展。</value></data>
+  <data name="Ops_ConnectorsDetailInstall" xml:space="preserve"><value>安装或启用插件，将外部数据和工作流扩展引入应用。</value></data>
+  <data name="Ops_ConnectorEnabled" xml:space="preserve"><value>已启用</value></data>
+  <data name="Ops_ConnectorDisabled" xml:space="preserve"><value>已禁用</value></data>
+  <data name="Ops_PluginInstalled" xml:space="preserve"><value>已安装</value></data>
+  <data name="Ops_ConnectorsEmptyTitle" xml:space="preserve"><value>未安装连接器</value></data>
+  <data name="Ops_PlaceholderPlugins" xml:space="preserve"><value>插件</value></data>
+  <data name="Ops_ConnectorsEmptyDetail" xml:space="preserve"><value>安装或启用插件，将外部来源和扩展引入工作区。</value></data>
+  <data name="Ops_ConnectorDetailDescription" xml:space="preserve"><value>{0}：{1}</value></data>
+  <data name="Ops_ConnectorDetailLastActive" xml:space="preserve"><value>{0}，上次活动 {1}</value></data>
+  <data name="Ops_ConnectorDetailVersion" xml:space="preserve"><value>{0}，v{1}</value></data>
+  <data name="Ops_SourcePending" xml:space="preserve"><value>待处理</value></data>
+  <data name="Ops_RunRecorded" xml:space="preserve"><value>已记录运行</value></data>
+  <data name="Ops_RunCompleted" xml:space="preserve"><value>已完成</value></data>
+  <data name="Ops_RunFailed" xml:space="preserve"><value>失败</value></data>
+  <data name="Ops_RunCancelled" xml:space="preserve"><value>已取消</value></data>
+  <data name="Ops_RunRunning" xml:space="preserve"><value>运行中</value></data>
+  <data name="Ops_RunPending" xml:space="preserve"><value>待处理</value></data>
+  <data name="Ops_RunDurationUnavailable" xml:space="preserve"><value>时长不可用</value></data>
+  <data name="Ops_RunTiming" xml:space="preserve"><value>{0}，{1}</value></data>
+  <data name="Ops_PluginTypePlugin" xml:space="preserve"><value>插件</value></data>
+  <data name="Ops_PluginTypeConnector" xml:space="preserve"><value>连接器</value></data>
+  <data name="Ops_PluginTypeWorkflowStep" xml:space="preserve"><value>工作流步骤</value></data>
+  <data name="Ops_DurationMinutes" xml:space="preserve"><value>{0} 分钟</value></data>
+  <data name="Ops_DurationSeconds" xml:space="preserve"><value>{0} 秒</value></data>
+  <data name="Ops_DurationMilliseconds" xml:space="preserve"><value>{0} 毫秒</value></data>
   <data name="Inbox_TargetCollectionOverline.Text" xml:space="preserve"><value>目标合集</value></data>
   <data name="Inbox_AutoSuggestPlaceholder.PlaceholderText" xml:space="preserve"><value>自动建议</value></data>
   <data name="Inbox_ActionsOverline.Text" xml:space="preserve"><value>操作</value></data>

@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Documents;
@@ -5,6 +6,7 @@ using AgentX.Core.Helpers;
 using AgentX.Core.Services.Analytics;
 using AgentX.Core.Services.Analytics.Models;
 using AgentX.Core.Services.Inbox;
+using AgentX.Core.Services.Localization;
 using AgentX.Core.Services.Plugins;
 using AgentX.Core.Services.Sync;
 using AgentX.Core.Services.Sync.Models;
@@ -14,7 +16,9 @@ using Serilog;
 namespace AgentX.App.Services;
 
 /// <summary>
-/// Aggregates the app's operational signals into one dashboard-friendly snapshot.
+/// Aggregates the app's operational signals into one dashboard-friendly snapshot. The text is
+/// written in the user's language; each status also carries an <see cref="OperationsStatusKind"/>
+/// so that logic and status colors never read the text.
 /// </summary>
 public sealed class OperationsOverviewService : IOperationsOverviewService
 {
@@ -24,6 +28,7 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
     private readonly IPluginService _pluginService;
     private readonly ISyncService _syncService;
     private readonly IWorkflowService _workflowService;
+    private readonly ILocalizationService _localization;
     private readonly ILogger _log;
 
     public OperationsOverviewService(
@@ -33,6 +38,7 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
         IPluginService pluginService,
         ISyncService syncService,
         IWorkflowService workflowService,
+        ILocalizationService localization,
         ILogger logger)
     {
         _analyticsService = analyticsService ?? throw new ArgumentNullException(nameof(analyticsService));
@@ -41,6 +47,7 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
         _pluginService = pluginService ?? throw new ArgumentNullException(nameof(pluginService));
         _syncService = syncService ?? throw new ArgumentNullException(nameof(syncService));
         _workflowService = workflowService ?? throw new ArgumentNullException(nameof(workflowService));
+        _localization = localization ?? throw new ArgumentNullException(nameof(localization));
         _log = logger?.ForContext<OperationsOverviewService>()
                ?? throw new ArgumentNullException(nameof(logger));
     }
@@ -146,51 +153,76 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
         }
     }
 
-    private static OperationsCardSnapshot BuildConversationIntelligenceCard(ConversationIntelligenceOverview overview)
+    private OperationsCardSnapshot BuildConversationIntelligenceCard(ConversationIntelligenceOverview overview)
     {
         var latestSummary = overview.RecentSummaries.FirstOrDefault();
-        var status = overview.PendingRefreshes switch
+        var (status, statusKind) = overview.PendingRefreshes switch
         {
-            > 1 => $"{overview.PendingRefreshes} refreshes pending",
-            1 => "1 refresh pending",
-            _ when overview.StaleConversations > 1 => $"{overview.StaleConversations} stale summaries",
-            _ when overview.StaleConversations == 1 => "1 stale summary",
-            _ when overview.SummarizedConversations > 0 => "Durable recall current",
-            _ => "Durable recall inactive"
+            > 1 => (_localization.GetString("Ops_RecallRefreshesPending", overview.PendingRefreshes),
+                OperationsStatusKind.RecallRefreshesPending),
+            1 => (_localization.GetString("Ops_RecallRefreshPending"), OperationsStatusKind.RecallRefreshesPending),
+            _ when overview.StaleConversations > 1 => (
+                _localization.GetString("Ops_RecallStaleSummaries", overview.StaleConversations),
+                OperationsStatusKind.RecallStaleSummaries),
+            _ when overview.StaleConversations == 1 => (
+                _localization.GetString("Ops_RecallStaleSummary"),
+                OperationsStatusKind.RecallStaleSummaries),
+            _ when overview.SummarizedConversations > 0 => (
+                _localization.GetString("Ops_RecallCurrent"),
+                OperationsStatusKind.RecallCurrent),
+            _ => (_localization.GetString("Ops_RecallInactive"), OperationsStatusKind.RecallInactive)
         };
 
-        var detail = latestSummary is null
-            ? "Open Analytics to inspect summary coverage and recent snapshots."
-            : $"{FormatCompactNumber(overview.CurrentSnapshots)} stored snapshots · latest {FormatHelper.TimeAgoWithMonths(latestSummary.GeneratedAt)}";
+        string detail;
+        if (latestSummary is null)
+        {
+            detail = _localization.GetString("Ops_RecallDetailNoSummaries");
+        }
+        else
+        {
+            var snapshots = FormatCompactNumber(overview.CurrentSnapshots);
+            var latest = FormatHelper.TimeAgoWithMonths(latestSummary.GeneratedAt);
+            detail = _localization.GetString("Ops_RecallDetailSnapshots", snapshots, latest);
+        }
 
         return new OperationsCardSnapshot
         {
             Headline = FormatCompactNumber(overview.SummarizedConversations),
             Status = status,
+            StatusKind = statusKind,
             Detail = detail
         };
     }
 
-    private static IReadOnlyList<OperationsConversationPreview> BuildConversationPreviews(ConversationIntelligenceOverview overview)
+    private IReadOnlyList<OperationsConversationPreview> BuildConversationPreviews(ConversationIntelligenceOverview overview)
     {
         var items = overview.RecentSummaries
             .Take(3)
-            .Select(summary => new OperationsConversationPreview
+            .Select(summary =>
             {
-                ConversationId = summary.ConversationId,
-                Title = string.IsNullOrWhiteSpace(summary.Title)
-                    ? "Untitled conversation"
-                    : summary.Title,
-                Status = summary.HasRefreshError
-                    ? "Refresh error"
+                var (status, statusKind) = summary.HasRefreshError
+                    ? (_localization.GetString("Ops_SummaryRefreshError"), OperationsStatusKind.SummaryRefreshError)
                     : summary.IsStale
-                        ? "Stale"
+                        ? (_localization.GetString("Ops_SummaryStale"), OperationsStatusKind.SummaryStale)
                         : summary.PendingMessageCount > 0
-                            ? $"{summary.PendingMessageCount} pending"
-                            : "Current",
-                Detail = !string.IsNullOrWhiteSpace(summary.PreviewText)
-                    ? $"{TrimForPreview(summary.PreviewText, 120)} · {FormatHelper.TimeAgoWithMonths(summary.GeneratedAt)}"
-                    : $"{FormatCompactNumber(summary.CoveredMessageCount)} messages covered · {FormatHelper.TimeAgoWithMonths(summary.GeneratedAt)}"
+                            ? (_localization.GetString("Ops_SummaryPending", summary.PendingMessageCount),
+                                OperationsStatusKind.SummaryPending)
+                            : (_localization.GetString("Ops_SummaryCurrent"), OperationsStatusKind.SummaryCurrent);
+                var generated = FormatHelper.TimeAgoWithMonths(summary.GeneratedAt);
+
+                return new OperationsConversationPreview
+                {
+                    ConversationId = summary.ConversationId,
+                    Title = string.IsNullOrWhiteSpace(summary.Title)
+                        ? _localization.GetString("Ops_SummaryUntitled")
+                        : summary.Title,
+                    Status = status,
+                    StatusKind = statusKind,
+                    Detail = !string.IsNullOrWhiteSpace(summary.PreviewText)
+                        ? _localization.GetString("Ops_TextWithTime", TrimForPreview(summary.PreviewText, 120), generated)
+                        : _localization.GetString(
+                            "Ops_SummaryCovered", FormatCompactNumber(summary.CoveredMessageCount), generated)
+                };
             })
             .ToArray();
 
@@ -198,73 +230,92 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
             ? items
             : [new OperationsConversationPreview
             {
-                Title = "No stored summaries yet",
-                Status = "Analytics",
-                Detail = "Durable summary previews will appear here once conversations refresh."
+                Title = _localization.GetString("Ops_SummariesEmptyTitle"),
+                Status = _localization.GetString("Ops_PlaceholderAnalytics"),
+                StatusKind = OperationsStatusKind.Placeholder,
+                Detail = _localization.GetString("Ops_SummariesEmptyDetail")
             }];
     }
 
-    private static OperationsCardSnapshot BuildSyncHealthCard(SyncConfiguration? config, SyncStatus status)
+    private OperationsCardSnapshot BuildSyncHealthCard(SyncConfiguration? config, SyncStatus status)
     {
         if (config is null || string.IsNullOrWhiteSpace(config.SyncFolderPath))
         {
             return new OperationsCardSnapshot
             {
-                Headline = "Not configured",
-                Status = "Collaborative sync is off",
-                Detail = "Configure a shared folder to keep multiple installations aligned."
+                Headline = _localization.GetString("Ops_SyncNotConfigured"),
+                Status = _localization.GetString("Ops_SyncOff"),
+                StatusKind = OperationsStatusKind.SyncNotConfigured,
+                Detail = _localization.GetString("Ops_SyncSetupHint")
             };
         }
 
         var headline = status.SyncState switch
         {
-            SyncState.Syncing => "Syncing now",
-            SyncState.Conflict => "Conflict detected",
-            SyncState.Error => "Needs attention",
+            SyncState.Syncing => _localization.GetString("Ops_SyncHeadlineSyncing"),
+            SyncState.Conflict => _localization.GetString("Ops_SyncHeadlineConflict"),
+            SyncState.Error => _localization.GetString("Ops_SyncHeadlineError"),
             _ when status.LastSyncAt.HasValue => FormatHelper.TimeAgoWithMonths(status.LastSyncAt.Value),
-            _ => "Configured"
+            _ => _localization.GetString("Ops_SyncHeadlineConfigured")
         };
 
-        var syncStatus = status.SyncState switch
+        var (syncStatus, statusKind) = status.SyncState switch
         {
-            SyncState.Syncing => "Exchange in progress",
-            SyncState.Conflict => "Resolve sync conflicts",
-            SyncState.Error => "Review sync health",
-            _ when status.PendingChanges > 1 => $"{status.PendingChanges} local changes pending",
-            _ when status.PendingChanges == 1 => "1 local change pending",
-            _ => "Standing by"
+            SyncState.Syncing => (_localization.GetString("Ops_SyncStatusRunning"), OperationsStatusKind.SyncRunning),
+            SyncState.Conflict => (_localization.GetString("Ops_SyncStatusConflict"), OperationsStatusKind.SyncConflict),
+            SyncState.Error => (_localization.GetString("Ops_SyncStatusError"), OperationsStatusKind.SyncError),
+            _ when status.PendingChanges > 1 => (
+                _localization.GetString("Ops_SyncChangesPending", status.PendingChanges),
+                OperationsStatusKind.SyncChangesPending),
+            _ when status.PendingChanges == 1 => (
+                _localization.GetString("Ops_SyncChangePending"),
+                OperationsStatusKind.SyncChangesPending),
+            _ => (_localization.GetString("Ops_SyncStandingBy"), OperationsStatusKind.SyncStandingBy)
         };
 
         var detail = !string.IsNullOrWhiteSpace(status.ErrorMessage)
             ? status.ErrorMessage
             : config.SyncScope == SyncScope.SelectedCollections
-                ? "Scoped to selected collections."
-                : "Syncing the full workspace.";
+                ? _localization.GetString("Ops_SyncScopeSelected")
+                : _localization.GetString("Ops_SyncScopeFull");
 
         return new OperationsCardSnapshot
         {
             Headline = headline,
             Status = syncStatus,
+            StatusKind = statusKind,
             Detail = detail
         };
     }
 
-    private static IReadOnlyList<OperationsSyncPreview> BuildSyncPreviews(IReadOnlyList<SyncLogEntity> history)
+    private IReadOnlyList<OperationsSyncPreview> BuildSyncPreviews(IReadOnlyList<SyncLogEntity> history)
     {
         var items = history
             .Take(3)
-            .Select(entry => new OperationsSyncPreview
+            .Select(entry =>
             {
-                SyncLogId = entry.Id,
-                Title = $"{ToTitleCase(entry.Direction)} sync",
-                Status = !entry.IsSuccess
-                    ? "Failed"
-                    : entry.ConflictsDetected > 0
-                        ? $"{entry.ConflictsDetected} conflicts"
-                        : "Success",
-                Detail = !entry.IsSuccess && !string.IsNullOrWhiteSpace(entry.ErrorMessage)
-                    ? TrimForPreview(entry.ErrorMessage, 120)
-                    : $"{FormatCompactNumber(entry.ChangesApplied)} changes · {FormatCompactDuration(entry.DurationMs)} · {FormatHelper.TimeAgoWithMonths(entry.SyncedAt)}"
+                var (status, statusKind) = !entry.IsSuccess
+                    ? (_localization.GetString("Ops_SyncPassFailed"), OperationsStatusKind.SyncPassFailed)
+                    : entry.ConflictsDetected == 1
+                        ? (_localization.GetString("Ops_SyncPassConflictOne"), OperationsStatusKind.SyncPassConflicts)
+                        : entry.ConflictsDetected > 1
+                            ? (_localization.GetString("Ops_SyncPassConflictsMany", entry.ConflictsDetected),
+                                OperationsStatusKind.SyncPassConflicts)
+                            : (_localization.GetString("Ops_SyncPassSucceeded"), OperationsStatusKind.SyncPassSucceeded);
+                var changes = FormatCompactNumber(entry.ChangesApplied);
+                var duration = FormatCompactDuration(entry.DurationMs);
+                var synced = FormatHelper.TimeAgoWithMonths(entry.SyncedAt);
+
+                return new OperationsSyncPreview
+                {
+                    SyncLogId = entry.Id,
+                    Title = BuildSyncPassTitle(entry.Direction),
+                    Status = status,
+                    StatusKind = statusKind,
+                    Detail = !entry.IsSuccess && !string.IsNullOrWhiteSpace(entry.ErrorMessage)
+                        ? TrimForPreview(entry.ErrorMessage, 120)
+                        : _localization.GetString("Ops_SyncPassDetail", changes, duration, synced)
+                };
             })
             .ToArray();
 
@@ -272,49 +323,66 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
             ? items
             : [new OperationsSyncPreview
             {
-                Title = "No sync passes yet",
-                Status = "History",
-                Detail = "Recent import and export activity will appear here once sync runs."
+                Title = _localization.GetString("Ops_SyncPassesEmptyTitle"),
+                Status = _localization.GetString("Ops_PlaceholderHistory"),
+                StatusKind = OperationsStatusKind.Placeholder,
+                Detail = _localization.GetString("Ops_SyncPassesEmptyDetail")
             }];
     }
 
-    private static OperationsCardSnapshot BuildIngestionBacklogCard(int pendingCount, int enabledConnectorCount)
+    /// <summary>"Import sync" or "Export sync"; a direction the sync service does not write is named as stored.</summary>
+    private string BuildSyncPassTitle(string direction) => direction.Trim().ToLowerInvariant() switch
+    {
+        "import" => _localization.GetString("Ops_SyncPassImport"),
+        "export" => _localization.GetString("Ops_SyncPassExport"),
+        _ => _localization.GetString("Ops_SyncPassOther", ToTitleCase(direction))
+    };
+
+    private OperationsCardSnapshot BuildIngestionBacklogCard(int pendingCount, int enabledConnectorCount)
     {
         var detail = pendingCount > 0
-            ? "Open Smart Inbox to triage connector and watch-folder imports."
+            ? _localization.GetString("Ops_BacklogDetailPending")
             : enabledConnectorCount > 0
-                ? "Connector and watch-folder imports will surface here."
-                : "Watch folders and enabled connectors will surface new items here.";
+                ? _localization.GetString("Ops_BacklogDetailConnectors")
+                : _localization.GetString("Ops_BacklogDetailIdle");
+
+        var (status, statusKind) = pendingCount switch
+        {
+            > 1 => (_localization.GetString("Ops_BacklogWaitingMany", pendingCount), OperationsStatusKind.BacklogWaiting),
+            1 => (_localization.GetString("Ops_BacklogWaitingOne"), OperationsStatusKind.BacklogWaiting),
+            _ => (_localization.GetString("Ops_BacklogClear"), OperationsStatusKind.BacklogClear)
+        };
 
         return new OperationsCardSnapshot
         {
             Headline = FormatCompactNumber(pendingCount),
-            Status = pendingCount switch
-            {
-                > 1 => $"{pendingCount} items awaiting triage",
-                1 => "1 item awaiting triage",
-                _ => "Queue clear"
-            },
+            Status = status,
+            StatusKind = statusKind,
             Detail = detail
         };
     }
 
-    private static IReadOnlyList<OperationsInboxPreview> BuildInboxPreviews(IReadOnlyList<InboxItemEntity> items)
+    private IReadOnlyList<OperationsInboxPreview> BuildInboxPreviews(IReadOnlyList<InboxItemEntity> items)
     {
         var previews = items
             .Take(3)
-            .Select(item => new OperationsInboxPreview
+            .Select(item =>
             {
-                ItemId = item.Id,
-                Title = string.IsNullOrWhiteSpace(item.FileName)
-                    ? "Untitled inbox item"
-                    : item.FileName,
-                Status = BuildInboxSourceLabel(item),
-                Detail = item switch
+                var (source, sourceKind) = DescribeInboxSource(item);
+                var added = FormatHelper.TimeAgoWithMonths(item.AddedAt);
+
+                return new OperationsInboxPreview
                 {
-                    { SuggestedCollectionName: { Length: > 0 } } => $"{item.FileType} · suggest {item.SuggestedCollectionName} · {FormatHelper.TimeAgoWithMonths(item.AddedAt)}",
-                    _ => $"{item.FileType} · {FormatHelper.TimeAgoWithMonths(item.AddedAt)}"
-                }
+                    ItemId = item.Id,
+                    Title = string.IsNullOrWhiteSpace(item.FileName)
+                        ? _localization.GetString("Ops_InboxUntitled")
+                        : item.FileName,
+                    Status = source,
+                    StatusKind = sourceKind,
+                    Detail = string.IsNullOrEmpty(item.SuggestedCollectionName)
+                        ? _localization.GetString("Ops_InboxDetail", item.FileType, added)
+                        : _localization.GetString("Ops_InboxDetailSuggested", item.FileType, item.SuggestedCollectionName, added)
+                };
             })
             .ToArray();
 
@@ -322,9 +390,10 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
             ? previews
             : [new OperationsInboxPreview
             {
-                Title = "Inbox clear",
-                Status = "Queue",
-                Detail = "Pending imports will appear here as watch folders and connectors bring in new items."
+                Title = _localization.GetString("Ops_InboxEmptyTitle"),
+                Status = _localization.GetString("Ops_PlaceholderQueue"),
+                StatusKind = OperationsStatusKind.Placeholder,
+                Detail = _localization.GetString("Ops_InboxEmptyDetail")
             }];
     }
 
@@ -342,9 +411,10 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
         {
             return [new OperationsImportedDocumentPreview
             {
-                Title = "No recent imported documents",
-                Status = "Vault",
-                Detail = "Connector-sourced documents that bridge into the Knowledge Vault will appear here."
+                Title = _localization.GetString("Ops_ImportedEmptyTitle"),
+                Status = _localization.GetString("Ops_PlaceholderVault"),
+                StatusKind = OperationsStatusKind.Placeholder,
+                Detail = _localization.GetString("Ops_ImportedEmptyDetail")
             }];
         }
 
@@ -372,54 +442,65 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
             _log.Warning(ex, "Operations overview: failed to load imported document {DocumentId}", item.DocumentId!.Value);
         }
 
-        var healthStatus = BuildImportedDocumentHealthStatus(document);
+        var health = BuildImportedDocumentHealth(document);
+        var (source, sourceKind) = DescribeInboxSource(item);
 
         return new OperationsImportedDocumentPreview
         {
             DocumentId = item.DocumentId!.Value,
             Title = string.IsNullOrWhiteSpace(item.FileName)
-                ? "Imported document"
+                ? _localization.GetString("Ops_ImportedUntitled")
                 : item.FileName,
-            Status = BuildInboxSourceLabel(item),
-            HealthStatus = healthStatus,
-            Detail = BuildImportedDocumentDetail(item, document, healthStatus)
+            Status = source,
+            StatusKind = sourceKind,
+            Health = health,
+            HealthStatus = health switch
+            {
+                OperationsDocumentHealth.Searchable => _localization.GetString("Ops_HealthSearchable"),
+                OperationsDocumentHealth.Processing => _localization.GetString("Ops_HealthProcessing"),
+                _ => _localization.GetString("Ops_HealthNeedsAttention")
+            },
+            Detail = BuildImportedDocumentDetail(item, document, health)
         };
     }
 
-    private static string BuildImportedDocumentHealthStatus(DocumentEntity? document) =>
+    private static OperationsDocumentHealth BuildImportedDocumentHealth(DocumentEntity? document) =>
         document switch
         {
-            null => "Needs Attention",
-            { IndexingStatus: "completed", ChunkCount: > 0 } => "Searchable",
-            { IndexingStatus: "pending" } => "Processing",
-            { IndexingStatus: "processing" } => "Processing",
-            { IndexingStatus: "failed" } => "Needs Attention",
-            { IndexingStatus: "completed", ChunkCount: <= 0 } => "Needs Attention",
-            _ => "Needs Attention"
+            null => OperationsDocumentHealth.NeedsAttention,
+            { IndexingStatus: "completed", ChunkCount: > 0 } => OperationsDocumentHealth.Searchable,
+            { IndexingStatus: "pending" } => OperationsDocumentHealth.Processing,
+            { IndexingStatus: "processing" } => OperationsDocumentHealth.Processing,
+            { IndexingStatus: "failed" } => OperationsDocumentHealth.NeedsAttention,
+            { IndexingStatus: "completed", ChunkCount: <= 0 } => OperationsDocumentHealth.NeedsAttention,
+            _ => OperationsDocumentHealth.NeedsAttention
         };
 
-    private static string BuildImportedDocumentHealthDetail(DocumentEntity? document, string healthStatus)
+    private string BuildImportedDocumentHealthDetail(DocumentEntity? document, OperationsDocumentHealth health)
     {
         if (document is null)
         {
-            return "review vault link";
+            return _localization.GetString("Ops_HealthReviewLink");
         }
 
-        return healthStatus switch
+        return health switch
         {
-            "Searchable" when document.LastIndexedAt.HasValue => $"searchable {FormatHelper.TimeAgoWithMonths(document.LastIndexedAt.Value)}",
-            "Searchable" => "searchable now",
-            "Processing" when string.Equals(document.IndexingStatus, "pending", StringComparison.OrdinalIgnoreCase) => "queued for indexing",
-            "Processing" => "indexing in progress",
-            "Needs Attention" when !string.IsNullOrWhiteSpace(document.IndexingError) => TrimForPreview(document.IndexingError, 72),
-            _ => "review indexing status"
+            OperationsDocumentHealth.Searchable when document.LastIndexedAt.HasValue =>
+                _localization.GetString("Ops_HealthSearchableSince", FormatHelper.TimeAgoWithMonths(document.LastIndexedAt.Value)),
+            OperationsDocumentHealth.Searchable => _localization.GetString("Ops_HealthSearchableNow"),
+            OperationsDocumentHealth.Processing when string.Equals(document.IndexingStatus, "pending", StringComparison.OrdinalIgnoreCase) =>
+                _localization.GetString("Ops_HealthQueued"),
+            OperationsDocumentHealth.Processing => _localization.GetString("Ops_HealthIndexing"),
+            OperationsDocumentHealth.NeedsAttention when !string.IsNullOrWhiteSpace(document.IndexingError) =>
+                TrimForPreview(document.IndexingError, 72),
+            _ => _localization.GetString("Ops_HealthReviewIndexing")
         };
     }
 
-    private static string BuildImportedDocumentDetail(
+    private string BuildImportedDocumentDetail(
         InboxItemEntity item,
         DocumentEntity? document,
-        string healthStatus)
+        OperationsDocumentHealth health)
     {
         var parts = new List<string>();
 
@@ -430,14 +511,14 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
 
         if (!string.IsNullOrWhiteSpace(item.SuggestedCollectionName))
         {
-            parts.Add($"to {item.SuggestedCollectionName}");
+            parts.Add(_localization.GetString("Ops_ImportedToCollection", item.SuggestedCollectionName));
         }
 
-        parts.Add(BuildImportedDocumentHealthDetail(document, healthStatus));
-        return string.Join(" · ", parts);
+        parts.Add(BuildImportedDocumentHealthDetail(document, health));
+        return string.Join(", ", parts);
     }
 
-    private static OperationsCardSnapshot BuildWorkflowCard(
+    private OperationsCardSnapshot BuildWorkflowCard(
         WorkflowIntelligenceOverview overview,
         IReadOnlyList<WorkflowEntity> workflows)
     {
@@ -445,53 +526,83 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
         var topWorkflow = overview.TopWorkflows.FirstOrDefault();
         var outcomeRuns = overview.SuccessfulRuns + overview.FailedOrCancelledRuns;
 
+        var (status, statusKind) = overview.TotalRuns switch
+        {
+            > 0 when outcomeRuns > 0 => (
+                _localization.GetString("Ops_WorkflowSuccessRate", overview.SuccessRate.ToString("F0", CultureInfo.CurrentCulture)),
+                OperationsStatusKind.WorkflowSuccessRate),
+            > 1 => (
+                _localization.GetString("Ops_WorkflowRunsRecorded", FormatCompactNumber(overview.TotalRuns)),
+                OperationsStatusKind.WorkflowRunsRecorded),
+            1 => (_localization.GetString("Ops_WorkflowRunRecorded"), OperationsStatusKind.WorkflowRunsRecorded),
+            _ => (_localization.GetString("Ops_WorkflowReady"), OperationsStatusKind.WorkflowReadyToAutomate)
+        };
+
+        var (supportingPrimary, supportingPrimaryKind) = overview.ActiveWorkflowsRecently switch
+        {
+            > 1 => (
+                _localization.GetString("Ops_WorkflowsActiveMany", FormatCompactNumber(overview.ActiveWorkflowsRecently)),
+                OperationsStatusKind.WorkflowsActiveRecently),
+            1 => (_localization.GetString("Ops_WorkflowsActiveOne"), OperationsStatusKind.WorkflowsActiveRecently),
+            _ when enabledCount > 1 => (
+                _localization.GetString("Ops_WorkflowsEnabledMany", FormatCompactNumber(enabledCount)),
+                OperationsStatusKind.WorkflowsEnabled),
+            _ when enabledCount == 1 => (_localization.GetString("Ops_WorkflowsEnabledOne"), OperationsStatusKind.WorkflowsEnabled),
+            _ => (_localization.GetString("Ops_WorkflowsNoRecentRuns"), OperationsStatusKind.WorkflowsNoRecentRuns)
+        };
+
+        string detail;
+        if (topWorkflow is not null)
+        {
+            detail = _localization.GetString(
+                "Ops_WorkflowTop", topWorkflow.WorkflowName, FormatCompactNumber(topWorkflow.RunCount));
+        }
+        else
+        {
+            detail = enabledCount switch
+            {
+                > 1 => _localization.GetString("Ops_WorkflowsEnabledInBuilderMany", FormatCompactNumber(enabledCount)),
+                1 => _localization.GetString("Ops_WorkflowsEnabledInBuilderOne"),
+                _ => _localization.GetString("Ops_WorkflowCreateHint")
+            };
+        }
+
         return new OperationsCardSnapshot
         {
             Headline = FormatCompactNumber(overview.TotalRuns),
-            Status = overview.TotalRuns switch
-            {
-                > 0 when outcomeRuns > 0 => $"{overview.SuccessRate:F0}% success rate",
-                > 1 => $"{FormatCompactNumber(overview.TotalRuns)} runs recorded",
-                1 => "1 run recorded",
-                _ => "Ready to automate"
-            },
-            SupportingPrimary = overview.ActiveWorkflowsRecently switch
-            {
-                > 1 => $"{FormatCompactNumber(overview.ActiveWorkflowsRecently)} active / 30d",
-                1 => "1 active / 30d",
-                _ when enabledCount > 1 => $"{FormatCompactNumber(enabledCount)} enabled",
-                _ when enabledCount == 1 => "1 enabled",
-                _ => "No recent runs"
-            },
+            Status = status,
+            StatusKind = statusKind,
+            SupportingPrimary = supportingPrimary,
+            SupportingPrimaryKind = supportingPrimaryKind,
             SupportingSecondary = overview.AverageRunDurationMs > 0
-                ? $"{FormatCompactDuration(overview.AverageRunDurationMs)} avg run"
-                : "Avg duration unavailable",
-            Detail = topWorkflow is not null
-                ? $"Top workflow: {topWorkflow.WorkflowName} · {FormatCompactNumber(topWorkflow.RunCount)} runs"
-                : enabledCount switch
-                {
-                    > 1 => $"{FormatCompactNumber(enabledCount)} workflows enabled in the builder.",
-                    1 => "1 workflow enabled in the builder.",
-                    _ => "Create or launch a workflow from Vault or Search to start automating multi-step tasks."
-                }
+                ? _localization.GetString("Ops_WorkflowAvgRun", FormatCompactDuration(overview.AverageRunDurationMs))
+                : _localization.GetString("Ops_WorkflowAvgUnavailable"),
+            Detail = detail
         };
     }
 
-    private static IReadOnlyList<OperationsWorkflowRunPreview> BuildWorkflowRunPreviews(WorkflowIntelligenceOverview overview)
+    private IReadOnlyList<OperationsWorkflowRunPreview> BuildWorkflowRunPreviews(WorkflowIntelligenceOverview overview)
     {
         var items = overview.RecentRuns
             .Take(3)
-            .Select(run => new OperationsWorkflowRunPreview
+            .Select(run =>
             {
-                WorkflowId = run.WorkflowId,
-                RunId = run.WorkflowRunId,
-                Title = string.IsNullOrWhiteSpace(run.WorkflowName)
-                    ? "Workflow run"
-                    : run.WorkflowName,
-                Status = NormalizeWorkflowStatus(run.Status),
-                Detail = !string.IsNullOrWhiteSpace(run.PreviewText)
-                    ? $"{TrimForPreview(run.PreviewText, 120)} · {FormatHelper.TimeAgoWithMonths(run.CompletedAt ?? run.StartedAt)}"
-                    : BuildWorkflowTimingDetail(run)
+                var (status, statusKind) = NormalizeWorkflowStatus(run.Status);
+                var when = FormatHelper.TimeAgoWithMonths(run.CompletedAt ?? run.StartedAt);
+
+                return new OperationsWorkflowRunPreview
+                {
+                    WorkflowId = run.WorkflowId,
+                    RunId = run.WorkflowRunId,
+                    Title = string.IsNullOrWhiteSpace(run.WorkflowName)
+                        ? _localization.GetString("Ops_RunUntitled")
+                        : run.WorkflowName,
+                    Status = status,
+                    StatusKind = statusKind,
+                    Detail = !string.IsNullOrWhiteSpace(run.PreviewText)
+                        ? _localization.GetString("Ops_TextWithTime", TrimForPreview(run.PreviewText, 120), when)
+                        : BuildWorkflowTimingDetail(run, when)
+                };
             })
             .ToArray();
 
@@ -499,13 +610,14 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
             ? items
             : [new OperationsWorkflowRunPreview
             {
-                Title = "No recent workflow runs",
-                Status = "History",
-                Detail = "Stored run results will appear here after you execute or reopen workflows."
+                Title = _localization.GetString("Ops_RunsEmptyTitle"),
+                Status = _localization.GetString("Ops_PlaceholderHistory"),
+                StatusKind = OperationsStatusKind.Placeholder,
+                Detail = _localization.GetString("Ops_RunsEmptyDetail")
             }];
     }
 
-    private static OperationsCardSnapshot BuildConnectorCard(
+    private OperationsCardSnapshot BuildConnectorCard(
         IReadOnlyList<PluginEntity> plugins,
         IReadOnlyList<PluginEntity> enabledConnectors,
         int enabledPluginCount)
@@ -517,6 +629,21 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
             .Take(3)
             .ToList();
 
+        var (status, statusKind) = enabledConnectorCount switch
+        {
+            > 1 => (_localization.GetString("Ops_ConnectorsEnabledMany", enabledConnectorCount), OperationsStatusKind.ConnectorsEnabled),
+            1 => (_localization.GetString("Ops_ConnectorsEnabledOne"), OperationsStatusKind.ConnectorsEnabled),
+            _ when enabledPluginCount > 1 => (
+                _localization.GetString("Ops_PluginsEnabledMany", enabledPluginCount),
+                OperationsStatusKind.PluginsEnabled),
+            _ when enabledPluginCount == 1 => (_localization.GetString("Ops_PluginsEnabledOne"), OperationsStatusKind.PluginsEnabled),
+            _ when plugins.Count > 1 => (
+                _localization.GetString("Ops_PluginsInstalledMany", plugins.Count),
+                OperationsStatusKind.PluginsInstalled),
+            _ when plugins.Count == 1 => (_localization.GetString("Ops_PluginsInstalledOne"), OperationsStatusKind.PluginsInstalled),
+            _ => (_localization.GetString("Ops_NoPluginsInstalled"), OperationsStatusKind.NoPluginsInstalled)
+        };
+
         return new OperationsCardSnapshot
         {
             Headline = FormatCompactNumber(enabledConnectorCount > 0
@@ -524,49 +651,44 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
                 : enabledPluginCount > 0
                     ? enabledPluginCount
                     : plugins.Count),
-            Status = enabledConnectorCount switch
-            {
-                > 1 => $"{enabledConnectorCount} connectors enabled",
-                1 => "1 connector enabled",
-                _ when enabledPluginCount > 1 => $"{enabledPluginCount} plugins enabled",
-                _ when enabledPluginCount == 1 => "1 plugin enabled",
-                _ when plugins.Count > 1 => $"{plugins.Count} plugins installed",
-                _ when plugins.Count == 1 => "1 plugin installed",
-                _ => "No plugins installed"
-            },
+            Status = status,
+            StatusKind = statusKind,
             Detail = connectorNames.Count > 0
-                ? string.Join(" · ", connectorNames)
+                ? string.Join(", ", connectorNames)
                 : plugins.Count > 0
-                    ? "Open Plugin Manager to enable connectors and extensions."
-                    : "Install or enable plugins to bring external data and workflow extensions into the app."
+                    ? _localization.GetString("Ops_ConnectorsDetailOpenManager")
+                    : _localization.GetString("Ops_ConnectorsDetailInstall")
         };
     }
 
-    private static IReadOnlyList<OperationsConnectorPreview> BuildConnectorPreviews(IReadOnlyList<PluginEntity> plugins)
+    private IReadOnlyList<OperationsConnectorPreview> BuildConnectorPreviews(IReadOnlyList<PluginEntity> plugins)
     {
         var items = plugins
             .OrderByDescending(plugin => plugin.IsEnabled)
             .ThenByDescending(plugin => plugin.LastActivatedAt ?? plugin.InstalledAt)
             .ThenBy(plugin => plugin.Name)
             .Take(3)
-            .Select(plugin => new OperationsConnectorPreview
+            .Select(plugin =>
             {
-                PluginId = plugin.Id,
-                IsEnabled = plugin.IsEnabled,
-                CanEnableFromOperations = !plugin.IsEnabled && IsPluginType(plugin, PluginType.DataConnector),
-                Title = string.IsNullOrWhiteSpace(plugin.Name)
-                    ? plugin.PluginId
-                    : plugin.Name,
-                Status = plugin.IsEnabled
-                    ? "Enabled"
-                    : IsPluginType(plugin, PluginType.DataConnector)
-                        ? "Disabled"
-                        : "Installed",
-                Detail = !string.IsNullOrWhiteSpace(plugin.Description)
-                    ? $"{FormatPluginType(plugin.PluginType)} · {TrimForPreview(plugin.Description, 120)}"
-                    : plugin.LastActivatedAt.HasValue
-                        ? $"{FormatPluginType(plugin.PluginType)} · last active {FormatHelper.TimeAgoWithMonths(plugin.LastActivatedAt.Value)}"
-                        : $"{FormatPluginType(plugin.PluginType)} · v{plugin.Version}"
+                var isConnector = IsPluginType(plugin, PluginType.DataConnector);
+                var (status, statusKind) = plugin.IsEnabled
+                    ? (_localization.GetString("Ops_ConnectorEnabled"), OperationsStatusKind.ConnectorEnabled)
+                    : isConnector
+                        ? (_localization.GetString("Ops_ConnectorDisabled"), OperationsStatusKind.ConnectorDisabled)
+                        : (_localization.GetString("Ops_PluginInstalled"), OperationsStatusKind.PluginInstalled);
+
+                return new OperationsConnectorPreview
+                {
+                    PluginId = plugin.Id,
+                    IsEnabled = plugin.IsEnabled,
+                    CanEnableFromOperations = !plugin.IsEnabled && isConnector,
+                    Title = string.IsNullOrWhiteSpace(plugin.Name)
+                        ? plugin.PluginId
+                        : plugin.Name,
+                    Status = status,
+                    StatusKind = statusKind,
+                    Detail = BuildConnectorDetail(plugin)
+                };
             })
             .ToArray();
 
@@ -574,16 +696,42 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
             ? items
             : [new OperationsConnectorPreview
             {
-                Title = "No connectors installed",
-                Status = "Plugins",
-                Detail = "Install or enable plugins to bring external sources and extensions into the workspace."
+                Title = _localization.GetString("Ops_ConnectorsEmptyTitle"),
+                Status = _localization.GetString("Ops_PlaceholderPlugins"),
+                StatusKind = OperationsStatusKind.Placeholder,
+                Detail = _localization.GetString("Ops_ConnectorsEmptyDetail")
             }];
+    }
+
+    private string BuildConnectorDetail(PluginEntity plugin)
+    {
+        var pluginType = FormatPluginType(plugin.PluginType);
+
+        if (!string.IsNullOrWhiteSpace(plugin.Description))
+        {
+            return _localization.GetString("Ops_ConnectorDetailDescription", pluginType, TrimForPreview(plugin.Description, 120));
+        }
+
+        return plugin.LastActivatedAt.HasValue
+            ? _localization.GetString(
+                "Ops_ConnectorDetailLastActive", pluginType, FormatHelper.TimeAgoWithMonths(plugin.LastActivatedAt.Value))
+            : _localization.GetString("Ops_ConnectorDetailVersion", pluginType, plugin.Version);
     }
 
     private static bool IsPluginType(PluginEntity plugin, PluginType expectedType) =>
         string.Equals(plugin.PluginType, expectedType.ToString(), StringComparison.OrdinalIgnoreCase);
 
-    private static string BuildInboxSourceLabel(InboxItemEntity item)
+    /// <summary>
+    /// Where an inbox item came from: the category or type its connector recorded, as stored, or
+    /// "Pending" in the user's language when it names none.
+    /// </summary>
+    private (string Label, OperationsStatusKind Kind) DescribeInboxSource(InboxItemEntity item) =>
+        BuildInboxSourceLabel(item) is { } source
+            ? (source, OperationsStatusKind.Other)
+            : (_localization.GetString("Ops_SourcePending"), OperationsStatusKind.SourcePending);
+
+    /// <summary>The category or type the item's connector recorded, title-cased; null when it names neither.</summary>
+    private static string? BuildInboxSourceLabel(InboxItemEntity item)
     {
         if (!string.IsNullOrWhiteSpace(item.SourceCategory))
         {
@@ -595,49 +743,51 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
             return ToTitleCase(item.SourceType);
         }
 
-        return "Pending";
+        return null;
     }
 
-    private static string NormalizeWorkflowStatus(string status)
+    /// <summary>
+    /// A run's status in the user's language. A status the workflow engine does not write is shown
+    /// as stored and colored from its text.
+    /// </summary>
+    private (string Label, OperationsStatusKind Kind) NormalizeWorkflowStatus(string status)
     {
         if (string.IsNullOrWhiteSpace(status))
         {
-            return "Run recorded";
+            return (_localization.GetString("Ops_RunRecorded"), OperationsStatusKind.RunRecorded);
         }
 
         return status.ToLowerInvariant() switch
         {
-            "completed" => "Completed",
-            "success" => "Completed",
-            "failed" => "Failed",
-            "cancelled" => "Cancelled",
-            "canceled" => "Cancelled",
-            "running" => "Running",
-            "pending" => "Pending",
-            _ => ToTitleCase(status)
+            "completed" or "success" => (_localization.GetString("Ops_RunCompleted"), OperationsStatusKind.RunCompleted),
+            "failed" => (_localization.GetString("Ops_RunFailed"), OperationsStatusKind.RunFailed),
+            "cancelled" or "canceled" => (_localization.GetString("Ops_RunCancelled"), OperationsStatusKind.RunCancelled),
+            "running" => (_localization.GetString("Ops_RunRunning"), OperationsStatusKind.RunRunning),
+            "pending" => (_localization.GetString("Ops_RunPending"), OperationsStatusKind.RunPending),
+            _ => (ToTitleCase(status), OperationsStatusKind.Other)
         };
     }
 
-    private static string BuildWorkflowTimingDetail(WorkflowRecentRunMetric run)
+    private string BuildWorkflowTimingDetail(WorkflowRecentRunMetric run, string when)
     {
-        var detail = run.DurationMs.HasValue
+        var duration = run.DurationMs.HasValue
             ? FormatCompactDuration(run.DurationMs.Value)
-            : "Duration unavailable";
+            : _localization.GetString("Ops_RunDurationUnavailable");
 
-        return $"{detail} · {FormatHelper.TimeAgoWithMonths(run.CompletedAt ?? run.StartedAt)}";
+        return _localization.GetString("Ops_RunTiming", duration, when);
     }
 
-    private static string FormatPluginType(string pluginType)
+    private string FormatPluginType(string pluginType)
     {
         if (string.IsNullOrWhiteSpace(pluginType))
         {
-            return "Plugin";
+            return _localization.GetString("Ops_PluginTypePlugin");
         }
 
         return pluginType switch
         {
-            "DataConnector" => "Connector",
-            "WorkflowStep" => "Workflow step",
+            "DataConnector" => _localization.GetString("Ops_PluginTypeConnector"),
+            "WorkflowStep" => _localization.GetString("Ops_PluginTypeWorkflowStep"),
             _ => ToTitleCase(pluginType)
         };
     }
@@ -697,18 +847,20 @@ public sealed class OperationsOverviewService : IOperationsOverviewService
         : value >= 1_000 ? $"{value / 1_000.0:F1}K"
         : value.ToString();
 
-    private static string FormatCompactDuration(double milliseconds)
+    private string FormatCompactDuration(double milliseconds)
     {
         if (milliseconds >= 60_000)
         {
-            return $"{milliseconds / 60_000.0:F1} min";
+            return _localization.GetString(
+                "Ops_DurationMinutes", (milliseconds / 60_000.0).ToString("F1", CultureInfo.CurrentCulture));
         }
 
         if (milliseconds >= 1_000)
         {
-            return $"{milliseconds / 1_000.0:F0}s";
+            return _localization.GetString(
+                "Ops_DurationSeconds", (milliseconds / 1_000.0).ToString("F0", CultureInfo.CurrentCulture));
         }
 
-        return $"{milliseconds:F0} ms";
+        return _localization.GetString("Ops_DurationMilliseconds", milliseconds.ToString("F0", CultureInfo.CurrentCulture));
     }
 }

@@ -23,6 +23,7 @@ public sealed class OperationsViewModelTests
                 {
                     Headline = "5",
                     Status = "Durable recall current",
+                    StatusKind = OperationsStatusKind.RecallCurrent,
                     Detail = "6 stored snapshots · latest 10 minutes ago"
                 },
                 RecentConversationSummaries =
@@ -32,6 +33,7 @@ public sealed class OperationsViewModelTests
                         ConversationId = 42,
                         Title = "Durable memory rollout",
                         Status = "Current",
+                        StatusKind = OperationsStatusKind.SummaryCurrent,
                         Detail = "Persistent summary coverage is catching the latest recall state."
                     }
                 ],
@@ -39,6 +41,7 @@ public sealed class OperationsViewModelTests
                 {
                     Headline = "Configured",
                     Status = "Standing by",
+                    StatusKind = OperationsStatusKind.SyncStandingBy,
                     Detail = "Syncing the full workspace."
                 },
                 RecentSyncPasses =
@@ -47,6 +50,7 @@ public sealed class OperationsViewModelTests
                     {
                         Title = "Import sync",
                         Status = "Success",
+                        StatusKind = OperationsStatusKind.SyncPassSucceeded,
                         Detail = "12 changes · 3s · 9 minutes ago"
                     }
                 ],
@@ -54,6 +58,7 @@ public sealed class OperationsViewModelTests
                 {
                     Headline = "0",
                     Status = "Queue clear",
+                    StatusKind = OperationsStatusKind.BacklogClear,
                     Detail = "Connector and watch-folder imports will surface here."
                 },
                 PendingInboxItems =
@@ -73,6 +78,7 @@ public sealed class OperationsViewModelTests
                         Title = "Sprint planning email",
                         Status = "Email Connector",
                         HealthStatus = "Searchable",
+                        Health = OperationsDocumentHealth.Searchable,
                         Detail = "Email Message · vaulted 28 minutes ago"
                     }
                 ],
@@ -80,6 +86,7 @@ public sealed class OperationsViewModelTests
                 {
                     Headline = "7",
                     Status = "86% success rate",
+                    StatusKind = OperationsStatusKind.WorkflowSuccessRate,
                     SupportingPrimary = "2 active / 30d",
                     SupportingSecondary = "42s avg run",
                     Detail = "Top workflow: Research Briefing · 4 runs"
@@ -90,6 +97,7 @@ public sealed class OperationsViewModelTests
                     {
                         Title = "Research Briefing",
                         Status = "Completed",
+                        StatusKind = OperationsStatusKind.RunCompleted,
                         Detail = "Executive summary and key findings generated successfully."
                     }
                 ],
@@ -97,6 +105,7 @@ public sealed class OperationsViewModelTests
                 {
                     Headline = "2",
                     Status = "2 connectors enabled",
+                    StatusKind = OperationsStatusKind.ConnectorsEnabled,
                     Detail = "Email Connector · Calendar Connector"
                 },
                 ConnectorPreviews =
@@ -108,6 +117,7 @@ public sealed class OperationsViewModelTests
                         CanEnableFromOperations = false,
                         Title = "Email Connector",
                         Status = "Enabled",
+                        StatusKind = OperationsStatusKind.ConnectorEnabled,
                         Detail = "Connector · Brings inbox mail into Agent-X for triage and search."
                     }
                 ]
@@ -149,30 +159,35 @@ public sealed class OperationsViewModelTests
                 {
                     Headline = "5",
                     Status = "Durable recall current",
+                    StatusKind = OperationsStatusKind.RecallCurrent,
                     Detail = "Ready"
                 },
                 SyncHealth = new OperationsCardSnapshot
                 {
                     Headline = "Configured",
                     Status = "Standing by",
+                    StatusKind = OperationsStatusKind.SyncStandingBy,
                     Detail = "Ready"
                 },
                 IngestionBacklog = new OperationsCardSnapshot
                 {
                     Headline = "2",
                     Status = "2 items awaiting triage",
+                    StatusKind = OperationsStatusKind.BacklogWaiting,
                     Detail = "Inbox"
                 },
                 WorkflowActivity = new OperationsCardSnapshot
                 {
                     Headline = "7",
                     Status = "86% success rate",
+                    StatusKind = OperationsStatusKind.WorkflowSuccessRate,
                     Detail = "Healthy"
                 },
                 Connectors = new OperationsCardSnapshot
                 {
                     Headline = "2",
                     Status = "2 connectors enabled",
+                    StatusKind = OperationsStatusKind.ConnectorsEnabled,
                     Detail = "Healthy"
                 }
             });
@@ -201,24 +216,28 @@ public sealed class OperationsViewModelTests
                 {
                     Headline = "4",
                     Status = "1 refresh pending",
+                    StatusKind = OperationsStatusKind.RecallRefreshesPending,
                     Detail = "4 stored snapshots"
                 },
                 SyncHealth = new OperationsCardSnapshot
                 {
                     Headline = "Not configured",
                     Status = "Collaborative sync is off",
+                    StatusKind = OperationsStatusKind.SyncNotConfigured,
                     Detail = "Configure a shared folder."
                 },
                 IngestionBacklog = new OperationsCardSnapshot
                 {
                     Headline = "3",
                     Status = "3 items awaiting triage",
+                    StatusKind = OperationsStatusKind.BacklogWaiting,
                     Detail = "Open Smart Inbox to triage imports."
                 },
                 WorkflowActivity = new OperationsCardSnapshot
                 {
                     Headline = "0",
                     Status = "Ready to automate",
+                    StatusKind = OperationsStatusKind.WorkflowReadyToAutomate,
                     SupportingPrimary = "No recent runs",
                     SupportingSecondary = "Avg duration unavailable",
                     Detail = "Create or launch a workflow."
@@ -227,6 +246,7 @@ public sealed class OperationsViewModelTests
                 {
                     Headline = "0",
                     Status = "No plugins installed",
+                    StatusKind = OperationsStatusKind.NoPluginsInstalled,
                     Detail = "Install or enable plugins."
                 }
             });
@@ -248,6 +268,72 @@ public sealed class OperationsViewModelTests
     }
 
     [Fact]
+    public async Task LoadAsync_reads_the_kinds_so_translated_text_keeps_the_attention_logic()
+    {
+        // The snapshot text is in the user's language. Attention, the guided actions, Sync Now
+        // and the badge colors used to key off English words in it.
+        _operationsOverviewService.Setup(service => service.GetSnapshotAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationsOverviewSnapshot
+            {
+                ConversationIntelligence = new OperationsCardSnapshot
+                {
+                    Headline = "4",
+                    Status = "1 Aktualisierung ausstehend",
+                    StatusKind = OperationsStatusKind.RecallRefreshesPending
+                },
+                SyncHealth = new OperationsCardSnapshot
+                {
+                    Headline = "Nicht konfiguriert",
+                    Status = "Collaborative Sync ist aus",
+                    StatusKind = OperationsStatusKind.SyncNotConfigured
+                },
+                IngestionBacklog = new OperationsCardSnapshot { Headline = "0", StatusKind = OperationsStatusKind.BacklogClear },
+                RecentImportedDocuments =
+                [
+                    new OperationsImportedDocumentPreview
+                    {
+                        DocumentId = 501,
+                        Title = "Sprint.eml",
+                        HealthStatus = "Handlungsbedarf",
+                        Health = OperationsDocumentHealth.NeedsAttention
+                    }
+                ],
+                RecentWorkflowRuns =
+                [
+                    new OperationsWorkflowRunPreview
+                    {
+                        WorkflowId = 3,
+                        RunId = 9,
+                        Title = "Recherche",
+                        Status = "Fehlgeschlagen",
+                        StatusKind = OperationsStatusKind.RunFailed
+                    }
+                ],
+                WorkflowActivity = new OperationsCardSnapshot { Headline = "1", StatusKind = OperationsStatusKind.WorkflowRunsRecorded },
+                Connectors = new OperationsCardSnapshot
+                {
+                    Headline = "0",
+                    Status = "Keine Plugins installiert",
+                    StatusKind = OperationsStatusKind.NoPluginsInstalled
+                }
+            });
+        var viewModel = CreateViewModel();
+
+        await viewModel.LoadAsync();
+
+        viewModel.SummaryHeadline.Should().Be("4 operational areas need attention");
+        viewModel.RunManualSyncCommand.CanExecute(null).Should().BeFalse();
+        viewModel.RecommendedActions.Select(action => action.Kind).Should().Equal(
+            OperationsRecommendedActionKind.RefreshConversationSummaries,
+            OperationsRecommendedActionKind.Navigate,
+            OperationsRecommendedActionKind.RetryImportedDocumentIndexing,
+            OperationsRecommendedActionKind.Navigate);
+        viewModel.RecommendedActions[2].StatusToneToken.Should().Be("failed");
+        viewModel.OverviewStatusTiles[0].StatusToneToken.Should().Be("pending");
+        viewModel.OverviewStatusTiles[1].StatusToneToken.Should().Be("idle");
+    }
+
+    [Fact]
     public async Task LoadAsync_builds_guided_actions_for_direct_fixes_and_setup()
     {
         _operationsOverviewService.Setup(service => service.GetSnapshotAsync(It.IsAny<CancellationToken>()))
@@ -257,18 +343,21 @@ public sealed class OperationsViewModelTests
                 {
                     Headline = "4",
                     Status = "1 refresh pending",
+                    StatusKind = OperationsStatusKind.RecallRefreshesPending,
                     Detail = "4 stored snapshots"
                 },
                 SyncHealth = new OperationsCardSnapshot
                 {
                     Headline = "Not configured",
                     Status = "Collaborative sync is off",
+                    StatusKind = OperationsStatusKind.SyncNotConfigured,
                     Detail = "Configure a shared folder."
                 },
                 IngestionBacklog = new OperationsCardSnapshot
                 {
                     Headline = "3",
                     Status = "3 items awaiting triage",
+                    StatusKind = OperationsStatusKind.BacklogWaiting,
                     Detail = "Open Smart Inbox to triage imports."
                 },
                 RecentImportedDocuments =
@@ -279,6 +368,7 @@ public sealed class OperationsViewModelTests
                         Title = "Sprint planning email",
                         Status = "Email Connector",
                         HealthStatus = "Needs Attention",
+                        Health = OperationsDocumentHealth.NeedsAttention,
                         Detail = "Email Message · Embedding request failed."
                     }
                 ],
@@ -286,6 +376,7 @@ public sealed class OperationsViewModelTests
                 {
                     Headline = "0",
                     Status = "Ready to automate",
+                    StatusKind = OperationsStatusKind.WorkflowReadyToAutomate,
                     SupportingPrimary = "No recent runs",
                     SupportingSecondary = "Avg duration unavailable",
                     Detail = "Create or launch a workflow."
@@ -294,6 +385,7 @@ public sealed class OperationsViewModelTests
                 {
                     Headline = "1",
                     Status = "1 plugin installed",
+                    StatusKind = OperationsStatusKind.PluginsInstalled,
                     Detail = "Open Plugin Manager to enable connectors."
                 },
                 ConnectorPreviews =
@@ -305,6 +397,7 @@ public sealed class OperationsViewModelTests
                         CanEnableFromOperations = true,
                         Title = "Email Connector",
                         Status = "Disabled",
+                        StatusKind = OperationsStatusKind.ConnectorDisabled,
                         Detail = "Connector · Brings inbox mail into Agent-X."
                     }
                 ]
@@ -334,24 +427,28 @@ public sealed class OperationsViewModelTests
                 {
                     Headline = "4",
                     Status = "Durable recall current",
+                    StatusKind = OperationsStatusKind.RecallCurrent,
                     Detail = "4 stored snapshots"
                 },
                 SyncHealth = new OperationsCardSnapshot
                 {
                     Headline = "Configured",
                     Status = "Standing by",
+                    StatusKind = OperationsStatusKind.SyncStandingBy,
                     Detail = "Ready"
                 },
                 IngestionBacklog = new OperationsCardSnapshot
                 {
                     Headline = "0",
                     Status = "Queue clear",
+                    StatusKind = OperationsStatusKind.BacklogClear,
                     Detail = "No pending items."
                 },
                 WorkflowActivity = new OperationsCardSnapshot
                 {
                     Headline = "2",
                     Status = "2 runs recorded",
+                    StatusKind = OperationsStatusKind.WorkflowRunsRecorded,
                     SupportingPrimary = "1 active / 30d",
                     SupportingSecondary = "12s avg run",
                     Detail = "Top workflow: Research Briefing"
@@ -360,6 +457,7 @@ public sealed class OperationsViewModelTests
                 {
                     Headline = "1",
                     Status = "1 plugin installed",
+                    StatusKind = OperationsStatusKind.PluginsInstalled,
                     Detail = "Open Plugin Manager to enable connectors."
                 },
                 RecentImportedDocuments =
@@ -370,6 +468,7 @@ public sealed class OperationsViewModelTests
                         Title = "Sprint planning email",
                         Status = "Email Connector",
                         HealthStatus = "Needs Attention",
+                        Health = OperationsDocumentHealth.NeedsAttention,
                         Detail = "Email Message · Embedding request failed."
                     }
                 ],
@@ -382,6 +481,7 @@ public sealed class OperationsViewModelTests
                         CanEnableFromOperations = true,
                         Title = "Email Connector",
                         Status = "Disabled",
+                        StatusKind = OperationsStatusKind.ConnectorDisabled,
                         Detail = "Connector · Brings inbox mail into Agent-X."
                     }
                 ]
@@ -406,24 +506,28 @@ public sealed class OperationsViewModelTests
                 {
                     Headline = "4",
                     Status = "Durable recall current",
+                    StatusKind = OperationsStatusKind.RecallCurrent,
                     Detail = "4 stored snapshots"
                 },
                 SyncHealth = new OperationsCardSnapshot
                 {
                     Headline = "Configured",
                     Status = "Standing by",
+                    StatusKind = OperationsStatusKind.SyncStandingBy,
                     Detail = "Ready"
                 },
                 IngestionBacklog = new OperationsCardSnapshot
                 {
                     Headline = "0",
                     Status = "Queue clear",
+                    StatusKind = OperationsStatusKind.BacklogClear,
                     Detail = "No pending items."
                 },
                 WorkflowActivity = new OperationsCardSnapshot
                 {
                     Headline = "9",
                     Status = "78% success rate",
+                    StatusKind = OperationsStatusKind.WorkflowSuccessRate,
                     SupportingPrimary = "2 active / 30d",
                     SupportingSecondary = "34s avg run",
                     Detail = "Top workflow: Research Briefing"
@@ -436,6 +540,7 @@ public sealed class OperationsViewModelTests
                         RunId = 77,
                         Title = "Research Briefing",
                         Status = "Failed",
+                        StatusKind = OperationsStatusKind.RunFailed,
                         Detail = "Step 2 failed while drafting the synthesis."
                     }
                 ],
@@ -443,6 +548,7 @@ public sealed class OperationsViewModelTests
                 {
                     Headline = "2",
                     Status = "2 connectors enabled",
+                    StatusKind = OperationsStatusKind.ConnectorsEnabled,
                     Detail = "Email Connector · Calendar Connector"
                 }
             });
@@ -465,18 +571,21 @@ public sealed class OperationsViewModelTests
                 {
                     Headline = "4",
                     Status = "1 refresh pending",
+                    StatusKind = OperationsStatusKind.RecallRefreshesPending,
                     Detail = "4 stored snapshots"
                 },
                 SyncHealth = new OperationsCardSnapshot
                 {
                     Headline = "Not configured",
                     Status = "Collaborative sync is off",
+                    StatusKind = OperationsStatusKind.SyncNotConfigured,
                     Detail = "Configure a shared folder."
                 },
                 IngestionBacklog = new OperationsCardSnapshot
                 {
                     Headline = "3",
                     Status = "3 items awaiting triage",
+                    StatusKind = OperationsStatusKind.BacklogWaiting,
                     Detail = "Open Smart Inbox to triage imports."
                 },
                 RecentImportedDocuments =
@@ -487,6 +596,7 @@ public sealed class OperationsViewModelTests
                         Title = "Sprint planning email",
                         Status = "Email Connector",
                         HealthStatus = "Needs Attention",
+                        Health = OperationsDocumentHealth.NeedsAttention,
                         Detail = "Email Message · Embedding request failed."
                     }
                 ],
@@ -499,6 +609,7 @@ public sealed class OperationsViewModelTests
                         CanEnableFromOperations = true,
                         Title = "Email Connector",
                         Status = "Disabled",
+                        StatusKind = OperationsStatusKind.ConnectorDisabled,
                         Detail = "Connector · Brings inbox mail into Agent-X."
                     }
                 ],
@@ -506,6 +617,7 @@ public sealed class OperationsViewModelTests
                 {
                     Headline = "9",
                     Status = "78% success rate",
+                    StatusKind = OperationsStatusKind.WorkflowSuccessRate,
                     Detail = "Top workflow: Research Briefing"
                 },
                 RecentWorkflowRuns =
@@ -516,6 +628,7 @@ public sealed class OperationsViewModelTests
                         RunId = 77,
                         Title = "Research Briefing",
                         Status = "Failed",
+                        StatusKind = OperationsStatusKind.RunFailed,
                         Detail = "Step 2 failed while drafting the synthesis."
                     }
                 ],
@@ -523,6 +636,7 @@ public sealed class OperationsViewModelTests
                 {
                     Headline = "1",
                     Status = "1 plugin installed",
+                    StatusKind = OperationsStatusKind.PluginsInstalled,
                     Detail = "Open Plugin Manager to enable connectors."
                 }
             });
@@ -669,9 +783,10 @@ public sealed class OperationsViewModelTests
                 {
                     Headline = "3",
                     Status = "1 refresh pending",
+                    StatusKind = OperationsStatusKind.RecallRefreshesPending,
                     Detail = "3 stored snapshots"
                 },
-                SyncHealth = new OperationsCardSnapshot { Headline = "Configured", Status = "Standing by", Detail = "Ready" },
+                SyncHealth = new OperationsCardSnapshot { Headline = "Configured", Status = "Standing by", StatusKind = OperationsStatusKind.SyncStandingBy, Detail = "Ready" },
                 IngestionBacklog = new OperationsCardSnapshot(),
                 WorkflowActivity = new OperationsCardSnapshot(),
                 Connectors = new OperationsCardSnapshot()
@@ -682,9 +797,10 @@ public sealed class OperationsViewModelTests
                 {
                     Headline = "4",
                     Status = "Durable recall current",
+                    StatusKind = OperationsStatusKind.RecallCurrent,
                     Detail = "4 stored snapshots"
                 },
-                SyncHealth = new OperationsCardSnapshot { Headline = "Configured", Status = "Standing by", Detail = "Ready" },
+                SyncHealth = new OperationsCardSnapshot { Headline = "Configured", Status = "Standing by", StatusKind = OperationsStatusKind.SyncStandingBy, Detail = "Ready" },
                 IngestionBacklog = new OperationsCardSnapshot(),
                 WorkflowActivity = new OperationsCardSnapshot(),
                 Connectors = new OperationsCardSnapshot()
@@ -713,6 +829,7 @@ public sealed class OperationsViewModelTests
                 {
                     Headline = "Not configured",
                     Status = "Collaborative sync is off",
+                    StatusKind = OperationsStatusKind.SyncNotConfigured,
                     Detail = "Configure a shared folder."
                 },
                 IngestionBacklog = new OperationsCardSnapshot(),
@@ -737,12 +854,14 @@ public sealed class OperationsViewModelTests
                 {
                     Headline = "Configured",
                     Status = "Standing by",
+                    StatusKind = OperationsStatusKind.SyncStandingBy,
                     Detail = "Ready"
                 },
                 IngestionBacklog = new OperationsCardSnapshot
                 {
                     Headline = "3",
                     Status = "3 items awaiting triage",
+                    StatusKind = OperationsStatusKind.BacklogWaiting,
                     Detail = "Open Smart Inbox to triage imports."
                 },
                 WorkflowActivity = new OperationsCardSnapshot(),
@@ -755,12 +874,14 @@ public sealed class OperationsViewModelTests
                 {
                     Headline = "Configured",
                     Status = "Standing by",
+                    StatusKind = OperationsStatusKind.SyncStandingBy,
                     Detail = "Ready"
                 },
                 IngestionBacklog = new OperationsCardSnapshot
                 {
                     Headline = "1",
                     Status = "1 item awaiting triage",
+                    StatusKind = OperationsStatusKind.BacklogWaiting,
                     Detail = "Open Smart Inbox to triage imports."
                 },
                 WorkflowActivity = new OperationsCardSnapshot(),
@@ -790,6 +911,7 @@ public sealed class OperationsViewModelTests
                 {
                     Headline = "Configured",
                     Status = "Standing by",
+                    StatusKind = OperationsStatusKind.SyncStandingBy,
                     Detail = "Ready"
                 },
                 IngestionBacklog = new OperationsCardSnapshot(),
@@ -798,6 +920,7 @@ public sealed class OperationsViewModelTests
                 {
                     Headline = "0",
                     Status = "1 plugin installed",
+                    StatusKind = OperationsStatusKind.PluginsInstalled,
                     Detail = "Open Plugin Manager to enable connectors and extensions."
                 },
                 ConnectorPreviews =
@@ -809,6 +932,7 @@ public sealed class OperationsViewModelTests
                         CanEnableFromOperations = true,
                         Title = "Email Connector",
                         Status = "Disabled",
+                        StatusKind = OperationsStatusKind.ConnectorDisabled,
                         Detail = "Connector · Brings inbox mail into Agent-X for triage and search."
                     }
                 ]
@@ -820,6 +944,7 @@ public sealed class OperationsViewModelTests
                 {
                     Headline = "Configured",
                     Status = "Standing by",
+                    StatusKind = OperationsStatusKind.SyncStandingBy,
                     Detail = "Ready"
                 },
                 IngestionBacklog = new OperationsCardSnapshot(),
@@ -828,6 +953,7 @@ public sealed class OperationsViewModelTests
                 {
                     Headline = "1",
                     Status = "1 connector enabled",
+                    StatusKind = OperationsStatusKind.ConnectorsEnabled,
                     Detail = "Email Connector"
                 },
                 ConnectorPreviews =
@@ -839,6 +965,7 @@ public sealed class OperationsViewModelTests
                         CanEnableFromOperations = false,
                         Title = "Email Connector",
                         Status = "Enabled",
+                        StatusKind = OperationsStatusKind.ConnectorEnabled,
                         Detail = "Connector · Brings inbox mail into Agent-X for triage and search."
                     }
                 ]
@@ -867,13 +994,14 @@ public sealed class OperationsViewModelTests
             .ReturnsAsync(new OperationsOverviewSnapshot
             {
                 ConversationIntelligence = new OperationsCardSnapshot(),
-                SyncHealth = new OperationsCardSnapshot { Headline = "Configured", Status = "Standing by", Detail = "Ready" },
+                SyncHealth = new OperationsCardSnapshot { Headline = "Configured", Status = "Standing by", StatusKind = OperationsStatusKind.SyncStandingBy, Detail = "Ready" },
                 IngestionBacklog = new OperationsCardSnapshot(),
                 WorkflowActivity = new OperationsCardSnapshot(),
                 Connectors = new OperationsCardSnapshot
                 {
                     Headline = "1",
                     Status = "1 plugin installed",
+                    StatusKind = OperationsStatusKind.PluginsInstalled,
                     Detail = "Open Plugin Manager to enable connectors."
                 },
                 ConnectorPreviews =
@@ -885,6 +1013,7 @@ public sealed class OperationsViewModelTests
                         CanEnableFromOperations = true,
                         Title = "Email Connector",
                         Status = "Disabled",
+                        StatusKind = OperationsStatusKind.ConnectorDisabled,
                         Detail = "Connector · Brings inbox mail into Agent-X."
                     }
                 ]
@@ -892,13 +1021,14 @@ public sealed class OperationsViewModelTests
             .ReturnsAsync(new OperationsOverviewSnapshot
             {
                 ConversationIntelligence = new OperationsCardSnapshot(),
-                SyncHealth = new OperationsCardSnapshot { Headline = "Configured", Status = "Standing by", Detail = "Ready" },
+                SyncHealth = new OperationsCardSnapshot { Headline = "Configured", Status = "Standing by", StatusKind = OperationsStatusKind.SyncStandingBy, Detail = "Ready" },
                 IngestionBacklog = new OperationsCardSnapshot(),
                 WorkflowActivity = new OperationsCardSnapshot(),
                 Connectors = new OperationsCardSnapshot
                 {
                     Headline = "1",
                     Status = "1 connector enabled",
+                    StatusKind = OperationsStatusKind.ConnectorsEnabled,
                     Detail = "Email Connector"
                 },
                 ConnectorPreviews =
@@ -910,6 +1040,7 @@ public sealed class OperationsViewModelTests
                         CanEnableFromOperations = false,
                         Title = "Email Connector",
                         Status = "Enabled",
+                        StatusKind = OperationsStatusKind.ConnectorEnabled,
                         Detail = "Connector · Brings inbox mail into Agent-X."
                     }
                 ]
@@ -934,7 +1065,7 @@ public sealed class OperationsViewModelTests
             .ReturnsAsync(new OperationsOverviewSnapshot
             {
                 ConversationIntelligence = new OperationsCardSnapshot(),
-                SyncHealth = new OperationsCardSnapshot { Headline = "Configured", Status = "Standing by", Detail = "Ready" },
+                SyncHealth = new OperationsCardSnapshot { Headline = "Configured", Status = "Standing by", StatusKind = OperationsStatusKind.SyncStandingBy, Detail = "Ready" },
                 IngestionBacklog = new OperationsCardSnapshot(),
                 WorkflowActivity = new OperationsCardSnapshot(),
                 Connectors = new OperationsCardSnapshot(),
@@ -946,6 +1077,7 @@ public sealed class OperationsViewModelTests
                         Title = "Sprint planning email",
                         Status = "Email Connector",
                         HealthStatus = "Needs Attention",
+                        Health = OperationsDocumentHealth.NeedsAttention,
                         Detail = "Email Message · Embedding request failed."
                     }
                 ]
@@ -953,7 +1085,7 @@ public sealed class OperationsViewModelTests
             .ReturnsAsync(new OperationsOverviewSnapshot
             {
                 ConversationIntelligence = new OperationsCardSnapshot(),
-                SyncHealth = new OperationsCardSnapshot { Headline = "Configured", Status = "Standing by", Detail = "Ready" },
+                SyncHealth = new OperationsCardSnapshot { Headline = "Configured", Status = "Standing by", StatusKind = OperationsStatusKind.SyncStandingBy, Detail = "Ready" },
                 IngestionBacklog = new OperationsCardSnapshot(),
                 WorkflowActivity = new OperationsCardSnapshot(),
                 Connectors = new OperationsCardSnapshot(),
@@ -965,6 +1097,7 @@ public sealed class OperationsViewModelTests
                         Title = "Sprint planning email",
                         Status = "Email Connector",
                         HealthStatus = "Processing",
+                        Health = OperationsDocumentHealth.Processing,
                         Detail = "Email Message · queued for indexing"
                     }
                 ]
@@ -993,7 +1126,7 @@ public sealed class OperationsViewModelTests
             .ReturnsAsync(new OperationsOverviewSnapshot
             {
                 ConversationIntelligence = new OperationsCardSnapshot(),
-                SyncHealth = new OperationsCardSnapshot { Headline = "Configured", Status = "Standing by", Detail = "Ready" },
+                SyncHealth = new OperationsCardSnapshot { Headline = "Configured", Status = "Standing by", StatusKind = OperationsStatusKind.SyncStandingBy, Detail = "Ready" },
                 IngestionBacklog = new OperationsCardSnapshot(),
                 WorkflowActivity = new OperationsCardSnapshot(),
                 Connectors = new OperationsCardSnapshot(),
@@ -1005,6 +1138,7 @@ public sealed class OperationsViewModelTests
                         Title = "Sprint planning email",
                         Status = "Email Connector",
                         HealthStatus = "Searchable",
+                        Health = OperationsDocumentHealth.Searchable,
                         Detail = "Email Message · searchable now"
                     }
                 ]
@@ -1027,6 +1161,7 @@ public sealed class OperationsViewModelTests
                 {
                     Headline = "Configured",
                     Status = "Standing by",
+                    StatusKind = OperationsStatusKind.SyncStandingBy,
                     Detail = "Ready"
                 },
                 IngestionBacklog = new OperationsCardSnapshot(),
@@ -1035,6 +1170,7 @@ public sealed class OperationsViewModelTests
                 {
                     Headline = "1",
                     Status = "1 connector enabled",
+                    StatusKind = OperationsStatusKind.ConnectorsEnabled,
                     Detail = "Email Connector"
                 },
                 ConnectorPreviews =
@@ -1046,6 +1182,7 @@ public sealed class OperationsViewModelTests
                         CanEnableFromOperations = false,
                         Title = "Email Connector",
                         Status = "Enabled",
+                        StatusKind = OperationsStatusKind.ConnectorEnabled,
                         Detail = "Connector · Brings inbox mail into Agent-X for triage and search."
                     }
                 ]
@@ -1067,24 +1204,28 @@ public sealed class OperationsViewModelTests
                 {
                     Headline = "5",
                     Status = "Durable recall current",
+                    StatusKind = OperationsStatusKind.RecallCurrent,
                     Detail = "Healthy"
                 },
                 SyncHealth = new OperationsCardSnapshot
                 {
                     Headline = "Configured",
                     Status = "Standing by",
+                    StatusKind = OperationsStatusKind.SyncStandingBy,
                     Detail = "Ready"
                 },
                 IngestionBacklog = new OperationsCardSnapshot
                 {
                     Headline = "0",
                     Status = "Queue clear",
+                    StatusKind = OperationsStatusKind.BacklogClear,
                     Detail = "Ready"
                 },
                 WorkflowActivity = new OperationsCardSnapshot
                 {
                     Headline = "7",
                     Status = "86% success rate",
+                    StatusKind = OperationsStatusKind.WorkflowSuccessRate,
                     SupportingPrimary = "2 active / 30d",
                     SupportingSecondary = "42s avg run",
                     Detail = "Top workflow: Research Briefing"
@@ -1097,6 +1238,7 @@ public sealed class OperationsViewModelTests
                         RunId = 88,
                         Title = "Research Briefing",
                         Status = "Failed",
+                        StatusKind = OperationsStatusKind.RunFailed,
                         Detail = "Model timed out while producing executive summary."
                     }
                 ],
@@ -1104,6 +1246,7 @@ public sealed class OperationsViewModelTests
                 {
                     Headline = "1",
                     Status = "1 connector enabled",
+                    StatusKind = OperationsStatusKind.ConnectorsEnabled,
                     Detail = "Email Connector"
                 }
             });
@@ -1132,7 +1275,7 @@ public sealed class OperationsViewModelTests
             .ReturnsAsync(new OperationsOverviewSnapshot
             {
                 ConversationIntelligence = new OperationsCardSnapshot(),
-                SyncHealth = new OperationsCardSnapshot { Headline = "Configured", Status = "Standing by", Detail = "Ready" },
+                SyncHealth = new OperationsCardSnapshot { Headline = "Configured", Status = "Standing by", StatusKind = OperationsStatusKind.SyncStandingBy, Detail = "Ready" },
                 IngestionBacklog = new OperationsCardSnapshot(),
                 WorkflowActivity = new OperationsCardSnapshot(),
                 Connectors = new OperationsCardSnapshot()

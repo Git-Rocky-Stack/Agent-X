@@ -726,6 +726,127 @@
   <data name="ModelMgr_DownloadFailed" xml:space="preserve"><value>{0} をダウンロードできませんでした。{1} が利用可能で、モデル名が正しいことを確認してください。</value></data>
   <data name="ModelMgr_DeleteFailed" xml:space="preserve"><value>モデルを削除できませんでした。{0}</value></data>
   <data name="ModelMgr_SetActiveFailed" xml:space="preserve"><value>アクティブなモデルを設定できませんでした。{0}</value></data>
+  <data name="Ops_RecallRefreshesPending" xml:space="preserve"><value>{0} 件の更新が保留中</value></data>
+  <data name="Ops_RecallRefreshPending" xml:space="preserve"><value>1 件の更新が保留中</value></data>
+  <data name="Ops_RecallStaleSummaries" xml:space="preserve"><value>{0} 件の古い要約</value></data>
+  <data name="Ops_RecallStaleSummary" xml:space="preserve"><value>1 件の古い要約</value></data>
+  <data name="Ops_RecallCurrent" xml:space="preserve"><value>永続リコールは最新です</value></data>
+  <data name="Ops_RecallInactive" xml:space="preserve"><value>永続リコールは無効です</value></data>
+  <data name="Ops_RecallDetailNoSummaries" xml:space="preserve"><value>Analytics を開いて、要約のカバー範囲と最近のスナップショットを確認します。</value></data>
+  <data name="Ops_RecallDetailSnapshots" xml:space="preserve"><value>保存済みスナップショット: {0} 件、最新 {1}</value></data>
+  <data name="Ops_SummaryRefreshError" xml:space="preserve"><value>更新エラー</value></data>
+  <data name="Ops_SummaryStale" xml:space="preserve"><value>古い</value></data>
+  <data name="Ops_SummaryPending" xml:space="preserve"><value>{0} 件保留中</value></data>
+  <data name="Ops_SummaryCurrent" xml:space="preserve"><value>最新</value></data>
+  <data name="Ops_SummaryUntitled" xml:space="preserve"><value>無題の会話</value></data>
+  <data name="Ops_TextWithTime" xml:space="preserve"><value>{0} ({1})</value></data>
+  <data name="Ops_SummaryCovered" xml:space="preserve"><value>対象メッセージ: {0} 件、{1}</value></data>
+  <data name="Ops_SummariesEmptyTitle" xml:space="preserve"><value>保存された要約はまだありません</value></data>
+  <data name="Ops_PlaceholderAnalytics" xml:space="preserve"><value>Analytics</value></data>
+  <data name="Ops_SummariesEmptyDetail" xml:space="preserve"><value>会話が更新されると、永続的な要約のプレビューがここに表示されます。</value></data>
+  <data name="Ops_SyncNotConfigured" xml:space="preserve"><value>未構成</value></data>
+  <data name="Ops_SyncOff" xml:space="preserve"><value>Collaborative Sync はオフです</value></data>
+  <data name="Ops_SyncSetupHint" xml:space="preserve"><value>共有フォルダーを設定して、複数のインストールをそろえた状態に保ちます。</value></data>
+  <data name="Ops_SyncHeadlineSyncing" xml:space="preserve"><value>同期中</value></data>
+  <data name="Ops_SyncHeadlineConflict" xml:space="preserve"><value>競合を検出</value></data>
+  <data name="Ops_SyncHeadlineError" xml:space="preserve"><value>要確認</value></data>
+  <data name="Ops_SyncHeadlineConfigured" xml:space="preserve"><value>構成済み</value></data>
+  <data name="Ops_SyncStatusRunning" xml:space="preserve"><value>交換中</value></data>
+  <data name="Ops_SyncStatusConflict" xml:space="preserve"><value>同期の競合を解決</value></data>
+  <data name="Ops_SyncStatusError" xml:space="preserve"><value>同期の状態を確認</value></data>
+  <data name="Ops_SyncChangesPending" xml:space="preserve"><value>{0} 件のローカル変更が保留中</value></data>
+  <data name="Ops_SyncChangePending" xml:space="preserve"><value>1 件のローカル変更が保留中</value></data>
+  <data name="Ops_SyncStandingBy" xml:space="preserve"><value>待機中</value></data>
+  <data name="Ops_SyncScopeSelected" xml:space="preserve"><value>選択したコレクションに限定されています。</value></data>
+  <data name="Ops_SyncScopeFull" xml:space="preserve"><value>ワークスペース全体を同期しています。</value></data>
+  <data name="Ops_SyncPassFailed" xml:space="preserve"><value>失敗</value></data>
+  <data name="Ops_SyncPassConflictOne" xml:space="preserve"><value>1 件の競合</value></data>
+  <data name="Ops_SyncPassConflictsMany" xml:space="preserve"><value>{0} 件の競合</value></data>
+  <data name="Ops_SyncPassSucceeded" xml:space="preserve"><value>成功</value></data>
+  <data name="Ops_SyncPassDetail" xml:space="preserve"><value>変更 {0} 件、{1}、{2}</value></data>
+  <data name="Ops_SyncPassesEmptyTitle" xml:space="preserve"><value>同期の実行はまだありません</value></data>
+  <data name="Ops_PlaceholderHistory" xml:space="preserve"><value>履歴</value></data>
+  <data name="Ops_SyncPassesEmptyDetail" xml:space="preserve"><value>同期が実行されると、最近のインポートとエクスポートのアクティビティがここに表示されます。</value></data>
+  <data name="Ops_SyncPassImport" xml:space="preserve"><value>インポート同期</value></data>
+  <data name="Ops_SyncPassExport" xml:space="preserve"><value>エクスポート同期</value></data>
+  <data name="Ops_SyncPassOther" xml:space="preserve"><value>{0} 同期</value></data>
+  <data name="Ops_BacklogDetailPending" xml:space="preserve"><value>Smart Inbox を開いて、コネクタと監視フォルダーからのインポートを仕分けします。</value></data>
+  <data name="Ops_BacklogDetailConnectors" xml:space="preserve"><value>コネクタと監視フォルダーからのインポートがここに表示されます。</value></data>
+  <data name="Ops_BacklogDetailIdle" xml:space="preserve"><value>監視フォルダーと有効なコネクタからの新しいアイテムがここに表示されます。</value></data>
+  <data name="Ops_BacklogWaitingMany" xml:space="preserve"><value>{0} 件のアイテムが仕分け待ち</value></data>
+  <data name="Ops_BacklogWaitingOne" xml:space="preserve"><value>1 件のアイテムが仕分け待ち</value></data>
+  <data name="Ops_BacklogClear" xml:space="preserve"><value>キューは空です</value></data>
+  <data name="Ops_InboxUntitled" xml:space="preserve"><value>無題の受信アイテム</value></data>
+  <data name="Ops_InboxDetail" xml:space="preserve"><value>{0}、{1}</value></data>
+  <data name="Ops_InboxDetailSuggested" xml:space="preserve"><value>{0}、候補: {1}、{2}</value></data>
+  <data name="Ops_InboxEmptyTitle" xml:space="preserve"><value>受信トレイは空です</value></data>
+  <data name="Ops_PlaceholderQueue" xml:space="preserve"><value>キュー</value></data>
+  <data name="Ops_InboxEmptyDetail" xml:space="preserve"><value>監視フォルダーやコネクタが新しいアイテムを取り込むと、保留中のインポートがここに表示されます。</value></data>
+  <data name="Ops_ImportedEmptyTitle" xml:space="preserve"><value>最近インポートされたドキュメントはありません</value></data>
+  <data name="Ops_PlaceholderVault" xml:space="preserve"><value>Vault</value></data>
+  <data name="Ops_ImportedEmptyDetail" xml:space="preserve"><value>コネクタから Knowledge Vault に取り込まれたドキュメントがここに表示されます。</value></data>
+  <data name="Ops_ImportedUntitled" xml:space="preserve"><value>インポートされたドキュメント</value></data>
+  <data name="Ops_HealthSearchable" xml:space="preserve"><value>検索可能</value></data>
+  <data name="Ops_HealthProcessing" xml:space="preserve"><value>処理中</value></data>
+  <data name="Ops_HealthNeedsAttention" xml:space="preserve"><value>要確認</value></data>
+  <data name="Ops_HealthReviewLink" xml:space="preserve"><value>Vault のリンクを確認</value></data>
+  <data name="Ops_HealthSearchableSince" xml:space="preserve"><value>検索可能 ({0})</value></data>
+  <data name="Ops_HealthSearchableNow" xml:space="preserve"><value>検索可能</value></data>
+  <data name="Ops_HealthQueued" xml:space="preserve"><value>インデックス作成待ち</value></data>
+  <data name="Ops_HealthIndexing" xml:space="preserve"><value>インデックス作成中</value></data>
+  <data name="Ops_HealthReviewIndexing" xml:space="preserve"><value>インデックスの状態を確認</value></data>
+  <data name="Ops_ImportedToCollection" xml:space="preserve"><value>保存先: {0}</value></data>
+  <data name="Ops_WorkflowSuccessRate" xml:space="preserve"><value>成功率 {0}%</value></data>
+  <data name="Ops_WorkflowRunsRecorded" xml:space="preserve"><value>{0} 回の実行を記録</value></data>
+  <data name="Ops_WorkflowRunRecorded" xml:space="preserve"><value>1 回の実行を記録</value></data>
+  <data name="Ops_WorkflowReady" xml:space="preserve"><value>自動化の準備完了</value></data>
+  <data name="Ops_WorkflowsActiveMany" xml:space="preserve"><value>30 日間で {0} 件がアクティブ</value></data>
+  <data name="Ops_WorkflowsActiveOne" xml:space="preserve"><value>30 日間で 1 件がアクティブ</value></data>
+  <data name="Ops_WorkflowsEnabledMany" xml:space="preserve"><value>{0} 件が有効</value></data>
+  <data name="Ops_WorkflowsEnabledOne" xml:space="preserve"><value>1 件が有効</value></data>
+  <data name="Ops_WorkflowsNoRecentRuns" xml:space="preserve"><value>最近の実行はありません</value></data>
+  <data name="Ops_WorkflowTop" xml:space="preserve"><value>上位のワークフロー: {0} ({1} 回実行)</value></data>
+  <data name="Ops_WorkflowsEnabledInBuilderMany" xml:space="preserve"><value>ビルダーで {0} 件のワークフローが有効です。</value></data>
+  <data name="Ops_WorkflowsEnabledInBuilderOne" xml:space="preserve"><value>ビルダーで 1 件のワークフローが有効です。</value></data>
+  <data name="Ops_WorkflowCreateHint" xml:space="preserve"><value>Vault または検索からワークフローを作成・起動して、複数ステップのタスクの自動化を始めましょう。</value></data>
+  <data name="Ops_WorkflowAvgRun" xml:space="preserve"><value>平均実行時間 {0}</value></data>
+  <data name="Ops_WorkflowAvgUnavailable" xml:space="preserve"><value>平均時間は利用できません</value></data>
+  <data name="Ops_RunUntitled" xml:space="preserve"><value>ワークフローの実行</value></data>
+  <data name="Ops_RunsEmptyTitle" xml:space="preserve"><value>最近のワークフロー実行はありません</value></data>
+  <data name="Ops_RunsEmptyDetail" xml:space="preserve"><value>ワークフローを実行または再度開くと、保存された実行結果がここに表示されます。</value></data>
+  <data name="Ops_ConnectorsEnabledMany" xml:space="preserve"><value>{0} 個のコネクタが有効</value></data>
+  <data name="Ops_ConnectorsEnabledOne" xml:space="preserve"><value>1 個のコネクタが有効</value></data>
+  <data name="Ops_PluginsEnabledMany" xml:space="preserve"><value>{0} 個のプラグインが有効</value></data>
+  <data name="Ops_PluginsEnabledOne" xml:space="preserve"><value>1 個のプラグインが有効</value></data>
+  <data name="Ops_PluginsInstalledMany" xml:space="preserve"><value>{0} 個のプラグインをインストール済み</value></data>
+  <data name="Ops_PluginsInstalledOne" xml:space="preserve"><value>1 個のプラグインをインストール済み</value></data>
+  <data name="Ops_NoPluginsInstalled" xml:space="preserve"><value>プラグインはインストールされていません</value></data>
+  <data name="Ops_ConnectorsDetailOpenManager" xml:space="preserve"><value>プラグイン マネージャーを開いて、コネクタと拡張機能を有効にします。</value></data>
+  <data name="Ops_ConnectorsDetailInstall" xml:space="preserve"><value>プラグインをインストールまたは有効にして、外部データとワークフロー拡張機能をアプリに取り込みます。</value></data>
+  <data name="Ops_ConnectorEnabled" xml:space="preserve"><value>有効</value></data>
+  <data name="Ops_ConnectorDisabled" xml:space="preserve"><value>無効</value></data>
+  <data name="Ops_PluginInstalled" xml:space="preserve"><value>インストール済み</value></data>
+  <data name="Ops_ConnectorsEmptyTitle" xml:space="preserve"><value>コネクタはインストールされていません</value></data>
+  <data name="Ops_PlaceholderPlugins" xml:space="preserve"><value>プラグイン</value></data>
+  <data name="Ops_ConnectorsEmptyDetail" xml:space="preserve"><value>プラグインをインストールまたは有効にして、外部ソースと拡張機能をワークスペースに取り込みます。</value></data>
+  <data name="Ops_ConnectorDetailDescription" xml:space="preserve"><value>{0}: {1}</value></data>
+  <data name="Ops_ConnectorDetailLastActive" xml:space="preserve"><value>{0}、最終アクティブ {1}</value></data>
+  <data name="Ops_ConnectorDetailVersion" xml:space="preserve"><value>{0}、v{1}</value></data>
+  <data name="Ops_SourcePending" xml:space="preserve"><value>保留中</value></data>
+  <data name="Ops_RunRecorded" xml:space="preserve"><value>実行を記録</value></data>
+  <data name="Ops_RunCompleted" xml:space="preserve"><value>完了</value></data>
+  <data name="Ops_RunFailed" xml:space="preserve"><value>失敗</value></data>
+  <data name="Ops_RunCancelled" xml:space="preserve"><value>キャンセル済み</value></data>
+  <data name="Ops_RunRunning" xml:space="preserve"><value>実行中</value></data>
+  <data name="Ops_RunPending" xml:space="preserve"><value>保留中</value></data>
+  <data name="Ops_RunDurationUnavailable" xml:space="preserve"><value>所要時間は利用できません</value></data>
+  <data name="Ops_RunTiming" xml:space="preserve"><value>{0}、{1}</value></data>
+  <data name="Ops_PluginTypePlugin" xml:space="preserve"><value>プラグイン</value></data>
+  <data name="Ops_PluginTypeConnector" xml:space="preserve"><value>コネクタ</value></data>
+  <data name="Ops_PluginTypeWorkflowStep" xml:space="preserve"><value>ワークフロー ステップ</value></data>
+  <data name="Ops_DurationMinutes" xml:space="preserve"><value>{0} 分</value></data>
+  <data name="Ops_DurationSeconds" xml:space="preserve"><value>{0} 秒</value></data>
+  <data name="Ops_DurationMilliseconds" xml:space="preserve"><value>{0} ミリ秒</value></data>
   <data name="Inbox_TargetCollectionOverline.Text" xml:space="preserve"><value>対象コレクション</value></data>
   <data name="Inbox_AutoSuggestPlaceholder.PlaceholderText" xml:space="preserve"><value>自動提案</value></data>
   <data name="Inbox_ActionsOverline.Text" xml:space="preserve"><value>操作</value></data>

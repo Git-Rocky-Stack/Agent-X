@@ -50,10 +50,10 @@
                                    TextWrapping="WrapWholeWords" />
                         <Border Style="{StaticResource BadgeDefaultStyle}"
                                 HorizontalAlignment="Left"
-                                BorderBrush="{Binding Status, Converter={StaticResource StatusToColor}}">
+                                BorderBrush="{Binding StatusToneToken, Converter={StaticResource StatusToColor}}">
                             <TextBlock Text="{Binding Status}"
                                        Style="{StaticResource CaptionStyle}"
-                                       Foreground="{Binding Status, Converter={StaticResource StatusToColor}}" />
+                                       Foreground="{Binding StatusToneToken, Converter={StaticResource StatusToColor}}" />
                         </Border>
                         <TextBlock Text="{Binding Detail}"
                                    Style="{StaticResource CaptionStyle}"
@@ -81,10 +81,10 @@
                                    TextWrapping="WrapWholeWords" />
                         <Border Style="{StaticResource BadgeDefaultStyle}"
                                 HorizontalAlignment="Left"
-                                BorderBrush="{Binding Status, Converter={StaticResource StatusToColor}}">
+                                BorderBrush="{Binding StatusToneToken, Converter={StaticResource StatusToColor}}">
                             <TextBlock Text="{Binding Status}"
                                        Style="{StaticResource CaptionStyle}"
-                                       Foreground="{Binding Status, Converter={StaticResource StatusToColor}}" />
+                                       Foreground="{Binding StatusToneToken, Converter={StaticResource StatusToColor}}" />
                         </Border>
                         <TextBlock Text="{Binding Detail}"
                                    Style="{StaticResource CaptionStyle}"
@@ -125,10 +125,10 @@
                                            VerticalAlignment="Center" />
                                 <Border Style="{StaticResource BadgeDefaultStyle}"
                                         Visibility="{Binding HasHealthStatus, Converter={StaticResource BoolToVis}}"
-                                        BorderBrush="{Binding HealthStatus, Converter={StaticResource StatusToColor}}">
+                                        BorderBrush="{Binding HealthToneToken, Converter={StaticResource StatusToColor}}">
                                     <TextBlock Text="{Binding HealthStatus}"
                                                Style="{StaticResource CaptionStyle}"
-                                               Foreground="{Binding HealthStatus, Converter={StaticResource StatusToColor}}" />
+                                               Foreground="{Binding HealthToneToken, Converter={StaticResource StatusToColor}}" />
                                 </Border>
                             </StackPanel>
                             <TextBlock Text="{Binding Detail}"
@@ -166,10 +166,10 @@
                                    TextWrapping="WrapWholeWords" />
                         <Border Style="{StaticResource BadgeDefaultStyle}"
                                 HorizontalAlignment="Left"
-                                BorderBrush="{Binding Status, Converter={StaticResource StatusToColor}}">
+                                BorderBrush="{Binding StatusToneToken, Converter={StaticResource StatusToColor}}">
                             <TextBlock Text="{Binding Status}"
                                        Style="{StaticResource CaptionStyle}"
-                                       Foreground="{Binding Status, Converter={StaticResource StatusToColor}}" />
+                                       Foreground="{Binding StatusToneToken, Converter={StaticResource StatusToColor}}" />
                         </Border>
                         <TextBlock Text="{Binding Detail}"
                                    Style="{StaticResource CaptionStyle}"
@@ -197,10 +197,10 @@
                                    TextWrapping="WrapWholeWords" />
                         <Border Style="{StaticResource BadgeDefaultStyle}"
                                 HorizontalAlignment="Left"
-                                BorderBrush="{Binding Status, Converter={StaticResource StatusToColor}}">
+                                BorderBrush="{Binding StatusToneToken, Converter={StaticResource StatusToColor}}">
                             <TextBlock Text="{Binding Status}"
                                        Style="{StaticResource CaptionStyle}"
-                                       Foreground="{Binding Status, Converter={StaticResource StatusToColor}}" />
+                                       Foreground="{Binding StatusToneToken, Converter={StaticResource StatusToColor}}" />
                         </Border>
                         <TextBlock Text="{Binding Detail}"
                                    Style="{StaticResource CaptionStyle}"
@@ -222,10 +222,10 @@
                                    TextWrapping="WrapWholeWords" />
                         <Border Style="{StaticResource BadgeDefaultStyle}"
                                 HorizontalAlignment="Left"
-                                BorderBrush="{Binding Status, Converter={StaticResource StatusToColor}}">
+                                BorderBrush="{Binding StatusToneToken, Converter={StaticResource StatusToColor}}">
                             <TextBlock Text="{Binding Status}"
                                        Style="{StaticResource CaptionStyle}"
-                                       Foreground="{Binding Status, Converter={StaticResource StatusToColor}}" />
+                                       Foreground="{Binding StatusToneToken, Converter={StaticResource StatusToColor}}" />
                         </Border>
                         <TextBlock Text="{Binding Detail}"
                                    Style="{StaticResource CaptionStyle}"
@@ -274,10 +274,10 @@
                         <Border Grid.Row="2"
                                 Style="{StaticResource BadgeDefaultStyle}"
                                 HorizontalAlignment="Left"
-                                BorderBrush="{Binding Status, Converter={StaticResource StatusToColor}}">
+                                BorderBrush="{Binding StatusToneToken, Converter={StaticResource StatusToColor}}">
                             <TextBlock Text="{Binding Status}"
                                        Style="{StaticResource CaptionStyle}"
-                                       Foreground="{Binding Status, Converter={StaticResource StatusToColor}}" />
+                                       Foreground="{Binding StatusToneToken, Converter={StaticResource StatusToColor}}" />
                         </Border>
                         <TextBlock Grid.Row="3"
                                    Text="{Binding NavigationLabel}"
@@ -336,10 +336,10 @@
                     <Border Grid.Row="1"
                             Style="{StaticResource BadgeDefaultStyle}"
                             HorizontalAlignment="Left"
-                            BorderBrush="{Binding Status, Converter={StaticResource StatusToColor}}">
+                            BorderBrush="{Binding StatusToneToken, Converter={StaticResource StatusToColor}}">
                         <TextBlock Text="{Binding Status}"
                                    Style="{StaticResource CaptionStyle}"
-                                   Foreground="{Binding Status, Converter={StaticResource StatusToColor}}" />
+                                   Foreground="{Binding StatusToneToken, Converter={StaticResource StatusToColor}}" />
                     </Border>
 
                     <TextBlock Grid.Row="2"

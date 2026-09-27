@@ -726,6 +726,127 @@
   <data name="ModelMgr_DownloadFailed" xml:space="preserve"><value>Impossible de télécharger {0}. Vérifiez que {1} est disponible et que le nom du modèle est correct.</value></data>
   <data name="ModelMgr_DeleteFailed" xml:space="preserve"><value>Impossible de supprimer le modèle. {0}</value></data>
   <data name="ModelMgr_SetActiveFailed" xml:space="preserve"><value>Impossible de définir le modèle actif. {0}</value></data>
+  <data name="Ops_RecallRefreshesPending" xml:space="preserve"><value>{0} actualisations en attente</value></data>
+  <data name="Ops_RecallRefreshPending" xml:space="preserve"><value>1 actualisation en attente</value></data>
+  <data name="Ops_RecallStaleSummaries" xml:space="preserve"><value>{0} résumés obsolètes</value></data>
+  <data name="Ops_RecallStaleSummary" xml:space="preserve"><value>1 résumé obsolète</value></data>
+  <data name="Ops_RecallCurrent" xml:space="preserve"><value>Rappel durable à jour</value></data>
+  <data name="Ops_RecallInactive" xml:space="preserve"><value>Rappel durable inactif</value></data>
+  <data name="Ops_RecallDetailNoSummaries" xml:space="preserve"><value>Ouvrez Analytics pour examiner la couverture des résumés et les instantanés récents.</value></data>
+  <data name="Ops_RecallDetailSnapshots" xml:space="preserve"><value>Instantanés stockés : {0}, le dernier {1}</value></data>
+  <data name="Ops_SummaryRefreshError" xml:space="preserve"><value>Erreur d'actualisation</value></data>
+  <data name="Ops_SummaryStale" xml:space="preserve"><value>Obsolète</value></data>
+  <data name="Ops_SummaryPending" xml:space="preserve"><value>{0} en attente</value></data>
+  <data name="Ops_SummaryCurrent" xml:space="preserve"><value>À jour</value></data>
+  <data name="Ops_SummaryUntitled" xml:space="preserve"><value>Conversation sans titre</value></data>
+  <data name="Ops_TextWithTime" xml:space="preserve"><value>{0} ({1})</value></data>
+  <data name="Ops_SummaryCovered" xml:space="preserve"><value>Messages couverts : {0}, {1}</value></data>
+  <data name="Ops_SummariesEmptyTitle" xml:space="preserve"><value>Pas encore de résumés stockés</value></data>
+  <data name="Ops_PlaceholderAnalytics" xml:space="preserve"><value>Analytics</value></data>
+  <data name="Ops_SummariesEmptyDetail" xml:space="preserve"><value>Les aperçus des résumés durables apparaîtront ici une fois les conversations actualisées.</value></data>
+  <data name="Ops_SyncNotConfigured" xml:space="preserve"><value>Non configurée</value></data>
+  <data name="Ops_SyncOff" xml:space="preserve"><value>Collaborative Sync est désactivé</value></data>
+  <data name="Ops_SyncSetupHint" xml:space="preserve"><value>Configurez un dossier partagé pour garder plusieurs installations alignées.</value></data>
+  <data name="Ops_SyncHeadlineSyncing" xml:space="preserve"><value>Synchronisation en cours</value></data>
+  <data name="Ops_SyncHeadlineConflict" xml:space="preserve"><value>Conflit détecté</value></data>
+  <data name="Ops_SyncHeadlineError" xml:space="preserve"><value>Attention requise</value></data>
+  <data name="Ops_SyncHeadlineConfigured" xml:space="preserve"><value>Configurée</value></data>
+  <data name="Ops_SyncStatusRunning" xml:space="preserve"><value>Échange en cours</value></data>
+  <data name="Ops_SyncStatusConflict" xml:space="preserve"><value>Résoudre les conflits de synchronisation</value></data>
+  <data name="Ops_SyncStatusError" xml:space="preserve"><value>Vérifier l'état de la synchronisation</value></data>
+  <data name="Ops_SyncChangesPending" xml:space="preserve"><value>{0} modifications locales en attente</value></data>
+  <data name="Ops_SyncChangePending" xml:space="preserve"><value>1 modification locale en attente</value></data>
+  <data name="Ops_SyncStandingBy" xml:space="preserve"><value>Prête</value></data>
+  <data name="Ops_SyncScopeSelected" xml:space="preserve"><value>Limitée aux collections sélectionnées.</value></data>
+  <data name="Ops_SyncScopeFull" xml:space="preserve"><value>Tout l'espace de travail est synchronisé.</value></data>
+  <data name="Ops_SyncPassFailed" xml:space="preserve"><value>Échec</value></data>
+  <data name="Ops_SyncPassConflictOne" xml:space="preserve"><value>1 conflit</value></data>
+  <data name="Ops_SyncPassConflictsMany" xml:space="preserve"><value>{0} conflits</value></data>
+  <data name="Ops_SyncPassSucceeded" xml:space="preserve"><value>Réussie</value></data>
+  <data name="Ops_SyncPassDetail" xml:space="preserve"><value>Modifications : {0}, {1}, {2}</value></data>
+  <data name="Ops_SyncPassesEmptyTitle" xml:space="preserve"><value>Pas encore de synchronisation</value></data>
+  <data name="Ops_PlaceholderHistory" xml:space="preserve"><value>Historique</value></data>
+  <data name="Ops_SyncPassesEmptyDetail" xml:space="preserve"><value>L'activité récente d'import et d'export apparaîtra ici dès que la synchronisation s'exécutera.</value></data>
+  <data name="Ops_SyncPassImport" xml:space="preserve"><value>Synchronisation d'import</value></data>
+  <data name="Ops_SyncPassExport" xml:space="preserve"><value>Synchronisation d'export</value></data>
+  <data name="Ops_SyncPassOther" xml:space="preserve"><value>Synchronisation : {0}</value></data>
+  <data name="Ops_BacklogDetailPending" xml:space="preserve"><value>Ouvrez Smart Inbox pour trier les imports des connecteurs et des dossiers surveillés.</value></data>
+  <data name="Ops_BacklogDetailConnectors" xml:space="preserve"><value>Les imports des connecteurs et des dossiers surveillés apparaîtront ici.</value></data>
+  <data name="Ops_BacklogDetailIdle" xml:space="preserve"><value>Les nouveaux éléments des dossiers surveillés et des connecteurs activés apparaîtront ici.</value></data>
+  <data name="Ops_BacklogWaitingMany" xml:space="preserve"><value>{0} éléments en attente de tri</value></data>
+  <data name="Ops_BacklogWaitingOne" xml:space="preserve"><value>1 élément en attente de tri</value></data>
+  <data name="Ops_BacklogClear" xml:space="preserve"><value>File d'attente vide</value></data>
+  <data name="Ops_InboxUntitled" xml:space="preserve"><value>Élément sans titre</value></data>
+  <data name="Ops_InboxDetail" xml:space="preserve"><value>{0}, {1}</value></data>
+  <data name="Ops_InboxDetailSuggested" xml:space="preserve"><value>{0}, suggéré pour {1}, {2}</value></data>
+  <data name="Ops_InboxEmptyTitle" xml:space="preserve"><value>Boîte de réception vide</value></data>
+  <data name="Ops_PlaceholderQueue" xml:space="preserve"><value>File d'attente</value></data>
+  <data name="Ops_InboxEmptyDetail" xml:space="preserve"><value>Les imports en attente apparaîtront ici à mesure que les dossiers surveillés et les connecteurs apportent de nouveaux éléments.</value></data>
+  <data name="Ops_ImportedEmptyTitle" xml:space="preserve"><value>Aucun document importé récemment</value></data>
+  <data name="Ops_PlaceholderVault" xml:space="preserve"><value>Coffre-fort</value></data>
+  <data name="Ops_ImportedEmptyDetail" xml:space="preserve"><value>Les documents issus des connecteurs qui passent dans le Coffre-fort de Connaissances apparaîtront ici.</value></data>
+  <data name="Ops_ImportedUntitled" xml:space="preserve"><value>Document importé</value></data>
+  <data name="Ops_HealthSearchable" xml:space="preserve"><value>Consultable</value></data>
+  <data name="Ops_HealthProcessing" xml:space="preserve"><value>En cours de traitement</value></data>
+  <data name="Ops_HealthNeedsAttention" xml:space="preserve"><value>Attention requise</value></data>
+  <data name="Ops_HealthReviewLink" xml:space="preserve"><value>vérifier le lien avec le coffre-fort</value></data>
+  <data name="Ops_HealthSearchableSince" xml:space="preserve"><value>consultable ({0})</value></data>
+  <data name="Ops_HealthSearchableNow" xml:space="preserve"><value>consultable maintenant</value></data>
+  <data name="Ops_HealthQueued" xml:space="preserve"><value>en file d'attente pour l'indexation</value></data>
+  <data name="Ops_HealthIndexing" xml:space="preserve"><value>indexation en cours</value></data>
+  <data name="Ops_HealthReviewIndexing" xml:space="preserve"><value>vérifier l'état de l'indexation</value></data>
+  <data name="Ops_ImportedToCollection" xml:space="preserve"><value>vers {0}</value></data>
+  <data name="Ops_WorkflowSuccessRate" xml:space="preserve"><value>{0} % de réussite</value></data>
+  <data name="Ops_WorkflowRunsRecorded" xml:space="preserve"><value>{0} exécutions enregistrées</value></data>
+  <data name="Ops_WorkflowRunRecorded" xml:space="preserve"><value>1 exécution enregistrée</value></data>
+  <data name="Ops_WorkflowReady" xml:space="preserve"><value>Prêt à automatiser</value></data>
+  <data name="Ops_WorkflowsActiveMany" xml:space="preserve"><value>{0} actifs sur 30 jours</value></data>
+  <data name="Ops_WorkflowsActiveOne" xml:space="preserve"><value>1 actif sur 30 jours</value></data>
+  <data name="Ops_WorkflowsEnabledMany" xml:space="preserve"><value>{0} activés</value></data>
+  <data name="Ops_WorkflowsEnabledOne" xml:space="preserve"><value>1 activé</value></data>
+  <data name="Ops_WorkflowsNoRecentRuns" xml:space="preserve"><value>Aucune exécution récente</value></data>
+  <data name="Ops_WorkflowTop" xml:space="preserve"><value>Flux de travail principal : {0}, exécutions : {1}</value></data>
+  <data name="Ops_WorkflowsEnabledInBuilderMany" xml:space="preserve"><value>{0} flux de travail activés dans l'éditeur.</value></data>
+  <data name="Ops_WorkflowsEnabledInBuilderOne" xml:space="preserve"><value>1 flux de travail activé dans l'éditeur.</value></data>
+  <data name="Ops_WorkflowCreateHint" xml:space="preserve"><value>Créez ou lancez un flux de travail depuis le Coffre-fort ou la Recherche pour automatiser des tâches en plusieurs étapes.</value></data>
+  <data name="Ops_WorkflowAvgRun" xml:space="preserve"><value>Exécution moyenne : {0}</value></data>
+  <data name="Ops_WorkflowAvgUnavailable" xml:space="preserve"><value>Durée moyenne indisponible</value></data>
+  <data name="Ops_RunUntitled" xml:space="preserve"><value>Exécution de flux de travail</value></data>
+  <data name="Ops_RunsEmptyTitle" xml:space="preserve"><value>Aucune exécution récente de flux de travail</value></data>
+  <data name="Ops_RunsEmptyDetail" xml:space="preserve"><value>Les résultats d'exécution enregistrés apparaîtront ici après l'exécution ou la réouverture de flux de travail.</value></data>
+  <data name="Ops_ConnectorsEnabledMany" xml:space="preserve"><value>{0} connecteurs activés</value></data>
+  <data name="Ops_ConnectorsEnabledOne" xml:space="preserve"><value>1 connecteur activé</value></data>
+  <data name="Ops_PluginsEnabledMany" xml:space="preserve"><value>{0} plugins activés</value></data>
+  <data name="Ops_PluginsEnabledOne" xml:space="preserve"><value>1 plugin activé</value></data>
+  <data name="Ops_PluginsInstalledMany" xml:space="preserve"><value>{0} plugins installés</value></data>
+  <data name="Ops_PluginsInstalledOne" xml:space="preserve"><value>1 plugin installé</value></data>
+  <data name="Ops_NoPluginsInstalled" xml:space="preserve"><value>Aucun plugin installé</value></data>
+  <data name="Ops_ConnectorsDetailOpenManager" xml:space="preserve"><value>Ouvrez le Gestionnaire de plugins pour activer des connecteurs et des extensions.</value></data>
+  <data name="Ops_ConnectorsDetailInstall" xml:space="preserve"><value>Installez ou activez des plugins pour apporter des données externes et des extensions de flux de travail dans l'application.</value></data>
+  <data name="Ops_ConnectorEnabled" xml:space="preserve"><value>Activé</value></data>
+  <data name="Ops_ConnectorDisabled" xml:space="preserve"><value>Désactivé</value></data>
+  <data name="Ops_PluginInstalled" xml:space="preserve"><value>Installé</value></data>
+  <data name="Ops_ConnectorsEmptyTitle" xml:space="preserve"><value>Aucun connecteur installé</value></data>
+  <data name="Ops_PlaceholderPlugins" xml:space="preserve"><value>Plugins</value></data>
+  <data name="Ops_ConnectorsEmptyDetail" xml:space="preserve"><value>Installez ou activez des plugins pour apporter des sources externes et des extensions dans l'espace de travail.</value></data>
+  <data name="Ops_ConnectorDetailDescription" xml:space="preserve"><value>{0} : {1}</value></data>
+  <data name="Ops_ConnectorDetailLastActive" xml:space="preserve"><value>{0}, dernière activité {1}</value></data>
+  <data name="Ops_ConnectorDetailVersion" xml:space="preserve"><value>{0}, v{1}</value></data>
+  <data name="Ops_SourcePending" xml:space="preserve"><value>En attente</value></data>
+  <data name="Ops_RunRecorded" xml:space="preserve"><value>Exécution enregistrée</value></data>
+  <data name="Ops_RunCompleted" xml:space="preserve"><value>Terminé</value></data>
+  <data name="Ops_RunFailed" xml:space="preserve"><value>Échec</value></data>
+  <data name="Ops_RunCancelled" xml:space="preserve"><value>Annulé</value></data>
+  <data name="Ops_RunRunning" xml:space="preserve"><value>En cours</value></data>
+  <data name="Ops_RunPending" xml:space="preserve"><value>En attente</value></data>
+  <data name="Ops_RunDurationUnavailable" xml:space="preserve"><value>Durée indisponible</value></data>
+  <data name="Ops_RunTiming" xml:space="preserve"><value>{0}, {1}</value></data>
+  <data name="Ops_PluginTypePlugin" xml:space="preserve"><value>Plugin</value></data>
+  <data name="Ops_PluginTypeConnector" xml:space="preserve"><value>Connecteur</value></data>
+  <data name="Ops_PluginTypeWorkflowStep" xml:space="preserve"><value>Étape de flux de travail</value></data>
+  <data name="Ops_DurationMinutes" xml:space="preserve"><value>{0} min</value></data>
+  <data name="Ops_DurationSeconds" xml:space="preserve"><value>{0} s</value></data>
+  <data name="Ops_DurationMilliseconds" xml:space="preserve"><value>{0} ms</value></data>
   <data name="Inbox_TargetCollectionOverline.Text" xml:space="preserve"><value>COLLECTION CIBLE</value></data>
   <data name="Inbox_AutoSuggestPlaceholder.PlaceholderText" xml:space="preserve"><value>Suggestion automatique</value></data>
   <data name="Inbox_ActionsOverline.Text" xml:space="preserve"><value>ACTIONS</value></data>
