@@ -136,6 +136,9 @@ public partial class App : Application
         {
             var localization = GetService<ILocalizationService>();
             await localization.InitializeAsync();
+
+            // Relative times ("5m ago") are worded in Core, which cannot read the app's resources.
+            AgentX.Core.Helpers.FormatHelper.LocalizedText = localization.GetString;
             Log.Information("Localization initialized: {Language}", localization.CurrentLanguage);
         }
         catch (Exception ex)
