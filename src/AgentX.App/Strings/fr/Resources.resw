@@ -946,6 +946,14 @@
   <data name="Main_PastSelf.Content" xml:space="preserve"><value>Moi d'avant</value></data>
   <data name="Main_AiChat.Content" xml:space="preserve"><value>AI Chat</value></data>
   <data name="Main_AskYourFiles.Content" xml:space="preserve"><value>Interroger vos fichiers</value></data>
+  <data name="Chat_PrivacyLocal" xml:space="preserve"><value>{0} s'exécute sur cet ordinateur, vos messages restent donc sur cet appareil.</value></data>
+  <data name="Chat_PrivacyLocalUnnamed" xml:space="preserve"><value>Le modèle d'IA s'exécute sur cet ordinateur, vos messages restent donc sur cet appareil.</value></data>
+  <data name="Chat_PrivacyCloud" xml:space="preserve"><value>Vos messages sont envoyés à {0} pour être traités.</value></data>
+  <data name="Chat_PrivacyRemoteOllama" xml:space="preserve"><value>Vos messages sont envoyés au serveur Ollama à l'adresse {0}.</value></data>
+  <data name="Chat_PrivacyRouting" xml:space="preserve"><value>Le routage intelligent des modèles peut envoyer vos messages à votre fournisseur d'IA cloud.</value></data>
+  <data name="Chat_PrivacyWebSearch" xml:space="preserve"><value>Lorsque le mode recherche est activé, vos questions sont envoyées à {0}.</value></data>
+  <data name="Chat_PrivacySearXng" xml:space="preserve"><value>Lorsque le mode recherche est activé, vos questions sont envoyées à l'instance SearXNG à l'adresse {0}, qui les transmet à des moteurs de recherche publics.</value></data>
+  <data name="Chat_PrivacyUnknown" xml:space="preserve"><value>Agent-X n'a pas pu confirmer où vos messages sont envoyés. Vérifiez le fournisseur d'IA dans les Paramètres.</value></data>
   <data name="Main_QuickActions.Content" xml:space="preserve"><value>Quick Actions</value></data>
   <data name="Main_Workflows.Content" xml:space="preserve"><value>Workflows</value></data>
   <data name="Main_Knowledge.Content" xml:space="preserve"><value>CONNAISSANCES</value></data>
@@ -1070,7 +1078,6 @@
   <data name="Chat_OpenInspectorTip.ToolTipService.ToolTip" xml:space="preserve"><value>Ouvrir l'inspecteur de contexte complet</value></data>
   <data name="Chat_InspectContextLabel.Text" xml:space="preserve"><value>Inspecter le contexte</value></data>
   <data name="Chat_EmptyTitle.Text" xml:space="preserve"><value>Démarrer une conversation</value></data>
-  <data name="Chat_EmptyHint.Text" xml:space="preserve"><value>Discutez avec des modèles d'IA locaux via Ollama. Vos messages restent sur cet appareil. Aucune donnée ne quitte votre machine.</value></data>
   <data name="Chat_PrivateBadge.Text" xml:space="preserve"><value>100 % privé</value></data>
   <data name="Chat_EnterToSend.Text" xml:space="preserve"><value>Entrée pour envoyer</value></data>
   <data name="Chat_ShiftEnterNewLine.Text" xml:space="preserve"><value>Maj+Entrée pour une nouvelle ligne</value></data>

@@ -946,6 +946,14 @@
   <data name="Main_PastSelf.Content" xml:space="preserve"><value>Past Self</value></data>
   <data name="Main_AiChat.Content" xml:space="preserve"><value>AI Chat</value></data>
   <data name="Main_AskYourFiles.Content" xml:space="preserve"><value>ファイルに質問する</value></data>
+  <data name="Chat_PrivacyLocal" xml:space="preserve"><value>{0} はこの PC 上で動作するため、メッセージはこのデバイスから出ません。</value></data>
+  <data name="Chat_PrivacyLocalUnnamed" xml:space="preserve"><value>AI モデルはこの PC 上で動作するため、メッセージはこのデバイスから出ません。</value></data>
+  <data name="Chat_PrivacyCloud" xml:space="preserve"><value>メッセージは処理のために {0} に送信されます。</value></data>
+  <data name="Chat_PrivacyRemoteOllama" xml:space="preserve"><value>メッセージは {0} の Ollama サーバーに送信されます。</value></data>
+  <data name="Chat_PrivacyRouting" xml:space="preserve"><value>スマート モデル ルーティングにより、メッセージがクラウド AI プロバイダーに送信される場合があります。</value></data>
+  <data name="Chat_PrivacyWebSearch" xml:space="preserve"><value>リサーチ モードがオンの間は、質問が {0} に送信されます。</value></data>
+  <data name="Chat_PrivacySearXng" xml:space="preserve"><value>リサーチ モードがオンの間は、質問が {0} の SearXNG インスタンスに送信され、そこから公開検索エンジンに転送されます。</value></data>
+  <data name="Chat_PrivacyUnknown" xml:space="preserve"><value>Agent-X はメッセージの送信先を確認できませんでした。設定で AI プロバイダーを確認してください。</value></data>
   <data name="Main_QuickActions.Content" xml:space="preserve"><value>Quick Actions</value></data>
   <data name="Main_Workflows.Content" xml:space="preserve"><value>ワークフロー</value></data>
   <data name="Main_Knowledge.Content" xml:space="preserve"><value>ナレッジ</value></data>
@@ -1070,7 +1078,6 @@
   <data name="Chat_OpenInspectorTip.ToolTipService.ToolTip" xml:space="preserve"><value>コンテキスト インスペクターを開く</value></data>
   <data name="Chat_InspectContextLabel.Text" xml:space="preserve"><value>コンテキストを確認</value></data>
   <data name="Chat_EmptyTitle.Text" xml:space="preserve"><value>会話を始めましょう</value></data>
-  <data name="Chat_EmptyHint.Text" xml:space="preserve"><value>Ollama によるローカル AI モデルとチャットできます。メッセージはこのデバイスに保存され、データが外部に送信されることはありません。</value></data>
   <data name="Chat_PrivateBadge.Text" xml:space="preserve"><value>100% プライベート</value></data>
   <data name="Chat_EnterToSend.Text" xml:space="preserve"><value>Enter で送信</value></data>
   <data name="Chat_ShiftEnterNewLine.Text" xml:space="preserve"><value>Shift+Enter で改行</value></data>

@@ -946,6 +946,14 @@
   <data name="Main_PastSelf.Content" xml:space="preserve"><value>Vergangenes Ich</value></data>
   <data name="Main_AiChat.Content" xml:space="preserve"><value>AI Chat</value></data>
   <data name="Main_AskYourFiles.Content" xml:space="preserve"><value>Fragen Sie Ihre Dateien</value></data>
+  <data name="Chat_PrivacyLocal" xml:space="preserve"><value>{0} läuft auf diesem Computer, daher bleiben Ihre Nachrichten auf diesem Gerät.</value></data>
+  <data name="Chat_PrivacyLocalUnnamed" xml:space="preserve"><value>Das KI-Modell läuft auf diesem Computer, daher bleiben Ihre Nachrichten auf diesem Gerät.</value></data>
+  <data name="Chat_PrivacyCloud" xml:space="preserve"><value>Ihre Nachrichten werden zur Verarbeitung an {0} gesendet.</value></data>
+  <data name="Chat_PrivacyRemoteOllama" xml:space="preserve"><value>Ihre Nachrichten werden an den Ollama-Server unter {0} gesendet.</value></data>
+  <data name="Chat_PrivacyRouting" xml:space="preserve"><value>Das intelligente Modell-Routing kann Ihre Nachrichten an Ihren Cloud-KI-Anbieter senden.</value></data>
+  <data name="Chat_PrivacyWebSearch" xml:space="preserve"><value>Bei aktivem Recherchemodus werden Ihre Fragen an {0} gesendet.</value></data>
+  <data name="Chat_PrivacySearXng" xml:space="preserve"><value>Bei aktivem Recherchemodus werden Ihre Fragen an die SearXNG-Instanz unter {0} gesendet, die sie an öffentliche Suchmaschinen weiterleitet.</value></data>
+  <data name="Chat_PrivacyUnknown" xml:space="preserve"><value>Agent-X konnte nicht bestätigen, wohin Ihre Nachrichten gesendet werden. Prüfen Sie den KI-Anbieter in den Einstellungen.</value></data>
   <data name="Main_QuickActions.Content" xml:space="preserve"><value>Quick Actions</value></data>
   <data name="Main_Workflows.Content" xml:space="preserve"><value>Workflows</value></data>
   <data name="Main_Knowledge.Content" xml:space="preserve"><value>WISSEN</value></data>
@@ -1070,7 +1078,6 @@
   <data name="Chat_OpenInspectorTip.ToolTipService.ToolTip" xml:space="preserve"><value>Vollständigen Kontext-Inspektor öffnen</value></data>
   <data name="Chat_InspectContextLabel.Text" xml:space="preserve"><value>Kontext einsehen</value></data>
   <data name="Chat_EmptyTitle.Text" xml:space="preserve"><value>Konversation starten</value></data>
-  <data name="Chat_EmptyHint.Text" xml:space="preserve"><value>Chatten Sie mit lokalen KI-Modellen über Ollama. Ihre Nachrichten bleiben auf diesem Gerät. Keine Daten verlassen Ihren Rechner.</value></data>
   <data name="Chat_PrivateBadge.Text" xml:space="preserve"><value>100 % privat</value></data>
   <data name="Chat_EnterToSend.Text" xml:space="preserve"><value>Enter zum Senden</value></data>
   <data name="Chat_ShiftEnterNewLine.Text" xml:space="preserve"><value>Umschalt+Enter für neue Zeile</value></data>

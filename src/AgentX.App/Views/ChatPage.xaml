@@ -838,7 +838,9 @@
                             <TextBlock x:Uid="Chat_EmptyTitle" Text="Start a Conversation"
                                        Style="{StaticResource HeadingMediumStyle}"
                                        HorizontalAlignment="Center" />
-                            <TextBlock x:Uid="Chat_EmptyHint" Text="Chat with local AI models powered by Ollama. Your messages stay on this device. No data leaves your machine."
+                            <!-- Where messages go, for the active provider and Research Mode:
+                                 the local claim only when nothing leaves this computer. -->
+                            <TextBlock Text="{x:Bind ViewModel.PrivacyHint, Mode=OneWay}"
                                        Style="{StaticResource BodySecondaryStyle}"
                                        TextWrapping="Wrap"
                                        TextAlignment="Center"
@@ -848,7 +850,8 @@
                         <!-- Quick action suggestions -->
                         <StackPanel Spacing="8" HorizontalAlignment="Center">
                             <Border Style="{StaticResource BadgeAccentStyle}"
-                                    HorizontalAlignment="Center">
+                                    HorizontalAlignment="Center"
+                                    Visibility="{x:Bind ViewModel.IsChatPrivate, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
                                 <TextBlock x:Uid="Chat_PrivateBadge" Text="100% Private"
                                            Style="{StaticResource CaptionStyle}"
                                            Foreground="{ThemeResource TextAccentBrush}"

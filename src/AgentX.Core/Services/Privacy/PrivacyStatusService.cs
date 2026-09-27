@@ -31,44 +31,12 @@ public sealed class PrivacyStatusService : IPrivacyStatusService
     {
         if (settings is null) throw new ArgumentNullException(nameof(settings));
 
-        var disclosures = new List<PrivacyDisclosure>();
-
-        // 1) Active AI provider is a hosted cloud model — prompts and conversation content leave.
-        var cloudProviderName = CloudAiProviderName(settings.ActiveProviderId);
-        if (cloudProviderName is not null)
-        {
-            disclosures.Add(new PrivacyDisclosure(
-                "AI model",
-                $"Your prompts and conversation content are sent to {cloudProviderName} for processing."));
-        }
-        else if (string.Equals(settings.ActiveProviderId, "ollama", StringComparison.OrdinalIgnoreCase)
-                 && OffMachineHost(settings.OllamaEndpoint) is { } ollamaHost)
-        {
-            // Ollama runs wherever its endpoint points; only a loopback endpoint keeps inference
-            // on this machine.
-            disclosures.Add(new PrivacyDisclosure(
-                "AI model",
-                $"Your prompts and conversation content are sent to the Ollama server at {ollamaHost}."));
-        }
-
-        // 2) Multi-model routing can dispatch requests to a configured cloud provider. Only a concern
-        //    when routing is on AND at least one cloud provider key is configured to route to.
-        if (settings.EnableModelRouting && HasCloudAiKey(settings))
-        {
-            disclosures.Add(new PrivacyDisclosure(
-                "Model routing",
-                "Smart model routing may send prompts to your configured cloud AI provider."));
-        }
-
-        // 3) Web search. Research Mode is switched on per conversation in chat, independently of
-        //    the settings toggle, so any configured provider can receive queries. The check uses
-        //    the same configuration the search service uses. SearXNG is disclosed too: even a
-        //    local instance forwards the queries to public search engines.
-        var webSearch = WebSearchConfiguration.FromSettings(settings);
-        if (webSearch.IsConfigured)
-        {
-            disclosures.Add(new PrivacyDisclosure("Web search", WebSearchDetail(webSearch)));
-        }
+        // 1-3) Everything a prompt can reach: the AI model, model routing and web search. Research
+        //      Mode is switched on per conversation in chat, so any configured search provider
+        //      counts here whatever the settings toggle says.
+        var disclosures = PromptRecipients(settings, settings.ActiveProviderId, includeWebSearch: true)
+            .Select(Disclose)
+            .ToList();
 
         // 4) Calendar connector exchanges data with Google/Microsoft.
         if (settings.CalendarConnector.EnableCalendarSync)
@@ -91,11 +59,96 @@ public sealed class PrivacyStatusService : IPrivacyStatusService
             : new PrivacyStatus(false, disclosures);
     }
 
+    public async Task<IReadOnlyList<PromptRecipient>> GetChatMessageRecipientsAsync(
+        string? activeProviderId,
+        bool researchModeOn,
+        CancellationToken cancellationToken = default)
+    {
+        var settings = await _settingsService.GetSettingsAsync().ConfigureAwait(false);
+        return EvaluateChatMessage(settings, activeProviderId, researchModeOn);
+    }
+
+    public IReadOnlyList<PromptRecipient> EvaluateChatMessage(AppSettings settings, string? activeProviderId, bool researchModeOn)
+    {
+        if (settings is null) throw new ArgumentNullException(nameof(settings));
+
+        // Chat searches the web only while Research Mode is on for the message and switched on in
+        // Settings (MessagingCoordinator.BuildResearchContextAsync), so only then does the search
+        // provider receive the message.
+        return PromptRecipients(
+            settings,
+            string.IsNullOrWhiteSpace(activeProviderId) ? settings.ActiveProviderId : activeProviderId,
+            includeWebSearch: researchModeOn && settings.EnableResearchMode);
+    }
+
+    /// <summary>
+    /// Where a prompt goes off this computer, for the provider <paramref name="providerId"/>: the
+    /// AI model when it is hosted or on another machine, model routing when it can reach a cloud
+    /// provider, and, with <paramref name="includeWebSearch"/>, the configured web search provider.
+    /// Shared by <see cref="Evaluate"/> and <see cref="EvaluateChatMessage"/> so the dashboard, the
+    /// privacy lamp and chat can never disagree about it.
+    /// </summary>
+    private static List<PromptRecipient> PromptRecipients(AppSettings settings, string? providerId, bool includeWebSearch)
+    {
+        var recipients = new List<PromptRecipient>();
+
+        // The AI model: a hosted provider always leaves the machine. Ollama runs wherever its
+        // endpoint points; only a loopback endpoint keeps inference on this machine.
+        if (CloudAiProviderName(providerId) is { } cloudProviderName)
+        {
+            recipients.Add(new PromptRecipient(PromptRecipientKind.CloudAiProvider, cloudProviderName));
+        }
+        else if (string.Equals(providerId?.Trim(), "ollama", StringComparison.OrdinalIgnoreCase)
+                 && OffMachineHost(settings.OllamaEndpoint) is { } ollamaHost)
+        {
+            recipients.Add(new PromptRecipient(PromptRecipientKind.RemoteOllama, ollamaHost));
+        }
+
+        // Multi-model routing can dispatch requests to a configured cloud provider. Only a concern
+        // when routing is on AND at least one cloud provider key is configured to route to.
+        if (settings.EnableModelRouting && HasCloudAiKey(settings))
+        {
+            recipients.Add(new PromptRecipient(PromptRecipientKind.ModelRouting, null));
+        }
+
+        // Web search uses the same configuration the search service uses. SearXNG counts too:
+        // even a local instance forwards the queries to public search engines.
+        var webSearch = WebSearchConfiguration.FromSettings(settings);
+        if (includeWebSearch && webSearch.IsConfigured)
+        {
+            recipients.Add(webSearch.Provider == WebSearchProvider.SearXng
+                ? new PromptRecipient(PromptRecipientKind.SearXng, webSearch.SearXngUrl!.Host)
+                : new PromptRecipient(PromptRecipientKind.WebSearch, WebSearchProviderName(webSearch.Provider)));
+        }
+
+        return recipients;
+    }
+
+    /// <summary>The dashboard's disclosure for a place prompts go.</summary>
+    private static PrivacyDisclosure Disclose(PromptRecipient recipient) => recipient.Kind switch
+    {
+        PromptRecipientKind.CloudAiProvider => new PrivacyDisclosure(
+            "AI model",
+            $"Your prompts and conversation content are sent to {recipient.Name} for processing."),
+        PromptRecipientKind.RemoteOllama => new PrivacyDisclosure(
+            "AI model",
+            $"Your prompts and conversation content are sent to the Ollama server at {recipient.Name}."),
+        PromptRecipientKind.ModelRouting => new PrivacyDisclosure(
+            "Model routing",
+            "Smart model routing may send prompts to your configured cloud AI provider."),
+        PromptRecipientKind.SearXng => new PrivacyDisclosure(
+            "Web search",
+            $"When Research Mode is on in chat, your questions are sent to the SearXNG instance at {recipient.Name}, which forwards them to public search engines."),
+        _ => new PrivacyDisclosure(
+            "Web search",
+            $"When Research Mode is on in chat, your questions are sent to {recipient.Name}."),
+    };
+
     /// <summary>
     /// Returns the display name of a hosted cloud AI provider, or null for on-machine providers
     /// ("local" LLamaSharp, "ollama") whose inference never leaves the device.
     /// </summary>
-    private static string? CloudAiProviderName(string? providerId) => providerId?.ToLowerInvariant() switch
+    private static string? CloudAiProviderName(string? providerId) => providerId?.Trim().ToLowerInvariant() switch
     {
         "openai" => "OpenAI",
         "anthropic" => "Anthropic",
@@ -106,15 +159,11 @@ public sealed class PrivacyStatusService : IPrivacyStatusService
         !string.IsNullOrWhiteSpace(settings.OpenAiApiKey) ||
         !string.IsNullOrWhiteSpace(settings.AnthropicApiKey);
 
-    /// <summary>Where research-mode queries go for a configured web search provider.</summary>
-    private static string WebSearchDetail(WebSearchConfiguration webSearch) => webSearch.Provider switch
+    /// <summary>The name of a hosted web search provider that receives research-mode queries.</summary>
+    private static string WebSearchProviderName(WebSearchProvider provider) => provider switch
     {
-        WebSearchProvider.SearXng =>
-            $"When Research Mode is on in chat, your questions are sent to the SearXNG instance at {webSearch.SearXngUrl!.Host}, which forwards them to public search engines.",
-        WebSearchProvider.Serper =>
-            "When Research Mode is on in chat, your questions are sent to Serper (Google Search).",
-        _ =>
-            "When Research Mode is on in chat, your questions are sent to Brave Search.",
+        WebSearchProvider.Serper => "Serper (Google Search)",
+        _ => "Brave Search",
     };
 
     /// <summary>

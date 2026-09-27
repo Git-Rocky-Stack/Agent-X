@@ -7,8 +7,11 @@ using AgentX.Core.AI.Models;
 using AgentX.Core.Search.Models;
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Chat.Models;
+using AgentX.Core.Services.Localization;
+using AgentX.Core.Services.Privacy;
 using AgentX.Core.Services.TemporalIdentity;
 using AgentX.Core.Services.TemporalIdentity.Models;
+using AgentX.Tests.Helpers;
 using FluentAssertions;
 using Moq;
 using Xunit;
@@ -28,12 +31,18 @@ public sealed class ChatViewModelTests
     private readonly Mock<IConversationMemoryService> _memoryService = new();
     private readonly Mock<INotificationService> _notificationService = new();
     private readonly Mock<ITemporalIdentityService> _temporalIdentity = new();
+    private readonly Mock<IPrivacyStatusService> _privacyStatusService = new();
+    private readonly ILocalizationService _localization = ReswLocalization.For("en-US");
 
     public ChatViewModelTests()
     {
         _branchingCoordinator
             .Setup(service => service.LoadBranchTreeAsync(It.IsAny<long>()))
             .ReturnsAsync((ConversationBranchTree?)null);
+        _privacyStatusService
+            .Setup(service => service.GetChatMessageRecipientsAsync(
+                It.IsAny<string?>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<PromptRecipient>());
         _memoryService
             .Setup(service => service.GetSuggestedQuestionsAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Array.Empty<string>());
@@ -1807,6 +1816,170 @@ public sealed class ChatViewModelTests
         disposableVoice.Verify(voice => voice.Dispose(), Times.Never);
     }
 
+    // --- Privacy claim ---
+    // The empty chat said "powered by Ollama ... No data leaves your machine" and showed
+    // "100% Private" whatever provider was active, and while Research Mode sent questions to a
+    // web search provider.
+
+    [Fact]
+    public async Task InitializeAsync_WithTheBuiltInModelActive_ClaimsTheMessagesStayOnThisComputer()
+    {
+        SetupActiveProvider("local", "Built-in LLM");
+        var viewModel = CreateViewModel();
+
+        await viewModel.InitializeAsync();
+
+        viewModel.IsChatPrivate.Should().BeTrue();
+        viewModel.PrivacyHint.Should().Be("Built-in LLM runs on this computer, so your messages stay on this device.");
+        _privacyStatusService.Verify(
+            service => service.GetChatMessageRecipientsAsync("local", false, It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_WithACloudProvider_NamesItAndMakesNoLocalClaim()
+    {
+        SetupActiveProvider("openai", "OpenAI");
+        SetupRecipients("openai", researchModeOn: false, new PromptRecipient(PromptRecipientKind.CloudAiProvider, "OpenAI"));
+        var viewModel = CreateViewModel();
+
+        await viewModel.InitializeAsync();
+
+        viewModel.IsChatPrivate.Should().BeFalse();
+        viewModel.PrivacyHint.Should().Be("Your messages are sent to OpenAI for processing.");
+    }
+
+    [Fact]
+    public async Task InitializeAsync_WithSeveralRecipients_NamesEachOfThem()
+    {
+        SetupActiveProvider("ollama", "Ollama");
+        SetupRecipients(
+            "ollama",
+            researchModeOn: false,
+            new PromptRecipient(PromptRecipientKind.RemoteOllama, "192.168.1.40"),
+            new PromptRecipient(PromptRecipientKind.ModelRouting, null));
+        var viewModel = CreateViewModel();
+
+        await viewModel.InitializeAsync();
+
+        viewModel.IsChatPrivate.Should().BeFalse();
+        viewModel.PrivacyHint.Should().Be(
+            "Your messages are sent to the Ollama server at 192.168.1.40. " +
+            "Smart model routing may send your messages to your cloud AI provider.");
+    }
+
+    [Fact]
+    public async Task SwitchingResearchMode_UpdatesTheClaimForTheSearchProvider()
+    {
+        SetupActiveProvider("local", "Built-in LLM");
+        SetupRecipients("local", researchModeOn: true, new PromptRecipient(PromptRecipientKind.SearXng, "searx.example.org"));
+        var viewModel = CreateViewModel();
+        await viewModel.InitializeAsync();
+        viewModel.IsChatPrivate.Should().BeTrue();
+
+        viewModel.IsResearchMode = true;
+
+        viewModel.IsChatPrivate.Should().BeFalse();
+        viewModel.PrivacyHint.Should().Be(
+            "With Research Mode on, your questions are sent to the SearXNG instance at searx.example.org, " +
+            "which forwards them to public search engines.");
+
+        viewModel.IsResearchMode = false;
+
+        viewModel.IsChatPrivate.Should().BeTrue();
+        viewModel.PrivacyHint.Should().Contain("stay on this device");
+    }
+
+    [Fact]
+    public async Task ShowingThePageAgainAfterTheProviderChanged_UpdatesTheClaim()
+    {
+        var provider = SetupActiveProvider("local", "Built-in LLM");
+        var viewModel = CreateViewModel();
+        await viewModel.InitializeAsync();
+        viewModel.IsChatPrivate.Should().BeTrue();
+
+        // Settings switched the provider to Anthropic; the page initializes on every visit.
+        provider.SetupGet(p => p.ProviderId).Returns("anthropic");
+        provider.SetupGet(p => p.DisplayName).Returns("Anthropic Claude");
+        SetupRecipients("anthropic", researchModeOn: false, new PromptRecipient(PromptRecipientKind.CloudAiProvider, "Anthropic"));
+        await viewModel.InitializeAsync();
+
+        viewModel.IsChatPrivate.Should().BeFalse();
+        viewModel.PrivacyHint.Should().Be("Your messages are sent to Anthropic for processing.");
+    }
+
+    [Fact]
+    public async Task RefreshConnection_ReevaluatesTheClaim()
+    {
+        SetupActiveProvider("local", "Built-in LLM");
+        var viewModel = CreateViewModel();
+        await viewModel.InitializeAsync();
+        SetupRecipients("local", researchModeOn: false, new PromptRecipient(PromptRecipientKind.ModelRouting, null));
+
+        await viewModel.RefreshConnectionCommand.ExecuteAsync(null);
+
+        viewModel.IsChatPrivate.Should().BeFalse();
+        viewModel.PrivacyHint.Should().Be("Smart model routing may send your messages to your cloud AI provider.");
+    }
+
+    [Fact]
+    public async Task InitializeAsync_WhenWhereMessagesGoCannotBeWorkedOut_MakesNoLocalClaim()
+    {
+        _privacyStatusService
+            .Setup(service => service.GetChatMessageRecipientsAsync(
+                It.IsAny<string?>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new IOException("settings unreadable"));
+        var viewModel = CreateViewModel();
+
+        await viewModel.InitializeAsync();
+
+        viewModel.IsChatPrivate.Should().BeFalse();
+        viewModel.PrivacyHint.Should().Be(
+            "Agent-X could not confirm where your messages are sent. Review the AI provider in Settings.");
+    }
+
+    [Fact]
+    public async Task InitializeAsync_BeforeTheAiServiceIsReady_UsesTheSavedProviderAndNamesNoModel()
+    {
+        _aiService.SetupGet(s => s.ActiveProvider)
+            .Throws(new InvalidOperationException("AI service has not been initialized."));
+        var viewModel = CreateViewModel();
+
+        await viewModel.InitializeAsync();
+
+        _privacyStatusService.Verify(
+            service => service.GetChatMessageRecipientsAsync(null, false, It.IsAny<CancellationToken>()),
+            Times.Once);
+        viewModel.IsChatPrivate.Should().BeTrue();
+        viewModel.PrivacyHint.Should().Be("The AI model runs on this computer, so your messages stay on this device.");
+    }
+
+    [Fact]
+    public async Task ThePrivacyHint_IsReadFromTheUsersLanguage()
+    {
+        SetupActiveProvider("openai", "OpenAI");
+        SetupRecipients("openai", researchModeOn: false, new PromptRecipient(PromptRecipientKind.CloudAiProvider, "OpenAI"));
+        var viewModel = CreateViewModel(ReswLocalization.For("de"));
+
+        await viewModel.InitializeAsync();
+
+        viewModel.PrivacyHint.Should().Be("Ihre Nachrichten werden zur Verarbeitung an OpenAI gesendet.");
+    }
+
+    private Mock<IAiProvider> SetupActiveProvider(string providerId, string displayName)
+    {
+        var provider = new Mock<IAiProvider>();
+        provider.SetupGet(p => p.ProviderId).Returns(providerId);
+        provider.SetupGet(p => p.DisplayName).Returns(displayName);
+        _aiService.SetupGet(s => s.ActiveProvider).Returns(provider.Object);
+        return provider;
+    }
+
+    private void SetupRecipients(string? providerId, bool researchModeOn, params PromptRecipient[] recipients) =>
+        _privacyStatusService
+            .Setup(service => service.GetChatMessageRecipientsAsync(providerId, researchModeOn, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(recipients);
+
     /// <summary>
     /// Sends "How should I proceed?" in conversation 42 and completes it with persisted ids:
     /// prompt 1001 (sort 4) and answer 1002 (sort 5).
@@ -1852,7 +2025,7 @@ public sealed class ChatViewModelTests
         }
     }
 
-    private ChatViewModel CreateViewModel() =>
+    private ChatViewModel CreateViewModel(ILocalizationService? localization = null) =>
         new(
             _conversationCoordinator.Object,
             _messagingCoordinator.Object,
@@ -1864,7 +2037,9 @@ public sealed class ChatViewModelTests
             _systemPromptService.Object,
             _memoryService.Object,
             _notificationService.Object,
-            _temporalIdentity.Object);
+            _temporalIdentity.Object,
+            _privacyStatusService.Object,
+            localization ?? _localization);
 
     private static ChatContextInspectionSnapshot CreateInspectionSnapshot(
         long conversationId,

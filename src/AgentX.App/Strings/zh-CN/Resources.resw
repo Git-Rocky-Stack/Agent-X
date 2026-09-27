@@ -946,6 +946,14 @@
   <data name="Main_PastSelf.Content" xml:space="preserve"><value>过往的自己</value></data>
   <data name="Main_AiChat.Content" xml:space="preserve"><value>AI Chat</value></data>
   <data name="Main_AskYourFiles.Content" xml:space="preserve"><value>向您的文件提问</value></data>
+  <data name="Chat_PrivacyLocal" xml:space="preserve"><value>{0} 在这台电脑上运行，因此您的消息会保留在此设备上。</value></data>
+  <data name="Chat_PrivacyLocalUnnamed" xml:space="preserve"><value>AI 模型在这台电脑上运行，因此您的消息会保留在此设备上。</value></data>
+  <data name="Chat_PrivacyCloud" xml:space="preserve"><value>您的消息会发送到 {0} 进行处理。</value></data>
+  <data name="Chat_PrivacyRemoteOllama" xml:space="preserve"><value>您的消息会发送到位于 {0} 的 Ollama 服务器。</value></data>
+  <data name="Chat_PrivacyRouting" xml:space="preserve"><value>智能模型路由可能会将您的消息发送到您的云 AI 提供商。</value></data>
+  <data name="Chat_PrivacyWebSearch" xml:space="preserve"><value>开启研究模式后，您的问题会发送到 {0}。</value></data>
+  <data name="Chat_PrivacySearXng" xml:space="preserve"><value>开启研究模式后，您的问题会发送到位于 {0} 的 SearXNG 实例，并由其转发给公共搜索引擎。</value></data>
+  <data name="Chat_PrivacyUnknown" xml:space="preserve"><value>Agent-X 无法确认您的消息会发送到哪里。请在“设置”中检查 AI 提供商。</value></data>
   <data name="Main_QuickActions.Content" xml:space="preserve"><value>Quick Actions</value></data>
   <data name="Main_Workflows.Content" xml:space="preserve"><value>工作流</value></data>
   <data name="Main_Knowledge.Content" xml:space="preserve"><value>知识</value></data>
@@ -1070,7 +1078,6 @@
   <data name="Chat_OpenInspectorTip.ToolTipService.ToolTip" xml:space="preserve"><value>打开完整上下文检查器</value></data>
   <data name="Chat_InspectContextLabel.Text" xml:space="preserve"><value>检查上下文</value></data>
   <data name="Chat_EmptyTitle.Text" xml:space="preserve"><value>开始会话</value></data>
-  <data name="Chat_EmptyHint.Text" xml:space="preserve"><value>与 Ollama 驱动的本地 AI 模型聊天。您的消息保留在此设备上,任何数据都不会离开您的电脑。</value></data>
   <data name="Chat_PrivateBadge.Text" xml:space="preserve"><value>100% 私密</value></data>
   <data name="Chat_EnterToSend.Text" xml:space="preserve"><value>Enter 发送</value></data>
   <data name="Chat_ShiftEnterNewLine.Text" xml:space="preserve"><value>Shift+Enter 换行</value></data>

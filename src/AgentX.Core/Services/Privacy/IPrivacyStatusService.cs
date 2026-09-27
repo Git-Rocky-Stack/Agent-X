@@ -20,4 +20,20 @@ public interface IPrivacyStatusService
 
     /// <summary>Loads the current settings and evaluates them via <see cref="Evaluate"/>.</summary>
     Task<PrivacyStatus> GetCurrentAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Pure evaluation of where one message sent from chat goes. Empty when it stays on this
+    /// computer. Unlike <see cref="Evaluate"/>, which covers every enabled feature, this follows the
+    /// message: the provider that answers it (<paramref name="activeProviderId"/>, or the saved
+    /// provider when that is null), model routing, and web search only while Research Mode is on
+    /// for the message (<paramref name="researchModeOn"/>) and switched on in Settings, which is
+    /// when chat searches.
+    /// </summary>
+    IReadOnlyList<PromptRecipient> EvaluateChatMessage(AppSettings settings, string? activeProviderId, bool researchModeOn);
+
+    /// <summary>Loads the current settings and evaluates them via <see cref="EvaluateChatMessage"/>.</summary>
+    Task<IReadOnlyList<PromptRecipient>> GetChatMessageRecipientsAsync(
+        string? activeProviderId,
+        bool researchModeOn,
+        CancellationToken cancellationToken = default);
 }

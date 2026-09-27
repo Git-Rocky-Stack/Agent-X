@@ -1068,6 +1068,14 @@
   <data name="Main_PastSelf.Content" xml:space="preserve"><value>Past Self</value></data>
   <data name="Main_AiChat.Content" xml:space="preserve"><value>AI Chat</value></data>
   <data name="Main_AskYourFiles.Content" xml:space="preserve"><value>Ask Your Files</value></data>
+  <data name="Chat_PrivacyLocal" xml:space="preserve"><value>{0} runs on this computer, so your messages stay on this device.</value></data>
+  <data name="Chat_PrivacyLocalUnnamed" xml:space="preserve"><value>The AI model runs on this computer, so your messages stay on this device.</value></data>
+  <data name="Chat_PrivacyCloud" xml:space="preserve"><value>Your messages are sent to {0} for processing.</value></data>
+  <data name="Chat_PrivacyRemoteOllama" xml:space="preserve"><value>Your messages are sent to the Ollama server at {0}.</value></data>
+  <data name="Chat_PrivacyRouting" xml:space="preserve"><value>Smart model routing may send your messages to your cloud AI provider.</value></data>
+  <data name="Chat_PrivacyWebSearch" xml:space="preserve"><value>With Research Mode on, your questions are sent to {0}.</value></data>
+  <data name="Chat_PrivacySearXng" xml:space="preserve"><value>With Research Mode on, your questions are sent to the SearXNG instance at {0}, which forwards them to public search engines.</value></data>
+  <data name="Chat_PrivacyUnknown" xml:space="preserve"><value>Agent-X could not confirm where your messages are sent. Review the AI provider in Settings.</value></data>
   <data name="Main_QuickActions.Content" xml:space="preserve"><value>Quick Actions</value></data>
   <data name="Main_Workflows.Content" xml:space="preserve"><value>Workflows</value></data>
   <data name="Main_Knowledge.Content" xml:space="preserve"><value>KNOWLEDGE</value></data>
@@ -1192,7 +1200,6 @@
   <data name="Chat_OpenInspectorTip.ToolTipService.ToolTip" xml:space="preserve"><value>Open the full context inspector</value></data>
   <data name="Chat_InspectContextLabel.Text" xml:space="preserve"><value>Inspect Context</value></data>
   <data name="Chat_EmptyTitle.Text" xml:space="preserve"><value>Start a Conversation</value></data>
-  <data name="Chat_EmptyHint.Text" xml:space="preserve"><value>Chat with local AI models powered by Ollama. Your messages stay on this device. No data leaves your machine.</value></data>
   <data name="Chat_PrivateBadge.Text" xml:space="preserve"><value>100% Private</value></data>
   <data name="Chat_EnterToSend.Text" xml:space="preserve"><value>Enter to send</value></data>
   <data name="Chat_ShiftEnterNewLine.Text" xml:space="preserve"><value>Shift+Enter for new line</value></data>

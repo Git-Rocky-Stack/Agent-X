@@ -15,6 +15,8 @@ using AgentX.Core.Services.Audio.Models;
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Chat.Models;
 using AgentX.Core.Services.Feedback;
+using AgentX.Core.Services.Localization;
+using AgentX.Core.Services.Privacy;
 using AgentX.Core.Services.TemporalIdentity;
 using AgentX.Core.Services.TemporalIdentity.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -67,7 +69,12 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         set
         {
             if (SetProperty(ref _isResearchMode, value))
+            {
                 OnPropertyChanged(nameof(ResearchModeTooltip));
+
+                // Research Mode decides whether the next message also goes to the web search provider.
+                _ = RefreshPrivacyClaimAsync();
+            }
         }
     }
 
@@ -109,6 +116,13 @@ public partial class ChatViewModel : ObservableObject, IDisposable
 
     // ── Memory ────────────────────────────────────────────────
     [ObservableProperty] private int _memoryCount;
+
+    // ── Privacy claim (empty chat) ────────────────────────────
+    // The empty chat claims "100% Private" only while nothing a message sends leaves this
+    // computer; otherwise its hint names where messages go instead.
+    [ObservableProperty] private bool _isChatPrivate;
+    [ObservableProperty] private string _privacyHint = string.Empty;
+    private int _privacyClaimVersion;
 
     // ── Voice Input ───────────────────────────────────────────
     [ObservableProperty] private bool _isRecording;
@@ -324,6 +338,8 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     private readonly IConversationMemoryService _memoryService;
     private readonly INotificationService _notificationService;
     private readonly ITemporalIdentityService _temporalIdentity;
+    private readonly IPrivacyStatusService _privacyStatusService;
+    private readonly ILocalizationService _localization;
 
     // ── Streaming assistant message (for token-by-token updates) ──
     // The generation streaming into the screen. Null when nothing this view model started is
@@ -371,7 +387,9 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         ISystemPromptService systemPromptService,
         IConversationMemoryService memoryService,
         INotificationService notificationService,
-        ITemporalIdentityService temporalIdentity)
+        ITemporalIdentityService temporalIdentity,
+        IPrivacyStatusService privacyStatusService,
+        ILocalizationService localization)
     {
         _conversationCoordinator = conversationCoordinator;
         _messagingCoordinator = messagingCoordinator;
@@ -384,6 +402,8 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         _memoryService = memoryService;
         _notificationService = notificationService;
         _temporalIdentity = temporalIdentity;
+        _privacyStatusService = privacyStatusService;
+        _localization = localization;
         _conversationEngagement = new EngagementTracker(
             temporalIdentity, EngagementTargetType.Conversation, () => UtcNow());
 
@@ -517,6 +537,9 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         Log.Information("ChatViewModel initializing...");
         try
         {
+            // First, and on every visit: a provider changed in Settings must show up here, and
+            // this never throws, so a failure further down cannot leave the claim unevaluated.
+            await RefreshPrivacyClaimAsync();
             await LoadConversationsAsync();
             await CheckConnectionStatusAsync();
             await LoadAvailableModelsAsync();
@@ -596,6 +619,80 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     {
         try { MemoryCount = await _memoryService.GetMemoryCountAsync(); }
         catch (Exception ex) { Log.Warning(ex, "Failed to update memory count"); }
+    }
+
+    /// <summary>
+    /// Works out what the empty chat may say about where messages go, for the provider active now
+    /// and the Research Mode switch on screen. The page runs it on every visit, so a provider
+    /// changed in Settings is reflected; Refresh connection and the Research Mode switch run it too.
+    /// </summary>
+    private async Task RefreshPrivacyClaimAsync()
+    {
+        var version = ++_privacyClaimVersion;
+        var (providerId, providerName) = ActiveProviderIdentity();
+
+        IReadOnlyList<PromptRecipient>? recipients;
+        try
+        {
+            recipients = await _privacyStatusService.GetChatMessageRecipientsAsync(providerId, IsResearchMode);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to work out where chat messages are sent");
+            recipients = null;
+        }
+
+        if (version != _privacyClaimVersion)
+        {
+            // Research Mode was switched meanwhile; the newer evaluation owns the claim.
+            return;
+        }
+
+        if (recipients is null)
+        {
+            // A local claim that could not be confirmed is not made.
+            IsChatPrivate = false;
+            PrivacyHint = _localization.GetString("Chat_PrivacyUnknown");
+            return;
+        }
+
+        IsChatPrivate = recipients.Count == 0;
+        if (recipients.Count == 0)
+        {
+            PrivacyHint = providerName is null
+                ? _localization.GetString("Chat_PrivacyLocalUnnamed")
+                : _localization.GetString("Chat_PrivacyLocal", providerName);
+            return;
+        }
+
+        PrivacyHint = string.Join(" ", recipients.Select(DescribeRecipient));
+    }
+
+    private string DescribeRecipient(PromptRecipient recipient)
+    {
+        var name = recipient.Name ?? string.Empty;
+        return recipient.Kind switch
+        {
+            PromptRecipientKind.CloudAiProvider => _localization.GetString("Chat_PrivacyCloud", name),
+            PromptRecipientKind.RemoteOllama => _localization.GetString("Chat_PrivacyRemoteOllama", name),
+            PromptRecipientKind.ModelRouting => _localization.GetString("Chat_PrivacyRouting"),
+            PromptRecipientKind.SearXng => _localization.GetString("Chat_PrivacySearXng", name),
+            _ => _localization.GetString("Chat_PrivacyWebSearch", name),
+        };
+    }
+
+    /// <summary>The active provider's id and display name, or nulls before the AI service is ready.</summary>
+    private (string? ProviderId, string? DisplayName) ActiveProviderIdentity()
+    {
+        try
+        {
+            var provider = _aiService.ActiveProvider;
+            return (provider?.ProviderId, string.IsNullOrWhiteSpace(provider?.DisplayName) ? null : provider.DisplayName);
+        }
+        catch (InvalidOperationException)
+        {
+            return (null, null); // not initialized yet
+        }
     }
 
     private async Task RefreshFolderNamesAsync()
@@ -1779,6 +1876,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     {
         ConnectionStatus = "Checking...";
         await CheckConnectionStatusAsync();
+        await RefreshPrivacyClaimAsync();
         await LoadAvailableModelsAsync();
     }
 
