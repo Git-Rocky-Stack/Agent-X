@@ -20,8 +20,6 @@ namespace AgentX.App.ViewModels.Coordinators;
 /// </summary>
 public sealed class MessagingCoordinator : IMessagingCoordinator
 {
-    // Research Mode adds this many web results to the context of one answer.
-    private const int ResearchResultCount = 5;
     private static readonly TimeSpan ResearchSearchTimeout = TimeSpan.FromSeconds(15);
 
     private const string StopMarker = "[Generation stopped]";
@@ -695,7 +693,8 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
             return null;
         }
 
-        if (!await IsResearchModeEnabledAsync())
+        var settings = await ReadResearchSettingsAsync();
+        if (settings is not { EnableResearchMode: true })
         {
             NotifyResearchUnavailable("Research Mode is turned off in Settings, so no web search was made. Turn it on in Settings to add web sources to answers.");
             return null;
@@ -710,15 +709,18 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
         // The search can run, so a later configuration problem is news again.
         _researchUnavailableNotice = null;
 
+        // Max Search Results decides how many sources an answer gets: 1 to 20, and 10 when unset.
+        var resultCount = WebSearchConfiguration.FromSettings(settings).MaxResults;
+
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
         timeout.CancelAfter(ResearchSearchTimeout);
 
         try
         {
-            var response = await _webSearchService.SearchAsync(query, ResearchResultCount, timeout.Token);
+            var response = await _webSearchService.SearchAsync(query, resultCount, timeout.Token);
             var results = response.Results
                 .Where(result => !string.IsNullOrWhiteSpace(result.Url))
-                .Take(ResearchResultCount)
+                .Take(resultCount)
                 .ToList();
 
             if (results.Count == 0)
@@ -775,21 +777,24 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
         return context.ToString();
     }
 
-    private async Task<bool> IsResearchModeEnabledAsync()
+    /// <summary>
+    /// The settings Research Mode runs by, or null when they cannot be read, which keeps it off.
+    /// </summary>
+    private async Task<AppSettings?> ReadResearchSettingsAsync()
     {
         if (_settingsService is null)
         {
-            return false;
+            return null;
         }
 
         try
         {
-            return (await _settingsService.GetSettingsAsync()).EnableResearchMode;
+            return await _settingsService.GetSettingsAsync();
         }
         catch (Exception ex)
         {
             Log.Warning(ex, "Failed to read the Research Mode setting");
-            return false;
+            return null;
         }
     }
 

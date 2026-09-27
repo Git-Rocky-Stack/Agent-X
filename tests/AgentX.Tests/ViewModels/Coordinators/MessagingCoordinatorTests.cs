@@ -720,6 +720,34 @@ public class MessagingCoordinatorTests
         result.WebCitations![0].Url.Should().Be("https://example.org/notes");
     }
 
+    // Research Mode asked for a fixed 5 results, and the web search service keeps the smaller of
+    // the request and Max Search Results, so the setting could lower the count but never raise it.
+    [Theory]
+    [InlineData(15, 15)]
+    [InlineData(3, 3)]
+    [InlineData(0, 10)]
+    [InlineData(50, 20)]
+    public async Task SendMessageAsync_InResearchMode_AsksForAsManySourcesAsMaxSearchResultsAllows(
+        int maxSearchResults, int expectedCount)
+    {
+        var (coordinator, webSearch, _) = CreateResearchCoordinator(
+            researchEnabled: true, configured: true, maxSearchResults: maxSearchResults);
+        var results = Enumerable.Range(1, 25)
+            .Select(i => new WebSearchResult { Title = $"Page {i}", Url = $"https://example.org/{i}", Snippet = "Text." })
+            .ToList();
+        webSearch
+            .Setup(s => s.SearchAsync("What changed?", It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new WebSearchResponse { Query = "What changed?", Results = results });
+        _chatService
+            .Setup(s => s.SendMessageAsync(1, "What changed?", It.IsAny<SupplementalContext?>(), It.IsAny<CancellationToken>()))
+            .Returns(CreateTokenStream("Answer [1]"));
+
+        var result = await coordinator.SendMessageAsync("What changed?", 1, null, null, true);
+
+        webSearch.Verify(s => s.SearchAsync("What changed?", expectedCount, It.IsAny<CancellationToken>()), Times.Once);
+        result.WebCitations.Should().HaveCount(expectedCount);
+    }
+
     [Theory]
     [InlineData(false, true, "turned off in Settings")]
     [InlineData(true, false, "No web search provider")]
@@ -852,12 +880,16 @@ public class MessagingCoordinatorTests
     }
 
     private (MessagingCoordinator Coordinator, Mock<IWebSearchService> WebSearch, Mock<ISettingsService> Settings)
-        CreateResearchCoordinator(bool researchEnabled, bool configured)
+        CreateResearchCoordinator(bool researchEnabled, bool configured, int maxSearchResults = 10)
     {
         var webSearch = new Mock<IWebSearchService>();
         webSearch.SetupGet(s => s.IsConfigured).Returns(configured);
         var settings = new Mock<ISettingsService>();
-        settings.Setup(s => s.GetSettingsAsync()).ReturnsAsync(new AppSettings { EnableResearchMode = researchEnabled });
+        settings.Setup(s => s.GetSettingsAsync()).ReturnsAsync(new AppSettings
+        {
+            EnableResearchMode = researchEnabled,
+            MaxSearchResults = maxSearchResults
+        });
 
         var coordinator = new MessagingCoordinator(
             _chatService.Object,
