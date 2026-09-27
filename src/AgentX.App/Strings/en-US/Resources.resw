@@ -1827,7 +1827,7 @@
   <data name="Dash_Subtitle.Text" xml:space="preserve"><value>Your private AI intelligence center. Everything runs on your machine.</value></data>
   <data name="Dash_RefreshBtn.Content" xml:space="preserve"><value>Refresh</value></data>
   <data name="Dash_SetupAiBtn.Content" xml:space="preserve"><value>Setup AI</value></data>
-  <data name="Dash_SearchBox.PlaceholderText" xml:space="preserve"><value>Search your knowledge vault...  (Ctrl+K)</value></data>
+  <data name="Dash_SearchBox.PlaceholderText" xml:space="preserve"><value>Search your knowledge vault...</value></data>
   <data name="Dash_DocsOverline.Text" xml:space="preserve"><value>DOCUMENTS</value></data>
   <data name="Dash_AcrossRun.Text" xml:space="preserve"><value>across </value></data>
   <data name="Dash_CollectionsRun.Text" xml:space="preserve"><value> collections</value></data>

@@ -1488,7 +1488,7 @@
   <data name="Dash_Subtitle.Text" xml:space="preserve"><value>Votre centre privé d'intelligence IA. Tout s'exécute sur votre machine.</value></data>
   <data name="Dash_RefreshBtn.Content" xml:space="preserve"><value>Actualiser</value></data>
   <data name="Dash_SetupAiBtn.Content" xml:space="preserve"><value>Configurer l'IA</value></data>
-  <data name="Dash_SearchBox.PlaceholderText" xml:space="preserve"><value>Rechercher dans votre coffre-fort...  (Ctrl+K)</value></data>
+  <data name="Dash_SearchBox.PlaceholderText" xml:space="preserve"><value>Rechercher dans votre coffre-fort...</value></data>
   <data name="Dash_DocsOverline.Text" xml:space="preserve"><value>DOCUMENTS</value></data>
   <data name="Dash_AcrossRun.Text" xml:space="preserve"><value>dans </value></data>
   <data name="Dash_CollectionsRun.Text" xml:space="preserve"><value> collections</value></data>

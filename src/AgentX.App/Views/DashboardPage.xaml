@@ -108,13 +108,14 @@
             <!-- ==========================================================
                  ROW 2: QUICK SEARCH BAR
                  ========================================================== -->
-            <!-- Quick search: a recessed dark well carved into the chassis -->
+            <!-- Quick search: a recessed dark well carved into the chassis. Enter searches; it has
+                 no shortcut of its own (Ctrl+K opens the Command Palette, which the instrument
+                 strip hints at). -->
             <Border Grid.Row="2" Style="{StaticResource WellStyle}" Padding="16,4">
                 <Grid ColumnSpacing="12">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
                     <FontIcon Glyph="&#xE721;"
@@ -123,25 +124,12 @@
                               VerticalAlignment="Center" />
 
                     <TextBox Grid.Column="1"
-                             x:Uid="Dash_SearchBox" PlaceholderText="Search your knowledge vault...  (Ctrl+K)"
+                             x:Uid="Dash_SearchBox" PlaceholderText="Search your knowledge vault..."
                              Style="{StaticResource SearchInputStyle}"
                              Text="{x:Bind ViewModel.QuickSearchQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                              KeyDown="OnQuickSearchKeyDown"
                              BorderThickness="0"
                              Background="Transparent" />
-
-                    <Border Grid.Column="2"
-                            Background="{ThemeResource VoidBrush}"
-                            BorderBrush="{ThemeResource HairlineBrush}"
-                            BorderThickness="1"
-                            CornerRadius="{StaticResource RCard}"
-                            Padding="8,2"
-                            VerticalAlignment="Center">
-                        <TextBlock Text="Ctrl+K"
-                                   Style="{StaticResource TelemetrySmallStyle}"
-                                   Foreground="{ThemeResource WellTextBrush}"
-                                   Opacity="0.45" />
-                    </Border>
                 </Grid>
             </Border>
 

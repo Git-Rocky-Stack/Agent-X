@@ -1121,7 +1121,7 @@
   "Dash_Subtitle.Text": "您的私人 AI 智能中心。一切都在您的电脑上运行。",
   "Dash_RefreshBtn.Content": "刷新",
   "Dash_SetupAiBtn.Content": "设置 AI",
-  "Dash_SearchBox.PlaceholderText": "搜索 Knowledge Vault...  (Ctrl+K)",
+  "Dash_SearchBox.PlaceholderText": "搜索 Knowledge Vault...",
   "Dash_DocsOverline.Text": "文档",
   "Dash_AcrossRun.Text": " / ",
   "Dash_CollectionsRun.Text": " 个合集",

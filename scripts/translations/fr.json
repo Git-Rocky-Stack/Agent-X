@@ -1121,7 +1121,7 @@
   "Dash_Subtitle.Text": "Votre centre privé d'intelligence IA. Tout s'exécute sur votre machine.",
   "Dash_RefreshBtn.Content": "Actualiser",
   "Dash_SetupAiBtn.Content": "Configurer l'IA",
-  "Dash_SearchBox.PlaceholderText": "Rechercher dans votre coffre-fort...  (Ctrl+K)",
+  "Dash_SearchBox.PlaceholderText": "Rechercher dans votre coffre-fort...",
   "Dash_DocsOverline.Text": "DOCUMENTS",
   "Dash_AcrossRun.Text": "dans ",
   "Dash_CollectionsRun.Text": " collections",

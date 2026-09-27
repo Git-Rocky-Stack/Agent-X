@@ -1488,7 +1488,7 @@
   <data name="Dash_Subtitle.Text" xml:space="preserve"><value>您的私人 AI 智能中心。一切都在您的电脑上运行。</value></data>
   <data name="Dash_RefreshBtn.Content" xml:space="preserve"><value>刷新</value></data>
   <data name="Dash_SetupAiBtn.Content" xml:space="preserve"><value>设置 AI</value></data>
-  <data name="Dash_SearchBox.PlaceholderText" xml:space="preserve"><value>搜索 Knowledge Vault...  (Ctrl+K)</value></data>
+  <data name="Dash_SearchBox.PlaceholderText" xml:space="preserve"><value>搜索 Knowledge Vault...</value></data>
   <data name="Dash_DocsOverline.Text" xml:space="preserve"><value>文档</value></data>
   <data name="Dash_AcrossRun.Text" xml:space="preserve"><value> / </value></data>
   <data name="Dash_CollectionsRun.Text" xml:space="preserve"><value> 个合集</value></data>

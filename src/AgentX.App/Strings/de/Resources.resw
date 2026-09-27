@@ -1488,7 +1488,7 @@
   <data name="Dash_Subtitle.Text" xml:space="preserve"><value>Ihre private KI-Intelligenzzentrale. Alles läuft auf Ihrem Rechner.</value></data>
   <data name="Dash_RefreshBtn.Content" xml:space="preserve"><value>Aktualisieren</value></data>
   <data name="Dash_SetupAiBtn.Content" xml:space="preserve"><value>KI einrichten</value></data>
-  <data name="Dash_SearchBox.PlaceholderText" xml:space="preserve"><value>Wissens-Tresor durchsuchen...  (Strg+K)</value></data>
+  <data name="Dash_SearchBox.PlaceholderText" xml:space="preserve"><value>Wissens-Tresor durchsuchen...</value></data>
   <data name="Dash_DocsOverline.Text" xml:space="preserve"><value>DOKUMENTE</value></data>
   <data name="Dash_AcrossRun.Text" xml:space="preserve"><value>in </value></data>
   <data name="Dash_CollectionsRun.Text" xml:space="preserve"><value> Sammlungen</value></data>

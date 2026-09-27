@@ -1,4 +1,5 @@
 using System.Xml.Linq;
+using AgentX.Tests.Helpers;
 using FluentAssertions;
 using Xunit;
 
@@ -47,6 +48,28 @@ public sealed class DashboardPageXamlTests
                 .Single(brush => (string?)brush.Attribute(Xaml + "Key") == key)
                 .Attribute("Color")!.Value
                 .Should().StartWith("{ThemeResource SystemColor", $"{key} must stay system-bound in HighContrast");
+        }
+    }
+
+    [Fact]
+    public void QuickSearch_PromisesNoShortcut_AndFallsBackToTheEnglishResource()
+    {
+        // The placeholder read "Search your knowledge vault...  (Ctrl+K)" and a key badge in the
+        // search well repeated it, but Ctrl+K opens the Command Palette, not this search box.
+        var page = XDocument.Load(ResolveAppFile("Views", "DashboardPage.xaml"));
+        var searchBox = page.Descendants(Presentation + "TextBox")
+            .Single(box => (string?)box.Attribute(Xaml + "Uid") == "Dash_SearchBox");
+
+        searchBox.Attribute("PlaceholderText")!.Value.Should().Be(
+            ReswLocalization.For("en-US").GetString("Dash_SearchBox.PlaceholderText"),
+            "the XAML fallback is the en-US text");
+        page.Descendants().Attributes().Select(attribute => attribute.Value)
+            .Should().NotContain(value => value.Contains("Ctrl+K", StringComparison.Ordinal));
+
+        foreach (var locale in new[] { "en-US", "de", "es", "fr", "ja", "zh-CN" })
+        {
+            ReswLocalization.For(locale).GetString("Dash_SearchBox.PlaceholderText")
+                .Should().NotContain("+K", "the {0} placeholder must not promise a shortcut", locale);
         }
     }
 
