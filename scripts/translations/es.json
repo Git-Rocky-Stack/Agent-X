@@ -1236,7 +1236,6 @@
   "PastSelf_GenerateDraft.Content": "Generar borrador",
   "PastSelf_GeneratedDraft.Text": "Borrador generado",
   "PastSelf_Copy.Content": "Copiar",
-  "PastSelf_CopyForChat.Content": "Copiar para el chat",
   "QuickAct_QuickActions.Text": "Quick Actions",
   "QuickAct_AiPoweredDocumentIntelligence.Text": "Herramientas de inteligencia documental con IA. Resuma, traduzca, detecte duplicados y organice.",
   "QuickAct_RecommendedForThisContext.Text": "Recomendado para este contexto",

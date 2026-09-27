@@ -1236,7 +1236,6 @@
   "PastSelf_GenerateDraft.Content": "生成草稿",
   "PastSelf_GeneratedDraft.Text": "已生成的草稿",
   "PastSelf_Copy.Content": "复制",
-  "PastSelf_CopyForChat.Content": "复制到聊天",
   "QuickAct_QuickActions.Text": "Quick Actions",
   "QuickAct_AiPoweredDocumentIntelligence.Text": "AI 驱动的文档智能工具。可总结、翻译、检测重复并进行整理。",
   "QuickAct_RecommendedForThisContext.Text": "针对当前上下文的推荐",

@@ -1600,7 +1600,6 @@
   <data name="PastSelf_GenerateDraft.Content" xml:space="preserve"><value>Generar borrador</value></data>
   <data name="PastSelf_GeneratedDraft.Text" xml:space="preserve"><value>Borrador generado</value></data>
   <data name="PastSelf_Copy.Content" xml:space="preserve"><value>Copiar</value></data>
-  <data name="PastSelf_CopyForChat.Content" xml:space="preserve"><value>Copiar para el chat</value></data>
   <data name="QuickAct_QuickActions.Text" xml:space="preserve"><value>QUICK ACTIONS</value></data>
   <data name="QuickAct_AiPoweredDocumentIntelligence.Text" xml:space="preserve"><value>Herramientas de inteligencia documental con IA. Resuma, traduzca, detecte duplicados y organice.</value></data>
   <data name="QuickAct_RecommendedForThisContext.Text" xml:space="preserve"><value>Recomendado para este contexto</value></data>

@@ -1722,7 +1722,6 @@
   <data name="PastSelf_GenerateDraft.Content" xml:space="preserve"><value>Generate Draft</value></data>
   <data name="PastSelf_GeneratedDraft.Text" xml:space="preserve"><value>Generated Draft</value></data>
   <data name="PastSelf_Copy.Content" xml:space="preserve"><value>Copy</value></data>
-  <data name="PastSelf_CopyForChat.Content" xml:space="preserve"><value>Copy for Chat</value></data>
   <data name="QuickAct_QuickActions.Text" xml:space="preserve"><value>QUICK ACTIONS</value></data>
   <data name="QuickAct_AiPoweredDocumentIntelligence.Text" xml:space="preserve"><value>AI-powered document intelligence tools. Summarize, translate, detect duplicates, and organize.</value></data>
   <data name="QuickAct_RecommendedForThisContext.Text" xml:space="preserve"><value>Recommended For This Context</value></data>

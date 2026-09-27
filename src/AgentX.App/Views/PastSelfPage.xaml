@@ -475,10 +475,6 @@
                                             Click="CopyDraftButton_Click"
                                             Style="{StaticResource SecondaryButtonStyle}"
                                             IsEnabled="{x:Bind ViewModel.IsGeneratingDraft, Mode=OneWay, Converter={StaticResource InverseBoolConverter}}"/>
-                                    <Button x:Uid="PastSelf_CopyForChat" Content="Copy for Chat"
-                                            Click="UseInChatButton_Click"
-                                            Style="{StaticResource AccentButtonStyle}"
-                                            IsEnabled="{x:Bind ViewModel.IsGeneratingDraft, Mode=OneWay, Converter={StaticResource InverseBoolConverter}}"/>
                                 </StackPanel>
                             </Grid>
 

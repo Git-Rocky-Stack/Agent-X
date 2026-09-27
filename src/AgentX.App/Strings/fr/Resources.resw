@@ -1600,7 +1600,6 @@
   <data name="PastSelf_GenerateDraft.Content" xml:space="preserve"><value>Générer un brouillon</value></data>
   <data name="PastSelf_GeneratedDraft.Text" xml:space="preserve"><value>Brouillon généré</value></data>
   <data name="PastSelf_Copy.Content" xml:space="preserve"><value>Copier</value></data>
-  <data name="PastSelf_CopyForChat.Content" xml:space="preserve"><value>Copier pour le chat</value></data>
   <data name="QuickAct_QuickActions.Text" xml:space="preserve"><value>QUICK ACTIONS</value></data>
   <data name="QuickAct_AiPoweredDocumentIntelligence.Text" xml:space="preserve"><value>Outils d'intelligence documentaire propulsés par l'IA. Résumez, traduisez, détectez les doublons et organisez.</value></data>
   <data name="QuickAct_RecommendedForThisContext.Text" xml:space="preserve"><value>Recommandé pour ce contexte</value></data>

@@ -1236,7 +1236,6 @@
   "PastSelf_GenerateDraft.Content": "下書きを生成",
   "PastSelf_GeneratedDraft.Text": "生成された下書き",
   "PastSelf_Copy.Content": "コピー",
-  "PastSelf_CopyForChat.Content": "チャット用にコピー",
   "QuickAct_QuickActions.Text": "Quick Actions",
   "QuickAct_AiPoweredDocumentIntelligence.Text": "AI によるドキュメント インテリジェンス ツール。要約、翻訳、重複検出、整理ができます。",
   "QuickAct_RecommendedForThisContext.Text": "このコンテキストへのおすすめ",

@@ -1600,7 +1600,6 @@
   <data name="PastSelf_GenerateDraft.Content" xml:space="preserve"><value>下書きを生成</value></data>
   <data name="PastSelf_GeneratedDraft.Text" xml:space="preserve"><value>生成された下書き</value></data>
   <data name="PastSelf_Copy.Content" xml:space="preserve"><value>コピー</value></data>
-  <data name="PastSelf_CopyForChat.Content" xml:space="preserve"><value>チャット用にコピー</value></data>
   <data name="QuickAct_QuickActions.Text" xml:space="preserve"><value>Quick Actions</value></data>
   <data name="QuickAct_AiPoweredDocumentIntelligence.Text" xml:space="preserve"><value>AI によるドキュメント インテリジェンス ツール。要約、翻訳、重複検出、整理ができます。</value></data>
   <data name="QuickAct_RecommendedForThisContext.Text" xml:space="preserve"><value>このコンテキストへのおすすめ</value></data>

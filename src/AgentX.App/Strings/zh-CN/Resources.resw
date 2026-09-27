@@ -1600,7 +1600,6 @@
   <data name="PastSelf_GenerateDraft.Content" xml:space="preserve"><value>生成草稿</value></data>
   <data name="PastSelf_GeneratedDraft.Text" xml:space="preserve"><value>已生成的草稿</value></data>
   <data name="PastSelf_Copy.Content" xml:space="preserve"><value>复制</value></data>
-  <data name="PastSelf_CopyForChat.Content" xml:space="preserve"><value>复制到聊天</value></data>
   <data name="QuickAct_QuickActions.Text" xml:space="preserve"><value>Quick Actions</value></data>
   <data name="QuickAct_AiPoweredDocumentIntelligence.Text" xml:space="preserve"><value>AI 驱动的文档智能工具。可总结、翻译、检测重复并进行整理。</value></data>
   <data name="QuickAct_RecommendedForThisContext.Text" xml:space="preserve"><value>针对当前上下文的推荐</value></data>

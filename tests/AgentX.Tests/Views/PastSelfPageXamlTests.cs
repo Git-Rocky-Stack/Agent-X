@@ -1,3 +1,4 @@
+using System.Xml.Linq;
 using FluentAssertions;
 using Xunit;
 
@@ -5,6 +6,8 @@ namespace AgentX.Tests.Views;
 
 public sealed class PastSelfPageXamlTests
 {
+    private static readonly XNamespace Presentation = "http://schemas.microsoft.com/winfx/2006/xaml/presentation";
+
     [Fact]
     public void PastSelfPage_DeclaresConvertersUsedByStaticResources()
     {
@@ -30,14 +33,20 @@ public sealed class PastSelfPageXamlTests
     [Fact]
     public void PastSelfDraftActions_DoNotAdvertiseUnwiredChatPrefill()
     {
-        var xaml = ReadPastSelfPageXaml();
+        // "Copy for Chat" did what Copy does, on the armed-red cap DESIGN.md keeps for
+        // consequential commands. The chat page takes no composer text on arrival, so there is
+        // no hand-off to offer until it does.
+        var buttons = LoadPastSelfPage().Descendants(Presentation + "Button").ToList();
         var codeBehind = ReadPastSelfPageCodeBehind();
 
-        xaml.Should().Contain("Content=\"Copy for Chat\"");
-        xaml.Should().NotContain("Content=\"Use in Chat\"");
-        codeBehind.Should().NotContain("For now");
-        codeBehind.Should().NotContain("Navigate to Chat page with the draft pre-populated");
+        buttons.Should().NotContain(button => ((string?)button.Attribute("Content") ?? string.Empty).Contains("Chat"));
+        codeBehind.Should().NotContain("UseInChatButton_Click");
+        buttons.Where(button => (string?)button.Attribute("Click") == "CopyDraftButton_Click")
+            .Should().ContainSingle()
+            .Which.Attribute("Style")!.Value.Should().Be("{StaticResource SecondaryButtonStyle}");
     }
+
+    private static XDocument LoadPastSelfPage() => XDocument.Load(ResolvePastSelfFile("PastSelfPage.xaml"));
 
     private static string ReadPastSelfPageXaml()
     {

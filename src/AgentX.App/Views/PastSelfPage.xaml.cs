@@ -162,10 +162,5 @@ public sealed partial class PastSelfPage : Page, INotifyPropertyChanged
         }
     }
 
-    private void UseInChatButton_Click(object sender, RoutedEventArgs e)
-    {
-        CopyDraftButton_Click(sender, e);
-    }
-
     public event PropertyChangedEventHandler? PropertyChanged;
 }

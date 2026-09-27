@@ -1236,7 +1236,6 @@
   "PastSelf_GenerateDraft.Content": "Générer un brouillon",
   "PastSelf_GeneratedDraft.Text": "Brouillon généré",
   "PastSelf_Copy.Content": "Copier",
-  "PastSelf_CopyForChat.Content": "Copier pour le chat",
   "QuickAct_QuickActions.Text": "Quick Actions",
   "QuickAct_AiPoweredDocumentIntelligence.Text": "Outils d'intelligence documentaire propulsés par l'IA. Résumez, traduisez, détectez les doublons et organisez.",
   "QuickAct_RecommendedForThisContext.Text": "Recommandé pour ce contexte",
