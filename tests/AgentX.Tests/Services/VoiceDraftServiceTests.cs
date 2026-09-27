@@ -34,7 +34,7 @@ public sealed class VoiceDraftServiceTests
 
     private VoiceDraftService CreateService() => new(_temporalIdentity.Object, _ai.Object, Logger.None);
 
-    // ── The prompt ───────────────────────────────────────────────────────────
+    // --- The prompt ---
 
     [Fact]
     public async Task StartDraftAsync_PutsTheVoiceProfileAndTheStanceHeldAtTheChosenTimeInThePrompt()
@@ -167,7 +167,7 @@ public sealed class VoiceDraftServiceTests
         draft.Basis.Views[0].Topic.Should().Be("Remote work culture matters", "it shares three words with the request");
     }
 
-    // ── No provider ──────────────────────────────────────────────────────────
+    // --- No provider ---
 
     public enum MissingProvider
     {
@@ -211,7 +211,7 @@ public sealed class VoiceDraftServiceTests
         _temporalIdentity.Invocations.Should().BeEmpty("nothing is gathered for a prompt that cannot be sent");
     }
 
-    // ── Streaming, cancellation and failures ────────────────────────────────
+    // --- Streaming, cancellation and failures ---
 
     [Fact]
     public async Task StartDraftAsync_StreamsTheProvidersText()
@@ -299,7 +299,7 @@ public sealed class VoiceDraftServiceTests
             .Should().Equal("team", "ship", "roadmap");
     }
 
-    // ── Composition ──────────────────────────────────────────────────────────
+    // --- Composition ---
 
     [Fact]
     public void PastSelfPage_ResolvesWithTheRegistrationTheCompositionRootNeeds()
@@ -318,7 +318,7 @@ public sealed class VoiceDraftServiceTests
         provider.GetRequiredService<PastSelfViewModel>().Should().NotBeNull();
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
+    // --- Helpers ---
 
     private void SetUpRecords(
         VoiceProfileEntity? profile,

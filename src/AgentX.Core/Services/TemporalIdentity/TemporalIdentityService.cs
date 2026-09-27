@@ -610,7 +610,7 @@ public class TemporalIdentityService : ITemporalIdentityService
     private async Task<string[]> GetRelatedConversationsAsync(string topic, DateTime around, CancellationToken ct)
     {
         // DateTime subtraction is not translatable by the SQLite provider; materialise the
-        // title matches, then apply the ±30-day window + proximity ordering in memory. LIKE
+        // title matches, then apply the +/-30-day window + proximity ordering in memory. LIKE
         // matches regardless of case, where Contains (instr) missed "AI safety notes" for the
         // stored topic "Ai safety".
         var pattern = ContainsPattern(topic);
@@ -657,7 +657,7 @@ public class TemporalIdentityService : ITemporalIdentityService
 
         // Formality based on contractions, slang, etc. A contraction's apostrophe may be straight
         // or typographic; the check used to compare with the straight one twice.
-        var contractions = content.Count(c => c == '\'' || c == '’');
+        var contractions = content.Count(c => c == '\'' || c == '\u2019');
         var formalWords = content.Contains("therefore", StringComparison.OrdinalIgnoreCase) ||
                          content.Contains("however", StringComparison.OrdinalIgnoreCase);
         var formality = formalWords ? 0.8 : Math.Max(0, 0.5 - (contractions * 0.05));
