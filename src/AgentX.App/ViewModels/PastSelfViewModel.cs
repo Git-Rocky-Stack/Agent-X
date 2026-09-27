@@ -546,6 +546,13 @@ public class VoiceProfileDisplay
 {
     public int SampleCount { get; set; }
     public double AvgSentenceLength { get; set; }
+
+    /// <summary>
+    /// The average sentence length as the page shows it, to one decimal: the bound double used to
+    /// print in full, such as 14.100000000000001.
+    /// </summary>
+    public string AvgSentenceLengthText => AvgSentenceLength.ToString("0.#", CultureInfo.CurrentCulture);
+
     public double FormalityScore { get; set; }
     public DateTime FirstSampleAt { get; set; }
     public DateTime LastSampleAt { get; set; }

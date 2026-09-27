@@ -372,7 +372,7 @@
                                 <TextBlock x:Uid="PastSelf_AvgSentenceLength" Text="Avg Sentence Length"
                                            Style="{StaticResource LabelStyle}"/>
                                 <TextBlock Style="{StaticResource MetricSmallStyle}">
-                                    <Run Text="{x:Bind ViewModel.VoiceProfile.AvgSentenceLength, Mode=OneWay}"/>
+                                    <Run Text="{x:Bind ViewModel.VoiceProfile.AvgSentenceLengthText, Mode=OneWay}"/>
                                     <Run x:Uid="PastSelf_Words" Text=" words" FontSize="14" Foreground="{ThemeResource TextTertiaryBrush}"/>
                                 </TextBlock>
                             </StackPanel>

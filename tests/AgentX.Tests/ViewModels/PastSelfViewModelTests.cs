@@ -191,6 +191,20 @@ public sealed class PastSelfViewModelTests
         viewModel.VoiceProfile!.FormalityLabel.Should().Be(expected);
     }
 
+    [Fact]
+    public async Task LoadVoiceProfileAsync_ShowsTheSentenceLengthToOneDecimal()
+    {
+        // The bound double printed in full, such as 14.100000000000001.
+        _temporalIdentity
+            .Setup(service => service.GetVoiceProfileAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new VoiceProfileEntity { SampleCount = 3, AvgSentenceLength = (15 * 0.9) + (6 * 0.1) });
+        var viewModel = CreateViewModel(EnglishResources.Create());
+
+        await viewModel.LoadVoiceProfileCommand.ExecuteAsync(null);
+
+        viewModel.VoiceProfile!.AvgSentenceLengthText.Should().Be(14.1.ToString("0.#", System.Globalization.CultureInfo.CurrentCulture));
+    }
+
     // --- Messages in the user's language ---
     // The page's messages, the style labels and the insight reasons were English literals in the
     // view model and in Core; they are resources now.

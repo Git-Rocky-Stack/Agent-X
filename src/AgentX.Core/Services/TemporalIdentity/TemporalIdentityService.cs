@@ -23,6 +23,15 @@ namespace AgentX.Core.Services.TemporalIdentity;
 /// </remarks>
 public class TemporalIdentityService : ITemporalIdentityService
 {
+    /// <summary>
+    /// Messages over which the voice profile's sentence length is a plain mean: from then on
+    /// each new message counts for 1/10 of the moving average.
+    /// </summary>
+    private const int SentenceLengthWindow = 10;
+
+    /// <summary>The same for the formality score, where each new message counts for 1/20.</summary>
+    private const int FormalityWindow = 20;
+
     private readonly AgentXDbContext _db;
 
     public TemporalIdentityService(AgentXDbContext db)
@@ -346,11 +355,14 @@ public class TemporalIdentityService : ITemporalIdentityService
             .FirstOrDefaultAsync(ct);
         if (message == null || message.Role != "user") return;
 
-        var analysis = AnalyzeVoicePattern(message.Content);
+        if (AnalyzeVoicePattern(message.Content) is not { } analysis) return; // no words to learn from
         var now = DateTime.UtcNow;
 
-        // Update with exponential moving average, computed in the statement so concurrent
-        // samples all count.
+        // A plain mean over the first messages, then a moving average in which each new message
+        // counts for 10% (sentence length) or 5% (formality), computed in the statement so
+        // concurrent samples all count. The profile used to start from an invented baseline (15
+        // words, 0.5 formality) that each message moved by only those 10% or 5%, so after ten
+        // messages the formality shown, and described to Draft as Me, was still 60% made up.
         var profileId = await _db.Set<VoiceProfileEntity>()
             .AsNoTracking()
             .OrderBy(p => p.Id)
@@ -365,20 +377,24 @@ public class TemporalIdentityService : ITemporalIdentityService
                     .SetProperty(p => p.SampleCount, p => p.SampleCount + 1)
                     .SetProperty(p => p.LastSampleAt, now)
                     .SetProperty(p => p.UpdatedAt, now)
-                    .SetProperty(p => p.AvgSentenceLength, p => (p.AvgSentenceLength * 0.9) + (analysis.AvgSentenceLength * 0.1))
-                    .SetProperty(p => p.FormalityScore, p => (p.FormalityScore * 0.95) + (analysis.Formality * 0.05)), ct);
+                    .SetProperty(p => p.AvgSentenceLength, p => p.SampleCount + 1 < SentenceLengthWindow
+                        ? p.AvgSentenceLength + ((analysis.AvgSentenceLength - p.AvgSentenceLength) / (p.SampleCount + 1))
+                        : (p.AvgSentenceLength * 0.9) + (analysis.AvgSentenceLength * 0.1))
+                    .SetProperty(p => p.FormalityScore, p => p.SampleCount + 1 < FormalityWindow
+                        ? p.FormalityScore + ((analysis.Formality - p.FormalityScore) / (p.SampleCount + 1))
+                        : (p.FormalityScore * 0.95) + (analysis.Formality * 0.05)), ct);
             return;
         }
 
-        // The first sample starts from the neutral baseline (15 words, 0.5 formality).
+        // The first sample is the profile.
         await InsertAsync(new VoiceProfileEntity
         {
             FirstSampleAt = now,
             LastSampleAt = now,
             UpdatedAt = now,
             SampleCount = 1,
-            AvgSentenceLength = (15 * 0.9) + (analysis.AvgSentenceLength * 0.1),
-            FormalityScore = (0.5 * 0.95) + (analysis.Formality * 0.05),
+            AvgSentenceLength = analysis.AvgSentenceLength,
+            FormalityScore = analysis.Formality,
             CharacteristicPhrasesJson = "[]",
             SentencePatternsJson = "[]",
             BookendsJson = "{}",
@@ -627,18 +643,26 @@ public class TemporalIdentityService : ITemporalIdentityService
             .ToArray();
     }
 
-    private VoiceAnalysis AnalyzeVoicePattern(string content)
+    /// <summary>Words per sentence and a formality score for one message; null when it has no words.</summary>
+    private VoiceAnalysis? AnalyzeVoicePattern(string content)
     {
-        var sentences = content.Split(new[] { '.', '!', '?' }, StringSplitOptions.RemoveEmptyEntries);
-        var avgLength = sentences.Any() ? sentences.Average(s => s.Split(' ').Length) : 15;
+        // Count words, not the empty strings around spaces: " Next sentence" counted three, and
+        // the space after a final full stop counted as a two-word sentence. A message without
+        // words used to be recorded as 15 words per sentence.
+        var wordsPerSentence = content.Split(new[] { '.', '!', '?' }, StringSplitOptions.RemoveEmptyEntries)
+            .Select(sentence => sentence.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).Length)
+            .Where(words => words > 0)
+            .ToList();
+        if (wordsPerSentence.Count == 0) return null;
 
-        // Formality based on contractions, slang, etc.
-        var contractions = content.Count(c => c == '\'' || c == '\'');
+        // Formality based on contractions, slang, etc. A contraction's apostrophe may be straight
+        // or typographic; the check used to compare with the straight one twice.
+        var contractions = content.Count(c => c == '\'' || c == '’');
         var formalWords = content.Contains("therefore", StringComparison.OrdinalIgnoreCase) ||
                          content.Contains("however", StringComparison.OrdinalIgnoreCase);
         var formality = formalWords ? 0.8 : Math.Max(0, 0.5 - (contractions * 0.05));
 
-        return new VoiceAnalysis(avgLength, formality);
+        return new VoiceAnalysis(wordsPerSentence.Average(), formality);
     }
 
     private string[] ExtractKeywords(string text)

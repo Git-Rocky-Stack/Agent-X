@@ -441,20 +441,54 @@ public sealed class TemporalIdentityServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task LearnFromMessage_creates_profile_and_applies_ema()
+    public async Task LearnFromMessage_starts_the_profile_from_the_first_message_then_takes_the_mean()
     {
+        // The profile used to start from an invented 15 words and 0.5 formality that each message
+        // moved by only 10% and 5%, so one six-word message read as 14.1 words per sentence.
         using var db = _dbFactory.CreateContext();
         var svc = new TemporalIdentityService(db);
-        // One sentence, 6 words -> analysis.AvgSentenceLength 6; "however" -> formality 0.8.
-        var msg = await SeedMessageAsync(db, "user", "However the plan needs revising now.");
 
-        await svc.LearnFromMessageAsync(msg.Id);
+        // One sentence of six words; "however" -> formality 0.8.
+        await svc.LearnFromMessageAsync((await SeedMessageAsync(db, "user", "However the plan needs revising now.")).Id);
 
-        var profile = await db.Set<VoiceProfileEntity>().SingleAsync();
-        profile.SampleCount.Should().Be(1);
-        profile.AvgSentenceLength.Should().BeApproximately(15 * 0.9 + 6 * 0.1, 0.01);   // 14.1
+        var first = await db.Set<VoiceProfileEntity>().AsNoTracking().SingleAsync();
+        first.SampleCount.Should().Be(1);
+        first.AvgSentenceLength.Should().Be(6);
+        first.FormalityScore.Should().BeApproximately(0.8, 0.001);
+        first.LastSampleAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromMinutes(1));
+
+        // Sentences of three and two words (the space after the full stop is not a word), and a
+        // typographic and a straight apostrophe: 2.5 words, formality 0.5 - 2 * 0.05 = 0.4.
+        await svc.LearnFromMessageAsync((await SeedMessageAsync(db, "user", "We\u2019re nearly there. Isn't it?")).Id);
+
+        var second = await db.Set<VoiceProfileEntity>().AsNoTracking().SingleAsync();
+        second.SampleCount.Should().Be(2);
+        second.AvgSentenceLength.Should().BeApproximately((6 + 2.5) / 2, 0.001);
+        second.FormalityScore.Should().BeApproximately((0.8 + 0.4) / 2, 0.001);
+
+        // A message without words teaches nothing; it used to count as 15 words per sentence.
+        await svc.LearnFromMessageAsync((await SeedMessageAsync(db, "user", "?!")).Id);
+
+        (await db.Set<VoiceProfileEntity>().AsNoTracking().SingleAsync()).SampleCount.Should().Be(2);
+    }
+
+    [Fact]
+    public async Task LearnFromMessage_on_an_established_profile_applies_the_moving_average()
+    {
+        using var db = _dbFactory.CreateContext();
+        db.Set<VoiceProfileEntity>().Add(new VoiceProfileEntity { SampleCount = 30, AvgSentenceLength = 10, FormalityScore = 0.5 });
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+        var svc = new TemporalIdentityService(db);
+
+        // One sentence of twenty words; "therefore" -> formality 0.8.
+        var twentyWords = "Therefore " + string.Join(' ', Enumerable.Repeat("word", 19)) + ".";
+        await svc.LearnFromMessageAsync((await SeedMessageAsync(db, "user", twentyWords)).Id);
+
+        var profile = await db.Set<VoiceProfileEntity>().AsNoTracking().SingleAsync();
+        profile.SampleCount.Should().Be(31);
+        profile.AvgSentenceLength.Should().BeApproximately(10 * 0.9 + 20 * 0.1, 0.001);  // 11
         profile.FormalityScore.Should().BeApproximately(0.5 * 0.95 + 0.8 * 0.05, 0.001); // 0.515
-        profile.LastSampleAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromMinutes(1));
     }
 
     // ─── Pattern recognition ─────────────────────────────────────────────────────
