@@ -262,19 +262,12 @@ public class WebContentFetcher : IWebContentFetcher, IDisposable
     /// <summary>
     /// Creates the default <see cref="HttpClient"/> with appropriate configuration
     /// for web scraping: decompression, realistic User-Agent and reasonable timeout.
-    /// Redirects are followed by <see cref="WebHttp"/> one hop at a time, not by the handler.
+    /// Redirects are followed by <see cref="WebHttp"/> one hop at a time, not by the handler,
+    /// and <see cref="GuardedWebHandler"/> checks every connection where it is opened.
     /// </summary>
     private static HttpClient CreateDefaultHttpClient()
     {
-        var handler = new HttpClientHandler
-        {
-            AutomaticDecompression = DecompressionMethods.GZip
-                                     | DecompressionMethods.Deflate
-                                     | DecompressionMethods.Brotli,
-            AllowAutoRedirect = false,
-        };
-
-        var client = new HttpClient(handler)
+        var client = new HttpClient(GuardedWebHandler.Create())
         {
             Timeout = DefaultTimeout,
         };

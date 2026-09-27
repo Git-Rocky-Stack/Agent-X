@@ -57,11 +57,12 @@ public sealed class JsRenderingService : IJsRenderingService, IDisposable, IAsyn
         try
         {
             // A public page may not use the browser to reach this machine or the local network
-            // (scripts, images, frames, fetch/XHR). An intranet page the user asked for may.
+            // (scripts, images, frames, fetch/XHR, WebSockets). An intranet page the user asked for may.
             var pageIsPrivate = await PrivateNetworkGuard.IsPrivateOrLocalHostAsync(new Uri(url), ct);
             if (!pageIsPrivate)
             {
                 await page.RouteAsync("**/*", CreatePrivateNetworkBlocker(url));
+                await page.RouteWebSocketAsync(_ => true, CreatePrivateNetworkWebSocketGuard(url));
             }
 
             IResponse? response;
@@ -136,6 +137,61 @@ public sealed class JsRenderingService : IJsRenderingService, IDisposable, IAsyn
 
             await route.ContinueAsync();
         };
+    }
+
+    /// <summary>
+    /// Builds the WebSocket route handler for a public page: a socket to a private or local
+    /// address is closed before it connects, any other is connected to its server.
+    /// </summary>
+    /// <remarks>
+    /// Page routing does not see WebSockets, so they are routed separately. Playwright replaces
+    /// the page's WebSocket with a stand-in that reaches the network only when the handler calls
+    /// <see cref="IWebSocketRoute.ConnectToServer"/>, so a refused socket never connects. The
+    /// handler is an <see cref="Action{T}"/> that Playwright runs synchronously, hence the
+    /// synchronous host check. Sockets opened by dedicated workers are not routed by Playwright
+    /// and are not covered (service workers are blocked for the page).
+    /// </remarks>
+    private Action<IWebSocketRoute> CreatePrivateNetworkWebSocketGuard(string pageUrl)
+    {
+        return webSocket =>
+        {
+            bool allowed;
+            try
+            {
+                allowed = IsAllowedWebSocketTarget(webSocket.Url, PrivateNetworkGuard.IsPrivateOrLocalHost);
+            }
+            catch (Exception ex)
+            {
+                // A check that fails refuses the socket rather than letting it through.
+                _logger.LogWarning(ex, "Could not check the WebSocket {Url} opened by {PageUrl}; refusing it", webSocket.Url, pageUrl);
+                allowed = false;
+            }
+
+            if (allowed)
+            {
+                webSocket.ConnectToServer();
+                return;
+            }
+
+            _logger.LogWarning(
+                "Blocked a WebSocket from {PageUrl} to the private address {Url}", pageUrl, webSocket.Url);
+            _ = webSocket.CloseAsync(new WebSocketRouteCloseOptions
+            {
+                Code = 1008, // policy violation
+                Reason = "Blocked: private or local network address",
+            });
+        };
+    }
+
+    /// <summary>
+    /// True when a public page may open a WebSocket to <paramref name="url"/>: an absolute
+    /// ws, wss, http or https URL whose host is not private or local. Anything else is refused.
+    /// </summary>
+    internal static bool IsAllowedWebSocketTarget(string url, Func<Uri, bool> isPrivateOrLocalHost)
+    {
+        return Uri.TryCreate(url, UriKind.Absolute, out var target)
+               && target.Scheme is "ws" or "wss" or "http" or "https"
+               && !isPrivateOrLocalHost(target);
     }
 
     /// <summary>

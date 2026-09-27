@@ -1,4 +1,3 @@
-using System.Net;
 using System.Xml.Linq;
 using Serilog;
 
@@ -73,13 +72,8 @@ public sealed class SitemapParser : ISitemapParser
 
     static SitemapParser()
     {
-        var handler = new HttpClientHandler
-        {
-            AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate | DecompressionMethods.Brotli,
-            AllowAutoRedirect = false,
-        };
-
-        SharedHttpClient = new HttpClient(handler)
+        // Decompresses, leaves redirects to WebHttp, and checks every connection where it is opened.
+        SharedHttpClient = new HttpClient(GuardedWebHandler.Create())
         {
             Timeout = DefaultTimeout,
         };

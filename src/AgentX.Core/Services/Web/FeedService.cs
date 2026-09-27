@@ -1,4 +1,3 @@
-using System.Net;
 using System.Xml.Linq;
 using AgentX.Core.Services.Web.Models;
 using Serilog;
@@ -51,13 +50,8 @@ public class FeedService : IFeedService
 
     static FeedService()
     {
-        var handler = new HttpClientHandler
-        {
-            AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate | DecompressionMethods.Brotli,
-            AllowAutoRedirect = false,
-        };
-
-        SharedHttpClient = new HttpClient(handler)
+        // Decompresses, leaves redirects to WebHttp, and checks every connection where it is opened.
+        SharedHttpClient = new HttpClient(GuardedWebHandler.Create())
         {
             Timeout = DefaultTimeout,
         };
