@@ -90,7 +90,7 @@ The installer bundles the .NET runtime and the Windows App SDK, so nothing else 
 
 ### How do I install Agent-X?
 
-1. Download an installer. The installers published with the v2.1.1 release are `AgentX-Setup-2.1.1-x64.exe` (SLIM, 228 MiB, attached to the release) and `AgentX-Setup-2.1.1-x64-offline.exe` (OFFLINE, 2.07 GiB, linked from the release notes). They are not code-signed, so Windows SmartScreen asks you to confirm.
+1. Download an installer. The installers published with the v2.1.1 release are `AgentX-Setup-2.1.1-x64.exe` (SLIM, 228 MiB, attached to the release) and `AgentX-Setup-2.1.1-x64-offline.exe` (OFFLINE, 2.07 GiB, linked from the release notes). They are not code-signed, so Windows SmartScreen asks you to confirm. The v2.1.2 and v2.2.0 releases have no installers yet (they wait for a code-signing certificate), so the v2.1.1 files predate later fixes, among them the token that protects the local API; to run the current version, build it from source (see [the product README](../README.md#build-from-source)).
 2. Run the installer. It needs no administrator rights and offers an optional desktop shortcut.
 3. Launch Agent-X from the Start Menu, the desktop shortcut, or the installer's last page.
 4. Follow the onboarding wizard: it can test an Ollama connection, pick Ollama models, download the built-in model (SLIM) and take optional OpenAI and Anthropic API keys. No passphrase is needed.
