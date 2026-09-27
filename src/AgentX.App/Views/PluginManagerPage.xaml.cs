@@ -24,6 +24,9 @@ public sealed partial class PluginManagerPage : Page
     /// </summary>
     private PluginDisplayItem? _selectedPlugin;
 
+    /// <summary>Set while an enable or disable started from the detail switch runs.</summary>
+    private bool _pluginChangeInFlight;
+
     public PluginManagerViewModel ViewModel { get; }
 
     public PluginManagerPage()
@@ -286,29 +289,60 @@ public sealed partial class PluginManagerPage : Page
     // ═══════════════════════════════════════════════════════════════
 
     /// <summary>
-    /// Handles the ToggleSwitch Toggled event. The plugin ID is stored
-    /// in the Tag property so the correct command can be dispatched.
-    /// After toggling, refreshes the detail panel to keep it in sync.
+    /// Handles the ToggleSwitch Toggled event. The plugin ID is stored in the Tag property so
+    /// the correct command can be dispatched. Once the command has finished, the switch and the
+    /// status lamp show the state the plugin is in: a failed enable leaves it disabled, so the
+    /// switch flips back instead of reading Active over a plugin that is not running. One change
+    /// runs at a time; a flip while one runs is undone when it settles.
     /// </summary>
-    private void OnPluginToggled(object sender, RoutedEventArgs e)
+    private async void OnPluginToggled(object sender, RoutedEventArgs e)
     {
-        if (sender is ToggleSwitch toggle && toggle.Tag is long pluginId)
+        if (sender is not ToggleSwitch { Tag: long pluginId } toggle || _pluginChangeInFlight)
+        {
+            return;
+        }
+
+        _pluginChangeInFlight = true;
+        try
         {
             if (toggle.IsOn)
             {
-                ViewModel.EnablePluginCommand.Execute(pluginId);
+                await ViewModel.EnablePluginCommand.ExecuteAsync(pluginId);
             }
             else
             {
-                ViewModel.DisablePluginCommand.Execute(pluginId);
-            }
-
-            // Refresh the status badge in the detail panel if this is the selected plugin
-            if (_selectedPlugin is not null && _selectedPlugin.Id == pluginId)
-            {
-                UpdateStatusBadge(toggle.IsOn);
+                await ViewModel.DisablePluginCommand.ExecuteAsync(pluginId);
             }
         }
+        finally
+        {
+            _pluginChangeInFlight = false;
+        }
+
+        ShowSelectedPluginState();
+    }
+
+    /// <summary>
+    /// Sets the detail switch, status lamp and last activation of the plugin on show from its
+    /// real state, which may be another plugin than the one toggled if the selection changed
+    /// meanwhile. Toggled is unhooked while the switch is set, so this starts no change.
+    /// </summary>
+    private void ShowSelectedPluginState()
+    {
+        if (_selectedPlugin is null)
+        {
+            return;
+        }
+
+        var plugin = ViewModel.Plugins.FirstOrDefault(item => item.Id == _selectedPlugin.Id) ?? _selectedPlugin;
+        _selectedPlugin = plugin;
+
+        UpdateStatusBadge(plugin.IsEnabled);
+        DetailLastActivated.Text = plugin.LastActivatedAtFormatted;
+
+        DetailToggle.Toggled -= OnPluginToggled;
+        DetailToggle.IsOn = plugin.IsEnabled;
+        DetailToggle.Toggled += OnPluginToggled;
     }
 
     /// <summary>

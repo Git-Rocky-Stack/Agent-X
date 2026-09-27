@@ -460,6 +460,45 @@ public sealed class PluginManagerViewModelTests
         viewModel.StatusMessage.Should().Be("Enabled Calendar Connector");
     }
 
+    // -- A change that fails --
+    // The detail switch reported success before the command finished and set the status lamp
+    // from the switch position, so a failed enable read "Active". The page now waits for the
+    // command and shows the plugin's state, which a failure leaves as it was.
+
+    [Fact]
+    public async Task EnablePluginCommand_WhenTheServiceFails_LeavesThePluginDisabled()
+    {
+        _pluginService.Setup(service => service.GetInstalledPluginsAsync())
+            .ReturnsAsync([CreatePlugin(11, "Calendar Connector", enabled: false)]);
+        _pluginService.Setup(service => service.EnablePluginAsync(11))
+            .ThrowsAsync(new InvalidOperationException("entry assembly missing"));
+        var viewModel = CreateViewModel();
+        await viewModel.InitializeAsync();
+
+        await viewModel.EnablePluginCommand.ExecuteAsync(11L);
+
+        var plugin = viewModel.Plugins.Single();
+        plugin.IsEnabled.Should().BeFalse();
+        plugin.LastActivatedAt.Should().BeNull();
+        viewModel.ErrorMessage.Should().Contain("entry assembly missing");
+    }
+
+    [Fact]
+    public async Task DisablePluginCommand_WhenTheServiceFails_LeavesThePluginEnabled()
+    {
+        _pluginService.Setup(service => service.GetInstalledPluginsAsync())
+            .ReturnsAsync([CreatePlugin(11, "Calendar Connector", enabled: true)]);
+        _pluginService.Setup(service => service.DisablePluginAsync(11))
+            .ThrowsAsync(new InvalidOperationException("still in use"));
+        var viewModel = CreateViewModel();
+        await viewModel.InitializeAsync();
+
+        await viewModel.DisablePluginCommand.ExecuteAsync(11L);
+
+        viewModel.Plugins.Single().IsEnabled.Should().BeTrue();
+        viewModel.ErrorMessage.Should().Contain("still in use");
+    }
+
     private void SetupTwoPlugins() =>
         _pluginService.Setup(service => service.GetInstalledPluginsAsync())
             .ReturnsAsync(
