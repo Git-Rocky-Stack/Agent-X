@@ -552,14 +552,14 @@
                     <TextBlock x:Uid="Settings_ResearchMode" Text="Research Mode"
                                Style="{StaticResource HeadingSmallStyle}" />
 
-                    <TextBlock x:Uid="Settings_AugmentAiAnswersWith" Text="Augment AI answers with live web sources. When enabled, queries will search the web and blend results with your local Knowledge Vault."
+                    <TextBlock x:Uid="Settings_AugmentAiAnswersWith" Text="Augment chat answers with live web sources. When enabled and Research Mode is on in chat, your question is sent to the search provider below and the results are added to the answer with their sources."
                                Style="{StaticResource BodySecondaryStyle}"
                                TextWrapping="Wrap" />
 
                     <ToggleSwitch x:Uid="Settings_EnableResearchMode" Header="Enable Research Mode"
                                   IsOn="{x:Bind ViewModel.EnableResearchMode, Mode=TwoWay}"
-                                  OffContent="Local vault only"
-                                  OnContent="Local vault + web search" />
+                                  OffContent="No web search"
+                                  OnContent="Chat can add web results" />
 
                     <StackPanel Spacing="12"
                                 Visibility="{x:Bind ViewModel.EnableResearchMode, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
