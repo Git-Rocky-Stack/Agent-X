@@ -82,6 +82,28 @@ public sealed class ThemeVaryingBrushesAreResolvedPerRootTests
             "setter instead. Offenders:\n  " + string.Join("\n  ", offenders));
     }
 
+    /// <summary>
+    /// The branch comparison window is built in code. It painted its dividers and secondary text
+    /// Colors.Gray and its cards with white overlays, which ignored Day Shift and HighContrast.
+    /// It now takes the operator's shift and paints with the DESIGN.md tokens for those surfaces.
+    /// </summary>
+    [Fact]
+    public void BranchCompareWindow_PaintsWithTheThemeTokens()
+    {
+        var source = File.ReadAllText(
+            Path.Combine(ResolveSourceRoot(), "AgentX.App", "Views", "BranchCompareWindow.xaml.cs"));
+
+        source.Should().NotContain("Colors.", "a named color ignores the shift and HighContrast");
+        source.Should().NotContain("Color.FromArgb", "an overlay color ignores the shift and HighContrast");
+        source.Should().Contain("ThemeResources.Get(key, _shift)");
+        source.Should().Contain("RequestedTheme = _shift", "the window's own text must follow the same shift");
+
+        foreach (var token in new[] { "WindowBackgroundBrush", "CardBrush", "BorderSubtleBrush", "BorderMediumBrush", "TextSecondaryBrush" })
+        {
+            source.Should().Contain($"ThemeBrush(\"{token}\")");
+        }
+    }
+
     // ── Helpers ──────────────────────────────────────────────────────────────
 
     /// <summary>
