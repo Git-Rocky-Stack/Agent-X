@@ -1767,6 +1767,31 @@
   <data name="Export_CopyFailedNotFound" xml:space="preserve"><value>复制失败：找不到该会话</value></data>
   <data name="Export_CopiedAsMarkdown" xml:space="preserve"><value>已将会话以 Markdown 格式复制到剪贴板</value></data>
   <data name="Export_CopyFailed" xml:space="preserve"><value>复制失败：{0}</value></data>
+  <data name="WebImport_EnterValidUrl" xml:space="preserve"><value>请输入有效的 URL</value></data>
+  <data name="WebImport_PreviewLoaded" xml:space="preserve"><value>预览已加载</value></data>
+  <data name="WebImport_ExtractFailed" xml:space="preserve"><value>提取失败：{0}</value></data>
+  <data name="WebImport_PreviewFailed" xml:space="preserve"><value>预览失败：{0}</value></data>
+  <data name="WebImport_NoValidUrls" xml:space="preserve"><value>未找到有效的 URL</value></data>
+  <data name="WebImport_ImportedUrlsOne" xml:space="preserve"><value>已导入 {0}/{1} 个 URL</value></data>
+  <data name="WebImport_ImportedUrlsMany" xml:space="preserve"><value>已导入 {0}/{1} 个 URL</value></data>
+  <data name="WebImport_ImportCancelled" xml:space="preserve"><value>导入已取消</value></data>
+  <data name="WebImport_ImportFailed" xml:space="preserve"><value>导入失败：{0}</value></data>
+  <data name="WebImport_ReadingFeed" xml:space="preserve"><value>正在读取源...</value></data>
+  <data name="WebImport_FeedReadOne" xml:space="preserve"><value>已读取源“{0}”（{1} 个条目）。这是一次性导入，不会自动获取新条目。</value></data>
+  <data name="WebImport_FeedReadMany" xml:space="preserve"><value>已读取源“{0}”（{1} 个条目）。这是一次性导入，不会自动获取新条目。</value></data>
+  <data name="WebImport_ImportingProgress" xml:space="preserve"><value>正在导入 {0}/{1}...</value></data>
+  <data name="WebImport_ImportedFeedItemsOne" xml:space="preserve"><value>已导入 {0}/{1} 个源条目</value></data>
+  <data name="WebImport_ImportedFeedItemsMany" xml:space="preserve"><value>已导入 {0}/{1} 个源条目</value></data>
+  <data name="WebImport_FeedImportCancelled" xml:space="preserve"><value>源导入已取消</value></data>
+  <data name="WebImport_Error" xml:space="preserve"><value>错误：{0}</value></data>
+  <data name="WebImport_ParsingSitemap" xml:space="preserve"><value>正在解析站点地图...</value></data>
+  <data name="WebImport_SitemapFoundOne" xml:space="preserve"><value>找到 {0} 个 URL。正在导入...</value></data>
+  <data name="WebImport_SitemapFoundMany" xml:space="preserve"><value>找到 {0} 个 URL。正在导入...</value></data>
+  <data name="WebImport_SitemapNoUrls" xml:space="preserve"><value>站点地图中未找到 URL</value></data>
+  <data name="WebImport_ImportedSitemapUrlsOne" xml:space="preserve"><value>已导入 {0}/{1} 个站点地图 URL</value></data>
+  <data name="WebImport_ImportedSitemapUrlsMany" xml:space="preserve"><value>已导入 {0}/{1} 个站点地图 URL</value></data>
+  <data name="WebImport_SitemapImportCancelled" xml:space="preserve"><value>站点地图导入已取消</value></data>
+  <data name="WebImport_RowFailed" xml:space="preserve"><value>失败：{0}</value></data>
   <data name="WfBuilder_RecentRuns.Text" xml:space="preserve"><value>最近运行</value></data>
   <data name="WfBuilder_StoredWorkflowResultsYou.Text" xml:space="preserve"><value>已保存的工作流结果,无需重新运行即可再次打开。</value></data>
   <data name="WfBuilder_OpenedFromOperations.Text" xml:space="preserve"><value>从 Operations 打开</value></data>

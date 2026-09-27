@@ -1767,6 +1767,31 @@
   <data name="Export_CopyFailedNotFound" xml:space="preserve"><value>Échec de la copie : la conversation est introuvable</value></data>
   <data name="Export_CopiedAsMarkdown" xml:space="preserve"><value>Conversation copiée dans le presse-papiers au format Markdown</value></data>
   <data name="Export_CopyFailed" xml:space="preserve"><value>Échec de la copie : {0}</value></data>
+  <data name="WebImport_EnterValidUrl" xml:space="preserve"><value>Saisissez une URL valide</value></data>
+  <data name="WebImport_PreviewLoaded" xml:space="preserve"><value>Aperçu chargé</value></data>
+  <data name="WebImport_ExtractFailed" xml:space="preserve"><value>Échec de l'extraction : {0}</value></data>
+  <data name="WebImport_PreviewFailed" xml:space="preserve"><value>Échec de l'aperçu : {0}</value></data>
+  <data name="WebImport_NoValidUrls" xml:space="preserve"><value>Aucune URL valide trouvée</value></data>
+  <data name="WebImport_ImportedUrlsOne" xml:space="preserve"><value>URL importée : {0} sur {1}</value></data>
+  <data name="WebImport_ImportedUrlsMany" xml:space="preserve"><value>URL importées : {0} sur {1}</value></data>
+  <data name="WebImport_ImportCancelled" xml:space="preserve"><value>Importation annulée</value></data>
+  <data name="WebImport_ImportFailed" xml:space="preserve"><value>Échec de l'importation : {0}</value></data>
+  <data name="WebImport_ReadingFeed" xml:space="preserve"><value>Lecture du flux...</value></data>
+  <data name="WebImport_FeedReadOne" xml:space="preserve"><value>Flux « {0} » lu ({1} élément). Il s'agit d'une importation ponctuelle : les nouveaux éléments ne sont pas récupérés automatiquement.</value></data>
+  <data name="WebImport_FeedReadMany" xml:space="preserve"><value>Flux « {0} » lu ({1} éléments). Il s'agit d'une importation ponctuelle : les nouveaux éléments ne sont pas récupérés automatiquement.</value></data>
+  <data name="WebImport_ImportingProgress" xml:space="preserve"><value>Importation {0}/{1}...</value></data>
+  <data name="WebImport_ImportedFeedItemsOne" xml:space="preserve"><value>Élément du flux importé : {0} sur {1}</value></data>
+  <data name="WebImport_ImportedFeedItemsMany" xml:space="preserve"><value>Éléments du flux importés : {0} sur {1}</value></data>
+  <data name="WebImport_FeedImportCancelled" xml:space="preserve"><value>Importation du flux annulée</value></data>
+  <data name="WebImport_Error" xml:space="preserve"><value>Erreur : {0}</value></data>
+  <data name="WebImport_ParsingSitemap" xml:space="preserve"><value>Analyse du sitemap...</value></data>
+  <data name="WebImport_SitemapFoundOne" xml:space="preserve"><value>{0} URL trouvée. Importation...</value></data>
+  <data name="WebImport_SitemapFoundMany" xml:space="preserve"><value>{0} URL trouvées. Importation...</value></data>
+  <data name="WebImport_SitemapNoUrls" xml:space="preserve"><value>Aucune URL trouvée dans le sitemap</value></data>
+  <data name="WebImport_ImportedSitemapUrlsOne" xml:space="preserve"><value>URL du sitemap importée : {0} sur {1}</value></data>
+  <data name="WebImport_ImportedSitemapUrlsMany" xml:space="preserve"><value>URL du sitemap importées : {0} sur {1}</value></data>
+  <data name="WebImport_SitemapImportCancelled" xml:space="preserve"><value>Importation du sitemap annulée</value></data>
+  <data name="WebImport_RowFailed" xml:space="preserve"><value>Échec : {0}</value></data>
   <data name="WfBuilder_RecentRuns.Text" xml:space="preserve"><value>Exécutions récentes</value></data>
   <data name="WfBuilder_StoredWorkflowResultsYou.Text" xml:space="preserve"><value>Résultats de flux de travail enregistrés que vous pouvez rouvrir sans les relancer.</value></data>
   <data name="WfBuilder_OpenedFromOperations.Text" xml:space="preserve"><value>Ouvert depuis Operations</value></data>

@@ -1767,6 +1767,31 @@
   <data name="Export_CopyFailedNotFound" xml:space="preserve"><value>コピーに失敗しました: 会話が見つかりませんでした</value></data>
   <data name="Export_CopiedAsMarkdown" xml:space="preserve"><value>会話を Markdown としてクリップボードにコピーしました</value></data>
   <data name="Export_CopyFailed" xml:space="preserve"><value>コピーに失敗しました: {0}</value></data>
+  <data name="WebImport_EnterValidUrl" xml:space="preserve"><value>有効な URL を入力してください</value></data>
+  <data name="WebImport_PreviewLoaded" xml:space="preserve"><value>プレビューを読み込みました</value></data>
+  <data name="WebImport_ExtractFailed" xml:space="preserve"><value>抽出に失敗しました: {0}</value></data>
+  <data name="WebImport_PreviewFailed" xml:space="preserve"><value>プレビューに失敗しました: {0}</value></data>
+  <data name="WebImport_NoValidUrls" xml:space="preserve"><value>有効な URL が見つかりません</value></data>
+  <data name="WebImport_ImportedUrlsOne" xml:space="preserve"><value>{1} 件中 {0} 件の URL をインポートしました</value></data>
+  <data name="WebImport_ImportedUrlsMany" xml:space="preserve"><value>{1} 件中 {0} 件の URL をインポートしました</value></data>
+  <data name="WebImport_ImportCancelled" xml:space="preserve"><value>インポートをキャンセルしました</value></data>
+  <data name="WebImport_ImportFailed" xml:space="preserve"><value>インポートに失敗しました: {0}</value></data>
+  <data name="WebImport_ReadingFeed" xml:space="preserve"><value>フィードを読み込んでいます...</value></data>
+  <data name="WebImport_FeedReadOne" xml:space="preserve"><value>フィード「{0}」を読み込みました ({1} 件のアイテム)。これは 1 回限りのインポートで、新しいアイテムは自動的には取得されません。</value></data>
+  <data name="WebImport_FeedReadMany" xml:space="preserve"><value>フィード「{0}」を読み込みました ({1} 件のアイテム)。これは 1 回限りのインポートで、新しいアイテムは自動的には取得されません。</value></data>
+  <data name="WebImport_ImportingProgress" xml:space="preserve"><value>インポート中 {0}/{1}...</value></data>
+  <data name="WebImport_ImportedFeedItemsOne" xml:space="preserve"><value>{1} 件中 {0} 件のフィード アイテムをインポートしました</value></data>
+  <data name="WebImport_ImportedFeedItemsMany" xml:space="preserve"><value>{1} 件中 {0} 件のフィード アイテムをインポートしました</value></data>
+  <data name="WebImport_FeedImportCancelled" xml:space="preserve"><value>フィードのインポートをキャンセルしました</value></data>
+  <data name="WebImport_Error" xml:space="preserve"><value>エラー: {0}</value></data>
+  <data name="WebImport_ParsingSitemap" xml:space="preserve"><value>サイトマップを解析しています...</value></data>
+  <data name="WebImport_SitemapFoundOne" xml:space="preserve"><value>{0} 件の URL が見つかりました。インポートしています...</value></data>
+  <data name="WebImport_SitemapFoundMany" xml:space="preserve"><value>{0} 件の URL が見つかりました。インポートしています...</value></data>
+  <data name="WebImport_SitemapNoUrls" xml:space="preserve"><value>サイトマップに URL が見つかりません</value></data>
+  <data name="WebImport_ImportedSitemapUrlsOne" xml:space="preserve"><value>{1} 件中 {0} 件のサイトマップ URL をインポートしました</value></data>
+  <data name="WebImport_ImportedSitemapUrlsMany" xml:space="preserve"><value>{1} 件中 {0} 件のサイトマップ URL をインポートしました</value></data>
+  <data name="WebImport_SitemapImportCancelled" xml:space="preserve"><value>サイトマップのインポートをキャンセルしました</value></data>
+  <data name="WebImport_RowFailed" xml:space="preserve"><value>失敗: {0}</value></data>
   <data name="WfBuilder_RecentRuns.Text" xml:space="preserve"><value>最近の実行</value></data>
   <data name="WfBuilder_StoredWorkflowResultsYou.Text" xml:space="preserve"><value>再実行せずに開ける、保存済みのワークフロー結果です。</value></data>
   <data name="WfBuilder_OpenedFromOperations.Text" xml:space="preserve"><value>Operations から開きました</value></data>

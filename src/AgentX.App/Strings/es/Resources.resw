@@ -1767,6 +1767,31 @@
   <data name="Export_CopyFailedNotFound" xml:space="preserve"><value>Error al copiar: no se encontró la conversación</value></data>
   <data name="Export_CopiedAsMarkdown" xml:space="preserve"><value>Conversación copiada al portapapeles como Markdown</value></data>
   <data name="Export_CopyFailed" xml:space="preserve"><value>Error al copiar: {0}</value></data>
+  <data name="WebImport_EnterValidUrl" xml:space="preserve"><value>Introduzca una URL válida</value></data>
+  <data name="WebImport_PreviewLoaded" xml:space="preserve"><value>Vista previa cargada</value></data>
+  <data name="WebImport_ExtractFailed" xml:space="preserve"><value>No se pudo extraer: {0}</value></data>
+  <data name="WebImport_PreviewFailed" xml:space="preserve"><value>Error en la vista previa: {0}</value></data>
+  <data name="WebImport_NoValidUrls" xml:space="preserve"><value>No se encontraron URL válidas</value></data>
+  <data name="WebImport_ImportedUrlsOne" xml:space="preserve"><value>URL importada: {0} de {1}</value></data>
+  <data name="WebImport_ImportedUrlsMany" xml:space="preserve"><value>URL importadas: {0} de {1}</value></data>
+  <data name="WebImport_ImportCancelled" xml:space="preserve"><value>Importación cancelada</value></data>
+  <data name="WebImport_ImportFailed" xml:space="preserve"><value>Error en la importación: {0}</value></data>
+  <data name="WebImport_ReadingFeed" xml:space="preserve"><value>Leyendo la fuente...</value></data>
+  <data name="WebImport_FeedReadOne" xml:space="preserve"><value>Se leyó la fuente "{0}" ({1} elemento). Es una importación única; los elementos nuevos no se obtienen automáticamente.</value></data>
+  <data name="WebImport_FeedReadMany" xml:space="preserve"><value>Se leyó la fuente "{0}" ({1} elementos). Es una importación única; los elementos nuevos no se obtienen automáticamente.</value></data>
+  <data name="WebImport_ImportingProgress" xml:space="preserve"><value>Importando {0}/{1}...</value></data>
+  <data name="WebImport_ImportedFeedItemsOne" xml:space="preserve"><value>Elemento de la fuente importado: {0} de {1}</value></data>
+  <data name="WebImport_ImportedFeedItemsMany" xml:space="preserve"><value>Elementos de la fuente importados: {0} de {1}</value></data>
+  <data name="WebImport_FeedImportCancelled" xml:space="preserve"><value>Importación de la fuente cancelada</value></data>
+  <data name="WebImport_Error" xml:space="preserve"><value>Error: {0}</value></data>
+  <data name="WebImport_ParsingSitemap" xml:space="preserve"><value>Analizando el sitemap...</value></data>
+  <data name="WebImport_SitemapFoundOne" xml:space="preserve"><value>Se encontró {0} URL. Importando...</value></data>
+  <data name="WebImport_SitemapFoundMany" xml:space="preserve"><value>Se encontraron {0} URL. Importando...</value></data>
+  <data name="WebImport_SitemapNoUrls" xml:space="preserve"><value>No se encontraron URL en el sitemap</value></data>
+  <data name="WebImport_ImportedSitemapUrlsOne" xml:space="preserve"><value>URL del sitemap importada: {0} de {1}</value></data>
+  <data name="WebImport_ImportedSitemapUrlsMany" xml:space="preserve"><value>URL del sitemap importadas: {0} de {1}</value></data>
+  <data name="WebImport_SitemapImportCancelled" xml:space="preserve"><value>Importación del sitemap cancelada</value></data>
+  <data name="WebImport_RowFailed" xml:space="preserve"><value>Fallido: {0}</value></data>
   <data name="WfBuilder_RecentRuns.Text" xml:space="preserve"><value>Ejecuciones recientes</value></data>
   <data name="WfBuilder_StoredWorkflowResultsYou.Text" xml:space="preserve"><value>Resultados de flujos de trabajo guardados que puede reabrir sin volver a ejecutarlos.</value></data>
   <data name="WfBuilder_OpenedFromOperations.Text" xml:space="preserve"><value>Abierto desde Operations</value></data>

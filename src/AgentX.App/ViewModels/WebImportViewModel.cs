@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Services.Collections;
+using AgentX.Core.Services.Localization;
 using AgentX.Core.Services.Web;
 using AgentX.Core.Services.Web.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -15,6 +16,7 @@ public partial class WebImportViewModel : ObservableObject
     private readonly IWebImportService _webImportService;
     private readonly IWebScraperService _webScraperService;
     private readonly ICollectionService _collectionService;
+    private readonly ILocalizationService _localization;
 
     // ── Input State ──────────────────────────────────────────
     [ObservableProperty] private string _urlInput = string.Empty;
@@ -53,11 +55,13 @@ public partial class WebImportViewModel : ObservableObject
     public WebImportViewModel(
         IWebImportService webImportService,
         IWebScraperService webScraperService,
-        ICollectionService collectionService)
+        ICollectionService collectionService,
+        ILocalizationService localization)
     {
         _webImportService = webImportService;
         _webScraperService = webScraperService;
         _collectionService = collectionService;
+        _localization = localization;
     }
 
     public async Task InitializeAsync()
@@ -85,7 +89,7 @@ public partial class WebImportViewModel : ObservableObject
         var url = UrlInput.Trim().Split('\n').FirstOrDefault()?.Trim();
         if (string.IsNullOrEmpty(url) || !_webScraperService.IsValidUrl(url))
         {
-            StatusMessage = "Please enter a valid URL";
+            StatusMessage = _localization.GetString("WebImport_EnterValidUrl");
             return;
         }
 
@@ -106,17 +110,17 @@ public partial class WebImportViewModel : ObservableObject
                 PreviewSiteName = content.SiteName ?? string.Empty;
                 PreviewWordCount = content.WordCount;
                 HasPreview = true;
-                StatusMessage = "Preview loaded";
+                StatusMessage = _localization.GetString("WebImport_PreviewLoaded");
             }
             else
             {
-                StatusMessage = $"Failed to extract: {content.ErrorMessage}";
+                StatusMessage = _localization.GetString("WebImport_ExtractFailed", content.ErrorMessage ?? string.Empty);
             }
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to preview URL: {Url}", url);
-            StatusMessage = $"Preview failed: {ex.Message}";
+            StatusMessage = _localization.GetString("WebImport_PreviewFailed", ex.Message);
         }
         finally
         {
@@ -136,7 +140,7 @@ public partial class WebImportViewModel : ObservableObject
 
         if (urls.Count == 0)
         {
-            StatusMessage = "No valid URLs found";
+            StatusMessage = _localization.GetString("WebImport_NoValidUrls");
             return;
         }
 
@@ -161,16 +165,18 @@ public partial class WebImportViewModel : ObservableObject
                 urls, collectionId, progress, _importCts.Token);
 
             ShowImportResults(results);
-            StatusMessage = $"Imported {SuccessCount} of {urls.Count} URLs";
+            StatusMessage = urls.Count == 1
+                ? _localization.GetString("WebImport_ImportedUrlsOne", SuccessCount, urls.Count)
+                : _localization.GetString("WebImport_ImportedUrlsMany", SuccessCount, urls.Count);
         }
         catch (OperationCanceledException)
         {
-            StatusMessage = "Import cancelled";
+            StatusMessage = _localization.GetString("WebImport_ImportCancelled");
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Batch URL import failed");
-            StatusMessage = $"Import failed: {ex.Message}";
+            StatusMessage = _localization.GetString("WebImport_ImportFailed", ex.Message);
         }
         finally
         {
@@ -204,7 +210,7 @@ public partial class WebImportViewModel : ObservableObject
         if (string.IsNullOrWhiteSpace(FeedUrl)) return;
 
         IsSubscribingFeed = true;
-        FeedStatusMessage = "Reading feed...";
+        FeedStatusMessage = _localization.GetString("WebImport_ReadingFeed");
 
         try
         {
@@ -212,8 +218,9 @@ public partial class WebImportViewModel : ObservableObject
             var feed = await feedService.ParseFeedAsync(FeedUrl);
 
             // No subscription is stored: this imports the items the feed lists right now, once.
-            FeedStatusMessage = $"Read feed \"{feed.Title}\" ({feed.Items.Count} items). " +
-                "This is a one-time import; new items are not fetched automatically.";
+            FeedStatusMessage = feed.Items.Count == 1
+                ? _localization.GetString("WebImport_FeedReadOne", feed.Title, feed.Items.Count)
+                : _localization.GetString("WebImport_FeedReadMany", feed.Title, feed.Items.Count);
 
             var urls = feed.Items
                 .Select(i => i.Url)
@@ -235,7 +242,7 @@ public partial class WebImportViewModel : ObservableObject
                     var progress = new Progress<int>(completed =>
                     {
                         ImportProgress = completed;
-                        StatusMessage = $"Importing {completed}/{urls.Count}...";
+                        StatusMessage = _localization.GetString("WebImport_ImportingProgress", completed, urls.Count);
                     });
 
                     long? collectionId = SelectedCollection?.Id;
@@ -245,11 +252,13 @@ public partial class WebImportViewModel : ObservableObject
                         FeedUrl, urls, collectionId, progress, _importCts.Token);
 
                     ShowImportResults(results);
-                    StatusMessage = $"Imported {SuccessCount} of {urls.Count} feed items";
+                    StatusMessage = urls.Count == 1
+                        ? _localization.GetString("WebImport_ImportedFeedItemsOne", SuccessCount, urls.Count)
+                        : _localization.GetString("WebImport_ImportedFeedItemsMany", SuccessCount, urls.Count);
                 }
                 catch (OperationCanceledException)
                 {
-                    StatusMessage = "Feed import cancelled";
+                    StatusMessage = _localization.GetString("WebImport_FeedImportCancelled");
                 }
                 finally
                 {
@@ -262,7 +271,7 @@ public partial class WebImportViewModel : ObservableObject
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to subscribe to feed: {Url}", FeedUrl);
-            FeedStatusMessage = $"Error: {ex.Message}";
+            FeedStatusMessage = _localization.GetString("WebImport_Error", ex.Message);
         }
         finally
         {
@@ -278,18 +287,20 @@ public partial class WebImportViewModel : ObservableObject
         if (string.IsNullOrWhiteSpace(SitemapUrl)) return;
 
         IsImporting = true;
-        StatusMessage = "Parsing sitemap...";
+        StatusMessage = _localization.GetString("WebImport_ParsingSitemap");
 
         try
         {
             var sitemapParser = App.GetService<ISitemapParser>();
             var urls = await sitemapParser.ParseSitemapAsync(SitemapUrl);
-            StatusMessage = $"Found {urls.Count} URLs. Importing...";
+            StatusMessage = urls.Count == 1
+                ? _localization.GetString("WebImport_SitemapFoundOne", urls.Count)
+                : _localization.GetString("WebImport_SitemapFoundMany", urls.Count);
 
             var urlsToImport = urls.Take(100).ToList();
             if (urlsToImport.Count == 0)
             {
-                StatusMessage = "No URLs found in sitemap";
+                StatusMessage = _localization.GetString("WebImport_SitemapNoUrls");
                 return;
             }
 
@@ -305,7 +316,7 @@ public partial class WebImportViewModel : ObservableObject
                 var progress = new Progress<int>(completed =>
                 {
                     ImportProgress = completed;
-                    StatusMessage = $"Importing {completed}/{urlsToImport.Count}...";
+                    StatusMessage = _localization.GetString("WebImport_ImportingProgress", completed, urlsToImport.Count);
                 });
 
                 long? collectionId = SelectedCollection?.Id;
@@ -315,11 +326,13 @@ public partial class WebImportViewModel : ObservableObject
                     SitemapUrl, urlsToImport, collectionId, progress, _importCts.Token);
 
                 ShowImportResults(results);
-                StatusMessage = $"Imported {SuccessCount} of {urlsToImport.Count} sitemap URLs";
+                StatusMessage = urlsToImport.Count == 1
+                    ? _localization.GetString("WebImport_ImportedSitemapUrlsOne", SuccessCount, urlsToImport.Count)
+                    : _localization.GetString("WebImport_ImportedSitemapUrlsMany", SuccessCount, urlsToImport.Count);
             }
             catch (OperationCanceledException)
             {
-                StatusMessage = "Sitemap import cancelled";
+                StatusMessage = _localization.GetString("WebImport_SitemapImportCancelled");
             }
             finally
             {
@@ -330,7 +343,7 @@ public partial class WebImportViewModel : ObservableObject
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to import sitemap: {Url}", SitemapUrl);
-            StatusMessage = $"Error: {ex.Message}";
+            StatusMessage = _localization.GetString("WebImport_Error", ex.Message);
         }
         finally
         {
@@ -349,7 +362,8 @@ public partial class WebImportViewModel : ObservableObject
             ImportResults.Add(new WebImportResultItem
             {
                 Url = result.Url,
-                DocumentName = result.Document?.FileName ?? $"Failed: {result.ErrorMessage}",
+                DocumentName = result.Document?.FileName
+                    ?? _localization.GetString("WebImport_RowFailed", result.ErrorMessage ?? string.Empty),
                 Success = result.Success,
                 WordCount = result.Document?.WordCount ?? 0,
                 ErrorMessage = result.ErrorMessage

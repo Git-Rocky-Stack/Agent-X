@@ -2106,6 +2106,31 @@
   <data name="Export_CopyFailedNotFound" xml:space="preserve"><value>Copy failed: the conversation could not be found</value></data>
   <data name="Export_CopiedAsMarkdown" xml:space="preserve"><value>Conversation copied to clipboard as Markdown</value></data>
   <data name="Export_CopyFailed" xml:space="preserve"><value>Copy failed: {0}</value></data>
+  <data name="WebImport_EnterValidUrl" xml:space="preserve"><value>Please enter a valid URL</value></data>
+  <data name="WebImport_PreviewLoaded" xml:space="preserve"><value>Preview loaded</value></data>
+  <data name="WebImport_ExtractFailed" xml:space="preserve"><value>Failed to extract: {0}</value></data>
+  <data name="WebImport_PreviewFailed" xml:space="preserve"><value>Preview failed: {0}</value></data>
+  <data name="WebImport_NoValidUrls" xml:space="preserve"><value>No valid URLs found</value></data>
+  <data name="WebImport_ImportedUrlsOne" xml:space="preserve"><value>Imported {0} of {1} URL</value></data>
+  <data name="WebImport_ImportedUrlsMany" xml:space="preserve"><value>Imported {0} of {1} URLs</value></data>
+  <data name="WebImport_ImportCancelled" xml:space="preserve"><value>Import cancelled</value></data>
+  <data name="WebImport_ImportFailed" xml:space="preserve"><value>Import failed: {0}</value></data>
+  <data name="WebImport_ReadingFeed" xml:space="preserve"><value>Reading feed...</value></data>
+  <data name="WebImport_FeedReadOne" xml:space="preserve"><value>Read feed "{0}" ({1} item). This is a one-time import; new items are not fetched automatically.</value></data>
+  <data name="WebImport_FeedReadMany" xml:space="preserve"><value>Read feed "{0}" ({1} items). This is a one-time import; new items are not fetched automatically.</value></data>
+  <data name="WebImport_ImportingProgress" xml:space="preserve"><value>Importing {0}/{1}...</value></data>
+  <data name="WebImport_ImportedFeedItemsOne" xml:space="preserve"><value>Imported {0} of {1} feed item</value></data>
+  <data name="WebImport_ImportedFeedItemsMany" xml:space="preserve"><value>Imported {0} of {1} feed items</value></data>
+  <data name="WebImport_FeedImportCancelled" xml:space="preserve"><value>Feed import cancelled</value></data>
+  <data name="WebImport_Error" xml:space="preserve"><value>Error: {0}</value></data>
+  <data name="WebImport_ParsingSitemap" xml:space="preserve"><value>Parsing sitemap...</value></data>
+  <data name="WebImport_SitemapFoundOne" xml:space="preserve"><value>Found {0} URL. Importing...</value></data>
+  <data name="WebImport_SitemapFoundMany" xml:space="preserve"><value>Found {0} URLs. Importing...</value></data>
+  <data name="WebImport_SitemapNoUrls" xml:space="preserve"><value>No URLs found in sitemap</value></data>
+  <data name="WebImport_ImportedSitemapUrlsOne" xml:space="preserve"><value>Imported {0} of {1} sitemap URL</value></data>
+  <data name="WebImport_ImportedSitemapUrlsMany" xml:space="preserve"><value>Imported {0} of {1} sitemap URLs</value></data>
+  <data name="WebImport_SitemapImportCancelled" xml:space="preserve"><value>Sitemap import cancelled</value></data>
+  <data name="WebImport_RowFailed" xml:space="preserve"><value>Failed: {0}</value></data>
   <data name="WfBuilder_RecentRuns.Text" xml:space="preserve"><value>Recent Runs</value></data>
   <data name="WfBuilder_StoredWorkflowResultsYou.Text" xml:space="preserve"><value>Stored workflow results you can reopen without rerunning.</value></data>
   <data name="WfBuilder_OpenedFromOperations.Text" xml:space="preserve"><value>Opened from Operations</value></data>
