@@ -1,9 +1,9 @@
 # Agent-X Architecture Documentation
 
-**Version:** 2.1.2
-**Last Updated:** 2026-06-21
-**Platform:** Windows 10/11 (x64, x86, ARM64)
-**Runtime:** .NET 8.0 / WinUI 3 (Windows App SDK 1.6)
+**Version:** 2.2.0
+**Last Updated:** 2026-09-27
+**Platform:** Windows 10 version 2004 (build 19041) or later; the app builds for x86, x64 and ARM64, the installer ships x64
+**Runtime:** .NET 8 / WinUI 3 (Windows App SDK 1.6)
 
 ---
 
@@ -20,7 +20,7 @@
    - 5.4 [Custom Controls](#54-custom-controls)
    - 5.5 [Value Converters](#55-value-converters)
    - 5.6 [XAML Resource Dictionaries and Theming](#56-xaml-resource-dictionaries-and-theming)
-   - 5.7 [Keyboard Shortcut Service](#57-keyboard-shortcut-service)
+   - 5.7 [Keyboard Shortcut System](#57-keyboard-shortcut-system)
 6. [Service Layer (AgentX.Core)](#6-service-layer-agentxcore)
    - 6.1 [AI Provider Architecture](#61-ai-provider-architecture)
    - 6.2 [Chat Services](#62-chat-services)
@@ -30,6 +30,7 @@
    - 6.6 [Intelligence Services](#66-intelligence-services)
    - 6.7 [Collections and Tagging](#67-collections-and-tagging)
    - 6.8 [Settings Service](#68-settings-service)
+   - 6.9 [Feature Services](#69-feature-services)
 7. [Data Layer (AgentX.Core/Data)](#7-data-layer-agentxcoredata)
    - 7.1 [Entity Framework Core Database Context](#71-entity-framework-core-database-context)
    - 7.2 [Entity Relationship Model](#72-entity-relationship-model)
@@ -37,7 +38,7 @@
 8. [Key Data Flows](#8-key-data-flows)
    - 8.1 [Document Import Flow](#81-document-import-flow)
    - 8.2 [Chat and Streaming Flow](#82-chat-and-streaming-flow)
-   - 8.3 [RAG (Ask Files) Flow](#83-rag-ask-files-flow)
+   - 8.3 [RAG (Ask Your Files) Flow](#83-rag-ask-your-files-flow)
    - 8.4 [Search Mode Routing and Hybrid Search](#84-search-mode-routing-and-hybrid-search)
    - 8.5 [Knowledge Graph Construction Flow](#85-knowledge-graph-construction-flow)
 9. [Navigation Architecture](#9-navigation-architecture)
@@ -45,28 +46,46 @@
 11. [Storage Architecture](#11-storage-architecture)
 12. [Startup Sequence](#12-startup-sequence)
 13. [Error Handling and Resilience](#13-error-handling-and-resilience)
-14. [Free and Open-Source — No Feature Gating](#14-free-and-open-source--no-feature-gating)
+14. [Free and Open Source: No Feature Gating](#14-free-and-open-source-no-feature-gating)
 15. [Testing Architecture](#15-testing-architecture)
 16. [Deployment and Distribution](#16-deployment-and-distribution)
 17. [Performance Characteristics](#17-performance-characteristics)
 18. [Security Model](#18-security-model)
 19. [Glossary](#19-glossary)
+20. [Localization and Keyboard Power Mode](#20-localization-and-keyboard-power-mode)
 
 ---
 
 ## 1. Executive Summary
 
-Agent-X is a Windows desktop application built with WinUI 3 and .NET 8 that functions as a personal AI intelligence hub. It allows users to import documents into a local knowledge vault, conduct AI-assisted conversations with multiple provider backends, and perform hybrid semantic and keyword search across their document library using Retrieval-Augmented Generation (RAG).
+Agent-X is a Windows desktop application built with WinUI 3 and .NET 8. It imports documents into a
+local Knowledge Vault, indexes them, answers questions over them with cited sources, and chats with
+AI models. Retrieval-Augmented Generation (RAG) grounds answers in the user's own documents.
 
-The application is architected as a clean, three-layer system:
+The application has three layers:
 
-- **Presentation Layer** (`AgentX.App`): A WinUI 3 application hosting a broad NavigationView shell across intelligence, knowledge, triage, system, onboarding, help, and legal surfaces, with page and support ViewModels following the MVVM pattern using `CommunityToolkit.Mvvm`.
-- **Service Layer** (`AgentX.Core`): A .NET 8 class library containing all business logic — AI provider orchestration, document processing, vector search, RAG, conversation memory, knowledge graph, and intelligence services.
-- **Data Layer** (`AgentX.Core/Data`): SQLite via Entity Framework Core with 16 entity types, plus a pure-C# vector similarity store writing embeddings as BLOBs to the same SQLite database file.
+- **Presentation layer** (`AgentX.App`): a WinUI 3 app with a NavigationView shell of 29 rail
+  entries (plus the first-run onboarding wizard), page view models built with
+  `CommunityToolkit.Mvvm`, four chat coordinators, and shell services (navigation, instrument
+  strip, onboarding, window chrome, tray, notifications, localization). `App.xaml.cs` is the
+  composition root.
+- **Service layer** (`AgentX.Core`): all business logic. AI providers and embeddings, document
+  processing and indexing, semantic, keyword and hybrid search, RAG, chat and conversation memory,
+  intelligence features, workflows, web import and web search, the Smart Inbox and its calendar and
+  email connectors, plugins, backup, Collaborative Sync, Temporal Identity, security, settings and
+  the local REST API.
+- **Data layer** (`AgentX.Core/Data`): SQLite through Entity Framework Core with 37 entity types, EF
+  migrations plus startup repairs (`MigrationRunner`), and a vector store that keeps embeddings as
+  BLOBs in the same database file.
 
-The architecture enforces a strict unidirectional dependency: `AgentX.App` depends on `AgentX.Core`; `AgentX.Core` has no reference to the presentation layer. All cross-cutting concerns (logging, settings, error handling) flow through injected interfaces. All services are registered as singletons and all views and view models are registered as transients within a `Microsoft.Extensions.Hosting` DI container.
+`AgentX.App` depends on `AgentX.Core`; `AgentX.Core` has no reference to the presentation layer.
+Services are singletons; views and view models are transients, registered in a
+`Microsoft.Extensions.Hosting` container.
 
-The system is entirely local-first: AI inference runs through Ollama by default, all document storage and embeddings remain on the user's machine, and no telemetry or cloud persistence is required for basic operation. Optional cloud providers (OpenAI, Anthropic) are available when API keys are configured.
+The system is local first. Out of the box, chat runs on a built-in model (Llama 3.2 3B through
+LLamaSharp), and all documents, embeddings and conversations stay on the machine. Ollama (local or
+on another computer), OpenAI and Anthropic are optional providers; the app says where messages go
+whenever one of them, model routing or Research Mode sends data off the computer.
 
 ---
 
@@ -74,205 +93,125 @@ The system is entirely local-first: AI inference runs through Ollama by default,
 
 ```
 Agent-X/
-├── AgentX.sln                          # Solution file
-├── Directory.Build.props               # Shared MSBuild properties
-├── src/
-│   ├── AgentX.App/                     # WinUI 3 Presentation Layer
-│   │   ├── App.xaml / App.xaml.cs      # Application entry point and DI host
-│   │   ├── MainWindow.xaml/.cs         # Navigation shell, status bar, shortcuts
-│   │   ├── Views/                      # XAML pages, dialogs, and supporting views
-│   │   ├── ViewModels/                 # Page and support ViewModels (CommunityToolkit.Mvvm)
-│   │   ├── Controls/                   # CommandPalette, MarkdownMessageControl
-│   │   ├── Converters/                 # 12 IValueConverter implementations
-│   │   ├── Helpers/                    # UI utility helpers
-│   │   ├── Services/                   # ShortcutCatalog, ShortcutInputRouter, UI services
-│   │   ├── Styles/                     # 6 XAML Resource Dictionaries
-│   │   └── Assets/                     # Images and application icons
-│   └── AgentX.Core/                    # .NET 8 Class Library (Service + Data Layer)
-│       ├── AI/                         # AI service, providers, embeddings, cost tracking
-│       │   ├── Providers/              # OllamaProvider, OpenAiProvider, AnthropicProvider
-│       │   └── Models/                 # AiModel, ChatMessage, ChatOptions, CostTracker
-│       ├── Data/                       # EF Core DbContext, entities, migrations, vector DB
-│       │   ├── Entities/               # 16 entity classes
-│       │   ├── Migrations/             # EF Core migration history
-│       │   └── VectorDb/               # IVectorStore, HnswVectorStore, SqliteVecStore, VectorSearchResult
-│       ├── Documents/                  # Document import, chunking, processors
-│       │   ├── Processors/             # PDF, DOCX, TXT, MD, Code, Image
-│       │   └── Models/                 # ProcessedDocument, DocumentMetadata, TextChunk
-│       ├── Search/                     # Semantic, keyword, hybrid search, RAG, citations
-│       │   └── Models/                 # SearchQuery, SearchResult, SearchMode, RagResponse
-│       ├── Helpers/                    # HashHelper and shared utilities
-│       └── Services/                   # Domain service groupings
-│           ├── Chat/                   # ChatService, ConversationService, MemoryService
-│           ├── Collections/            # CollectionService
-│           ├── Indexing/               # IndexingService, IndexingQueueService, FileWatcherService
-│           ├── Intelligence/           # Summary, Duplicate, OrganizationSuggestion,
-│           │                           #   KnowledgeGraph, Digest
-│           ├── Settings/               # SettingsService, AppSettings
-│           └── Tagging/                # AutoTagService
-├── tests/
-│   └── AgentX.Tests/                  # xUnit test project
-│       ├── AI/                        # AI service and provider tests
-│       ├── Data/                      # VectorStore tests
-│       ├── Documents/                 # Chunking and processor tests
-│       ├── Helpers/                   # HashHelper tests
-│       ├── Search/                    # Search pipeline tests
-│       └── Services/                  # Chat, indexing, and intelligence tests
-├── installer/
-│   └── AgentX-Setup.iss               # Inno Setup script (SLIM + OFFLINE profiles)
-├── publish/
-│   └── win-x64/                       # Self-contained published binaries
-└── docs/                              # This documentation
+  AgentX.sln                        Solution: AgentX.App, AgentX.Core, AgentX.Tests,
+                                    LocaleAudit.Tool, LocaleAudit.Tests
+  Directory.Build.props             Shared properties (C# 12, nullable, version 2.2.0)
+  global.json                       Pins the .NET SDK (8.0.421, roll forward to latest feature)
+  src/
+    AgentX.App/                     WinUI 3 presentation layer
+      App.xaml / App.xaml.cs        Entry point, DI host, startup and shutdown
+      MainWindow.xaml/.cs           Shell (plus MainWindow.JumpTo.cs, MainWindow.StatusTrayOnboarding.cs)
+      Views/                        30 pages, Dialogs/ (Jump-To, Cheatsheet), ExportDialog,
+                                    QuickChatWindow, BranchCompareWindow
+      ViewModels/                   Page and support view models; Coordinators/ for chat
+      Controls/                     CommandPalette, Faceplate, LampTile, MarkdownMessageControl,
+                                    NotificationOverlay, OAuthAppCredentialsPanel, SegmentMeter
+      Converters/                   11 IValueConverter implementations
+      Helpers/                      PageViewModelFactory, MarkdownParser, SyntaxHighlighter,
+                                    FlowDirectionHelper, WindowPlacement, ...
+      Services/                     Shell and lifecycle services (navigation, status strip,
+                                    annunciators, onboarding, chrome, tray, startup orchestrator,
+                                    API and connector lifecycles, operations, localization)
+      Styles/                       Resource dictionaries (see 5.6)
+      Themes/Generic.xaml           Faceplate control template
+      Strings/<locale>/Resources.resw   UI strings in six languages
+      appsettings.json              "Rag" options
+      RagPrompts.json               RAG prompt texts (reloaded when the file changes)
+    AgentX.Core/                    .NET 8 class library (service and data layers)
+      AI/                           AiService, providers, embeddings, context, routing, agents
+        Providers/                  LocalLlmProvider, OllamaProvider, OpenAiProvider, AnthropicProvider
+        Context/                    ContextAssemblyService, SemanticContextSelector,
+                                    ConversationCompressionService
+        Routing/                    TaskTypeDetector, ModelRouterService, routing profiles
+        Agents/                     MultiAgentOrchestrator
+        Models/                     AiModel, ChatOptions, CostTracker, ToolDefinition
+      Configuration/                RAG configuration and prompt catalog
+      Data/                         AgentXDbContext, entities, migrations, MigrationRunner,
+                                    serializing detector and query compiler, VectorDb/
+      Documents/                    DocumentService, ChunkingService, AdaptiveChunkingService,
+                                    Processors/ (8 built-in processors)
+      Search/                       Semantic, keyword, hybrid search, RAG pipeline and its stages
+      Services/                     Analytics, Annotations, Api, Audio, Backup, Chat, Collections,
+                                    Export, FeatureFlags, Feedback, Inbox, Indexing, Intelligence,
+                                    Localization, OAuth, Plugins (with Calendar and Email),
+                                    Privacy, Screen, Search (web search), Security, Settings,
+                                    Shortcuts, Sync, Tagging, TemporalIdentity, Web, Workflows,
+                                    Workspace
+      Observability/                RagMetrics, PiiDetector
+      Validation/                   Settings, sync configuration and plugin manifest validators
+      Helpers/                      PathHelper, HashHelper, FormatHelper, FileTypeHelper
+    AgentX.Mobile/                  .NET MAUI Android companion (not in AgentX.sln)
+  tests/
+    AgentX.Tests/                   xUnit tests (Core, plus App sources linked into the project)
+    LocaleAudit.Tests/              Tests for the locale audit tool
+  tools/
+    LocaleAudit/                    Localization coverage tool
+  plugins/sample-plugin/            Sample document processor plugin
+  browser-extension/                Browser extension (clips pages into the Smart Inbox)
+  installer/AgentX-Setup.iss        Inno Setup script (SLIM and OFFLINE profiles)
+  docs/                             This documentation
 ```
 
-**Dependency Direction (enforced at project reference level):**
+**Dependency direction (enforced by project references):**
 
 ```
-AgentX.App  ──depends on──>  AgentX.Core  ──depends on──>  (NuGet packages only)
-AgentX.Tests ──depends on──> AgentX.Core
+AgentX.App    -> AgentX.Core -> NuGet packages only
+AgentX.Tests  -> AgentX.Core (and compiles selected AgentX.App sources as linked files)
 ```
 
-`AgentX.App` never appears as a dependency of `AgentX.Core`. This boundary is a hard architectural constraint that keeps business logic fully testable and framework-agnostic.
+`AgentX.Core` never references `AgentX.App`, which keeps business logic testable without WinUI.
 
 ---
 
 ## 3. High-Level System Architecture
 
-```mermaid
-graph TB
-    subgraph Presentation["AgentX.App — Presentation Layer (WinUI 3)"]
-        direction TB
-        NAV[NavigationView Shell<br/>MainWindow.xaml.cs]
-        VIEWS[Views / Pages<br/>XAML + Code-Behind]
-        VMS[ViewModels<br/>CommunityToolkit.Mvvm]
-        CTRL[Custom Controls<br/>CommandPalette · MarkdownMessageControl]
-        CONV[12 Value Converters]
-        KBS[IShortcutRegistry<br/>ShortcutCatalog + ShortcutInputRouter]
-        STYLES[XAML Resource Dictionaries<br/>Colors · Typography · Controls<br/>Navigation · Chat · Documents]
+```
++----------------------------------------------------------------------------------+
+| AgentX.App (WinUI 3)                                                             |
+|  MainWindow shell: NavigationView rail, ContentFrame, instrument strip,          |
+|                    CommandPalette, Jump-To, Cheatsheet, tray, Quick Chat         |
+|  Views (30 pages) --> ViewModels --> Core service interfaces                     |
+|  ChatViewModel --> Conversation / Messaging / Voice / Branching coordinators     |
+|  Shell services: AppNavigationService, StatusBarService, AnnunciatorService,     |
+|                  OnboardingService, ChromeService, SystemTrayService,            |
+|                  StartupOrchestrator, ApiHostLifecycleService,                   |
+|                  BuiltinConnectorLifecycleService, LocalizationService           |
++----------------------------------------------------------------------------------+
+        |                                                     ^
+        v                                                     | events (indexing, notifications)
++----------------------------------------------------------------------------------+
+| AgentX.Core                                                                      |
+|  AI:        AiService -> LocalLlmProvider (LLamaSharp) | OllamaProvider          |
+|                         | OpenAiProvider | AnthropicProvider                     |
+|             EmbeddingService (+ cache), ContextAssemblyService, ModelRouterService,|
+|             MultiAgentOrchestrator, CostTracker                                  |
+|  Documents: DocumentService -> IDocumentProcessor x 8 (+ plugin processors)      |
+|  Indexing:  IndexingService (Channel<long> loop) -> ChunkingService,             |
+|             EmbeddingService, IVectorStore, KeywordSearchService, AutoTagService |
+|  Search:    HybridSearchOrchestrator -> SemanticSearchService + KeywordSearch    |
+|             RagPipeline -> query expansion, HyDE, rerankers, compression,        |
+|                            citations, evaluation, optional web search           |
+|  Features:  Chat, memory and recall, intelligence, inbox and connectors, OAuth,  |
+|             plugins, workflows, web import, export, backup, sync, Temporal       |
+|             Identity, security, settings, local REST API                         |
++----------------------------------------------------------------------------------+
+        |
+        v
++----------------------------------------------------------------------------------+
+| Data: AgentXDbContext (one shared, serialized instance) + vector store           |
++----------------------------------------------------------------------------------+
+        |
+        v
++----------------------------------------------------------------------------------+
+| %LocalAppData%\AgentX\                                                           |
+|   agentx.db (EF tables, fts_chunks, vec_embeddings; optionally SQLCipher)        |
+|   settings.json, encryption.info.json, usage-history.json, Logs\, Models\,       |
+|   Plugins\, Clips\, Inbox\                                                       |
++----------------------------------------------------------------------------------+
 
-        NAV --> VIEWS
-        VIEWS --> VMS
-        VIEWS --> CTRL
-        VMS --> CONV
-        KBS --> NAV
-    end
-
-    subgraph Core["AgentX.Core — Service + Data Layer (.NET 8)"]
-        direction TB
-        subgraph AI["AI Services"]
-            AIS[AiService<br/>Provider Orchestrator]
-            OLL[OllamaProvider<br/>OllamaSharp]
-            OAI[OpenAiProvider<br/>Raw HttpClient SSE]
-            ANT[AnthropicProvider<br/>Raw HttpClient SSE]
-            EMB[EmbeddingService<br/>all-minilm · 384 dims]
-            CTX[ContextWindowManager]
-            COST[CostTracker]
-            MM[ModelManager]
-        end
-
-        subgraph CHAT["Chat Services"]
-            CS[ChatService]
-            CVS[ConversationService]
-            SPS[SystemPromptService]
-            MEM[ConversationMemoryService]
-        end
-
-        subgraph DOC["Document Pipeline"]
-            DS[DocumentService]
-            PROC[IDocumentProcessor<br/>PDF · DOCX · TXT · MD · Code · Image]
-            CHK[ChunkingService]
-            IDX[IndexingService<br/>Channel-based queue]
-            FW[FileWatcherService]
-        end
-
-        subgraph SEARCH["Search & RAG"]
-            SEM[SemanticSearchService]
-            KWD[KeywordSearchService<br/>FTS5 BM25]
-            HYB[HybridSearchOrchestrator<br/>RRF k=60]
-            RAG[RagPipeline]
-            CIT[CitationService]
-            RRK[RagReranker]
-        end
-
-        subgraph INTEL["Intelligence Services"]
-            SUM[SummaryService]
-            DUP[DuplicateDetectionService]
-            ORG[OrganizationSuggestionService]
-            KG[KnowledgeGraphService]
-            DIG[DigestService]
-        end
-
-        subgraph INFRA["Infrastructure"]
-            SETT[SettingsService]
-            COL[CollectionService]
-            TAG[AutoTagService]
-        end
-
-        subgraph DATA["Data Layer"]
-            DB[AgentXDbContext<br/>EF Core · SQLite]
-            VEC[IVectorStore<br/>HNSW or SQLite cosine fallback]
-            ENT[16 Entity Types]
-        end
-
-        AIS --> OLL
-        AIS --> OAI
-        AIS --> ANT
-        CS --> AIS
-        CS --> CVS
-        CS --> MEM
-        DS --> PROC
-        DS --> DB
-        IDX --> CHK
-        IDX --> EMB
-        IDX --> VEC
-        IDX --> KWD
-        IDX --> TAG
-        EMB --> AIS
-        SEM --> VEC
-        SEM --> EMB
-        HYB --> SEM
-        HYB --> KWD
-        RAG --> SEM
-        RAG --> AIS
-        RAG --> CIT
-        RAG --> RRK
-        KG --> DB
-        DIG --> DB
-        SUM --> AIS
-        TAG --> AIS
-        DB --> ENT
-        VEC -.->|same agentx.db file| DB
-    end
-
-    VMS -->|interfaces| AIS
-    VMS -->|interfaces| CS
-    VMS -->|interfaces| DS
-    VMS -->|interfaces| HYB
-    VMS -->|interfaces| RAG
-    VMS -->|interfaces| KG
-    VMS -->|interfaces| DIG
-    VMS -->|interfaces| SETT
-    VMS -->|interfaces| LIC
-
-    subgraph STORAGE["Local Storage (AppData/AgentX/)"]
-        SQLFILE[(agentx.db<br/>SQLite + vec_embeddings)]
-        LOGFILE[(Logs/agentx-DATE.log<br/>Serilog rolling · 7 days)]
-        SETTFILE[(settings.json<br/>AppSettings)]
-    end
-
-    DB --> SQLFILE
-    VEC --> SQLFILE
-    SETT --> SETTFILE
-
-    subgraph EXTERNAL["External AI Backends"]
-        OLLAMASRV[Ollama Server<br/>localhost:11434]
-        OPENAISRV[OpenAI API<br/>api.openai.com]
-        ANTHSRV[Anthropic API<br/>api.anthropic.com]
-    end
-
-    OLL --> OLLAMASRV
-    OAI --> OPENAISRV
-    ANT --> ANTHSRV
+External (optional): Ollama (http://localhost:11434 by default), api.openai.com,
+api.anthropic.com, Brave / Serper / SearXNG web search, Google and Microsoft APIs for the
+connectors, Hugging Face for model downloads.
 ```
 
 ---
@@ -281,52 +220,98 @@ graph TB
 
 ### 4.1 MVVM (Model-View-ViewModel)
 
-The entire presentation layer follows strict MVVM. Each page has a corresponding ViewModel. ViewModels are resolved from the DI container via `App.GetService<TViewModel>()` in page constructors. The `CommunityToolkit.Mvvm` source generator is used throughout:
+Each page has a view model built with the `CommunityToolkit.Mvvm` source generators:
 
-- `[ObservableProperty]` generates `INotifyPropertyChanged` boilerplate for bindable properties.
-- `[RelayCommand]` generates `ICommand` implementations for button bindings, with built-in async support and cancellation.
-- `ObservableCollection<T>` is used for list bindings that need to reflect real-time updates (message lists, document lists, search results).
+- `[ObservableProperty]` generates `INotifyPropertyChanged` properties.
+- `[RelayCommand]` generates `ICommand` implementations, with async support.
+- `ObservableCollection<T>` backs lists that update live (messages, documents, results).
 
-Pages that require platform-specific operations (file/folder pickers, drag-and-drop, HWND access) implement this logic in code-behind rather than ViewModels, keeping ViewModels free of WinUI 3 API dependencies and testable in isolation.
+Pages obtain their view model in the constructor. A view model that implements `IDisposable` is
+created with `PageViewModelFactory.Create<T>()` (`Helpers/PageViewModelFactory.cs`), which builds it
+with `ActivatorUtilities` so the root DI provider does not keep it until shutdown (the `Frame`
+caches at most ten pages, so rebuilt pages would otherwise leak their old view models). Other pages
+use `App.GetService<T>()`. The `PagesCreateDisposableViewModelsUntrackedTests` code-quality test
+fails when a page resolves an `IDisposable` view model through the root provider.
+
+Operations that need the window (file and folder pickers, drag and drop, dialogs with a `XamlRoot`)
+stay in code-behind or receive the window explicitly, so view models stay free of WinUI calls where
+possible. Many view models are compiled into the test project and tested there.
 
 ### 4.2 Interface-Based Service Contracts
 
-Every service in `AgentX.Core` exposes a public interface (e.g., `IAiService`, `IDocumentService`, `IChatService`). ViewModels depend exclusively on these interfaces, never on concrete implementations. This enables:
-
-- Substitution of implementations without changing consumers.
-- Unit testing with mock/stub implementations.
-- Future provider additions (new AI backends, new storage engines) without modifying existing code.
+Core services expose interfaces (`IAiService`, `IDocumentService`, `IChatService` and so on), and
+view models and other services depend on those interfaces. This allows substitution in tests (Moq
+or hand-written fakes) and keeps the presentation layer independent of implementations.
 
 ### 4.3 Singleton Services, Transient Views and ViewModels
 
-The DI container lifetime strategy is deliberate:
-
 | Registration | Lifetime | Reason |
 |---|---|---|
-| All Core Services | Singleton | Services are stateful (DB connection, AI provider, indexing queue) and expensive to construct. Sharing a single instance across the app avoids redundant initialization. |
-| `AgentXDbContext` | Singleton | One long-lived EF Core context, shared by the UI and all background work. A `DbContext` is not thread-safe, and WAL mode does not change that (it lets separate connections read while one writes), so the context serializes its own operations; see the note below the table. |
-| `IVectorStore` | Singleton | Created by `VectorStoreFactory`. Uses `HnswVectorStore` when enabled, with SQLite persistence and linear-scan fallback; otherwise uses `SqliteVecStore`. Must not be recreated. |
-| Views and ViewModels | Transient | New instances are created on each navigation, ensuring clean state. The `Frame` caches page instances at the WinUI 3 level, so navigation back does not necessarily trigger reconstruction unless the page was evicted. |
+| Core services | Singleton | They hold state (providers, the indexing queue, caches, timers) and are expensive to build. |
+| `AgentXDbContext` | Singleton | One long-lived EF Core context, shared by the UI and all background work. A `DbContext` is not thread-safe, and SQLite's WAL mode does not change that (it lets separate connections read while one writes), so the context serializes its own operations; see the note below. |
+| `IVectorStore` | Singleton | Created by `VectorStoreFactory`: `HnswVectorStore` when `EnableHnswIndex` is on (the default), otherwise `SqliteVecStore`. It keeps its own connection to the database file. |
+| Views and view models | Transient | A new instance per navigation that builds a page. The `Frame` caches pages, so going back does not always rebuild one. |
 
-**The shared context is serialized, not concurrent.** The indexing loop, the local REST API, status-bar polling, scheduled backup and sync, and connector timers all use the one `AgentXDbContext` alongside the UI thread. The context replaces EF Core's concurrency detector with `SerializingConcurrencyDetector`, so an overlapping operation waits for the one in flight instead of throwing, and `SerializingQueryCompiler` holds the same gate across whole query executions. `SaveChanges`/`SaveChangesAsync` run under the gate and discard the pending changes of a save that fails, so a rejected change cannot poison every later save. Raw ADO.NET sections join the gate through `EnterDatabaseGate()`. Because all of this work queues on one gate, background services should keep each database section short and do slow work (embedding, model calls, file I/O) outside it.
+**The shared context is serialized, not concurrent.** The indexing loop, the local REST API,
+status-bar polling, scheduled backup and sync, and connector timers all use the one
+`AgentXDbContext` alongside the UI thread. The context replaces EF Core's concurrency detector with
+`SerializingConcurrencyDetector`, so an overlapping operation waits for the one in flight instead of
+throwing, and `SerializingQueryCompiler` holds the same gate across whole query executions.
+`SaveChanges`/`SaveChangesAsync` run under the gate and discard the pending changes of a save that
+fails, so a rejected change cannot poison every later save. Raw ADO.NET sections join the gate
+through `EnterDatabaseGate()`. Because all of this work queues on one gate, background services
+should keep each database section short and do slow work (embedding, model calls, file I/O) outside
+it.
 
-### 4.4 Fire-and-Forget Startup Initialization
+### 4.4 Awaited, Fail-Closed Startup
 
-Three initialization tasks run as `async void` fire-and-forget during `App.OnLaunched` (after the synchronous encryption-unlock preamble described in §4.4a):
+`App.OnLaunched` builds the host, applies the saved UI language, creates the window, and then calls
+`InitializeCoreServicesAsync()`. That method is `async void` (nothing awaits `OnLaunched`), but
+everything inside it runs in a fixed, awaited order. The critical part is the database: the key is
+applied and the migration runs through `StartupOrchestrator` before any data-backed feature starts.
+If the migration fails, the app enters a recovery state, shows a dialog and exits (fail closed).
+Best-effort steps after the gate (FTS, AI, plugins, backups, indexing, watch folders) each log a
+failure and let startup continue. See [section 12](#12-startup-sequence) for the full order.
 
-1. `IMigrationRunner.RunAsync()` — applies pending EF Core migrations (v2.1 Bedrock B9). Baseline-adopts pre-B9 installs (which ran `EnsureCreatedAsync`) by writing the `InitialBaseline` row to `__EFMigrationsHistory` without re-applying schema, so existing user data is preserved on upgrade.
-2. `InitializeFtsAsync()` — creates the FTS5 virtual table for keyword search (routes through `IEncryptedConnectionFactory` so the correct `PRAGMA key` is applied when encryption is enabled).
-3. `IAiService.InitializeAsync()` — registers providers, tests Ollama connectivity.
-
-This pattern allows the window to appear immediately while initialization continues in the background. Background errors are logged but do not crash the application, which falls back to an offline/disconnected state gracefully.
+The window appears before initialization finishes. Data-backed UI that could run before the
+migration (the Dashboard, the first page shown) waits on `IStartupGate.WaitForDataReadyAsync()`,
+which `StartupOrchestrator` opens the moment the migration succeeds.
 
 #### 4.4a Encryption Unlock Preamble (C13)
 
-Before fire-and-forget initialization runs, `App.OnLaunched` checks for `%LocalAppData%\AgentX\encryption.info.json` via `IEncryptionStateFile`. If the marker is present, the database key is unlocked via `IDatabaseKeyService` — DPAPI-unwrap for the universal `DpapiWrapped` mode (or a PBKDF2-HMAC-SHA256 passphrase prompt for any legacy `UserPassphrase` keystore) — and cached in `IDatabaseKeyProvider` so every downstream `SqliteConnection` opened through `IEncryptedConnectionFactory` applies the same `PRAGMA key`. The keystore lives outside the encrypted vault deliberately: it breaks the migration ↔ unlock chicken-and-egg, and it means startup has no read dependency on the encrypted database before the key is available.
+Before the migration runs, `InitializeCoreServicesAsync` first calls
+`IDatabaseEncryptionMigrator.RecoverIfNeeded` to finish or undo an encryption change a crash
+interrupted. It then checks for `%LocalAppData%\AgentX\encryption.info.json` via
+`IEncryptionStateFile`. If the marker is present, the database key is unlocked via
+`IDatabaseKeyService` (a DPAPI unwrap for the `DpapiWrapped` mode, or a passphrase prompt with a
+PBKDF2-HMAC-SHA256 derivation for a legacy `UserPassphrase` keystore) and stored in
+`IDatabaseKeyProvider`, so every `SqliteConnection` opened through `IEncryptedConnectionFactory`
+applies the same `PRAGMA key`. `AgentXDbContext.EnsureKeyApplied()` then applies it to the shared
+connection. The keystore lives outside the encrypted database on purpose: startup needs the key
+before it can read the database.
 
 ### 4.5 Channel-Based Background Queue
 
-The `IndexingService` uses `System.Threading.Channels.Channel<long>` as an unbounded, single-reader queue. Document IDs are written to the channel from any thread when a new import is accepted. A single background `Task` reads from the channel serially, ensuring that embedding generation — which calls a local AI model — is never parallelized in a way that would saturate memory or the inference backend.
+`IndexingService` uses a `System.Threading.Channels.Channel<long>` (unbounded, single reader,
+multiple writers). Imports and re-indexes enqueue document IDs from any thread (through the
+`DocumentPendingIndexing` event of `IDocumentService`). One background task reads the channel and
+processes documents one at a time, so embedding generation never runs several documents at once.
+When the channel stays empty for 30 seconds, the loop sweeps the database for documents left
+`pending` by other paths and re-embeds chunks stamped before embedding model versions were recorded.
+
+### 4.6 Coordinators for Chat
+
+`ChatViewModel` keeps UI state and delegates the chat workflows to four singleton coordinators in
+`ViewModels/Coordinators/`:
+
+- `IConversationCoordinator`: loading, creating, deleting, pinning, filing and searching
+  conversations, and editing or truncating their messages.
+- `IMessagingCoordinator`: sending, streaming, stopping and regenerating replies, the multi-agent
+  modes, Research Mode web results, feedback, and failure text.
+- `IVoiceCoordinator`: voice input (recording and Whisper transcription).
+- `IBranchingCoordinator`: creating, listing, merging and deleting conversation branches.
+
+Other pages call Core services from their view models directly.
 
 ---
 
@@ -334,10 +319,16 @@ The `IndexingService` uses `System.Threading.Channels.Channel<long>` as an unbou
 
 ### 5.1 Application Bootstrap and DI Host
 
-`App.xaml.cs` is the application entry point. It creates a `Microsoft.Extensions.Hosting.IHost` in `OnLaunched` using the generic host builder:
+`App.xaml.cs` is the application entry point. `OnLaunched` builds a generic host:
 
 ```csharp
 _host = Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder()
+    .ConfigureAppConfiguration((ctx, config) =>
+    {
+        config.SetBasePath(AppContext.BaseDirectory);
+        config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+        config.AddJsonFile("RagPrompts.json", optional: true, reloadOnChange: true);
+    })
     .UseSerilog()
     .ConfigureServices(ConfigureServices)
     .Build();
@@ -345,150 +336,237 @@ _host = Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder()
 
 **Relevant file:** `src/AgentX.App/App.xaml.cs`
 
-The static `App.GetService<T>()` method provides a service locator pattern as a pragmatic concession to WinUI 3's lack of DI-aware frame navigation. Views that need services call `App.GetService<T>()` in their constructors or code-behind, then inject them into ViewModel constructors at construction time.
+The static `App.GetService<T>()` resolves from the root provider. It is the service locator the
+shell and pages use, because WinUI's `Frame` does not create pages through DI.
 
-Logging is configured using Serilog with two sinks:
-- `Debug` sink for Visual Studio Output window during development.
-- `File` sink with daily rolling interval and a 7-day retention window, writing to `%LocalAppData%/AgentX/Logs/agentx-{date}.log`.
+Logging is configured in the `App` constructor with Serilog:
+- a `Debug` sink for the Visual Studio Output window;
+- a `File` sink, rolling daily with 7 files kept, writing to
+  `%LocalAppData%\AgentX\Logs\agentx-yyyyMMdd.log` with the template
+  `{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {Message:lj}{NewLine}{Exception}`.
 
-Global exception handling is wired to three events:
-- `AppDomain.CurrentDomain.UnhandledException` — for non-UI thread exceptions.
-- `TaskScheduler.UnobservedTaskException` — for unobserved `Task` failures.
-- `Application.UnhandledException` — for WinUI 3 UI thread exceptions (marked `Handled = true` to prevent crash).
+Global exception handling is wired to:
+- `AppDomain.CurrentDomain.UnhandledException`: logs a fatal error and flushes the log.
+- `TaskScheduler.UnobservedTaskException`: logs and marks the exception observed.
+- `Application.UnhandledException`: logs a fatal error and sets `Handled = true`.
+- `AppDomain.CurrentDomain.ProcessExit`: runs the shutdown sequence, waiting at most 20 seconds.
 
 ### 5.2 MainWindow and Navigation Shell
 
-`MainWindow.xaml.cs` owns the application chrome and all navigation state.
+`MainWindow.xaml.cs` (with `MainWindow.JumpTo.cs` and `MainWindow.StatusTrayOnboarding.cs`) owns the
+window chrome and delegates navigation to `IAppNavigationService`.
 
-**Window configuration:**
-- Initial size: 1440 x 900, centered on the primary display.
-- Backdrop: Mica Alt (`MicaKind.BaseAlt`) on Windows 11 22H2+, falling back to Desktop Acrylic on older Windows 11, then solid fallback.
-- Title bar: Extended into content area with custom dark-theme button colors (transparent background, semi-transparent foreground, subtle white hover).
+**Window configuration** (`ChromeService`):
+- Preferred size 1440 x 900, centered in the work area of the display the window opens on (clamped
+  to it, so the title bar never ends up off screen).
+- Backdrop: Mica Alt (`MicaKind.BaseAlt`) where Mica is supported, otherwise Desktop Acrylic,
+  otherwise a solid background.
+- The title bar is extended into the content, and `AppTitleBar` is the drag region.
 
 **Navigation model:**
 
 ```csharp
-private readonly Dictionary<string, Type> _pageMap = new()
+private static readonly Dictionary<string, Type> PageMap = new()
 {
-    ["Dashboard"]       = typeof(Views.DashboardPage),
-    ["Digest"]          = typeof(Views.DigestPage),
-    ["Chat"]            = typeof(Views.ChatPage),
-    ["AskFiles"]        = typeof(Views.AskFilesPage),
-    ["QuickActions"]    = typeof(Views.QuickActionsPage),
-    ["KnowledgeVault"]  = typeof(Views.KnowledgeVaultPage),
-    ["Collections"]     = typeof(Views.CollectionManagerPage),
-    ["Search"]          = typeof(Views.SearchPage),
-    ["KnowledgeGraph"]  = typeof(Views.KnowledgeGraphPage),
-    ["ModelManager"]    = typeof(Views.ModelManagerPage),
+    ["Dashboard"] = typeof(Views.DashboardPage),
+    ["Operations"] = typeof(Views.OperationsPage),
+    ["Digest"] = typeof(Views.DigestPage),
+    ["Settings"] = typeof(Views.SettingsPage),
+    ["Chat"] = typeof(Views.ChatPage),
+    ["AskFiles"] = typeof(Views.AskFilesPage),
+    ["QuickActions"] = typeof(Views.QuickActionsPage),
+    ["Workflows"] = typeof(Views.WorkflowBuilderPage),
+    ["KnowledgeVault"] = typeof(Views.KnowledgeVaultPage),
+    ["WebImport"] = typeof(Views.WebImportPage),
+    ["Collections"] = typeof(Views.CollectionManagerPage),
+    ["Search"] = typeof(Views.SearchPage),
+    ["KnowledgeGraph"] = typeof(Views.KnowledgeGraphPage),
+    ["ModelManager"] = typeof(Views.ModelManagerPage),
     ["HardwareAdvisor"] = typeof(Views.HardwareAdvisorPage),
-    ["Settings"]        = typeof(Views.SettingsPage),
-    // plus UserGuide, PrivacyPolicy, TermsOfService
+    ["BackupRestore"] = typeof(Views.BackupRestorePage),
+    ["Annotations"] = typeof(Views.AnnotationsPage),
+    ["Inbox"] = typeof(Views.InboxPage),
+    ["Comparison"] = typeof(Views.ComparisonPage),
+    ["WorkspaceProfiles"] = typeof(Views.WorkspaceProfilePage),
+    ["PluginManager"] = typeof(Views.PluginManagerPage),
+    ["SyncSettings"] = typeof(Views.SyncSettingsPage),
+    ["CalendarSettings"] = typeof(Views.CalendarSettingsPage),
+    ["EmailSettings"] = typeof(Views.EmailSettingsPage),
+    ["Analytics"] = typeof(Views.AnalyticsPage),
+    ["PastSelf"] = typeof(Views.PastSelfPage),
+    ["Onboarding"] = typeof(Views.OnboardingPage),
+    ["UserGuide"] = typeof(Views.UserGuidePage),
+    ["PrivacyPolicy"] = typeof(Views.PrivacyPolicyPage),
+    ["TermsOfService"] = typeof(Views.TermsOfServicePage),
 };
 ```
 
-Navigation is driven by `NavigationView.SelectionChanged`, which reads the `Tag` property of the selected `NavigationViewItem` and looks up the corresponding `Type` in `_pageMap`. A parallel `_navItemMap` keeps the `NavigationViewItem` references so that programmatic navigation (from keyboard shortcuts or the command palette) can synchronize the NavigationView selection indicator with the `Frame`.
+`NavigationView.SelectionChanged` reads the selected item's `Tag` and navigates to the mapped page.
+`_navItemMap` holds the 29 rail items so that navigation from a shortcut, the command palette,
+Jump-To, the tray or a status lamp also moves the rail's selection indicator. All paths go through
+`IAppNavigationService.NavigateToPage(tag, parameter)`; the optional parameter carries what the user
+picked (for example a conversation from Jump-To).
 
-**Instrument strip (status bar):** two typed pollers feed the bottom strip. `StatusBarService` polls every 30 seconds (after a 5-second initial delay) for AI connection state + model name (the `MDL` lamp and LCD readout), indexing queue depth (`IDX`), and total document count (`VAULT`); each cycle also re-evaluates the `LOCAL`/`NET` privacy lamp through `IPrivacyStatusService`. `AnnunciatorService` drives the `INBOX`/`SYNC`/`JOBS`/`BAK` lamps on a two-cadence poll (inbox count and sync posture every cycle, backup age and workflow-run health every 4th), querying typed service APIs and failing soft per source. Lit lamps navigate to their source page on click.
+**Instrument strip (status bar):** two typed pollers feed the bottom strip.
 
-**Onboarding override:** On first run (`settings.OnboardingCompleted == false`), the NavigationView pane is hidden and the Frame navigates to `OnboardingPage`. A `_suppressNavigation` flag prevents `SelectionChanged` from re-navigating away during setup. `CompleteOnboarding()` is a public method called by `OnboardingViewModel` when the wizard finishes.
+- `StatusBarService` polls every 30 seconds after a 5-second delay: the active provider's
+  connection (`CheckConnectionAsync`) and model for the `MDL` lamp and LCD readout, the indexing
+  queue for `IDX`, and the document count for `VAULT`. The text names the connected model, or the
+  active provider when it is not available, in the user's language. Each cycle also re-evaluates
+  the `LOCAL`/`NET` privacy lamp through `IPrivacyStatusService`.
+- `AnnunciatorService` polls every 30 seconds after a 6-second delay. The inbox pending count and
+  sync state are read every cycle; backup age and workflow-run health every fourth cycle. They drive
+  the `INBOX`, `SYNC`, `JOBS` and `BAK` lamps.
+
+Each source fails soft (a failed query keeps the previous state). Lamps map typed states, never
+display strings. A lit lamp navigates on click: `INBOX` to Smart Inbox, `SYNC` to Collaborative
+Sync, `JOBS` to Operations, `BAK` to Backup & Restore.
+
+**Onboarding:** on first run (`OnboardingCompleted == false`) `IOnboardingService.BeginOnboarding()`
+suppresses rail navigation, the frame shows `OnboardingPage`, and the pane is hidden. Finish calls
+`MainWindow.CompleteOnboarding()`, which marks onboarding complete and navigates to the Dashboard.
+Leaving the wizard any other way (a shortcut, the palette, Jump-To, the tray, a lamp) ends it as
+skipped: the rail comes back and the wizard does not return at the next launch.
+
+**Tray and Quick Chat:** `SystemTrayService` (H.NotifyIcon) keeps a tray icon with Open, Quick
+Chat, Settings and Exit, supports minimizing to the tray, and registers the global hotkey
+**Win+Shift+A**, which opens the Quick Chat window.
 
 **Relevant files:**
 - `src/AgentX.App/MainWindow.xaml`
 - `src/AgentX.App/MainWindow.xaml.cs`
+- `src/AgentX.App/MainWindow.StatusTrayOnboarding.cs`
+- `src/AgentX.App/Services/AppNavigationService.cs`
 
 ### 5.3 MVVM Implementation
 
-The presentation layer now uses page-specific ViewModels plus supporting dialog and coordinator ViewModels. Representative page ViewModels include:
+Page view models, with the page each one serves:
 
-| ViewModel | Primary Responsibilities |
-|---|---|
-| `DashboardViewModel` | Aggregate stats: doc count, conversation count, recent activity |
-| `AnalyticsViewModel` | Usage, performance, file-type, indexing, and conversation-intelligence metrics |
-| `ChatViewModel` | Conversation management, streaming token display, suggested questions |
-| `AskFilesViewModel` | RAG queries against the Knowledge Vault, citation display |
-| `KnowledgeVaultViewModel` | Document list, import, delete, reindex, bulk operations |
-| `CollectionManagerViewModel` | Collection CRUD, document assignment |
-| `SearchViewModel` | Hybrid/semantic/keyword search, result display, search history |
-| `KnowledgeGraphViewModel` | Graph data loading, Canvas-based force-directed rendering |
-| `ComparisonViewModel` | Multi-document comparison selection, synthesis, and report display |
-| `InboxViewModel` | Inbox triage queue review, accept/reject/defer flows |
-| `PluginManagerViewModel` | Plugin install/enable/disable/uninstall flows |
-| `SyncSettingsViewModel` | Sync configuration, status, and history surfaces |
-| `WorkflowBuilderViewModel` | Workflow authoring, execution, and step-result inspection |
-| `ModelManagerViewModel` | Ollama model list, pull, delete, active model selection |
-| `HardwareAdvisorViewModel` | Hardware detection, model recommendations |
-| `QuickActionsViewModel` | AI summarize, auto-tag, duplicate scan on selected documents |
-| `DigestViewModel` | Weekly digest report generation and display |
-| `SettingsViewModel` | Settings read/write, provider switching, test connection |
-| `OnboardingViewModel` | Multi-step wizard state, provider setup, completion callback |
+| ViewModel | Page | Primary responsibilities |
+|---|---|---|
+| `DashboardViewModel` | Dashboard | Counts and recent activity, provider status and hints, privacy disclosures, belief card, operations snapshot |
+| `OperationsViewModel` | Operations | Operations overview (connectors, inbox, indexing, summaries, sync, workflows) and guided actions |
+| `DigestViewModel` | Weekly Digest | Generate and show digest reports |
+| `AnalyticsViewModel` | Analytics | Usage, file type, indexing, workflow and conversation-intelligence metrics |
+| `PastSelfViewModel` | Past Self | Past stances and insights by time period, active topics, Draft As Me |
+| `ChatViewModel` | AI Chat | Conversation list, streaming messages, branches, memories, context inspector (with the coordinators) |
+| `AskFilesViewModel` | Ask Your Files | RAG questions with streamed answers and citation badges |
+| `QuickActionsViewModel` | Quick Actions | Summarize, extract key points, translate, find duplicates and near-duplicates, suggest organization, recommended actions |
+| `WorkflowBuilderViewModel` | Workflows | Build, edit, run and inspect workflows |
+| `KnowledgeVaultViewModel` | Knowledge Vault | Document list, import, filters, preview, delete with confirmation, engagement timing |
+| `DocumentNotesViewModel` | (Vault preview) | Passage-by-passage text and annotation creation in the preview |
+| `WebImportViewModel` | Web Import | URL, feed and sitemap import with one result per URL |
+| `CollectionManagerViewModel` | Collections | Collection CRUD, nesting ("Move into..."), document assignment, export |
+| `SearchViewModel` | Semantic Search | Semantic, keyword and hybrid search, filters, saved searches, history |
+| `KnowledgeGraphViewModel` | Knowledge Graph | Graph data loading, filters, selection and statistics |
+| `ComparisonViewModel` | Compare Documents | Select documents, compare and export the report |
+| `AnnotationsViewModel` | Annotations | Search, filter, edit, delete and export annotations |
+| `InboxViewModel` | Smart Inbox | Review, accept, reject and defer inbox items |
+| `ModelManagerViewModel` | Model Manager | Ollama models, and the speech-to-text model through `SpeechModelViewModel` |
+| `HardwareAdvisorViewModel` | Hardware Advisor | Hardware detection and model recommendations |
+| `BackupRestoreViewModel` | Backup & Restore | Create, validate, restore and delete backups; backup schedule |
+| `WorkspaceProfileViewModel` | Workspace Profiles | Create, edit, delete and mark workspace profiles |
+| `PluginManagerViewModel` | Plugin Manager | Install, enable, disable and uninstall plugins |
+| `SyncSettingsViewModel` | Collaborative Sync | Sync folder and encryption key, Sync Now, auto-sync, history |
+| `CalendarSettingsViewModel` | Calendar | Connect accounts, choose calendars, sync settings, Sync Now |
+| `EmailSettingsViewModel` | Email | Connect accounts, choose folders, sync settings, Sync Now |
+| `SettingsViewModel` | Settings | All settings, with `BuiltInModelSettingsViewModel` and `WatchFolderSettingsViewModel` |
+| `OnboardingViewModel` | Onboarding | First-run wizard |
+| `UserGuideViewModel` | User Guide | Guide sections |
 
-Additional support ViewModels such as `CommandPaletteViewModel`, `JumpToViewModel`, `CheatsheetViewModel`, `QuickChatViewModel`, and the coordinator layer used by `ChatViewModel` keep non-page logic testable without moving UI responsibilities into code-behind.
+Support view models: `CommandPaletteViewModel`, `JumpToViewModel`, `CheatsheetViewModel`,
+`QuickChatViewModel` (Quick Chat window), `ExportViewModel` (export dialog, used from Chat and
+Collections), `OAuthAppCredentialsViewModel` (the credentials form on the Calendar and Email
+pages), and item types such as `ChatMessageItem`, `ConversationListItem` and `SystemPromptItem`.
 
 ### 5.4 Custom Controls
 
-**`CommandPalette`** (`Controls/CommandPalette.xaml.cs`)
+| Control | Purpose |
+|---|---|
+| `CommandPalette` | Overlay listing every rail page (same tags, localized labels, glyphs and group placards as the rail, with each page's chord) and three actions: New Conversation, Import Files, Toggle Theme. Opened with Ctrl+K or Ctrl+Shift+P; Escape closes it. |
+| `Faceplate` | The raised panel of the DESIGN.md depth system, with a kicker line (template in `Themes/Generic.xaml`). |
+| `LampTile` | A status lamp with the DESIGN.md LED semantics; raises `Invoked` when clicked. |
+| `SegmentMeter` | A segmented meter (green to 60%, amber to 85%, red above). |
+| `MarkdownMessageControl` | Renders chat answers from `MarkdownParser` segments: text with bold and inline code, headings, bulleted and numbered list items, and fenced code blocks with syntax highlighting (`SyntaxHighlighter`) and a Copy button. |
+| `NotificationOverlay` | Toast notifications from `INotificationService`, top right. |
+| `OAuthAppCredentialsPanel` | The OAuth App Credentials form shared by the Calendar and Email pages. |
 
-A keyboard-activated overlay (Ctrl+K) providing fuzzy search across all navigable pages and registered actions. It exposes two callback delegates injected by `MainWindow`:
-
-```csharp
-public Action<string>? NavigateToPageRequested { get; set; }
-public Action<string>? ExecuteActionRequested { get; set; }
-```
-
-Actions are: `NewConversation`, `ImportFiles`, `ToggleTheme`. Pressing Escape while the palette is open closes it. Focus management respects the WinUI 3 `FocusManager` to avoid double-processing Escape events when the search box has focus.
-
-**`MarkdownMessageControl`** (`Controls/MarkdownMessageControl.xaml.cs`)
-
-A custom control that renders AI-generated Markdown responses in the chat interface. Handles: heading levels, bold/italic/code spans, fenced code blocks with syntax awareness, bulleted lists, numbered lists, and blockquotes. Because WinUI 3 does not include a native Markdown renderer, this control parses and renders inline content into WinUI `TextBlock` and `RichTextBlock` elements at runtime.
+WinUI 3 has no Markdown renderer, so `MarkdownParser` is a small line-based parser rather than
+Markdig; it covers the patterns AI answers use.
 
 ### 5.5 Value Converters
 
-12 `IValueConverter` implementations are registered as XAML resources:
+Eleven `IValueConverter` implementations live in `Converters/`. Pages declare the ones they use in
+their own resources.
 
-| Converter | Input | Output | Use Case |
+| Converter | Input | Output | Use |
 |---|---|---|---|
-| `BoolToOpacityConverter` | `bool` | `double` (0.0 or 1.0) | Fade disabled controls |
-| `BoolToVisibilityConverter` | `bool` | `Visibility` | Show/hide elements |
-| `CountToVisibilityConverter` | `int` | `Visibility` | Hide empty list messages |
-| `DoubleToStringConverter` | `double` | `string` | Numeric values in data templates |
+| `BoolToOpacityConverter` | `bool` | `double` (1.0, or 0.5 by default for false) | Fade disabled content |
+| `BoolToVisibilityConverter` | `bool` | `Visibility` (with `IsInverted`) | Show or hide elements |
+| `CountToVisibilityConverter` | number | `Visibility` | Show only when a list has items |
+| `DoubleToStringConverter` | `double` | `string` | Numbers in templates |
 | `InverseBoolConverter` | `bool` | `bool` | Inverse binding |
 | `NullToVisibilityConverter` | `object?` | `Visibility` | Null checks |
-| `PercentToWidthConverter` | `double` | `double` | Progress bar widths |
-| `StatusToColorConverter` | `string` | `Brush` | Document status color coding |
-| `StringEmptyToVisibilityConverter` | `string?` | `Visibility` | Collapse on empty or null |
-| `StringToVisibilityConverter` | `string?` | `Visibility` | Hide empty text fields |
-| `TimeAgoConverter` | `DateTime` | `string` ("3 hours ago") | Relative timestamps |
+| `PercentToWidthConverter` | `double` (0 to 1) | `double` | Progress widths (maximum from the parameter) |
+| `StatusToColorConverter` | status string or tone token | `Brush` | Status colors |
+| `StringEmptyToVisibilityConverter` | `string?` | `Visibility` | Collapse on null or empty |
+| `StringToVisibilityConverter` | `string?` | `Visibility` | Collapse on null, empty or whitespace |
+| `TimeAgoConverter` | `DateTime` / `DateTimeOffset` | `string` ("5m ago", "just now", or a date) | Relative times, in the user's language |
 
 ### 5.6 XAML Resource Dictionaries and Theming
 
-Six resource dictionaries in `Styles/` form the design system:
+`App.xaml` merges these dictionaries from `Styles/`:
 
 | File | Contents |
 |---|---|
-| `Colors.xaml` | Command Console token layer: armed red `#AA2024` accent, LED status vocabulary, well/LCD display tokens, spacing and radius scales, and Fluent lightweight overrides - defined per theme in `ThemeDictionaries` (dark, light, high contrast) |
-| `Typography.xaml` | Four bundled typefaces (Public Sans body, Archivo Expanded stencil placards, Departure Mono telemetry, Iosevka Term streams/code) and the heading/body/metric style scales |
-| `Hardware.xaml` | Faceplate, recessed-well, lamp-tile, and machined/armed cap button recipes (the hardware depth system) |
-| `Controls.xaml` | Custom button styles, card styles, input field styles |
-| `Navigation.xaml` | NavigationView theme overrides, item styles, section header placards |
-| `Chat.xaml` | Message bubble styles, role-specific colors, streaming indicator |
-| `Documents.xaml` | Document card layouts, status badge styles, file type icon maps |
+| `Colors.xaml` | Command Console token layer: armed red `#AA2024` accent, LED status vocabulary, well and LCD display tokens, spacing and radius scales, and Fluent lightweight overrides, defined per theme in `ThemeDictionaries` (dark, light, high contrast) |
+| `Typography.xaml` | The bundled typefaces (Public Sans body, Archivo Expanded stencil placards, Departure Mono telemetry, Iosevka Term streams and code) and the heading, body and metric style scales |
+| `Hardware.xaml` | Faceplate, recessed-well, lamp-tile, and machined and armed cap button recipes (the hardware depth system) |
+| `Controls.xaml` | Button, card and input styles |
+| `Navigation.xaml` | NavigationView overrides, item styles, section header placards |
+| `Chat.xaml` | Message styles, role colors, streaming indicator |
+| `Documents.xaml` | Document card layouts, status badges, file type icons |
+| `UserGuideSections.xaml` | User Guide section templates (it merges the `UserGuideSections.*.xaml` parts) |
 
-The visual system is defined in [`DESIGN.md`](../DESIGN.md) at the repository root - the source of truth for all tokens, recipes, and rules. The application ships three themes: dark (Night Shift, the default), light (Day Shift, brushed silver), and high contrast (bound to `SystemColor*` tokens and exempt from the hardware skin). Display surfaces - LCD wells, lamp caps, and the instrument strip - stay dark in both the dark and light themes by design. The `MicaBackdrop` or `DesktopAcrylicBackdrop` system backdrop provides the underlying material effect behind the XAML content.
+The visual system is defined in [`DESIGN.md`](../DESIGN.md) at the repository root, the source of
+truth for all tokens, recipes and rules. The application ships three themes: dark (Night Shift, the
+default), light (Day Shift, brushed silver), and high contrast (bound to `SystemColor*` tokens and
+exempt from the hardware skin). Display surfaces (LCD wells, lamp caps and the instrument strip)
+stay dark in both the dark and light themes by design. `IThemeService` applies the theme saved in
+settings at startup.
 
 ### 5.7 Keyboard Shortcut System
 
-`IShortcutRegistry` (`AgentX.Core.Services.Shortcuts`) is the current registry for global and page-scoped keyboard shortcuts. `ShortcutCatalog` seeds global descriptors at `MainWindow` startup, pages register scope-local descriptors during navigation, and `ShortcutInputRouter` dispatches `RootGrid.PreviewKeyDown` events through the registry.
+`IShortcutRegistry` (`AgentX.Core.Services.Shortcuts`) holds every shortcut as a
+`ShortcutDescriptor` (id, label, scope, chord, handler, category). `ShortcutCatalog` seeds the
+global descriptors when `MainWindow` starts, with labels from the resources. Pages register
+page-scoped descriptors in `OnNavigatedTo` with `registry.RegisterShortcuts(...)` and dispose the
+returned token in `OnNavigatedFrom`. `ShortcutInputRouter` handles `RootGrid.PreviewKeyDown`,
+opens the three built-in surfaces itself, and otherwise dispatches the chord through the registry
+for the active page scope.
 
 | Shortcut | Action |
 |---|---|
-| `Ctrl+K` | Toggle Command Palette |
-| `Ctrl+N` | Navigate to Chat |
-| `Ctrl+I` | Navigate to Knowledge Vault |
-| `Ctrl+F` | Navigate to Search |
-| `Ctrl+,` | Navigate to Settings |
-| `Escape` | Close Command Palette (if open) |
+| `Ctrl+K`, `Ctrl+Shift+P` | Command Palette |
+| `Ctrl+P` | Jump To (documents, conversations, pages) |
+| `F1`, `Ctrl+Shift+?` | Keyboard shortcuts (Cheatsheet) |
+| `Ctrl+N` | New conversation (opens AI Chat on a new conversation) |
+| `Ctrl+I` | Knowledge Vault |
+| `Ctrl+F`, `Ctrl+Shift+F` | Semantic Search |
+| `Ctrl+,` | Settings |
+| `Ctrl+D` | Dashboard |
+| `Ctrl+G` | Knowledge Graph |
+| `Ctrl+Shift+A` | Analytics |
+| `Ctrl+Shift+O` | Operations |
+| `Ctrl+Shift+W` | Workflows |
+| `Ctrl+Shift+E` | Web Import |
+| `Ctrl+1` to `Ctrl+9` | Dashboard, AI Chat, Ask Your Files, Semantic Search, Knowledge Vault, Collections, Workflows, Model Manager, Settings |
+| `Escape` | Close the Command Palette (when the search box does not have focus) |
 
-`RootGrid.PreviewKeyDown` is the capture point. Modifier key states are read via `InputKeyboardSource.GetKeyStateForCurrentThread` which is the WinUI 3 mechanism for checking modifier state outside of a standard keyboard event handler.
+Page-scoped shortcuts: AI Chat `Ctrl+Shift+N` (new conversation) and `Ctrl+B` (toggle the
+conversation pane); Knowledge Vault `F5` (refresh); Settings `Ctrl+S` (save).
+
+Modifier states are read with `InputKeyboardSource.GetKeyStateForCurrentThread`.
 
 ---
 
@@ -496,138 +574,173 @@ The visual system is defined in [`DESIGN.md`](../DESIGN.md) at the repository ro
 
 ### 6.1 AI Provider Architecture
 
-```mermaid
-graph TD
-    AIS["AiService\n(Orchestrator)"]
-    IAP["IAiProvider\n(interface)"]
-    OLL["OllamaProvider\nOllamaSharp library\nlocalhost:11434"]
-    OAI["OpenAiProvider\nRaw HttpClient + SSE\nBearer token auth"]
-    ANT["AnthropicProvider\nRaw HttpClient + SSE\nx-api-key header\nsystem as top-level field"]
-
-    AIS -->|"_providers dict"| IAP
-    IAP --> OLL
-    IAP --> OAI
-    IAP --> ANT
-
-    AIS -->|"delegates all calls to"| ACTIVE["_activeProvider\n(one at a time)"]
-
-    subgraph IAiProvider Contract
-        direction LR
-        CM["CheckConnectionAsync()"]
-        LM["ListModelsAsync()"]
-        PM["PullModelAsync()"]
-        DM["DeleteModelAsync()"]
-        SC["StreamChatAsync() IAsyncEnumerable"]
-        CA["ChatAsync()"]
-        GE["GenerateEmbeddingAsync()"]
-        GES["GenerateEmbeddingsAsync() batch"]
-    end
-
-    subgraph AiService High-Level Operations
-        direction LR
-        SCA["StreamChatAsync()"]
-        CHA["ChatAsync()"]
-        SUM["SummarizeAsync()"]
-        GTA["GenerateTagsAsync()"]
-        SPA["SwitchProviderAsync()"]
-        SAM["SetActiveModelAsync()"]
-    end
-
-    COST["CostTracker\n(in-memory thread-safe)"]
-    AIS --> COST
+```
+AiService (IAiService)
+    providers (by id):
+        "local"      LocalLlmProvider    LLamaSharp, GGUF file in StoragePath\Models
+        "ollama"     OllamaProvider      OllamaSharp, OllamaEndpoint (when it is a valid URL)
+        "openai"     OpenAiProvider      HttpClient + SSE, when an OpenAI key is set
+        "anthropic"  AnthropicProvider   HttpClient + SSE, when an Anthropic key is set
+    active provider: ActiveProviderId from settings ("local" by default); an unknown or
+                     unregistered id falls back to another registered provider
+    operations: StreamChatAsync, ChatAsync, SummarizeAsync, GenerateTagsAsync,
+                SwitchProviderAsync, SetActiveModelAsync, GetProvider, IsProviderAvailableAsync,
+                GetDefaultModelId, ResolveEmbeddingTarget
 ```
 
-**`IAiProvider`** defines the low-level contract implemented by all three backends:
+**`IAiProvider`** is the low-level contract every provider implements: `CheckConnectionAsync`,
+`ListModelsAsync`, `PullModelAsync`, `DeleteModelAsync`, `StreamChatAsync` (an
+`IAsyncEnumerable<string>` of tokens), `ChatAsync`, `GenerateEmbeddingAsync` and
+`GenerateEmbeddingsAsync`.
 
-- `CheckConnectionAsync()` — health check with a 3-second timeout for Ollama.
-- `ListModelsAsync()` — returns installed models. Anthropic uses a static catalog (no list-models endpoint).
-- `PullModelAsync()` — downloads a model; only meaningful for Ollama.
-- `StreamChatAsync()` — returns `IAsyncEnumerable<string>` of tokens via SSE parsing.
-- `ChatAsync()` — synchronous variant collecting all tokens.
-- `GenerateEmbeddingAsync()` / `GenerateEmbeddingsAsync()` — vector embedding generation.
+**`AiService`** builds the provider set in `InitializeAsync` from settings. It builds the new set
+completely before publishing it, so a bad setting never leaves the service without a provider, and
+it keeps a provider instance whose configuration did not change, so saving settings does not reload
+the built-in model or cut off a stream. `SwitchProviderAsync` changes the active provider at run
+time.
 
-**`AiService`** orchestrates the providers:
+**Provider details:**
 
-- Maintains a `Dictionary<string, IAiProvider>` keyed by provider ID ("ollama", "openai", "anthropic").
-- Ollama is always registered. OpenAI and Anthropic are conditionally registered when API keys are present in settings.
-- `SwitchProviderAsync(string providerId)` — swaps the active provider at runtime without restarting the application.
-- `PrepareMessages()` — prepends the system prompt as a `role: system` message for Ollama/OpenAI. Anthropic receives the system prompt as a top-level JSON field rather than in the messages array (handled in `AnthropicProvider`).
-- `GenerateTagsAsync()` — calls the AI with a JSON array extraction prompt and falls back to comma/line-separated parsing if JSON deserialization fails.
+| Provider | Transport | Models | Embeddings |
+|---|---|---|---|
+| Built-in (`local`) | LLamaSharp 0.19 (CPU backend; CUDA 12 backend when the NVIDIA CUDA 12 toolkit is installed) | The configured GGUF file (`llama-3.2-3b-instruct-q4_k_m.gguf` by default), downloaded on first run by `BuiltInModelBootstrap` in SLIM installs | Yes |
+| Ollama | OllamaSharp 4.0.6; connection check times out after 3 seconds | Installed Ollama models (pull and delete supported) | Yes |
+| OpenAI | `HttpClient`, `Authorization: Bearer`, SSE; the endpoint is configurable for compatible servers | Model list from the API | Yes (`text-embedding-*` models) |
+| Anthropic | `HttpClient`, `x-api-key` and `anthropic-version: 2023-06-01`, SSE; the system prompt goes in the top-level `system` field | `GET /v1/models`, with a small fallback catalog; default `claude-sonnet-5` | No (throws `NotSupportedException`) |
 
-**Provider-specific implementation details:**
+`LocalGpuLayers` controls GPU offload of the built-in model: `0` means automatic (an NVIDIA GPU is
+detected and a layer count chosen by video memory), a positive number is used as given, and a
+negative number keeps the model on the CPU. Settings exposes it as "Automatic GPU layers" and
+"GPU Layers".
 
-| Provider | Library | Auth | Streaming | Embedding |
-|---|---|---|---|---|
-| Ollama | OllamaSharp 4.0.x | None (local) | Native via library | `/api/embeddings` via library |
-| OpenAI | Raw `HttpClient` | `Authorization: Bearer` | SSE `data:` line parsing | `/v1/embeddings` endpoint |
-| Anthropic | Raw `HttpClient` | `x-api-key` + `anthropic-version: 2023-06-01` | SSE typed event blocks (`content_block_delta`) | Delegated to Ollama provider |
+**Embeddings.** `EmbeddingService` does not simply use the chat provider. `AiService.ResolveEmbeddingTarget()`
+(`EmbeddingTargetResolver`) chooses the embedding provider independently, so switching the chat
+model never changes the embedding space:
 
-**`EmbeddingService`** wraps `IAiService.ActiveProvider.GenerateEmbeddingsAsync()` with a configurable batch size of 32. The default embedding model is `all-minilm` (all-MiniLM-L6-v2), producing 384-dimensional float vectors. The `ModelName` is read from `AppSettings.EmbeddingModel` and cached.
+1. An OpenAI embedding model id (`text-embedding-*`) in the Embedding Model setting embeds with
+   OpenAI (the only way document text is embedded in the cloud).
+2. A `.gguf` file name selects the built-in provider.
+3. Any other non-default name is used as an Ollama model.
+4. The default setting (`all-minilm`) uses the built-in model when its file is installed, and
+   Ollama's `all-minilm` otherwise.
 
-**`ContextWindowManager`** handles context window trimming: given a list of chat messages and a token budget, it removes the oldest non-system messages until the total estimated token count fits within the window, always preserving the system prompt and the most recent user message.
+Anthropic is never chosen. Batches use `Rag:EmbeddingBatchSize` (32). The vector size is learned
+from the provider's output, and each chunk is stamped with `provider:model:dimensions`
+(`EmbeddingModelVersion`). `CachedEmbeddingService` wraps the service with a bounded LRU cache keyed
+by model version and text.
 
-**`CostTracker`** maintains in-memory token counts per provider session (thread-safe via `Interlocked`). It does not persist to disk; it resets on application restart.
+**Context.** `ContextAssemblyService` builds the prompt for a chat reply within
+`ContextWindow` minus a 1,024-token reserve for the answer: it keeps the system prompt and the
+current message, selects history (`SemanticContextSelector`), summarizes older overflow
+(`ConversationCompressionService`), adds memory context, and, when enough budget remains, adds up
+to three recalled passages from other conversations (`IConversationRecallService`, similarity 0.72
+or more). On any failure it falls back to `ContextWindowManager`, which trims the oldest messages.
+`TokenCounter` estimates tokens by characters, with CJK text counted separately.
+
+**Model routing.** When Enable Auto-Routing is on (Settings, Multi-Model Routing),
+`ModelRouterService` classifies the message (`TaskTypeDetector`) and picks a provider and model
+from the active routing profile (`balanced`, `cost-optimized` or `quality-optimized`). The
+decision applies to that reply only; the app-wide provider and the saved settings do not change.
+
+**`CostTracker`** records token usage per call, priced from a per-model table matched by longest
+model-id prefix; a model without a price entry (the built-in and Ollama models) costs nothing. The
+history is saved in `usage-history.json` (90 days, at most 20,000 records, older totals carried
+forward), so the Cost Tracking totals in Settings survive restarts. Providers report usage to it
+directly.
 
 **Relevant files:**
-- `src/AgentX.Core/AI/AiService.cs`
-- `src/AgentX.Core/AI/IAiProvider.cs`
-- `src/AgentX.Core/AI/IAiService.cs`
-- `src/AgentX.Core/AI/EmbeddingService.cs`
-- `src/AgentX.Core/AI/Providers/OllamaProvider.cs`
-- `src/AgentX.Core/AI/Providers/OpenAiProvider.cs`
-- `src/AgentX.Core/AI/Providers/AnthropicProvider.cs`
+- `src/AgentX.Core/AI/AiService.cs`, `IAiProvider.cs`, `IAiService.cs`
+- `src/AgentX.Core/AI/EmbeddingService.cs`, `EmbeddingTargetResolver.cs`, `CachedEmbeddingService.cs`
+- `src/AgentX.Core/AI/Providers/*.cs`
+- `src/AgentX.Core/AI/Context/ContextAssemblyService.cs`
+- `src/AgentX.Core/AI/Routing/ModelRouterService.cs`
+- `src/AgentX.Core/AI/Models/CostTracker.cs`
 
 ### 6.2 Chat Services
 
-The chat service group has four classes with distinct responsibilities:
+**`ChatService`** handles standard replies. `SendMessageAsync(conversationId, message)` returns an
+`IAsyncEnumerable<string>`:
 
-**`ChatService`** (orchestrator): Receives a `(conversationId, userMessage)` pair and returns `IAsyncEnumerable<string>`. Internally it:
-1. Persists the user message via `ConversationService`.
-2. Loads the full conversation (messages + system prompt) via `ConversationService`.
-3. Injects memory context from `ConversationMemoryService` (up to 8 memories).
-4. Builds `ChatOptions` from `AppSettings` (temperature, max tokens, context window).
-5. Trims the message list to fit the context window via `ContextWindowManager`.
-6. Streams tokens from `IAiService.StreamChatAsync()`, yielding each token to the caller.
-7. Persists the complete assistant response after the stream ends.
-8. Fires a background `Task.Run` to extract memories from the conversation (non-blocking).
+1. Starts a generation (cancels one in flight; a lock serializes starts and stops).
+2. Saves the user message through `ConversationService`.
+3. Loads the conversation (system prompt and messages).
+4. Builds `ChatOptions` from settings (temperature, max tokens, context window).
+5. Asks the model router for this reply's provider and model (when routing is on).
+6. Loads memory context: relevant memories from `SemanticMemoryService`, or the top 8 from
+   `ConversationMemoryService` when that is unavailable. Supplemental context (Research Mode web
+   results) is added for this reply only.
+7. Assembles the context (`ContextAssemblyService`) and records a context-inspection snapshot.
+8. Streams tokens from the routed provider or `IAiService.StreamChatAsync`.
+9. Saves the answer with its token count, generation time, the model that wrote it and the sources
+   it cited (`CitationsJson`).
+10. Starts memory extraction in the background.
 
-`StopGenerationAsync()` cancels the current stream by signalling a `CancellationTokenSource` that is linked to the generation token. A lock prevents race conditions when multiple stop/start calls occur rapidly.
+`RegenerateResponseAsync` answers the saved prompt again in place and removes the old answer only
+after the new one is saved; only the latest exchange can be regenerated. An edited prompt is resent
+after `ConversationService.DeleteMessageAndFollowingAsync`. `StopGenerationAsync` cancels the
+internal token that is linked to the caller's token.
 
-**`ConversationService`**: CRUD for `ConversationEntity` and `MessageEntity` records. Handles message ordering via a `SortOrder` integer, `AddMessageAsync`, `GetMessagesAsync`, and `DeleteMessageAndFollowingAsync` (an edited prompt is resent from the point it was edited). Regeneration answers the saved prompt again in place and removes the old answer only after the new one is saved.
+The multi-agent modes do not go through `ChatService`: `MessagingCoordinator` calls
+`MultiAgentOrchestrator` directly and saves the result (see [8.2](#82-chat-and-streaming-flow)).
 
-**`SystemPromptService`**: CRUD for `SystemPromptEntity` records, organized by category.
+**`ConversationService`**: CRUD for conversations and messages, and message ordering
+(`SortOrder`).
 
-**`ConversationMemoryService`**: AI-driven memory extraction. After each conversation, it asks the AI to extract structured facts in `category|content` format (categories: preference, fact, topic, instruction). Memories are stored in the `memories` table with an `Importance` float and `IsActive` flag. `GetMemoryContextAsync(maxCount)` retrieves the top-N memories sorted by importance and formats them as a system prompt appendix.
+**`SystemPromptService`**: CRUD for system prompts, by category.
 
-**Relevant files:**
-- `src/AgentX.Core/Services/Chat/ChatService.cs`
-- `src/AgentX.Core/Services/Chat/ConversationService.cs`
-- `src/AgentX.Core/Services/Chat/SystemPromptService.cs`
-- `src/AgentX.Core/Services/Chat/ConversationMemoryService.cs`
+**`ConversationMemoryService`** and **`SemanticMemoryService`**: extract facts from recent turns
+with the AI model (the basic service asks for `category|content` lines with the categories
+preference, fact, topic and instruction), store them in `memories` with importance, decay and an
+embedding, and retrieve them for prompts. The context inspector's Memories card lists them and can
+delete one or all.
+
+**`ConversationRecallService`**: embeds messages and finds relevant passages in other conversations.
+
+**`ConversationSummaryService`**: maintains versioned summary snapshots per conversation.
+
+**`ConversationBranchService`**: creates branches (a copy of the messages up to a branch point) and
+lists them.
+
+**Relevant files:** `src/AgentX.Core/Services/Chat/`
 
 ### 6.3 Document Processing Pipeline
 
-**`DocumentService`** is the entry point for all document import operations. Its responsibilities:
+**`DocumentService`** is the entry point for imports:
 
-- Validates file existence and determines the file extension.
-- Computes an SHA-256 content hash via `HashHelper.ComputeFileHashAsync()` and rejects duplicates before processing begins.
-- Selects the appropriate `IDocumentProcessor` by calling `processor.CanProcess(filePath)` in registration order.
-- Calls `IDocumentProcessor.ProcessAsync(filePath)` to extract text, page count, word count, title, language, and metadata.
-- Creates and persists a `DocumentEntity` with `IndexingStatus = "pending"`.
-- Optionally creates a `DocumentCollectionEntity` junction record if a `collectionId` is provided.
+- Validates the file and its extension.
+- Computes a SHA-256 content hash (`HashHelper.ComputeFileHashAsync`); a match with an existing
+  document throws `DuplicateDocumentException`, unless the caller allows duplicates
+  (`ImportFilesWithReportAsync` reports them instead).
+- Picks the first registered `IDocumentProcessor` whose `CanProcess` accepts the file, then
+  processors contributed by active plugins (`IPluginDocumentProcessorSource`).
+- Extracts text and metadata once. A file the processor cannot read is recorded as a `failed`
+  document with the reason, not as an empty success.
+- Saves a `DocumentEntity` as `pending`, links it to a collection when one is given, and raises
+  `DocumentPendingIndexing` with the extracted text, so the indexer does not read the file again.
+- Other entry points: `ImportExternalContentAsync` (connector items, keeping a type such as
+  `CalendarEvent`), `ImportPreparedDocumentAsync` (Web Import), re-index, delete (removes FTS rows
+  and cached search results), and `RequeueAudioAwaitingSpeechModelAsync` (after the speech model is
+  installed).
 
-**Six `IDocumentProcessor` implementations:**
+**Eight built-in `IDocumentProcessor` implementations**, in registration order:
 
-| Processor | Extensions | Key Library | Notes |
+| Processor | Extensions | Library | Notes |
 |---|---|---|---|
-| `PdfProcessor` | `.pdf` | PdfPig | Page-by-page text extraction; preserves page numbers |
-| `DocxProcessor` | `.docx` | DocumentFormat.OpenXml | Paragraph-level extraction; preserves headings |
-| `TextProcessor` | `.txt`, `.csv`, `.log`, `.xml`, `.json`, `.ini`, `.cfg`, `.toml`, `.yaml`, `.yml` | (built-in) | Reads as UTF-8 text |
-| `MarkdownProcessor` | `.md`, `.markdown` | (built-in) | Reads as UTF-8; strips YAML front matter |
-| `CodeFileProcessor` | `.cs`, `.py`, `.js`, `.ts`, `.go`, `.rs`, `.java`, `.cpp`, `.c`, `.h`, `.swift`, `.kt`, `.rb`, `.php`, `.sql`, `.sh`, `.html`, `.css`, `.scss`, `.xaml` | (built-in) | Reads as UTF-8; preserves code structure |
-| `ImageProcessor` | `.png`, `.jpg`, `.jpeg`, `.bmp`, `.tiff` | (vision model call) | Describes image content via AI vision |
+| `PdfProcessor` | `.pdf` | PDFsharp 6.1.1 | Page-by-page text; pages separated for page numbers |
+| `DocxProcessor` | `.docx` | DocumentFormat.OpenXml 3.2.0 | Paragraph text with headings |
+| `TextProcessor` | `.txt`, `.csv`, `.log`, `.json`, `.xml`, `.yaml`, `.yml`, `.toml`, `.ini`, `.cfg` | (built-in) | UTF-8 text |
+| `MarkdownProcessor` | `.md`, `.mdx`, `.markdown` | Markdig 0.37 | Markdown to text |
+| `CodeFileProcessor` | `.cs`, `.js`, `.ts`, `.py`, `.java`, `.cpp`, `.c`, `.h`, `.go`, `.rs`, `.swift`, `.kt`, `.rb`, `.php`, `.html`, `.htm`, `.css`, `.scss`, `.sql`, `.sh`, `.xaml` (it also lists `.yaml`, `.yml`, `.toml`, `.ini` and `.cfg`, which `TextProcessor` takes first) | (built-in) | Detects the language and first declaration |
+| `ImageProcessor` | `.png`, `.jpg`, `.jpeg`, `.bmp`, `.tiff` | Windows OCR (`Windows.Media.Ocr`) | Text recognized in the image; fails with a reason when no recognizer is installed |
+| `AudioProcessor` | `.mp3`, `.wav`, `.m4a`, `.flac`, `.ogg`, `.webm` | Whisper.Net 1.5 (`ITranscriptionService`) | Transcript; fails with a reason when the speech-to-text model is not installed |
+| `WebProcessor` | `.url`, `.webloc` | `IWebScraperService` | Fetches and extracts the linked page |
 
-**`ChunkingService`**: Splits a `ProcessedDocument` into overlapping `TextChunk` objects. Default: 512-token chunks with 50-token overlap (configurable in settings). Tracks `StartCharOffset`, `EndCharOffset`, `PageNumber`, and `SectionTitle` for each chunk to enable accurate citation back-references.
+**`ChunkingService`** splits text recursively: paragraphs, then sentences, then words, with the
+overlap carried from the end of the previous chunk (token counts from `ITokenCounter`). Multi-page
+documents with form-feed page breaks are chunked page by page, so chunks keep their page number.
+`AdaptiveChunkingService` classifies the content; for code and tables its recommended size
+replaces the configured one (and the overlap is kept below it). Defaults come from settings:
+`ChunkSize` 512 and `ChunkOverlap` 50; the overlap must be smaller than the size.
 
 **Relevant files:**
 - `src/AgentX.Core/Documents/DocumentService.cs`
@@ -636,53 +749,39 @@ The chat service group has four classes with distinct responsibilities:
 
 ### 6.4 Indexing Pipeline
 
-```mermaid
-sequenceDiagram
-    participant DS as DocumentService
-    participant IS as IndexingService
-    participant PROC as IDocumentProcessor
-    participant CS as ChunkingService
-    participant ES as EmbeddingService
-    participant VS as IVectorStore
-    participant KWD as KeywordSearchService
-    participant TAG as AutoTagService
-    participant DB as AgentXDbContext
-
-    DS->>DB: Save DocumentEntity (status=pending)
-    DS->>IS: IndexDocumentAsync(documentId)
-    IS->>IS: Write documentId to Channel<long>
-
-    Note over IS: Background Task reads channel serially
-
-    IS->>DB: Load document, set status=processing
-    IS->>DB: Create/update IndexingJobEntity
-    IS->>PROC: ProcessAsync(filePath)
-    PROC-->>IS: ProcessedDocument (text, pages, metadata)
-    IS->>CS: ChunkDocument(processed, chunkSize=512, overlap=50)
-    CS-->>IS: List<TextChunk>
-    IS->>DB: Save DocumentChunkEntity records (IsEmbedded=false)
-
-    loop Batches of 16 chunks
-        IS->>ES: EmbedBatchAsync(batchTexts)
-        ES->>ES: Delegate to ActiveProvider.GenerateEmbeddingsAsync()
-        ES-->>IS: float[][] embeddings
-        loop Per embedding
-            IS->>VS: InsertEmbeddingAsync(chunkId, embedding)
-            VS-->>IS: vectorRowId
-            IS->>DB: Update chunk (VectorRowId, IsEmbedded=true)
-        end
-    end
-
-    IS->>DB: Update document (status=completed, chunkCount, lastIndexedAt)
-    IS->>DB: Update IndexingJobEntity (completed, metrics)
-    IS->>TAG: ApplyAutoTagsAsync(documentId)
-    IS->>KWD: IndexDocumentChunksAsync(documentId)
-    Note over IS: TAG and KWD failures are non-fatal
+```
+DocumentService                                  IndexingService (background loop)
+    save DocumentEntity (pending)
+    raise DocumentPendingIndexing  ---------->   enqueue id in Channel<long>
+                                                 take next id
+                                                 set document "processing", create/claim job
+                                                 1. vector store ready? else fail with its error
+                                                 2. extracted text (from the import, or extract now)
+                                                 3. ChunkingService.ChunkDocument(size, overlap)
+                                                 4. remove old FTS rows, vectors and chunks
+                                                 5. save DocumentChunkEntity rows
+                                                 6. embed in batches of Rag:EmbeddingBatchSize
+                                                    -> IVectorStore.InsertEmbeddingAsync per chunk
+                                                    -> chunk: VectorRowId, IsEmbedded,
+                                                       EmbeddingModelVersion, dimensions
+                                                 7. KeywordSearchService.IndexDocumentChunksAsync
+                                                    (non-fatal)
+                                                 8. document "completed", job "completed"
+                                                 9. invalidate the search cache,
+                                                    raise DocumentIndexed
+                                                10. AutoTagService.ApplyAutoTagsAsync (non-fatal)
+                                                 on error: document and job "failed" with the
+                                                 message, raise DocumentIndexingFailed
 ```
 
-The `IndexingService` handles crash recovery on startup: it resets any `IndexingJobEntity` records left in status "processing" (from a previous application crash) back to "queued" and re-enqueues them into the channel.
+At startup (`InitializeAsync`) the service initializes the vector store, sets documents left in
+`processing` back to `pending` and jobs back to `queued`, enqueues every pending document, and
+starts the loop. A shutdown in the middle of a document hands it back to the queue.
 
-`FileWatcherService` uses `System.IO.FileSystemWatcher` to monitor configured `WatchFolder` paths for new or modified files. When changes are detected, it queues the affected files for import and indexing automatically.
+**`FileWatcherService`** monitors the enabled watch folders (managed under Settings, Watch Folders)
+with `FileSystemWatcher` when Auto-index watch folders is on. At startup it runs a catch-up scan
+for files added or changed while the app was closed. It imports files directly into the vault
+through `DocumentService`, into the folder's target collection when one is set.
 
 **Relevant files:**
 - `src/AgentX.Core/Services/Indexing/IndexingService.cs`
@@ -694,135 +793,139 @@ The `IndexingService` handles crash recovery on startup: it resets any `Indexing
 #### Semantic Search
 
 `SemanticSearchService.SearchAsync(query)`:
-1. Calls `EmbeddingService.EmbedAsync(query.QueryText)` to produce a 384-dim query vector.
-2. Calls `IVectorStore.SearchAsync(queryEmbedding, topK, minSimilarity=0.3)` to retrieve the most similar chunk IDs. When HNSW is enabled this uses the ANN index for large collections; otherwise it falls back to SQLite-backed linear cosine similarity.
-3. Loads the corresponding `DocumentChunkEntity` and `DocumentEntity` records from EF Core.
-4. Applies optional filters (collection, file type, date range) in SQL.
-5. Returns `SearchResult` objects with matched text, excerpts, scores, and collection memberships.
+1. Embeds the query text (`IEmbeddingService.EmbedAsync`).
+2. Searches the vector store (`IVectorStore.SearchAsync(embedding, topK, minSimilarity)`): the HNSW
+   index when it is in use, otherwise a linear cosine scan. Scoped searches (collection, file type,
+   date range) restrict the candidates first.
+3. Loads the chunks, documents and collection names from EF Core, skipping chunks whose embedding
+   version differs from the current one (chunks without a version, from before versioning, are
+   kept).
+4. Returns `SearchResult` objects with the matched text, an excerpt centered on the query terms, and
+   the score.
+
+It also saves and reads the search history.
 
 #### Keyword Search (FTS5)
 
-`KeywordSearchService` creates a SQLite FTS5 virtual table (`document_chunks_fts`) populated during indexing via `IndexDocumentChunksAsync`. Searches use SQLite's built-in BM25 ranking function. `InitializeFtsAsync()` creates the virtual table on startup if absent.
+`KeywordSearchService` owns the FTS5 table `fts_chunks` (columns `content`, `document_id`,
+`chunk_id`, `file_name`, `file_path`, `file_type`, `page_number`, `chunk_index`; only `content` is
+indexed; tokenizer `porter unicode61`). `InitializeFtsAsync()` creates it at startup;
+`IndexDocumentChunksAsync` replaces a document's rows inside one transaction. Queries quote each
+term for `MATCH`, apply the file type, collection and date filters inside the SQL, order by `rank`
+(BM25), and report scores relative to the best hit. Every raw SQL section holds the database gate.
 
 #### Hybrid Search (Reciprocal Rank Fusion)
 
 `HybridSearchOrchestrator.SearchAsync(query)` routes by `SearchMode`:
 
-```mermaid
-graph LR
-    Q["SearchQuery\n(QueryText, TopK, Mode, Filters)"]
+- `Semantic` and `Keyword` delegate to one service.
+- `Hybrid` runs both in parallel for `TopK x Rag:RetrievalMultiplier` candidates (3, capped at
+  `Rag:RetrievalCap`, 500), each filtered by `MinScore` on its own scale, and merges them by RRF.
 
-    Q -->|"Mode=Semantic"| SEM["SemanticSearchService\nEmbed → VectorStore ANN"]
-    Q -->|"Mode=Keyword"| KWD["KeywordSearchService\nFTS5 BM25"]
-    Q -->|"Mode=Hybrid"| BOTH
-
-    subgraph BOTH["Hybrid Mode"]
-        direction TB
-        PSEM["SemanticSearchService\ntopK × 3"]
-        PKWD["KeywordSearchService\ntopK × 3"]
-        PARALLEL["Task.WhenAll\n(parallel execution)"]
-        RRF["Reciprocal Rank Fusion\nscore = Σ 1/(k+rank)\nk=60\ndedup by ChunkId\nnormalize to 0–1"]
-
-        PARALLEL --> PSEM
-        PARALLEL --> PKWD
-        PSEM --> RRF
-        PKWD --> RRF
-    end
-
-    SEM --> OUT["IReadOnlyList<SearchResult>\nordered by relevance"]
-    KWD --> OUT
-    BOTH --> RRF --> OUT
-```
+Results are cached in `SearchCacheService`.
 
 **Reciprocal Rank Fusion formula:**
 
-For each unique chunk appearing in either result list, the RRF score accumulates contributions from every list it appears in:
+For each unique chunk appearing in either list, the score adds a contribution from every list it
+appears in:
 
 ```
-RRF_score(chunk) = Σ  1 / (k + rank_i)
+RRF_score(chunk) = sum over lists of 1 / (k + rank_i)
 ```
 
-where `rank_i` is the 1-based rank of the chunk in result list `i`, and `k = 60` is the constant from the Cormack, Clarke and Buettcher (2009) paper. The maximum possible score is `2 / (60 + 1) ≈ 0.0328` (when ranked first in both lists). Scores are normalized to [0, 1] for display consistency.
+where `rank_i` is the 1-based rank in list `i` and `k = 60`, the constant from Cormack, Clarke and
+Buettcher (2009). The maximum is `2 / (60 + 1)`, about 0.0328 (first in both lists); scores are
+divided by it to fall between 0 and 1.
 
-Graceful degradation: if one backend fails during hybrid execution, `HybridSearchOrchestrator` falls back to the results from the surviving backend.
+Graceful degradation: if one backend fails, the orchestrator returns the other backend's results.
 
 #### RAG Pipeline
 
-```mermaid
-sequenceDiagram
-    participant VM as AskFilesViewModel
-    participant RAG as RagPipeline
-    participant SEM as SemanticSearchService
-    participant RRK as RagReranker
-    participant AIS as AiService
-    participant CIT as CitationService
+`RagPipeline.AskAsync(question, collectionId, onToken, enableResearchMode)`:
 
-    VM->>RAG: AskAsync(question, collectionId?, onToken)
-    RAG->>SEM: SearchAsync(query, topK=8, minScore=0.25)
-    SEM-->>RAG: List<SearchResult>
-    RAG->>RAG: Filter results below minScore threshold
-    RAG->>RAG: BuildContextChunks(relevantResults)
-    RAG->>RRK: Rerank(rawChunks, question, topK=8)
-    Note over RRK: Dedup, boost query-term matches,\nenforce document diversity
-    RRK-->>RAG: List<RagContextChunk>
-    RAG->>RAG: BuildSystemPrompt with numbered [1][2][3] sections
-    RAG->>AIS: StreamChatAsync(messages, systemPrompt, temp=0.3)
-    loop Token stream
-        AIS-->>RAG: token
-        RAG->>VM: onToken(token) callback
-    end
-    RAG->>CIT: ExtractCitations(answerText, contextChunks)
-    CIT-->>RAG: List<Citation> (citation number → document + page)
-    RAG-->>VM: RagResponse (answer, citations, latency metrics)
+```
+1.  Multi-query expansion: MultiQueryGenerator returns the question plus variations (3 requested)
+2.  HyDE: a hypothetical answer becomes one more query (Rag:EnableHyde, questions of
+    Rag:HydeMinQueryLength = 80 characters or more)
+3.  Search every query with HybridSearchOrchestrator in Rag:DefaultSearchMode (Hybrid),
+    TopK = the Top-K setting capped at Rag:MaxTopK, MinScore = Rag:DefaultMinScore (0.25);
+    merge by chunk, keeping the best score
+4.  No results: return the fixed no-results answer, without a model call
+5.  Build context chunks, then redact PII (Rag:EnablePiiRedaction) before any stage sends text
+    to a model
+6.  RagReranker: near-duplicate removal (Jaccard > 0.85), query-term boost (up to 1.5x),
+    document diversity (a document above 60% of the chunks has its extra chunks demoted)
+7.  LlmReranker, when Rag:EnableLlmReranking and more than 2 chunks
+8.  ParentDocumentRetriever expands chunks with their neighbors; PII redaction again
+9.  ContextualCompressor keeps the relevant sentences
+10. Research Mode: web search results added as web citations, when requested and a
+    provider is configured
+11. System prompt with numbered sections [1], [2], ... (prompt texts from RagPrompts.json;
+    a cacheable static prefix block for Anthropic)
+12. Stream the answer: temperature 0.3, max tokens 2048, top-p 0.9; onToken for each token
+13. CitationService.ExtractCitations maps [N] in the answer to documents and pages
+14. RagEvaluator scores a sample of answers (Rag:EvalSampleRate) in the background
 ```
 
-The RAG system prompt instructs the AI to answer using only the numbered context sections and to cite sources using `[1]`, `[2]`, etc. Temperature is fixed at 0.3 for RAG queries (lower than the default 0.7 for free chat) to improve factual grounding.
+Each optional stage that throws is logged and skipped. The response carries the answer, citations,
+web citations, the number of context chunks, and search and total latency.
 
 **Relevant files:**
 - `src/AgentX.Core/Search/SemanticSearchService.cs`
 - `src/AgentX.Core/Search/KeywordSearchService.cs`
 - `src/AgentX.Core/Search/HybridSearchOrchestrator.cs`
-- `src/AgentX.Core/Search/RagPipeline.cs`
-- `src/AgentX.Core/Search/CitationService.cs`
-- `src/AgentX.Core/Search/RagReranker.cs`
+- `src/AgentX.Core/Search/RagPipeline.cs` and the stage services in the same folder
 
 ### 6.6 Intelligence Services
 
-**`SummaryService`**: Calls `IAiService.ChatAsync()` with a focused summarization system prompt. Returns a 2–3 paragraph summary. Used by `QuickActionsPage` for per-document and multi-document summarization.
+**`SummaryService`**: document summaries, key points and translation (long text is translated in
+parts split at paragraph, line or sentence breaks). Used by Quick Actions.
 
-**`DuplicateDetectionService`**: Combines exact SHA-256 hash detection with semantic near-duplicate grouping. Recent work also surfaces duplicate evidence details so exact and semantic matches can be explained in the UI rather than treated as opaque groups.
+**`HierarchicalSummaryService`**: builds summaries and key points of long documents in levels;
+`SummaryService` uses it. **`DocumentSynthesisService`**: the synthesis step of
+`ComparisonService`.
 
-**`OrganizationSuggestionService`**: Analyzes document metadata, tags, and collection memberships to generate AI-powered suggestions for how to organize the vault (collection merges, tag consolidation).
+**`DuplicateDetectionService`** with **`DuplicateEvidenceService`**: exact duplicates by content
+hash and near-duplicates by embedding similarity, with evidence that explains each match.
 
-**`KnowledgeGraphService`**: Builds a force-directed graph data model from the document vault:
+**`OrganizationSuggestionService`**: suggestions for organizing the vault (collections and tags).
 
-- **Node types:** Documents (blue, `#3B82F6`), Collections (purple, `#8B5CF6`), Tags (amber, `#F59E0B`). Node size scales with `ChunkCount` for documents (clamped to 14–40), fixed 32 for collections, 16 for tags.
-- **Edge types:** Document→Collection (indigo), Document→Tag (amber-dark), Document→Document for shared collection/tag memberships (gray), weighted by shared connection count.
-- **Layout:** 100 iterations of spring-electric force-directed layout: Coulomb-like repulsion (`F = 5000 / d²`), Hooke spring attraction along edges (`F = 0.01 × (d − 100)`), center gravity (`F = 0.01 × position`), velocity damping `0.85` per iteration. Initial positions use a seeded random (`seed=42`) for reproducible layouts.
-- The computed `(X, Y)` positions are used by `KnowledgeGraphPage` to render nodes and edges on a WinUI 3 `Canvas`.
+**`ComparisonService`**: compares several documents, each from its own content, at summary or
+detailed level (Compare Documents page).
 
-**`DigestService`**: Generates weekly activity summary reports by querying the database for:
-- New document count in the period.
-- New conversation count.
-- Total search query count.
-- Token usage sum from messages.
-- Top 5 search queries by frequency.
-- Top 5 active collections by document count.
-- List of recently active conversations.
+**`KnowledgeGraphService`**: builds the graph behind the Knowledge Graph page:
 
-Results are serialized to JSON and persisted as a `DigestReportEntity`.
+- **Nodes:** documents (size `14 + 2 x ChunkCount`, clamped to 14..40), collections (32) and tags
+  (16).
+- **Edges:** document to collection, document to tag, and document to document for shared
+  collections or tags, weighted by the number shared.
+- **Layout:** 100 iterations of a force-directed layout (repulsion `5000 / d^2`, spring
+  `0.01 x (d - 100)`, center gravity `0.01 x position`, damping 0.85) from positions seeded with
+  `Random(42)`. The build can be cancelled.
+- **Colors:** the page resolves theme brushes per node type (documents `InfoBrush`, collections
+  `GraphTagBrush`, tags `WarningBrush`, edges by the node they link to), so the graph follows the
+  theme and high contrast. The service's reference hex values (`#58C4BC`, `#B3B3B3`, `#FFB000`)
+  are only for consumers without a theme.
 
-**Relevant files:**
-- `src/AgentX.Core/Services/Intelligence/KnowledgeGraphService.cs`
-- `src/AgentX.Core/Services/Intelligence/DigestService.cs`
-- `src/AgentX.Core/Services/Intelligence/SummaryService.cs`
-- `src/AgentX.Core/Services/Intelligence/DuplicateDetectionService.cs`
+**`DigestService`** with **`DigestInsightService`**: generates the Weekly Digest from the database
+(new documents and conversations, searches, tokens, storage change, top searches and collections,
+file types, conversation highlights) and saves it as a `DigestReportEntity`.
+
+**`ConversationThemeClusterService`** and **`ConversationThemeTrendService`**: cluster
+conversations by their summary embeddings and track the clusters' activity per day.
+
+**Relevant files:** `src/AgentX.Core/Services/Intelligence/`
 
 ### 6.7 Collections and Tagging
 
-**`CollectionService`**: Full CRUD for `CollectionEntity`, including nested collection support (self-referencing parent/child hierarchy). Queries for documents by collection. Updates the `DocumentCount` denormalized field on the collection entity.
+**`CollectionService`**: CRUD for collections, nesting (a collection can move into another; one
+level deep), document membership, and the denormalized `DocumentCount`. Deleting a collection keeps
+its documents and moves its sub-collections up one level.
 
-**`AutoTagService`**: After a document is fully indexed, calls `IAiService.GenerateTagsAsync(content, maxTags=5)` with the document's extracted text (truncated to avoid token overflow). Tags are normalized to lowercase, deduplicated, and stored in `TagEntity` / `DocumentTagEntity` junction records with an `IsAutoGenerated = true` flag and a `Confidence` score from the AI response.
+**`AutoTagService`**: after a document is indexed, asks the AI for tags
+(`IAiService.GenerateTagsAsync`) on a truncated sample of its text, normalizes them (keeping
+non-Latin tags), and stores them in `tags` and `document_tags` with `IsAutoGenerated = true` and a
+confidence. Failures are logged and never fail indexing.
 
 **Relevant files:**
 - `src/AgentX.Core/Services/Collections/CollectionService.cs`
@@ -830,29 +933,84 @@ Results are serialized to JSON and persisted as a `DigestReportEntity`.
 
 ### 6.8 Settings Service
 
-**`SettingsService`**: Reads and writes `AppSettings` as JSON to `%LocalAppData%/AgentX/settings.json`. Provides async `GetSettingsAsync()` and `SaveSettingsAsync()` with file locking to prevent concurrent write corruption. Initializes defaults on first run.
+**`SettingsService`** reads and writes `AppSettings` as camelCase JSON in
+`%LocalAppData%\AgentX\settings.json`:
+
+- Secrets are DPAPI-encrypted on disk and plaintext in memory: the OpenAI and Anthropic API keys,
+  the web search key, the local API token, the Google and Microsoft OAuth client secrets and the
+  scheduled-backup password. Plaintext keys found on load are encrypted on the next write; a value
+  that cannot be decrypted (another account or machine) is cleared and a copy of the file is kept.
+- A file that cannot be read is never replaced by defaults: it is copied to
+  `settings.json.corrupt-<timestamp>` and the session runs on defaults.
+- Writes go to a temporary file that replaces the old one.
+- Saves are validated (`AppSettingsValidator`); a blocking error throws
+  `SettingsValidationException`, which Settings shows. An incomplete setup (a cloud provider
+  chosen before its key is pasted) is only logged.
 
 **`AppSettings`** key properties:
 
 | Property | Default | Description |
 |---|---|---|
-| `ActiveProviderId` | `"ollama"` | Currently active AI provider |
+| `ActiveProviderId` | `"local"` | Active provider: `local`, `ollama`, `openai` or `anthropic` |
+| `LocalModelFileName` | `"llama-3.2-3b-instruct-q4_k_m.gguf"` | Built-in model file |
+| `LocalContextSize` | `8192` | Built-in model context size |
+| `LocalGpuLayers` | `0` | 0 automatic, positive a count, negative CPU only |
 | `OllamaEndpoint` | `http://localhost:11434` | Ollama server URL |
 | `DefaultModel` | `"llama3.2"` | Default Ollama chat model |
-| `EmbeddingModel` | `"all-minilm"` | Embedding model (384 dims) |
-| `OpenAiApiKey` | `null` | OpenAI key (optional) |
+| `EmbeddingModel` | `"all-minilm"` | Embedding Model setting (see 6.1) |
+| `OpenAiApiKey` | `null` | OpenAI key (optional, encrypted) |
+| `OpenAiEndpoint` | `https://api.openai.com/v1/` | OpenAI or compatible endpoint |
 | `OpenAiDefaultModel` | `"gpt-4o-mini"` | OpenAI default model |
-| `AnthropicApiKey` | `null` | Anthropic key (optional) |
+| `AnthropicApiKey` | `null` | Anthropic key (optional, encrypted) |
 | `AnthropicDefaultModel` | `AnthropicProvider.DefaultModelId` (`"claude-sonnet-5"`) | Anthropic default model |
-| `Temperature` | `0.7` | Inference temperature |
-| `MaxTokens` | `4096` | Max response tokens |
-| `ContextWindow` | `8192` | Context window size |
-| `ChunkSize` | `512` | Document chunk token size |
-| `ChunkOverlap` | `50` | Chunk overlap tokens |
-| `TopKResults` | `5` | Search result count |
-| `StoragePath` | `%LocalAppData%/AgentX` | Base storage directory |
+| `Temperature` | `0.7` | Chat temperature |
+| `MaxTokens` | `4096` | Maximum answer tokens |
+| `ContextWindow` | `8192` | Context window used for assembly |
+| `ChunkSize` / `ChunkOverlap` | `512` / `50` | Chunking |
+| `TopKResults` | `5` | Top-K for RAG (capped by `Rag:MaxTopK`) |
+| `AutoIndexWatchFolders` | `true` | Monitor watch folders |
+| `EnableModelRouting` / `ActiveRoutingProfileId` | `false` / `"balanced"` | Model routing |
+| `EnableResearchMode` | `false` | Allow Research Mode web search in chat |
+| `WebSearchProvider` / `WebSearchApiKey` | `Brave` / `null` | Web search provider and key (or SearXNG URL) |
+| `MaxSearchResults` / `SearchCacheTtlMinutes` | `10` / `60` | Web search results and cache time |
+| `EnableScreenAwareness` | `false` | Screen capture for Quick Chat |
+| `LocalApiEnabled` / `LocalApiToken` | `true` / generated on first start | Local REST API |
+| `EnableHnswIndex`, `HnswM`, `HnswEfConstruction`, `HnswEfSearch`, `HnswFallbackThreshold` | `true`, 16, 200, 50, 10000 | Vector index |
+| `OAuth` | client ids empty | OAuth client credentials, refresh buffer (5 min), consent timeout (300 s) |
+| `CalendarConnector`, `EmailConnector` | sync off | Connector settings |
+| `BackupSchedule` | off, every 168 hours, keep 5 | Scheduled backups |
+| `LanguageOverride` | `null` | UI language (`null` follows Windows) |
+| `Theme` | `"Dark"` | Theme |
+| `StoragePath` | `%LocalAppData%\AgentX` | Folder for the built-in model, the vector store and its index files |
 
-> Agent-X is free and open-source — there is no license service, no tiers, and no feature gating. Every capability is unconditionally available to every user.
+> Agent-X is free and open source: there is no license service, no tiers and no feature gating.
+
+### 6.9 Feature Services
+
+| Area | Services | Notes |
+|---|---|---|
+| Smart Inbox | `InboxService` | Items from browser clips (through the local API) and from the connectors; accept imports into the vault (a copy under `Inbox\Accepted\`), reject, defer, AI previews; connector items are upserted by `(SourcePluginId, ExternalId)` and imported into the vault as they arrive |
+| Connectors | `CalendarPlugin`, `CalendarSyncService`, `GoogleCalendarProvider`, `OutlookCalendarProvider`, `EmailPlugin`, `EmailSyncService`, `GmailProvider`, `OutlookEmailProvider`, `EmailTriageProcessor` | Built-in data connectors, incremental sync with delta tokens, rule-based email triage; started by `BuiltinConnectorLifecycleService` |
+| OAuth | `OAuthService`, `OAuthProviderRegistry` | Browser sign-in with PKCE and state for Google and Microsoft; tokens DPAPI-encrypted in `oauth_credentials`; providers registered from the saved client credentials (`ApplyProviderSettings`), also at run time when OAuth App Credentials are saved |
+| Plugins | `PluginService` | Install, enable, disable, uninstall; collectible load contexts; plugins receive `IInboxService` only |
+| Workflows | `WorkflowService`, `WorkflowEngine` | Steps `AiPrompt`, `DocumentLookup`, `TextTransform`, `ConditionalBranch`, `OutputFormat`; one run at a time; interrupted runs are marked failed at startup |
+| Web import | `WebContentFetcher`, `HtmlParser`, `StructuredDataExtractor`, `WebScraperService`, `WebImportService`, `FeedService`, `SitemapParser`, `JsRenderingService` (Playwright) | Pages, feeds and sitemaps; content discovered in remote pages cannot reach private or local addresses (`PrivateNetworkGuard`, `GuardedWebHandler`) |
+| Web search | `SettingsAwareWebSearchService` over Brave, Serper and SearXNG, `WebSearchCache` | Reads the provider, key or SearXNG URL and cache time on every search |
+| Export | `ExportService`, `ExportTemplateService`, formatters for Markdown, plain text, CSV, HTML, JSON, PDF (QuestPDF), DOCX and PPTX | Conversations, search results, collections; CSV formulas neutralized, HTML escaped |
+| Backup | `BackupService` | `.agentxbak` archives (optionally AES-256 encrypted), restore with validation, scheduled backups |
+| Collaborative Sync | `SyncService`, `SyncTransport`, `SyncPackageCodec`, `SyncConflictResolver` | Encrypted `.axs` change files in a shared folder; rows matched by natural keys; auto-sync loop |
+| Temporal Identity | `TemporalIdentityService`, `VoiceDraftService`, `EngagementTracker` | Beliefs, belief conflicts, insights, engagement time, voice profile; Draft As Me through the active provider |
+| Audio | `TranscriptionService`, `WhisperAudioConverter` | Whisper models under `Models\Whisper`, verified downloads, 16 kHz PCM conversion |
+| Screen | `ScreenCaptureService` | Screen text for Quick Chat when Screen Awareness is on |
+| Annotations | `AnnotationService` | Highlights and notes; each new annotation is also handed to Temporal Identity |
+| Feedback | `FeedbackService` | Ratings of answers |
+| Workspace | `WorkspaceProfileService` | Saved profiles (stored only; selecting one does not switch models or collections) |
+| Analytics | `AnalyticsService` | Read-only queries over local data for the Analytics page; no telemetry |
+| Local API | `ApiHostService`, `ApiHostLifecycleService`, `LocalApiSecurity` | See [API_ENDPOINTS.md](../API_ENDPOINTS.md) |
+| Privacy | `PrivacyStatusService` | Settings-wide disclosure and per-message recipients for chat |
+| Operations | `OperationsOverviewService`, `OperationsActionService`, `OperationsDrillInService` (App) | Snapshot with typed status kinds and tone tokens; actions report success by a flag, never by text |
+| Notifications | `NotificationService` (App) | Toasts shown by `NotificationOverlay` |
+| Feature flags | `FeatureFlagService` | Overrides stored in `user_settings` under `feature_flag:<name>` |
 
 ---
 
@@ -860,283 +1018,189 @@ Results are serialized to JSON and persisted as a `DigestReportEntity`.
 
 ### 7.1 Entity Framework Core Database Context
 
-`AgentXDbContext` uses SQLite via the `Microsoft.EntityFrameworkCore.Sqlite` package. The database file is stored at `%LocalAppData%/AgentX/agentx.db`. The context is registered as a singleton and schema changes are applied at startup via `IMigrationRunner` (see 7.1.1 below).
+`AgentXDbContext` uses SQLite through `Microsoft.EntityFrameworkCore.Sqlite.Core` over
+`SQLitePCLRaw.bundle_e_sqlcipher`. `OnConfiguring` points it at
+`%LocalAppData%\AgentX\agentx.db` (a fixed path) and registers the serializing concurrency detector
+and query compiler. The context is a singleton (see 4.3), and the DI registration passes
+`IEncryptedConnectionFactory` so `EnsureKeyApplied()` can apply the database key.
 
-SQLite WAL (Write-Ahead Logging) mode is enabled by the `SqliteVecStore` for the vec_embeddings connection. The main EF Core connection operates in shared cache mode on the same file.
+The vector store sets WAL journal mode when it opens its own connection to the same file, and SQLite
+keeps that mode in the file.
 
-**Database path:** `Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AgentX", "agentx.db")`
+The full table reference is in [DATABASE_SCHEMA.md](../DATABASE_SCHEMA.md).
 
 #### 7.1.1 Migrations
 
-Schema changes ship via EF Core migrations under `src/AgentX.Core/Data/Migrations/`. `IMigrationRunner` is invoked during `App.InitializeCoreServicesAsync` to apply any pending migrations at launch. Pre-migration installs are automatically adopted at the `InitialBaseline` migration so existing user data is preserved on first run after upgrade.
+Schema changes ship as EF Core migrations in `src/AgentX.Core/Data/Migrations/` (eleven, from
+`20260417011607_InitialBaseline` to `20260528120000_DropLicensesTable`). `StartupOrchestrator`
+awaits `IMigrationRunner.RunAsync()` before anything data-backed starts.
 
-The runner is implemented in `src/AgentX.Core/Data/MigrationRunner/MigrationRunner.cs` and exposes two methods:
+`MigrationRunner` (`src/AgentX.Core/Data/MigrationRunner/MigrationRunner.cs`):
 
-- `RunAsync()` — applies pending migrations and returns a `MigrationResult` with the database path, whether the database was newly created, and which migrations were applied.
-- `GetPendingMigrationsAsync()` — returns pending migration names without applying them (used for UI surfacing).
+- `RunAsync()` applies pending migrations and returns a `MigrationResult` (database path, whether
+  the database was created, migrations applied or adopted, migrations already applied).
+- `GetPendingMigrationsAsync()` returns pending migration names.
 
-The `AgentXDbContextFactory` is an `IDesignTimeDbContextFactory<AgentXDbContext>` used by the `dotnet ef` tooling to create new migrations. To author a migration:
+Before and after `MigrateAsync()` it repairs databases created by older builds:
+
+- **Baseline adoption:** a database with application tables but no `__EFMigrationsHistory` (from
+  builds that used `EnsureCreated`) gets the history table; missing baseline tables are created from
+  the baseline migration's own operations; `InitialBaseline` and every later migration whose schema
+  is already present are stamped as applied. If a baseline table is still missing,
+  `BaselineSchemaIncompleteException` stops startup (recovery state).
+- **Stamped-baseline repair:** a history that stamps the baseline while baseline tables are missing
+  gets them recreated and brought forward through the applied migrations.
+- **Reconciliation:** a legacy `AddTemporalIdentity` id is renamed, and `AddSemanticMemoryColumns`
+  is stamped when its columns exist.
+- **Idempotent repairs on every run:** the operations tables (`plugins`, `sync_logs`, `workflows`,
+  `workflow_runs`, `workflow_steps`); the **Temporal Identity columns** the `AddTemporalIdentity`
+  migration omitted (without them every Past Self write failed); a compatibility schema for
+  `inbox_items` and `belief_conflicts`; branching columns on `conversations`; and four indexes the
+  model declares that no migration created.
+
+`AgentXDbContextFactory` is the design-time factory for `dotnet ef`. It targets a throwaway
+`agentx.design.db`. To author a migration:
 
 ```bash
+dotnet tool restore
 dotnet ef migrations add <MigrationName> \
-  --project src/AgentX.Core/AgentX.Core.csproj \
-  --output-dir Data/Migrations \
-  --context AgentXDbContext
+  --project src/AgentX.Core \
+  --startup-project src/AgentX.Core \
+  --output-dir Data/Migrations
 ```
-
-Baseline adoption covers users upgrading from pre-B9 builds where `EnsureCreatedAsync()` created the schema without an `__EFMigrationsHistory` table. On first launch after upgrade, `MigrationRunner.RunAsync` detects the missing history table, writes the `InitialBaseline` row to mark the schema as already at baseline, and only applies migrations newer than the baseline.
 
 #### 7.1.2 Database Encryption (C13)
 
-When enabled, `agentx.db` is encrypted at rest using **SQLCipher 4** (AES-256-CBC, 4096-byte pages) via `SQLitePCLRaw.bundle_e_sqlcipher`. Encryption is off by default; the user enables it from Settings → Database Encryption.
+When enabled, `agentx.db` is encrypted at rest with **SQLCipher 4** through
+`SQLitePCLRaw.bundle_e_sqlcipher`. Encryption is off by default; the user enables it in Settings
+(Database Encryption).
 
-**Key management — universal (available to every user)**
+**Key management**
 
-| Mode | Key source | Unlock UX |
+| Mode | Key source | Unlock |
 |---|---|---|
-| `DpapiWrapped` | 32 random bytes, DPAPI-wrapped per Windows user in the out-of-DB `encryption.info.json` sibling file (field `DpapiWrappedKey`) | Transparent at launch |
+| `DpapiWrapped` | 32 random bytes, DPAPI-wrapped for the Windows user, stored as `dpapiWrappedKey` in `encryption.info.json` | Transparent at launch |
+| `UserPassphrase` (legacy) | PBKDF2-HMAC-SHA256, 600,000 iterations, 16-byte salt in `encryption.info.json` | Passphrase prompt at launch |
 
-A legacy `UserPassphrase` mode (PBKDF2-HMAC-SHA256, 600,000 iterations, with a 16-byte salt in `encryption.info.json`) is still honored on unlock for vaults provisioned by older builds, but new encryptions use the universal DPAPI-wrapped mode above.
+New encryptions use `DpapiWrapped`. The legacy mode is still unlocked for vaults encrypted by older
+builds.
 
 **Key delivery to SQLCipher (important)**
 
-Keys are delivered via `PRAGMA key = "x'<hex>'"` issued immediately after `SqliteConnection.Open()`, **never** through `SqliteConnectionStringBuilder.Password`. These two paths are NOT equivalent — `Password=` runs the value through PBKDF2 KDF, while `PRAGMA key = "x'..."` uses the raw bytes directly. Mixing them produces two different derived keys and silent DB corruption on reopen. All production `SqliteConnection` opens flow through `IEncryptedConnectionFactory.OpenKeyed(path)` or `IEncryptedConnectionFactory.ApplyKey(connection)` to enforce the raw-bytes path.
+Keys are delivered with `PRAGMA key = "x'<hex>'"` right after `SqliteConnection.Open()`, **never**
+through `SqliteConnectionStringBuilder.Password`. The two are not equivalent: `Password=` runs the
+value through SQLCipher's key derivation, while `x'...'` uses the raw bytes. Mixing them produces
+two different keys. All production connections are opened through
+`IEncryptedConnectionFactory.OpenKeyed(path)` or keyed with `IEncryptedConnectionFactory.ApplyKey(connection)`.
 
-The design-time `AgentXDbContextFactory` (used by `dotnet ef` tooling) is exempt from encryption — it writes to a throwaway tooling DB that never ships.
+The design-time `AgentXDbContextFactory` is exempt; its throwaway database never ships.
 
 **Out-of-DB key state**
 
-All encryption state — provisioning flag, storage mode, DPAPI-wrapped key (DpapiWrapped mode), salt (UserPassphrase mode), and enable timestamp — lives in `%LocalAppData%\AgentX\encryption.info.json` (managed by `IEncryptionStateFile`). Nothing about the encryption key is stored inside the encrypted DB itself. This is deliberate and avoids a chicken-and-egg that would otherwise make the `DpapiWrapped` unlock path unreachable: the key needed to open the encrypted DB cannot also live inside that DB.
+All encryption state lives in `%LocalAppData%\AgentX\encryption.info.json`, managed by
+`IEncryptionStateFile`: `{ version, storageMode, enabledAt, dpapiWrappedKey, saltBase64 }`, with one
+of the last two set. Nothing about the key is stored in the encrypted database, which would make
+the database impossible to open. `DatabaseKeyService` depends only on `IEncryptionStateFile` and
+`IDpapiEncryptionService`, so unlocking never touches the database.
 
-The file stores `{ version, storageMode, enabledAt, dpapiWrappedKey, saltBase64 }` — one of `dpapiWrappedKey` or `saltBase64` is set depending on mode. `DatabaseKeyService` depends on `IEncryptionStateFile` + `IDpapiEncryptionService` only (no `AgentXDbContext` dependency), so provisioning and unlock never touch the DB before the key is applied. The file is written LAST by the enable flow — only after `IDatabaseEncryptionMigrator.MigrateToEncryptedAsync` succeeds and the key provider is set — so a failed enable never leaves a stale "encrypted" marker pointing at a plaintext DB.
+**Turning encryption on**
 
-**Plaintext → encrypted migration**
-
-`IDatabaseEncryptionMigrator.MigrateToEncryptedAsync` uses SQLCipher's `sqlcipher_export()` via `ATTACH DATABASE <target> AS encrypted KEY "x'<hex>'"` to copy schema and rows from the plaintext source into a new encrypted target. On success, the plaintext file is replaced atomically (via `File.Move` after `SqliteConnection.ClearAllPools()` to release Windows file handles). On failure, the plaintext backup is restored from `agentx.db.plain.bak` and the incomplete encrypted temp is deleted.
+`DatabaseEncryptionManager` runs the change with the vector store suspended and under the database
+gate. `DatabaseEncryptionMigrator.MigrateToEncryptedAsync` attaches an empty encrypted file
+(`agentx.db.enc.tmp`) with `KEY "x'<hex>'"`, copies schema and rows with `sqlcipher_export`, clears
+the connection pools, moves the plaintext file to `agentx.db.plain.bak`, deletes its WAL and SHM
+sidecars, installs the encrypted file and verifies it. The marker file is written last, at the
+commit point, so a failure at any step leaves a plaintext database and no marker. At every start,
+`RecoverIfNeeded` finishes or undoes an interrupted change.
 
 **Startup unlock sequence** (in `App.InitializeCoreServicesAsync`):
-1. Initialize SQLitePCL provider (`Batteries_V2.Init`)
-2. Check `IEncryptionStateFile.Exists()` — no DB access yet
-3. If marker present → derive/unwrap key per `storageMode`, set `IDatabaseKeyProvider.Current`
-4. Call `db.EnsureKeyApplied()` — opens the underlying connection and runs `PRAGMA key` once
-5. Run `IMigrationRunner.RunAsync()` — now sees a keyed connection
-6. Continue with FTS5 / AI service init
-
-**Tests covering the chain** — 26 xUnit tests across `DatabaseKeyServiceTests` (6), `EncryptedConnectionFactoryTests` (4), `DatabaseEncryptionMigratorTests` (4), `EncryptionStateFileTests` (7), `MigrationRunnerTests` (5 — includes the pre-C13-schema adoption test).
+1. Initialize the SQLitePCL provider (`Batteries_V2.Init`).
+2. `IDatabaseEncryptionMigrator.RecoverIfNeeded(databasePath)`.
+3. If `IEncryptionStateFile.Exists()`: unwrap or derive the key per `storageMode` and set it in
+   `IDatabaseKeyProvider` (a wrong passphrase shows a dialog and asks again; Exit closes the app).
+4. `db.EnsureKeyApplied()` opens the shared connection and runs `PRAGMA key`.
+5. `StartupOrchestrator.RunCriticalStartupAsync()` runs the migration on the keyed connection.
 
 ### 7.2 Entity Relationship Model
 
-```mermaid
-erDiagram
-    Conversation {
-        long Id PK
-        string Title
-        string ModelId
-        string SystemPrompt
-        bool IsPinned
-        int MessageCount
-        DateTime CreatedAt
-        DateTime UpdatedAt
-    }
+The model has 37 entity types. The main relationships (foreign key, delete behavior):
 
-    Message {
-        long Id PK
-        long ConversationId FK
-        string Role
-        string Content
-        int SortOrder
-        int TokenCount
-        double GenerationTimeMs
-        DateTime Timestamp
-    }
-
-    Document {
-        long Id PK
-        string FileName
-        string FilePath
-        string FileType
-        string MimeType
-        long FileSizeBytes
-        string ContentHash
-        string IndexingStatus
-        string IndexingError
-        int ChunkCount
-        int PageCount
-        int WordCount
-        string ExtractedTitle
-        string Language
-        string MetadataJson
-        DateTime ImportedAt
-        DateTime FileModifiedAt
-        DateTime LastIndexedAt
-    }
-
-    DocumentChunk {
-        long Id PK
-        long DocumentId FK
-        int ChunkIndex
-        string Content
-        int StartCharOffset
-        int EndCharOffset
-        int PageNumber
-        string SectionTitle
-        int TokenCount
-        bool IsEmbedded
-        long VectorRowId
-    }
-
-    Collection {
-        long Id PK
-        string Name
-        string Description
-        string ColorHex
-        string IconGlyph
-        int DocumentCount
-        long ParentCollectionId FK
-        DateTime CreatedAt
-        DateTime UpdatedAt
-    }
-
-    DocumentCollection {
-        long DocumentId PK_FK
-        long CollectionId PK_FK
-        DateTime AddedAt
-    }
-
-    Tag {
-        long Id PK
-        string Name
-        string ColorHex
-        bool IsAutoGenerated
-        DateTime CreatedAt
-    }
-
-    DocumentTag {
-        long DocumentId PK_FK
-        long TagId PK_FK
-        float Confidence
-        bool IsAutoGenerated
-        DateTime AssignedAt
-    }
-
-    SearchHistory {
-        long Id PK
-        string Query
-        string SearchType
-        int ResultCount
-        double SearchDurationMs
-        DateTime SearchedAt
-    }
-
-    SystemPrompt {
-        long Id PK
-        string Name
-        string Content
-        string Category
-        bool IsDefault
-        DateTime CreatedAt
-        DateTime UpdatedAt
-    }
-
-    UserSettings {
-        long Id PK
-        string Key UK
-        string Value
-        string ValueType
-        DateTime UpdatedAt
-    }
-
-    WatchFolder {
-        long Id PK
-        string FolderPath UK
-        bool IsEnabled
-        bool IncludeSubfolders
-        long TargetCollectionId FK
-        DateTime CreatedAt
-        DateTime LastScannedAt
-    }
-
-    IndexingJob {
-        long Id PK
-        long DocumentId FK
-        string Status
-        int ChunksProcessed
-        int EmbeddingsGenerated
-        double ProcessingTimeMs
-        string ErrorMessage
-        DateTime QueuedAt
-        DateTime StartedAt
-        DateTime CompletedAt
-    }
-
-    Memory {
-        long Id PK
-        string Content
-        string Category
-        double Importance
-        bool IsActive
-        long SourceConversationId
-        DateTime CreatedAt
-    }
-
-    DigestReport {
-        long Id PK
-        int NewDocumentCount
-        int NewConversationCount
-        int TotalSearches
-        long TokensUsed
-        string TopSearchQueriesJson
-        string TopCollectionsJson
-        string ConversationHighlightsJson
-        bool IsRead
-        DateTime GeneratedAt
-        DateTime PeriodStart
-        DateTime PeriodEnd
-    }
-
-    Conversation ||--o{ Message : "has"
-    Document ||--o{ DocumentChunk : "chunked into"
-    Document ||--o{ DocumentCollection : "member of"
-    Collection ||--o{ DocumentCollection : "contains"
-    Collection ||--o{ Collection : "parent of"
-    Document ||--o{ DocumentTag : "tagged with"
-    Tag ||--o{ DocumentTag : "applied to"
-    Document ||--o{ IndexingJob : "tracked by"
-    Collection ||--o{ WatchFolder : "targeted by"
 ```
+conversations 1-N messages (cascade); messages 1-1 feedback (cascade, unique)
+conversations 1-N conversation_tags (cascade) N-1 tags
+conversations 1-N conversation_summary_snapshots (cascade)
+conversations 1-1 conversation_summary_states (cascade)
+conversations 1-1 conversation_theme_memberships (cascade) N-1 conversation_theme_clusters
+conversation_theme_clusters 1-N conversation_theme_daily_metrics (cascade)
+conversations 1-N conversations (branches, ParentConversationId, restrict)
+
+documents 1-N document_chunks (cascade)
+documents 1-N document_collections (cascade) N-1 collections (cascade)
+documents 1-N document_tags (cascade) N-1 tags (cascade)
+documents 1-N annotations (cascade)
+documents 1-N indexing_jobs (cascade)
+collections 1-N collections (children, ParentCollectionId, restrict)
+collections 1-N watch_folders (TargetCollectionId, set null)
+
+memories N-1 memories (LinkedMemoryId, restrict)
+workflows 1-N workflow_steps (cascade), 1-N workflow_runs (cascade)
+temporal_beliefs 1-N belief_conflicts (cascade)
+```
+
+Standalone tables: `search_history`, `system_prompts`, `user_settings`, `digest_reports`,
+`backups`, `inbox_items`, `workspace_profiles`, `sync_logs`, `plugins`, `oauth_credentials`,
+`insight_moments`, `engagement_metrics`, `voice_profiles`. See
+[DATABASE_SCHEMA.md](../DATABASE_SCHEMA.md) for every column.
 
 ### 7.3 Vector Store Implementation
 
-`IVectorStore` stores embeddings in a separate table within the same `agentx.db` file. `VectorStoreFactory` selects `HnswVectorStore` when `EnableHnswIndex` is enabled and `SqliteVecStore` otherwise. `HnswVectorStore` keeps SQLite as the source of truth and uses a persisted HNSW index for accelerated large-collection search, falling back to linear scan below the configured threshold:
+`IVectorStore` keeps embeddings in the `vec_embeddings` table of the database file named by
+`StoragePath` (by default the same `agentx.db`), on its own connection opened through
+`IEncryptedConnectionFactory`:
 
 ```sql
 CREATE TABLE IF NOT EXISTS vec_embeddings (
     chunk_id  INTEGER PRIMARY KEY,
-    embedding BLOB NOT NULL,     -- float[] via Buffer.BlockCopy, 4 bytes per dimension
-    magnitude REAL NOT NULL      -- pre-computed L2 norm for fast cosine similarity
+    embedding BLOB NOT NULL,     -- float32 values, 4 bytes per dimension
+    magnitude REAL NOT NULL      -- precomputed L2 norm for cosine similarity
 );
 
 CREATE INDEX IF NOT EXISTS idx_vec_chunk ON vec_embeddings(chunk_id);
 ```
 
-**Search algorithm:** Full table scan with C# cosine similarity computation:
+`VectorStoreFactory` picks the implementation:
+
+- **`HnswVectorStore`** (when `EnableHnswIndex` is on, the default): SQLite stays the source of
+  truth, and an HNSW index (HnswLite, `M` 16, `efConstruction` 200) answers searches when there are
+  more than `HnswFallbackThreshold` (10,000) embeddings; below that it scans linearly. The index
+  serves the current embedding size: its dimension comes from the embedding service, a vector of a
+  new size rebuilds it, rows of other sizes stay searchable by the linear scan, and sizes above
+  HnswLite's limit of 4096 always use the scan. The index is saved to `hnsw-index.bin`,
+  `hnsw-index.json` and `hnsw-stale-ids.json` next to the database, except when the database is
+  encrypted: then it is kept in memory only and rebuilt from the database at start.
+- **`SqliteVecStore`**: linear cosine-similarity scan in C# over the same table.
+
+**Search algorithm (linear scan):**
 
 ```
-cosine_similarity(a, b) = dot(a, b) / (|a| × |b|)
+cosine_similarity(a, b) = dot(a, b) / (|a| x |b|)
 ```
 
-Pre-computed magnitudes avoid square root recalculation per comparison. Results below `minSimilarity = 0.3` are filtered before sorting. The top-K are selected from all passing candidates.
+Precomputed magnitudes avoid recomputing norms; results below `minSimilarity` are dropped before
+the top-K are taken.
 
-**Performance envelope:** The C# full-scan approach is suitable for collections up to approximately 100,000 embeddings on modern hardware. For a 100K embedding database with 384-dimensional vectors: each embedding is 384 × 4 = 1,536 bytes; total blob data ≈ 150 MB in RAM during a search scan. A search completes in well under 1 second on modern hardware at this scale.
+**Suspend and resume:** `SuspendAsync` waits for running operations, closes the store's connection
+and clears its pool (later calls wait); `ResumeAsync(reloadFromDatabase)` reopens it with the
+current key. Restore and encryption use this so the database file can be swapped on Windows.
 
-**Design rationale:** This approach was chosen over the `sqlite-vec` native extension to ensure portability across all Windows machines without requiring native library deployment. The installer does not need to ship additional DLLs or register extension modules.
+**Design rationale:** no native SQLite extension (such as sqlite-vec) has to be shipped or loaded;
+the index is a managed library and can always be rebuilt from the table.
 
 **Relevant files:**
 - `src/AgentX.Core/Data/VectorDb/VectorStoreFactory.cs`
 - `src/AgentX.Core/Data/VectorDb/HnswVectorStore.cs`
 - `src/AgentX.Core/Data/VectorDb/SqliteVecStore.cs`
 - `src/AgentX.Core/Data/VectorDb/IVectorStore.cs`
-- `src/AgentX.Core/Data/VectorDb/VectorSearchResult.cs`
 
 ---
 
@@ -1144,316 +1208,209 @@ Pre-computed magnitudes avoid square root recalculation per comparison. Results 
 
 ### 8.1 Document Import Flow
 
-```mermaid
-flowchart TD
-    A["User drags file or clicks Import\n(KnowledgeVaultPage code-behind)"] --> B["DocumentService.ImportFileAsync(filePath, collectionId?)"]
-    B --> C["Validate file exists\nGet extension"]
-    C --> D["HashHelper.ComputeFileHashAsync()\nSHA-256 of file content"]
-    D --> E{"Existing doc\nwith same hash?"}
-    E -->|"Yes"| F["Throw duplicate exception\nUI shows warning"]
-    E -->|"No"| G["FindProcessorFor(filePath)\nMatch by extension"]
-    G --> H{"Processor\nfound?"}
-    H -->|"No"| I["Throw NotSupportedException\nUI shows error"]
-    H -->|"Yes"| J["processor.ProcessAsync(filePath)\nExtract text, pages, words, title, language"]
-    J --> K["Create DocumentEntity\nstatus = pending\nPersist to DB"]
-    K --> L{"collectionId\nprovided?"}
-    L -->|"Yes"| M["Create DocumentCollectionEntity\nPersist to DB"]
-    L -->|"No"| N["IndexingService.IndexDocumentAsync(documentId)\nWrite to Channel<long>"]
-    M --> N
-    N --> O["Return DocumentEntity to ViewModel\nUI updates list"]
-
-    subgraph Background["Background Indexing (Channel consumer)"]
-        P["ProcessSingleDocumentAsync(documentId)"]
-        P --> Q["Update status = processing\nCreate IndexingJobEntity"]
-        Q --> R["processor.ProcessAsync() again\nRe-extract from file system"]
-        R --> S["ChunkingService.ChunkDocument()\n512 tokens, 50 overlap"]
-        S --> T["Save DocumentChunkEntity records\nIsEmbedded = false"]
-        T --> U["EmbeddingService.EmbedBatchAsync()\nbatch size = 16 chunks"]
-        U --> V["IVectorStore.InsertEmbeddingAsync()\nStore BLOB + optional HNSW index"]
-        V --> W["Update chunk: VectorRowId, IsEmbedded=true"]
-        W --> X{"More\nbatches?"}
-        X -->|"Yes"| U
-        X -->|"No"| Y["Update document: status=completed\nUpdate IndexingJobEntity"]
-        Y --> Z1["AutoTagService.ApplyAutoTagsAsync()\nnon-fatal"]
-        Y --> Z2["KeywordSearchService.IndexDocumentChunksAsync()\nFTS5 insertion, non-fatal"]
-    end
-
-    O -.->|async| P
+```
+User drops files or clicks Import (KnowledgeVaultPage code-behind)
+    |
+    v
+KnowledgeVaultViewModel -> DocumentService.ImportFilesWithReportAsync(paths, collectionId)
+    for each file:
+        file exists? extension known?
+        SHA-256 hash -> existing document with this hash?
+            yes -> reported as a duplicate (not imported)
+        processor for the extension (built-in, then plugin)?
+            no  -> reported as not imported, with the supported types
+        extract text once
+            fails -> DocumentEntity saved as "failed" with the reason
+            ok    -> DocumentEntity saved as "pending"
+        link to the collection (when given)
+        raise DocumentPendingIndexing(documentId, extracted text)
+    |
+    v
+Report: imported, duplicates, failures -> the page says what happened
+    |
+    v (asynchronously, one document at a time)
+IndexingService loop: chunk -> embed -> vec_embeddings -> fts_chunks -> "completed"
+    -> DocumentIndexed event -> the vault row updates (or DocumentIndexingFailed -> "failed")
 ```
 
 ### 8.2 Chat and Streaming Flow
 
-```mermaid
-sequenceDiagram
-    participant USER as User (UI)
-    participant VM as ChatViewModel
-    participant CS as ChatService
-    participant CVS as ConversationService
-    participant MEM as ConversationMemoryService
-    participant CTX as ContextWindowManager
-    participant AIS as AiService
-    participant PROV as ActiveProvider
-
-    USER->>VM: Types message, presses Enter
-    VM->>CS: SendMessageAsync(conversationId, userMessage)
-    CS->>CS: Cancel existing generation CTS (if any)
-    CS->>CS: IsGenerating = true
-    CS->>CVS: AddMessageAsync(id, "user", message)
-    CVS->>CVS: Persist to DB, increment SortOrder
-    CS->>CVS: GetConversationAsync(id)
-    CVS-->>CS: ConversationEntity (with all Messages + SystemPrompt)
-    CS->>MEM: GetMemoryContextAsync(maxCount=8)
-    MEM->>MEM: Load top-8 memories by importance from DB
-    MEM-->>CS: Formatted memory string (appended to system prompt)
-    CS->>CS: BuildChatOptionsAsync() from AppSettings
-    CS->>CTX: FitToContextWindowAsync(messages, window=8192, reserve=1024)
-    CTX-->>CS: Trimmed message list (oldest non-system removed)
-    CS->>AIS: StreamChatAsync(messages, systemPrompt, options)
-    AIS->>AIS: PrepareMessages() — prepend system prompt
-    AIS->>PROV: StreamChatAsync(preparedMessages, options)
-    PROV->>PROV: SSE stream from inference backend
-
-    loop Each token
-        PROV-->>AIS: token string
-        AIS-->>CS: token string
-        CS-->>VM: yield token
-        VM-->>USER: Append to MarkdownMessageControl (real-time)
-    end
-
-    CS->>CVS: AddMessageAsync(id, "assistant", fullResponse, tokenCount, generationTimeMs, modelId, citationsJson)
-    CVS->>CVS: Persist to DB
-    CS->>CS: IsGenerating = false
-
-    Note over CS,MEM: Fire-and-forget background task
-    CS--)MEM: ExtractMemoriesAsync(conversationId)
-    MEM->>AIS: ChatAsync() — extract category|content pairs
-    MEM->>MEM: Parse and save MemoryEntity records to DB
+```
+User types a message and presses Enter (ChatPage)
+    |
+    v
+ChatViewModel -> MessagingCoordinator
+    standard mode:
+        ChatService.SendMessageAsync(conversationId, message, supplementalContext)
+            save user message
+            load conversation, build options, route the reply (when routing is on)
+            memory context + Research Mode web results (for this reply)
+            ContextAssemblyService.AssembleAsync (history, overflow summary, recall)
+            stream tokens from the routed provider or IAiService
+                -> each token appended to the answer bubble on the UI thread
+            save the answer (tokens, time, model, citations)
+            background: memory extraction
+    multi-agent mode (Parallel or Debate):
+        MultiAgentOrchestrator.RunAsync(task, roles, strategy)
+            Parallel: Researcher, Critic, Synthesizer answer independently
+            Debate:   Researcher, Critic, Creative argue for 2 rounds
+            -> a synthesis document assembled from their answers (consensus,
+               disagreements, contributions), without another model call
+        save the user message and the synthesis like a standard reply
+    |
+    v
+ChatViewModel background pass: Temporal Identity processes the prompt (beliefs), learns
+the voice profile, and detects insights
 ```
 
-### 8.3 RAG (Ask Files) Flow
+Stop cancels the generation; a failed or stopped regeneration keeps the previous answer.
 
-```mermaid
-flowchart TD
-    A["User submits question\n(AskFilesPage)"] --> B["RagPipeline.AskAsync(question, collectionId?, onToken)"]
+### 8.3 RAG (Ask Your Files) Flow
 
-    B --> C["Step 1: Semantic Search\nSearchQuery{topK=8, minScore=0.25}"]
-    C --> D["SemanticSearchService.SearchAsync()"]
-    D --> E["EmbeddingService.EmbedAsync(question)"]
-    E --> F["IVectorStore.SearchAsync(queryVector, topK=8, minSim=0.3)"]
-    F --> G["Load DocumentChunk + Document metadata from EF Core"]
-    G --> H["Filter: score >= 0.25"]
-
-    H --> I{"Any results\nabove threshold?"}
-    I -->|"No"| J["Return no-results message\nNo AI call made"]
-    I -->|"Yes"| K["Step 2: Build Context Chunks\nBuildContextChunks(relevantResults)"]
-
-    K --> L["Step 3: RagReranker.Rerank(chunks, question, topK=8)\nDedup · query-term boost · doc diversity"]
-    L --> M["Step 4: BuildSystemPrompt()\nNumbered context: [1] Source: file.pdf, Page: 3\nchunk text..."]
-
-    M --> N["Step 5: AiService.StreamChatAsync()\ntemp=0.3, maxTokens=2048"]
-    N --> O["Stream tokens via onToken callback\n(UI displays in real-time)"]
-    O --> P["Collect full response text"]
-
-    P --> Q["Step 6: CitationService.ExtractCitations()\nFind [1],[2],[3] in response text\nMap to source documents + pages"]
-    Q --> R["Return RagResponse\n{answerText, citations, contextChunksUsed,\nsearchLatencyMs, totalLatencyMs}"]
-    R --> S["AskFilesViewModel\nDisplay answer + citation cards"]
+```
+User asks a question (AskFilesPage)
+    |
+    v
+AskFilesViewModel -> RagPipeline.AskAsync(question, collectionId, onToken)
+    query variations + HyDE document
+    hybrid search per query (semantic + FTS5, RRF), merged by chunk
+    no results -> fixed no-results answer, no model call
+    PII redaction -> heuristic rerank -> LLM rerank -> parent chunks (redacted again)
+        -> contextual compression -> optional web results
+    numbered system prompt [1] Source: file.pdf, Page 3 ...
+    stream the answer (temperature 0.3, max 2048 tokens)
+        -> tokens reach the answer bubble on the UI thread
+    CitationService.ExtractCitations -> [N] mapped to documents and pages
+    |
+    v
+RagResponse {answer, citations, web citations, chunks used, latencies}
+    -> answer with citation badges
 ```
 
 ### 8.4 Search Mode Routing and Hybrid Search
 
-```mermaid
-flowchart TD
-    Q["SearchQuery\n{QueryText, TopK, Mode, CollectionId?,\nFileTypeFilter?, CreatedAfter?, CreatedBefore?}"]
-
-    Q --> ROUTER["HybridSearchOrchestrator.SearchAsync()"]
-
-    ROUTER -->|"Mode = Semantic"| SEM_PATH
-    ROUTER -->|"Mode = Keyword"| KWD_PATH
-    ROUTER -->|"Mode = Hybrid"| HYB_PATH
-
-    subgraph SEM_PATH["Semantic Path"]
-        S1["EmbeddingService.EmbedAsync(query)"]
-        S2["IVectorStore.SearchAsync()\nHNSW or full-scan fallback"]
-        S3["Load chunks + docs from EF Core\nApply SQL filters"]
-        S4["Enrich with collection names"]
-        S1 --> S2 --> S3 --> S4
-    end
-
-    subgraph KWD_PATH["Keyword Path"]
-        K1["FTS5 BM25 query\nSELECT ... MATCH 'query' ORDER BY rank"]
-        K2["Load chunks + docs from EF Core\nApply SQL filters"]
-        K3["Normalize scores to 0–1 range"]
-        K1 --> K2 --> K3
-    end
-
-    subgraph HYB_PATH["Hybrid Path"]
-        H1["Expand topK × 3 (up to 500)"]
-        H2["Task.WhenAll(semanticTask, keywordTask)"]
-        H3["Partial failure recovery:\nuse surviving backend if one fails"]
-        H4["MergeWithRrf(semanticHits, keywordHits)\nAccumulate 1/(60+rank) per chunk\nSort descending · Take topK\nNormalize by maxPossibleRrf = 2/61"]
-        H1 --> H2 --> H3 --> H4
-    end
-
-    SEM_PATH --> OUT
-    KWD_PATH --> OUT
-    HYB_PATH --> OUT
-
-    OUT["IReadOnlyList<SearchResult>\nOrdered by relevance"]
-    OUT --> HIST["SearchHistoryEntity persisted to DB"]
-    OUT --> VM["SearchViewModel\nDisplay result cards"]
+```
+SearchQuery {QueryText, TopK, MinScore, Mode, CollectionId?, FileTypeFilter?,
+             CreatedAfter?, CreatedBefore?}
+    |
+    v
+HybridSearchOrchestrator.SearchAsync
+    cache hit? -> cached results
+    Mode = Semantic -> SemanticSearchService (embed, vector store, EF metadata, filters)
+    Mode = Keyword  -> KeywordSearchService (FTS5 MATCH with filters in SQL, BM25,
+                                            scores relative to the best hit)
+    Mode = Hybrid   -> both in parallel, TopK x 3 (max 500) candidates each
+                       one failed -> the other's results
+                       RRF merge: sum of 1/(60 + rank), top K, normalized by 2/61
+    cache the results
+    |
+    v
+IReadOnlyList<SearchResult> -> SearchViewModel (sorted by the chosen order)
+    -> history entry saved (query, mode, result count)
 ```
 
 ### 8.5 Knowledge Graph Construction Flow
 
-```mermaid
-flowchart TD
-    A["KnowledgeGraphViewModel\nLoads page"] --> B["KnowledgeGraphService.BuildGraphAsync()"]
-
-    B --> C["Load all Documents\nInclude: DocumentCollections, DocumentTags"]
-    B --> D["Load all Collections"]
-    B --> E["Load all Tags"]
-
-    C --> F["Create Document nodes\nColor=#3B82F6 (blue)\nSize = clamp(14 + chunkCount×2, 14, 40)"]
-    D --> G["Create Collection nodes\nColor=#8B5CF6 (purple)\nSize = 32"]
-    E --> H["Create Tag nodes\nColor=#F59E0B (amber)\nSize = 16"]
-
-    F --> I["Create Doc→Collection edges\nColor=#6366F1 (indigo)\nLabel='in collection'"]
-    F --> J["Create Doc→Tag edges\nColor=#D97706 (amber-dark)\nLabel='tagged'"]
-    F --> K["BuildDocumentToDocumentEdges()\nPairs sharing ≥1 collection or tag\nWeight = shared connection count\nColor=#374151 (gray)"]
-
-    I --> L["Count connection degrees per node"]
-    J --> L
-    K --> L
-
-    L --> M["AssignRandomPositions()\nRandom seed=42 (deterministic)\nSpread across 1000×1000 canvas"]
-    M --> N["RunForceDirectedLayout()\n100 iterations\nRepulsion = 5000/d²\nAttraction = 0.01×(d−100)\nCenterGravity = 0.01×pos\nDamping = 0.85"]
-
-    N --> O["Return KnowledgeGraphData\n{Nodes, Edges, counts}"]
-    O --> P["KnowledgeGraphPage\nRender to Canvas\nDraw edges as lines\nDraw nodes as ellipses\nLabel with TextBlock"]
+```
+KnowledgeGraphViewModel (page loaded or refreshed; a newer build cancels the older one)
+    |
+    v
+KnowledgeGraphService.BuildGraphAsync(ct)
+    load documents (with collections and tags), collections, tags
+    nodes: documents (size clamp(14 + 2 x chunks, 14, 40)), collections (32), tags (16)
+    edges: document-collection, document-tag, document-document (shared collections or tags,
+           weighted by the count)
+    degrees per node
+    positions: Random(42) across a 1000 x 1000 area
+    layout: 100 iterations (repulsion 5000/d^2, spring 0.01 x (d - 100),
+            center gravity 0.01 x position, damping 0.85), checking the token
+    |
+    v
+KnowledgeGraphData {Nodes, Edges, counts}
+    -> KnowledgeGraphPage draws edges and nodes on a Canvas with theme brushes
 ```
 
 ---
 
 ## 9. Navigation Architecture
 
-```mermaid
-graph TD
-    subgraph NavView["NavigationView (MainWindow)"]
-        direction TB
-        subgraph Intelligence["Intelligence Section"]
-            DASH[Dashboard]
-            DIG[Digest]
-        end
-        subgraph Knowledge["Knowledge Section"]
-            VAULT[Knowledge Vault]
-            COL[Collections]
-            SEARCH[Search]
-            KG[Knowledge Graph]
-        end
-        subgraph Chat_Group["Chat Section"]
-            CHAT[Chat]
-            ASK[Ask Files]
-            QA[Quick Actions]
-        end
-        subgraph System["System Section"]
-            MM[Model Manager]
-            HA[Hardware Advisor]
-        end
-        subgraph Footer["Footer Items"]
-            SETT[Settings]
-        end
-        subgraph Support["Support Section"]
-            UG[User Guide]
-            PP[Privacy Policy]
-            TOS[Terms of Service]
-        end
-    end
+The rail (`NavView.MenuItems`) has five placards and a footer:
 
-    SHELL["MainWindow.ContentFrame\nFrame-based navigation"]
-    CP["CommandPalette\nCtrl+K overlay"]
-    KBS["IShortcutRegistry\nShortcutCatalog + page scopes"]
-    OB["OnboardingPage\n(first run only)\nHides NavView pane"]
-
-    NavView -->|"SelectionChanged"| SHELL
-    CP -->|"NavigateToPageRequested"| SHELL
-    KBS -->|"Action callbacks"| SHELL
-    OB -->|"CompleteOnboarding()\nrestores NavView"| SHELL
-
-    SHELL --> DASH
-    SHELL --> DIG
-    SHELL --> CHAT
-    SHELL --> ASK
-    SHELL --> QA
-    SHELL --> VAULT
-    SHELL --> COL
-    SHELL --> SEARCH
-    SHELL --> KG
-    SHELL --> MM
-    SHELL --> HA
-    SHELL --> SETT
-    SHELL --> UG
-    SHELL --> PP
-    SHELL --> TOS
-    SHELL --> OB
+```
+INTELLIGENCE   Dashboard, Operations, Weekly Digest, Analytics, Past Self, AI Chat,
+               Ask Your Files, Quick Actions, Workflows
+KNOWLEDGE      Knowledge Vault, Web Import, Collections, Semantic Search, Knowledge Graph,
+               Compare Documents, Annotations
+TRIAGE         Smart Inbox
+SYSTEM         Model Manager, Hardware Advisor, Backup & Restore, Workspace Profiles,
+               Plugin Manager, Collaborative Sync, Calendar, Email
+SUPPORT        User Guide, Privacy Policy, Terms of Service
+Footer         Settings
 ```
 
-All 16 page types are registered in the `_pageMap` dictionary. Navigation can be triggered by three independent mechanisms: NavigationView item selection, keyboard shortcut via `IShortcutRegistry`, or command palette action. All three paths converge on `MainWindow.NavigateToPage(pageTag)`, which calls `ContentFrame.Navigate(pageType)` and synchronizes `NavView.SelectedItem` to keep the visual indicator consistent.
+`PageMap` has 30 entries: the 29 rail pages and `Onboarding`. Navigation starts from:
 
-The `_suppressNavigation` flag prevents re-entrancy when onboarding setup programmatically modifies `NavView.SelectedItem` (clearing it to null and hiding the pane). Without this guard, the `SelectionChanged` event would trigger a navigation to `null` page type.
+- the rail (`SelectionChanged`);
+- keyboard shortcuts (`ShortcutCatalog` handlers);
+- the Command Palette, whose page list is built from the rail itself (`ConfigureCommandPalette`
+  walks `MenuItems` and `FooterMenuItems`; `NavRailParityTests` keeps them in step) and whose
+  actions are New Conversation, Import Files and Toggle Theme;
+- Jump-To (documents, conversations and pages, with the picked item as the navigation parameter);
+- the tray menu, status lamps and in-page links.
+
+All of them call `IAppNavigationService.NavigateToPage(tag, parameter)`, which navigates the
+`ContentFrame` and updates the rail selection. While onboarding is active, rail selections are
+suppressed; navigating away from the wizard by any other route ends onboarding (see 5.2).
+`ContentFrame.NavigationFailed` logs the error and keeps the current page.
 
 ---
 
 ## 10. Dependency Injection Configuration
 
-All service registrations are in `App.xaml.cs` `ConfigureServices()`. The complete registration table:
+All registrations are in `App.xaml.cs` `ConfigureServices()`: 157 singleton registrations, two
+options bindings, 32 transient view models and 30 transient pages. Grouped:
 
-| Service | Interface | Implementation | Lifetime |
-|---|---|---|---|
-| `Serilog.ILogger` | — | `Log.Logger` | Singleton |
-| `AgentXDbContext` | — | `AgentXDbContext` | Singleton |
-| `ISettingsService` | `ISettingsService` | `SettingsService` | Singleton |
-| `IShortcutRegistry` | `IShortcutRegistry` | `ShortcutRegistry` | Singleton |
-| `ShortcutCatalog` | — | `ShortcutCatalog` | Singleton |
-| `ChordStateMachine` | — | `ChordStateMachine` | Singleton |
-| `IAiService` | `IAiService` | `AiService` | Singleton |
-| `ICostTracker` | `ICostTracker` | `CostTracker` | Singleton |
-| `IModelManager` | `IModelManager` | `ModelManager` | Singleton |
-| `IHardwareDetector` | `IHardwareDetector` | `HardwareDetector` | Singleton |
-| `IEmbeddingService` | `IEmbeddingService` | `EmbeddingService` | Singleton |
-| `IContextWindowManager` | `IContextWindowManager` | `ContextWindowManager` | Singleton |
-| `IVectorStore` | `IVectorStore` | `VectorStoreFactory` (`HnswVectorStore` or `SqliteVecStore`) | Singleton |
-| `IConversationService` | `IConversationService` | `ConversationService` | Singleton |
-| `ISystemPromptService` | `ISystemPromptService` | `SystemPromptService` | Singleton |
-| `IConversationMemoryService` | `IConversationMemoryService` | `ConversationMemoryService` | Singleton |
-| `IChatService` | `IChatService` | `ChatService` | Singleton |
-| `IDocumentProcessor` | `IDocumentProcessor` | `PdfProcessor` | Singleton |
-| `IDocumentProcessor` | `IDocumentProcessor` | `DocxProcessor` | Singleton |
-| `IDocumentProcessor` | `IDocumentProcessor` | `TextProcessor` | Singleton |
-| `IDocumentProcessor` | `IDocumentProcessor` | `MarkdownProcessor` | Singleton |
-| `IDocumentProcessor` | `IDocumentProcessor` | `CodeFileProcessor` | Singleton |
-| `IDocumentProcessor` | `IDocumentProcessor` | `ImageProcessor` | Singleton |
-| `IDocumentService` | `IDocumentService` | `DocumentService` | Singleton |
-| `IChunkingService` | `IChunkingService` | `ChunkingService` | Singleton |
-| `IIndexingQueueService` | `IIndexingQueueService` | `IndexingQueueService` | Singleton |
-| `IIndexingService` | `IIndexingService` | `IndexingService` | Singleton |
-| `IFileWatcherService` | `IFileWatcherService` | `FileWatcherService` | Singleton |
-| `ICollectionService` | `ICollectionService` | `CollectionService` | Singleton |
-| `IAutoTagService` | `IAutoTagService` | `AutoTagService` | Singleton |
-| `ISemanticSearchService` | `ISemanticSearchService` | `SemanticSearchService` | Singleton |
-| `IKeywordSearchService` | `IKeywordSearchService` | `KeywordSearchService` | Singleton |
-| `IHybridSearchOrchestrator` | `IHybridSearchOrchestrator` | `HybridSearchOrchestrator` | Singleton |
-| `ICitationService` | `ICitationService` | `CitationService` | Singleton |
-| `IRagReranker` | `IRagReranker` | `RagReranker` | Singleton |
-| `IRagPipeline` | `IRagPipeline` | `RagPipeline` | Singleton |
-| `ISummaryService` | `ISummaryService` | `SummaryService` | Singleton |
-| `IDuplicateDetectionService` | `IDuplicateDetectionService` | `DuplicateDetectionService` | Singleton |
-| `IOrganizationSuggestionService` | `IOrganizationSuggestionService` | `OrganizationSuggestionService` | Singleton |
-| `IKnowledgeGraphService` | `IKnowledgeGraphService` | `KnowledgeGraphService` | Singleton |
-| `IDigestService` | `IDigestService` | `DigestService` | Singleton |
-| Page, dialog, and support ViewModels | — | concrete types | Transient |
-| Views and Pages | — | concrete types | Transient |
+| Group | Registrations (interface -> implementation; singleton unless noted) |
+|---|---|
+| Logging | `Serilog.ILogger` -> `Log.Logger` |
+| Data and startup | `AgentXDbContext` (factory with `IEncryptedConnectionFactory`), `IMigrationRunner` -> `MigrationRunner`, `IStartupGate` -> `StartupGate`, `IStartupOrchestrator` -> `StartupOrchestrator` |
+| Security | `IDpapiEncryptionService`, `IDatabaseKeyProvider`, `IEncryptedConnectionFactory`, `IDatabaseKeyService`, `IDatabaseEncryptionMigrator`, `IDatabaseEncryptionManager`, `IEncryptionStateFile`, `ISecurityStatusService` |
+| OAuth | `IOAuthService` (factory: `OAuthService`, then `ApplySettings(settings.OAuth)` and `ApplyProviderSettings(settings.OAuth)`) |
+| Core | `ISettingsService`, `IFeatureFlagService`, `IPrivacyStatusService`, `IAppPathService` |
+| RAG configuration | `RagConfigurationOptions` bound to `Rag`, `IRagConfiguration`, `RagPromptOptions` bound to `RagPrompts`, `IRagPromptCatalog` |
+| Shell input and theme | `IShortcutRegistry`, `ChordStateMachine` (1000 ms), `ShortcutCatalog`, `IThemeService` |
+| AI | `IAiService`, `ICostTracker`, `IModelManager`, `IBuiltInModelBootstrap` (factory: models folder, 2-hour download timeout), `IHardwareDetector`, `ITokenCounter`, `EmbeddingService`, `IEmbeddingService` (factory: `CachedEmbeddingService` wrapping `EmbeddingService`), `IContextWindowManager`, `ISemanticContextSelector`, `IConversationCompressionService`, `IContextAssemblyService` |
+| Routing and agents | `ITaskTypeDetector`, `IModelRouterService`, `IMultiAgentOrchestrator` |
+| Vector store | `IVectorStore` (factory: `VectorStoreFactory.Create`) |
+| Chat | `IConversationService`, `IConversationRecallService`, `IConversationSummaryService`, `ISystemPromptService`, `IConversationMemoryService`, `ISemanticMemoryService`, `IChatService`, `IConversationBranchService` |
+| Chat coordinators | `IConversationCoordinator`, `IMessagingCoordinator`, `IVoiceCoordinator`, `IBranchingCoordinator` |
+| Documents | `IDocumentProcessor` x 8 (`PdfProcessor`, `DocxProcessor`, `TextProcessor`, `MarkdownProcessor`, `CodeFileProcessor`, `ImageProcessor`, `AudioProcessor`, `WebProcessor`), `IDocumentService`, `IChunkingService` (factory with `ITokenCounter` and `IAdaptiveChunkingService`), `IAdaptiveChunkingService` (factory) |
+| Indexing | `IIndexingQueueService`, `IIndexingService`, `IFileWatcherService` |
+| Collections and tags | `ICollectionService`, `IAutoTagService` |
+| Search and RAG | `ISemanticSearchService`, `IKeywordSearchService`, `ISearchCacheService`, `IHybridSearchOrchestrator`, `ICitationService`, `IRagReranker`, `IMultiQueryGenerator`, `IHydeService`, `ILlmReranker`, `IParentDocumentRetriever`, `IContextualCompressor`, `IRagEvaluator`, `IRagMetrics` (factory, with embedding cache statistics), `IPiiDetector` (factory), `IRagPipeline` |
+| Web search | `WebSearchCache`, `IWebSearchService` (factory: `SettingsAwareWebSearchService`) |
+| Validation | `IValidator<AppSettings>`, `IValidator<SyncConfiguration>`, `IValidator<PluginManifest>` |
+| Intelligence | `IHierarchicalSummaryService`, `IDuplicateEvidenceService`, `IDocumentSynthesisService`, `IDigestInsightService`, `ISummaryService`, `IDuplicateDetectionService`, `IOrganizationSuggestionService`, `IKnowledgeGraphService`, `IDigestService`, `IConversationThemeTrendService`, `IConversationThemeClusterService`, `IComparisonService` |
+| Export | `IExportFormatter` x 8 (Markdown, plain text, CSV, HTML, JSON, PDF, DOCX, PPTX), `IExportService`, `IExportTemplateService` |
+| Workflows | `IWorkflowService`, `IWorkflowEngine`, `IWorkflowLaunchService` |
+| Web | `IWebContentFetcher`, `IHtmlParser`, `IStructuredDataExtractor`, `IWebScraperService`, `IWebImportService`, `IFeedService`, `ISitemapParser`, `IJsRenderingService` |
+| Features | `IScreenCaptureService`, `IBackupService`, `IAnnotationService`, `IInboxService`, `IWorkspaceProfileService`, `ITranscriptionService`, `IAnalyticsService`, `IFeedbackService`, `ITemporalIdentityService`, `IVoiceDraftService` |
+| Localization | `IPluralRuleProvider` -> `CldrPluralRuleProvider`, `IResourceLoaderAdapter` -> `WinUIResourceLoaderAdapter`, `ILocalizationService` -> `LocalizationService` |
+| Plugins and connectors | `IPluginService` -> `PluginService`, `IPluginDocumentProcessorSource` (the same `PluginService` instance), `CalendarPlugin`, `ICalendarService` (factory), `EmailPlugin`, `IEmailService` (factory), `IBuiltinConnectorLifecycleService` |
+| Collaborative Sync | `ISyncTransport`, `ISyncPackageCodec`, `ISyncConflictResolver`, `ISyncService` (factory) |
+| Local REST API | `IApiHostService`, `IApiHostLifecycleService` |
+| Shell services | `INotificationService`, `IOperationsDrillInService`, `IOperationsActionService`, `IOperationsOverviewService`, `SystemTrayService`, `IAppNavigationService`, `IStatusBarService`, `IAnnunciatorService`, `IOnboardingService`, `IChromeService` |
+| View models (transient) | The 29 page and support view models, plus factory registrations of `CommandPaletteViewModel`, `JumpToViewModel` and `CheatsheetViewModel` for tests (`MainWindow` builds the real ones with its callbacks) |
+| Views (transient) | The 30 pages |
 
-`IDocumentProcessor` is registered six times — one per concrete type — as the same interface. `DocumentService` receives `IEnumerable<IDocumentProcessor>` which the DI container resolves as all registered implementations. Processors are tried in registration order, stopping at the first that returns `true` from `CanProcess()`.
+The services that were once registered but never resolved are gone: the ReAct agent, reflection,
+reasoning, retry policy and tool registry services, and the collaboration hub, together with their
+registrations. Tool calling is not implemented, and providers are not retried automatically.
+
+`IDocumentProcessor` and `IExportFormatter` are registered once per implementation. Consumers take
+`IEnumerable<...>`; for processors the registration order decides which one handles an extension
+that two of them claim. `ShortcutInputRouter` is built by `MainWindow` because it needs window
+callbacks.
 
 ---
 
@@ -1461,250 +1418,297 @@ All service registrations are in `App.xaml.cs` `ConfigureServices()`. The comple
 
 ```
 %LocalAppData%\AgentX\
-├── agentx.db                    # SQLite: EF Core entities + vec_embeddings table
-│                                # WAL mode enabled
-├── settings.json                # AppSettings serialized as JSON
-│                                # Written by SettingsService
-└── Logs\
-    ├── agentx-20260227.log      # Today's log (rolling daily)
-    ├── agentx-20260226.log      # Yesterday's log
-    └── ...                      # Up to 7 days retained
+    agentx.db                  SQLite: EF tables, fts_chunks, vec_embeddings (WAL mode)
+    agentx.db-wal, -shm        WAL sidecars while the app runs
+    settings.json              AppSettings as camelCase JSON; secrets DPAPI-encrypted
+    encryption.info.json       Encryption key state (only when encryption is on)
+    usage-history.json         Cost tracking history (90 days, max 20,000 records)
+    hnsw-index.bin/.json       HNSW index (not written for an encrypted database)
+    hnsw-stale-ids.json
+    Logs\agentx-yyyyMMdd.log   Serilog, daily files, 7 kept
+    Models\                    Built-in GGUF model; Whisper\ggml-*.bin speech models
+    Plugins\{id}\              Installed plugins, each with data\ (built-in connectors keep
+                               their sync settings and delta tokens there)
+    Clips\                     Pages clipped by the browser extension
+    Inbox\External\, Accepted\ Connector content files and accepted inbox copies
 ```
 
-**SQLite database internal structure:**
+**SQLite database contents:**
 
 ```
 agentx.db
-├── conversations                # ConversationEntity
-├── messages                     # MessageEntity
-├── documents                    # DocumentEntity (with content hash index)
-├── document_chunks              # DocumentChunkEntity (with vector_row_id FK)
-├── collections                  # CollectionEntity (self-referencing hierarchy)
-├── document_collections         # Junction table (composite PK)
-├── tags                         # TagEntity (unique name index)
-├── document_tags                # Junction table with confidence score
-├── search_history               # SearchHistoryEntity
-├── system_prompts               # SystemPromptEntity
-├── user_settings                # Key-value store (unique key index)
-├── watch_folders                # WatchFolderEntity (unique path index)
-├── indexing_jobs                # IndexingJobEntity
-├── memories                     # MemoryEntity (category/importance indexes)
-├── digest_reports               # DigestReportEntity
-├── vec_embeddings               # BLOB store: chunk_id, embedding, magnitude
-├── document_chunks_fts          # FTS5 virtual table (keyword search)
-└── (EF Core migration table)    # __EFMigrationsHistory
+    37 EF tables (see DATABASE_SCHEMA.md), including
+        conversations, messages, documents, document_chunks, collections, tags,
+        memories, workflows, inbox_items, plugins, oauth_credentials,
+        temporal_beliefs, insight_moments, engagement_metrics, belief_conflicts,
+        voice_profiles
+    fts_chunks (+ FTS5 shadow tables)   keyword index
+    vec_embeddings                      embedding BLOBs, chunk_id + magnitude
+    __EFMigrationsHistory               applied migrations
 ```
 
 **File format notes:**
-- `settings.json` uses `System.Text.Json` serialization with camelCase naming. API keys are stored in plaintext. Future versions should use DPAPI encryption.
-- Embedding BLOBs: each `float32` is 4 bytes; a 384-dimensional embedding occupies 1,536 bytes. The `magnitude` column stores the pre-computed L2 norm as a `REAL`.
-- Log format: `{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {Message:lj}{NewLine}{Exception}`.
+- `settings.json` uses `System.Text.Json` with camelCase names.
+- Embedding BLOBs hold float32 values; the size per vector depends on the embedding model.
+- Log lines use `{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {Message:lj}{NewLine}{Exception}`.
 
 ---
 
 ## 12. Startup Sequence
 
-```mermaid
-sequenceDiagram
-    participant OS as Windows
-    participant APP as App.OnLaunched
-    participant HOST as IHost (DI Container)
-    participant LOG as Serilog
-    participant DB as AgentXDbContext
-    participant KWD as KeywordSearchService
-    participant AIS as AiService
-    participant MW as MainWindow
-
-    OS->>APP: Launch process
-    APP->>LOG: ConfigureLogging() — file + debug sinks
-    APP->>APP: ConfigureExceptionHandling() — AppDomain + TaskScheduler + UI
-    APP->>HOST: CreateDefaultBuilder().UseSerilog().ConfigureServices().Build()
-    Note over HOST: Register all 40+ services + 29 views/VMs
-    APP->>APP: InitializeCoreServicesAsync() [fire-and-forget async void]
-    APP->>MW: new MainWindow()
-    MW->>MW: ConfigureWindow() — 1440×900, centered
-    MW->>MW: ConfigureTitleBar() — extend content, dark colors
-    MW->>MW: ConfigureBackdrop() — Mica Alt / Acrylic / solid fallback
-    MW->>MW: ShortcutCatalog.SeedDefaults()
-    MW->>MW: ConfigureCommandPalette()
-    MW->>MW: ContentFrame.Navigate(DashboardPage) [initial page]
-    MW->>MW: CheckOnboardingAsync() [async check]
-    MW->>MW: InitializeStatusBar() [start 30s poll timer]
-    MW-->>OS: Window visible to user
-
-    Note over APP: Encryption unlock preamble (C13) runs before fire-and-forget
-    APP->>APP: Read %LocalAppData%\AgentX\encryption.info.json
-    APP->>APP: IDatabaseKeyService.UnlockAsync() — DPAPI or PBKDF2 passphrase
-    APP->>APP: Cache key in IDatabaseKeyProvider
-
-    Note over APP: Background initialization continues concurrently
-    APP->>DB: IMigrationRunner.RunAsync() — apply EF migrations (B9)
-    Note over DB: Baseline-adopts pre-B9 installs by writing InitialBaseline row<br/>to __EFMigrationsHistory without re-applying schema
-    DB-->>APP: MigrationResult (applied migration IDs)
-    APP->>KWD: InitializeFtsAsync() — create FTS5 virtual table
-    KWD-->>APP: FTS5 ready
-    APP->>AIS: InitializeAsync() — register providers, test connection
-    AIS->>AIS: Register OllamaProvider always
-    AIS->>AIS: Register OpenAiProvider if key configured
-    AIS->>AIS: Register AnthropicProvider if key configured
-    AIS->>AIS: CheckConnectionAsync() for preferred provider (3s timeout)
-    AIS-->>APP: Connected or offline mode
-
-    Note over MW: 5 second delay then initial status bar update
-    MW->>AIS: ActiveProvider.CheckConnectionAsync()
-    MW->>MW: Update status indicator dot and text
 ```
+App()                          InitializeComponent, ConfigureLogging (Serilog),
+                               ConfigureExceptionHandling (incl. ProcessExit)
+OnLaunched
+  1. Build the host            appsettings.json + RagPrompts.json, UseSerilog, ConfigureServices
+  2. InitializeLocalizationAsync   saved UI language applied before any shell resource loads;
+                                   FormatHelper.LocalizedText set for relative times
+  3. new MainWindow()          services resolved, page and nav maps, ShortcutCatalog.SeedDefaults,
+                               ShortcutInputRouter, Command Palette from the rail, window size,
+                               title bar, backdrop, status strip pollers, queued navigation to
+                               the Dashboard and the onboarding check
+     ConfigureWindowLifecycleServices; SystemTrayService.ShowMainWindow("startup")
+  4. InitializeCoreServicesAsync (async void; each step awaited)
+     a. Batteries_V2.Init
+     b. IDatabaseEncryptionMigrator.RecoverIfNeeded(agentx.db)
+     c. encryption marker? unlock (DPAPI, or passphrase dialog loop) -> IDatabaseKeyProvider
+     d. AgentXDbContext.EnsureKeyApplied()
+     e. StartupOrchestrator.RunCriticalStartupAsync()
+          MigrationRunner.RunAsync()
+            failure -> StartupGate failed -> recovery dialog -> exit (nothing else starts)
+          StartupGate.SignalDataReady()         (Dashboard data loads now)
+          ApiHostLifecycleService.StartAsync()  (when Local API is enabled; token provisioned)
+          BuiltinConnectorLifecycleService.InitializeAsync()  (calendar and email)
+     f. KeywordSearchService.InitializeFtsAsync()
+     g. ISyncService.ResumeAutoSyncAsync()      (first cycle about a minute later)
+     h. IWorkflowService.ReconcileInterruptedRunsAsync()
+     i. IAiService.InitializeAsync()            (providers from settings)
+     j. IFeatureFlagService.InitializeAsync()
+     k. IThemeService.InitializeAsync() and ApplyTheme on the UI thread
+     l. IPluginService.ActivateEnabledPluginsAsync()   (before indexing, so plugin processors
+                                                        are available)
+     m. IBackupService.StartScheduledBackupsAsync()    (only when a schedule is enabled)
+     n. IIndexingService.InitializeAsync() on the thread pool (vector store, recovery,
+        pending documents, background loop)
+     o. IFileWatcherService.InitializeAsync() on the thread pool (when Auto-index watch folders
+        is on; catch-up scan)
+```
+
+Steps f to o each catch and log their own failure; the app keeps running without that feature.
+The status strip polls start on their own delays (5 and 6 seconds).
+
+**Shutdown** (`MainWindow.Closed` or `ProcessExit`, once): stop the built-in connectors (15-second
+cap), stop the REST API, stop scheduled backups, deactivate plugins (each capped by the plugin
+service), dispose the host (which disposes the singletons, including the indexing loop and the cost
+tracker's final save), and flush the log. `ProcessExit` waits at most 20 seconds for this.
 
 ---
 
 ## 13. Error Handling and Resilience
 
-The system employs a layered error handling strategy:
+**Application level:**
+- `AppDomain.CurrentDomain.UnhandledException`: logs a fatal error and flushes Serilog.
+- `TaskScheduler.UnobservedTaskException`: logs and marks the exception observed.
+- `Application.UnhandledException`: logs and sets `e.Handled = true`.
+- Navigation failures are logged and the current page stays; the logger is never closed before
+  real shutdown.
 
-**Application Level:**
-- `AppDomain.CurrentDomain.UnhandledException` — logs fatal errors and flushes Serilog before process terminates.
-- `TaskScheduler.UnobservedTaskException` — logs errors and marks exceptions as observed (prevents crash on .NET 6+ where unobserved task exceptions do not terminate the process by default, but still suppresses any runtime warnings).
-- `Application.UnhandledException` — logs and marks `e.Handled = true` to prevent WinUI 3 from showing the default crash dialog.
+**Startup:** the migration is the only fail-closed step (recovery dialog, exit). Every other step
+logs and continues (section 12).
 
-**Service Level:**
-- AI provider operations wrap all calls in `try/catch`. Failed health checks set `IsAvailable = false` without throwing.
-- `InitializeAsync()` on `AiService` does not propagate exceptions back to the startup caller; a failure results in offline mode with a warning log.
-- `IndexingService` marks documents as `status=failed` with the error message stored in `IndexingError` when any step of the pipeline throws. Processing continues with the next queued document.
-- FTS5 indexing and auto-tagging within the indexing pipeline are wrapped in non-fatal catch blocks — their failures are logged as warnings but do not abort the primary indexing work.
-- `HybridSearchOrchestrator` gracefully degrades to single-backend results when one search backend fails.
+**Service level:**
+- Provider calls catch their errors; a failed health check marks the provider unavailable without
+  throwing. `AiService.InitializeAsync` failures leave the app running without that provider.
+- `IndexingService` marks a document `failed` with the error in `IndexingError`, raises
+  `DocumentIndexingFailed`, and continues with the next document. FTS indexing and auto-tagging
+  failures are warnings and do not fail the document.
+- `HybridSearchOrchestrator` returns the surviving backend's results when one fails.
+- RAG stages that fail are skipped (section 6.5).
+- A failed `SaveChanges` discards its pending changes, so later saves are not poisoned.
+- Settings are never reset on a read error (section 6.8).
 
 **Cancellation:**
-- `ChatService` links a caller-provided `CancellationToken` with an internal `CancellationTokenSource` owned by the service. `StopGenerationAsync()` signals this internal source without affecting the caller's token. This allows the user's "Stop" button to cancel generation independently of any page navigation cancellation.
-- All `async` operations in `IndexingService` accept a `CancellationToken` that is connected to `_shutdownCts` (cancelled on `Dispose()`). On application exit, the indexing loop stops cleanly within 5 seconds.
+- `ChatService` links the caller's token with its own generation token; Stop cancels the stream
+  without affecting the caller.
+- `IndexingService` uses a shutdown token cancelled on `Dispose()`; `Dispose` waits up to 5 seconds
+  for the loop, and a document interrupted mid-way returns to the queue.
+- Connector syncs observe deactivation and stop within 10 seconds.
 
-**Onboarding Recovery:**
-- If `OnboardingPage` fails to navigate (rare WinUI 3 Frame issues), `CheckOnboardingAsync()` catches the exception, marks onboarding as complete, and routes to Dashboard. The nav pane is always restored via `EnsureNavPaneVisible()` in both success and failure paths.
+**Onboarding recovery:** if the wizard cannot be shown, onboarding is skipped and the rail is
+restored (`SkipOnboardingAsync` or `EnsureNavPaneVisible()`).
 
 ---
 
-## 14. Free and Open-Source — No Feature Gating
+## 14. Free and Open Source: No Feature Gating
 
-Agent-X is 100% free and open-source software (MIT License). There are no license tiers, no activation, no quotas, and no feature gates of any kind. Every capability is unconditionally available to every user.
+Agent-X is free and open-source software (MIT License). There are no license tiers, no activation,
+no quotas and no feature gates. Every capability is available to every user.
 
-Historically the application carried a `LicenseService` and a `LicenseEntity` that gated features (document limits, advanced models, intelligence services) behind paid tiers. That entire subsystem has been removed:
+The application used to carry a `LicenseService` and a `LicenseEntity` that gated features (document
+limits, advanced models, intelligence services) behind paid tiers. That subsystem is gone:
 
-- The `Services/License/` module (`ILicenseService`, `LicenseService`, `LicenseInfo`, `LicenseTier`) and `LicenseException` are deleted.
-- The `LicenseEntity` and its `licenses` table are dropped via the `DropLicensesTable` EF Core migration.
-- Every former gate (export formats, intelligence features, document limits) is now unconditionally allowed.
-- Database encryption — formerly a tier-differentiated feature — is available to every user via transparent DPAPI-wrapped key storage.
-
-There is no tier graph, because there are no tiers.
+- The `Services/License/` module (`ILicenseService`, `LicenseService`, `LicenseInfo`, `LicenseTier`)
+  and `LicenseException` are deleted.
+- The `licenses` table is dropped by the `DropLicensesTable` EF Core migration.
+- Every former gate (export formats, intelligence features, document limits) is gone.
+- Database encryption, once tier-specific, is available to everyone with DPAPI-wrapped key storage.
 
 ---
 
 ## 15. Testing Architecture
 
-The `AgentX.Tests` project uses xUnit and mirrors the `AgentX.Core` namespace structure:
+`tests/AgentX.Tests` is an xUnit project (`net8.0-windows10.0.22621.0`) that references
+`AgentX.Core` and compiles selected `AgentX.App` sources (view models, coordinators, services such
+as `LocalizationService`) as linked files, so they are tested without WinUI.
 
 ```
 tests/AgentX.Tests/
-├── AI/                    # AiService, EmbeddingService, provider unit tests
-├── Data/                  # Vector-store serialization, HNSW, and cosine similarity tests
-├── Documents/             # ChunkingService, processor output tests
-├── Helpers/               # HashHelper tests
-├── Search/                # HybridSearchOrchestrator, RRF algorithm tests
-└── Services/              # ChatService, IndexingService, intelligence service tests
+    AI/              AiService, providers, routing, context assembly, agents
+    CodeQuality/     Source guards (page view model creation, unreachable commands, rail and
+                     palette parity, undefined or orphan XAML resource keys, banned palette
+                     hues, accessible names, the logger flushed only at shutdown, ...)
+    Configuration/   RAG configuration
+    Data/            DbContext serialization, MigrationRunner (baseline adoption, repairs,
+                     Temporal Identity schema), vector stores
+    Documents/       Chunking and processors
+    Search/          Semantic, keyword, hybrid (RRF) and RAG pipeline tests
+    Services/        Chat, indexing, inbox, connectors, OAuth, backup, security, sync, web,
+                     workflows, Temporal Identity, localization, and more
+    ViewModels/      Page view models and chat coordinators
+    Views/           Page logic that can run without a window
+    Helpers/, Mathematics/, Observability/, Validation/, DTOs/
+    Stubs/, TestDoubles/, TestFixtures/   Fakes and fixtures
 ```
 
-Key testing strategies:
-- Vector-store tests use temporary or in-memory SQLite connections depending on whether the path exercises `SqliteVecStore` or `HnswVectorStore`.
-- `AiService` tests use mock `IAiProvider` implementations that return predictable token streams.
-- `HybridSearchOrchestrator` tests verify RRF score calculation with known ranked inputs.
-- `ChunkingService` tests verify chunk boundaries, overlap, and page number propagation.
-- `HashHelper` tests verify SHA-256 output consistency and file-not-found behavior.
+Packages: xUnit 2.9.2, FluentAssertions 6.12.2, Moq 4.20.72, coverlet.collector 6.0.2,
+Microsoft.NET.Test.Sdk 17.12.0, Xunit.SkippableFact.
 
-Pure rendering surfaces still rely on manual or integration verification where a live HWND is required, but the codebase now includes focused tests for a growing set of ViewModels and coordinators where UI-thread or picker dependencies are not required. The highest-leverage UI logic is increasingly verified at the ViewModel/service boundary instead of only through manual runs.
+Strategies:
+- Database tests use temporary SQLite files; the migration tests build the schema through
+  `MigrationRunner`, not `EnsureCreated`, and pin that the model has no pending changes.
+- Providers are tested against stub HTTP handlers.
+- Concurrency tests overlap indexing, EF queries, raw SQL and searches on one context.
+- Tests that need Windows-only APIs (DPAPI, user32, Windows paths) run on the Windows CI.
+
+CI (`.github/workflows/build-test.yml`) builds the test project and the WinUI app
+(`-p:Platform=x64`, Release), installs Playwright Chromium, runs the tests with coverage, and applies
+a coverage gate (`scripts/check-coverage.ps1`). `tests/LocaleAudit.Tests` runs in the locale audit
+workflow.
 
 ---
 
 ## 16. Deployment and Distribution
 
-The application is distributed as a self-contained Windows installer built with Inno Setup (`installer/AgentX-Setup.iss`). The single script produces two profiles via the `AgentXOffline` preprocessor flag:
+The application is distributed as a Windows installer built with Inno Setup
+(`installer/AgentX-Setup.iss`). One script produces two profiles via the `AgentXOffline`
+preprocessor flag:
 
-- **SLIM** (default) — no bundled model (~180 MB), small enough to attach to a GitHub Release. The app downloads the built-in Llama 3.2 3B model on first run (`BuiltInModelBootstrap`); cloud API keys work immediately.
-- **OFFLINE** (`ISCC /DAgentXOffline=1`) — bundles the ~1.9 GB model for fully-offline first run. The model is flagged `uninsneveruninstall` so an uninstall leaves it in place. The >2 GiB asset is hosted on Cloudflare R2 and linked from the release notes.
+- **SLIM** (default): no bundled model, small enough for a GitHub Release. The app downloads the
+  built-in Llama 3.2 3B model on first run (`BuiltInModelBootstrap`); cloud API keys work at once.
+- **OFFLINE** (`ISCC /DAgentXOffline=1`): bundles the ~1.9 GB model for a fully offline first run.
+  The model is installed to `%LocalAppData%\AgentX\Models` with `uninsneveruninstall`, so an
+  uninstall leaves it in place. The installer is too large for a GitHub Release asset and is hosted
+  elsewhere (`scripts/publish-offline-installer.ps1`).
 
 **Build pipeline:**
-1. `dotnet publish -c Release -r win-x64 --self-contained true` produces the `publish/win-x64/` directory with all required .NET runtime files bundled.
-2. Inno Setup compiles the installer from `AgentX-Setup.iss`, packaging the publish output into `installer-output/AgentX-Setup-2.1.2-x64.exe` (SLIM) and, with `/DAgentXOffline=1`, `installer-output/AgentX-Setup-2.1.2-x64-offline.exe` (OFFLINE).
+1. `dotnet publish src/AgentX.App/AgentX.App.csproj -c Release -r win-x64 --self-contained -o publish/win-x64`
+   produces a self-contained, unpackaged app (`WindowsPackageType=None`,
+   `WindowsAppSDKSelfContained=true`, `PublishReadyToRun=true`).
+2. Inno Setup packages `publish\win-x64\*` into `installer-output\AgentX-Setup-2.2.0-x64.exe`
+   (SLIM) or `installer-output\AgentX-Setup-2.2.0-x64-offline.exe` (OFFLINE).
 
 **Installer behavior:**
-- Installs to `%ProgramFiles%/AgentX/` by default.
-- Creates Start Menu entry and Desktop shortcut.
-- Registers an uninstaller in Add/Remove Programs.
-- Does NOT install any system-level native extensions. The application is fully portable.
+- Installs to `{autopf}\Agent-X`; `PrivilegesRequired=lowest`, so a per-user install needs no
+  elevation (an all-users install can be chosen in the dialog).
+- x64 only (`ArchitecturesAllowed=x64compatible`), Windows 10 build 19041 or later
+  (`MinVersion=10.0.19041`).
+- Start Menu entry; an optional desktop shortcut.
+- Closes a running `AgentX.App.exe` before installing.
+- Creates `%LocalAppData%\AgentX\Logs` and `Models`; on uninstall removes the log files and keeps
+  the database, settings and models.
 
 **Runtime requirements:**
-- Windows 10 (build 19041+) or Windows 11.
-- Windows App SDK 1.6 (bootstrapped by the application if not already present).
-- Ollama (optional, installed separately by the user) for local model inference.
-
-**Published binaries:**
-- `publish/win-x64/AgentX.App.exe` — main executable.
-- `publish/win-x64/AgentX.App.dll` — managed assembly.
-- `publish/win-x64/AgentX.Core.dll` — core library.
-- All .NET 8 runtime files bundled (self-contained).
+- Windows 10 version 2004 (build 19041) or later, or Windows 11.
+- The Windows App SDK runtime is bundled (self-contained).
+- Ollama is optional (installed separately by the user).
+- GPU offload of the built-in model needs an NVIDIA GPU and the CUDA 12 toolkit.
 
 ---
 
 ## 17. Performance Characteristics
 
-| Operation | Typical Latency | Bottleneck |
-|---|---|---|
-| Application startup (window visible) | < 1 second | WinUI 3 frame initialization |
-| DB schema creation (first run) | < 500 ms | SQLite file creation |
-| FTS5 table initialization | < 100 ms | SQLite DDL |
-| Ollama connection check | < 3 seconds (timeout) | Network/process |
-| Document import (text extraction) | 100 ms – 2 seconds | File I/O, processor type |
-| Chunking (512-token, 50k words) | < 200 ms | CPU string processing |
-| Embedding batch (16 chunks, all-minilm) | 2 – 10 seconds | Ollama inference |
-| Full indexing pipeline per document | 5 – 30 seconds | Embedding generation dominates |
-| Vector search (10K embeddings) | < 50 ms | C# cosine similarity scan |
-| Vector search (100K embeddings) | 200 – 500 ms | C# cosine similarity scan |
-| FTS5 keyword search | < 20 ms | SQLite FTS5 |
-| Hybrid search (10K embeddings) | < 100 ms | Parallel execution |
-| RAG pipeline (search + generation) | 5 – 30 seconds | AI generation dominates |
-| Chat streaming (first token) | 1 – 5 seconds | Model warmup |
-| Knowledge graph (100 documents) | 100 – 300 ms | Force-directed layout (100 iterations) |
-| Digest generation | 200 – 500 ms | DB aggregate queries |
-| Memory extraction (background) | 3 – 10 seconds | AI inference |
+Measured latencies depend on the hardware and the model, so this section lists the limits and
+batch sizes the code uses:
 
-**Scaling limits:**
-- SQLite handles up to several GB of data without performance degradation for this access pattern (mostly keyed lookups and small scans).
-- Vector search degrades linearly with embedding count. At 100K chunks, the full-scan approach hits approximately 500 ms. Beyond this scale, ANN indexing (FAISS, HNSW) would be required.
-- The `Channel<long>` indexing queue handles unlimited document backlog; throughput is limited by embedding model inference speed.
+| Area | Value | Source |
+|---|---|---|
+| Embedding batch | 32 texts | `Rag:EmbeddingBatchSize` |
+| Embedding cache | bounded LRU, keyed by model version | `CachedEmbeddingService` |
+| HNSW threshold | above 10,000 embeddings; linear scan below | `HnswFallbackThreshold` |
+| HNSW parameters | `M` 16, `efConstruction` 200, `efSearch` 50 | settings |
+| Hybrid candidates | `TopK x 3`, at most 500 per backend | `Rag:RetrievalMultiplier`, `Rag:RetrievalCap` |
+| RAG answer | max 2048 tokens, temperature 0.3 | `RagPipeline` |
+| Chat context reserve | 1,024 tokens for the answer | `AppConstants.ContextWindowTokenReserve` |
+| Ollama connection check | 3-second timeout | `AppConstants.OllamaCheckTimeout` |
+| Model download | 2-hour timeout | `AppConstants.ModelDownloadTimeout` |
+| Status strip | every 30 seconds | `StatusBarService`, `AnnunciatorService` |
+| Indexing idle sweep | every 30 seconds while idle | `IndexingService` |
+| Mobile client timeout | 15 seconds | `AgentXApiClient` |
+
+**Scaling notes:**
+- All database work shares one gate, so a long database section delays every other caller.
+- Indexing throughput is bounded by embedding speed; the queue itself is unbounded.
+- The linear scan grows with the number of embeddings; the HNSW index takes over above the
+  threshold.
+- Rebuilding the HNSW index at start (always, for an encrypted database) is CPU work on the thread
+  pool.
 
 ---
 
 ## 18. Security Model
 
-**Threat model:** Agent-X is a local desktop application with no server component. The primary security concerns are:
+**Threat model:** Agent-X is a local desktop application. Its network surfaces are the loopback
+REST API, the AI providers and web services the user configures, and the connectors.
 
-**API Key Storage:**
-- OpenAI and Anthropic API keys are stored in plaintext in `settings.json` within the user's `%LocalAppData%` directory. This directory is protected by Windows user-level ACLs but is not encrypted.
-- Future mitigation: DPAPI (`System.Security.Cryptography.ProtectedData`) encryption of sensitive fields in `settings.json`.
-- API keys are never logged (Serilog configuration does not include structured property capture for settings objects).
+**Secrets:**
+- API keys, the web search key, the local API token, OAuth client secrets and the backup password
+  are DPAPI-encrypted in `settings.json` (current Windows user).
+- OAuth tokens are DPAPI-encrypted in the database; Microsoft sign-in requests `offline_access` so
+  a refresh token is issued; revoking revokes the refresh token.
+- The database can be encrypted with SQLCipher (section 7.1.2).
+- Plugins do not receive `IOAuthService`, so third-party code cannot read connector tokens.
 
-**Input Validation:**
-- All SQL queries use Entity Framework Core parameterized queries. No dynamic SQL string concatenation occurs in EF Core model operations.
-- The vector-store implementations use parameterized SQL for bulk deletes and lookup paths.
-- The `KeywordSearchService` FTS5 queries use `MATCH` with parameterized values, preventing FTS5 injection.
-- File paths accepted from the user are validated for existence before processing. Content hash computation occurs before any AI processing.
+**Local REST API:**
+- Loopback only (`http://localhost:9846/`), bearer token on every route except the extension health
+  probe (constant-time comparison), CORS for browser-extension origins only, token revoked at once
+  when regenerated.
 
-**Local Network:**
-- Ollama communication is exclusively over `http://localhost:11434`. No external network traffic occurs for local inference.
-- OpenAI and Anthropic calls use `HttpClient` with TLS (HTTPS enforced by the endpoint URIs). No certificate pinning.
+**Input handling:**
+- EF Core queries are parameterized; raw SQL (`KeywordSearchService`, `MigrationRunner`) uses
+  parameters, and FTS5 queries quote every term.
+- Clipped pages are written with escaped YAML front matter and unique file names.
+- HTML exports escape content; CSV exports neutralize formulas.
+- Web import: URLs discovered in remote content may reach private or local addresses only when that
+  content came from such an address; host checks are pinned against DNS rebinding and enforced where
+  connections are opened; cloud metadata endpoints are always refused.
 
-**File System:**
-- The application reads files from user-specified paths. It does not write back to source files.
-- Import creates a new `DocumentEntity` record but does not copy file data to the storage directory — original file paths are stored as references.
-- Log files contain only application operation logs, never document content.
+**Privacy disclosure:**
+- `PrivacyStatusService` reports every enabled feature that sends data off the computer, and chat
+  shows per message where it goes (section 6.9).
+- PII is redacted from RAG context before any model sees it (when `Rag:EnablePiiRedaction` is on).
 
+**File system:**
+- Imports store the original path; source files are not copied or modified.
+- Logs record operations, file names and (shortened) search queries; they stay in
+  `%LocalAppData%\AgentX\Logs`.
+
+**Plugins:**
+- Plugins run in-process with the user's rights; manifest permissions are informational. Installing
+  a plugin is like running any other program.
+
+**Network:**
+- Ollama traffic goes to the configured endpoint, which can be another computer (disclosed).
+- OpenAI, Anthropic, web search and connector traffic uses HTTPS.
 
 ---
 
@@ -1712,88 +1716,108 @@ The application is distributed as a self-contained Windows installer built with 
 
 | Term | Definition |
 |---|---|
-| **AiService** | The `AgentX.Core` singleton that orchestrates AI inference providers, model selection, and high-level operations (summarize, tag). |
-| **all-minilm** | The `all-MiniLM-L6-v2` embedding model served via Ollama, producing 384-dimensional float vectors. Default embedding model. |
-| **BM25** | Best Match 25 — the probabilistic ranking function used by SQLite FTS5 for keyword search scoring. |
-| **Chunk** | A fixed-size fragment of a document's text (default 512 tokens, 50-token overlap) stored as a `DocumentChunkEntity` and embedded as a vector. |
-| **CommunityToolkit.Mvvm** | A Microsoft-maintained .NET MVVM library providing source generators for `[ObservableProperty]`, `[RelayCommand]`, and `ObservableObject`. |
-| **Cosine Similarity** | A measure of angle between two vectors in high-dimensional space, computed as `dot(a,b) / (|a| × |b|)`, ranging from -1 to 1. Used for semantic similarity. |
-| **DPAPI** | Windows Data Protection API — a Windows-level symmetric encryption facility tied to the user account. Used in Agent-X to wrap database-key material for transparent vault encryption available to every user; still a candidate for future API-key protection in settings. |
-| **EF Core** | Entity Framework Core — Microsoft's ORM for .NET, used here with the SQLite provider. |
-| **FTS5** | Full-Text Search version 5 — SQLite's built-in full-text search engine using the BM25 ranking algorithm. |
-| **IAiProvider** | The core interface implemented by `OllamaProvider`, `OpenAiProvider`, and `AnthropicProvider`, defining the contract for chat, embedding, and model management. |
-| **IAsyncEnumerable** | A C# interface for asynchronous sequences, used to stream AI response tokens one at a time from provider to ViewModel. |
-| **Indexing Pipeline** | The background process that takes a `pending` document through text re-extraction, chunking, embedding generation, vector storage, FTS5 indexing, and auto-tagging. |
-| **Knowledge Vault** | The user-facing name for the document library — all imported, indexed documents stored in `AgentXDbContext`. |
-| **Mica** | A Windows 11 system backdrop material that incorporates desktop content behind the application window for a translucent effect. |
-| **MVVM** | Model-View-ViewModel — the architectural pattern used in the presentation layer, separating UI state (ViewModel) from UI structure (View). |
-| **OllamaSharp** | The official .NET client library for the Ollama API, used by `OllamaProvider` for model management and inference. |
-| **RAG** | Retrieval-Augmented Generation — the technique of retrieving relevant document chunks via semantic search and injecting them as context into an AI prompt to produce grounded answers. |
-| **RRF** | Reciprocal Rank Fusion — the algorithm for combining ranked lists from multiple search backends, scoring each item as `Σ 1/(k+rank_i)`. |
-| **Serilog** | A structured logging library for .NET, used throughout `AgentX.Core` and `AgentX.App`. |
-| **HnswVectorStore** | The HNSW-accelerated `IVectorStore` implementation. SQLite remains the source of truth; the HNSW index accelerates large-collection search and falls back to linear scan below the configured threshold. |
-| **SqliteVecStore** | The linear-scan `IVectorStore` fallback that stores embedding BLOBs in SQLite and computes cosine similarity in C#. |
-| **SSE** | Server-Sent Events — the HTTP streaming format used by OpenAI and Anthropic APIs to deliver generated tokens incrementally (`data: {...}` lines). |
-| **Temperature** | An AI inference parameter (0.0–2.0) controlling response randomness. Default 0.7 for chat; 0.3 for RAG queries. |
-| **VectorRowId** | The `chunk_id` foreign key stored on `DocumentChunkEntity` that links a chunk to its row in `vec_embeddings`. |
-| **WAL** | Write-Ahead Logging — a SQLite journal mode that improves concurrent read/write performance by writing changes to a separate log file before committing to the main database. |
-| **WinUI 3** | Windows UI Library 3 — Microsoft's modern UI framework for Windows desktop apps, part of the Windows App SDK. Used for all presentation layer components. |
-| **Watch Folder** | A directory monitored by `FileWatcherService` using `System.IO.FileSystemWatcher`. New or modified files are automatically queued for import and indexing. |
+| **AiService** | The `AgentX.Core` singleton that owns the AI providers, the active provider and model, and high-level operations (chat, summarize, tag). |
+| **all-minilm** | The default value of the Embedding Model setting: an Ollama embedding model, used when the built-in model is not installed. |
+| **BM25** | The ranking function SQLite FTS5 uses for keyword search. |
+| **Built-in model** | The GGUF model run in-process by `LocalLlmProvider` (LLamaSharp), Llama 3.2 3B by default. |
+| **Chunk** | A piece of a document's text (default 512 tokens, 50-token overlap) stored as a `DocumentChunkEntity` and embedded as a vector. |
+| **CommunityToolkit.Mvvm** | Microsoft's MVVM library with source generators for `[ObservableProperty]` and `[RelayCommand]`. |
+| **Cosine similarity** | `dot(a,b) / (|a| x |b|)`, between -1 and 1; the semantic similarity measure. |
+| **Database gate** | The single lock that serializes all work on the shared `AgentXDbContext` (`EnterDatabaseGate()`). |
+| **DPAPI** | Windows Data Protection API: encryption tied to the Windows user, used for settings secrets, OAuth tokens and the wrapped database key. |
+| **EF Core** | Entity Framework Core, the ORM, used with the SQLite provider. |
+| **FTS5** | SQLite's full-text search engine; the `fts_chunks` table. |
+| **HnswVectorStore** | The `IVectorStore` with an HNSW index over the SQLite table, used above the fallback threshold. |
+| **IAiProvider** | The provider contract implemented by `LocalLlmProvider`, `OllamaProvider`, `OpenAiProvider` and `AnthropicProvider`. |
+| **Indexing pipeline** | The background loop that chunks, embeds, stores vectors, FTS-indexes and auto-tags a `pending` document. |
+| **Knowledge Vault** | The user-facing name for the document library. |
+| **Mica** | A Windows 11 backdrop material. |
+| **MVVM** | Model-View-ViewModel, the presentation pattern. |
+| **OllamaSharp** | The .NET client library for the Ollama API. |
+| **RAG** | Retrieval-Augmented Generation: retrieving relevant chunks and giving them to the model as numbered context for a cited answer. |
+| **RRF** | Reciprocal Rank Fusion: merges ranked lists by summing `1/(k + rank)`. |
+| **Serilog** | The structured logging library. |
+| **SqliteVecStore** | The linear-scan `IVectorStore` over embedding BLOBs in SQLite. |
+| **SSE** | Server-Sent Events, the streaming format of the OpenAI and Anthropic APIs. |
+| **Temperature** | Sampling randomness: 0.7 by default for chat, 0.3 for RAG. |
+| **VectorRowId** | The row id the vector store returned for a chunk's embedding. |
+| **WAL** | Write-Ahead Logging, SQLite's journal mode used by the database. |
+| **Watch folder** | A folder monitored by `FileWatcherService`; new and changed files are imported into the vault. |
+| **WinUI 3** | The Windows App SDK UI framework. |
 
 ---
 
-## 20. Localization (A1)
+## 20. Localization and Keyboard Power Mode
 
-Agent-X ships six UI locales — **German (de)**, **English (en-US, canonical)**, **Spanish (es)**, **French (fr)**, **Japanese (ja)**, **Simplified Chinese (zh-CN)** — with a data-layer enforcement pipeline that blocks regressions before merge.
+### Localization (A1)
 
-**Key surfaces.** Localized strings are referenced two ways in Agent-X:
+Agent-X ships six UI languages: **English (en-US, canonical)**, **German (de)**, **Spanish (es)**,
+**French (fr)**, **Japanese (ja)** and **Simplified Chinese (zh-CN)**, in
+`src/AgentX.App/Strings/<locale>/Resources.resw`. `scripts/translations/<locale>.json` mirror the
+translations.
 
-1. **XAML `x:Uid`** — WinUI 3 resource attachment. `Views/SettingsPage.xaml` and `Views/PluginManagerPage.xaml` use this path; resw keys follow the `<Uid>.<Property>` convention (e.g., `Encryption_Toggle.Text`).
-2. **C# `ILocalizationService.GetString("key")`** — code-driven lookup used by the nav menu, status bar, dialog captions, etc. Keys are flat (e.g., `Nav_Dashboard`) with no dot.
+**Two ways strings are referenced:**
 
-The union of both surfaces defines *coverage*. A resw entry that matches neither is an **orphan** (dead code).
+1. **XAML `x:Uid`**: WinUI resolves `<Uid>.<Property>` keys (for example `Settings_Connections.Text`).
+2. **C# `ILocalizationService.GetString(key)`** (and `GetString(key, args)`, `FormatPlural`) for text
+   built in code: navigation labels, the status strip, dialogs, notifications, view model
+   messages. Keys have no dot.
 
-**Coverage enforcement.** `tools/LocaleAudit/LocaleAudit.Tool.csproj` is a net8.0 console tool that:
+Both go through MRT Core. `LocalizationService` (App) reads resources through
+`IResourceLoaderAdapter` (`WinUIResourceLoaderAdapter` in the app, a fake in tests).
 
-- Scans every `*.xaml` under `src/AgentX.App/` for `x:Uid` references (`XamlUidExtractor`)
-- Scans every `*.cs` under `src/` for literal-argument `GetString("...")` calls (`CSharpGetStringExtractor`)
-- Parses every `Strings/<locale>/Resources.resw` (`ReswReader`)
-- Builds a per-locale `CoverageReport` that counts covered / missing / orphan keys and emits camelCase JSON
+**Language choice.** Settings offers the Windows display language or one of the six languages
+(`AppSettings.LanguageOverride`). `App.OnLaunched` applies it before the main window exists, so the
+shell's `x:Uid` strings load in that language; a change takes full effect after a restart. Core
+formats relative times through `FormatHelper.LocalizedText`, which startup points at the localization
+service.
 
-`.github/workflows/locale-audit.yml` runs the tool with `--fail-below 98` on every PR touching XAML, C#, resw, or the tool itself. The workflow posts (and updates) a per-locale coverage table as a PR comment and uploads the report as an artifact.
+**Fallback behavior.** A key missing in the current language returns the key itself, a visible
+failure that the audit gate is meant to prevent.
 
-**Pluralization.** `ILocalizationService.FormatPlural(baseKey, count, args)` delegates to `CldrPluralRuleProvider` to resolve the correct CLDR plural category (`one`, `other`, plus locale-specific `zero` / `two` / `few` / `many`) and looks up `<baseKey>_<category>` in resw. Missing categories fall back to `<baseKey>_other`; absent fallback throws `KeyNotFoundException` so the defect is caught in tests rather than leaking to the UI.
+**Pluralization.** `FormatPlural(baseKey, count, args)` asks `CldrPluralRuleProvider` for the CLDR
+category and reads `<baseKey>_<category>`, falling back to `<baseKey>_other`; if that is missing too
+it throws `KeyNotFoundException`, so the defect shows in tests.
 
-**RTL readiness.** `RtlDetector` (in `AgentX.Core`) returns a `bool` for any `CultureInfo`. `FlowDirectionHelper` (in `AgentX.App`) wraps it and exposes the WinUI 3 `FlowDirection` enum. `MainWindow.xaml.cs` binds `RootGrid.FlowDirection` to `FlowDirectionHelper.Current()` in the constructor. Agent-X has no RTL locale today, but ar-SA / he-IL / fa-IR can be added with no XAML change — drop a new resw bundle and the detector + helper handle the rest.
+**RTL readiness.** `RtlDetector` (Core) tells whether a culture is right-to-left, and
+`FlowDirectionHelper` (App) turns that into a `FlowDirection`; `MainWindow` sets
+`RootGrid.FlowDirection` from it. No right-to-left language ships today.
 
-**Fallback behavior.** When a key is missing in the current locale, `LocalizationService.GetString` returns the **literal key string** (e.g., `Plugin_Manager`). This is a visible failure — which is why the CI gate at 98% is load-bearing, not advisory.
-
-**Files.**
+**Coverage enforcement.** `tools/LocaleAudit` scans XAML for `x:Uid`, C# for literal
+`GetString("...")` calls and the resw files, and reports covered, missing and orphan keys per
+locale. `.github/workflows/locale-audit.yml` runs it with `--fail-below 98` on changes to XAML, C#,
+resw files, the translation mirrors or the tool, runs `tests/LocaleAudit.Tests`, and posts a
+coverage table on pull requests.
 
 | Layer | Path |
 |---|---|
 | Core detector | `src/AgentX.Core/Services/Localization/RtlDetector.cs` |
 | Core pluralization | `src/AgentX.Core/Services/Localization/CldrPluralRuleProvider.cs` |
 | Service interface | `src/AgentX.Core/Services/Localization/ILocalizationService.cs` |
-| Service impl | `src/AgentX.App/Services/LocalizationService.cs` |
-| WinUI shim | `src/AgentX.App/Helpers/FlowDirectionHelper.cs` |
+| Service implementation | `src/AgentX.App/Services/LocalizationService.cs` |
+| Resource adapter | `src/AgentX.App/Services/WinUIResourceLoaderAdapter.cs` |
+| WinUI helper | `src/AgentX.App/Helpers/FlowDirectionHelper.cs` |
 | Audit tool | `tools/LocaleAudit/` |
 | Tests | `tests/LocaleAudit.Tests/`, `tests/AgentX.Tests/Services/Localization/` |
 | CI gate | `.github/workflows/locale-audit.yml` |
-| Smoke checklist | `docs/a1-locale-smoke-checklist.md` |
 
 ### Keyboard Power Mode (A2)
 
-Agent-X's keyboard power mode centers on an `IShortcutRegistry` singleton that owns every shortcut in the app as a `ShortcutDescriptor`. Descriptors are scoped `Global` or per-page. Three built-in dialogs consume the registry:
+`IShortcutRegistry` owns every shortcut as a `ShortcutDescriptor`, scoped `Global` or to a page.
+Three built-in surfaces use it:
 
-- **Command Palette** (`Ctrl+Shift+P`) — fuzzy search over all registered shortcuts. Execute by pressing `Enter`.
-- **Jump-To** (`Ctrl+P`) — fuzzy search over documents, conversations, and pages.
-- **Cheatsheet** (`F1` or `Ctrl+Shift+?`) — grouped read-only listing of every shortcut available in the current scope.
+- **Command Palette** (`Ctrl+K` or `Ctrl+Shift+P`): the rail's pages and the palette actions, with
+  fuzzy matching.
+- **Jump-To** (`Ctrl+P`): fuzzy search over documents, conversations and pages.
+- **Cheatsheet** (`F1` or `Ctrl+Shift+?`): the shortcuts available in the current scope, grouped by
+  category.
 
-`ShortcutInputRouter` attaches to `MainWindow.RootGrid.PreviewKeyDown` and dispatches key events to the registry. A `ChordStateMachine` tracks timed multi-key chords (not seeded in v2.1.0 final — future expansion). `ShortcutCatalog` seeds a curated set of default global shortcuts at startup.
-
-Pages register scope-local shortcuts via `ShortcutRegistrationExtensions.RegisterPageShortcuts()`, called in the page's `OnNavigatedTo` handler.
+`ShortcutInputRouter` handles `RootGrid.PreviewKeyDown`. `ChordStateMachine` (1-second window)
+supports multi-key chords, though every shipped shortcut is a single chord. `ShortcutCatalog` seeds
+the global shortcuts (section 5.7); pages register theirs with `RegisterShortcuts(...)` in
+`OnNavigatedTo` and dispose the token in `OnNavigatedFrom`.
 
 ---
 
-*This document reflects the Agent-X codebase as of version 2.1.2, updated 2026-06-21. All file paths are relative to the solution root at `src/AgentX.App/` and `src/AgentX.Core/` respectively.*
+*This document reflects the Agent-X codebase at version 2.2.0 (2026-09-27). Paths are relative to
+the repository root.*
