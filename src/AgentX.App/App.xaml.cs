@@ -578,7 +578,6 @@ public partial class App : Application
         });
 
         // ── Indexing Pipeline ────────────────────────────────────
-        services.AddSingleton<IIndexingQueueService, IndexingQueueService>();
         services.AddSingleton<IIndexingService, IndexingService>();
         services.AddSingleton<IFileWatcherService, FileWatcherService>();
 
