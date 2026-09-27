@@ -9,6 +9,7 @@ using AgentX.Core.Data.VectorDb;
 using AgentX.Core.Documents;
 using AgentX.Core.Documents.Models;
 using AgentX.Core.Search;
+using AgentX.Core.Services.Plugins;
 using AgentX.Core.Services.Search;
 using AgentX.Core.Services.Settings;
 using AgentX.Core.Services.Tagging;
@@ -51,6 +52,7 @@ public sealed class IndexingService : IIndexingService
 
     private readonly AgentXDbContext _db;
     private readonly IEnumerable<IDocumentProcessor> _processors;
+    private readonly IPluginDocumentProcessorSource? _pluginProcessors;
     private readonly IChunkingService _chunkingService;
     private readonly IEmbeddingService _embeddingService;
     private readonly IVectorStore _vectorStore;
@@ -164,10 +166,12 @@ public sealed class IndexingService : IIndexingService
         IRagConfiguration? ragConfiguration,
         ILogger logger,
         ISearchCacheService? searchCacheService = null,
-        IDocumentService? documentService = null)
+        IDocumentService? documentService = null,
+        IPluginDocumentProcessorSource? pluginProcessors = null)
     {
         _db = db ?? throw new ArgumentNullException(nameof(db));
         _processors = processors ?? throw new ArgumentNullException(nameof(processors));
+        _pluginProcessors = pluginProcessors;
         _chunkingService = chunkingService ?? throw new ArgumentNullException(nameof(chunkingService));
         _embeddingService = embeddingService ?? throw new ArgumentNullException(nameof(embeddingService));
         _vectorStore = vectorStore ?? throw new ArgumentNullException(nameof(vectorStore));
@@ -1244,7 +1248,11 @@ public sealed class IndexingService : IIndexingService
     }
 
     /// <summary>
-    /// Finds the first registered processor that can handle the given file path.
+    /// Finds the first registered processor that can handle the given file path. Built-in
+    /// processors win; a processor contributed by an active plugin handles only formats that
+    /// no built-in processor accepts, as at import (<c>DocumentService</c>). Without the plugin
+    /// fallback, a plugin-format document that had to be extracted again (a re-index, or a
+    /// restart before indexing) failed with "No processor found".
     /// </summary>
     private IDocumentProcessor? FindProcessorFor(string filePath)
     {
@@ -1256,7 +1264,7 @@ public sealed class IndexingService : IIndexingService
             }
         }
 
-        return null;
+        return _pluginProcessors?.GetDocumentProcessors().FirstOrDefault(p => p.CanProcess(filePath));
     }
 
     /// <summary>

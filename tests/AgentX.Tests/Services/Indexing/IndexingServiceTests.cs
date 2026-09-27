@@ -7,6 +7,7 @@ using AgentX.Core.Documents;
 using AgentX.Core.Documents.Models;
 using AgentX.Core.Search;
 using AgentX.Core.Services.Indexing;
+using AgentX.Core.Services.Plugins;
 using AgentX.Core.Services.Search;
 using AgentX.Core.Services.Settings;
 using AgentX.Core.Services.Tagging;
@@ -200,6 +201,30 @@ public sealed class IndexingServiceTests : IDisposable
 
         (await indexed.WaitAsync(WaitLimit)).Should().Be(id);
         await StopAsync(service);
+    }
+
+    [Fact]
+    public async Task PendingDocumentOfAPluginFormat_IsExtractedByThePluginProcessor()
+    {
+        // Only an active plugin reads ".sample" files. A pending document of that format (for
+        // example after a restart, when the import extraction is gone) must be extracted by the
+        // plugin's processor instead of failing with "No processor found".
+        var pluginProcessor = new CountingTextProcessor(".sample");
+        var plugins = new Mock<IPluginDocumentProcessorSource>();
+        plugins.Setup(p => p.GetDocumentProcessors()).Returns(new IDocumentProcessor[] { pluginProcessor });
+
+        var id = SeedDocument("notes.sample", WriteFile("notes.sample", "notes in a plugin format"), status: "pending");
+        var service = NewService(pluginProcessors: plugins.Object);
+        var indexed = WhenIndexed(service);
+
+        await service.InitializeAsync();
+
+        (await indexed.WaitAsync(WaitLimit)).Should().Be(id);
+        await StopAsync(service);
+
+        pluginProcessor.Calls.Should().Be(1);
+        using var db = NewContext();
+        (await db.Documents.SingleAsync(d => d.Id == id)).IndexingStatus.Should().Be("completed");
     }
 
     [Fact]
@@ -527,7 +552,9 @@ public sealed class IndexingServiceTests : IDisposable
         return context;
     }
 
-    private IndexingService NewService(IDocumentService? documentService = null)
+    private IndexingService NewService(
+        IDocumentService? documentService = null,
+        IPluginDocumentProcessorSource? pluginProcessors = null)
     {
         var context = NewContext();
         var service = new IndexingService(
@@ -542,7 +569,8 @@ public sealed class IndexingServiceTests : IDisposable
             ragConfiguration: null,
             Silent,
             _searchCache.Object,
-            documentService);
+            documentService,
+            pluginProcessors);
 
         // Disposed before the context it uses.
         _disposables.Insert(0, context);
@@ -657,14 +685,14 @@ public sealed class IndexingServiceTests : IDisposable
     }
 
     /// <summary>Reads .txt files verbatim and counts how often it was asked to.</summary>
-    private sealed class CountingTextProcessor : IDocumentProcessor
+    private sealed class CountingTextProcessor(string extension = ".txt") : IDocumentProcessor
     {
         private int _calls;
 
         public int Calls => Volatile.Read(ref _calls);
 
         public IReadOnlySet<string> SupportedExtensions { get; } =
-            new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".txt" };
+            new HashSet<string>(StringComparer.OrdinalIgnoreCase) { extension };
 
         public bool CanProcess(string filePath) => SupportedExtensions.Contains(Path.GetExtension(filePath));
 
