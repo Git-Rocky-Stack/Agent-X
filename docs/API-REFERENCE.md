@@ -1737,8 +1737,8 @@ chunks, stores the vectors and writes the keyword (FTS5) rows.
 **Implementation:** `IndexingService`
 
 **Behavior:**
-- The pipeline is started at app launch, after the AI service (`InitializeAsync` runs as the last
-  startup step).
+- `InitializeAsync` runs at app launch, after the AI service is initialized; watch folder
+  monitoring starts after it.
 - It subscribes to `IDocumentService.DocumentPendingIndexing`, so imports and re-indexes are
   processed during the session, and it reuses the extraction handed over with the event. The idle
   loop also picks up `"pending"` documents written by other paths (Web Import, sync, the local
@@ -2281,8 +2281,8 @@ A reusable system prompt.
 
 ### UserSettingsEntity
 
-Key-value settings stored in the database (for example the DPAPI-wrapped database key when
-encryption is on).
+Key-value settings stored in the database: feature flags (`FeatureFlagService`) and the sync
+configuration, device id and state (`SyncService`).
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
@@ -3013,14 +3013,16 @@ whether it is on. It is the one entry point the UI uses (Settings > Database Enc
 
 | Member | Description |
 |--------|-------------|
-| `bool IsEncryptionEnabled` | `true` when the encryption marker file exists. |
+| `bool IsEncryptionEnabled` | `true` when the encryption marker file (`encryption.info.json`) exists. |
 | `KeyStorageMode? ProvisionedMode` | The key storage mode recorded in the marker, or `null` when the database is not encrypted or the marker cannot be read. |
 | `Task<bool> EnableEncryptionAsync(CancellationToken ct = default)` | Provisions a DPAPI-wrapped key, releases the shared database connection and suspends the vector store, migrates and verifies the file, writes the encryption marker last, and reopens the connection with the key that matches the file. Returns `false` without doing anything when encryption is already on, `true` after a successful migration. On failure the database stays plaintext, no marker is written, the connection is reopened without a key, and the exception propagates. |
 
-`KeyStorageMode` has two values: `DpapiWrapped = 0` (a generated 32-byte key stored DPAPI-wrapped
-in the user settings table, tied to the Windows account; the default for new encryption) and
-`UserPassphrase = 1` (a key derived from a passphrase entered at each launch with
-PBKDF2-HMAC-SHA256, kept for databases encrypted by older builds).
+The key state lives outside the encrypted database, in the marker file
+`%LOCALAPPDATA%\AgentX\encryption.info.json`, because the database cannot be opened without the key.
+`KeyStorageMode` has two values: `DpapiWrapped = 0` (a generated 32-byte key, DPAPI-wrapped and tied
+to the Windows account; the mode `EnableEncryptionAsync` uses) and `UserPassphrase = 1` (a key
+derived from a passphrase entered at each launch with PBKDF2-HMAC-SHA256, kept for databases
+encrypted by older builds).
 
 ---
 
