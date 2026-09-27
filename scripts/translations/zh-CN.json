@@ -587,6 +587,8 @@
   "Chat_PrivacyWebSearch": "开启研究模式后，您的问题会发送到 {0}。",
   "Chat_PrivacySearXng": "开启研究模式后，您的问题会发送到位于 {0} 的 SearXNG 实例，并由其转发给公共搜索引擎。",
   "Chat_PrivacyUnknown": "Agent-X 无法确认您的消息会发送到哪里。请在“设置”中检查 AI 提供商。",
+  "Chat_CompareOpenBranchTitle": "打开要对比的分支",
+  "Chat_CompareOpenBranchBody": "此对话有多个分支。请从“分支”列表中打开要对比的分支，然后再次选择“对比分支”。",
   "Main_QuickActions.Content": "Quick Actions",
   "Main_Workflows.Content": "工作流",
   "Main_Knowledge.Content": "知识",

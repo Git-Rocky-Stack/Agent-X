@@ -1707,15 +1707,73 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         await RefreshBranchTreeAsync();
     }
 
+    /// <summary>
+    /// Compares the branch on screen with the thread it was branched from. On the main thread no
+    /// branch is on screen, so its only branch is compared, or, when there are several, the operator
+    /// is asked to open the one to compare. This used to compare the main thread with the first
+    /// branch whichever thread was open.
+    /// </summary>
     [RelayCommand]
     private void CompareBranches()
     {
-        if (BranchTree is null || BranchTree.Children.Count < 1) return;
-        var window = new Views.BranchCompareWindow(
-            BranchTree, BranchTree.Children[0], "Main Thread",
-            BranchTree.Children[0].BranchLabel ?? "Branch");
-        window.Activate();
+        if (BranchTree is not { } tree || tree.Children.Count < 1) return;
+
+        var (branch, thread) = ActiveConversationId is long activeId
+            ? FindBranchNode(tree, activeId, parent: null)
+            : (null, null);
+
+        if (branch is null || thread is null)
+        {
+            // The main thread is on screen.
+            if (tree.Children.Count > 1)
+            {
+                _notificationService.ShowInfo(
+                    _localization.GetString("Chat_CompareOpenBranchTitle"),
+                    _localization.GetString("Chat_CompareOpenBranchBody"));
+                return;
+            }
+
+            thread = tree;
+            branch = tree.Children[0];
+        }
+
+        ShowBranchComparison(
+            thread,
+            branch,
+            ReferenceEquals(thread, tree) ? "Main Thread" : BranchTitle(thread),
+            BranchTitle(branch));
     }
+
+    /// <summary>Opens the side-by-side comparison window (a test seam).</summary>
+    internal Action<ConversationBranchTree, ConversationBranchTree, string, string> ShowBranchComparison { get; set; } =
+        static (thread, branch, threadTitle, branchTitle) =>
+            new Views.BranchCompareWindow(thread, branch, threadTitle, branchTitle).Activate();
+
+    /// <summary>The node of <paramref name="conversationId"/> in the tree and the thread it branched from.</summary>
+    private static (ConversationBranchTree? Node, ConversationBranchTree? Parent) FindBranchNode(
+        ConversationBranchTree node, long conversationId, ConversationBranchTree? parent)
+    {
+        if (node.Conversation?.Id == conversationId)
+        {
+            return (node, parent);
+        }
+
+        foreach (var child in node.Children)
+        {
+            var found = FindBranchNode(child, conversationId, node);
+            if (found.Node is not null)
+            {
+                return found;
+            }
+        }
+
+        return (null, null);
+    }
+
+    private static string BranchTitle(ConversationBranchTree branch) =>
+        !string.IsNullOrWhiteSpace(branch.BranchLabel) ? branch.BranchLabel
+        : !string.IsNullOrWhiteSpace(branch.Conversation?.Title) ? branch.Conversation.Title
+        : "Branch";
 
     private async Task RefreshBranchTreeAsync()
     {

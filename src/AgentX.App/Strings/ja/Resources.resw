@@ -954,6 +954,8 @@
   <data name="Chat_PrivacyWebSearch" xml:space="preserve"><value>リサーチ モードがオンの間は、質問が {0} に送信されます。</value></data>
   <data name="Chat_PrivacySearXng" xml:space="preserve"><value>リサーチ モードがオンの間は、質問が {0} の SearXNG インスタンスに送信され、そこから公開検索エンジンに転送されます。</value></data>
   <data name="Chat_PrivacyUnknown" xml:space="preserve"><value>Agent-X はメッセージの送信先を確認できませんでした。設定で AI プロバイダーを確認してください。</value></data>
+  <data name="Chat_CompareOpenBranchTitle" xml:space="preserve"><value>比較するブランチを開いてください</value></data>
+  <data name="Chat_CompareOpenBranchBody" xml:space="preserve"><value>この会話には複数のブランチがあります。[ブランチ] の一覧から比較するブランチを開き、もう一度 [ブランチを比較] を選んでください。</value></data>
   <data name="Main_QuickActions.Content" xml:space="preserve"><value>Quick Actions</value></data>
   <data name="Main_Workflows.Content" xml:space="preserve"><value>ワークフロー</value></data>
   <data name="Main_Knowledge.Content" xml:space="preserve"><value>ナレッジ</value></data>

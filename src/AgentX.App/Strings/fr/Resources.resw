@@ -954,6 +954,8 @@
   <data name="Chat_PrivacyWebSearch" xml:space="preserve"><value>Lorsque le mode recherche est activé, vos questions sont envoyées à {0}.</value></data>
   <data name="Chat_PrivacySearXng" xml:space="preserve"><value>Lorsque le mode recherche est activé, vos questions sont envoyées à l'instance SearXNG à l'adresse {0}, qui les transmet à des moteurs de recherche publics.</value></data>
   <data name="Chat_PrivacyUnknown" xml:space="preserve"><value>Agent-X n'a pas pu confirmer où vos messages sont envoyés. Vérifiez le fournisseur d'IA dans les Paramètres.</value></data>
+  <data name="Chat_CompareOpenBranchTitle" xml:space="preserve"><value>Ouvrez une branche à comparer</value></data>
+  <data name="Chat_CompareOpenBranchBody" xml:space="preserve"><value>Cette conversation a plusieurs branches. Ouvrez celle à comparer depuis la liste Branches, puis choisissez à nouveau Comparer les branches.</value></data>
   <data name="Main_QuickActions.Content" xml:space="preserve"><value>Quick Actions</value></data>
   <data name="Main_Workflows.Content" xml:space="preserve"><value>Workflows</value></data>
   <data name="Main_Knowledge.Content" xml:space="preserve"><value>CONNAISSANCES</value></data>

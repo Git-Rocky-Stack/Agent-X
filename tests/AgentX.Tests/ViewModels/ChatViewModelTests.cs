@@ -1966,6 +1966,116 @@ public sealed class ChatViewModelTests
         viewModel.PrivacyHint.Should().Be("Ihre Nachrichten werden zur Verarbeitung an OpenAI gesendet.");
     }
 
+    // --- Comparing branches ---
+    // Compare branches always compared the main thread with the first branch, whichever
+    // thread was open.
+
+    [Fact]
+    public async Task CompareBranches_OnABranch_ComparesItWithTheThreadItCameFrom()
+    {
+        var viewModel = await OpenBranchFamilyAsync(openConversationId: 78);
+        var comparisons = CaptureComparisons(viewModel);
+
+        viewModel.CompareBranchesCommand.Execute(null);
+
+        comparisons.Should().ContainSingle();
+        comparisons[0].Thread.Conversation.Id.Should().Be(42);
+        comparisons[0].Branch.Conversation.Id.Should().Be(78);
+        comparisons[0].ThreadTitle.Should().Be("Main Thread");
+        comparisons[0].BranchTitle.Should().Be("Plan B");
+    }
+
+    [Fact]
+    public async Task CompareBranches_OnABranchOfABranch_ComparesItWithTheBranchItCameFrom()
+    {
+        var viewModel = await OpenBranchFamilyAsync(openConversationId: 90);
+        var comparisons = CaptureComparisons(viewModel);
+
+        viewModel.CompareBranchesCommand.Execute(null);
+
+        comparisons.Should().ContainSingle();
+        comparisons[0].Thread.Conversation.Id.Should().Be(78);
+        comparisons[0].ThreadTitle.Should().Be("Plan B");
+        comparisons[0].Branch.Conversation.Id.Should().Be(90);
+        comparisons[0].BranchTitle.Should().Be("Main (Branch)", "an unlabelled branch is named by its conversation");
+    }
+
+    [Fact]
+    public async Task CompareBranches_OnTheMainThreadWithSeveralBranches_AsksWhichBranchToOpen()
+    {
+        var viewModel = await OpenBranchFamilyAsync(openConversationId: 42);
+        var comparisons = CaptureComparisons(viewModel);
+
+        viewModel.CompareBranchesCommand.Execute(null);
+
+        comparisons.Should().BeEmpty();
+        _notificationService.Verify(
+            service => service.ShowInfo(
+                "Open a branch to compare",
+                "This conversation has several branches. Open the one to compare from the Branches list, then choose Compare branches again.",
+                It.IsAny<int>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task CompareBranches_OnTheMainThreadWithOneBranch_ComparesThatBranch()
+    {
+        var tree = BranchNode(42, "Main", label: null, BranchNode(77, "Plan A", "Plan A"));
+        var viewModel = await OpenBranchFamilyAsync(openConversationId: 42, tree);
+        var comparisons = CaptureComparisons(viewModel);
+
+        viewModel.CompareBranchesCommand.Execute(null);
+
+        comparisons.Should().ContainSingle();
+        comparisons[0].Thread.Should().BeSameAs(tree);
+        comparisons[0].Branch.Conversation.Id.Should().Be(77);
+        comparisons[0].BranchTitle.Should().Be("Plan A");
+    }
+
+    /// <summary>
+    /// Opens <paramref name="openConversationId"/> in a family where main thread 42 has branches
+    /// 77 ("Plan A") and 78 ("Plan B"), and 78 has the unlabelled branch 90.
+    /// </summary>
+    private async Task<ChatViewModel> OpenBranchFamilyAsync(long openConversationId, ConversationBranchTree? tree = null)
+    {
+        tree ??= BranchNode(
+            42, "Main", label: null,
+            BranchNode(77, "Plan A", "Plan A"),
+            BranchNode(78, "Plan B", "Plan B", BranchNode(90, "Main (Branch)", label: null)));
+        _branchingCoordinator
+            .Setup(service => service.LoadBranchTreeAsync(It.IsAny<long>()))
+            .ReturnsAsync(tree);
+        _conversationCoordinator
+            .Setup(service => service.LoadMessagesAsync(It.IsAny<long>()))
+            .ReturnsAsync(Array.Empty<MessageSummary>());
+
+        var viewModel = CreateViewModel();
+        viewModel.Conversations.Add(new ConversationListItem { Id = openConversationId, Title = "Open thread" });
+        await viewModel.SelectConversationCommand.ExecuteAsync(openConversationId);
+        return viewModel;
+    }
+
+    private static ConversationBranchTree BranchNode(
+        long id, string title, string? label, params ConversationBranchTree[] children)
+    {
+        var node = new ConversationBranchTree
+        {
+            Conversation = new AgentX.Core.Data.Entities.ConversationEntity { Id = id, Title = title },
+            BranchLabel = label
+        };
+        node.Children.AddRange(children);
+        return node;
+    }
+
+    private static List<(ConversationBranchTree Thread, ConversationBranchTree Branch, string ThreadTitle, string BranchTitle)>
+        CaptureComparisons(ChatViewModel viewModel)
+    {
+        var comparisons = new List<(ConversationBranchTree, ConversationBranchTree, string, string)>();
+        viewModel.ShowBranchComparison = (thread, branch, threadTitle, branchTitle) =>
+            comparisons.Add((thread, branch, threadTitle, branchTitle));
+        return comparisons;
+    }
+
     private Mock<IAiProvider> SetupActiveProvider(string providerId, string displayName)
     {
         var provider = new Mock<IAiProvider>();

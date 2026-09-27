@@ -587,6 +587,8 @@
   "Chat_PrivacyWebSearch": "Bei aktivem Recherchemodus werden Ihre Fragen an {0} gesendet.",
   "Chat_PrivacySearXng": "Bei aktivem Recherchemodus werden Ihre Fragen an die SearXNG-Instanz unter {0} gesendet, die sie an öffentliche Suchmaschinen weiterleitet.",
   "Chat_PrivacyUnknown": "Agent-X konnte nicht bestätigen, wohin Ihre Nachrichten gesendet werden. Prüfen Sie den KI-Anbieter in den Einstellungen.",
+  "Chat_CompareOpenBranchTitle": "Zweig zum Vergleichen öffnen",
+  "Chat_CompareOpenBranchBody": "Diese Unterhaltung hat mehrere Zweige. Öffnen Sie den zu vergleichenden Zweig in der Liste „Zweige“ und wählen Sie dann erneut „Zweige vergleichen“.",
   "Main_QuickActions.Content": "Quick Actions",
   "Main_Workflows.Content": "Workflows",
   "Main_Knowledge.Content": "WISSEN",

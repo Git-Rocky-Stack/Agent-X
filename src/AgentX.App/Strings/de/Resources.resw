@@ -954,6 +954,8 @@
   <data name="Chat_PrivacyWebSearch" xml:space="preserve"><value>Bei aktivem Recherchemodus werden Ihre Fragen an {0} gesendet.</value></data>
   <data name="Chat_PrivacySearXng" xml:space="preserve"><value>Bei aktivem Recherchemodus werden Ihre Fragen an die SearXNG-Instanz unter {0} gesendet, die sie an öffentliche Suchmaschinen weiterleitet.</value></data>
   <data name="Chat_PrivacyUnknown" xml:space="preserve"><value>Agent-X konnte nicht bestätigen, wohin Ihre Nachrichten gesendet werden. Prüfen Sie den KI-Anbieter in den Einstellungen.</value></data>
+  <data name="Chat_CompareOpenBranchTitle" xml:space="preserve"><value>Zweig zum Vergleichen öffnen</value></data>
+  <data name="Chat_CompareOpenBranchBody" xml:space="preserve"><value>Diese Unterhaltung hat mehrere Zweige. Öffnen Sie den zu vergleichenden Zweig in der Liste „Zweige“ und wählen Sie dann erneut „Zweige vergleichen“.</value></data>
   <data name="Main_QuickActions.Content" xml:space="preserve"><value>Quick Actions</value></data>
   <data name="Main_Workflows.Content" xml:space="preserve"><value>Workflows</value></data>
   <data name="Main_Knowledge.Content" xml:space="preserve"><value>WISSEN</value></data>

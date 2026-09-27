@@ -587,6 +587,8 @@
   "Chat_PrivacyWebSearch": "Con el modo investigación activado, sus preguntas se envían a {0}.",
   "Chat_PrivacySearXng": "Con el modo investigación activado, sus preguntas se envían a la instancia de SearXNG en {0}, que las reenvía a buscadores públicos.",
   "Chat_PrivacyUnknown": "Agent-X no pudo confirmar adónde se envían sus mensajes. Revise el proveedor de IA en Configuración.",
+  "Chat_CompareOpenBranchTitle": "Abra una rama para compararla",
+  "Chat_CompareOpenBranchBody": "Esta conversación tiene varias ramas. Abra la que quiere comparar desde la lista Ramas y vuelva a elegir Comparar ramas.",
   "Main_QuickActions.Content": "Quick Actions",
   "Main_Workflows.Content": "Workflows",
   "Main_Knowledge.Content": "CONOCIMIENTO",

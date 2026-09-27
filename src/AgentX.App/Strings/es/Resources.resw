@@ -954,6 +954,8 @@
   <data name="Chat_PrivacyWebSearch" xml:space="preserve"><value>Con el modo investigación activado, sus preguntas se envían a {0}.</value></data>
   <data name="Chat_PrivacySearXng" xml:space="preserve"><value>Con el modo investigación activado, sus preguntas se envían a la instancia de SearXNG en {0}, que las reenvía a buscadores públicos.</value></data>
   <data name="Chat_PrivacyUnknown" xml:space="preserve"><value>Agent-X no pudo confirmar adónde se envían sus mensajes. Revise el proveedor de IA en Configuración.</value></data>
+  <data name="Chat_CompareOpenBranchTitle" xml:space="preserve"><value>Abra una rama para compararla</value></data>
+  <data name="Chat_CompareOpenBranchBody" xml:space="preserve"><value>Esta conversación tiene varias ramas. Abra la que quiere comparar desde la lista Ramas y vuelva a elegir Comparar ramas.</value></data>
   <data name="Main_QuickActions.Content" xml:space="preserve"><value>Quick Actions</value></data>
   <data name="Main_Workflows.Content" xml:space="preserve"><value>Workflows</value></data>
   <data name="Main_Knowledge.Content" xml:space="preserve"><value>CONOCIMIENTO</value></data>

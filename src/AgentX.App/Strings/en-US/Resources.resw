@@ -1076,6 +1076,8 @@
   <data name="Chat_PrivacyWebSearch" xml:space="preserve"><value>With Research Mode on, your questions are sent to {0}.</value></data>
   <data name="Chat_PrivacySearXng" xml:space="preserve"><value>With Research Mode on, your questions are sent to the SearXNG instance at {0}, which forwards them to public search engines.</value></data>
   <data name="Chat_PrivacyUnknown" xml:space="preserve"><value>Agent-X could not confirm where your messages are sent. Review the AI provider in Settings.</value></data>
+  <data name="Chat_CompareOpenBranchTitle" xml:space="preserve"><value>Open a branch to compare</value></data>
+  <data name="Chat_CompareOpenBranchBody" xml:space="preserve"><value>This conversation has several branches. Open the one to compare from the Branches list, then choose Compare branches again.</value></data>
   <data name="Main_QuickActions.Content" xml:space="preserve"><value>Quick Actions</value></data>
   <data name="Main_Workflows.Content" xml:space="preserve"><value>Workflows</value></data>
   <data name="Main_Knowledge.Content" xml:space="preserve"><value>KNOWLEDGE</value></data>

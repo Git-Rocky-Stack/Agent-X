@@ -587,6 +587,8 @@
   "Chat_PrivacyWebSearch": "Lorsque le mode recherche est activé, vos questions sont envoyées à {0}.",
   "Chat_PrivacySearXng": "Lorsque le mode recherche est activé, vos questions sont envoyées à l'instance SearXNG à l'adresse {0}, qui les transmet à des moteurs de recherche publics.",
   "Chat_PrivacyUnknown": "Agent-X n'a pas pu confirmer où vos messages sont envoyés. Vérifiez le fournisseur d'IA dans les Paramètres.",
+  "Chat_CompareOpenBranchTitle": "Ouvrez une branche à comparer",
+  "Chat_CompareOpenBranchBody": "Cette conversation a plusieurs branches. Ouvrez celle à comparer depuis la liste Branches, puis choisissez à nouveau Comparer les branches.",
   "Main_QuickActions.Content": "Quick Actions",
   "Main_Workflows.Content": "Workflows",
   "Main_Knowledge.Content": "CONNAISSANCES",

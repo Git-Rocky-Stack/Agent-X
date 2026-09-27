@@ -587,6 +587,8 @@
   "Chat_PrivacyWebSearch": "リサーチ モードがオンの間は、質問が {0} に送信されます。",
   "Chat_PrivacySearXng": "リサーチ モードがオンの間は、質問が {0} の SearXNG インスタンスに送信され、そこから公開検索エンジンに転送されます。",
   "Chat_PrivacyUnknown": "Agent-X はメッセージの送信先を確認できませんでした。設定で AI プロバイダーを確認してください。",
+  "Chat_CompareOpenBranchTitle": "比較するブランチを開いてください",
+  "Chat_CompareOpenBranchBody": "この会話には複数のブランチがあります。[ブランチ] の一覧から比較するブランチを開き、もう一度 [ブランチを比較] を選んでください。",
   "Main_QuickActions.Content": "Quick Actions",
   "Main_Workflows.Content": "ワークフロー",
   "Main_Knowledge.Content": "ナレッジ",
