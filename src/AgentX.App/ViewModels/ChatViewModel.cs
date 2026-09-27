@@ -132,7 +132,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     /// </summary>
     public Func<Task<bool>>? ConfirmClearMemoriesAsync { get; set; }
 
-    // ── Privacy claim (empty chat) ────────────────────────────
+    // --- Privacy claim (empty chat) ---
     // The empty chat claims "100% Private" only while nothing a message sends leaves this
     // computer; otherwise its hint names where messages go instead.
     [ObservableProperty] private bool _isChatPrivate;

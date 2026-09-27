@@ -169,7 +169,7 @@ public class SummaryService : ISummaryService
     [
         new(@"(?:\r?\n[ \t]*){2,}", RegexOptions.Compiled),
         new(@"\r?\n", RegexOptions.Compiled),
-        new(@"(?<=[.!?])\s+|(?<=[。！？])\s*", RegexOptions.Compiled),
+        new(@"(?<=[.!?])\s+|(?<=[\u3002\uFF01\uFF1F])\s*", RegexOptions.Compiled),
         new(@"\s+", RegexOptions.Compiled),
     ];
 

@@ -300,7 +300,7 @@ public sealed class DashboardViewModelTests
         viewModel.ConnectionStatus.Should().NotContain("Ollama");
     }
 
-    // ── Provider attention hint ──────────────────────────────────────────────
+    // --- Provider attention hint ---
     // "Connect Ollama to unlock AI chat" showed under the connection card whatever the provider
     // was and whether or not it was reachable.
 
@@ -368,7 +368,7 @@ public sealed class DashboardViewModelTests
             "Prüfen Sie, ob Ollama läuft und ein Modell heruntergeladen ist und ob die Adresse in den Einstellungen stimmt.");
     }
 
-    // ── New Chat ─────────────────────────────────────────────────────────────
+    // --- New Chat ---
     // The New Chat tile was a plain navigation to Chat, so the cached Chat page reopened the last
     // conversation. It now carries the intent Ctrl+N and the palette's New Conversation use.
 
@@ -397,7 +397,7 @@ public sealed class DashboardViewModelTests
         navigations.Should().Equal(("Chat", (object?)null));
     }
 
-    // ── Belief card ──────────────────────────────────────────────────────────
+    // --- Belief card ---
     // The card said "Your beliefs are consistent" / "No detected contradictions" when no belief
     // had been recorded at all, so there was nothing to compare.
 

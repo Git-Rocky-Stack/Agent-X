@@ -172,7 +172,7 @@ public sealed class SummaryServiceTests : IDisposable
     public void SplitForTranslation_keeps_every_character_and_the_limit(int length)
     {
         var random = new Random(length);
-        const string alphabet = "abc de.\n。f!? \n\ngh";
+        const string alphabet = "abc de.\n\u3002f!? \n\ngh";
         var text = new string(Enumerable.Range(0, length).Select(_ => alphabet[random.Next(alphabet.Length)]).ToArray());
 
         var parts = SummaryService.SplitForTranslation(text, SummaryService.MaxTranslationChars);
@@ -196,13 +196,13 @@ public sealed class SummaryServiceTests : IDisposable
     [Fact]
     public void SplitForTranslation_splits_cjk_text_after_full_stops()
     {
-        var sentence = new string('字', 99) + "。";
+        var sentence = new string('\u5B57', 99) + "\u3002";
         var text = string.Concat(Enumerable.Repeat(sentence, 50));
 
         var parts = SummaryService.SplitForTranslation(text, 4000);
 
         parts.Should().HaveCount(2);
-        parts.Should().OnlyContain(part => part.Text.EndsWith("。"));
+        parts.Should().OnlyContain(part => part.Text.EndsWith("\u3002"));
     }
 
     /// <summary>
