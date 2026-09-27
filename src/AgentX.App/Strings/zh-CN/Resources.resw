@@ -2328,6 +2328,62 @@
   <!-- Guide accuracy pass 2026-07: Comparison / Smart Inbox / Analytics / Operations / Collaborative Sync sections -->
   <data name="Palette_SearchInput.PlaceholderText" xml:space="preserve"><value>输入页面或操作...</value></data>
   <data name="Palette_NavigateHint.Text" xml:space="preserve"><value>导航</value></data>
+  <data name="Sync_LoadFailed" xml:space="preserve"><value>无法加载同步设置。请重试。</value></data>
+  <data name="Sync_CollectionsSelectedNone" xml:space="preserve"><value>未选择合集</value></data>
+  <data name="Sync_CollectionsSelectedOne" xml:space="preserve"><value>已选择 1 个合集</value></data>
+  <data name="Sync_CollectionsSelectedMany" xml:space="preserve"><value>已选择 {0} 个合集</value></data>
+  <data name="Sync_LastSyncNever" xml:space="preserve"><value>从未</value></data>
+  <data name="Sync_IntervalEvery5Minutes" xml:space="preserve"><value>每 5 分钟</value></data>
+  <data name="Sync_IntervalEvery15Minutes" xml:space="preserve"><value>每 15 分钟</value></data>
+  <data name="Sync_IntervalEvery30Minutes" xml:space="preserve"><value>每 30 分钟</value></data>
+  <data name="Sync_IntervalEveryHour" xml:space="preserve"><value>每小时</value></data>
+  <data name="Sync_IntervalEvery2Hours" xml:space="preserve"><value>每 2 小时</value></data>
+  <data name="Sync_ScopeAll" xml:space="preserve"><value>全部</value></data>
+  <data name="Sync_ScopeSelectedCollections" xml:space="preserve"><value>所选合集</value></data>
+  <data name="Sync_CollectionDocumentCountOne" xml:space="preserve"><value>1 个文档</value></data>
+  <data name="Sync_CollectionDocumentCountMany" xml:space="preserve"><value>{0} 个文档</value></data>
+  <data name="Sync_FolderRequired" xml:space="preserve"><value>需要同步文件夹路径。请使用“浏览”按钮选择一个。</value></data>
+  <data name="Sync_KeyRequired" xml:space="preserve"><value>需要加密密钥。此密码短语用于加密写入同步文件夹的所有数据。</value></data>
+  <data name="Sync_IntervalInvalid" xml:space="preserve"><value>同步间隔必须是整数分钟（至少为 1）。</value></data>
+  <data name="Sync_SelectCollectionRequired" xml:space="preserve"><value>当同步范围设为“所选合集”时，请至少选择一个合集。</value></data>
+  <data name="Sync_ConfigSaved" xml:space="preserve"><value>同步配置已保存。</value></data>
+  <data name="Sync_ConfigSaveFailed" xml:space="preserve"><value>无法保存配置：{0}</value></data>
+  <data name="Sync_SaveBeforeSync" xml:space="preserve"><value>同步前请先保存同步配置。</value></data>
+  <data name="Sync_SyncInProgress" xml:space="preserve"><value>正在导出本地更改并导入其他设备的更改...</value></data>
+  <data name="Sync_SyncTimedOut" xml:space="preserve"><value>同步在 10 分钟后超时。请检查同步文件夹的连接后重试。</value></data>
+  <data name="Sync_SyncFailed" xml:space="preserve"><value>同步失败：{0}</value></data>
+  <data name="Sync_SaveBeforeAutoSync" xml:space="preserve"><value>启用自动同步前，请先保存同步配置。</value></data>
+  <data name="Sync_AutoSyncNeedsSavedConfig" xml:space="preserve"><value>请先保存同步配置，再启用自动同步。</value></data>
+  <data name="Sync_AutoSyncNotStarted" xml:space="preserve"><value>无法启动自动同步。请检查已保存的同步配置后重试。</value></data>
+  <data name="Sync_AutoSyncStartFailed" xml:space="preserve"><value>无法启动自动同步：{0}</value></data>
+  <data name="Sync_AutoSyncStopped" xml:space="preserve"><value>已停止自动同步。</value></data>
+  <data name="Sync_AutoSyncStoppedNotSaved" xml:space="preserve"><value>已停止自动同步，但无法保存该设置，重启后可能会重新开启：{0}</value></data>
+  <data name="Sync_AutoSyncStopFailed" xml:space="preserve"><value>无法停止自动同步：{0}</value></data>
+  <data name="Sync_RefreshFailed" xml:space="preserve"><value>刷新失败：{0}</value></data>
+  <data name="Sync_AutoSyncStartedOneMinute" xml:space="preserve"><value>自动同步已开启。首次自动同步将在大约 1 分钟后运行；如需立即同步，请使用“立即同步”。</value></data>
+  <data name="Sync_AutoSyncStartedMinutes" xml:space="preserve"><value>自动同步已开启。首次自动同步将在大约 {0} 分钟后运行；如需立即同步，请使用“立即同步”。</value></data>
+  <data name="Sync_OutcomeComplete" xml:space="preserve"><value>同步完成。</value></data>
+  <data name="Sync_OutcomeWithProblems" xml:space="preserve"><value>同步已结束，但存在问题。</value></data>
+  <data name="Sync_ChangeCountOne" xml:space="preserve"><value>1 项更改</value></data>
+  <data name="Sync_ChangeCountMany" xml:space="preserve"><value>{0} 项更改</value></data>
+  <data name="Sync_OutcomeNoPeerChanges" xml:space="preserve"><value>{0}已导出 {1}；同步文件夹中没有其他设备的待导入更改。</value></data>
+  <data name="Sync_PeerFileCountOne" xml:space="preserve"><value>1 个来自其他设备的文件</value></data>
+  <data name="Sync_PeerFileCountMany" xml:space="preserve"><value>{0} 个来自其他设备的文件</value></data>
+  <data name="Sync_OutcomeImported" xml:space="preserve"><value>{0}已导出 {1}；已导入 {2}（应用了 {3} 项更改）。</value></data>
+  <data name="Sync_OutcomeImportedSkipped" xml:space="preserve"><value>{0}已导出 {1}；已导入 {2}（应用了 {3} 项更改，{4} 项早于本地副本，已跳过）。</value></data>
+  <data name="Sync_ProblemPendingRetry" xml:space="preserve"><value>{0} 个来自其他设备的文件包含无法保存的更改，将在下次同步时重试</value></data>
+  <data name="Sync_ProblemUnreadable" xml:space="preserve"><value>无法读取 {0} 个来自其他设备的文件（请确认两台设备使用相同的加密密钥）</value></data>
+  <data name="Sync_ProblemRejected" xml:space="preserve"><value>{0} 项更改无法应用，已跳过</value></data>
+  <data name="Sync_ProblemSeparator" xml:space="preserve"><value>；</value></data>
+  <data name="Sync_Problems" xml:space="preserve"><value>{0}。</value></data>
+  <data name="Sync_ProblemsWithFirstError" xml:space="preserve"><value>{0}。第一个问题：{1}</value></data>
+  <data name="Sync_StateIdle" xml:space="preserve"><value>空闲</value></data>
+  <data name="Sync_StateSyncing" xml:space="preserve"><value>正在同步</value></data>
+  <data name="Sync_StateError" xml:space="preserve"><value>错误</value></data>
+  <data name="Sync_StateConflict" xml:space="preserve"><value>冲突</value></data>
+  <data name="Sync_StateUnknown" xml:space="preserve"><value>未知</value></data>
+  <data name="Sync_FocusedEntryMissing" xml:space="preserve"><value>请求的同步历史条目已不存在。</value></data>
+  <data name="Sync_FocusedEntryResolved" xml:space="preserve"><value>已通过重新运行一次同步解决了聚焦的同步历史条目。</value></data>
   <data name="Palette_OpenHint.Text" xml:space="preserve"><value>打开</value></data>
   <data name="Palette_CloseHint.Text" xml:space="preserve"><value>关闭</value></data>
   <data name="Palette_Actions" xml:space="preserve"><value>操作</value></data>

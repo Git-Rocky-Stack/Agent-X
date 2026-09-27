@@ -2328,6 +2328,62 @@
   <!-- Guide accuracy pass 2026-07: Comparison / Smart Inbox / Analytics / Operations / Collaborative Sync sections -->
   <data name="Palette_SearchInput.PlaceholderText" xml:space="preserve"><value>ページまたは操作を入力...</value></data>
   <data name="Palette_NavigateHint.Text" xml:space="preserve"><value>移動</value></data>
+  <data name="Sync_LoadFailed" xml:space="preserve"><value>同期設定を読み込めませんでした。もう一度お試しください。</value></data>
+  <data name="Sync_CollectionsSelectedNone" xml:space="preserve"><value>コレクションが選択されていません</value></data>
+  <data name="Sync_CollectionsSelectedOne" xml:space="preserve"><value>1 個のコレクションを選択済み</value></data>
+  <data name="Sync_CollectionsSelectedMany" xml:space="preserve"><value>{0} 個のコレクションを選択済み</value></data>
+  <data name="Sync_LastSyncNever" xml:space="preserve"><value>未同期</value></data>
+  <data name="Sync_IntervalEvery5Minutes" xml:space="preserve"><value>5 分ごと</value></data>
+  <data name="Sync_IntervalEvery15Minutes" xml:space="preserve"><value>15 分ごと</value></data>
+  <data name="Sync_IntervalEvery30Minutes" xml:space="preserve"><value>30 分ごと</value></data>
+  <data name="Sync_IntervalEveryHour" xml:space="preserve"><value>1 時間ごと</value></data>
+  <data name="Sync_IntervalEvery2Hours" xml:space="preserve"><value>2 時間ごと</value></data>
+  <data name="Sync_ScopeAll" xml:space="preserve"><value>すべて</value></data>
+  <data name="Sync_ScopeSelectedCollections" xml:space="preserve"><value>選択したコレクション</value></data>
+  <data name="Sync_CollectionDocumentCountOne" xml:space="preserve"><value>1 件のドキュメント</value></data>
+  <data name="Sync_CollectionDocumentCountMany" xml:space="preserve"><value>{0} 件のドキュメント</value></data>
+  <data name="Sync_FolderRequired" xml:space="preserve"><value>同期フォルダーのパスが必要です。[参照] ボタンを使って選択してください。</value></data>
+  <data name="Sync_KeyRequired" xml:space="preserve"><value>暗号化キーが必要です。このパスフレーズで、同期フォルダーに書き込むすべてのデータが暗号化されます。</value></data>
+  <data name="Sync_IntervalInvalid" xml:space="preserve"><value>同期間隔は分単位の整数で指定してください (最小 1)。</value></data>
+  <data name="Sync_SelectCollectionRequired" xml:space="preserve"><value>同期範囲が [選択したコレクション] の場合は、コレクションを 1 つ以上選択してください。</value></data>
+  <data name="Sync_ConfigSaved" xml:space="preserve"><value>同期構成を保存しました。</value></data>
+  <data name="Sync_ConfigSaveFailed" xml:space="preserve"><value>構成を保存できませんでした: {0}</value></data>
+  <data name="Sync_SaveBeforeSync" xml:space="preserve"><value>同期する前に同期構成を保存してください。</value></data>
+  <data name="Sync_SyncInProgress" xml:space="preserve"><value>ローカルの変更をエクスポートし、他のデバイスの変更をインポートしています...</value></data>
+  <data name="Sync_SyncTimedOut" xml:space="preserve"><value>同期が 10 分でタイムアウトしました。同期フォルダーへの接続を確認して、もう一度お試しください。</value></data>
+  <data name="Sync_SyncFailed" xml:space="preserve"><value>同期に失敗しました: {0}</value></data>
+  <data name="Sync_SaveBeforeAutoSync" xml:space="preserve"><value>自動同期を有効にする前に、同期構成を保存してください。</value></data>
+  <data name="Sync_AutoSyncNeedsSavedConfig" xml:space="preserve"><value>自動同期を有効にするには、先に同期構成を保存してください。</value></data>
+  <data name="Sync_AutoSyncNotStarted" xml:space="preserve"><value>自動同期を開始できませんでした。保存した同期構成を確認して、もう一度お試しください。</value></data>
+  <data name="Sync_AutoSyncStartFailed" xml:space="preserve"><value>自動同期を開始できませんでした: {0}</value></data>
+  <data name="Sync_AutoSyncStopped" xml:space="preserve"><value>自動同期を停止しました。</value></data>
+  <data name="Sync_AutoSyncStoppedNotSaved" xml:space="preserve"><value>自動同期を停止しましたが、設定を保存できなかったため、再起動後に再びオンになる可能性があります: {0}</value></data>
+  <data name="Sync_AutoSyncStopFailed" xml:space="preserve"><value>自動同期を停止できませんでした: {0}</value></data>
+  <data name="Sync_RefreshFailed" xml:space="preserve"><value>更新できませんでした: {0}</value></data>
+  <data name="Sync_AutoSyncStartedOneMinute" xml:space="preserve"><value>自動同期はオンです。最初の自動同期は約 1 分後に実行されます。すぐに同期するには [今すぐ同期] を使用してください。</value></data>
+  <data name="Sync_AutoSyncStartedMinutes" xml:space="preserve"><value>自動同期はオンです。最初の自動同期は約 {0} 分後に実行されます。すぐに同期するには [今すぐ同期] を使用してください。</value></data>
+  <data name="Sync_OutcomeComplete" xml:space="preserve"><value>同期が完了しました。</value></data>
+  <data name="Sync_OutcomeWithProblems" xml:space="preserve"><value>同期は完了しましたが、問題がありました。</value></data>
+  <data name="Sync_ChangeCountOne" xml:space="preserve"><value>1 件の変更</value></data>
+  <data name="Sync_ChangeCountMany" xml:space="preserve"><value>{0} 件の変更</value></data>
+  <data name="Sync_OutcomeNoPeerChanges" xml:space="preserve"><value>{0}{1}をエクスポートしました。同期フォルダーに他のデバイスからの変更はありませんでした。</value></data>
+  <data name="Sync_PeerFileCountOne" xml:space="preserve"><value>他のデバイスのファイル 1 件</value></data>
+  <data name="Sync_PeerFileCountMany" xml:space="preserve"><value>他のデバイスのファイル {0} 件</value></data>
+  <data name="Sync_OutcomeImported" xml:space="preserve"><value>{0}{1}をエクスポートし、{2}をインポートしました ({3} 件の変更を適用)。</value></data>
+  <data name="Sync_OutcomeImportedSkipped" xml:space="preserve"><value>{0}{1}をエクスポートし、{2}をインポートしました ({3} 件の変更を適用、ローカルのコピーより古い {4} 件はスキップ)。</value></data>
+  <data name="Sync_ProblemPendingRetry" xml:space="preserve"><value>他のデバイスのファイル {0} 件に保存できない変更があり、次回の同期で再試行されます</value></data>
+  <data name="Sync_ProblemUnreadable" xml:space="preserve"><value>他のデバイスのファイル {0} 件を読み取れませんでした (両方のデバイスで同じ暗号化キーを使っているか確認してください)</value></data>
+  <data name="Sync_ProblemRejected" xml:space="preserve"><value>{0} 件の変更を適用できなかったため、スキップしました</value></data>
+  <data name="Sync_ProblemSeparator" xml:space="preserve"><value>。</value></data>
+  <data name="Sync_Problems" xml:space="preserve"><value>{0}。</value></data>
+  <data name="Sync_ProblemsWithFirstError" xml:space="preserve"><value>{0}。最初の問題: {1}</value></data>
+  <data name="Sync_StateIdle" xml:space="preserve"><value>待機中</value></data>
+  <data name="Sync_StateSyncing" xml:space="preserve"><value>同期中</value></data>
+  <data name="Sync_StateError" xml:space="preserve"><value>エラー</value></data>
+  <data name="Sync_StateConflict" xml:space="preserve"><value>競合</value></data>
+  <data name="Sync_StateUnknown" xml:space="preserve"><value>不明</value></data>
+  <data name="Sync_FocusedEntryMissing" xml:space="preserve"><value>要求された同期履歴エントリはもう利用できません。</value></data>
+  <data name="Sync_FocusedEntryResolved" xml:space="preserve"><value>新しい同期を実行して、フォーカス中の同期履歴エントリを解決しました。</value></data>
   <data name="Palette_OpenHint.Text" xml:space="preserve"><value>開く</value></data>
   <data name="Palette_CloseHint.Text" xml:space="preserve"><value>閉じる</value></data>
   <data name="Palette_Actions" xml:space="preserve"><value>アクション</value></data>

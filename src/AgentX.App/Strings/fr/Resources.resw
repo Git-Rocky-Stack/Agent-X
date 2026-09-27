@@ -2328,6 +2328,62 @@
   <!-- Guide accuracy pass 2026-07: Comparison / Smart Inbox / Analytics / Operations / Collaborative Sync sections -->
   <data name="Palette_SearchInput.PlaceholderText" xml:space="preserve"><value>Saisissez une page ou une action...</value></data>
   <data name="Palette_NavigateHint.Text" xml:space="preserve"><value>Naviguer</value></data>
+  <data name="Sync_LoadFailed" xml:space="preserve"><value>Impossible de charger les paramètres de synchronisation. Veuillez réessayer.</value></data>
+  <data name="Sync_CollectionsSelectedNone" xml:space="preserve"><value>Aucune collection sélectionnée</value></data>
+  <data name="Sync_CollectionsSelectedOne" xml:space="preserve"><value>1 collection sélectionnée</value></data>
+  <data name="Sync_CollectionsSelectedMany" xml:space="preserve"><value>{0} collections sélectionnées</value></data>
+  <data name="Sync_LastSyncNever" xml:space="preserve"><value>Jamais</value></data>
+  <data name="Sync_IntervalEvery5Minutes" xml:space="preserve"><value>Toutes les 5 minutes</value></data>
+  <data name="Sync_IntervalEvery15Minutes" xml:space="preserve"><value>Toutes les 15 minutes</value></data>
+  <data name="Sync_IntervalEvery30Minutes" xml:space="preserve"><value>Toutes les 30 minutes</value></data>
+  <data name="Sync_IntervalEveryHour" xml:space="preserve"><value>Toutes les heures</value></data>
+  <data name="Sync_IntervalEvery2Hours" xml:space="preserve"><value>Toutes les 2 heures</value></data>
+  <data name="Sync_ScopeAll" xml:space="preserve"><value>Tout</value></data>
+  <data name="Sync_ScopeSelectedCollections" xml:space="preserve"><value>Collections sélectionnées</value></data>
+  <data name="Sync_CollectionDocumentCountOne" xml:space="preserve"><value>1 document</value></data>
+  <data name="Sync_CollectionDocumentCountMany" xml:space="preserve"><value>{0} documents</value></data>
+  <data name="Sync_FolderRequired" xml:space="preserve"><value>Un chemin de dossier de synchronisation est requis. Utilisez le bouton Parcourir pour en sélectionner un.</value></data>
+  <data name="Sync_KeyRequired" xml:space="preserve"><value>Une clé de chiffrement est requise. Cette phrase secrète chiffre toutes les données écrites dans le dossier de synchronisation.</value></data>
+  <data name="Sync_IntervalInvalid" xml:space="preserve"><value>L'intervalle de synchronisation doit être un nombre entier de minutes (minimum 1).</value></data>
+  <data name="Sync_SelectCollectionRequired" xml:space="preserve"><value>Sélectionnez au moins une collection lorsque la portée de la synchronisation est définie sur Collections sélectionnées.</value></data>
+  <data name="Sync_ConfigSaved" xml:space="preserve"><value>Configuration de synchronisation enregistrée.</value></data>
+  <data name="Sync_ConfigSaveFailed" xml:space="preserve"><value>Impossible d'enregistrer la configuration : {0}</value></data>
+  <data name="Sync_SaveBeforeSync" xml:space="preserve"><value>Enregistrez une configuration de synchronisation avant de synchroniser.</value></data>
+  <data name="Sync_SyncInProgress" xml:space="preserve"><value>Exportation des modifications locales et importation des modifications des autres appareils...</value></data>
+  <data name="Sync_SyncTimedOut" xml:space="preserve"><value>La synchronisation a expiré au bout de 10 minutes. Vérifiez l'accès au dossier de synchronisation et réessayez.</value></data>
+  <data name="Sync_SyncFailed" xml:space="preserve"><value>Échec de la synchronisation : {0}</value></data>
+  <data name="Sync_SaveBeforeAutoSync" xml:space="preserve"><value>Enregistrez une configuration de synchronisation avant d'activer la synchronisation automatique.</value></data>
+  <data name="Sync_AutoSyncNeedsSavedConfig" xml:space="preserve"><value>Enregistrez la configuration de synchronisation avant d'activer la synchronisation automatique.</value></data>
+  <data name="Sync_AutoSyncNotStarted" xml:space="preserve"><value>Impossible de démarrer la synchronisation automatique. Vérifiez la configuration de synchronisation enregistrée et réessayez.</value></data>
+  <data name="Sync_AutoSyncStartFailed" xml:space="preserve"><value>Impossible de démarrer la synchronisation automatique : {0}</value></data>
+  <data name="Sync_AutoSyncStopped" xml:space="preserve"><value>Synchronisation automatique arrêtée.</value></data>
+  <data name="Sync_AutoSyncStoppedNotSaved" xml:space="preserve"><value>La synchronisation automatique est arrêtée, mais le paramètre n'a pas pu être enregistré et risque de se réactiver après un redémarrage : {0}</value></data>
+  <data name="Sync_AutoSyncStopFailed" xml:space="preserve"><value>Impossible d'arrêter la synchronisation automatique : {0}</value></data>
+  <data name="Sync_RefreshFailed" xml:space="preserve"><value>Échec de l'actualisation : {0}</value></data>
+  <data name="Sync_AutoSyncStartedOneMinute" xml:space="preserve"><value>La synchronisation automatique est activée. La première synchronisation automatique aura lieu dans environ 1 minute ; utilisez Synchroniser maintenant pour synchroniser immédiatement.</value></data>
+  <data name="Sync_AutoSyncStartedMinutes" xml:space="preserve"><value>La synchronisation automatique est activée. La première synchronisation automatique aura lieu dans environ {0} minutes ; utilisez Synchroniser maintenant pour synchroniser immédiatement.</value></data>
+  <data name="Sync_OutcomeComplete" xml:space="preserve"><value>Synchronisation terminée.</value></data>
+  <data name="Sync_OutcomeWithProblems" xml:space="preserve"><value>Synchronisation terminée avec des problèmes.</value></data>
+  <data name="Sync_ChangeCountOne" xml:space="preserve"><value>1 modification</value></data>
+  <data name="Sync_ChangeCountMany" xml:space="preserve"><value>{0} modifications</value></data>
+  <data name="Sync_OutcomeNoPeerChanges" xml:space="preserve"><value>{0} Exporté : {1} ; aucune modification d'autres appareils n'attendait dans le dossier de synchronisation.</value></data>
+  <data name="Sync_PeerFileCountOne" xml:space="preserve"><value>1 fichier d'un autre appareil</value></data>
+  <data name="Sync_PeerFileCountMany" xml:space="preserve"><value>{0} fichiers d'autres appareils</value></data>
+  <data name="Sync_OutcomeImported" xml:space="preserve"><value>{0} Exporté : {1} ; importé : {2} ({3} modification(s) appliquée(s)).</value></data>
+  <data name="Sync_OutcomeImportedSkipped" xml:space="preserve"><value>{0} Exporté : {1} ; importé : {2} ({3} modification(s) appliquée(s), {4} plus ancienne(s) que la copie locale et ignorée(s)).</value></data>
+  <data name="Sync_ProblemPendingRetry" xml:space="preserve"><value>{0} fichier(s) d'autres appareils contenaient des modifications qui n'ont pas pu être enregistrées et seront retentées lors de la prochaine synchronisation</value></data>
+  <data name="Sync_ProblemUnreadable" xml:space="preserve"><value>{0} fichier(s) d'autres appareils n'ont pas pu être lus (vérifiez que les deux appareils utilisent la même clé de chiffrement)</value></data>
+  <data name="Sync_ProblemRejected" xml:space="preserve"><value>{0} modification(s) n'ont pas pu être appliquées et ont été ignorées</value></data>
+  <data name="Sync_ProblemSeparator" xml:space="preserve"><value> ; </value></data>
+  <data name="Sync_Problems" xml:space="preserve"><value>{0}.</value></data>
+  <data name="Sync_ProblemsWithFirstError" xml:space="preserve"><value>{0}. Premier problème : {1}</value></data>
+  <data name="Sync_StateIdle" xml:space="preserve"><value>Inactif</value></data>
+  <data name="Sync_StateSyncing" xml:space="preserve"><value>Synchronisation en cours</value></data>
+  <data name="Sync_StateError" xml:space="preserve"><value>Erreur</value></data>
+  <data name="Sync_StateConflict" xml:space="preserve"><value>Conflit</value></data>
+  <data name="Sync_StateUnknown" xml:space="preserve"><value>Inconnu</value></data>
+  <data name="Sync_FocusedEntryMissing" xml:space="preserve"><value>L'entrée d'historique de synchronisation demandée n'est plus disponible.</value></data>
+  <data name="Sync_FocusedEntryResolved" xml:space="preserve"><value>L'entrée d'historique ciblée a été résolue en lançant une nouvelle synchronisation.</value></data>
   <data name="Palette_OpenHint.Text" xml:space="preserve"><value>Ouvrir</value></data>
   <data name="Palette_CloseHint.Text" xml:space="preserve"><value>Fermer</value></data>
   <data name="Palette_Actions" xml:space="preserve"><value>ACTIONS</value></data>

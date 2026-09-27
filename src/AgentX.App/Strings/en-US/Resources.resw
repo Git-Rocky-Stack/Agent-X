@@ -46,6 +46,62 @@
   <!-- Command Palette -->
   <data name="Palette_SearchInput.PlaceholderText" xml:space="preserve"><value>Type a page or action...</value></data>
   <data name="Palette_NavigateHint.Text" xml:space="preserve"><value>Navigate</value></data>
+  <data name="Sync_LoadFailed" xml:space="preserve"><value>Failed to load sync settings. Please try again.</value></data>
+  <data name="Sync_CollectionsSelectedNone" xml:space="preserve"><value>No collections selected</value></data>
+  <data name="Sync_CollectionsSelectedOne" xml:space="preserve"><value>1 collection selected</value></data>
+  <data name="Sync_CollectionsSelectedMany" xml:space="preserve"><value>{0} collections selected</value></data>
+  <data name="Sync_LastSyncNever" xml:space="preserve"><value>Never</value></data>
+  <data name="Sync_IntervalEvery5Minutes" xml:space="preserve"><value>Every 5 minutes</value></data>
+  <data name="Sync_IntervalEvery15Minutes" xml:space="preserve"><value>Every 15 minutes</value></data>
+  <data name="Sync_IntervalEvery30Minutes" xml:space="preserve"><value>Every 30 minutes</value></data>
+  <data name="Sync_IntervalEveryHour" xml:space="preserve"><value>Every hour</value></data>
+  <data name="Sync_IntervalEvery2Hours" xml:space="preserve"><value>Every 2 hours</value></data>
+  <data name="Sync_ScopeAll" xml:space="preserve"><value>All</value></data>
+  <data name="Sync_ScopeSelectedCollections" xml:space="preserve"><value>Selected Collections</value></data>
+  <data name="Sync_CollectionDocumentCountOne" xml:space="preserve"><value>1 document</value></data>
+  <data name="Sync_CollectionDocumentCountMany" xml:space="preserve"><value>{0} documents</value></data>
+  <data name="Sync_FolderRequired" xml:space="preserve"><value>A sync folder path is required. Use the Browse button to select one.</value></data>
+  <data name="Sync_KeyRequired" xml:space="preserve"><value>An encryption key is required. This passphrase encrypts all data written to the sync folder.</value></data>
+  <data name="Sync_IntervalInvalid" xml:space="preserve"><value>Sync interval must be a whole number of minutes (minimum 1).</value></data>
+  <data name="Sync_SelectCollectionRequired" xml:space="preserve"><value>Select at least one collection when Sync Scope is set to Selected Collections.</value></data>
+  <data name="Sync_ConfigSaved" xml:space="preserve"><value>Sync configuration saved successfully.</value></data>
+  <data name="Sync_ConfigSaveFailed" xml:space="preserve"><value>Failed to save configuration: {0}</value></data>
+  <data name="Sync_SaveBeforeSync" xml:space="preserve"><value>Please save a sync configuration before syncing.</value></data>
+  <data name="Sync_SyncInProgress" xml:space="preserve"><value>Exporting local changes and importing peer changes...</value></data>
+  <data name="Sync_SyncTimedOut" xml:space="preserve"><value>Sync timed out after 10 minutes. Please check the sync folder connectivity and try again.</value></data>
+  <data name="Sync_SyncFailed" xml:space="preserve"><value>Sync failed: {0}</value></data>
+  <data name="Sync_SaveBeforeAutoSync" xml:space="preserve"><value>Please save a sync configuration before enabling auto-sync.</value></data>
+  <data name="Sync_AutoSyncNeedsSavedConfig" xml:space="preserve"><value>Save the sync configuration before enabling auto-sync.</value></data>
+  <data name="Sync_AutoSyncNotStarted" xml:space="preserve"><value>Auto-sync could not be started. Check the saved sync configuration and try again.</value></data>
+  <data name="Sync_AutoSyncStartFailed" xml:space="preserve"><value>Failed to start auto-sync: {0}</value></data>
+  <data name="Sync_AutoSyncStopped" xml:space="preserve"><value>Auto-sync stopped.</value></data>
+  <data name="Sync_AutoSyncStoppedNotSaved" xml:space="preserve"><value>Auto-sync stopped, but the setting could not be saved and may turn back on after a restart: {0}</value></data>
+  <data name="Sync_AutoSyncStopFailed" xml:space="preserve"><value>Failed to stop auto-sync: {0}</value></data>
+  <data name="Sync_RefreshFailed" xml:space="preserve"><value>Failed to refresh: {0}</value></data>
+  <data name="Sync_AutoSyncStartedOneMinute" xml:space="preserve"><value>Auto-sync is on. The first automatic sync runs in about 1 minute; use Sync Now to sync immediately.</value></data>
+  <data name="Sync_AutoSyncStartedMinutes" xml:space="preserve"><value>Auto-sync is on. The first automatic sync runs in about {0} minutes; use Sync Now to sync immediately.</value></data>
+  <data name="Sync_OutcomeComplete" xml:space="preserve"><value>Sync complete.</value></data>
+  <data name="Sync_OutcomeWithProblems" xml:space="preserve"><value>Sync finished with problems.</value></data>
+  <data name="Sync_ChangeCountOne" xml:space="preserve"><value>1 change</value></data>
+  <data name="Sync_ChangeCountMany" xml:space="preserve"><value>{0} changes</value></data>
+  <data name="Sync_OutcomeNoPeerChanges" xml:space="preserve"><value>{0} Exported {1}; no peer changes were waiting in the sync folder.</value></data>
+  <data name="Sync_PeerFileCountOne" xml:space="preserve"><value>1 peer file</value></data>
+  <data name="Sync_PeerFileCountMany" xml:space="preserve"><value>{0} peer files</value></data>
+  <data name="Sync_OutcomeImported" xml:space="preserve"><value>{0} Exported {1}; imported {2} ({3} change(s) applied).</value></data>
+  <data name="Sync_OutcomeImportedSkipped" xml:space="preserve"><value>{0} Exported {1}; imported {2} ({3} change(s) applied, {4} older than the local copy and skipped).</value></data>
+  <data name="Sync_ProblemPendingRetry" xml:space="preserve"><value>{0} peer file(s) had changes that could not be saved and will be retried on the next sync</value></data>
+  <data name="Sync_ProblemUnreadable" xml:space="preserve"><value>{0} peer file(s) could not be read (check that both devices use the same encryption key)</value></data>
+  <data name="Sync_ProblemRejected" xml:space="preserve"><value>{0} change(s) could not be applied and were skipped</value></data>
+  <data name="Sync_ProblemSeparator" xml:space="preserve"><value>; </value></data>
+  <data name="Sync_Problems" xml:space="preserve"><value>{0}.</value></data>
+  <data name="Sync_ProblemsWithFirstError" xml:space="preserve"><value>{0}. First problem: {1}</value></data>
+  <data name="Sync_StateIdle" xml:space="preserve"><value>Idle</value></data>
+  <data name="Sync_StateSyncing" xml:space="preserve"><value>Syncing</value></data>
+  <data name="Sync_StateError" xml:space="preserve"><value>Error</value></data>
+  <data name="Sync_StateConflict" xml:space="preserve"><value>Conflict</value></data>
+  <data name="Sync_StateUnknown" xml:space="preserve"><value>Unknown</value></data>
+  <data name="Sync_FocusedEntryMissing" xml:space="preserve"><value>The requested sync history entry is no longer available.</value></data>
+  <data name="Sync_FocusedEntryResolved" xml:space="preserve"><value>Resolved the focused sync history entry by running a fresh sync pass.</value></data>
   <data name="Palette_OpenHint.Text" xml:space="preserve"><value>Open</value></data>
   <data name="Palette_CloseHint.Text" xml:space="preserve"><value>Close</value></data>
   <data name="Palette_Actions" xml:space="preserve"><value>ACTIONS</value></data>

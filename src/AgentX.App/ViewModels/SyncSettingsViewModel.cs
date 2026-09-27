@@ -4,6 +4,7 @@ using AgentX.App.ViewModels.Sync;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Helpers;
 using AgentX.Core.Services.Collections;
+using AgentX.Core.Services.Localization;
 using AgentX.Core.Services.Sync;
 using AgentX.Core.Services.Sync.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -37,6 +38,7 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
 
     private readonly ISyncService _syncService;
     private readonly ICollectionService _collectionService;
+    private readonly ILocalizationService _localization;
     private readonly IOperationsDrillInService? _operationsDrillInService;
 
     // ── Page State ────────────────────────────────────────────────────────────
@@ -90,19 +92,20 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
 
     // ── Sync Status Fields ────────────────────────────────────────────────────
 
-    /// <summary>Human-readable representation of the current SyncState, e.g. "Idle".</summary>
-    [ObservableProperty] private string _syncState = "Idle";
+    /// <summary>The current sync state in the user's language, e.g. "Idle".</summary>
+    [ObservableProperty] private string _syncState;
 
     /// <summary>
     /// Typed mirror of <see cref="SyncState"/> so the view can pick LED tones
     /// from the enum instead of keying off a display string.
     /// </summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SyncStateTone))]
     private AgentX.Core.Services.Sync.Models.SyncState _currentSyncState =
         AgentX.Core.Services.Sync.Models.SyncState.Idle;
 
     /// <summary>Relative timestamp of the last successful sync pass, e.g. "3m ago".</summary>
-    [ObservableProperty] private string _lastSyncAt = "Never";
+    [ObservableProperty] private string _lastSyncAt;
 
     /// <summary>Number of locally-originated changes exported but not yet confirmed received by a peer.</summary>
     [ObservableProperty] private int _pendingChanges;
@@ -116,14 +119,7 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
     /// Display strings for the sync interval dropdown. Indexes map to
     /// { 5, 15, 30, 60, 120 } minutes respectively.
     /// </summary>
-    public List<string> IntervalOptions { get; } = new()
-    {
-        "Every 5 minutes",
-        "Every 15 minutes",
-        "Every 30 minutes",
-        "Every hour",
-        "Every 2 hours"
-    };
+    public List<string> IntervalOptions { get; }
 
     /// <summary>
     /// Currently selected index in <see cref="IntervalOptions"/>.
@@ -131,7 +127,28 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
     /// </summary>
     [ObservableProperty] private int _selectedIntervalIndex = 1;
 
-    public List<string> SyncScopeOptions { get; } = new() { "All", "SelectedCollections" };
+    /// <summary>The stored <see cref="SyncScope"/> values, in the order of <see cref="SyncScopeOptions"/>.</summary>
+    private static readonly string[] SyncScopeValues = { "All", "SelectedCollections" };
+
+    /// <summary>
+    /// Display strings for the sync scope dropdown, one per entry of <see cref="SyncScopeValues"/>.
+    /// The dropdown binds <see cref="SelectedSyncScopeIndex"/>, so the labels are shown in the
+    /// user's language while <see cref="SyncScope"/> keeps the stored value.
+    /// </summary>
+    public List<string> SyncScopeOptions { get; }
+
+    /// <summary>Index of <see cref="SyncScope"/> in <see cref="SyncScopeOptions"/>, bound two-way by the dropdown.</summary>
+    public int SelectedSyncScopeIndex
+    {
+        get => Array.IndexOf(SyncScopeValues, SyncScope);
+        set
+        {
+            if (value >= 0 && value < SyncScopeValues.Length)
+            {
+                SyncScope = SyncScopeValues[value];
+            }
+        }
+    }
 
     public ObservableCollection<SyncCollectionSelectionItem> AvailableCollections { get; } = new();
 
@@ -165,6 +182,20 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
     /// <summary>Alias for <see cref="SyncState"/> used by SyncSettingsPage.xaml.</summary>
     public string SyncStateDisplay => SyncState;
 
+    /// <summary>
+    /// Status token for the header badge dot, mapped to a brush by StatusToColorConverter. The
+    /// converter reads English status words, so the dot follows <see cref="CurrentSyncState"/>
+    /// rather than the translated <see cref="SyncState"/>.
+    /// </summary>
+    public string SyncStateTone => CurrentSyncState switch
+    {
+        AgentX.Core.Services.Sync.Models.SyncState.Idle => "idle",
+        AgentX.Core.Services.Sync.Models.SyncState.Syncing => "syncing",
+        AgentX.Core.Services.Sync.Models.SyncState.Error => "error",
+        AgentX.Core.Services.Sync.Models.SyncState.Conflict => "conflict",
+        _ => "unknown"
+    };
+
     /// <summary>Alias for <see cref="HasStatusMessage"/> used by SyncSettingsPage.xaml.</summary>
     public bool HasSuccess => HasStatusMessage;
 
@@ -186,9 +217,9 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
             var selectedCount = AvailableCollections.Count(collection => collection.IsSelected);
             return selectedCount switch
             {
-                0 => "No collections selected",
-                1 => "1 collection selected",
-                _ => $"{selectedCount} collections selected"
+                0 => _localization.GetString("Sync_CollectionsSelectedNone"),
+                1 => _localization.GetString("Sync_CollectionsSelectedOne"),
+                _ => _localization.GetString("Sync_CollectionsSelectedMany", selectedCount)
             };
         }
     }
@@ -198,11 +229,30 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
     public SyncSettingsViewModel(
         ISyncService syncService,
         ICollectionService collectionService,
+        ILocalizationService localization,
         IOperationsDrillInService? operationsDrillInService = null)
     {
         _syncService = syncService;
         _collectionService = collectionService;
+        _localization = localization;
         _operationsDrillInService = operationsDrillInService;
+
+        _syncState = DescribeSyncState(AgentX.Core.Services.Sync.Models.SyncState.Idle);
+        _lastSyncAt = _localization.GetString("Sync_LastSyncNever");
+        IntervalOptions = new List<string>
+        {
+            _localization.GetString("Sync_IntervalEvery5Minutes"),
+            _localization.GetString("Sync_IntervalEvery15Minutes"),
+            _localization.GetString("Sync_IntervalEvery30Minutes"),
+            _localization.GetString("Sync_IntervalEveryHour"),
+            _localization.GetString("Sync_IntervalEvery2Hours")
+        };
+        SyncScopeOptions = new List<string>
+        {
+            _localization.GetString("Sync_ScopeAll"),
+            _localization.GetString("Sync_ScopeSelectedCollections")
+        };
+
         Log.Debug("SyncSettingsViewModel created");
     }
 
@@ -229,7 +279,7 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "SyncSettingsViewModel initialization failed");
-            SetError("Failed to load sync settings. Please try again.");
+            SetError(_localization.GetString("Sync_LoadFailed"));
         }
         finally
         {
@@ -299,10 +349,14 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
             AvailableCollections.Clear();
             foreach (var collection in collections.OrderBy(collection => collection.SortOrder).ThenBy(collection => collection.Name))
             {
+                var detailLabel = collection.DocumentCount == 1
+                    ? _localization.GetString("Sync_CollectionDocumentCountOne")
+                    : _localization.GetString("Sync_CollectionDocumentCountMany", collection.DocumentCount);
                 AvailableCollections.Add(new SyncCollectionSelectionItem(
                     collection.Id,
                     collection.Name,
                     collection.DocumentCount,
+                    detailLabel,
                     selectedIds.Contains(collection.Id),
                     UpdateSelectedCollectionIdsFromSelections));
             }
@@ -330,21 +384,13 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
         {
             var status = _syncService.Status;
 
-            CurrentSyncState = status.SyncState;
-            SyncState = status.SyncState switch
-            {
-                AgentX.Core.Services.Sync.Models.SyncState.Idle => "Idle",
-                AgentX.Core.Services.Sync.Models.SyncState.Syncing => "Syncing",
-                AgentX.Core.Services.Sync.Models.SyncState.Error => "Error",
-                AgentX.Core.Services.Sync.Models.SyncState.Conflict => "Conflict",
-                _ => "Unknown"
-            };
+            ShowSyncState(status.SyncState);
 
             PendingChanges = status.PendingChanges;
 
             LastSyncAt = status.LastSyncAt.HasValue
                 ? FormatHelper.TimeAgoWithMonths(status.LastSyncAt.Value)
-                : "Never";
+                : _localization.GetString("Sync_LastSyncNever");
 
             LastSyncDurationMs = status.LastSyncDurationMs > 0
                 ? FormatHelper.FormatDuration(status.LastSyncDurationMs)
@@ -375,19 +421,19 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
 
         if (string.IsNullOrWhiteSpace(SyncFolderPath))
         {
-            SetError("A sync folder path is required. Use the Browse button to select one.");
+            SetError(_localization.GetString("Sync_FolderRequired"));
             return;
         }
 
         if (string.IsNullOrWhiteSpace(EncryptionKey))
         {
-            SetError("An encryption key is required. This passphrase encrypts all data written to the sync folder.");
+            SetError(_localization.GetString("Sync_KeyRequired"));
             return;
         }
 
         if (!int.TryParse(SyncIntervalMinutes?.Trim(), out int intervalMinutes) || intervalMinutes < 1)
         {
-            SetError("Sync interval must be a whole number of minutes (minimum 1).");
+            SetError(_localization.GetString("Sync_IntervalInvalid"));
             return;
         }
 
@@ -406,7 +452,7 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
         if (scope == AgentX.Core.Services.Sync.Models.SyncScope.SelectedCollections &&
             string.IsNullOrWhiteSpace(SelectedCollectionIds))
         {
-            SetError("Select at least one collection when Sync Scope is set to Selected Collections.");
+            SetError(_localization.GetString("Sync_SelectCollectionRequired"));
             return;
         }
 
@@ -445,13 +491,13 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
             else
                 await StopAutoSyncLoopAsync();
 
-            SetStatus("Sync configuration saved successfully.");
+            SetStatus(_localization.GetString("Sync_ConfigSaved"));
             Log.Information("Sync configuration saved");
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to save sync configuration");
-            SetError($"Failed to save configuration: {ex.Message}");
+            SetError(_localization.GetString("Sync_ConfigSaveFailed", ex.Message));
         }
         finally
         {
@@ -474,7 +520,7 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
     {
         if (!HasConfiguration)
         {
-            SetError("Please save a sync configuration before syncing.");
+            SetError(_localization.GetString("Sync_SaveBeforeSync"));
             return;
         }
 
@@ -484,15 +530,14 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
         IsSyncing = true;
         ClearError();
         ClearStatus();
-        SyncState = "Syncing";
-        CurrentSyncState = AgentX.Core.Services.Sync.Models.SyncState.Syncing;
+        ShowSyncState(AgentX.Core.Services.Sync.Models.SyncState.Syncing);
         NotifyComputedProperties();
 
         using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
 
         try
         {
-            SetStatus("Exporting local changes and importing peer changes...");
+            SetStatus(_localization.GetString("Sync_SyncInProgress"));
             var result = await _syncService.SyncNowAsync(cts.Token);
 
             // Refresh the status display and history list from what the pass recorded.
@@ -521,16 +566,14 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
         }
         catch (OperationCanceledException)
         {
-            SyncState = "Error";
-            CurrentSyncState = AgentX.Core.Services.Sync.Models.SyncState.Error;
-            SetError("Sync timed out after 10 minutes. Please check the sync folder connectivity and try again.");
+            ShowSyncState(AgentX.Core.Services.Sync.Models.SyncState.Error);
+            SetError(_localization.GetString("Sync_SyncTimedOut"));
             Log.Warning("Manual sync timed out");
         }
         catch (Exception ex)
         {
-            SyncState = "Error";
-            CurrentSyncState = AgentX.Core.Services.Sync.Models.SyncState.Error;
-            SetError($"Sync failed: {ex.Message}");
+            ShowSyncState(AgentX.Core.Services.Sync.Models.SyncState.Error);
+            SetError(_localization.GetString("Sync_SyncFailed", ex.Message));
             Log.Error(ex, "Manual sync failed");
         }
         finally
@@ -602,7 +645,7 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
         if (!HasConfiguration)
         {
             SetAutoSyncEnabledSilently(false);
-            SetError("Please save a sync configuration before enabling auto-sync.");
+            SetError(_localization.GetString("Sync_SaveBeforeAutoSync"));
             return;
         }
 
@@ -612,7 +655,7 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
             if (stored is null)
             {
                 SetAutoSyncEnabledSilently(false);
-                SetError("Save the sync configuration before enabling auto-sync.");
+                SetError(_localization.GetString("Sync_AutoSyncNeedsSavedConfig"));
                 return;
             }
 
@@ -627,7 +670,7 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
             if (!_syncService.IsAutoSyncRunning)
             {
                 SetAutoSyncEnabledSilently(false);
-                SetError("Auto-sync could not be started. Check the saved sync configuration and try again.");
+                SetError(_localization.GetString("Sync_AutoSyncNotStarted"));
                 Log.Warning("Auto-sync start requested but the loop is not running");
                 return;
             }
@@ -640,7 +683,7 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
         {
             Log.Error(ex, "Failed to start auto-sync");
             SetAutoSyncEnabledSilently(_syncService.IsAutoSyncRunning);
-            SetError($"Failed to start auto-sync: {ex.Message}");
+            SetError(_localization.GetString("Sync_AutoSyncStartFailed", ex.Message));
         }
     }
 
@@ -680,11 +723,11 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
 
             if (persistError is null)
             {
-                SetStatus("Auto-sync stopped.");
+                SetStatus(_localization.GetString("Sync_AutoSyncStopped"));
             }
             else
             {
-                SetError($"Auto-sync stopped, but the setting could not be saved and may turn back on after a restart: {persistError}");
+                SetError(_localization.GetString("Sync_AutoSyncStoppedNotSaved", persistError));
             }
 
             Log.Information("Auto-sync loop stopped");
@@ -692,7 +735,7 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Warning(ex, "Error while stopping auto-sync");
-            SetError($"Failed to stop auto-sync: {ex.Message}");
+            SetError(_localization.GetString("Sync_AutoSyncStopFailed", ex.Message));
         }
     }
 
@@ -751,14 +794,14 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Warning(ex, "Failed to refresh sync status");
-            SetError($"Failed to refresh: {ex.Message}");
+            SetError(_localization.GetString("Sync_RefreshFailed", ex.Message));
         }
     }
 
     [RelayCommand]
     private void DismissFocusedSyncLanding()
     {
-        var shouldClearStatus = HasStatusMessage && string.Equals(StatusMessage, FocusedSyncSourceLabel, StringComparison.Ordinal);
+        var shouldClearStatus = HasStatusMessage && _statusShowsFocusedSyncSource;
 
         FocusedSyncLogId = 0;
         FocusedSyncSourceLabel = string.Empty;
@@ -779,7 +822,7 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
     private Task ClearSyncHistoryAsync()
     {
         Log.Debug("Clear sync history requested");
-        var shouldClearStatus = HasStatusMessage && string.Equals(StatusMessage, FocusedSyncSourceLabel, StringComparison.Ordinal);
+        var shouldClearStatus = HasStatusMessage && _statusShowsFocusedSyncSource;
 
         SyncHistory.Clear();
         FocusedSyncLogId = 0;
@@ -845,6 +888,7 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
             UpdateSelectedCollectionIdsFromSelections();
         }
 
+        OnPropertyChanged(nameof(SelectedSyncScopeIndex));
         OnPropertyChanged(nameof(ShowSelectedCollectionsPicker));
         OnPropertyChanged(nameof(SelectedCollectionSummary));
     }
@@ -879,47 +923,66 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
         }
     }
 
-    private static string BuildAutoSyncStartedMessage(int intervalMinutes)
+    private string BuildAutoSyncStartedMessage(int intervalMinutes)
     {
         var minutes = Math.Max(1, intervalMinutes);
         return minutes == 1
-            ? "Auto-sync is on. The first automatic sync runs in about 1 minute; use Sync Now to sync immediately."
-            : $"Auto-sync is on. The first automatic sync runs in about {minutes} minutes; use Sync Now to sync immediately.";
+            ? _localization.GetString("Sync_AutoSyncStartedOneMinute")
+            : _localization.GetString("Sync_AutoSyncStartedMinutes", minutes);
     }
 
     /// <summary>Plain-language summary of a completed sync pass.</summary>
-    internal static string BuildSyncOutcomeMessage(SyncRunResult result)
+    internal string BuildSyncOutcomeMessage(SyncRunResult result)
     {
-        var exported = result.ExportedChanges == 1 ? "1 change" : $"{result.ExportedChanges} changes";
+        var lead = result.HasProblems
+            ? _localization.GetString("Sync_OutcomeWithProblems")
+            : _localization.GetString("Sync_OutcomeComplete");
+        var exported = result.ExportedChanges == 1
+            ? _localization.GetString("Sync_ChangeCountOne")
+            : _localization.GetString("Sync_ChangeCountMany", result.ExportedChanges);
         if (result.PeerFilesFound == 0)
-            return $"Sync complete. Exported {exported}; no peer changes were waiting in the sync folder.";
+            return _localization.GetString("Sync_OutcomeNoPeerChanges", lead, exported);
 
-        var files = result.PeerFilesImported == 1 ? "1 peer file" : $"{result.PeerFilesImported} peer files";
-        var message = $"Sync complete. Exported {exported}; imported {files} ({result.ChangesApplied} change(s) applied";
-        if (result.ConflictsResolved > 0)
-            message += $", {result.ConflictsResolved} older than the local copy and skipped";
-        message += ").";
-
-        if (result.HasProblems)
-            message = message.Replace("Sync complete.", "Sync finished with problems.", StringComparison.Ordinal);
-
-        return message;
+        var files = result.PeerFilesImported == 1
+            ? _localization.GetString("Sync_PeerFileCountOne")
+            : _localization.GetString("Sync_PeerFileCountMany", result.PeerFilesImported);
+        return result.ConflictsResolved > 0
+            ? _localization.GetString("Sync_OutcomeImportedSkipped", lead, exported, files, result.ChangesApplied, result.ConflictsResolved)
+            : _localization.GetString("Sync_OutcomeImported", lead, exported, files, result.ChangesApplied);
     }
 
     /// <summary>Describes what went wrong in a pass, for the error banner.</summary>
-    internal static string BuildSyncProblemMessage(SyncRunResult result)
+    internal string BuildSyncProblemMessage(SyncRunResult result)
     {
         var parts = new List<string>();
         if (result.PeerFilesPendingRetry > 0)
-            parts.Add($"{result.PeerFilesPendingRetry} peer file(s) had changes that could not be saved and will be retried on the next sync");
+            parts.Add(_localization.GetString("Sync_ProblemPendingRetry", result.PeerFilesPendingRetry));
         if (result.PeerFilesUnreadable > 0)
-            parts.Add($"{result.PeerFilesUnreadable} peer file(s) could not be read (check that both devices use the same encryption key)");
+            parts.Add(_localization.GetString("Sync_ProblemUnreadable", result.PeerFilesUnreadable));
         if (result.ChangesRejected > 0)
-            parts.Add($"{result.ChangesRejected} change(s) could not be applied and were skipped");
+            parts.Add(_localization.GetString("Sync_ProblemRejected", result.ChangesRejected));
 
-        var detail = result.Errors.Count > 0 ? $" First problem: {result.Errors[0]}" : string.Empty;
-        return string.Join("; ", parts) + "." + detail;
+        var problems = string.Join(_localization.GetString("Sync_ProblemSeparator"), parts);
+        return result.Errors.Count > 0
+            ? _localization.GetString("Sync_ProblemsWithFirstError", problems, result.Errors[0])
+            : _localization.GetString("Sync_Problems", problems);
     }
+
+    /// <summary>Shows <paramref name="state"/> in the badge text and the typed state the LEDs read.</summary>
+    private void ShowSyncState(AgentX.Core.Services.Sync.Models.SyncState state)
+    {
+        CurrentSyncState = state;
+        SyncState = DescribeSyncState(state);
+    }
+
+    private string DescribeSyncState(AgentX.Core.Services.Sync.Models.SyncState state) => state switch
+    {
+        AgentX.Core.Services.Sync.Models.SyncState.Idle => _localization.GetString("Sync_StateIdle"),
+        AgentX.Core.Services.Sync.Models.SyncState.Syncing => _localization.GetString("Sync_StateSyncing"),
+        AgentX.Core.Services.Sync.Models.SyncState.Error => _localization.GetString("Sync_StateError"),
+        AgentX.Core.Services.Sync.Models.SyncState.Conflict => _localization.GetString("Sync_StateConflict"),
+        _ => _localization.GetString("Sync_StateUnknown")
+    };
 
     /// <summary>
     /// Maps a raw <see cref="SyncLogEntity"/> to a <see cref="SyncHistoryItem"/>
@@ -960,7 +1023,7 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
             FocusedSyncLogId = 0;
             FocusedSyncSourceLabel = string.Empty;
             ClearSyncHistoryFocus();
-            SetStatus("The requested sync history entry is no longer available.");
+            SetStatus(_localization.GetString("Sync_FocusedEntryMissing"));
             return;
         }
 
@@ -973,7 +1036,7 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
             SyncHistory.Move(currentIndex, 0);
         }
 
-        SetStatus(FocusedSyncSourceLabel);
+        SetStatus(FocusedSyncSourceLabel, showsFocusedSyncSource: true);
     }
 
     private bool TryResolveFocusedSyncAction(string resolutionMessage)
@@ -997,7 +1060,7 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
             return null;
         }
 
-        return "Resolved the focused sync history entry by running a fresh sync pass.";
+        return _localization.GetString("Sync_FocusedEntryResolved");
     }
 
     private void ClearSyncHistoryFocus()
@@ -1066,10 +1129,17 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
         HasError = false;
     }
 
-    private void SetStatus(string message)
+    /// <summary>
+    /// True while the status line shows the focused history entry's source label, so dismissing
+    /// the focus clears that line without comparing displayed text.
+    /// </summary>
+    private bool _statusShowsFocusedSyncSource;
+
+    private void SetStatus(string message, bool showsFocusedSyncSource = false)
     {
         StatusMessage = message;
         HasStatusMessage = true;
+        _statusShowsFocusedSyncSource = showsFocusedSyncSource;
         OnPropertyChanged(nameof(HasSuccess));
         OnPropertyChanged(nameof(SuccessMessage));
     }
@@ -1078,6 +1148,7 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
     {
         StatusMessage = string.Empty;
         HasStatusMessage = false;
+        _statusShowsFocusedSyncSource = false;
         OnPropertyChanged(nameof(HasSuccess));
         OnPropertyChanged(nameof(SuccessMessage));
     }
@@ -1100,15 +1171,18 @@ public sealed partial class SyncCollectionSelectionItem : ObservableObject
     public long Id { get; }
     public string Name { get; }
     public int DocumentCount { get; }
-    public string DetailLabel => DocumentCount == 1 ? "1 document" : $"{DocumentCount} documents";
+
+    /// <summary>The document count as shown under the name, e.g. "3 documents".</summary>
+    public string DetailLabel { get; }
 
     [ObservableProperty] private bool _isSelected;
 
-    public SyncCollectionSelectionItem(long id, string name, int documentCount, bool isSelected, Action selectionChanged)
+    public SyncCollectionSelectionItem(long id, string name, int documentCount, string detailLabel, bool isSelected, Action selectionChanged)
     {
         Id = id;
         Name = name;
         DocumentCount = documentCount;
+        DetailLabel = detailLabel;
         _isSelected = isSelected;
         _selectionChanged = selectionChanged;
     }

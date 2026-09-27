@@ -2328,6 +2328,62 @@
   <!-- Guide accuracy pass 2026-07: Comparison / Smart Inbox / Analytics / Operations / Collaborative Sync sections -->
   <data name="Palette_SearchInput.PlaceholderText" xml:space="preserve"><value>Seite oder Aktion eingeben...</value></data>
   <data name="Palette_NavigateHint.Text" xml:space="preserve"><value>Navigieren</value></data>
+  <data name="Sync_LoadFailed" xml:space="preserve"><value>Die Sync-Einstellungen konnten nicht geladen werden. Bitte versuchen Sie es erneut.</value></data>
+  <data name="Sync_CollectionsSelectedNone" xml:space="preserve"><value>Keine Sammlungen ausgewählt</value></data>
+  <data name="Sync_CollectionsSelectedOne" xml:space="preserve"><value>1 Sammlung ausgewählt</value></data>
+  <data name="Sync_CollectionsSelectedMany" xml:space="preserve"><value>{0} Sammlungen ausgewählt</value></data>
+  <data name="Sync_LastSyncNever" xml:space="preserve"><value>Nie</value></data>
+  <data name="Sync_IntervalEvery5Minutes" xml:space="preserve"><value>Alle 5 Minuten</value></data>
+  <data name="Sync_IntervalEvery15Minutes" xml:space="preserve"><value>Alle 15 Minuten</value></data>
+  <data name="Sync_IntervalEvery30Minutes" xml:space="preserve"><value>Alle 30 Minuten</value></data>
+  <data name="Sync_IntervalEveryHour" xml:space="preserve"><value>Stündlich</value></data>
+  <data name="Sync_IntervalEvery2Hours" xml:space="preserve"><value>Alle 2 Stunden</value></data>
+  <data name="Sync_ScopeAll" xml:space="preserve"><value>Alle</value></data>
+  <data name="Sync_ScopeSelectedCollections" xml:space="preserve"><value>Ausgewählte Sammlungen</value></data>
+  <data name="Sync_CollectionDocumentCountOne" xml:space="preserve"><value>1 Dokument</value></data>
+  <data name="Sync_CollectionDocumentCountMany" xml:space="preserve"><value>{0} Dokumente</value></data>
+  <data name="Sync_FolderRequired" xml:space="preserve"><value>Ein Pfad zum Sync-Ordner ist erforderlich. Wählen Sie über „Durchsuchen“ einen Ordner aus.</value></data>
+  <data name="Sync_KeyRequired" xml:space="preserve"><value>Ein Verschlüsselungsschlüssel ist erforderlich. Diese Passphrase verschlüsselt alle Daten, die in den Sync-Ordner geschrieben werden.</value></data>
+  <data name="Sync_IntervalInvalid" xml:space="preserve"><value>Das Sync-Intervall muss eine ganze Zahl von Minuten sein (mindestens 1).</value></data>
+  <data name="Sync_SelectCollectionRequired" xml:space="preserve"><value>Wählen Sie mindestens eine Sammlung aus, wenn der Sync-Umfang auf „Ausgewählte Sammlungen“ steht.</value></data>
+  <data name="Sync_ConfigSaved" xml:space="preserve"><value>Die Sync-Konfiguration wurde gespeichert.</value></data>
+  <data name="Sync_ConfigSaveFailed" xml:space="preserve"><value>Die Konfiguration konnte nicht gespeichert werden: {0}</value></data>
+  <data name="Sync_SaveBeforeSync" xml:space="preserve"><value>Bitte speichern Sie vor dem Synchronisieren eine Sync-Konfiguration.</value></data>
+  <data name="Sync_SyncInProgress" xml:space="preserve"><value>Lokale Änderungen werden exportiert und Änderungen anderer Geräte importiert...</value></data>
+  <data name="Sync_SyncTimedOut" xml:space="preserve"><value>Die Synchronisierung wurde nach 10 Minuten wegen Zeitüberschreitung abgebrochen. Prüfen Sie die Verbindung zum Sync-Ordner und versuchen Sie es erneut.</value></data>
+  <data name="Sync_SyncFailed" xml:space="preserve"><value>Synchronisierung fehlgeschlagen: {0}</value></data>
+  <data name="Sync_SaveBeforeAutoSync" xml:space="preserve"><value>Bitte speichern Sie eine Sync-Konfiguration, bevor Sie Auto-Sync aktivieren.</value></data>
+  <data name="Sync_AutoSyncNeedsSavedConfig" xml:space="preserve"><value>Speichern Sie die Sync-Konfiguration, bevor Sie Auto-Sync aktivieren.</value></data>
+  <data name="Sync_AutoSyncNotStarted" xml:space="preserve"><value>Auto-Sync konnte nicht gestartet werden. Prüfen Sie die gespeicherte Sync-Konfiguration und versuchen Sie es erneut.</value></data>
+  <data name="Sync_AutoSyncStartFailed" xml:space="preserve"><value>Auto-Sync konnte nicht gestartet werden: {0}</value></data>
+  <data name="Sync_AutoSyncStopped" xml:space="preserve"><value>Auto-Sync wurde gestoppt.</value></data>
+  <data name="Sync_AutoSyncStoppedNotSaved" xml:space="preserve"><value>Auto-Sync wurde gestoppt, aber die Einstellung konnte nicht gespeichert werden und ist nach einem Neustart möglicherweise wieder aktiv: {0}</value></data>
+  <data name="Sync_AutoSyncStopFailed" xml:space="preserve"><value>Auto-Sync konnte nicht gestoppt werden: {0}</value></data>
+  <data name="Sync_RefreshFailed" xml:space="preserve"><value>Aktualisierung fehlgeschlagen: {0}</value></data>
+  <data name="Sync_AutoSyncStartedOneMinute" xml:space="preserve"><value>Auto-Sync ist eingeschaltet. Die erste automatische Synchronisierung startet in etwa 1 Minute; mit „Jetzt synchronisieren“ synchronisieren Sie sofort.</value></data>
+  <data name="Sync_AutoSyncStartedMinutes" xml:space="preserve"><value>Auto-Sync ist eingeschaltet. Die erste automatische Synchronisierung startet in etwa {0} Minuten; mit „Jetzt synchronisieren“ synchronisieren Sie sofort.</value></data>
+  <data name="Sync_OutcomeComplete" xml:space="preserve"><value>Synchronisierung abgeschlossen.</value></data>
+  <data name="Sync_OutcomeWithProblems" xml:space="preserve"><value>Synchronisierung mit Problemen beendet.</value></data>
+  <data name="Sync_ChangeCountOne" xml:space="preserve"><value>1 Änderung</value></data>
+  <data name="Sync_ChangeCountMany" xml:space="preserve"><value>{0} Änderungen</value></data>
+  <data name="Sync_OutcomeNoPeerChanges" xml:space="preserve"><value>{0} Exportiert: {1}; im Sync-Ordner lagen keine Änderungen anderer Geräte bereit.</value></data>
+  <data name="Sync_PeerFileCountOne" xml:space="preserve"><value>1 Datei eines anderen Geräts</value></data>
+  <data name="Sync_PeerFileCountMany" xml:space="preserve"><value>{0} Dateien anderer Geräte</value></data>
+  <data name="Sync_OutcomeImported" xml:space="preserve"><value>{0} Exportiert: {1}; importiert: {2} ({3} Änderung(en) übernommen).</value></data>
+  <data name="Sync_OutcomeImportedSkipped" xml:space="preserve"><value>{0} Exportiert: {1}; importiert: {2} ({3} Änderung(en) übernommen, {4} älter als die lokale Kopie und übersprungen).</value></data>
+  <data name="Sync_ProblemPendingRetry" xml:space="preserve"><value>{0} Datei(en) anderer Geräte enthielten Änderungen, die nicht gespeichert werden konnten; sie werden bei der nächsten Synchronisierung erneut versucht</value></data>
+  <data name="Sync_ProblemUnreadable" xml:space="preserve"><value>{0} Datei(en) anderer Geräte konnten nicht gelesen werden (prüfen Sie, ob beide Geräte denselben Verschlüsselungsschlüssel verwenden)</value></data>
+  <data name="Sync_ProblemRejected" xml:space="preserve"><value>{0} Änderung(en) konnten nicht übernommen werden und wurden übersprungen</value></data>
+  <data name="Sync_ProblemSeparator" xml:space="preserve"><value>; </value></data>
+  <data name="Sync_Problems" xml:space="preserve"><value>{0}.</value></data>
+  <data name="Sync_ProblemsWithFirstError" xml:space="preserve"><value>{0}. Erstes Problem: {1}</value></data>
+  <data name="Sync_StateIdle" xml:space="preserve"><value>Inaktiv</value></data>
+  <data name="Sync_StateSyncing" xml:space="preserve"><value>Wird synchronisiert</value></data>
+  <data name="Sync_StateError" xml:space="preserve"><value>Fehler</value></data>
+  <data name="Sync_StateConflict" xml:space="preserve"><value>Konflikt</value></data>
+  <data name="Sync_StateUnknown" xml:space="preserve"><value>Unbekannt</value></data>
+  <data name="Sync_FocusedEntryMissing" xml:space="preserve"><value>Der angeforderte Eintrag im Sync-Verlauf ist nicht mehr vorhanden.</value></data>
+  <data name="Sync_FocusedEntryResolved" xml:space="preserve"><value>Der fokussierte Sync-Verlaufseintrag wurde durch einen neuen Sync-Durchlauf erledigt.</value></data>
   <data name="Palette_OpenHint.Text" xml:space="preserve"><value>Öffnen</value></data>
   <data name="Palette_CloseHint.Text" xml:space="preserve"><value>Schließen</value></data>
   <data name="Palette_Actions" xml:space="preserve"><value>AKTIONEN</value></data>
