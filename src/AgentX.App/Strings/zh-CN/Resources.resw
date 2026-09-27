@@ -1815,6 +1815,21 @@
   <data name="Search_SavedFilterModeSemantic" xml:space="preserve"><value>语义</value></data>
   <data name="Search_SavedFilterModeKeyword" xml:space="preserve"><value>关键词</value></data>
   <data name="Search_SavedFilterModeHybrid" xml:space="preserve"><value>混合</value></data>
+  <data name="Comp_DetailLevelSummary" xml:space="preserve"><value>摘要</value></data>
+  <data name="Comp_DetailLevelDetailed" xml:space="preserve"><value>详细</value></data>
+  <data name="Comp_DocumentsAvailableOne" xml:space="preserve"><value>有 {0} 份文档可用</value></data>
+  <data name="Comp_DocumentsAvailableMany" xml:space="preserve"><value>有 {0} 份文档可用</value></data>
+  <data name="Comp_LoadDocumentsFailed" xml:space="preserve"><value>无法加载文档</value></data>
+  <data name="Comp_SelectAtLeastTwo" xml:space="preserve"><value>请至少选择 2 份文档进行对比</value></data>
+  <data name="Comp_AnalyzingDocuments" xml:space="preserve"><value>正在分析文档...</value></data>
+  <data name="Comp_ComparisonComplete" xml:space="preserve"><value>对比已完成（{0} ms）</value></data>
+  <data name="Comp_ComparisonCancelled" xml:space="preserve"><value>对比已取消</value></data>
+  <data name="Comp_ComparisonFailed" xml:space="preserve"><value>对比失败：{0}</value></data>
+  <data name="Comp_ExportUnavailable" xml:space="preserve"><value>无法导出</value></data>
+  <data name="Comp_ExportCancelled" xml:space="preserve"><value>导出已取消</value></data>
+  <data name="Comp_MarkdownFile" xml:space="preserve"><value>Markdown 文件</value></data>
+  <data name="Comp_ReportSavedTo" xml:space="preserve"><value>对比报告已保存到 {0}</value></data>
+  <data name="Comp_ExportFailed" xml:space="preserve"><value>导出失败</value></data>
   <data name="WfBuilder_RecentRuns.Text" xml:space="preserve"><value>最近运行</value></data>
   <data name="WfBuilder_StoredWorkflowResultsYou.Text" xml:space="preserve"><value>已保存的工作流结果,无需重新运行即可再次打开。</value></data>
   <data name="WfBuilder_OpenedFromOperations.Text" xml:space="preserve"><value>从 Operations 打开</value></data>

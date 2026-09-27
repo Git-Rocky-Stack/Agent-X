@@ -2154,6 +2154,21 @@
   <data name="Search_SavedFilterModeSemantic" xml:space="preserve"><value>semantic</value></data>
   <data name="Search_SavedFilterModeKeyword" xml:space="preserve"><value>keyword</value></data>
   <data name="Search_SavedFilterModeHybrid" xml:space="preserve"><value>hybrid</value></data>
+  <data name="Comp_DetailLevelSummary" xml:space="preserve"><value>summary</value></data>
+  <data name="Comp_DetailLevelDetailed" xml:space="preserve"><value>detailed</value></data>
+  <data name="Comp_DocumentsAvailableOne" xml:space="preserve"><value>{0} document available</value></data>
+  <data name="Comp_DocumentsAvailableMany" xml:space="preserve"><value>{0} documents available</value></data>
+  <data name="Comp_LoadDocumentsFailed" xml:space="preserve"><value>Failed to load documents</value></data>
+  <data name="Comp_SelectAtLeastTwo" xml:space="preserve"><value>Select at least 2 documents to compare</value></data>
+  <data name="Comp_AnalyzingDocuments" xml:space="preserve"><value>Analyzing documents...</value></data>
+  <data name="Comp_ComparisonComplete" xml:space="preserve"><value>Comparison complete in {0}ms</value></data>
+  <data name="Comp_ComparisonCancelled" xml:space="preserve"><value>Comparison cancelled</value></data>
+  <data name="Comp_ComparisonFailed" xml:space="preserve"><value>Comparison failed: {0}</value></data>
+  <data name="Comp_ExportUnavailable" xml:space="preserve"><value>Export unavailable</value></data>
+  <data name="Comp_ExportCancelled" xml:space="preserve"><value>Export cancelled</value></data>
+  <data name="Comp_MarkdownFile" xml:space="preserve"><value>Markdown file</value></data>
+  <data name="Comp_ReportSavedTo" xml:space="preserve"><value>Comparison report saved to {0}</value></data>
+  <data name="Comp_ExportFailed" xml:space="preserve"><value>Export failed</value></data>
   <data name="WfBuilder_RecentRuns.Text" xml:space="preserve"><value>Recent Runs</value></data>
   <data name="WfBuilder_StoredWorkflowResultsYou.Text" xml:space="preserve"><value>Stored workflow results you can reopen without rerunning.</value></data>
   <data name="WfBuilder_OpenedFromOperations.Text" xml:space="preserve"><value>Opened from Operations</value></data>

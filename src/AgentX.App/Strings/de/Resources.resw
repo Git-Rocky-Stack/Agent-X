@@ -1815,6 +1815,21 @@
   <data name="Search_SavedFilterModeSemantic" xml:space="preserve"><value>semantisch</value></data>
   <data name="Search_SavedFilterModeKeyword" xml:space="preserve"><value>Stichwort</value></data>
   <data name="Search_SavedFilterModeHybrid" xml:space="preserve"><value>hybrid</value></data>
+  <data name="Comp_DetailLevelSummary" xml:space="preserve"><value>Zusammenfassung</value></data>
+  <data name="Comp_DetailLevelDetailed" xml:space="preserve"><value>ausführlich</value></data>
+  <data name="Comp_DocumentsAvailableOne" xml:space="preserve"><value>{0} Dokument verfügbar</value></data>
+  <data name="Comp_DocumentsAvailableMany" xml:space="preserve"><value>{0} Dokumente verfügbar</value></data>
+  <data name="Comp_LoadDocumentsFailed" xml:space="preserve"><value>Dokumente konnten nicht geladen werden</value></data>
+  <data name="Comp_SelectAtLeastTwo" xml:space="preserve"><value>Wählen Sie mindestens 2 Dokumente zum Vergleichen aus</value></data>
+  <data name="Comp_AnalyzingDocuments" xml:space="preserve"><value>Dokumente werden analysiert...</value></data>
+  <data name="Comp_ComparisonComplete" xml:space="preserve"><value>Vergleich in {0} ms abgeschlossen</value></data>
+  <data name="Comp_ComparisonCancelled" xml:space="preserve"><value>Vergleich abgebrochen</value></data>
+  <data name="Comp_ComparisonFailed" xml:space="preserve"><value>Vergleich fehlgeschlagen: {0}</value></data>
+  <data name="Comp_ExportUnavailable" xml:space="preserve"><value>Export nicht verfügbar</value></data>
+  <data name="Comp_ExportCancelled" xml:space="preserve"><value>Export abgebrochen</value></data>
+  <data name="Comp_MarkdownFile" xml:space="preserve"><value>Markdown-Datei</value></data>
+  <data name="Comp_ReportSavedTo" xml:space="preserve"><value>Vergleichsbericht gespeichert unter {0}</value></data>
+  <data name="Comp_ExportFailed" xml:space="preserve"><value>Export fehlgeschlagen</value></data>
   <data name="WfBuilder_RecentRuns.Text" xml:space="preserve"><value>Letzte Ausführungen</value></data>
   <data name="WfBuilder_StoredWorkflowResultsYou.Text" xml:space="preserve"><value>Gespeicherte Workflow-Ergebnisse, die Sie ohne erneute Ausführung öffnen können.</value></data>
   <data name="WfBuilder_OpenedFromOperations.Text" xml:space="preserve"><value>Aus Operations geöffnet</value></data>

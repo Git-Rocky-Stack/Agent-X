@@ -1815,6 +1815,21 @@
   <data name="Search_SavedFilterModeSemantic" xml:space="preserve"><value>セマンティック</value></data>
   <data name="Search_SavedFilterModeKeyword" xml:space="preserve"><value>キーワード</value></data>
   <data name="Search_SavedFilterModeHybrid" xml:space="preserve"><value>ハイブリッド</value></data>
+  <data name="Comp_DetailLevelSummary" xml:space="preserve"><value>要約</value></data>
+  <data name="Comp_DetailLevelDetailed" xml:space="preserve"><value>詳細</value></data>
+  <data name="Comp_DocumentsAvailableOne" xml:space="preserve"><value>{0} 件のドキュメントを利用できます</value></data>
+  <data name="Comp_DocumentsAvailableMany" xml:space="preserve"><value>{0} 件のドキュメントを利用できます</value></data>
+  <data name="Comp_LoadDocumentsFailed" xml:space="preserve"><value>ドキュメントを読み込めませんでした</value></data>
+  <data name="Comp_SelectAtLeastTwo" xml:space="preserve"><value>比較するドキュメントを 2 つ以上選択してください</value></data>
+  <data name="Comp_AnalyzingDocuments" xml:space="preserve"><value>ドキュメントを分析しています...</value></data>
+  <data name="Comp_ComparisonComplete" xml:space="preserve"><value>比較が完了しました ({0} ms)</value></data>
+  <data name="Comp_ComparisonCancelled" xml:space="preserve"><value>比較をキャンセルしました</value></data>
+  <data name="Comp_ComparisonFailed" xml:space="preserve"><value>比較に失敗しました: {0}</value></data>
+  <data name="Comp_ExportUnavailable" xml:space="preserve"><value>エクスポートは利用できません</value></data>
+  <data name="Comp_ExportCancelled" xml:space="preserve"><value>エクスポートをキャンセルしました</value></data>
+  <data name="Comp_MarkdownFile" xml:space="preserve"><value>Markdown ファイル</value></data>
+  <data name="Comp_ReportSavedTo" xml:space="preserve"><value>比較レポートを {0} に保存しました</value></data>
+  <data name="Comp_ExportFailed" xml:space="preserve"><value>エクスポートに失敗しました</value></data>
   <data name="WfBuilder_RecentRuns.Text" xml:space="preserve"><value>最近の実行</value></data>
   <data name="WfBuilder_StoredWorkflowResultsYou.Text" xml:space="preserve"><value>再実行せずに開ける、保存済みのワークフロー結果です。</value></data>
   <data name="WfBuilder_OpenedFromOperations.Text" xml:space="preserve"><value>Operations から開きました</value></data>
