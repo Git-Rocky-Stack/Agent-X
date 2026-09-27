@@ -89,7 +89,8 @@ public interface ICollectionService
     Task<int> GetCollectionCountAsync();
 
     /// <summary>
-    /// Retrieves all documents belonging to a specific collection via the join table.
+    /// Retrieves all documents belonging to a specific collection via the join table, ordered by
+    /// file name. The documents are read-only snapshots: they are not tracked by the context.
     /// </summary>
     /// <param name="collectionId">The ID of the collection.</param>
     Task<IReadOnlyList<DocumentEntity>> GetDocumentsInCollectionAsync(long collectionId);

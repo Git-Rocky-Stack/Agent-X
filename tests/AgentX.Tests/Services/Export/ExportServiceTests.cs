@@ -1081,5 +1081,61 @@ public sealed class ExportServiceTests : IDisposable
             "an export only reads; tracked copies would burden every later SaveChanges");
         _conversationServiceMock.Verify(s => s.GetConversationAsync(It.IsAny<long>()), Times.Never);
     }
+
+    [Fact]
+    public async Task ExportCollectionAsync_WithADatabase_LeavesNothingTrackedInTheSharedContext()
+    {
+        // Collection exports read through CollectionService, whose reads are tracked: every
+        // export left the collection, its links and all of its documents in the shared context.
+        using var factory = new TestDbContextFactory();
+        long collectionId;
+        using (var seed = factory.CreateContext())
+        {
+            var collection = new CollectionEntity { Name = "Research", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+            seed.Collections.Add(collection);
+            foreach (var name in new[] { "b-paper.pdf", "a-notes.md" })
+            {
+                var document = new DocumentEntity
+                {
+                    FileName = name,
+                    FilePath = "/vault/" + name,
+                    FileType = Path.GetExtension(name).TrimStart('.'),
+                    ContentHash = "hash-" + name,
+                    ImportedAt = DateTime.UtcNow,
+                    FileModifiedAt = DateTime.UtcNow,
+                    IndexingStatus = "completed",
+                };
+                seed.Documents.Add(document);
+                seed.DocumentCollections.Add(new DocumentCollectionEntity { Document = document, Collection = collection, AddedAt = DateTime.UtcNow });
+            }
+
+            await seed.SaveChangesAsync();
+            collectionId = collection.Id;
+        }
+
+        using var shared = factory.CreateContext();
+        var sut = new ExportService(
+            _conversationServiceMock.Object,
+            _documentServiceMock.Object,
+            _collectionServiceMock.Object,
+            _settingsServiceMock.Object,
+            _loggerMock.Object,
+            CreateFormatters(),
+            db: shared);
+
+        var result = await sut.ExportCollectionAsync(collectionId, new ExportOptions
+        {
+            Format = ExportFormat.Csv,
+            OutputPath = Path.Combine(_tempExportDir, "research.csv"),
+        });
+
+        result.Success.Should().BeTrue(result.ErrorMessage);
+        var lines = await File.ReadAllLinesAsync(result.FilePath!);
+        lines.Skip(1).Select(line => line.Split(',')[0]).Should().Equal("a-notes.md", "b-paper.pdf");
+        shared.ChangeTracker.Entries().Should().BeEmpty(
+            "an export only reads; tracked copies would burden every later SaveChanges");
+        _collectionServiceMock.Verify(s => s.GetCollectionAsync(It.IsAny<long>()), Times.Never);
+        _collectionServiceMock.Verify(s => s.GetDocumentsInCollectionAsync(It.IsAny<long>()), Times.Never);
+    }
 }
 

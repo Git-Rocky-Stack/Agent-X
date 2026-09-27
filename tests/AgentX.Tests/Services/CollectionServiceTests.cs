@@ -618,6 +618,32 @@ public sealed class CollectionServiceTests : IDisposable
         fresh.Collections.Any(c => c.Id == collection.Id).Should().BeFalse();
     }
 
+    [Fact]
+    public async Task GetDocumentsInCollectionAsync_LeavesNothingTrackedInTheSharedContext()
+    {
+        // Its callers only read (the collection page, collection exports), but every call
+        // left the collection's documents tracked in the long-lived shared context.
+        long collectionId;
+        using (var seed = _factory.CreateContext())
+        {
+            var seeder = new CollectionService(seed, _loggerMock.Object);
+            var collection = await seeder.CreateCollectionAsync("Reading");
+            var second = AddDocument(seed, "zeta.pdf");
+            var first = AddDocument(seed, "alpha.pdf");
+            seed.DocumentCollections.AddRange(
+                new DocumentCollectionEntity { DocumentId = second.Id, CollectionId = collection.Id, AddedAt = DateTime.UtcNow },
+                new DocumentCollectionEntity { DocumentId = first.Id, CollectionId = collection.Id, AddedAt = DateTime.UtcNow });
+            await seed.SaveChangesAsync();
+            collectionId = collection.Id;
+        }
+
+        using var shared = _factory.CreateContext();
+        var documents = await new CollectionService(shared, _loggerMock.Object).GetDocumentsInCollectionAsync(collectionId);
+
+        documents.Select(d => d.FileName).Should().Equal("alpha.pdf", "zeta.pdf");
+        shared.ChangeTracker.Entries().Should().BeEmpty();
+    }
+
     private static DocumentEntity AddDocument(AgentX.Core.Data.AgentXDbContext db, string fileName)
     {
         var doc = new DocumentEntity

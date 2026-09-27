@@ -35,14 +35,15 @@ public class ExportService : IExportService
 
     /// <param name="conversationService">Conversation reads when no database context is supplied.</param>
     /// <param name="documentService">Document service.</param>
-    /// <param name="collectionService">Collection reads.</param>
+    /// <param name="collectionService">Collection reads when no database context is supplied.</param>
     /// <param name="settingsService">Settings (default export directory).</param>
     /// <param name="logger">Logger.</param>
     /// <param name="formatters">One formatter per export format.</param>
     /// <param name="db">
-    /// When supplied, conversations are read with no change tracking: an export only reads,
-    /// and tracked entities would stay in the shared context (an "export all" pins every
-    /// conversation and message), making every later SaveChanges scan them.
+    /// When supplied, conversations, and the collections and documents of a collection export,
+    /// are read with no change tracking: an export only reads, and tracked entities would stay
+    /// in the shared context (an "export all" pins every conversation and message), making
+    /// every later SaveChanges scan them.
     /// </param>
     /// <param name="templateService">Built-in templates for <see cref="ExportOptions.TemplateId"/>.</param>
     public ExportService(
@@ -240,14 +241,14 @@ public class ExportService : IExportService
         {
             ct.ThrowIfCancellationRequested();
 
-            var collection = await _collectionService.GetCollectionAsync(collectionId);
+            var collection = await LoadCollectionAsync(collectionId, ct);
             if (collection is null)
             {
                 _log.Warning("Export failed: collection {CollectionId} not found", collectionId);
                 return ExportResult.Fail($"Collection {collectionId} not found.");
             }
 
-            var documents = await _collectionService.GetDocumentsInCollectionAsync(collectionId);
+            var documents = await LoadCollectionDocumentsAsync(collectionId, ct);
             var title = options.Title ?? collection.Name;
 
             // CSV format gets a dedicated flat-file export instead of the default ZIP
@@ -427,6 +428,38 @@ public class ExportService : IExportService
             .AsNoTracking()
             .Include(c => c.Messages.OrderBy(m => m.SortOrder))
             .FirstOrDefaultAsync(c => c.Id == conversationId, ct);
+    }
+
+    /// <summary>
+    /// Loads the collection an export describes: untracked when a context is available (see the
+    /// constructor), through the collection service otherwise. Only the collection's own fields
+    /// are exported; the document count comes from the exported documents.
+    /// </summary>
+    private async Task<CollectionEntity?> LoadCollectionAsync(long collectionId, CancellationToken ct)
+    {
+        if (_db is null)
+            return await _collectionService.GetCollectionAsync(collectionId);
+
+        return await _db.Collections
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Id == collectionId, ct);
+    }
+
+    /// <summary>
+    /// Loads the documents of an exported collection by file name: untracked when a context is
+    /// available, through the collection service otherwise.
+    /// </summary>
+    private async Task<IReadOnlyList<DocumentEntity>> LoadCollectionDocumentsAsync(long collectionId, CancellationToken ct)
+    {
+        if (_db is null)
+            return await _collectionService.GetDocumentsInCollectionAsync(collectionId);
+
+        return await _db.DocumentCollections
+            .AsNoTracking()
+            .Where(dc => dc.CollectionId == collectionId)
+            .Select(dc => dc.Document)
+            .OrderBy(d => d.FileName)
+            .ToListAsync(ct);
     }
 
     // Formatter resolution & output writing

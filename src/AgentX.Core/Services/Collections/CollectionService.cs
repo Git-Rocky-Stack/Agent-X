@@ -597,9 +597,11 @@ public class CollectionService : ICollectionService
                 return Array.Empty<DocumentEntity>();
             }
 
+            // Read-only callers (the collection page, collection exports): untracked, so the
+            // documents do not stay in the shared context for every later SaveChanges to scan.
             var documents = await _db.DocumentCollections
+                .AsNoTracking()
                 .Where(dc => dc.CollectionId == collectionId)
-                .Include(dc => dc.Document)
                 .Select(dc => dc.Document)
                 .OrderBy(d => d.FileName)
                 .ToListAsync();
