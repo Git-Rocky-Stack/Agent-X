@@ -173,7 +173,8 @@ public sealed class RagConfigurationOptions
 
 /// <summary>
 /// Thread-safe implementation of IRagConfiguration backed by IOptionsMonitor.
-/// Supports runtime configuration updates without application restart.
+/// The options are read once, when the service is created: an edit to the "Rag" section of
+/// appsettings.json applies after a restart.
 /// </summary>
 public sealed class RagConfiguration : IRagConfiguration
 {

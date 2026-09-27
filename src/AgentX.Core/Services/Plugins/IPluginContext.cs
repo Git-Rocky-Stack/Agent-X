@@ -50,7 +50,7 @@ public interface IPluginContext
     /// The directory is created by the host before <see cref="IPlugin.InitializeAsync"/>
     /// is called, so plugins can assume it exists.
     /// </summary>
-    /// <example><c>%LocalAppData%\AgentX\Plugins\com.vendor.myplugin\</c></example>
+    /// <example><c>%LocalAppData%\AgentX\Plugins\com.vendor.myplugin\data\</c></example>
     string PluginDataPath { get; }
 
     /// <summary>

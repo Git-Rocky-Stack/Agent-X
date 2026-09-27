@@ -7,7 +7,7 @@
       SLIM     -> installer-output\AgentX-Setup-<ver>-x64.exe          (~180 MB, GitHub asset)
       OFFLINE  -> installer-output\AgentX-Setup-<ver>-x64-offline.exe   (~2 GB, hosted on R2)
 
-    The SLIM installer omits the model (the app downloads it on first run). The OFFLINE installer
+    The SLIM installer omits the model (the setup wizard offers to download it on first run). The OFFLINE installer
     bundles models\llama-3.2-3b-instruct-q4_k_m.gguf; run scripts/download-model.ps1 first if it
     is missing.
 

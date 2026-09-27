@@ -51,7 +51,7 @@ public class MemoryEntity
     /// <summary>
     /// Embedding vector for semantic similarity search.
     /// Stored as comma-separated float values (e.g., "0.1,-0.2,0.3,...").
-    /// 384 dimensions for all-MiniLM-L6-v2.
+    /// Its size depends on the embedding model (see <see cref="EmbeddingDimensions"/>).
     /// </summary>
     public string? Embedding { get; set; }
 
@@ -84,7 +84,8 @@ public class MemoryEntity
 
     /// <summary>
     /// The embedding model version used to generate the embedding.
-    /// Format: "{ModelName}:{Version}" (e.g., "all-minilm:1.0").
+    /// Format: "{ProviderId}:{ModelName}:{Dimensions}" (e.g., "ollama:all-minilm:384"), as
+    /// written by <c>IEmbeddingService.ModelVersion</c>.
     /// Null indicates legacy embedding from before versioning was introduced.
     /// </summary>
     public string? EmbeddingModelVersion { get; set; }

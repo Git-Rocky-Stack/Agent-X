@@ -24,7 +24,8 @@ public class DocumentChunkEntity
 
     /// <summary>
     /// The embedding model version used to generate the embedding for this chunk.
-    /// Format: "{ModelName}:{Version}" (e.g., "all-minilm:1.0", "nomic-embed-text:1.5").
+    /// Format: "{ProviderId}:{ModelName}:{Dimensions}" (e.g., "ollama:all-minilm:384"), as
+    /// written by <c>IEmbeddingService.ModelVersion</c>.
     /// Null indicates legacy embedding from before versioning was introduced.
     /// </summary>
     public string? EmbeddingModelVersion { get; set; }

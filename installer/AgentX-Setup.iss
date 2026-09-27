@@ -126,7 +126,7 @@ begin
 #ifdef AgentXOffline
   Log('Agent-X installer starting - OFFLINE profile (model bundled)');
 #else
-  Log('Agent-X installer starting - SLIM profile (model downloads on first run)');
+  Log('Agent-X installer starting - SLIM profile (model offered for download on first run)');
 #endif
 end;
 
