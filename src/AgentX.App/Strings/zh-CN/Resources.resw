@@ -2479,6 +2479,72 @@
   <data name="Onb_SummaryLocalModelReady" xml:space="preserve"><value>{0}（已就绪）</value></data>
   <data name="Onb_SummaryLocalModelMissing" xml:space="preserve"><value>未找到（重新安装即可恢复）</value></data>
   <data name="Onb_SummaryNoCloudProviders" xml:space="preserve"><value>无（可稍后在设置中添加）</value></data>
+  <data name="Ana_DurationMilliseconds" xml:space="preserve"><value>{0} 毫秒</value></data>
+  <data name="Ana_DurationSeconds" xml:space="preserve"><value>{0} 秒</value></data>
+  <data name="Ana_DurationMinutes" xml:space="preserve"><value>{0} 分钟</value></data>
+  <data name="Ana_NotAvailable" xml:space="preserve"><value>暂无数据</value></data>
+  <data name="Ana_TokensPerSecond" xml:space="preserve"><value>{0} token/秒</value></data>
+  <data name="Ana_LoadFailed" xml:space="preserve"><value>无法加载分析数据。请尝试刷新。</value></data>
+  <data name="Ana_UnknownModel" xml:space="preserve"><value>未知</value></data>
+  <data name="Ana_ModelConversationCount" xml:space="preserve"><value>{0} 个会话</value></data>
+  <data name="Ana_FileCountOne" xml:space="preserve"><value>1 个文件</value></data>
+  <data name="Ana_FileCountMany" xml:space="preserve"><value>{0} 个文件</value></data>
+  <data name="Ana_WorkflowNoRunsYet" xml:space="preserve"><value>暂无工作流运行。运行一个工作流即可填充此部分。</value></data>
+  <data name="Ana_WorkflowNoRuns" xml:space="preserve"><value>暂无工作流运行。运行一个工作流即可生成可靠性、趋势和结果分析。</value></data>
+  <data name="Ana_WorkflowUnavailable" xml:space="preserve"><value>工作流分析暂时不可用。请刷新后重试。</value></data>
+  <data name="Ana_NoEmbeddingsYet" xml:space="preserve"><value>暂无嵌入</value></data>
+  <data name="Ana_RecallIntro" xml:space="preserve"><value>语义回忆会在过往会话的持久消息嵌入中进行搜索。</value></data>
+  <data name="Ana_NoClustersYet" xml:space="preserve"><value>暂无聚类</value></data>
+  <data name="Ana_NoTrendDataYet" xml:space="preserve"><value>暂无趋势数据</value></data>
+  <data name="Ana_NoTrendsYet" xml:space="preserve"><value>暂无趋势</value></data>
+  <data name="Ana_MessagesCoveredOne" xml:space="preserve"><value>已覆盖 1 条消息</value></data>
+  <data name="Ana_MessagesCoveredMany" xml:space="preserve"><value>已覆盖 {0} 条消息</value></data>
+  <data name="Ana_SummaryRefreshFailed" xml:space="preserve"><value>聚焦的持久摘要刷新失败。请检查 AI 连接后重试。</value></data>
+  <data name="Ana_RecallRunning" xml:space="preserve"><value>正在刷新最近的消息嵌入并运行回忆...</value></data>
+  <data name="Ana_RoleAssistant" xml:space="preserve"><value>助手</value></data>
+  <data name="Ana_RoleUser" xml:space="preserve"><value>用户</value></data>
+  <data name="Ana_RecallMatchPercent" xml:space="preserve"><value>匹配度 {0}%</value></data>
+  <data name="Ana_RecallNoMatches" xml:space="preserve"><value>没有持久回忆匹配达到当前的相似度阈值。</value></data>
+  <data name="Ana_RecallMatchesOne" xml:space="preserve"><value>找到 1 个持久回忆匹配。</value></data>
+  <data name="Ana_RecallMatchesMany" xml:space="preserve"><value>找到 {0} 个持久回忆匹配。</value></data>
+  <data name="Ana_RecallFailed" xml:space="preserve"><value>会话回忆失败。请检查嵌入是否可用后重试。</value></data>
+  <data name="Ana_SummaryResolved" xml:space="preserve"><value>已通过刷新其持久摘要解决“{0}”。</value></data>
+  <data name="Ana_SummaryResolvedUntitled" xml:space="preserve"><value>已通过刷新其持久摘要解决聚焦的会话摘要。</value></data>
+  <data name="Ana_SummaryUnchanged" xml:space="preserve"><value>未能为“{0}”生成刷新后的持久摘要。已保留当前状态。</value></data>
+  <data name="Ana_SummaryUnchangedUntitled" xml:space="preserve"><value>未能为聚焦的会话摘要生成刷新后的持久摘要。已保留当前状态。</value></data>
+  <data name="Ana_TrendNoMovement" xml:space="preserve"><value>近期无变化</value></data>
+  <data name="Ana_TrendVsPrior" xml:space="preserve"><value>较前 7 天 {0}</value></data>
+  <data name="Ana_TrendFlat" xml:space="preserve"><value>与前 7 天持平</value></data>
+  <data name="Ana_NewThemeEntriesOne" xml:space="preserve"><value>本周新增 1 个主题条目</value></data>
+  <data name="Ana_NewThemeEntriesMany" xml:space="preserve"><value>本周新增 {0} 个主题条目</value></data>
+  <data name="Ana_RunCountOne" xml:space="preserve"><value>1 次运行</value></data>
+  <data name="Ana_RunCountMany" xml:space="preserve"><value>{0} 次运行</value></data>
+  <data name="Ana_SuccessRate" xml:space="preserve"><value>成功率 {0}%</value></data>
+  <data name="Ana_NoCompletedOutcomes" xml:space="preserve"><value>暂无已完成的结果</value></data>
+  <data name="Ana_SuccessfulRunsOne" xml:space="preserve"><value>1 次成功运行</value></data>
+  <data name="Ana_SuccessfulRunsMany" xml:space="preserve"><value>{0} 次成功运行</value></data>
+  <data name="Ana_RunsSucceededAndFailed" xml:space="preserve"><value>成功 {0} 次 · 失败/取消 {1} 次</value></data>
+  <data name="Ana_RunStatusCompleted" xml:space="preserve"><value>已完成</value></data>
+  <data name="Ana_RunStatusFailed" xml:space="preserve"><value>失败</value></data>
+  <data name="Ana_RunStatusCancelled" xml:space="preserve"><value>已取消</value></data>
+  <data name="Ana_RunStatusRunning" xml:space="preserve"><value>运行中</value></data>
+  <data name="Ana_RunStatusPending" xml:space="preserve"><value>待处理</value></data>
+  <data name="Ana_RunStatusUnknown" xml:space="preserve"><value>未知</value></data>
+  <data name="Ana_DurationInProgress" xml:space="preserve"><value>进行中</value></data>
+  <data name="Ana_DurationQueued" xml:space="preserve"><value>排队中</value></data>
+  <data name="Ana_NoDuration" xml:space="preserve"><value>无时长</value></data>
+  <data name="Ana_SummaryRefreshIssue" xml:space="preserve"><value>刷新问题</value></data>
+  <data name="Ana_NewMessagesOne" xml:space="preserve"><value>1 条新消息</value></data>
+  <data name="Ana_NewMessagesMany" xml:space="preserve"><value>{0} 条新消息</value></data>
+  <data name="Ana_SummaryCurrent" xml:space="preserve"><value>最新</value></data>
+  <data name="Ana_TimeJustNow" xml:space="preserve"><value>刚刚</value></data>
+  <data name="Ana_TimeMinutesAgo" xml:space="preserve"><value>{0} 分钟前</value></data>
+  <data name="Ana_TimeHoursAgo" xml:space="preserve"><value>{0} 小时前</value></data>
+  <data name="Ana_TimeOneDayAgo" xml:space="preserve"><value>1 天前</value></data>
+  <data name="Ana_TimeDaysAgo" xml:space="preserve"><value>{0} 天前</value></data>
+  <data name="Ana_ThemeClusterActivity" xml:space="preserve"><value>{0} 个会话 · 7 天内活跃 {1} 个 · 30 天内活跃 {2} 个</value></data>
+  <data name="Ana_ThemeTrendActivity" xml:space="preserve"><value>7 天内活跃 {0} 个 · 30 天内活跃 {1} 个</value></data>
+  <data name="Ana_ThemeTrendBarTooltip" xml:space="preserve"><value>{0}：活跃 {1}，新增 {2}，快照 {3}</value></data>
   <data name="Palette_OpenHint.Text" xml:space="preserve"><value>打开</value></data>
   <data name="Palette_CloseHint.Text" xml:space="preserve"><value>关闭</value></data>
   <data name="Palette_Actions" xml:space="preserve"><value>操作</value></data>

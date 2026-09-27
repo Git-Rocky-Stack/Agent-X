@@ -197,6 +197,72 @@
   <data name="Onb_SummaryLocalModelReady" xml:space="preserve"><value>{0} (ready)</value></data>
   <data name="Onb_SummaryLocalModelMissing" xml:space="preserve"><value>Not found (reinstall to restore)</value></data>
   <data name="Onb_SummaryNoCloudProviders" xml:space="preserve"><value>None (can be added later in Settings)</value></data>
+  <data name="Ana_DurationMilliseconds" xml:space="preserve"><value>{0} ms</value></data>
+  <data name="Ana_DurationSeconds" xml:space="preserve"><value>{0} s</value></data>
+  <data name="Ana_DurationMinutes" xml:space="preserve"><value>{0} min</value></data>
+  <data name="Ana_NotAvailable" xml:space="preserve"><value>N/A</value></data>
+  <data name="Ana_TokensPerSecond" xml:space="preserve"><value>{0} tok/s</value></data>
+  <data name="Ana_LoadFailed" xml:space="preserve"><value>Failed to load analytics data. Please try refreshing.</value></data>
+  <data name="Ana_UnknownModel" xml:space="preserve"><value>Unknown</value></data>
+  <data name="Ana_ModelConversationCount" xml:space="preserve"><value>{0} conv.</value></data>
+  <data name="Ana_FileCountOne" xml:space="preserve"><value>1 file</value></data>
+  <data name="Ana_FileCountMany" xml:space="preserve"><value>{0} files</value></data>
+  <data name="Ana_WorkflowNoRunsYet" xml:space="preserve"><value>No workflow runs yet. Run a workflow to seed this section.</value></data>
+  <data name="Ana_WorkflowNoRuns" xml:space="preserve"><value>No workflow runs yet. Run a workflow to seed reliability, trend, and result analytics.</value></data>
+  <data name="Ana_WorkflowUnavailable" xml:space="preserve"><value>Workflow analytics are unavailable right now. Refresh and try again.</value></data>
+  <data name="Ana_NoEmbeddingsYet" xml:space="preserve"><value>No embeddings yet</value></data>
+  <data name="Ana_RecallIntro" xml:space="preserve"><value>Semantic recall searches durable message embeddings across past conversations.</value></data>
+  <data name="Ana_NoClustersYet" xml:space="preserve"><value>No clusters yet</value></data>
+  <data name="Ana_NoTrendDataYet" xml:space="preserve"><value>No trend data yet</value></data>
+  <data name="Ana_NoTrendsYet" xml:space="preserve"><value>No trends yet</value></data>
+  <data name="Ana_MessagesCoveredOne" xml:space="preserve"><value>1 message covered</value></data>
+  <data name="Ana_MessagesCoveredMany" xml:space="preserve"><value>{0} messages covered</value></data>
+  <data name="Ana_SummaryRefreshFailed" xml:space="preserve"><value>Focused durable summary refresh failed. Check AI connectivity and try again.</value></data>
+  <data name="Ana_RecallRunning" xml:space="preserve"><value>Refreshing recent message embeddings and running recall...</value></data>
+  <data name="Ana_RoleAssistant" xml:space="preserve"><value>Assistant</value></data>
+  <data name="Ana_RoleUser" xml:space="preserve"><value>User</value></data>
+  <data name="Ana_RecallMatchPercent" xml:space="preserve"><value>{0}% match</value></data>
+  <data name="Ana_RecallNoMatches" xml:space="preserve"><value>No durable recall matches cleared the current similarity threshold.</value></data>
+  <data name="Ana_RecallMatchesOne" xml:space="preserve"><value>1 durable recall match found.</value></data>
+  <data name="Ana_RecallMatchesMany" xml:space="preserve"><value>{0} durable recall matches found.</value></data>
+  <data name="Ana_RecallFailed" xml:space="preserve"><value>Conversation recall failed. Check embedding availability and try again.</value></data>
+  <data name="Ana_SummaryResolved" xml:space="preserve"><value>Resolved "{0}" by refreshing its durable summary.</value></data>
+  <data name="Ana_SummaryResolvedUntitled" xml:space="preserve"><value>Resolved the focused conversation summary by refreshing its durable summary.</value></data>
+  <data name="Ana_SummaryUnchanged" xml:space="preserve"><value>No refreshed durable summary was generated for "{0}". The current state was kept.</value></data>
+  <data name="Ana_SummaryUnchangedUntitled" xml:space="preserve"><value>No refreshed durable summary was generated for the focused conversation summary. The current state was kept.</value></data>
+  <data name="Ana_TrendNoMovement" xml:space="preserve"><value>No recent movement</value></data>
+  <data name="Ana_TrendVsPrior" xml:space="preserve"><value>{0} vs prior 7d</value></data>
+  <data name="Ana_TrendFlat" xml:space="preserve"><value>Flat vs prior 7d</value></data>
+  <data name="Ana_NewThemeEntriesOne" xml:space="preserve"><value>1 new theme entry this week</value></data>
+  <data name="Ana_NewThemeEntriesMany" xml:space="preserve"><value>{0} new theme entries this week</value></data>
+  <data name="Ana_RunCountOne" xml:space="preserve"><value>1 run</value></data>
+  <data name="Ana_RunCountMany" xml:space="preserve"><value>{0} runs</value></data>
+  <data name="Ana_SuccessRate" xml:space="preserve"><value>{0}% success</value></data>
+  <data name="Ana_NoCompletedOutcomes" xml:space="preserve"><value>No completed outcomes yet</value></data>
+  <data name="Ana_SuccessfulRunsOne" xml:space="preserve"><value>1 successful run</value></data>
+  <data name="Ana_SuccessfulRunsMany" xml:space="preserve"><value>{0} successful runs</value></data>
+  <data name="Ana_RunsSucceededAndFailed" xml:space="preserve"><value>{0} succeeded · {1} failed/cancelled</value></data>
+  <data name="Ana_RunStatusCompleted" xml:space="preserve"><value>Completed</value></data>
+  <data name="Ana_RunStatusFailed" xml:space="preserve"><value>Failed</value></data>
+  <data name="Ana_RunStatusCancelled" xml:space="preserve"><value>Cancelled</value></data>
+  <data name="Ana_RunStatusRunning" xml:space="preserve"><value>Running</value></data>
+  <data name="Ana_RunStatusPending" xml:space="preserve"><value>Pending</value></data>
+  <data name="Ana_RunStatusUnknown" xml:space="preserve"><value>Unknown</value></data>
+  <data name="Ana_DurationInProgress" xml:space="preserve"><value>In progress</value></data>
+  <data name="Ana_DurationQueued" xml:space="preserve"><value>Queued</value></data>
+  <data name="Ana_NoDuration" xml:space="preserve"><value>No duration</value></data>
+  <data name="Ana_SummaryRefreshIssue" xml:space="preserve"><value>Refresh issue</value></data>
+  <data name="Ana_NewMessagesOne" xml:space="preserve"><value>1 new message</value></data>
+  <data name="Ana_NewMessagesMany" xml:space="preserve"><value>{0} new messages</value></data>
+  <data name="Ana_SummaryCurrent" xml:space="preserve"><value>Current</value></data>
+  <data name="Ana_TimeJustNow" xml:space="preserve"><value>just now</value></data>
+  <data name="Ana_TimeMinutesAgo" xml:space="preserve"><value>{0} min ago</value></data>
+  <data name="Ana_TimeHoursAgo" xml:space="preserve"><value>{0} hr ago</value></data>
+  <data name="Ana_TimeOneDayAgo" xml:space="preserve"><value>1 day ago</value></data>
+  <data name="Ana_TimeDaysAgo" xml:space="preserve"><value>{0} days ago</value></data>
+  <data name="Ana_ThemeClusterActivity" xml:space="preserve"><value>{0} conversations · {1} active / 7d · {2} active / 30d</value></data>
+  <data name="Ana_ThemeTrendActivity" xml:space="preserve"><value>{0} active / 7d · {1} active / 30d</value></data>
+  <data name="Ana_ThemeTrendBarTooltip" xml:space="preserve"><value>{0}: {1} active, {2} new, {3} snapshots</value></data>
   <data name="Palette_OpenHint.Text" xml:space="preserve"><value>Open</value></data>
   <data name="Palette_CloseHint.Text" xml:space="preserve"><value>Close</value></data>
   <data name="Palette_Actions" xml:space="preserve"><value>ACTIONS</value></data>

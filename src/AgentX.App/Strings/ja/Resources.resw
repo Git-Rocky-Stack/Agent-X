@@ -2479,6 +2479,72 @@
   <data name="Onb_SummaryLocalModelReady" xml:space="preserve"><value>{0} (準備完了)</value></data>
   <data name="Onb_SummaryLocalModelMissing" xml:space="preserve"><value>見つかりません (再インストールで復元できます)</value></data>
   <data name="Onb_SummaryNoCloudProviders" xml:space="preserve"><value>なし (後で設定から追加できます)</value></data>
+  <data name="Ana_DurationMilliseconds" xml:space="preserve"><value>{0} ms</value></data>
+  <data name="Ana_DurationSeconds" xml:space="preserve"><value>{0} 秒</value></data>
+  <data name="Ana_DurationMinutes" xml:space="preserve"><value>{0} 分</value></data>
+  <data name="Ana_NotAvailable" xml:space="preserve"><value>データなし</value></data>
+  <data name="Ana_TokensPerSecond" xml:space="preserve"><value>{0} トークン/秒</value></data>
+  <data name="Ana_LoadFailed" xml:space="preserve"><value>分析データを読み込めませんでした。更新してみてください。</value></data>
+  <data name="Ana_UnknownModel" xml:space="preserve"><value>不明</value></data>
+  <data name="Ana_ModelConversationCount" xml:space="preserve"><value>{0} 件の会話</value></data>
+  <data name="Ana_FileCountOne" xml:space="preserve"><value>1 ファイル</value></data>
+  <data name="Ana_FileCountMany" xml:space="preserve"><value>{0} ファイル</value></data>
+  <data name="Ana_WorkflowNoRunsYet" xml:space="preserve"><value>ワークフローの実行はまだありません。ワークフローを実行すると、このセクションにデータが表示されます。</value></data>
+  <data name="Ana_WorkflowNoRuns" xml:space="preserve"><value>ワークフローの実行はまだありません。ワークフローを実行すると、信頼性、トレンド、結果の分析が表示されます。</value></data>
+  <data name="Ana_WorkflowUnavailable" xml:space="preserve"><value>現在ワークフローの分析を利用できません。更新してもう一度お試しください。</value></data>
+  <data name="Ana_NoEmbeddingsYet" xml:space="preserve"><value>埋め込みはまだありません</value></data>
+  <data name="Ana_RecallIntro" xml:space="preserve"><value>セマンティック リコールは、過去の会話の永続的なメッセージ埋め込みを検索します。</value></data>
+  <data name="Ana_NoClustersYet" xml:space="preserve"><value>クラスターはまだありません</value></data>
+  <data name="Ana_NoTrendDataYet" xml:space="preserve"><value>トレンド データはまだありません</value></data>
+  <data name="Ana_NoTrendsYet" xml:space="preserve"><value>トレンドはまだありません</value></data>
+  <data name="Ana_MessagesCoveredOne" xml:space="preserve"><value>対象メッセージ 1 件</value></data>
+  <data name="Ana_MessagesCoveredMany" xml:space="preserve"><value>対象メッセージ {0} 件</value></data>
+  <data name="Ana_SummaryRefreshFailed" xml:space="preserve"><value>フォーカス中の永続的な要約を更新できませんでした。AI への接続を確認して、もう一度お試しください。</value></data>
+  <data name="Ana_RecallRunning" xml:space="preserve"><value>最近のメッセージ埋め込みを更新し、リコールを実行しています...</value></data>
+  <data name="Ana_RoleAssistant" xml:space="preserve"><value>アシスタント</value></data>
+  <data name="Ana_RoleUser" xml:space="preserve"><value>ユーザー</value></data>
+  <data name="Ana_RecallMatchPercent" xml:space="preserve"><value>一致度 {0}%</value></data>
+  <data name="Ana_RecallNoMatches" xml:space="preserve"><value>現在の類似度のしきい値を超える永続的なリコールの一致はありませんでした。</value></data>
+  <data name="Ana_RecallMatchesOne" xml:space="preserve"><value>永続的なリコールの一致が 1 件見つかりました。</value></data>
+  <data name="Ana_RecallMatchesMany" xml:space="preserve"><value>永続的なリコールの一致が {0} 件見つかりました。</value></data>
+  <data name="Ana_RecallFailed" xml:space="preserve"><value>会話のリコールに失敗しました。埋め込みを利用できるか確認して、もう一度お試しください。</value></data>
+  <data name="Ana_SummaryResolved" xml:space="preserve"><value>永続的な要約を更新して「{0}」を解決しました。</value></data>
+  <data name="Ana_SummaryResolvedUntitled" xml:space="preserve"><value>永続的な要約を更新して、フォーカス中の会話要約を解決しました。</value></data>
+  <data name="Ana_SummaryUnchanged" xml:space="preserve"><value>「{0}」の更新された永続的な要約は生成されませんでした。現在の状態を維持しました。</value></data>
+  <data name="Ana_SummaryUnchangedUntitled" xml:space="preserve"><value>フォーカス中の会話要約について、更新された永続的な要約は生成されませんでした。現在の状態を維持しました。</value></data>
+  <data name="Ana_TrendNoMovement" xml:space="preserve"><value>最近の変化なし</value></data>
+  <data name="Ana_TrendVsPrior" xml:space="preserve"><value>前の 7 日間比 {0}</value></data>
+  <data name="Ana_TrendFlat" xml:space="preserve"><value>前の 7 日間と同じ</value></data>
+  <data name="Ana_NewThemeEntriesOne" xml:space="preserve"><value>今週の新しいテーマ エントリ 1 件</value></data>
+  <data name="Ana_NewThemeEntriesMany" xml:space="preserve"><value>今週の新しいテーマ エントリ {0} 件</value></data>
+  <data name="Ana_RunCountOne" xml:space="preserve"><value>1 回実行</value></data>
+  <data name="Ana_RunCountMany" xml:space="preserve"><value>{0} 回実行</value></data>
+  <data name="Ana_SuccessRate" xml:space="preserve"><value>成功率 {0}%</value></data>
+  <data name="Ana_NoCompletedOutcomes" xml:space="preserve"><value>完了した結果はまだありません</value></data>
+  <data name="Ana_SuccessfulRunsOne" xml:space="preserve"><value>成功した実行 1 回</value></data>
+  <data name="Ana_SuccessfulRunsMany" xml:space="preserve"><value>成功した実行 {0} 回</value></data>
+  <data name="Ana_RunsSucceededAndFailed" xml:space="preserve"><value>成功 {0} 回 · 失敗/キャンセル {1} 回</value></data>
+  <data name="Ana_RunStatusCompleted" xml:space="preserve"><value>完了</value></data>
+  <data name="Ana_RunStatusFailed" xml:space="preserve"><value>失敗</value></data>
+  <data name="Ana_RunStatusCancelled" xml:space="preserve"><value>キャンセル</value></data>
+  <data name="Ana_RunStatusRunning" xml:space="preserve"><value>実行中</value></data>
+  <data name="Ana_RunStatusPending" xml:space="preserve"><value>保留中</value></data>
+  <data name="Ana_RunStatusUnknown" xml:space="preserve"><value>不明</value></data>
+  <data name="Ana_DurationInProgress" xml:space="preserve"><value>進行中</value></data>
+  <data name="Ana_DurationQueued" xml:space="preserve"><value>キュー待ち</value></data>
+  <data name="Ana_NoDuration" xml:space="preserve"><value>所要時間なし</value></data>
+  <data name="Ana_SummaryRefreshIssue" xml:space="preserve"><value>更新の問題</value></data>
+  <data name="Ana_NewMessagesOne" xml:space="preserve"><value>新しいメッセージ 1 件</value></data>
+  <data name="Ana_NewMessagesMany" xml:space="preserve"><value>新しいメッセージ {0} 件</value></data>
+  <data name="Ana_SummaryCurrent" xml:space="preserve"><value>最新</value></data>
+  <data name="Ana_TimeJustNow" xml:space="preserve"><value>たった今</value></data>
+  <data name="Ana_TimeMinutesAgo" xml:space="preserve"><value>{0} 分前</value></data>
+  <data name="Ana_TimeHoursAgo" xml:space="preserve"><value>{0} 時間前</value></data>
+  <data name="Ana_TimeOneDayAgo" xml:space="preserve"><value>1 日前</value></data>
+  <data name="Ana_TimeDaysAgo" xml:space="preserve"><value>{0} 日前</value></data>
+  <data name="Ana_ThemeClusterActivity" xml:space="preserve"><value>会話 {0} 件 · 7 日間でアクティブ {1} 件 · 30 日間でアクティブ {2} 件</value></data>
+  <data name="Ana_ThemeTrendActivity" xml:space="preserve"><value>7 日間でアクティブ {0} 件 · 30 日間でアクティブ {1} 件</value></data>
+  <data name="Ana_ThemeTrendBarTooltip" xml:space="preserve"><value>{0}: アクティブ {1}、新規 {2}、スナップショット {3}</value></data>
   <data name="Palette_OpenHint.Text" xml:space="preserve"><value>開く</value></data>
   <data name="Palette_CloseHint.Text" xml:space="preserve"><value>閉じる</value></data>
   <data name="Palette_Actions" xml:space="preserve"><value>アクション</value></data>
