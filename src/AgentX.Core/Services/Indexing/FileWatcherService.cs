@@ -37,6 +37,10 @@ public sealed class FileWatcherService : IFileWatcherService
     /// </summary>
     private readonly ConcurrentDictionary<string, Timer> _debounceTimers = new();
 
+    // Startup and the Settings page can both start the catch-up scan. Overlapping scans each saw
+    // the same new file as not yet imported, so one caller at a time runs InitializeAsync.
+    private readonly SemaphoreSlim _initializeLock = new(1, 1);
+
     /// <summary>
     /// Debounce delay in milliseconds. FileSystemWatcher often fires multiple events
     /// for a single file operation; this delay coalesces them.
@@ -72,16 +76,24 @@ public sealed class FileWatcherService : IFileWatcherService
             throw new ObjectDisposedException(nameof(FileWatcherService));
         }
 
-        if (!await IsAutoIndexEnabledAsync())
+        await _initializeLock.WaitAsync(ct).ConfigureAwait(false);
+        try
         {
-            _logger.Information("Watch folder monitoring is turned off (AutoIndexWatchFolders); not starting");
-            return;
+            if (!await IsAutoIndexEnabledAsync())
+            {
+                _logger.Information("Watch folder monitoring is turned off (AutoIndexWatchFolders); not starting");
+                return;
+            }
+
+            await StartWatchingAsync(ct);
+
+            var handled = await ScanWatchFoldersAsync(ct);
+            _logger.Information("Watch folder catch-up scan imported or refreshed {Count} files", handled);
         }
-
-        await StartWatchingAsync(ct);
-
-        var handled = await ScanWatchFoldersAsync(ct);
-        _logger.Information("Watch folder catch-up scan imported or refreshed {Count} files", handled);
+        finally
+        {
+            _initializeLock.Release();
+        }
     }
 
     /// <summary>
@@ -231,9 +243,11 @@ public sealed class FileWatcherService : IFileWatcherService
             throw new DirectoryNotFoundException($"Watch folder does not exist: {normalizedPath}");
         }
 
-        // Check for duplicate paths
-        var existingFolder = await _db.WatchFolders
-            .FirstOrDefaultAsync(wf => wf.FolderPath == normalizedPath);
+        // Check for duplicate paths. Windows paths are case-insensitive (C:\Docs and c:\docs
+        // are one folder), and SQLite compares text case-sensitively, so compare here; the list
+        // of watch folders is short.
+        var existingFolder = (await _db.WatchFolders.AsNoTracking().ToListAsync())
+            .FirstOrDefault(wf => string.Equals(wf.FolderPath, normalizedPath, StringComparison.OrdinalIgnoreCase));
 
         if (existingFolder is not null)
         {

@@ -84,6 +84,57 @@ public sealed class FileWatcherServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task InitializeAsync_CalledTwiceAtOnce_ScansOneAfterTheOther()
+    {
+        // Startup and the Settings page can both start the catch-up scan. Overlapping scans both
+        // saw the same new file as not yet imported and imported it at the same time.
+        SeedWatchFolder();
+        WriteFile("notes.txt", "content");
+        var gate = new object();
+        var inFlight = 0;
+        var maxInFlight = 0;
+        _documents.Setup(d => d.ImportFileAsync(It.IsAny<string>(), It.IsAny<long?>(), It.IsAny<CancellationToken>()))
+            .Returns(async (string path, long? _, CancellationToken _) =>
+            {
+                lock (gate)
+                {
+                    inFlight++;
+                    maxInFlight = Math.Max(maxInFlight, inFlight);
+                }
+
+                await Task.Delay(100);
+                lock (gate)
+                {
+                    inFlight--;
+                }
+
+                return new DocumentEntity { Id = 1, FileName = Path.GetFileName(path) };
+            });
+        var service = NewService();
+
+        await Task.WhenAll(service.InitializeAsync(), service.InitializeAsync());
+
+        maxInFlight.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task AddWatchFolderAsync_TheSameFolderInAnotherCase_IsAlreadyRegistered()
+    {
+        // Windows paths are case-insensitive; SQLite's comparison is not.
+        _db.WatchFolders.Add(new WatchFolderEntity
+        {
+            FolderPath = Path.GetFullPath(_folder).ToUpperInvariant(),
+            IsEnabled = true,
+            CreatedAt = DateTime.UtcNow
+        });
+        _db.SaveChanges();
+
+        var act = () => NewService().AddWatchFolderAsync(_folder);
+
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*already registered*");
+    }
+
+    [Fact]
     public async Task CatchUpScan_LeavesUnchangedDocumentsAloneAndReindexesChangedOnes()
     {
         SeedWatchFolder();
