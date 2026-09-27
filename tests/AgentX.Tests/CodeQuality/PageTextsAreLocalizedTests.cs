@@ -77,6 +77,21 @@ public sealed class PageTextsAreLocalizedTests
     [InlineData("Export_ConversationsSavedOne")]
     [InlineData("Export_ConversationsSavedMany")]
     [InlineData("Export_CollectionSaved")]
+    [InlineData("Ops_SummaryAttentionMany")]
+    [InlineData("Ops_SummaryMore")]
+    [InlineData("Ops_RefreshSummariesError")]
+    [InlineData("Ops_GeneratePreviewsError")]
+    [InlineData("Ops_EnableConnectorError")]
+    [InlineData("Ops_ReindexDocumentError")]
+    [InlineData("Ops_FixRetryIndexingTitle")]
+    [InlineData("Ops_FixEnableConnectorTitle")]
+    [InlineData("Ops_DrillInConversation")]
+    [InlineData("Ops_DrillInInboxItem")]
+    [InlineData("Ops_DrillInDocument")]
+    [InlineData("Ops_DrillInWorkflowRun")]
+    [InlineData("Ops_DrillInSyncEntry")]
+    [InlineData("Ops_DrillInConnector")]
+    [InlineData("Ops_DrillInRecommendation")]
     public void Templates_keep_every_placeholder_in_every_language(string key)
     {
         var english = Placeholders(ReswLocalization.For("en-US").GetString(key));

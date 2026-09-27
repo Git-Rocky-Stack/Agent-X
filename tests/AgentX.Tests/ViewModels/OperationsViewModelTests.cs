@@ -1,5 +1,7 @@
 using AgentX.App.Services;
 using AgentX.App.ViewModels;
+using AgentX.Core.Services.Localization;
+using AgentX.Tests.Helpers;
 using FluentAssertions;
 using Moq;
 using Serilog;
@@ -650,6 +652,38 @@ public sealed class OperationsViewModelTests
         viewModel.SummaryDetail.Should().Contain("Collaborative sync is off");
         viewModel.SummaryDetail.Should().Contain("3 items awaiting triage");
         viewModel.SummaryDetail.Should().Contain("3 more");
+
+        // Plain punctuation from the resources, not a middle dot.
+        viewModel.SummaryDetail.Should().Be(
+            "1 refresh pending, Collaborative sync is off, 3 items awaiting triage, 3 more");
+    }
+
+    [Fact]
+    public void Shows_the_default_overview_in_the_users_language_before_the_first_load()
+    {
+        var viewModel = CreateViewModel();
+
+        viewModel.SummaryHeadline.Should().Be("Operations ready");
+        viewModel.SummaryDetail.Should().StartWith("Unified status for conversation intelligence");
+        viewModel.SyncHealth.Headline.Should().Be("Not configured");
+        viewModel.WorkflowActivity.SupportingSecondary.Should().Be("Avg duration unavailable");
+        viewModel.OverviewStatusTiles.Select(tile => tile.NavigationLabel)
+            .Should().Equal("Open Analytics", "Open Sync", "Open Inbox", "Open Workflows", "Open Plugins");
+        viewModel.RecommendedActions.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Shows_a_load_failure_in_the_users_language()
+    {
+        _operationsOverviewService.Setup(service => service.GetSnapshotAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("boom"));
+        var viewModel = CreateViewModel(ReswLocalization.For("de"));
+        await viewModel.LoadAsync();
+
+        viewModel.ErrorMessage.Should().StartWith("Die Operations-Übersicht konnte nicht geladen werden.");
+        viewModel.SummaryHeadline.Should().Be("Operations nicht verfügbar");
+        viewModel.SyncHealth.Status.Should().Be("Collaborative Sync ist aus");
+        viewModel.RecommendedActions.Select(action => action.CommandText).Should().Contain("Sync öffnen");
     }
 
     [Fact]
@@ -1293,10 +1327,30 @@ public sealed class OperationsViewModelTests
         viewModel.IsRunningManualSync.Should().BeFalse();
     }
 
-    private OperationsViewModel CreateViewModel() =>
+    [Fact]
+    public async Task RefreshConversationSummariesAsync_names_the_action_that_failed()
+    {
+        _operationsOverviewService.Setup(service => service.GetSnapshotAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationsOverviewSnapshot());
+        _operationsActionService.Setup(service => service.RefreshConversationSummariesAsync(
+                It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Summary store is locked"));
+
+        var viewModel = CreateViewModel();
+        await viewModel.LoadAsync();
+
+        await viewModel.RefreshConversationSummariesCommand.ExecuteAsync(null);
+
+        viewModel.HasActionError.Should().BeTrue();
+        viewModel.ActionErrorMessage.Should().Be(
+            "Refreshing conversation summaries failed: Summary store is locked");
+    }
+
+    private OperationsViewModel CreateViewModel(ILocalizationService? localization = null) =>
         new(
             _operationsActionService.Object,
             _operationsDrillInService.Object,
             _operationsOverviewService.Object,
+            localization ?? EnglishResources.Create(),
             Log.ForContext<OperationsViewModelTests>());
 }

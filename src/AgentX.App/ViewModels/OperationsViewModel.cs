@@ -1,5 +1,6 @@
 using System.Globalization;
 using AgentX.App.Services;
+using AgentX.Core.Services.Localization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Serilog;
@@ -11,6 +12,7 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
     private readonly IOperationsActionService _operationsActionService;
     private readonly IOperationsDrillInService _operationsDrillInService;
     private readonly IOperationsOverviewService _operationsOverviewService;
+    private readonly ILocalizationService _localization;
     private readonly ILogger _log;
 
     [ObservableProperty] private bool _isLoading;
@@ -26,18 +28,18 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _hasActionError;
     [ObservableProperty] private string _actionErrorMessage = string.Empty;
 
-    [ObservableProperty] private string _summaryHeadline = "Operations ready";
-    [ObservableProperty] private string _summaryDetail = "Unified status for conversation intelligence, sync posture, ingestion backlog, workflows, and connectors.";
-    [ObservableProperty]
-    private IReadOnlyList<OperationsOverviewStatusTile> _overviewStatusTiles =
-        BuildOverviewStatusTiles(CreateFallbackSnapshot());
+    // The summary, the status tiles and the cards start with their default texts, which the
+    // constructor sets in the user's language.
+    [ObservableProperty] private string _summaryHeadline = string.Empty;
+    [ObservableProperty] private string _summaryDetail = string.Empty;
+    [ObservableProperty] private IReadOnlyList<OperationsOverviewStatusTile> _overviewStatusTiles = Array.Empty<OperationsOverviewStatusTile>();
     [ObservableProperty] private IReadOnlyList<OperationsRecommendedActionItem> _recommendedActions = Array.Empty<OperationsRecommendedActionItem>();
 
-    [ObservableProperty] private OperationsCardSnapshot _conversationIntelligence = CreateDefaultConversationCard();
-    [ObservableProperty] private OperationsCardSnapshot _syncHealth = CreateDefaultSyncCard();
-    [ObservableProperty] private OperationsCardSnapshot _ingestionBacklog = CreateDefaultBacklogCard();
-    [ObservableProperty] private OperationsCardSnapshot _workflowActivity = CreateDefaultWorkflowCard();
-    [ObservableProperty] private OperationsCardSnapshot _connectors = CreateDefaultConnectorsCard();
+    [ObservableProperty] private OperationsCardSnapshot _conversationIntelligence = new();
+    [ObservableProperty] private OperationsCardSnapshot _syncHealth = new();
+    [ObservableProperty] private OperationsCardSnapshot _ingestionBacklog = new();
+    [ObservableProperty] private OperationsCardSnapshot _workflowActivity = new();
+    [ObservableProperty] private OperationsCardSnapshot _connectors = new();
     [ObservableProperty] private IReadOnlyList<OperationsConversationPreview> _recentConversationSummaries = Array.Empty<OperationsConversationPreview>();
     [ObservableProperty] private IReadOnlyList<OperationsSyncPreview> _recentSyncPasses = Array.Empty<OperationsSyncPreview>();
     [ObservableProperty] private IReadOnlyList<OperationsInboxPreview> _pendingInboxItems = Array.Empty<OperationsInboxPreview>();
@@ -52,13 +54,25 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
         IOperationsActionService operationsActionService,
         IOperationsDrillInService operationsDrillInService,
         IOperationsOverviewService operationsOverviewService,
+        ILocalizationService localization,
         ILogger logger)
     {
         _operationsActionService = operationsActionService ?? throw new ArgumentNullException(nameof(operationsActionService));
         _operationsDrillInService = operationsDrillInService ?? throw new ArgumentNullException(nameof(operationsDrillInService));
         _operationsOverviewService = operationsOverviewService ?? throw new ArgumentNullException(nameof(operationsOverviewService));
+        _localization = localization ?? throw new ArgumentNullException(nameof(localization));
         _log = logger?.ForContext<OperationsViewModel>()
                ?? throw new ArgumentNullException(nameof(logger));
+
+        var defaults = CreateFallbackSnapshot();
+        ConversationIntelligence = defaults.ConversationIntelligence;
+        SyncHealth = defaults.SyncHealth;
+        IngestionBacklog = defaults.IngestionBacklog;
+        WorkflowActivity = defaults.WorkflowActivity;
+        Connectors = defaults.Connectors;
+        OverviewStatusTiles = BuildOverviewStatusTiles(defaults);
+        SummaryHeadline = _localization.GetString("Ops_SummaryReady");
+        SummaryDetail = _localization.GetString("Ops_SummaryReadyDetail");
     }
 
     public async Task LoadAsync(CancellationToken ct = default)
@@ -76,10 +90,10 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
         {
             _log.Warning(ex, "Operations page failed to load snapshot");
             HasError = true;
-            ErrorMessage = "Failed to load the operations overview. Open individual surfaces for details or try refreshing.";
+            ErrorMessage = _localization.GetString("Ops_LoadFailed");
             ApplySnapshot(CreateFallbackSnapshot());
-            SummaryHeadline = "Operations unavailable";
-            SummaryDetail = "Snapshot loading failed, but the individual operations surfaces are still available.";
+            SummaryHeadline = _localization.GetString("Ops_SummaryUnavailable");
+            SummaryDetail = _localization.GetString("Ops_SummaryUnavailableDetail");
         }
         finally
         {
@@ -106,14 +120,19 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
         var attentionAreas = CountAttentionAreas(snapshot);
         SummaryHeadline = attentionAreas switch
         {
-            > 1 => $"{attentionAreas} operational areas need attention",
-            1 => "1 operational area needs attention",
-            _ => "Operations running normally"
+            > 1 => _localization.GetString("Ops_SummaryAttentionMany", attentionAreas),
+            1 => _localization.GetString("Ops_SummaryAttentionOne"),
+            _ => _localization.GetString("Ops_SummaryNormal")
         };
 
         SummaryDetail = attentionAreas > 0
             ? BuildAttentionSummary(snapshot)
-            : $"{snapshot.ConversationIntelligence.Status} · {snapshot.SyncHealth.Status} · {snapshot.WorkflowActivity.Status}";
+            : JoinSummaryItems(new[]
+            {
+                snapshot.ConversationIntelligence.Status,
+                snapshot.SyncHealth.Status,
+                snapshot.WorkflowActivity.Status
+            });
     }
 
     [RelayCommand]
@@ -151,6 +170,7 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
         {
             await RunActionAsync(
                 "Refreshing conversation summaries",
+                error => _localization.GetString("Ops_RefreshSummariesError", error),
                 token => _operationsActionService.RefreshConversationSummariesAsync(ct: token),
                 ct);
         }
@@ -169,6 +189,7 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
         {
             await RunActionAsync(
                 "Generating inbox previews",
+                error => _localization.GetString("Ops_GeneratePreviewsError", error),
                 _operationsActionService.GenerateInboxPreviewsAsync,
                 ct);
         }
@@ -192,6 +213,7 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
         {
             await RunActionAsync(
                 "Enabling the connector",
+                error => _localization.GetString("Ops_EnableConnectorError", error),
                 token => _operationsActionService.EnableConnectorAsync(preview.PluginId, token),
                 ct);
         }
@@ -215,6 +237,7 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
         {
             await RunActionAsync(
                 "Re-indexing the document",
+                error => _localization.GetString("Ops_ReindexDocumentError", error),
                 token => _operationsActionService.ReindexImportedDocumentAsync(preview.DocumentId, token),
                 ct);
         }
@@ -233,6 +256,7 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
         {
             await RunActionAsync(
                 "Sync",
+                error => _localization.GetString("Ops_ActionSyncFailed", error),
                 _operationsActionService.RunManualSyncAsync,
                 ct);
         }
@@ -344,7 +368,7 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
         _operationsDrillInService.StageConversationRequest(
             new OperationsConversationDrillInRequest(
                 preview.ConversationId,
-                $"Opened conversation summary \"{preview.Title}\" from Operations"));
+                _localization.GetString("Ops_DrillInConversation", preview.Title)));
         NavigateRequested?.Invoke("Analytics");
     }
 
@@ -360,7 +384,7 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
         _operationsDrillInService.StageInboxRequest(
             new OperationsInboxDrillInRequest(
                 preview.ItemId,
-                $"Opened inbox item \"{preview.Title}\" from Operations"));
+                _localization.GetString("Ops_DrillInInboxItem", preview.Title)));
         NavigateRequested?.Invoke("Inbox");
     }
 
@@ -376,7 +400,7 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
         _operationsDrillInService.StageDocumentRequest(
             new OperationsDocumentDrillInRequest(
                 preview.DocumentId,
-                $"Opened imported document \"{preview.Title}\" from Operations"));
+                _localization.GetString("Ops_DrillInDocument", preview.Title)));
         NavigateRequested?.Invoke("KnowledgeVault");
     }
 
@@ -393,7 +417,7 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
             new OperationsWorkflowRunDrillInRequest(
                 preview.WorkflowId,
                 preview.RunId,
-                $"Opened stored workflow run for \"{preview.Title}\" from Operations"));
+                _localization.GetString("Ops_DrillInWorkflowRun", preview.Title)));
         NavigateRequested?.Invoke("Workflows");
     }
 
@@ -409,7 +433,7 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
         _operationsDrillInService.StageSyncRequest(
             new OperationsSyncDrillInRequest(
                 preview.SyncLogId,
-                $"Opened sync history entry \"{preview.Title}\" from Operations"));
+                _localization.GetString("Ops_DrillInSyncEntry", preview.Title)));
         NavigateRequested?.Invoke("SyncSettings");
     }
 
@@ -425,7 +449,7 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
         _operationsDrillInService.StagePluginRequest(
             new OperationsPluginDrillInRequest(
                 preview.PluginId,
-                $"Opened connector \"{preview.Title}\" from Operations"));
+                _localization.GetString("Ops_DrillInConnector", preview.Title)));
         NavigateRequested?.Invoke("PluginManager");
     }
 
@@ -476,10 +500,12 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
     /// <summary>
     /// Runs one operations action and shows its outcome, then reloads the overview. The awaits
     /// stay on the UI context because the feedback and overview properties are bound; an
-    /// exception becomes an error message instead of an unobserved command failure.
+    /// exception becomes an error message, worded by <paramref name="describeFailure"/> from the
+    /// exception's message, instead of an unobserved command failure.
     /// </summary>
     private async Task RunActionAsync(
         string actionName,
+        Func<string, string> describeFailure,
         Func<CancellationToken, Task<OperationsActionResult>> action,
         CancellationToken ct)
     {
@@ -498,7 +524,7 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             _log.Warning(ex, "Operations action failed: {Action}", actionName);
-            ApplyActionFeedback(new OperationsActionResult(false, $"{actionName} failed: {ex.Message}"));
+            ApplyActionFeedback(new OperationsActionResult(false, describeFailure(ex.Message)));
         }
     }
 
@@ -538,7 +564,7 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
         NavigateRequested?.Invoke(action.Route);
     }
 
-    private static OperationsOverviewSnapshot CreateFallbackSnapshot() => new()
+    private OperationsOverviewSnapshot CreateFallbackSnapshot() => new()
     {
         ConversationIntelligence = CreateDefaultConversationCard(),
         SyncHealth = CreateDefaultSyncCard(),
@@ -547,86 +573,86 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
         Connectors = CreateDefaultConnectorsCard()
     };
 
-    // The defaults carry the kinds their English text stands for, so the checks below, which
-    // read the kinds, treat them as before.
-    private static OperationsCardSnapshot CreateDefaultConversationCard() => new()
+    // The defaults carry the kinds their text stands for, so the checks below, which read the
+    // kinds, treat them as before.
+    private OperationsCardSnapshot CreateDefaultConversationCard() => new()
     {
         Headline = "0",
-        Status = "Durable recall inactive",
+        Status = _localization.GetString("Ops_RecallInactive"),
         StatusKind = OperationsStatusKind.RecallInactive,
-        Detail = "Open Analytics to inspect summary coverage and durable recall detail."
+        Detail = _localization.GetString("Ops_DefaultRecallDetail")
     };
 
-    private static OperationsCardSnapshot CreateDefaultSyncCard() => new()
+    private OperationsCardSnapshot CreateDefaultSyncCard() => new()
     {
-        Headline = "Not configured",
-        Status = "Collaborative sync is off",
+        Headline = _localization.GetString("Ops_SyncNotConfigured"),
+        Status = _localization.GetString("Ops_SyncOff"),
         StatusKind = OperationsStatusKind.SyncNotConfigured,
-        Detail = "Configure a shared folder to keep multiple installations aligned."
+        Detail = _localization.GetString("Ops_SyncSetupHint")
     };
 
-    private static OperationsCardSnapshot CreateDefaultBacklogCard() => new()
+    private OperationsCardSnapshot CreateDefaultBacklogCard() => new()
     {
         Headline = "0",
-        Status = "Queue clear",
+        Status = _localization.GetString("Ops_BacklogClear"),
         StatusKind = OperationsStatusKind.BacklogClear,
-        Detail = "Watch folders and enabled connectors will surface new items here."
+        Detail = _localization.GetString("Ops_BacklogDetailIdle")
     };
 
-    private static OperationsCardSnapshot CreateDefaultWorkflowCard() => new()
+    private OperationsCardSnapshot CreateDefaultWorkflowCard() => new()
     {
         Headline = "0",
-        Status = "Ready to automate",
+        Status = _localization.GetString("Ops_WorkflowReady"),
         StatusKind = OperationsStatusKind.WorkflowReadyToAutomate,
-        SupportingPrimary = "No recent runs",
+        SupportingPrimary = _localization.GetString("Ops_WorkflowsNoRecentRuns"),
         SupportingPrimaryKind = OperationsStatusKind.WorkflowsNoRecentRuns,
-        SupportingSecondary = "Avg duration unavailable",
-        Detail = "Create or launch a workflow from Vault or Search to start automating multi-step tasks."
+        SupportingSecondary = _localization.GetString("Ops_WorkflowAvgUnavailable"),
+        Detail = _localization.GetString("Ops_WorkflowCreateHint")
     };
 
-    private static OperationsCardSnapshot CreateDefaultConnectorsCard() => new()
+    private OperationsCardSnapshot CreateDefaultConnectorsCard() => new()
     {
         Headline = "0",
-        Status = "No plugins installed",
+        Status = _localization.GetString("Ops_NoPluginsInstalled"),
         StatusKind = OperationsStatusKind.NoPluginsInstalled,
-        Detail = "Install or enable plugins to bring external data and workflow extensions into the app."
+        Detail = _localization.GetString("Ops_ConnectorsDetailInstall")
     };
 
-    private static IReadOnlyList<OperationsOverviewStatusTile> BuildOverviewStatusTiles(OperationsOverviewSnapshot snapshot) =>
+    private IReadOnlyList<OperationsOverviewStatusTile> BuildOverviewStatusTiles(OperationsOverviewSnapshot snapshot) =>
     [
         new OperationsOverviewStatusTile(
-            "Conversation",
+            _localization.GetString("Ops_AreaConversation"),
             snapshot.ConversationIntelligence.Headline,
             snapshot.ConversationIntelligence.Status,
             "Analytics",
-            "Open Analytics") { StatusToneToken = snapshot.ConversationIntelligence.StatusToneToken },
+            _localization.GetString("Dash_ActionOpenAnalytics")) { StatusToneToken = snapshot.ConversationIntelligence.StatusToneToken },
         new OperationsOverviewStatusTile(
-            "Sync",
+            _localization.GetString("Ops_AreaSync"),
             snapshot.SyncHealth.Headline,
             snapshot.SyncHealth.Status,
             "SyncSettings",
-            "Open Sync") { StatusToneToken = snapshot.SyncHealth.StatusToneToken },
+            _localization.GetString("Dash_ActionOpenSync")) { StatusToneToken = snapshot.SyncHealth.StatusToneToken },
         new OperationsOverviewStatusTile(
-            "Backlog",
+            _localization.GetString("Ops_AreaBacklog"),
             snapshot.IngestionBacklog.Headline,
             snapshot.IngestionBacklog.Status,
             "Inbox",
-            "Open Inbox") { StatusToneToken = snapshot.IngestionBacklog.StatusToneToken },
+            _localization.GetString("Dash_ActionOpenInbox")) { StatusToneToken = snapshot.IngestionBacklog.StatusToneToken },
         new OperationsOverviewStatusTile(
-            "Workflows",
+            _localization.GetString("Ops_AreaWorkflows"),
             snapshot.WorkflowActivity.Headline,
             snapshot.WorkflowActivity.Status,
             "Workflows",
-            "Open Workflows") { StatusToneToken = snapshot.WorkflowActivity.StatusToneToken },
+            _localization.GetString("Dash_ActionOpenWorkflows")) { StatusToneToken = snapshot.WorkflowActivity.StatusToneToken },
         new OperationsOverviewStatusTile(
-            "Connectors",
+            _localization.GetString("Ops_AreaConnectors"),
             snapshot.Connectors.Headline,
             snapshot.Connectors.Status,
             "PluginManager",
-            "Open Plugins") { StatusToneToken = snapshot.Connectors.StatusToneToken }
+            _localization.GetString("Dash_ActionOpenPlugins")) { StatusToneToken = snapshot.Connectors.StatusToneToken }
     ];
 
-    private static IReadOnlyList<OperationsRecommendedActionItem> BuildRecommendedActions(OperationsOverviewSnapshot snapshot)
+    private IReadOnlyList<OperationsRecommendedActionItem> BuildRecommendedActions(OperationsOverviewSnapshot snapshot)
     {
         var items = new List<OperationsRecommendedActionItem>();
 
@@ -641,12 +667,12 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
         if (NeedsConversationAttention(snapshot.ConversationIntelligence))
         {
             items.Add(new OperationsRecommendedActionItem(
-                "Memory",
+                _localization.GetString("Dash_ActionCategoryMemory"),
                 "\uE9D2",
-                "Refresh durable recall coverage",
-                "Conversation summaries are stale or incomplete. Refresh them so the rest of the app sees the latest memory state.",
+                _localization.GetString("Ops_FixRecallTitle"),
+                _localization.GetString("Ops_FixRecallDetail"),
                 snapshot.ConversationIntelligence.Status,
-                "Refresh Summaries",
+                _localization.GetString("Ops_FixRefreshSummaries"),
                 "Analytics",
                 OperationsRecommendedActionKind.RefreshConversationSummaries)
             {
@@ -659,14 +685,20 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
             var requiresSetup = snapshot.SyncHealth.StatusKind == OperationsStatusKind.SyncNotConfigured;
 
             items.Add(new OperationsRecommendedActionItem(
-                requiresSetup ? "Setup" : "Sync",
-                "\uE895",
-                requiresSetup ? "Configure collaborative sync" : "Run a manual sync pass",
                 requiresSetup
-                    ? "Sync is not fully configured yet. Finish setup so multiple Agent-X installations can stay aligned."
-                    : "Sync needs a manual nudge to bring the workspace back into a clean state.",
+                    ? _localization.GetString("Dash_ActionCategorySetup")
+                    : _localization.GetString("Ops_AreaSync"),
+                "\uE895",
+                requiresSetup
+                    ? _localization.GetString("Ops_FixConfigureSyncTitle")
+                    : _localization.GetString("Ops_FixRunSyncTitle"),
+                requiresSetup
+                    ? _localization.GetString("Ops_FixConfigureSyncDetail")
+                    : _localization.GetString("Ops_FixRunSyncDetail"),
                 snapshot.SyncHealth.Status,
-                requiresSetup ? "Open Sync" : "Run Sync Now",
+                requiresSetup
+                    ? _localization.GetString("Dash_ActionOpenSync")
+                    : _localization.GetString("Ops_FixRunSyncNow"),
                 "SyncSettings",
                 requiresSetup
                     ? OperationsRecommendedActionKind.Navigate
@@ -679,12 +711,12 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
         if (ParseCompactNumber(snapshot.IngestionBacklog.Headline) > 0)
         {
             items.Add(new OperationsRecommendedActionItem(
-                "Backlog",
+                _localization.GetString("Ops_AreaBacklog"),
                 "\uE8B7",
-                "Generate AI previews for intake",
-                "Turn the current backlog into faster triage decisions by generating previews for the pending inbox items.",
+                _localization.GetString("Ops_FixPreviewsTitle"),
+                _localization.GetString("Ops_FixPreviewsDetail"),
                 snapshot.IngestionBacklog.Status,
-                "Generate Previews",
+                _localization.GetString("Ops_FixGeneratePreviews"),
                 "Inbox",
                 OperationsRecommendedActionKind.GenerateInboxPreviews)
             {
@@ -695,12 +727,12 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
         if (documentNeedingAttention is not null)
         {
             items.Add(new OperationsRecommendedActionItem(
-                "Indexing",
+                _localization.GetString("Ops_FixCategoryIndexing"),
                 "\uE8B1",
-                $"Retry indexing {documentNeedingAttention.Title}",
-                "A recently imported document still needs attention before it becomes reliably searchable and reusable elsewhere in the app.",
+                _localization.GetString("Ops_FixRetryIndexingTitle", documentNeedingAttention.Title),
+                _localization.GetString("Ops_FixRetryIndexingDetail"),
                 documentNeedingAttention.HealthStatus,
-                "Retry Index",
+                _localization.GetString("Ops_FixRetryIndex"),
                 "KnowledgeVault",
                 OperationsRecommendedActionKind.RetryImportedDocumentIndexing,
                 documentNeedingAttention.DocumentId)
@@ -712,12 +744,12 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
         if (connectorToEnable is not null)
         {
             items.Add(new OperationsRecommendedActionItem(
-                "Connector",
+                _localization.GetString("Ops_PluginTypeConnector"),
                 "\uE943",
-                $"Enable {connectorToEnable.Title}",
-                "Bring the connector online so new external content can start flowing into triage, search, and workflow surfaces.",
+                _localization.GetString("Ops_FixEnableConnectorTitle", connectorToEnable.Title),
+                _localization.GetString("Ops_FixEnableConnectorDetail"),
                 connectorToEnable.Status,
-                "Enable Connector",
+                _localization.GetString("Ops_FixEnableConnector"),
                 "PluginManager",
                 OperationsRecommendedActionKind.EnableConnector,
                 connectorToEnable.PluginId)
@@ -730,15 +762,16 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
         {
             var noStatus = string.IsNullOrWhiteSpace(snapshot.Connectors.Status);
             items.Add(new OperationsRecommendedActionItem(
-                "Expansion",
+                _localization.GetString("Dash_ActionCategoryExpansion"),
                 "\uE943",
-                "Connect a live source",
-                "Bring in fresh external content so the rest of the workspace has more real intake to triage, search, and automate.",
-                noStatus ? "No connectors enabled" : snapshot.Connectors.Status,
-                "Open Plugins",
+                _localization.GetString("Dash_ActionConnectTitle"),
+                _localization.GetString("Ops_FixConnectDetail"),
+                noStatus ? _localization.GetString("QuickAct_StatusNoConnectors") : snapshot.Connectors.Status,
+                _localization.GetString("Dash_ActionOpenPlugins"),
                 "PluginManager",
                 OperationsRecommendedActionKind.Navigate)
             {
+                // A tone token, not text: the status converter colors it as it always did.
                 StatusToneToken = noStatus ? "No connectors enabled" : snapshot.Connectors.StatusToneToken
             });
         }
@@ -746,12 +779,12 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
         if (failedWorkflowRun is not null)
         {
             items.Add(new OperationsRecommendedActionItem(
-                "Workflow",
+                _localization.GetString("Ops_FixCategoryWorkflow"),
                 "\uE8C7",
-                $"Review {failedWorkflowRun.Title}",
-                "A recent workflow run needs review before the automation layer is fully healthy again.",
+                _localization.GetString("Dash_ActionReviewRunTitle", failedWorkflowRun.Title),
+                _localization.GetString("Ops_FixReviewRunDetail"),
                 failedWorkflowRun.Status,
-                "Open Workflows",
+                _localization.GetString("Dash_ActionOpenWorkflows"),
                 "Workflows",
                 OperationsRecommendedActionKind.Navigate,
                 failedWorkflowRun.WorkflowId,
@@ -763,37 +796,38 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
 
         if (items.Count == 0)
         {
+            var review = _localization.GetString("Dash_ActionCategoryReview");
             items.Add(new OperationsRecommendedActionItem(
-                "Review",
+                review,
                 "\uE9D2",
-                "Inspect durable recall coverage",
-                "Use Analytics to keep an eye on recall freshness, conversation themes, and workflow intelligence trends.",
+                _localization.GetString("Ops_FixInspectRecallTitle"),
+                _localization.GetString("Ops_FixInspectRecallDetail"),
                 snapshot.ConversationIntelligence.Status,
-                "Open Analytics",
+                _localization.GetString("Dash_ActionOpenAnalytics"),
                 "Analytics",
                 OperationsRecommendedActionKind.Navigate)
             {
                 StatusToneToken = snapshot.ConversationIntelligence.StatusToneToken
             });
             items.Add(new OperationsRecommendedActionItem(
-                "Review",
+                review,
                 "\uE895",
-                "Review sync posture",
-                "Open Collaborative Sync to verify history, scope, and any local changes pending synchronization.",
+                _localization.GetString("Ops_FixReviewSyncTitle"),
+                _localization.GetString("Ops_FixReviewSyncDetail"),
                 snapshot.SyncHealth.Status,
-                "Open Sync",
+                _localization.GetString("Dash_ActionOpenSync"),
                 "SyncSettings",
                 OperationsRecommendedActionKind.Navigate)
             {
                 StatusToneToken = snapshot.SyncHealth.StatusToneToken
             });
             items.Add(new OperationsRecommendedActionItem(
-                "Review",
+                review,
                 "\uE8C7",
-                "Review workflow momentum",
-                "Open Workflows to inspect recent runs, tune templates, and keep automation close to real work.",
+                _localization.GetString("Ops_FixReviewWorkflowsTitle"),
+                _localization.GetString("Ops_FixReviewWorkflowsDetail"),
                 snapshot.WorkflowActivity.Status,
-                "Open Workflows",
+                _localization.GetString("Dash_ActionOpenWorkflows"),
                 "Workflows",
                 OperationsRecommendedActionKind.Navigate)
             {
@@ -860,7 +894,7 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
 
     private void StageRecommendedActionDrillIn(OperationsRecommendedActionItem action)
     {
-        var sourceLabel = $"Opened Operations recommendation \"{action.Title}\"";
+        var sourceLabel = _localization.GetString("Ops_DrillInRecommendation", action.Title);
         switch (action.Route)
         {
             case "Inbox" when action.TargetId > 0:
@@ -885,7 +919,7 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
         }
     }
 
-    private static string BuildAttentionSummary(OperationsOverviewSnapshot snapshot)
+    private string BuildAttentionSummary(OperationsOverviewSnapshot snapshot)
     {
         var items = new List<string>();
 
@@ -906,17 +940,17 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
 
         if (NeedsImportedDocumentAttention(snapshot.RecentImportedDocuments))
         {
-            items.Add("Imported documents need indexing");
+            items.Add(_localization.GetString("Ops_AttentionImportedDocuments"));
         }
 
         if (NeedsConnectorAttention(snapshot.ConnectorPreviews))
         {
-            items.Add("Connectors can be enabled");
+            items.Add(_localization.GetString("Ops_AttentionConnectors"));
         }
 
         if (NeedsWorkflowRunAttention(snapshot.RecentWorkflowRuns))
         {
-            items.Add("Workflow runs need review");
+            items.Add(_localization.GetString("Ops_AttentionWorkflowRuns"));
         }
 
         if (items.Count == 0)
@@ -926,11 +960,18 @@ public partial class OperationsViewModel : ObservableObject, IDisposable
 
         if (items.Count <= 3)
         {
-            return string.Join(" · ", items);
+            return JoinSummaryItems(items);
         }
 
-        return string.Join(" · ", items.Take(3).Append($"{items.Count - 3} more"));
+        return JoinSummaryItems(items.Take(3).Append(_localization.GetString("Ops_SummaryMore", items.Count - 3)));
     }
+
+    /// <summary>
+    /// Lists the summary's statuses with the separator of the user's language (a comma in
+    /// English). They used to be joined with a middle dot.
+    /// </summary>
+    private string JoinSummaryItems(IEnumerable<string> items) =>
+        string.Join(_localization.GetString("Ops_SummarySeparator"), items);
 
     private static int ParseCompactNumber(string value)
     {

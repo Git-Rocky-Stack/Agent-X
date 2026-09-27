@@ -1254,6 +1254,63 @@
   <data name="Voice_PhaseFinalizing" xml:space="preserve"><value>Finalisation...</value></data>
   <data name="Voice_PhaseComplete" xml:space="preserve"><value>Terminé</value></data>
   <data name="Cheatsheet_CurrentPage" xml:space="preserve"><value>Page actuelle</value></data>
+  <data name="Ops_SummaryReady" xml:space="preserve"><value>Operations prêt</value></data>
+  <data name="Ops_SummaryReadyDetail" xml:space="preserve"><value>Statut unifié de l'intelligence des conversations, de l'état de synchronisation, du backlog d'ingestion, des workflows et des connecteurs.</value></data>
+  <data name="Ops_LoadFailed" xml:space="preserve"><value>Impossible de charger la vue d'ensemble d'Operations. Ouvrez chaque section pour en voir le détail ou essayez d'actualiser.</value></data>
+  <data name="Ops_SummaryUnavailable" xml:space="preserve"><value>Operations indisponible</value></data>
+  <data name="Ops_SummaryUnavailableDetail" xml:space="preserve"><value>Le chargement de l'instantané a échoué, mais chaque section d'Operations reste disponible.</value></data>
+  <data name="Ops_SummaryAttentionMany" xml:space="preserve"><value>{0} domaines opérationnels demandent votre attention</value></data>
+  <data name="Ops_SummaryAttentionOne" xml:space="preserve"><value>1 domaine opérationnel demande votre attention</value></data>
+  <data name="Ops_SummaryNormal" xml:space="preserve"><value>Les opérations se déroulent normalement</value></data>
+  <data name="Ops_SummarySeparator" xml:space="preserve"><value>, </value></data>
+  <data name="Ops_SummaryMore" xml:space="preserve"><value>{0} de plus</value></data>
+  <data name="Ops_AttentionImportedDocuments" xml:space="preserve"><value>Des documents importés doivent être indexés</value></data>
+  <data name="Ops_AttentionConnectors" xml:space="preserve"><value>Des connecteurs peuvent être activés</value></data>
+  <data name="Ops_AttentionWorkflowRuns" xml:space="preserve"><value>Des exécutions de workflows sont à examiner</value></data>
+  <data name="Ops_RefreshSummariesError" xml:space="preserve"><value>Échec de l'actualisation des résumés de conversations : {0}</value></data>
+  <data name="Ops_GeneratePreviewsError" xml:space="preserve"><value>Échec de la génération des aperçus de la boîte de réception : {0}</value></data>
+  <data name="Ops_EnableConnectorError" xml:space="preserve"><value>Échec de l'activation du connecteur : {0}</value></data>
+  <data name="Ops_ReindexDocumentError" xml:space="preserve"><value>Échec de la réindexation du document : {0}</value></data>
+  <data name="Ops_DefaultRecallDetail" xml:space="preserve"><value>Ouvrez Analytics pour examiner la couverture des résumés et le détail du rappel durable.</value></data>
+  <data name="Ops_AreaConversation" xml:space="preserve"><value>Conversation</value></data>
+  <data name="Ops_AreaSync" xml:space="preserve"><value>Synchronisation</value></data>
+  <data name="Ops_AreaBacklog" xml:space="preserve"><value>Backlog</value></data>
+  <data name="Ops_AreaWorkflows" xml:space="preserve"><value>Workflows</value></data>
+  <data name="Ops_AreaConnectors" xml:space="preserve"><value>Connecteurs</value></data>
+  <data name="Ops_FixRecallTitle" xml:space="preserve"><value>Actualisez la couverture du rappel durable</value></data>
+  <data name="Ops_FixRecallDetail" xml:space="preserve"><value>Les résumés de conversations sont obsolètes ou incomplets. Actualisez-les pour que le reste de l'application voie l'état de mémoire le plus récent.</value></data>
+  <data name="Ops_FixRefreshSummaries" xml:space="preserve"><value>Actualiser les résumés</value></data>
+  <data name="Ops_FixConfigureSyncTitle" xml:space="preserve"><value>Configurez Collaborative Sync</value></data>
+  <data name="Ops_FixConfigureSyncDetail" xml:space="preserve"><value>La synchronisation n'est pas encore entièrement configurée. Terminez la configuration pour que plusieurs installations d'Agent-X restent alignées.</value></data>
+  <data name="Ops_FixRunSyncTitle" xml:space="preserve"><value>Lancez une synchronisation manuelle</value></data>
+  <data name="Ops_FixRunSyncDetail" xml:space="preserve"><value>La synchronisation a besoin d'un coup de pouce manuel pour remettre l'espace de travail dans un état propre.</value></data>
+  <data name="Ops_FixRunSyncNow" xml:space="preserve"><value>Synchroniser maintenant</value></data>
+  <data name="Ops_FixPreviewsTitle" xml:space="preserve"><value>Générez des aperçus IA pour les éléments entrants</value></data>
+  <data name="Ops_FixPreviewsDetail" xml:space="preserve"><value>Accélérez le tri du backlog actuel en générant des aperçus pour les éléments en attente de la boîte de réception.</value></data>
+  <data name="Ops_FixGeneratePreviews" xml:space="preserve"><value>Générer les aperçus</value></data>
+  <data name="Ops_FixCategoryIndexing" xml:space="preserve"><value>Indexation</value></data>
+  <data name="Ops_FixRetryIndexingTitle" xml:space="preserve"><value>Relancez l'indexation de {0}</value></data>
+  <data name="Ops_FixRetryIndexingDetail" xml:space="preserve"><value>Un document importé récemment demande encore votre attention avant de devenir fiable pour la recherche et réutilisable ailleurs dans l'application.</value></data>
+  <data name="Ops_FixRetryIndex" xml:space="preserve"><value>Réessayer l'indexation</value></data>
+  <data name="Ops_FixEnableConnectorTitle" xml:space="preserve"><value>Activez {0}</value></data>
+  <data name="Ops_FixEnableConnectorDetail" xml:space="preserve"><value>Mettez le connecteur en service pour que les nouveaux contenus externes commencent à alimenter le tri, la recherche et les workflows.</value></data>
+  <data name="Ops_FixEnableConnector" xml:space="preserve"><value>Activer le connecteur</value></data>
+  <data name="Ops_FixConnectDetail" xml:space="preserve"><value>Faites entrer de nouveaux contenus externes pour que le reste de l'espace de travail ait davantage d'éléments réels à trier, rechercher et automatiser.</value></data>
+  <data name="Ops_FixCategoryWorkflow" xml:space="preserve"><value>Workflow</value></data>
+  <data name="Ops_FixReviewRunDetail" xml:space="preserve"><value>Une exécution récente d'un workflow doit être examinée avant que la couche d'automatisation soit de nouveau pleinement opérationnelle.</value></data>
+  <data name="Ops_FixInspectRecallTitle" xml:space="preserve"><value>Examinez la couverture du rappel durable</value></data>
+  <data name="Ops_FixInspectRecallDetail" xml:space="preserve"><value>Utilisez Analytics pour surveiller la fraîcheur du rappel, les thèmes des conversations et les tendances d'intelligence des workflows.</value></data>
+  <data name="Ops_FixReviewSyncTitle" xml:space="preserve"><value>Examinez l'état de synchronisation</value></data>
+  <data name="Ops_FixReviewSyncDetail" xml:space="preserve"><value>Ouvrez Collaborative Sync pour vérifier l'historique, la portée et les modifications locales en attente de synchronisation.</value></data>
+  <data name="Ops_FixReviewWorkflowsTitle" xml:space="preserve"><value>Examinez la dynamique des workflows</value></data>
+  <data name="Ops_FixReviewWorkflowsDetail" xml:space="preserve"><value>Ouvrez Workflows pour examiner les exécutions récentes, ajuster les modèles et garder l'automatisation au plus près du travail réel.</value></data>
+  <data name="Ops_DrillInConversation" xml:space="preserve"><value>Résumé de conversation « {0} » ouvert depuis Operations</value></data>
+  <data name="Ops_DrillInInboxItem" xml:space="preserve"><value>Élément de la boîte de réception « {0} » ouvert depuis Operations</value></data>
+  <data name="Ops_DrillInDocument" xml:space="preserve"><value>Document importé « {0} » ouvert depuis Operations</value></data>
+  <data name="Ops_DrillInWorkflowRun" xml:space="preserve"><value>Exécution enregistrée du workflow « {0} » ouverte depuis Operations</value></data>
+  <data name="Ops_DrillInSyncEntry" xml:space="preserve"><value>Entrée de l'historique de synchronisation « {0} » ouverte depuis Operations</value></data>
+  <data name="Ops_DrillInConnector" xml:space="preserve"><value>Connecteur « {0} » ouvert depuis Operations</value></data>
+  <data name="Ops_DrillInRecommendation" xml:space="preserve"><value>Recommandation Operations « {0} » ouverte</value></data>
   <data name="Chat_PrivacyLocal" xml:space="preserve"><value>{0} s'exécute sur cet ordinateur, vos messages restent donc sur cet appareil.</value></data>
   <data name="Chat_PrivacyLocalUnnamed" xml:space="preserve"><value>Le modèle d'IA s'exécute sur cet ordinateur, vos messages restent donc sur cet appareil.</value></data>
   <data name="Chat_PrivacyCloud" xml:space="preserve"><value>Vos messages sont envoyés à {0} pour être traités.</value></data>

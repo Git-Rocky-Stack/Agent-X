@@ -1593,6 +1593,63 @@
   <data name="Voice_PhaseFinalizing" xml:space="preserve"><value>Finalizing...</value></data>
   <data name="Voice_PhaseComplete" xml:space="preserve"><value>Complete</value></data>
   <data name="Cheatsheet_CurrentPage" xml:space="preserve"><value>Current page</value></data>
+  <data name="Ops_SummaryReady" xml:space="preserve"><value>Operations ready</value></data>
+  <data name="Ops_SummaryReadyDetail" xml:space="preserve"><value>Unified status for conversation intelligence, sync posture, ingestion backlog, workflows, and connectors.</value></data>
+  <data name="Ops_LoadFailed" xml:space="preserve"><value>Failed to load the operations overview. Open individual surfaces for details or try refreshing.</value></data>
+  <data name="Ops_SummaryUnavailable" xml:space="preserve"><value>Operations unavailable</value></data>
+  <data name="Ops_SummaryUnavailableDetail" xml:space="preserve"><value>Snapshot loading failed, but the individual operations surfaces are still available.</value></data>
+  <data name="Ops_SummaryAttentionMany" xml:space="preserve"><value>{0} operational areas need attention</value></data>
+  <data name="Ops_SummaryAttentionOne" xml:space="preserve"><value>1 operational area needs attention</value></data>
+  <data name="Ops_SummaryNormal" xml:space="preserve"><value>Operations running normally</value></data>
+  <data name="Ops_SummarySeparator" xml:space="preserve"><value>, </value></data>
+  <data name="Ops_SummaryMore" xml:space="preserve"><value>{0} more</value></data>
+  <data name="Ops_AttentionImportedDocuments" xml:space="preserve"><value>Imported documents need indexing</value></data>
+  <data name="Ops_AttentionConnectors" xml:space="preserve"><value>Connectors can be enabled</value></data>
+  <data name="Ops_AttentionWorkflowRuns" xml:space="preserve"><value>Workflow runs need review</value></data>
+  <data name="Ops_RefreshSummariesError" xml:space="preserve"><value>Refreshing conversation summaries failed: {0}</value></data>
+  <data name="Ops_GeneratePreviewsError" xml:space="preserve"><value>Generating inbox previews failed: {0}</value></data>
+  <data name="Ops_EnableConnectorError" xml:space="preserve"><value>Enabling the connector failed: {0}</value></data>
+  <data name="Ops_ReindexDocumentError" xml:space="preserve"><value>Re-indexing the document failed: {0}</value></data>
+  <data name="Ops_DefaultRecallDetail" xml:space="preserve"><value>Open Analytics to inspect summary coverage and durable recall detail.</value></data>
+  <data name="Ops_AreaConversation" xml:space="preserve"><value>Conversation</value></data>
+  <data name="Ops_AreaSync" xml:space="preserve"><value>Sync</value></data>
+  <data name="Ops_AreaBacklog" xml:space="preserve"><value>Backlog</value></data>
+  <data name="Ops_AreaWorkflows" xml:space="preserve"><value>Workflows</value></data>
+  <data name="Ops_AreaConnectors" xml:space="preserve"><value>Connectors</value></data>
+  <data name="Ops_FixRecallTitle" xml:space="preserve"><value>Refresh durable recall coverage</value></data>
+  <data name="Ops_FixRecallDetail" xml:space="preserve"><value>Conversation summaries are stale or incomplete. Refresh them so the rest of the app sees the latest memory state.</value></data>
+  <data name="Ops_FixRefreshSummaries" xml:space="preserve"><value>Refresh Summaries</value></data>
+  <data name="Ops_FixConfigureSyncTitle" xml:space="preserve"><value>Configure collaborative sync</value></data>
+  <data name="Ops_FixConfigureSyncDetail" xml:space="preserve"><value>Sync is not fully configured yet. Finish setup so multiple Agent-X installations can stay aligned.</value></data>
+  <data name="Ops_FixRunSyncTitle" xml:space="preserve"><value>Run a manual sync pass</value></data>
+  <data name="Ops_FixRunSyncDetail" xml:space="preserve"><value>Sync needs a manual nudge to bring the workspace back into a clean state.</value></data>
+  <data name="Ops_FixRunSyncNow" xml:space="preserve"><value>Run Sync Now</value></data>
+  <data name="Ops_FixPreviewsTitle" xml:space="preserve"><value>Generate AI previews for intake</value></data>
+  <data name="Ops_FixPreviewsDetail" xml:space="preserve"><value>Turn the current backlog into faster triage decisions by generating previews for the pending inbox items.</value></data>
+  <data name="Ops_FixGeneratePreviews" xml:space="preserve"><value>Generate Previews</value></data>
+  <data name="Ops_FixCategoryIndexing" xml:space="preserve"><value>Indexing</value></data>
+  <data name="Ops_FixRetryIndexingTitle" xml:space="preserve"><value>Retry indexing {0}</value></data>
+  <data name="Ops_FixRetryIndexingDetail" xml:space="preserve"><value>A recently imported document still needs attention before it becomes reliably searchable and reusable elsewhere in the app.</value></data>
+  <data name="Ops_FixRetryIndex" xml:space="preserve"><value>Retry Index</value></data>
+  <data name="Ops_FixEnableConnectorTitle" xml:space="preserve"><value>Enable {0}</value></data>
+  <data name="Ops_FixEnableConnectorDetail" xml:space="preserve"><value>Bring the connector online so new external content can start flowing into triage, search, and workflow surfaces.</value></data>
+  <data name="Ops_FixEnableConnector" xml:space="preserve"><value>Enable Connector</value></data>
+  <data name="Ops_FixConnectDetail" xml:space="preserve"><value>Bring in fresh external content so the rest of the workspace has more real intake to triage, search, and automate.</value></data>
+  <data name="Ops_FixCategoryWorkflow" xml:space="preserve"><value>Workflow</value></data>
+  <data name="Ops_FixReviewRunDetail" xml:space="preserve"><value>A recent workflow run needs review before the automation layer is fully healthy again.</value></data>
+  <data name="Ops_FixInspectRecallTitle" xml:space="preserve"><value>Inspect durable recall coverage</value></data>
+  <data name="Ops_FixInspectRecallDetail" xml:space="preserve"><value>Use Analytics to keep an eye on recall freshness, conversation themes, and workflow intelligence trends.</value></data>
+  <data name="Ops_FixReviewSyncTitle" xml:space="preserve"><value>Review sync posture</value></data>
+  <data name="Ops_FixReviewSyncDetail" xml:space="preserve"><value>Open Collaborative Sync to verify history, scope, and any local changes pending synchronization.</value></data>
+  <data name="Ops_FixReviewWorkflowsTitle" xml:space="preserve"><value>Review workflow momentum</value></data>
+  <data name="Ops_FixReviewWorkflowsDetail" xml:space="preserve"><value>Open Workflows to inspect recent runs, tune templates, and keep automation close to real work.</value></data>
+  <data name="Ops_DrillInConversation" xml:space="preserve"><value>Opened conversation summary "{0}" from Operations</value></data>
+  <data name="Ops_DrillInInboxItem" xml:space="preserve"><value>Opened inbox item "{0}" from Operations</value></data>
+  <data name="Ops_DrillInDocument" xml:space="preserve"><value>Opened imported document "{0}" from Operations</value></data>
+  <data name="Ops_DrillInWorkflowRun" xml:space="preserve"><value>Opened stored workflow run for "{0}" from Operations</value></data>
+  <data name="Ops_DrillInSyncEntry" xml:space="preserve"><value>Opened sync history entry "{0}" from Operations</value></data>
+  <data name="Ops_DrillInConnector" xml:space="preserve"><value>Opened connector "{0}" from Operations</value></data>
+  <data name="Ops_DrillInRecommendation" xml:space="preserve"><value>Opened Operations recommendation "{0}"</value></data>
   <data name="Chat_PrivacyLocal" xml:space="preserve"><value>{0} runs on this computer, so your messages stay on this device.</value></data>
   <data name="Chat_PrivacyLocalUnnamed" xml:space="preserve"><value>The AI model runs on this computer, so your messages stay on this device.</value></data>
   <data name="Chat_PrivacyCloud" xml:space="preserve"><value>Your messages are sent to {0} for processing.</value></data>

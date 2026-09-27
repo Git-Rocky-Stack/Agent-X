@@ -1254,6 +1254,63 @@
   <data name="Voice_PhaseFinalizing" xml:space="preserve"><value>正在完成...</value></data>
   <data name="Voice_PhaseComplete" xml:space="preserve"><value>已完成</value></data>
   <data name="Cheatsheet_CurrentPage" xml:space="preserve"><value>当前页面</value></data>
+  <data name="Ops_SummaryReady" xml:space="preserve"><value>Operations 已就绪</value></data>
+  <data name="Ops_SummaryReadyDetail" xml:space="preserve"><value>统一显示会话智能、同步状态、摄取积压、工作流与连接器的状况。</value></data>
+  <data name="Ops_LoadFailed" xml:space="preserve"><value>无法加载 Operations 概览。请打开各个页面查看详情，或尝试刷新。</value></data>
+  <data name="Ops_SummaryUnavailable" xml:space="preserve"><value>Operations 不可用</value></data>
+  <data name="Ops_SummaryUnavailableDetail" xml:space="preserve"><value>快照加载失败，但 Operations 的各个页面仍然可用。</value></data>
+  <data name="Ops_SummaryAttentionMany" xml:space="preserve"><value>{0} 个运行领域需要关注</value></data>
+  <data name="Ops_SummaryAttentionOne" xml:space="preserve"><value>1 个运行领域需要关注</value></data>
+  <data name="Ops_SummaryNormal" xml:space="preserve"><value>运行正常</value></data>
+  <data name="Ops_SummarySeparator" xml:space="preserve"><value>，</value></data>
+  <data name="Ops_SummaryMore" xml:space="preserve"><value>另有 {0} 项</value></data>
+  <data name="Ops_AttentionImportedDocuments" xml:space="preserve"><value>已导入的文档需要编制索引</value></data>
+  <data name="Ops_AttentionConnectors" xml:space="preserve"><value>有可启用的连接器</value></data>
+  <data name="Ops_AttentionWorkflowRuns" xml:space="preserve"><value>有工作流运行需要查看</value></data>
+  <data name="Ops_RefreshSummariesError" xml:space="preserve"><value>刷新会话摘要失败：{0}</value></data>
+  <data name="Ops_GeneratePreviewsError" xml:space="preserve"><value>生成收件箱预览失败：{0}</value></data>
+  <data name="Ops_EnableConnectorError" xml:space="preserve"><value>启用连接器失败：{0}</value></data>
+  <data name="Ops_ReindexDocumentError" xml:space="preserve"><value>重新索引文档失败：{0}</value></data>
+  <data name="Ops_DefaultRecallDetail" xml:space="preserve"><value>打开 Analytics 查看摘要覆盖范围和持久回忆详情。</value></data>
+  <data name="Ops_AreaConversation" xml:space="preserve"><value>会话</value></data>
+  <data name="Ops_AreaSync" xml:space="preserve"><value>同步</value></data>
+  <data name="Ops_AreaBacklog" xml:space="preserve"><value>积压</value></data>
+  <data name="Ops_AreaWorkflows" xml:space="preserve"><value>工作流</value></data>
+  <data name="Ops_AreaConnectors" xml:space="preserve"><value>连接器</value></data>
+  <data name="Ops_FixRecallTitle" xml:space="preserve"><value>刷新持久回忆覆盖范围</value></data>
+  <data name="Ops_FixRecallDetail" xml:space="preserve"><value>会话摘要已过时或不完整。请刷新摘要，让应用的其他部分看到最新的记忆状态。</value></data>
+  <data name="Ops_FixRefreshSummaries" xml:space="preserve"><value>刷新摘要</value></data>
+  <data name="Ops_FixConfigureSyncTitle" xml:space="preserve"><value>配置 Collaborative Sync</value></data>
+  <data name="Ops_FixConfigureSyncDetail" xml:space="preserve"><value>同步尚未完全配置。请完成设置，让多个 Agent-X 安装保持一致。</value></data>
+  <data name="Ops_FixRunSyncTitle" xml:space="preserve"><value>手动运行一次同步</value></data>
+  <data name="Ops_FixRunSyncDetail" xml:space="preserve"><value>需要手动触发同步，才能让工作区恢复到干净的状态。</value></data>
+  <data name="Ops_FixRunSyncNow" xml:space="preserve"><value>立即同步</value></data>
+  <data name="Ops_FixPreviewsTitle" xml:space="preserve"><value>为传入内容生成 AI 预览</value></data>
+  <data name="Ops_FixPreviewsDetail" xml:space="preserve"><value>为待处理的收件项生成预览，更快地分拣当前积压。</value></data>
+  <data name="Ops_FixGeneratePreviews" xml:space="preserve"><value>生成预览</value></data>
+  <data name="Ops_FixCategoryIndexing" xml:space="preserve"><value>索引</value></data>
+  <data name="Ops_FixRetryIndexingTitle" xml:space="preserve"><value>重试为 {0} 编制索引</value></data>
+  <data name="Ops_FixRetryIndexingDetail" xml:space="preserve"><value>最近导入的一个文档仍需处理，之后才能被可靠地搜索并在应用的其他地方重复使用。</value></data>
+  <data name="Ops_FixRetryIndex" xml:space="preserve"><value>重试索引</value></data>
+  <data name="Ops_FixEnableConnectorTitle" xml:space="preserve"><value>启用 {0}</value></data>
+  <data name="Ops_FixEnableConnectorDetail" xml:space="preserve"><value>启用该连接器，让新的外部内容开始流入分拣、搜索和工作流。</value></data>
+  <data name="Ops_FixEnableConnector" xml:space="preserve"><value>启用连接器</value></data>
+  <data name="Ops_FixConnectDetail" xml:space="preserve"><value>引入新的外部内容，让工作区的其他部分有更多真实内容可供分拣、搜索和自动化。</value></data>
+  <data name="Ops_FixCategoryWorkflow" xml:space="preserve"><value>工作流</value></data>
+  <data name="Ops_FixReviewRunDetail" xml:space="preserve"><value>最近一次工作流运行需要查看，之后自动化层才能完全恢复正常。</value></data>
+  <data name="Ops_FixInspectRecallTitle" xml:space="preserve"><value>查看持久回忆覆盖范围</value></data>
+  <data name="Ops_FixInspectRecallDetail" xml:space="preserve"><value>使用 Analytics 关注回忆的新鲜度、会话主题和工作流智能趋势。</value></data>
+  <data name="Ops_FixReviewSyncTitle" xml:space="preserve"><value>查看同步状态</value></data>
+  <data name="Ops_FixReviewSyncDetail" xml:space="preserve"><value>打开 Collaborative Sync，核对历史记录、范围以及待同步的本地更改。</value></data>
+  <data name="Ops_FixReviewWorkflowsTitle" xml:space="preserve"><value>查看工作流势头</value></data>
+  <data name="Ops_FixReviewWorkflowsDetail" xml:space="preserve"><value>打开工作流，查看最近的运行、调整模板，让自动化贴近实际工作。</value></data>
+  <data name="Ops_DrillInConversation" xml:space="preserve"><value>已从 Operations 打开会话摘要“{0}”</value></data>
+  <data name="Ops_DrillInInboxItem" xml:space="preserve"><value>已从 Operations 打开收件项“{0}”</value></data>
+  <data name="Ops_DrillInDocument" xml:space="preserve"><value>已从 Operations 打开导入的文档“{0}”</value></data>
+  <data name="Ops_DrillInWorkflowRun" xml:space="preserve"><value>已从 Operations 打开“{0}”的已存储工作流运行</value></data>
+  <data name="Ops_DrillInSyncEntry" xml:space="preserve"><value>已从 Operations 打开同步历史记录条目“{0}”</value></data>
+  <data name="Ops_DrillInConnector" xml:space="preserve"><value>已从 Operations 打开连接器“{0}”</value></data>
+  <data name="Ops_DrillInRecommendation" xml:space="preserve"><value>已打开 Operations 推荐“{0}”</value></data>
   <data name="Chat_PrivacyLocal" xml:space="preserve"><value>{0} 在这台电脑上运行，因此您的消息会保留在此设备上。</value></data>
   <data name="Chat_PrivacyLocalUnnamed" xml:space="preserve"><value>AI 模型在这台电脑上运行，因此您的消息会保留在此设备上。</value></data>
   <data name="Chat_PrivacyCloud" xml:space="preserve"><value>您的消息会发送到 {0} 进行处理。</value></data>
