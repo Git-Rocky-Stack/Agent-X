@@ -164,31 +164,37 @@ public sealed class DashboardViewModelTests
                 ConversationIntelligence = new OperationsCardSnapshot
                 {
                     Headline = "0",
+                    StatusKind = OperationsStatusKind.RecallInactive,
                     Status = "Durable recall inactive",
                     Detail = "Open Analytics to inspect summary coverage."
                 },
                 SyncHealth = new OperationsCardSnapshot
                 {
                     Headline = "Not configured",
+                    StatusKind = OperationsStatusKind.SyncNotConfigured,
                     Status = "Collaborative sync is off",
                     Detail = "Configure a shared folder to keep multiple installations aligned."
                 },
                 IngestionBacklog = new OperationsCardSnapshot
                 {
                     Headline = "0",
+                    StatusKind = OperationsStatusKind.BacklogClear,
                     Status = "Queue clear",
                     Detail = "Watch folders and enabled connectors will surface new items here."
                 },
                 Connectors = new OperationsCardSnapshot
                 {
                     Headline = "0",
+                    StatusKind = OperationsStatusKind.NoPluginsInstalled,
                     Status = "No plugins installed",
                     Detail = "Install or enable plugins to bring external data and workflow extensions into the app."
                 },
                 WorkflowActivity = new OperationsCardSnapshot
                 {
                     Headline = "0",
+                    StatusKind = OperationsStatusKind.WorkflowReadyToAutomate,
                     Status = "Ready to automate",
+                    SupportingPrimaryKind = OperationsStatusKind.WorkflowsNoRecentRuns,
                     SupportingPrimary = "No recent runs",
                     SupportingSecondary = "Avg duration unavailable",
                     Detail = "Create or launch a workflow from Vault or Search to start automating multi-step tasks."
@@ -210,6 +216,21 @@ public sealed class DashboardViewModelTests
     }
 
     [Fact]
+    public async Task InitializeAsync_when_the_overview_fails_recommends_setup_in_any_language()
+    {
+        // The fallback cards are worded in the UI language. The recommendations read their typed
+        // status, so a German UI gets the same setup actions the English one does.
+        _operationsOverviewService.Setup(service => service.GetSnapshotAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("overview unavailable"));
+        var viewModel = CreateViewModel(localization: ReswLocalization.For("de"));
+
+        await viewModel.InitializeAsync();
+
+        viewModel.RecommendedActions.Select(action => action.Route)
+            .Should().Contain(new[] { "SyncSettings", "PluginManager" });
+    }
+
+    [Fact]
     public async Task InitializeAsync_prioritizes_ai_setup_when_provider_is_unavailable()
     {
         _aiProvider.Setup(provider => provider.CheckConnectionAsync(It.IsAny<CancellationToken>()))
@@ -222,31 +243,37 @@ public sealed class DashboardViewModelTests
                 ConversationIntelligence = new OperationsCardSnapshot
                 {
                     Headline = "0",
+                    StatusKind = OperationsStatusKind.RecallInactive,
                     Status = "Durable recall inactive",
                     Detail = "Open Analytics to inspect summary coverage."
                 },
                 SyncHealth = new OperationsCardSnapshot
                 {
                     Headline = "Not configured",
+                    StatusKind = OperationsStatusKind.SyncNotConfigured,
                     Status = "Collaborative sync is off",
                     Detail = "Configure a shared folder to keep multiple installations aligned."
                 },
                 IngestionBacklog = new OperationsCardSnapshot
                 {
                     Headline = "0",
+                    StatusKind = OperationsStatusKind.BacklogClear,
                     Status = "Queue clear",
                     Detail = "Watch folders and enabled connectors will surface new items here."
                 },
                 Connectors = new OperationsCardSnapshot
                 {
                     Headline = "0",
+                    StatusKind = OperationsStatusKind.NoPluginsInstalled,
                     Status = "No plugins installed",
                     Detail = "Install or enable plugins to bring external data and workflow extensions into the app."
                 },
                 WorkflowActivity = new OperationsCardSnapshot
                 {
                     Headline = "0",
+                    StatusKind = OperationsStatusKind.WorkflowReadyToAutomate,
                     Status = "Ready to automate",
+                    SupportingPrimaryKind = OperationsStatusKind.WorkflowsNoRecentRuns,
                     SupportingPrimary = "No recent runs",
                     SupportingSecondary = "Avg duration unavailable",
                     Detail = "Create or launch a workflow from Vault or Search to start automating multi-step tasks."
@@ -538,6 +565,7 @@ public sealed class DashboardViewModelTests
                 SyncHealth = new OperationsCardSnapshot
                 {
                     Headline = "Configured",
+                    StatusKind = OperationsStatusKind.SyncStandingBy,
                     Status = "Standing by",
                     Detail = "Syncing the full workspace."
                 },
@@ -564,6 +592,7 @@ public sealed class DashboardViewModelTests
                         DocumentId = 501,
                         Title = "Quarterly Brief.docx",
                         Status = "Email Connector",
+                        Health = OperationsDocumentHealth.NeedsAttention,
                         HealthStatus = "Needs Attention",
                         Detail = "Embedding request failed."
                     }
@@ -571,7 +600,8 @@ public sealed class DashboardViewModelTests
                 Connectors = new OperationsCardSnapshot
                 {
                     Headline = "1",
-                    Status = "1 connector disabled",
+                    Status = "1 plugin installed",
+                    StatusKind = OperationsStatusKind.PluginsInstalled,
                     Detail = "Email Connector is installed but currently disabled."
                 },
                 ConnectorPreviews =
@@ -589,7 +619,9 @@ public sealed class DashboardViewModelTests
                 WorkflowActivity = new OperationsCardSnapshot
                 {
                     Headline = "0",
+                    StatusKind = OperationsStatusKind.WorkflowReadyToAutomate,
                     Status = "Ready to automate",
+                    SupportingPrimaryKind = OperationsStatusKind.WorkflowsNoRecentRuns,
                     SupportingPrimary = "No recent runs",
                     SupportingSecondary = "Avg duration unavailable",
                     Detail = "Create or launch a workflow from Vault or Search to start automating multi-step tasks."

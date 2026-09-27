@@ -752,10 +752,11 @@ public partial class QuickActionsViewModel : ObservableObject, IDisposable
             : 0;
     }
 
+    // Typed status, not the card text, which follows the UI language.
     private static bool ConnectorsNeedSetup(OperationsOverviewSnapshot snapshot) =>
         snapshot.Connectors.Headline.Equals("0", StringComparison.OrdinalIgnoreCase) ||
-        snapshot.Connectors.Status.Contains("no plugins installed", StringComparison.OrdinalIgnoreCase) ||
-        snapshot.Connectors.Status.Contains("no connectors", StringComparison.OrdinalIgnoreCase);
+        snapshot.Connectors.StatusKind is OperationsStatusKind.NoPluginsInstalled
+            or OperationsStatusKind.PluginsInstalled;
 
     private string NormalizeStatusLabel(string indexingStatus) =>
         indexingStatus switch

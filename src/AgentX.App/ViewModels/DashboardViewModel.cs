@@ -40,6 +40,8 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     private readonly IPrivacyStatusService _privacyStatusService;
     private readonly ILocalizationService? _localization;
     private OperationsOverviewSnapshot _operationsSnapshot = new();
+    // The recommended actions read the typed status of the cards, never their (translated) text.
+    private bool _operationsSnapshotUnavailable;
 
     // ── AI Status ───────────────────────────────────────────
     // IsOllamaConnected is true while the active provider answers, whichever provider it is. It
@@ -619,11 +621,13 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         try
         {
             ApplyOperationsSnapshot(await _operationsOverviewService.GetSnapshotAsync());
+            _operationsSnapshotUnavailable = false;
         }
         catch (Exception ex)
         {
             Log.Warning(ex, "Failed to load dashboard operations overview");
             ApplyOperationsSnapshot(BuildUnavailableOperationsSnapshot());
+            _operationsSnapshotUnavailable = true;
         }
     }
 
@@ -667,6 +671,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
             ConversationIntelligence = new OperationsCardSnapshot
             {
                 Headline = "0",
+                StatusKind = OperationsStatusKind.RecallInactive,
                 Status = ProviderStatusText.Resolve(
                     _localization?.GetString("Dash_RecallInactive"), "Dash_RecallInactive", "Durable recall inactive"),
                 Detail = ProviderStatusText.Resolve(
@@ -688,6 +693,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
             IngestionBacklog = new OperationsCardSnapshot
             {
                 Headline = "0",
+                StatusKind = OperationsStatusKind.BacklogClear,
                 Status = queueClear,
                 Detail = ProviderStatusText.Resolve(
                     _localization?.GetString("Dash_InboxWatchFoldersHint"),
@@ -697,6 +703,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
             Connectors = new OperationsCardSnapshot
             {
                 Headline = "0",
+                StatusKind = OperationsStatusKind.NoPluginsInstalled,
                 Status = noPlugins,
                 Detail = ProviderStatusText.Resolve(
                     _localization?.GetString("Dash_ConnectorsOpenPluginManager"),
@@ -706,6 +713,8 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
             WorkflowActivity = new OperationsCardSnapshot
             {
                 Headline = "0",
+                StatusKind = OperationsStatusKind.WorkflowReadyToAutomate,
+                SupportingPrimaryKind = OperationsStatusKind.WorkflowsNoRecentRuns,
                 Status = ProviderStatusText.Resolve(
                     _localization?.GetString("Dash_WorkflowReady"), "Dash_WorkflowReady", "Ready to automate"),
                 SupportingPrimary = ProviderStatusText.Resolve(
@@ -727,15 +736,14 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         var targetInboxItem = _operationsSnapshot.PendingInboxItems.FirstOrDefault(item => item.ItemId > 0);
         var targetImportedDocument = _operationsSnapshot.RecentImportedDocuments.FirstOrDefault(preview =>
             preview.DocumentId > 0 &&
-            preview.HealthStatus.Equals("Needs Attention", StringComparison.OrdinalIgnoreCase));
+            preview.Health == OperationsDocumentHealth.NeedsAttention);
         var targetConnector = _operationsSnapshot.ConnectorPreviews.FirstOrDefault(preview =>
             preview.PluginId > 0 &&
             preview.CanEnableFromOperations);
         var targetWorkflowRun = _operationsSnapshot.RecentWorkflowRuns.FirstOrDefault(preview =>
             preview.WorkflowId > 0 &&
             preview.RunId > 0 &&
-            (preview.Status.Equals("Failed", StringComparison.OrdinalIgnoreCase) ||
-             preview.Status.Equals("Cancelled", StringComparison.OrdinalIgnoreCase)));
+            preview.NeedsReview);
 
         void AddAction(DashboardRecommendedActionItem item)
         {
@@ -994,23 +1002,28 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(HasRecommendedActions));
     }
 
+    // Typed status, not the card text: the text follows the UI language. Headlines are counts,
+    // so "0" reads the same in every language.
     private bool SyncNeedsSetup() =>
-        SyncHealthHeadline.Equals("Not configured", StringComparison.OrdinalIgnoreCase) ||
-        SyncHealthHeadline.Equals("Unavailable", StringComparison.OrdinalIgnoreCase) ||
-        ContainsAny(SyncHealthStatus, "off", "unavailable", "failed", "conflict", "stale");
+        _operationsSnapshotUnavailable ||
+        _operationsSnapshot.SyncHealth.StatusKind is OperationsStatusKind.SyncNotConfigured
+            or OperationsStatusKind.SyncConflict
+            or OperationsStatusKind.SyncError;
 
     private bool ConnectorsNeedSetup() =>
-        ConnectorsHeadline.Equals("0", StringComparison.OrdinalIgnoreCase) ||
-        ContainsAny(ConnectorsStatus, "no plugins installed", "no connectors", "disabled");
+        _operationsSnapshot.Connectors.Headline.Equals("0", StringComparison.OrdinalIgnoreCase) ||
+        _operationsSnapshot.Connectors.StatusKind is OperationsStatusKind.NoPluginsInstalled
+            or OperationsStatusKind.PluginsInstalled;
 
     private bool ConversationIntelligenceNeedsAttention() =>
-        ConversationIntelligenceHeadline.Equals("0", StringComparison.OrdinalIgnoreCase) ||
-        ContainsAny(ConversationIntelligenceStatus, "inactive", "needs attention", "stale");
+        _operationsSnapshot.ConversationIntelligence.Headline.Equals("0", StringComparison.OrdinalIgnoreCase) ||
+        _operationsSnapshot.ConversationIntelligence.StatusKind is OperationsStatusKind.RecallInactive
+            or OperationsStatusKind.RecallStaleSummaries;
 
     private bool WorkflowNeedsSetup() =>
-        WorkflowHeadline.Equals("0", StringComparison.OrdinalIgnoreCase) ||
-        WorkflowRecentActivity.Equals("No recent runs", StringComparison.OrdinalIgnoreCase) ||
-        ContainsAny(WorkflowStatus, "ready to automate");
+        _operationsSnapshot.WorkflowActivity.Headline.Equals("0", StringComparison.OrdinalIgnoreCase) ||
+        _operationsSnapshot.WorkflowActivity.SupportingPrimaryKind == OperationsStatusKind.WorkflowsNoRecentRuns ||
+        _operationsSnapshot.WorkflowActivity.StatusKind == OperationsStatusKind.WorkflowReadyToAutomate;
 
     // ── Commands ─────────────────────────────────────────────
 
@@ -1156,19 +1169,6 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         }
 
         count = 0;
-        return false;
-    }
-
-    private static bool ContainsAny(string value, params string[] needles)
-    {
-        foreach (var needle in needles)
-        {
-            if (value.Contains(needle, StringComparison.OrdinalIgnoreCase))
-            {
-                return true;
-            }
-        }
-
         return false;
     }
 
