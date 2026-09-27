@@ -3014,7 +3014,6 @@
   <data name="CalSet_SyncIntervalMinutes.Text" xml:space="preserve"><value>同步间隔(分钟)</value></data>
   <data name="CalSet_SyncRangePastDays.Text" xml:space="preserve"><value>同步范围:过去天数</value></data>
   <data name="CalSet_SyncRangeFutureDays.Text" xml:space="preserve"><value>同步范围:未来天数</value></data>
-  <data name="CalSet_ConflictResolution.Text" xml:space="preserve"><value>冲突解决</value></data>
   <data name="CalSet_IncludeAttendeeDetails.Header" xml:space="preserve"><value>包含参与者详情</value></data>
   <data name="CalSet_IncludeAttendeeDetails.OffContent" xml:space="preserve"><value>不包含</value></data>
   <data name="CalSet_IncludeAttendeeDetails.OnContent" xml:space="preserve"><value>包含</value></data>
@@ -3483,9 +3482,6 @@
   <data name="CalSet_StatusConnected" xml:space="preserve"><value>已连接</value></data>
   <data name="CalSet_EveryMinutes" xml:space="preserve"><value>每 {0} 分钟</value></data>
   <data name="CalSet_SyncResult" xml:space="preserve"><value>新增 {0}，更新 {1}，跳过 {2}，失败 {3}</value></data>
-  <data name="CalSet_ConflictRemoteWins" xml:space="preserve"><value>以远程为准</value></data>
-  <data name="CalSet_ConflictLocalWins" xml:space="preserve"><value>以本地为准</value></data>
-  <data name="CalSet_ConflictMerge" xml:space="preserve"><value>合并</value></data>
   <data name="Backup_LoadFailed" xml:space="preserve"><value>无法加载备份信息</value></data>
   <data name="Backup_IntegrityValid" xml:space="preserve"><value>有效</value></data>
   <data name="Backup_IntegrityInvalid" xml:space="preserve"><value>无效</value></data>

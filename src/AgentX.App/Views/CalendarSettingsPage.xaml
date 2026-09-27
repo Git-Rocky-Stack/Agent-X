@@ -174,14 +174,6 @@
                                    MinWidth="200"/>
                     </StackPanel>
 
-                    <StackPanel Spacing="4">
-                        <TextBlock x:Uid="CalSet_ConflictResolution" Text="Conflict resolution"
-                                   Style="{StaticResource LabelStyle}"/>
-                        <ComboBox ItemsSource="{x:Bind ViewModel.ConflictResolutionOptions, Mode=OneWay}"
-                                  SelectedIndex="{x:Bind ViewModel.ConflictResolutionIndex, Mode=TwoWay}"
-                                  MinWidth="200"/>
-                    </StackPanel>
-
                     <ToggleSwitch x:Uid="CalSet_IncludeAttendeeDetails" Header="Include attendee details"
                                   IsOn="{x:Bind ViewModel.IncludeAttendeeDetails, Mode=TwoWay}"
                                   OffContent="Exclude" OnContent="Include"/>

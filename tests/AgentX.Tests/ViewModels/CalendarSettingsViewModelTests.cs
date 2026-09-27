@@ -29,6 +29,7 @@ public sealed class CalendarSettingsViewModelTests
     public async Task SaveSettingsCommand_UpdatesAppSettingsPluginSettingsAndConnectorLifecycle()
     {
         var appSettings = new AppSettings();
+        appSettings.CalendarConnector.ConflictResolution = "LocalWins";
         var settings = new Mock<ISettingsService>();
         var calendar = new Mock<ICalendarService>();
         var lifecycle = new Mock<IBuiltinConnectorLifecycleService>();
@@ -36,7 +37,8 @@ public sealed class CalendarSettingsViewModelTests
         settings.Setup(s => s.GetSettingsAsync()).ReturnsAsync(appSettings);
         calendar.Setup(c => c.GetSyncSettingsAsync()).ReturnsAsync(new CalendarSyncSettings
         {
-            EnabledCalendars = { ["primary"] = true }
+            EnabledCalendars = { ["primary"] = true },
+            ConflictResolution = "Merge",
         });
 
         var vm = new CalendarSettingsViewModel(
@@ -50,7 +52,6 @@ public sealed class CalendarSettingsViewModelTests
             SyncIntervalMinutes = 30,
             DaysPastToSync = 14,
             DaysFutureToSync = 45,
-            ConflictResolution = "Merge",
             IncludeAttendeeDetails = false,
             IncludeDescriptions = false,
         };
@@ -61,9 +62,11 @@ public sealed class CalendarSettingsViewModelTests
         appSettings.CalendarConnector.SyncIntervalMinutes.Should().Be(30);
         appSettings.CalendarConnector.DaysPastToSync.Should().Be(14);
         appSettings.CalendarConnector.DaysFutureToSync.Should().Be(45);
-        appSettings.CalendarConnector.ConflictResolution.Should().Be("Merge");
         appSettings.CalendarConnector.IncludeAttendeeDetails.Should().BeFalse();
         appSettings.CalendarConnector.IncludeDescriptions.Should().BeFalse();
+
+        // Nothing reads the conflict resolution, so the page neither offers nor rewrites it.
+        appSettings.CalendarConnector.ConflictResolution.Should().Be("LocalWins");
 
         settings.Verify(s => s.SaveSettingsAsync(appSettings), Times.Once);
         calendar.Verify(c => c.UpdateSyncSettingsAsync(It.Is<CalendarSyncSettings>(sync =>
@@ -200,27 +203,17 @@ public sealed class CalendarSettingsViewModelTests
     }
 
     [Fact]
-    public async Task ConflictResolutionOptions_AreLabels_WhileTheSavedValueStaysTheSettingKey()
+    public void ConflictResolution_IsNoLongerOffered_BecauseCalendarSyncOnlyImports()
     {
-        // The dropdown listed the raw setting values ("RemoteWins"); it now shows labels in the
-        // user's language and maps the selected index back to the value that is saved.
-        var appSettings = new AppSettings();
-        appSettings.CalendarConnector.ConflictResolution = "LocalWins";
-        var settings = new Mock<ISettingsService>();
-        settings.Setup(s => s.GetSettingsAsync()).ReturnsAsync(appSettings);
-        var vm = new CalendarSettingsViewModel(
-            settings.Object, Mock.Of<IOAuthService>(), Mock.Of<ICalendarService>(),
-            Mock.Of<IBuiltinConnectorLifecycleService>(), Logger.None, EnglishResources.Create());
+        // The page offered Remote wins, Local wins and Merge and saved the choice, but calendar
+        // sync is a read-only import that never reads it. The control and its view model state
+        // are gone; the stored settings keep the property so existing files still load.
+        typeof(CalendarSettingsViewModel).GetProperties()
+            .Select(property => property.Name)
+            .Should().NotContain(name => name.StartsWith("ConflictResolution", StringComparison.Ordinal));
 
-        await vm.InitializeAsync();
-
-        vm.ConflictResolutionOptions.Should().Equal("Remote wins", "Local wins", "Merge");
-        vm.ConflictResolutionIndex.Should().Be(1);
-        vm.ConflictResolution.Should().Be("LocalWins");
-
-        vm.ConflictResolutionIndex = 2;
-
-        vm.ConflictResolution.Should().Be("Merge");
+        var page = File.ReadAllText(Path.Combine(ResolveSourceRoot(), "AgentX.App", "Views", "CalendarSettingsPage.xaml"));
+        page.Should().NotContain("ConflictResolution").And.NotContain("CalSet_Conflict");
     }
 
     [Fact]
@@ -238,5 +231,23 @@ public sealed class CalendarSettingsViewModelTests
             It.Is<string?>(scopes => scopes != null && scopes.Split(' ', StringSplitOptions.None).Contains("offline_access")),
             It.IsAny<string?>(),
             It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    private static string ResolveSourceRoot()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null)
+        {
+            var candidate = Path.Combine(directory.FullName, "src");
+            if (Directory.Exists(Path.Combine(candidate, "AgentX.App")) &&
+                Directory.Exists(Path.Combine(candidate, "AgentX.Core")))
+            {
+                return candidate;
+            }
+
+            directory = directory.Parent;
+        }
+
+        throw new DirectoryNotFoundException("Could not locate the Agent-X source root from the test output directory.");
     }
 }

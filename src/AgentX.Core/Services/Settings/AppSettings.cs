@@ -182,8 +182,9 @@ public class CalendarSettings
     public int DaysFutureToSync { get; set; } = 30;
 
     /// <summary>
-    /// Strategy for resolving conflicting calendar events during sync.
-    /// Valid values: "LocalWins", "RemoteWins", "Merge".
+    /// Not applied. Meant as the strategy for conflicting calendar events ("LocalWins",
+    /// "RemoteWins" or "Merge"), but calendar sync only imports events and never reads it, and
+    /// the Settings control for it was removed. Kept so existing settings files still load.
     /// </summary>
     public string ConflictResolution { get; set; } = "RemoteWins";
 

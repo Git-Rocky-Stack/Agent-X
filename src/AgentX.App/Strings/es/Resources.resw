@@ -3014,7 +3014,6 @@
   <data name="CalSet_SyncIntervalMinutes.Text" xml:space="preserve"><value>Intervalo de sincronización (minutos)</value></data>
   <data name="CalSet_SyncRangePastDays.Text" xml:space="preserve"><value>Rango de sincronización: días pasados</value></data>
   <data name="CalSet_SyncRangeFutureDays.Text" xml:space="preserve"><value>Rango de sincronización: días futuros</value></data>
-  <data name="CalSet_ConflictResolution.Text" xml:space="preserve"><value>Resolución de conflictos</value></data>
   <data name="CalSet_IncludeAttendeeDetails.Header" xml:space="preserve"><value>Incluir detalles de asistentes</value></data>
   <data name="CalSet_IncludeAttendeeDetails.OffContent" xml:space="preserve"><value>Excluir</value></data>
   <data name="CalSet_IncludeAttendeeDetails.OnContent" xml:space="preserve"><value>Incluir</value></data>
@@ -3483,9 +3482,6 @@
   <data name="CalSet_StatusConnected" xml:space="preserve"><value>Conectado</value></data>
   <data name="CalSet_EveryMinutes" xml:space="preserve"><value>Cada {0} min</value></data>
   <data name="CalSet_SyncResult" xml:space="preserve"><value>{0} añadidos, {1} actualizados, {2} omitidos, {3} con errores</value></data>
-  <data name="CalSet_ConflictRemoteWins" xml:space="preserve"><value>Prevalece la versión remota</value></data>
-  <data name="CalSet_ConflictLocalWins" xml:space="preserve"><value>Prevalece la versión local</value></data>
-  <data name="CalSet_ConflictMerge" xml:space="preserve"><value>Combinar</value></data>
   <data name="Backup_LoadFailed" xml:space="preserve"><value>No se pudo cargar la información de las copias de seguridad</value></data>
   <data name="Backup_IntegrityValid" xml:space="preserve"><value>Válida</value></data>
   <data name="Backup_IntegrityInvalid" xml:space="preserve"><value>No válida</value></data>

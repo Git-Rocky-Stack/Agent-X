@@ -42,12 +42,6 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
         _googleStatusText = notConnected;
         _microsoftStatusText = notConnected;
         _syncStatusText = _localization.GetString("CalSet_NotSyncedYet");
-        ConflictResolutionOptions =
-        [
-            _localization.GetString("CalSet_ConflictRemoteWins"),
-            _localization.GetString("CalSet_ConflictLocalWins"),
-            _localization.GetString("CalSet_ConflictMerge"),
-        ];
     }
 
     // ── Observable properties ──────────────────────────────────────────────────
@@ -88,20 +82,11 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
     [ObservableProperty]
     private int _daysFutureToSync = 30;
 
-    [ObservableProperty]
-    private string _conflictResolution = "RemoteWins";
-
     /// <summary>
     /// Index into <see cref="SyncIntervalOptions"/> for the sync interval ComboBox.
     /// </summary>
     [ObservableProperty]
     private int _syncIntervalIndex = 2; // 15 min is index 2 in [5,10,15,30,60]
-
-    /// <summary>
-    /// Index into <see cref="ConflictResolutionOptions"/> for the conflict resolution ComboBox.
-    /// </summary>
-    [ObservableProperty]
-    private int _conflictResolutionIndex;
 
     [ObservableProperty]
     private bool _includeAttendeeDetails = true;
@@ -117,17 +102,6 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
 
     [ObservableProperty]
     private bool _hasError;
-
-    /// <summary>
-    /// The stored conflict resolution values, in the order of <see cref="ConflictResolutionOptions"/>.
-    /// </summary>
-    private static readonly string[] ConflictResolutionValues = ["RemoteWins", "LocalWins", "Merge"];
-
-    /// <summary>
-    /// Conflict resolution options for the ComboBox, in the user's language: one label per entry of
-    /// <see cref="ConflictResolutionValues"/>, selected by <see cref="ConflictResolutionIndex"/>.
-    /// </summary>
-    public List<string> ConflictResolutionOptions { get; }
 
     /// <summary>
     /// Available sync interval options for the ComboBox.
@@ -154,15 +128,12 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
             SyncIntervalMinutes = settings.CalendarConnector.SyncIntervalMinutes;
             DaysPastToSync = settings.CalendarConnector.DaysPastToSync;
             DaysFutureToSync = settings.CalendarConnector.DaysFutureToSync;
-            ConflictResolution = settings.CalendarConnector.ConflictResolution;
             IncludeAttendeeDetails = settings.CalendarConnector.IncludeAttendeeDetails;
             IncludeDescriptions = settings.CalendarConnector.IncludeDescriptions;
 
-            // Set ComboBox selected indices.
+            // Set the ComboBox selected index.
             SyncIntervalIndex = SyncIntervalOptions.IndexOf(SyncIntervalMinutes);
             if (SyncIntervalIndex < 0) SyncIntervalIndex = 2; // default to 15 min
-            ConflictResolutionIndex = Array.IndexOf(ConflictResolutionValues, ConflictResolution);
-            if (ConflictResolutionIndex < 0) ConflictResolutionIndex = 0;
 
             // Check OAuth connection status.
             await CheckConnectionStatusAsync();
@@ -378,11 +349,11 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
     {
         var settings = await _settingsService.GetSettingsAsync();
 
+        // ConflictResolution is left as stored: calendar sync only imports, so nothing reads it.
         settings.CalendarConnector.EnableCalendarSync = EnableCalendarSync;
         settings.CalendarConnector.SyncIntervalMinutes = SyncIntervalMinutes;
         settings.CalendarConnector.DaysPastToSync = DaysPastToSync;
         settings.CalendarConnector.DaysFutureToSync = DaysFutureToSync;
-        settings.CalendarConnector.ConflictResolution = ConflictResolution;
         settings.CalendarConnector.IncludeAttendeeDetails = IncludeAttendeeDetails;
         settings.CalendarConnector.IncludeDescriptions = IncludeDescriptions;
 
@@ -392,7 +363,6 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
         syncSettings.SyncIntervalMinutes = SyncIntervalMinutes;
         syncSettings.DaysPastToSync = DaysPastToSync;
         syncSettings.DaysFutureToSync = DaysFutureToSync;
-        syncSettings.ConflictResolution = ConflictResolution;
         syncSettings.IncludeAttendeeDetails = IncludeAttendeeDetails;
         syncSettings.IncludeDescriptions = IncludeDescriptions;
 
@@ -447,12 +417,6 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
     {
         if (value >= 0 && value < SyncIntervalOptions.Count)
             SyncIntervalMinutes = SyncIntervalOptions[value];
-    }
-
-    partial void OnConflictResolutionIndexChanged(int value)
-    {
-        if (value >= 0 && value < ConflictResolutionValues.Length)
-            ConflictResolution = ConflictResolutionValues[value];
     }
 
     private void UpdateNextSyncTime()

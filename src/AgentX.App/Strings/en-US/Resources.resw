@@ -130,9 +130,6 @@
   <data name="CalSet_StatusConnected" xml:space="preserve"><value>Connected</value></data>
   <data name="CalSet_EveryMinutes" xml:space="preserve"><value>Every {0} min</value></data>
   <data name="CalSet_SyncResult" xml:space="preserve"><value>Added {0}, updated {1}, skipped {2}, failed {3}</value></data>
-  <data name="CalSet_ConflictRemoteWins" xml:space="preserve"><value>Remote wins</value></data>
-  <data name="CalSet_ConflictLocalWins" xml:space="preserve"><value>Local wins</value></data>
-  <data name="CalSet_ConflictMerge" xml:space="preserve"><value>Merge</value></data>
   <data name="Backup_LoadFailed" xml:space="preserve"><value>Failed to load backup information</value></data>
   <data name="Backup_IntegrityValid" xml:space="preserve"><value>Valid</value></data>
   <data name="Backup_IntegrityInvalid" xml:space="preserve"><value>Invalid</value></data>
@@ -3353,7 +3350,6 @@
   <data name="CalSet_SyncIntervalMinutes.Text" xml:space="preserve"><value>Sync interval (minutes)</value></data>
   <data name="CalSet_SyncRangePastDays.Text" xml:space="preserve"><value>Sync range: past days</value></data>
   <data name="CalSet_SyncRangeFutureDays.Text" xml:space="preserve"><value>Sync range: future days</value></data>
-  <data name="CalSet_ConflictResolution.Text" xml:space="preserve"><value>Conflict resolution</value></data>
   <data name="CalSet_IncludeAttendeeDetails.Header" xml:space="preserve"><value>Include attendee details</value></data>
   <data name="CalSet_IncludeAttendeeDetails.OffContent" xml:space="preserve"><value>Exclude</value></data>
   <data name="CalSet_IncludeAttendeeDetails.OnContent" xml:space="preserve"><value>Include</value></data>

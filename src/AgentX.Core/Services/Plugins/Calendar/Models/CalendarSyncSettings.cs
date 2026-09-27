@@ -31,9 +31,10 @@ public sealed class CalendarSyncSettings
     public int DaysPastToSync { get; set; } = 90;
 
     /// <summary>
-    /// Strategy for resolving conflicting events during sync.
-    /// Valid values: <c>"LocalWins"</c>, <c>"RemoteWins"</c>, <c>"Merge"</c>.
-    /// Default: <c>"RemoteWins"</c>.
+    /// Not applied. Meant as the strategy for conflicting events (<c>"LocalWins"</c>,
+    /// <c>"RemoteWins"</c> or <c>"Merge"</c>, default <c>"RemoteWins"</c>), but calendar sync only
+    /// imports events and never reads it, and the Settings control for it was removed. Kept so
+    /// existing settings files still load.
     /// </summary>
     public string ConflictResolution { get; set; } = "RemoteWins";
 

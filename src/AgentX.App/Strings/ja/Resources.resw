@@ -3014,7 +3014,6 @@
   <data name="CalSet_SyncIntervalMinutes.Text" xml:space="preserve"><value>同期間隔 (分)</value></data>
   <data name="CalSet_SyncRangePastDays.Text" xml:space="preserve"><value>同期範囲: 過去日数</value></data>
   <data name="CalSet_SyncRangeFutureDays.Text" xml:space="preserve"><value>同期範囲: 未来日数</value></data>
-  <data name="CalSet_ConflictResolution.Text" xml:space="preserve"><value>競合の解決</value></data>
   <data name="CalSet_IncludeAttendeeDetails.Header" xml:space="preserve"><value>参加者の詳細を含める</value></data>
   <data name="CalSet_IncludeAttendeeDetails.OffContent" xml:space="preserve"><value>含めない</value></data>
   <data name="CalSet_IncludeAttendeeDetails.OnContent" xml:space="preserve"><value>含める</value></data>
@@ -3483,9 +3482,6 @@
   <data name="CalSet_StatusConnected" xml:space="preserve"><value>接続済み</value></data>
   <data name="CalSet_EveryMinutes" xml:space="preserve"><value>{0} 分ごと</value></data>
   <data name="CalSet_SyncResult" xml:space="preserve"><value>追加 {0} 件、更新 {1} 件、スキップ {2} 件、失敗 {3} 件</value></data>
-  <data name="CalSet_ConflictRemoteWins" xml:space="preserve"><value>リモートを優先</value></data>
-  <data name="CalSet_ConflictLocalWins" xml:space="preserve"><value>ローカルを優先</value></data>
-  <data name="CalSet_ConflictMerge" xml:space="preserve"><value>マージ</value></data>
   <data name="Backup_LoadFailed" xml:space="preserve"><value>バックアップ情報を読み込めませんでした</value></data>
   <data name="Backup_IntegrityValid" xml:space="preserve"><value>有効</value></data>
   <data name="Backup_IntegrityInvalid" xml:space="preserve"><value>無効</value></data>
