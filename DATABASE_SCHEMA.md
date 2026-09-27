@@ -149,7 +149,7 @@ Tables with no relationships: `search_history`, `system_prompts`, `user_settings
 | `SortOrder` | INTEGER | req | Position in the conversation |
 | `Embedding` | TEXT | null | Comma-separated floats used by conversation recall |
 | `EmbeddingModel` | TEXT | null | Embedding model of `Embedding` |
-| `EmbeddingDimensions` | INTEGER | null | Vector size of `Embedding` |
+| `EmbeddingDimensions` | INTEGER | null | Not written by the current code (always null) |
 | `EmbeddedAt` | TEXT | null | When `Embedding` was written |
 
 **Indexes:** `(ConversationId, SortOrder)`, `EmbeddedAt`, `EmbeddingModel`.
@@ -290,9 +290,9 @@ Tables with no relationships: `search_history`, `system_prompts`, `user_settings
 | `LinkedMemoryId` | INTEGER | null | | FK `memories.Id` (restrict), associative link |
 | `Confidence` | REAL | req | `0.8` | Extraction confidence |
 | `Tags` | TEXT | null | | Comma-separated tags |
-| `EmbeddingModelVersion` | TEXT | null | | Embedding model version |
-| `EmbeddingDimensions` | INTEGER | null | | Vector size |
-| `EmbeddedAt` | TEXT | null | | Embedding time |
+| `EmbeddingModelVersion` | TEXT | null | | Not written by the current code (always null) |
+| `EmbeddingDimensions` | INTEGER | null | | Not written by the current code (always null) |
+| `EmbeddedAt` | TEXT | null | | Not written by the current code (always null) |
 
 **Indexes:** `Category`, `IsActive`, `Importance`, `LinkedMemoryId`, `LastUsedAt`, `CreatedAt`,
 `EmbeddingModelVersion`.
