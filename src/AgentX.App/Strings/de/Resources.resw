@@ -1830,6 +1830,18 @@
   <data name="Comp_MarkdownFile" xml:space="preserve"><value>Markdown-Datei</value></data>
   <data name="Comp_ReportSavedTo" xml:space="preserve"><value>Vergleichsbericht gespeichert unter {0}</value></data>
   <data name="Comp_ExportFailed" xml:space="preserve"><value>Export fehlgeschlagen</value></data>
+  <data name="AskFiles_IndexStatusLoading" xml:space="preserve"><value>Wird geladen...</value></data>
+  <data name="AskFiles_KnowledgeBaseStatusUnavailable" xml:space="preserve"><value>Status der Wissensbasis nicht verfügbar</value></data>
+  <data name="AskFiles_CitationLabelWithPage" xml:space="preserve"><value>[{0}] {1}, S. {2}</value></data>
+  <data name="AskFiles_GenerationStoppedMarker" xml:space="preserve"><value>[Generierung angehalten]</value></data>
+  <data name="AskFiles_GenerationStopped" xml:space="preserve"><value>Die Generierung wurde angehalten.</value></data>
+  <data name="AskFiles_AnswerFailed" xml:space="preserve"><value>Beim Durchsuchen Ihrer Dokumente ist ein Fehler aufgetreten. Versuchen Sie es erneut, oder prüfen Sie, ob Ihre Dokumente indiziert wurden.</value></data>
+  <data name="AskFiles_AllCollections" xml:space="preserve"><value>Alle Sammlungen</value></data>
+  <data name="AskFiles_ChunksAvailableOne" xml:space="preserve"><value>{0} Wissensabschnitt verfügbar</value></data>
+  <data name="AskFiles_ChunksAvailableMany" xml:space="preserve"><value>{0} Wissensabschnitte verfügbar</value></data>
+  <data name="AskFiles_DocumentsBeingIndexed" xml:space="preserve"><value>Dokumente werden indiziert...</value></data>
+  <data name="AskFiles_ImportToGetStarted" xml:space="preserve"><value>Importieren Sie Dokumente, um loszulegen</value></data>
+  <data name="AskFiles_StatusUnavailable" xml:space="preserve"><value>Status nicht verfügbar</value></data>
   <data name="WfBuilder_RecentRuns.Text" xml:space="preserve"><value>Letzte Ausführungen</value></data>
   <data name="WfBuilder_StoredWorkflowResultsYou.Text" xml:space="preserve"><value>Gespeicherte Workflow-Ergebnisse, die Sie ohne erneute Ausführung öffnen können.</value></data>
   <data name="WfBuilder_OpenedFromOperations.Text" xml:space="preserve"><value>Aus Operations geöffnet</value></data>

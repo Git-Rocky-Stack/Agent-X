@@ -1830,6 +1830,18 @@
   <data name="Comp_MarkdownFile" xml:space="preserve"><value>archivo Markdown</value></data>
   <data name="Comp_ReportSavedTo" xml:space="preserve"><value>Informe de comparación guardado en {0}</value></data>
   <data name="Comp_ExportFailed" xml:space="preserve"><value>Error al exportar</value></data>
+  <data name="AskFiles_IndexStatusLoading" xml:space="preserve"><value>Cargando...</value></data>
+  <data name="AskFiles_KnowledgeBaseStatusUnavailable" xml:space="preserve"><value>Estado de la base de conocimiento no disponible</value></data>
+  <data name="AskFiles_CitationLabelWithPage" xml:space="preserve"><value>[{0}] {1}, pág. {2}</value></data>
+  <data name="AskFiles_GenerationStoppedMarker" xml:space="preserve"><value>[Generación detenida]</value></data>
+  <data name="AskFiles_GenerationStopped" xml:space="preserve"><value>Se detuvo la generación.</value></data>
+  <data name="AskFiles_AnswerFailed" xml:space="preserve"><value>Se produjo un error al buscar en sus documentos. Inténtelo de nuevo o compruebe que sus documentos se hayan indexado.</value></data>
+  <data name="AskFiles_AllCollections" xml:space="preserve"><value>Todas las colecciones</value></data>
+  <data name="AskFiles_ChunksAvailableOne" xml:space="preserve"><value>{0} fragmento de conocimiento disponible</value></data>
+  <data name="AskFiles_ChunksAvailableMany" xml:space="preserve"><value>{0} fragmentos de conocimiento disponibles</value></data>
+  <data name="AskFiles_DocumentsBeingIndexed" xml:space="preserve"><value>Se están indexando los documentos...</value></data>
+  <data name="AskFiles_ImportToGetStarted" xml:space="preserve"><value>Importe documentos para empezar</value></data>
+  <data name="AskFiles_StatusUnavailable" xml:space="preserve"><value>Estado no disponible</value></data>
   <data name="WfBuilder_RecentRuns.Text" xml:space="preserve"><value>Ejecuciones recientes</value></data>
   <data name="WfBuilder_StoredWorkflowResultsYou.Text" xml:space="preserve"><value>Resultados de flujos de trabajo guardados que puede reabrir sin volver a ejecutarlos.</value></data>
   <data name="WfBuilder_OpenedFromOperations.Text" xml:space="preserve"><value>Abierto desde Operations</value></data>

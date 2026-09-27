@@ -4,6 +4,7 @@ using AgentX.Core.Documents;
 using AgentX.Core.Search;
 using AgentX.Core.Search.Models;
 using AgentX.Core.Services.Collections;
+using AgentX.Tests.Helpers;
 using FluentAssertions;
 using Moq;
 using Xunit;
@@ -264,10 +265,78 @@ public sealed class AskFilesViewModelTests
         }
     }
 
+    // Wording from the resources
+
+    [Fact]
+    public async Task AskAsync_LabelsACitationWithItsPageFromTheResources()
+    {
+        _ragPipeline
+            .Setup(pipeline => pipeline.AskAsync(
+                It.IsAny<string>(),
+                It.IsAny<long?>(),
+                It.IsAny<Action<string>?>(),
+                It.IsAny<bool>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new RagResponse
+            {
+                AnswerText = "Answer",
+                Citations =
+                [
+                    new Citation { Number = 1, DocumentId = 5, FileName = "a.pdf", FilePath = "a.pdf", PageNumber = 12, Excerpt = "x" },
+                    new Citation { Number = 2, DocumentId = 6, FileName = "b.md", FilePath = "b.md", Excerpt = "y" }
+                ],
+            });
+        var viewModel = CreateViewModel();
+        viewModel.QuestionText = "Question";
+
+        await viewModel.AskCommand.ExecuteAsync(null);
+
+        viewModel.ActiveCitations.Select(citation => citation.Label).Should().Equal("[1] a.pdf, p.12", "[2] b.md");
+    }
+
+    [Fact]
+    public async Task AskAsync_ExplainsAFailedAnswerInTheAnswerBubble()
+    {
+        _ragPipeline
+            .Setup(pipeline => pipeline.AskAsync(
+                It.IsAny<string>(),
+                It.IsAny<long?>(),
+                It.IsAny<Action<string>?>(),
+                It.IsAny<bool>(),
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("index offline"));
+        var viewModel = CreateViewModel();
+        viewModel.QuestionText = "Question";
+
+        await viewModel.AskCommand.ExecuteAsync(null);
+
+        viewModel.Messages.Last().Content.Should().StartWith("I encountered an error while searching your documents.");
+    }
+
+    [Fact]
+    public async Task InitializeAsync_ReportsTheIndexedChunksAndOffersAllCollections()
+    {
+        _documentService.Setup(service => service.GetTotalDocumentCountAsync()).ReturnsAsync(2);
+        _documentService
+            .Setup(service => service.GetAllDocumentsAsync(
+                It.IsAny<string?>(), "completed", It.IsAny<string?>(), It.IsAny<long?>(),
+                It.IsAny<DateTime?>(), It.IsAny<DateTime?>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync([new DocumentEntity { Id = 1, ChunkCount = 20 }, new DocumentEntity { Id = 2, ChunkCount = 22 }]);
+        _collectionService.Setup(service => service.GetAllCollectionsAsync()).ReturnsAsync(Array.Empty<CollectionEntity>());
+        var viewModel = CreateViewModel();
+        viewModel.IndexStatusMessage.Should().Be("Loading...");
+
+        await viewModel.InitializeAsync();
+
+        viewModel.IndexStatusMessage.Should().Be("42 knowledge chunks available");
+        viewModel.AvailableCollections.Should().ContainSingle().Which.Name.Should().Be("All Collections");
+    }
+
     private AskFilesViewModel CreateViewModel() =>
         new(
             _ragPipeline.Object,
             _documentService.Object,
             _collectionService.Object,
-            _logger.Object);
+            _logger.Object,
+            EnglishResources.Create());
 }

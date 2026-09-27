@@ -1830,6 +1830,18 @@
   <data name="Comp_MarkdownFile" xml:space="preserve"><value>fichier Markdown</value></data>
   <data name="Comp_ReportSavedTo" xml:space="preserve"><value>Rapport de comparaison enregistré dans {0}</value></data>
   <data name="Comp_ExportFailed" xml:space="preserve"><value>Échec de l'exportation</value></data>
+  <data name="AskFiles_IndexStatusLoading" xml:space="preserve"><value>Chargement...</value></data>
+  <data name="AskFiles_KnowledgeBaseStatusUnavailable" xml:space="preserve"><value>État de la base de connaissances indisponible</value></data>
+  <data name="AskFiles_CitationLabelWithPage" xml:space="preserve"><value>[{0}] {1}, p. {2}</value></data>
+  <data name="AskFiles_GenerationStoppedMarker" xml:space="preserve"><value>[Génération arrêtée]</value></data>
+  <data name="AskFiles_GenerationStopped" xml:space="preserve"><value>La génération a été arrêtée.</value></data>
+  <data name="AskFiles_AnswerFailed" xml:space="preserve"><value>Une erreur s'est produite lors de la recherche dans vos documents. Réessayez ou vérifiez que vos documents ont bien été indexés.</value></data>
+  <data name="AskFiles_AllCollections" xml:space="preserve"><value>Toutes les collections</value></data>
+  <data name="AskFiles_ChunksAvailableOne" xml:space="preserve"><value>{0} fragment de connaissances disponible</value></data>
+  <data name="AskFiles_ChunksAvailableMany" xml:space="preserve"><value>{0} fragments de connaissances disponibles</value></data>
+  <data name="AskFiles_DocumentsBeingIndexed" xml:space="preserve"><value>Indexation des documents en cours...</value></data>
+  <data name="AskFiles_ImportToGetStarted" xml:space="preserve"><value>Importez des documents pour commencer</value></data>
+  <data name="AskFiles_StatusUnavailable" xml:space="preserve"><value>État indisponible</value></data>
   <data name="WfBuilder_RecentRuns.Text" xml:space="preserve"><value>Exécutions récentes</value></data>
   <data name="WfBuilder_StoredWorkflowResultsYou.Text" xml:space="preserve"><value>Résultats de flux de travail enregistrés que vous pouvez rouvrir sans les relancer.</value></data>
   <data name="WfBuilder_OpenedFromOperations.Text" xml:space="preserve"><value>Ouvert depuis Operations</value></data>

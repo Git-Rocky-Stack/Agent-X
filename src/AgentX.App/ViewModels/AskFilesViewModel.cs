@@ -3,6 +3,7 @@ using AgentX.Core.Documents;
 using AgentX.Core.Search;
 using AgentX.Core.Search.Models;
 using AgentX.Core.Services.Collections;
+using AgentX.Core.Services.Localization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Serilog;
@@ -23,6 +24,7 @@ public partial class AskFilesViewModel : ObservableObject
     private readonly IDocumentService _documentService;
     private readonly ICollectionService _collectionService;
     private readonly ILogger _logger;
+    private readonly ILocalizationService _localization;
 
     private CancellationTokenSource? _generationCts;
 
@@ -38,7 +40,7 @@ public partial class AskFilesViewModel : ObservableObject
 
     // ── Index Status ─────────────────────────────────────────────
     [ObservableProperty] private long _indexedChunkCount;
-    [ObservableProperty] private string _indexStatusMessage = "Loading...";
+    [ObservableProperty] private string _indexStatusMessage = string.Empty;
 
     // ── Collections ──────────────────────────────────────────────
     public ObservableCollection<AskFilesMessage> Messages { get; } = new();
@@ -49,12 +51,15 @@ public partial class AskFilesViewModel : ObservableObject
         IRagPipeline ragPipeline,
         IDocumentService documentService,
         ICollectionService collectionService,
-        ILogger logger)
+        ILogger logger,
+        ILocalizationService localization)
     {
         _ragPipeline = ragPipeline;
         _documentService = documentService;
         _collectionService = collectionService;
         _logger = logger;
+        _localization = localization;
+        IndexStatusMessage = _localization.GetString("AskFiles_IndexStatusLoading");
         _logger.Debug("AskFilesViewModel created with services");
     }
 
@@ -77,7 +82,7 @@ public partial class AskFilesViewModel : ObservableObject
         catch (Exception ex)
         {
             _logger.Warning(ex, "Failed to initialize AskFilesViewModel");
-            IndexStatusMessage = "Knowledge base status unavailable";
+            IndexStatusMessage = _localization.GetString("AskFiles_KnowledgeBaseStatusUnavailable");
         }
     }
 
@@ -162,7 +167,10 @@ public partial class AskFilesViewModel : ObservableObject
                         : await GetFilePathForDocumentAsync(citation.DocumentId),
                     PageNumber = citation.PageNumber,
                     Excerpt = TruncateExcerpt(citation.Excerpt, 200),
-                    RelevancePercent = (int)Math.Round(citation.RelevanceScore * 100)
+                    RelevancePercent = (int)Math.Round(citation.RelevanceScore * 100),
+                    Label = citation.PageNumber.HasValue
+                        ? _localization.GetString("AskFiles_CitationLabelWithPage", citation.Number, citation.FileName, citation.PageNumber.Value)
+                        : $"[{citation.Number}] {citation.FileName}"
                 };
                 citationItems.Add(item);
             }
@@ -181,14 +189,14 @@ public partial class AskFilesViewModel : ObservableObject
         {
             _logger.Information("RAG generation was cancelled by user");
             assistantMessage.Content = assistantMessage.Content.Length > 0
-                ? assistantMessage.Content + "\n\n[Generation stopped]"
-                : "Generation was stopped.";
+                ? assistantMessage.Content + "\n\n" + _localization.GetString("AskFiles_GenerationStoppedMarker")
+                : _localization.GetString("AskFiles_GenerationStopped");
             assistantMessage.IsStreaming = false;
         }
         catch (Exception ex)
         {
             _logger.Error(ex, "RAG pipeline failed for question: {Question}", questionCopy);
-            assistantMessage.Content = "I encountered an error while searching your documents. Please try again, or check that your documents have been indexed.";
+            assistantMessage.Content = _localization.GetString("AskFiles_AnswerFailed");
             assistantMessage.IsStreaming = false;
         }
         finally
@@ -296,7 +304,7 @@ public partial class AskFilesViewModel : ObservableObject
             AvailableCollections.Add(new CollectionOption
             {
                 Id = null,
-                Name = "All Collections"
+                Name = _localization.GetString("AskFiles_AllCollections")
             });
 
             foreach (var c in collections)
@@ -329,21 +337,23 @@ public partial class AskFilesViewModel : ObservableObject
 
             if (totalChunks > 0)
             {
-                IndexStatusMessage = $"{totalChunks:N0} knowledge chunks available";
+                IndexStatusMessage = totalChunks == 1
+                    ? _localization.GetString("AskFiles_ChunksAvailableOne", totalChunks.ToString("N0"))
+                    : _localization.GetString("AskFiles_ChunksAvailableMany", totalChunks.ToString("N0"));
             }
             else if (totalDocs > 0)
             {
-                IndexStatusMessage = "Documents are being indexed...";
+                IndexStatusMessage = _localization.GetString("AskFiles_DocumentsBeingIndexed");
             }
             else
             {
-                IndexStatusMessage = "Import documents to get started";
+                IndexStatusMessage = _localization.GetString("AskFiles_ImportToGetStarted");
             }
         }
         catch (Exception ex)
         {
             _logger.Warning(ex, "Failed to load index status");
-            IndexStatusMessage = "Status unavailable";
+            IndexStatusMessage = _localization.GetString("AskFiles_StatusUnavailable");
         }
     }
 
@@ -437,11 +447,10 @@ public class CitationItem
     public int RelevancePercent { get; init; }
 
     /// <summary>
-    /// Short display label for inline citation badges, e.g. "[1] report.pdf, p.12"
+    /// Short display label for inline citation badges, e.g. "[1] report.pdf, p.12", set by the
+    /// view model in the UI language.
     /// </summary>
-    public string Label => PageNumber.HasValue
-        ? $"[{Number}] {FileName}, p.{PageNumber}"
-        : $"[{Number}] {FileName}";
+    public string Label { get; init; } = string.Empty;
 }
 
 // =============================================================================

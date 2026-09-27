@@ -2169,6 +2169,18 @@
   <data name="Comp_MarkdownFile" xml:space="preserve"><value>Markdown file</value></data>
   <data name="Comp_ReportSavedTo" xml:space="preserve"><value>Comparison report saved to {0}</value></data>
   <data name="Comp_ExportFailed" xml:space="preserve"><value>Export failed</value></data>
+  <data name="AskFiles_IndexStatusLoading" xml:space="preserve"><value>Loading...</value></data>
+  <data name="AskFiles_KnowledgeBaseStatusUnavailable" xml:space="preserve"><value>Knowledge base status unavailable</value></data>
+  <data name="AskFiles_CitationLabelWithPage" xml:space="preserve"><value>[{0}] {1}, p.{2}</value></data>
+  <data name="AskFiles_GenerationStoppedMarker" xml:space="preserve"><value>[Generation stopped]</value></data>
+  <data name="AskFiles_GenerationStopped" xml:space="preserve"><value>Generation was stopped.</value></data>
+  <data name="AskFiles_AnswerFailed" xml:space="preserve"><value>I encountered an error while searching your documents. Please try again, or check that your documents have been indexed.</value></data>
+  <data name="AskFiles_AllCollections" xml:space="preserve"><value>All Collections</value></data>
+  <data name="AskFiles_ChunksAvailableOne" xml:space="preserve"><value>{0} knowledge chunk available</value></data>
+  <data name="AskFiles_ChunksAvailableMany" xml:space="preserve"><value>{0} knowledge chunks available</value></data>
+  <data name="AskFiles_DocumentsBeingIndexed" xml:space="preserve"><value>Documents are being indexed...</value></data>
+  <data name="AskFiles_ImportToGetStarted" xml:space="preserve"><value>Import documents to get started</value></data>
+  <data name="AskFiles_StatusUnavailable" xml:space="preserve"><value>Status unavailable</value></data>
   <data name="WfBuilder_RecentRuns.Text" xml:space="preserve"><value>Recent Runs</value></data>
   <data name="WfBuilder_StoredWorkflowResultsYou.Text" xml:space="preserve"><value>Stored workflow results you can reopen without rerunning.</value></data>
   <data name="WfBuilder_OpenedFromOperations.Text" xml:space="preserve"><value>Opened from Operations</value></data>
