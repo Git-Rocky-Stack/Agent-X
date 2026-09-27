@@ -1,446 +1,391 @@
 # Agent-X Real-World Scenarios
 
-**Practical workflows and use cases**
+**Practical workflows built from the features Agent-X has today**
 
 ---
 
 ## Overview
 
-These scenarios demonstrate practical applications of Agent-X across various domains:
-- Research and Academia
-- Business and Productivity
-- Software Development
-- Personal Organization
-- Creative Writing
+Each scenario below strings together pages that exist in the app, with the button and page
+names the English interface uses. They assume you finished the setup wizard and have an AI
+provider and an embedding model working (see the [Quick Start](../getting-started/quick-start.md)).
+
+Two things to keep in mind throughout:
+
+- **Ask Your Files** answers from your documents and cites them. **AI Chat** answers from the
+  model and the conversation only: it does not search your Knowledge Vault, so questions
+  about your files belong in Ask Your Files.
+- Everything that uses the AI model (answers, tags, AI titles, Quick Actions, Workflows)
+  sends its text to the active provider. With the built-in model or Ollama on your computer,
+  nothing leaves the machine.
 
 ---
 
 ## Available Scenarios
 
-| Scenario | Description | Duration |
-|----------|-------------|----------|
-| **Research Paper Analysis** | Analyze academic papers efficiently | 15 min |
-| **Meeting Intelligence** | Extract insights from meeting notes | 10 min |
-| **Code Review Assistant** | Streamline code review workflow | 20 min |
-| **Document Migration** | Migrate and organize legacy documents | 30 min |
-| **Personal Knowledge Base** | Build searchable personal wiki | 45 min |
+| Scenario | What you get | Pages used |
+|----------|--------------|------------|
+| **1. Research Paper Analysis** | Cited answers across a set of papers, side-by-side comparisons, annotated passages | Knowledge Vault, Collections, Ask Your Files, Compare Documents, Quick Actions, Annotations |
+| **2. Meeting Notes** | Decisions and action items pulled from a folder of notes that keeps itself up to date | Settings (Watch Folders), Collections, Ask Your Files, Semantic Search, Workflows |
+| **3. Code and Technical Documentation** | Answers about a codebase and its docs, found by identifier or by meaning | Knowledge Vault, Semantic Search, Ask Your Files, AI Chat |
+| **4. Organizing an Existing Collection** | Duplicates found, collections suggested and created, a backup before and after | Knowledge Vault, Quick Actions, Collections, Knowledge Graph, Backup & Restore |
+| **5. Personal Knowledge Base from the Web** | Articles, videos and feeds in one searchable vault | Web Import, Smart Inbox, Collections, Ask Your Files, Semantic Search, Weekly Digest |
+| **Advanced: Web and Vault Research** | Live web results next to answers from your own documents | AI Chat (Research Mode), Web Import, Ask Your Files |
 
 ---
 
 ## Scenario 1: Research Paper Analysis
 
-**Goal:** Quickly extract insights from multiple academic papers
+**Goal:** Understand a set of academic papers quickly, with every claim traceable to a page.
 
 **Prerequisites:**
-- Research papers imported into Knowledge Vault
-- Advanced RAG enabled
+- The papers as PDF or Word (`.docx`) files
+- An embedding model available (the built-in model, or Ollama with `all-minilm`)
 
 ### Workflow
 
-**Step 1: Import Papers**
+**Step 1: Import the papers**
+
+In the **Knowledge Vault**, click **Import Folder** and pick the folder with the papers, or
+**Import Files** to choose them one by one. Wait until each paper's badge reads **Indexed**.
+The AI model adds up to five tags to each paper; **AI Title** gives a paper a readable title
+if its file name is not one.
+
+**Step 2: Put them in a collection**
+
+On the **Collections** page, type a name such as `Literature review` and click
+**Create Collection**. Select it, click **Add Documents** and pick the same files: files
+already in the vault are added as the existing documents, not imported twice.
+
+**Step 3: Ask across the papers**
+
+Open **Ask Your Files**, choose `Literature review` in the collection list, and ask:
 
 ```
-Knowledge Vault → Import Documents
-- Select 5-10 PDF files
-- Enable auto-tagging (assigns "Research", "Academic")
-- Enable auto-title (generates descriptive titles)
+What research questions do these papers address, and which methods does each one use?
 ```
 
-**Step 2: Initial Overview**
-
 ```
-AI Chat Prompt:
-"Provide an overview of the research papers in my vault. Group by theme and highlight common methodologies, findings, and gaps."
+Where do the papers disagree about the results, and what reasons do they give?
 ```
 
-**Result:** Structured summary with:
-- Themes across papers
-- Common approaches
-- Contradictions or agreements
-- Research gaps identified
+Each answer cites passages as `[1]`, `[2]` and so on. The **Sources** panel shows the paper,
+the page and an excerpt for each; **Open source document** shows the file in File Explorer.
 
-**Step 3: Deep Dive on Specific Paper**
+**Step 4: Compare two papers side by side**
 
-```
-1. Select paper in Knowledge Vault
-2. Click "Analyze with AI"
-3. Use template: "Explain technical document"
-4. Ask follow-up questions:
-   - "What are the key assumptions?"
-   - "How was the data collected?"
-   - "What are the limitations?"
-```
+On **Compare Documents**, select two or more papers, optionally type a focus topic such as
+`methodology`, pick a **Detail Level** and click **Compare Documents**. The report lists
+**Similarities**, **Differences**, **Contradictions** and **Unique Points by Document**;
+**Export Report** saves it.
 
-**Step 4: Cross-Reference Analysis**
+**Step 5: Summarize one paper**
 
-```
-AI Chat Prompt:
-"Compare the methodologies used in {{paper1}} and {{paper2}}. What are the key differences in approach, and how might these affect the results?"
-```
+On **Quick Actions**, choose the paper in the document list. **Summarize** >
+**Generate Layered Summary** summarizes it section by section and then as a whole;
+**Key Points** > **Extract Key Points** lists its main facts and findings.
 
-**Step 5: Citation Extraction**
+**Step 6: Keep the passages that matter**
 
-```
-AI Chat Prompt:
-"Extract all citations from {{document}}. Organize by year and identify the most frequently cited works."
-```
+In the Knowledge Vault, click **Detail** on a paper. Under **DOCUMENT TEXT**, move through the
+passages with **Previous passage** and **Next passage**, select a sentence, add a note under
+**NEW ANNOTATION** and click **Save Annotation**. The **Annotations** page collects all of them
+and **Export as Markdown** writes them to a file for your literature review.
 
 **Outcome:**
-- Comprehensive understanding of research landscape
-- Key findings synthesized across papers
-- Gaps and opportunities identified
-- Ready-for-literature-review notes
+- Cited answers across the whole set of papers
+- A comparison report and per-paper summaries
+- Your own highlights and notes, exported as Markdown
 
 ---
 
-## Scenario 2: Meeting Intelligence
+## Scenario 2: Meeting Notes
 
-**Goal:** Transform raw meeting notes into actionable intelligence
+**Goal:** Turn a folder of meeting notes into decisions and action items you can look up.
 
 **Prerequisites:**
-- Meeting notes imported (TXT, MD, or DOCX)
-- Conversation folders configured
+- Meeting notes saved as `.txt`, `.md` or `.docx` files in one folder
 
 ### Workflow
 
-**Step 1: Import Meeting Notes**
+**Step 1: Watch the notes folder**
+
+In **Settings > Knowledge Vault > Watch Folders**, click **Add Folder** and pick the notes
+folder (check **Include subfolders** first if the notes are in subfolders). Agent-X imports
+the notes already there and, while it runs, new and changed ones. **Auto-index watch folders**
+must be on; it is on by default.
+
+**Step 2: Group the notes**
+
+Create a collection such as `Team meetings` on the **Collections** page and use
+**Add Documents** to add the notes.
+
+**Step 3: Pull out decisions and action items**
+
+In **Ask Your Files**, with `Team meetings` selected:
 
 ```
-Knowledge Vault → Import Documents
-- Import all meeting notes from folder
-- Tag with "Meeting", department name, project
-- Collection: "Weekly Meetings - Q2 2026"
+List the action items from the meetings, with the owner and due date where the notes give them.
 ```
 
-**Step 2: Generate Meeting Summary**
-
 ```
-Chat Template: Meeting Notes Summary
-
-Input: Recent meeting document
-Template: "Summarize meeting with key decisions, action items, and discussion points"
+What was decided about the release schedule, and in which meeting?
 ```
 
-**Step 3: Extract Action Items**
+**Step 4: Find every mention of a person or project**
 
-```
-AI Chat Prompt:
-"From all meeting notes in the 'Weekly Meetings' collection, extract all action items. Group by owner and status (completed/pending/overdue)."
-```
+On **Semantic Search**, choose **Keyword** under **SEARCH MODE** and search for a name or
+project code. Keyword mode finds the words themselves; **Semantic** mode finds passages about
+the same subject in other words. **Save** keeps the search under **Saved Filters** for next
+time.
 
-**Step 4: Track Commitments**
+**Step 5: Turn one set of notes into action items**
 
-```
-AI Chat Prompt:
-"What commitments were made in {{specificMeeting}}? For each, identify: who committed, deadline, current status, and any blockers mentioned."
-```
+Open **Workflows**, pick the **Summarize & Act** template, paste the text of one meeting into
+**Input** and click **Run**. The template summarizes the notes, extracts key points and writes a
+checklist of action items. **Save as Document** adds the result to the Knowledge Vault, and
+**Export Result** saves it to a file.
 
-**Step 5: Identify Recurring Issues**
-
-```
-AI Chat Prompt:
-"Analyze all Q2 2026 meeting notes. What issues or topics appear repeatedly? What patterns do you notice in team concerns or blockers?"
-```
-
-**Step 6: Generate Follow-Up Agenda**
-
-```
-AI Chat Prompt:
-"Based on the previous meeting and pending action items, create an agenda for our next team meeting. Prioritize items that are overdue or blocked."
-```
+The **Workflow** button on a vault document also opens this page, with the document's name,
+title and the start of its text as input. For a long document, paste its full text instead.
 
 **Outcome:**
-- Action items tracked across meetings
-- Commitments monitored
-- Recurring issues identified
-- Meeting prep automated
+- Meeting notes imported automatically as you save them
+- Action items and decisions with citations to the meeting they came from
+- Summaries saved back into the vault
 
 ---
 
-## Scenario 3: Code Review Assistant
+## Scenario 3: Code and Technical Documentation
 
-**Goal:** Accelerate code review with AI assistance
+**Goal:** Get answers about a codebase and its documentation without reading every file.
 
 **Prerequisites:**
-- Code files imported (CS, PY, JS, etc.)
-- Technical documentation available
+- Source files in a supported language (C#, JavaScript, TypeScript, Python, Java, C, C++, Go,
+  Rust, Swift, Kotlin, Ruby, PHP, SQL, shell scripts, and more) and the project's docs
 
 ### Workflow
 
-**Step 1: Import Code**
+**Step 1: Import the repository**
+
+In the **Knowledge Vault**, click **Import Folder** and pick the repository folder. Agent-X
+imports every supported file in it and its subfolders, including Markdown docs and
+configuration files (`.json`, `.yaml`, `.toml`, `.ini`).
+
+**Step 2: Look up identifiers**
+
+On **Semantic Search**, choose **Keyword** mode and the **Code** file type, and search for a
+class, function or error code. Each result shows the file, an excerpt and the chunk it came
+from; **Open** shows the file in File Explorer.
+
+**Step 3: Ask how things work**
+
+In **Ask Your Files**:
 
 ```
-Knowledge Vault → Import Documents
-- Import source files for review
-- Import related documentation
-- Tag with programming language, project
+How does the application load its settings at startup, and which files are involved?
 ```
 
-**Step 2: Initial Code Review**
-
 ```
-Chat Template: Debug Code Issue / Explain Code
-
-Input: Code file
-Template: "Review this code for:
-- Logic errors
-- Security vulnerabilities
-- Performance issues
-- Code style and readability"
+Which parts of the code handle authentication, and what happens when a token expires?
 ```
 
-**Step 3: Compare Implementations**
+The citations point to the files and chunks the answer is based on.
 
-```
-AI Chat Prompt:
-"Compare {{oldFile}} with {{newFile}}. What changed? Evaluate whether the changes improve or degrade the codebase."
-```
+**Step 4: Discuss a snippet with the AI**
 
-**Step 4: Documentation Verification**
-
-```
-AI Chat Prompt:
-"Review the code in {{file}} against the documentation in {{specDoc}}. Does the implementation match the specification? Highlight any discrepancies."
-```
-
-**Step 5: Generate Review Comments**
-
-```
-AI Chat Prompt:
-"Based on your analysis of {{pullRequest}}, generate review comments organized by:
-1. Must fix (blocking)
-2. Should fix (quality)
-3. Nice to have (improvements)"
-```
+For a general question about code you paste in, use **AI Chat**. The prompt button in the top
+bar applies one of the built-in system prompts, such as **Code Helper** or
+**Technical Explainer**, to the conversation. Remember that chat does not read the vault:
+paste the code you want to discuss.
 
 **Outcome:**
-- Faster code reviews
-- Consistent review quality
-- Documentation compliance verified
-- Actionable feedback generated
+- Identifiers found by keyword, concepts found by meaning
+- Answers about the codebase with citations to the files
 
 ---
 
-## Scenario 4: Document Migration
+## Scenario 4: Organizing an Existing Collection
 
-**Goal:** Migrate and organize legacy document collection
+**Goal:** Bring an unsorted pile of documents into the vault and give it structure.
 
 **Prerequisites:**
-- Legacy documents available (various formats)
-- Target organizational structure planned
+- The documents in one or more folders
 
 ### Workflow
 
-**Step 1: Bulk Import**
+**Step 1: Back up first**
 
-```
-Knowledge Vault → Import Documents
-- Select root folder
-- Enable auto-tagging (initial categorization)
-- Enable auto-title (descriptive names)
-- Import: 100+ documents
-```
+On **Backup & Restore**, choose a **Destination Folder**, optionally check
+**Encrypt backup (AES-256)** with a password, and click **Create Backup**. Backups are
+`.agentxbak` files that **Restore from Backup** can bring back.
 
-**Step 2: Identify Duplicates**
+**Step 2: Import everything**
 
-```
-AI Chat Prompt:
-"Scan all imported documents and identify potential duplicates. Look for:
-- Exact duplicates (same file)
-- Near-duplicates (similar content, different formats)
-- Different versions of same document"
+In the **Knowledge Vault**, use **Import Folder** for each folder. Files whose content is
+already in the vault are skipped, and the summary says how many.
 
-Result: List of duplicates for manual review
-```
+**Step 3: Find duplicates**
 
-**Step 3: Organize by Topic**
+On **Quick Actions**, open **Duplicates**. **Scan Exact Duplicates** groups files with identical
+content and shows the space they take; **Scan Semantic Near-Duplicates** groups documents that
+say nearly the same thing. Both scans only report: delete the copies you do not want from the
+Knowledge Vault (deleting never removes the file on disk).
 
-```
-AI Chat Prompt:
-"Analyze all imported documents and suggest an organizational structure. Group documents by theme and propose collections."
+**Step 4: Get collection suggestions**
 
-Result: Collection structure with document assignments
-```
+On **Quick Actions**, open **Organize** and click **Analyze & Suggest**. For up to 20 documents
+that are in no collection, it suggests a collection and tags, with its reasoning. The
+suggestions are not applied for you.
 
-**Step 4: Enrich Metadata**
+**Step 5: Create the structure**
 
-```
-AI Chat Prompt:
-"For each document in the 'Policies' collection, extract:
-- Policy type
-- Effective date
-- Review date
-- Responsible department
-- Related policies"
+On **Collections**, create the collections you settled on and fill them with **Add Documents**.
+To nest one collection in another, select it and use **Move into...**; collections nest one
+level deep.
 
-Result: Structured metadata for each policy
-```
+**Step 6: Check the result**
 
-**Step 5: Generate Migration Report**
-
-```
-AI Chat Prompt:
-"Generate a migration report summarizing:
-- Total documents imported
-- Documents by type and collection
-- Duplicates found and resolved
-- Tagging statistics
-- Recommendations for ongoing maintenance"
-```
+The **Knowledge Graph** draws documents, collections and tags as nodes, so documents that share
+a collection or tag cluster together and stray documents stand out. Click a collection or tag
+to highlight its cluster. When you are done, create another backup.
 
 **Outcome:**
-- Organized document vault
-- Duplicates eliminated
-- Rich metadata for search
-- Clear maintenance plan
+- Everything imported once, with duplicates identified
+- A collection structure that Ask Your Files and Semantic Search can be limited to
+- Backups from before and after the reorganization
 
 ---
 
-## Scenario 5: Personal Knowledge Base
+## Scenario 5: Personal Knowledge Base from the Web
 
-**Goal:** Build searchable personal wiki
+**Goal:** Collect articles, videos and posts you want to keep, and find them again by meaning.
 
 **Prerequisites:**
-- Various personal documents
-- Notes, ideas, reference materials
+- For clipping while you browse: the Agent-X browser extension, paired with the token from
+  **Settings > Connections**
 
 ### Workflow
 
-**Step 1: Import Diverse Content**
+**Step 1: Import pages you already know**
+
+On **Web Import**, paste URLs under **Enter URLs**, one per line (web articles and YouTube
+videos), optionally choose a collection under **Add to Collection (optional)**, and click
+**Import All**. **Preview First URL** shows the title, site, author and word count first.
+
+**Step 2: Import a feed or a site**
+
+Still on **Web Import**, **RSS / Atom Feed** imports every item the feed lists at that moment
+(it is read once, not followed), and **Sitemap Import** imports up to 100 pages found in a
+`sitemap.xml`.
+
+**Step 3: Clip while you browse**
+
+Pages you clip with the browser extension land in the **Smart Inbox**. **Generate AI Previews**
+suggests a collection and tags for each clip; **Accept** imports it into the Knowledge Vault
+(into the collection you chose, or the suggested one), **Defer** keeps it for later, and
+**Reject** discards it.
+
+**Step 4: Organize by interest**
+
+Create collections such as `Cooking`, `Travel` or `Career` on the **Collections** page, or
+choose them when importing and accepting.
+
+**Step 5: Ask and search**
+
+In **Ask Your Files**:
 
 ```
-Import from:
-- Notes apps (TXT, MD export)
-- Bookmarks (HTML export)
-- E-books (PDF, EPUB conversion)
-- Reference materials (PDF, DOCX)
-- Personal writing (MD, TXT)
+What have I saved about sourdough starters, and what do the sources disagree on?
 ```
 
-**Step 2: Create Topic Collections**
+On **Semantic Search**, save the searches you repeat with **Save** so they appear under
+**Saved Filters**.
 
-```
-Collections by interest:
-- "Professional Development"
-- "Project Ideas"
-- "Recipes & Cooking"
-- "Travel Planning"
-- "Financial Records"
-```
+**Step 6: Review the week**
 
-**Step 3: Link Related Content**
-
-```
-AI Chat Prompt:
-"For the topic {{topic}}, find all related documents in my vault. Explain how they relate and suggest a reading order."
-```
-
-**Step 4: Generate Summaries**
-
-```
-For long documents:
-AI Chat Prompt:
-"Create a one-page summary of {{document}}. Include key concepts, main arguments, and actionable takeaways."
-```
-
-**Step 5: Ongoing Queries**
-
-```
-Daily use:
-- "What do I have saved about {{topic}}?"
-- "Remind me about {{idea}}"
-- "What resources do I have for {{project}}?"
-- "Summarize everything I know about {{subject}}"
-```
+On **Weekly Digest**, **Generate New Digest** summarizes the week: new documents,
+conversations, searches, tokens used, top searches and collections, and conversation
+highlights. **REPORT HISTORY** keeps earlier digests.
 
 **Outcome:**
-- Searchable personal knowledge
-- Cross-referenced content
-- Quick retrieval of information
-- Growing intelligence asset
+- Web content from several sources in one vault
+- Answers with citations to the pages you saved
+- A weekly overview of what you collected
 
 ---
 
-## Advanced Scenario: Cross-System Intelligence
+## Advanced Scenario: Web and Vault Research
 
-**Goal:** Combine Agent-X with browser extension for web research
+**Goal:** Research a topic with current web results and with what you already have.
+
+**Prerequisites:**
+- A web search provider: a Brave or Serper API key, or the address of a SearXNG instance
 
 ### Workflow
 
-**Step 1: Web Research**
+**Step 1: Turn on Research Mode**
 
-```
-Browser Extension:
-- Clip articles while browsing (full page, selection, or reader view)
-- Clips land in the Smart Inbox with an AI-suggested collection and tags
-- Review each clip there: accept, defer, or reject
-```
+In **Settings > Research Mode**, switch on **Enable Research Mode**, choose the
+**Search Provider** and enter its key or address, then click **Save Settings**. Research Mode
+is off by default. With it on, the questions you send in Research Mode go to the search
+provider.
 
-**Step 2: Ingest to Knowledge Base**
+**Step 2: Search the web from AI Chat**
 
-```
-Agent-X processes:
-- Extract full article content
-- Generate embeddings
-- Auto-tag by topic
-- Summarize with AI
-```
+In **AI Chat**, switch on the Research mode button next to the message box and ask your
+question. The answer uses the search results and lists them under **Web sources**; click one
+to open the page.
 
-**Step 3: Query Across Sources**
+**Step 3: Keep the useful pages**
 
-```
-AI Chat Prompt:
-"Synthesize information from all sources about {{topic}}. Include:
-- Common ground (agreement)
-- Divergent views (disagreement)
-- Gaps in current knowledge
-- Suggested next research"
-```
+Paste the URLs worth keeping into **Web Import** and click **Import All**, or clip them with
+the browser extension.
 
-**Step 4: Generate Research Report**
+**Step 4: Ask your own documents**
 
-```
-AI Chat Prompt:
-"Based on all imported web content and my existing documents, generate a research report on {{topic}}. Include citations to sources."
-```
+Research Mode never searches your vault. Once the pages are indexed, ask the same question
+in **Ask Your Files** to get an answer from your saved pages and existing documents, with
+citations.
 
 **Outcome:**
-- Seamless web-to-vault workflow
-- Research across web and local docs
-- Comprehensive synthesis
-- Cited, reportable output
+- Current web results with their sources
+- The pages worth keeping, indexed next to your own documents
+- Cited answers from everything you have
 
 ---
 
 ## Tips for Success
 
-1. **Start small** — Import documents gradually
-2. **Use templates** — Consistent prompts yield consistent results
-3. **Refine as you go** — Adjust templates based on results
-4. **Leverage collections** — Organize documents proactively
-5. **Review tags** — Clean up auto-generated tags periodically
+1. **Start small.** Import a few documents first and check that they reach **Indexed** before
+   importing thousands.
+2. **Use collections.** Limiting Ask Your Files to a collection keeps answers focused.
+3. **Ask specific questions.** "Which papers use a control group?" retrieves better passages
+   than "Tell me about the papers."
+4. **Check the sources.** The citations show where an answer came from; open the source when
+   it matters.
+5. **Back up before big changes.** Backup & Restore takes a minute and makes a reorganization
+   reversible.
 
 ---
 
 ## Scenario Templates
 
-Use these templates to create your own scenarios:
-
-### Template Structure
+Use this outline to write down your own scenarios:
 
 ```markdown
 # Scenario Name
 
-**Goal:** [What you're trying to accomplish]
+**Goal:** [What you are trying to accomplish]
 **Prerequisites:** [What you need before starting]
 
 ### Workflow
 
 **Step 1: [Action]**
-[Detailed instructions]
+[Which page, which button, what to type]
 
 **Step 2: [Action]**
-[Detailed instructions]
+[Which page, which button, what to type]
 
 ...
 
@@ -452,7 +397,3 @@ Use these templates to create your own scenarios:
 
 [Alternative approaches or special cases]
 ```
-
----
-
-*Last updated: 2026-05-03*
