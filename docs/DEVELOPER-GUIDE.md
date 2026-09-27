@@ -1973,14 +1973,15 @@ FTS5 keyword search initialized
 AI service initialized with {Provider} provider, model: {Model}
 Theme initialized: {Theme}
 Plugins activated: {Activated}; failed: {Failed}
+Agent-X window shown; core services are starting
 Indexing pipeline started
-Agent-X started successfully
+Agent-X core services started
 ```
 
-The lines from the migration on come from `InitializeCoreServicesAsync` in this order. "Agent-X
-started successfully" is written when `OnLaunched` returns, which does not wait for that
-initialization, so it can appear anywhere among those lines. If an expected line is missing, read
-the `[WRN]`, `[ERR]` or `[FTL]` lines around it.
+The lines from the migration on come from `InitializeCoreServicesAsync` in this order, ending with
+"Agent-X core services started". "Agent-X window shown; core services are starting" is written when
+`OnLaunched` returns, which does not wait for that initialization, so it can appear anywhere among
+those lines. If an expected line is missing, read the `[WRN]`, `[ERR]` or `[FTL]` lines around it.
 
 ---
 

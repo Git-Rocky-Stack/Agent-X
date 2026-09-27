@@ -123,7 +123,9 @@ public partial class App : Application
         // error (see InitializeCoreServicesAsync / EnterMigrationRecoveryStateAsync).
         InitializeCoreServicesAsync();
 
-        Log.Information("Agent-X started successfully");
+        // The core services above keep starting in the background; their last step logs
+        // "Agent-X core services started".
+        Log.Information("Agent-X window shown; core services are starting");
     }
 
     /// <summary>
@@ -384,6 +386,8 @@ public partial class App : Application
         {
             Log.Warning(ex, "Watch folder monitoring failed to start");
         }
+
+        Log.Information("Agent-X core services started");
     }
 
     private void ConfigureServices(HostBuilderContext context, IServiceCollection services)
