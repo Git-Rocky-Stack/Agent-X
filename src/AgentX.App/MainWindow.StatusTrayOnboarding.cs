@@ -3,6 +3,7 @@ using AgentX.App.Helpers;
 using AgentX.App.Services;
 using AgentX.App.ViewModels;
 using AgentX.App.Views;
+using AgentX.Core.Services.Localization;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 using Serilog;
@@ -136,10 +137,11 @@ public sealed partial class MainWindow
         // is always one glance away (AX-QA-008 state-aware disclosure).
         _ = UpdatePrivacyLampAsync();
 
-        _systemTrayService.UpdateTooltip(
-            state.IsConnected ? "Connected" : "Disconnected",
+        _systemTrayService.UpdateTooltip(ProviderStatusText.TrayTooltip(
+            App.GetService<ILocalizationService>(),
+            state.IsConnected,
             state.ActiveModelName,
-            state.DocumentCount);
+            state.DocumentCount));
     }
 
     private async Task UpdatePrivacyLampAsync()

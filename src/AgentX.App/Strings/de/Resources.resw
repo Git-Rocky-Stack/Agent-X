@@ -956,6 +956,20 @@
   <data name="Chat_PrivacyUnknown" xml:space="preserve"><value>Agent-X konnte nicht bestätigen, wohin Ihre Nachrichten gesendet werden. Prüfen Sie den KI-Anbieter in den Einstellungen.</value></data>
   <data name="Chat_CompareOpenBranchTitle" xml:space="preserve"><value>Zweig zum Vergleichen öffnen</value></data>
   <data name="Chat_CompareOpenBranchBody" xml:space="preserve"><value>Diese Unterhaltung hat mehrere Zweige. Öffnen Sie den zu vergleichenden Zweig in der Liste „Zweige“ und wählen Sie dann erneut „Zweige vergleichen“.</value></data>
+  <data name="Provider_GenericName" xml:space="preserve"><value>KI-Anbieter</value></data>
+  <data name="Provider_ConnectedTo" xml:space="preserve"><value>Verbunden mit {0}</value></data>
+  <data name="Provider_ConnectedModel" xml:space="preserve"><value>Verbunden: {0}</value></data>
+  <data name="Provider_NotAvailable" xml:space="preserve"><value>{0} nicht verfügbar</value></data>
+  <data name="Provider_CheckLocal" xml:space="preserve"><value>Prüfen Sie, ob das integrierte Modell installiert ist und genügend freier Arbeitsspeicher zum Laden vorhanden ist.</value></data>
+  <data name="Provider_CheckOllama" xml:space="preserve"><value>Prüfen Sie, ob Ollama läuft und ein Modell heruntergeladen ist und ob die Adresse in den Einstellungen stimmt.</value></data>
+  <data name="Provider_CheckCloud" xml:space="preserve"><value>Prüfen Sie den API-Schlüssel für {0} in den Einstellungen und Ihre Netzwerkverbindung.</value></data>
+  <data name="Provider_CheckGeneric" xml:space="preserve"><value>Prüfen Sie den KI-Anbieter in den Einstellungen.</value></data>
+  <data name="Provider_TrayConnected" xml:space="preserve"><value>Verbunden</value></data>
+  <data name="Provider_TrayDisconnected" xml:space="preserve"><value>Getrennt</value></data>
+  <data name="Provider_TrayDocuments" xml:space="preserve"><value>{0} Dokumente</value></data>
+  <data name="Chat_GenerationFailedHint" xml:space="preserve"><value>Beim Erstellen einer Antwort ist ein Fehler aufgetreten. {0}</value></data>
+  <data name="Chat_OfflineProviderUnavailable" xml:space="preserve"><value>Es kann keine Antwort erstellt werden: {0} ist nicht verfügbar.</value></data>
+  <data name="Chat_OfflineNoProvider" xml:space="preserve"><value>Es kann keine Antwort erstellt werden: Der KI-Anbieter ist nicht verfügbar.</value></data>
   <data name="Main_QuickActions.Content" xml:space="preserve"><value>Quick Actions</value></data>
   <data name="Main_Workflows.Content" xml:space="preserve"><value>Workflows</value></data>
   <data name="Main_Knowledge.Content" xml:space="preserve"><value>WISSEN</value></data>

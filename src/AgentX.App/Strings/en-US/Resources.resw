@@ -1078,6 +1078,20 @@
   <data name="Chat_PrivacyUnknown" xml:space="preserve"><value>Agent-X could not confirm where your messages are sent. Review the AI provider in Settings.</value></data>
   <data name="Chat_CompareOpenBranchTitle" xml:space="preserve"><value>Open a branch to compare</value></data>
   <data name="Chat_CompareOpenBranchBody" xml:space="preserve"><value>This conversation has several branches. Open the one to compare from the Branches list, then choose Compare branches again.</value></data>
+  <data name="Provider_GenericName" xml:space="preserve"><value>AI provider</value></data>
+  <data name="Provider_ConnectedTo" xml:space="preserve"><value>Connected to {0}</value></data>
+  <data name="Provider_ConnectedModel" xml:space="preserve"><value>Connected: {0}</value></data>
+  <data name="Provider_NotAvailable" xml:space="preserve"><value>{0} not available</value></data>
+  <data name="Provider_CheckLocal" xml:space="preserve"><value>Check that the built-in model is installed and that there is enough free memory to load it.</value></data>
+  <data name="Provider_CheckOllama" xml:space="preserve"><value>Check that Ollama is running with a model downloaded, and that its address in Settings is correct.</value></data>
+  <data name="Provider_CheckCloud" xml:space="preserve"><value>Check the {0} API key in Settings and your network connection.</value></data>
+  <data name="Provider_CheckGeneric" xml:space="preserve"><value>Check the AI provider in Settings.</value></data>
+  <data name="Provider_TrayConnected" xml:space="preserve"><value>Connected</value></data>
+  <data name="Provider_TrayDisconnected" xml:space="preserve"><value>Disconnected</value></data>
+  <data name="Provider_TrayDocuments" xml:space="preserve"><value>{0} docs</value></data>
+  <data name="Chat_GenerationFailedHint" xml:space="preserve"><value>An error occurred while generating a response. {0}</value></data>
+  <data name="Chat_OfflineProviderUnavailable" xml:space="preserve"><value>Unable to generate a response: {0} is not available.</value></data>
+  <data name="Chat_OfflineNoProvider" xml:space="preserve"><value>Unable to generate a response: the AI provider is not available.</value></data>
   <data name="Main_QuickActions.Content" xml:space="preserve"><value>Quick Actions</value></data>
   <data name="Main_Workflows.Content" xml:space="preserve"><value>Workflows</value></data>
   <data name="Main_Knowledge.Content" xml:space="preserve"><value>KNOWLEDGE</value></data>

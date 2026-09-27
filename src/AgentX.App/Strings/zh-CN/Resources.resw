@@ -956,6 +956,20 @@
   <data name="Chat_PrivacyUnknown" xml:space="preserve"><value>Agent-X 无法确认您的消息会发送到哪里。请在“设置”中检查 AI 提供商。</value></data>
   <data name="Chat_CompareOpenBranchTitle" xml:space="preserve"><value>打开要对比的分支</value></data>
   <data name="Chat_CompareOpenBranchBody" xml:space="preserve"><value>此对话有多个分支。请从“分支”列表中打开要对比的分支，然后再次选择“对比分支”。</value></data>
+  <data name="Provider_GenericName" xml:space="preserve"><value>AI 提供商</value></data>
+  <data name="Provider_ConnectedTo" xml:space="preserve"><value>已连接到 {0}</value></data>
+  <data name="Provider_ConnectedModel" xml:space="preserve"><value>已连接：{0}</value></data>
+  <data name="Provider_NotAvailable" xml:space="preserve"><value>{0} 不可用</value></data>
+  <data name="Provider_CheckLocal" xml:space="preserve"><value>请检查内置模型是否已安装，以及是否有足够的可用内存来加载它。</value></data>
+  <data name="Provider_CheckOllama" xml:space="preserve"><value>请检查 Ollama 是否正在运行并已下载模型，以及“设置”中的地址是否正确。</value></data>
+  <data name="Provider_CheckCloud" xml:space="preserve"><value>请检查“设置”中的 {0} API 密钥以及您的网络连接。</value></data>
+  <data name="Provider_CheckGeneric" xml:space="preserve"><value>请在“设置”中检查 AI 提供商。</value></data>
+  <data name="Provider_TrayConnected" xml:space="preserve"><value>已连接</value></data>
+  <data name="Provider_TrayDisconnected" xml:space="preserve"><value>未连接</value></data>
+  <data name="Provider_TrayDocuments" xml:space="preserve"><value>{0} 个文档</value></data>
+  <data name="Chat_GenerationFailedHint" xml:space="preserve"><value>生成回复时出错。{0}</value></data>
+  <data name="Chat_OfflineProviderUnavailable" xml:space="preserve"><value>无法生成回复：{0} 不可用。</value></data>
+  <data name="Chat_OfflineNoProvider" xml:space="preserve"><value>无法生成回复：AI 提供商不可用。</value></data>
   <data name="Main_QuickActions.Content" xml:space="preserve"><value>Quick Actions</value></data>
   <data name="Main_Workflows.Content" xml:space="preserve"><value>工作流</value></data>
   <data name="Main_Knowledge.Content" xml:space="preserve"><value>知识</value></data>

@@ -956,6 +956,20 @@
   <data name="Chat_PrivacyUnknown" xml:space="preserve"><value>Agent-X no pudo confirmar adónde se envían sus mensajes. Revise el proveedor de IA en Configuración.</value></data>
   <data name="Chat_CompareOpenBranchTitle" xml:space="preserve"><value>Abra una rama para compararla</value></data>
   <data name="Chat_CompareOpenBranchBody" xml:space="preserve"><value>Esta conversación tiene varias ramas. Abra la que quiere comparar desde la lista Ramas y vuelva a elegir Comparar ramas.</value></data>
+  <data name="Provider_GenericName" xml:space="preserve"><value>Proveedor de IA</value></data>
+  <data name="Provider_ConnectedTo" xml:space="preserve"><value>Conectado a {0}</value></data>
+  <data name="Provider_ConnectedModel" xml:space="preserve"><value>Conectado: {0}</value></data>
+  <data name="Provider_NotAvailable" xml:space="preserve"><value>{0} no disponible</value></data>
+  <data name="Provider_CheckLocal" xml:space="preserve"><value>Compruebe que el modelo integrado está instalado y que hay suficiente memoria libre para cargarlo.</value></data>
+  <data name="Provider_CheckOllama" xml:space="preserve"><value>Compruebe que Ollama se está ejecutando con un modelo descargado y que su dirección en Configuración es correcta.</value></data>
+  <data name="Provider_CheckCloud" xml:space="preserve"><value>Compruebe la clave de API de {0} en Configuración y su conexión de red.</value></data>
+  <data name="Provider_CheckGeneric" xml:space="preserve"><value>Revise el proveedor de IA en Configuración.</value></data>
+  <data name="Provider_TrayConnected" xml:space="preserve"><value>Conectado</value></data>
+  <data name="Provider_TrayDisconnected" xml:space="preserve"><value>Desconectado</value></data>
+  <data name="Provider_TrayDocuments" xml:space="preserve"><value>{0} documentos</value></data>
+  <data name="Chat_GenerationFailedHint" xml:space="preserve"><value>Se produjo un error al generar una respuesta. {0}</value></data>
+  <data name="Chat_OfflineProviderUnavailable" xml:space="preserve"><value>No se puede generar una respuesta: {0} no está disponible.</value></data>
+  <data name="Chat_OfflineNoProvider" xml:space="preserve"><value>No se puede generar una respuesta: el proveedor de IA no está disponible.</value></data>
   <data name="Main_QuickActions.Content" xml:space="preserve"><value>Quick Actions</value></data>
   <data name="Main_Workflows.Content" xml:space="preserve"><value>Workflows</value></data>
   <data name="Main_Knowledge.Content" xml:space="preserve"><value>CONOCIMIENTO</value></data>

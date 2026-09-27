@@ -8,6 +8,7 @@ using AgentX.Core.Services.Chat.Models;
 using AgentX.Core.Services.Feedback;
 using AgentX.Core.Services.Search;
 using AgentX.Core.Services.Settings;
+using AgentX.Tests.Helpers;
 using FluentAssertions;
 using Moq;
 using Xunit;
@@ -231,15 +232,68 @@ public class MessagingCoordinatorTests
             .And.NotContain("Ollama");
     }
 
-    [Theory]
-    [InlineData("local", "Built-in LLM", "built-in model")]
-    [InlineData("ollama", "Ollama", "Ollama is running")]
-    [InlineData("openai", "OpenAI", "OpenAI API key")]
-    [InlineData("anthropic", "Anthropic Claude", "Anthropic Claude API key")]
-    public void ProviderCheckHint_NamesWhatToCheckForTheActiveProvider(string providerId, string providerName, string expected)
+    // The provider-aware failure and offline hints were English whatever the user's language.
+
+    [Fact]
+    public async Task SendMessageAsync_WhenTheReplyFails_ExplainsInTheUsersLanguage()
     {
-        MessagingCoordinator.ProviderCheckHint(providerId, providerName).Should().Contain(expected);
+        _provider.SetupGet(p => p.ProviderId).Returns("local");
+        _provider.SetupGet(p => p.DisplayName).Returns("Built-in LLM");
+        _chatService
+            .Setup(s => s.SendMessageAsync(1, "fail", It.IsAny<CancellationToken>()))
+            .Throws(new Exception("AI error"));
+        var coordinator = CreateLocalizedCoordinator("de");
+
+        var result = await coordinator.SendMessageAsync("fail", 1, null, null, false);
+
+        result.HadError.Should().BeTrue();
+        result.ResponseContent.Should().Be(
+            "Beim Erstellen einer Antwort ist ein Fehler aufgetreten. " +
+            "Prüfen Sie, ob das integrierte Modell installiert ist und genügend freier Arbeitsspeicher zum Laden vorhanden ist.");
     }
+
+    [Fact]
+    public async Task SendMessageAsync_WhenTheProviderIsUnreachable_TheFallbackIsInTheUsersLanguage()
+    {
+        _provider.SetupGet(p => p.ProviderId).Returns("anthropic");
+        _provider.SetupGet(p => p.DisplayName).Returns("Anthropic Claude");
+        _provider.Setup(p => p.CheckConnectionAsync(It.IsAny<CancellationToken>())).ReturnsAsync(false);
+        _aiService
+            .Setup(s => s.StreamChatAsync(
+                It.IsAny<IReadOnlyList<ChatMessage>>(), It.IsAny<string?>(), It.IsAny<ChatOptions?>(), It.IsAny<CancellationToken>()))
+            .Returns(FailingStream(new HttpRequestException("No connection could be made.")));
+        var coordinator = CreateLocalizedCoordinator("de");
+
+        var result = await coordinator.SendMessageAsync("q", 1, null, null, false);
+
+        result.ResponseContent.Should()
+            .Contain("Es kann keine Antwort erstellt werden: Anthropic Claude ist nicht verfügbar.")
+            .And.Contain("Prüfen Sie den API-Schlüssel für Anthropic Claude in den Einstellungen und Ihre Netzwerkverbindung.");
+    }
+
+    [Fact]
+    public async Task SendMessageAsync_WithNoProviderReady_TheFallbackSaysSoWithoutAName()
+    {
+        _provider.Setup(p => p.CheckConnectionAsync(It.IsAny<CancellationToken>())).ReturnsAsync(false);
+        _aiService
+            .Setup(s => s.StreamChatAsync(
+                It.IsAny<IReadOnlyList<ChatMessage>>(), It.IsAny<string?>(), It.IsAny<ChatOptions?>(), It.IsAny<CancellationToken>()))
+            .Returns(FailingStream(new HttpRequestException("No connection could be made.")));
+
+        var result = await _coordinator.SendMessageAsync("q", 1, null, null, false);
+
+        result.ResponseContent.Should().StartWith("Unable to generate a response: the AI provider is not available.")
+            .And.Contain("Check the AI provider in Settings.");
+    }
+
+    private MessagingCoordinator CreateLocalizedCoordinator(string locale) =>
+        new(
+            _chatService.Object,
+            _conversationService.Object,
+            _aiService.Object,
+            _feedbackService.Object,
+            _multiAgentOrchestrator.Object,
+            localization: ReswLocalization.For(locale));
 
     // ── Events ─────────────────────────────────────────────────────
 

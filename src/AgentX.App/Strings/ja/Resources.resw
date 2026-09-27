@@ -956,6 +956,20 @@
   <data name="Chat_PrivacyUnknown" xml:space="preserve"><value>Agent-X はメッセージの送信先を確認できませんでした。設定で AI プロバイダーを確認してください。</value></data>
   <data name="Chat_CompareOpenBranchTitle" xml:space="preserve"><value>比較するブランチを開いてください</value></data>
   <data name="Chat_CompareOpenBranchBody" xml:space="preserve"><value>この会話には複数のブランチがあります。[ブランチ] の一覧から比較するブランチを開き、もう一度 [ブランチを比較] を選んでください。</value></data>
+  <data name="Provider_GenericName" xml:space="preserve"><value>AI プロバイダー</value></data>
+  <data name="Provider_ConnectedTo" xml:space="preserve"><value>{0} に接続済み</value></data>
+  <data name="Provider_ConnectedModel" xml:space="preserve"><value>接続済み: {0}</value></data>
+  <data name="Provider_NotAvailable" xml:space="preserve"><value>{0} は利用できません</value></data>
+  <data name="Provider_CheckLocal" xml:space="preserve"><value>内蔵モデルがインストールされていること、読み込むのに十分な空きメモリがあることを確認してください。</value></data>
+  <data name="Provider_CheckOllama" xml:space="preserve"><value>Ollama がモデルをダウンロードした状態で実行されていること、設定のアドレスが正しいことを確認してください。</value></data>
+  <data name="Provider_CheckCloud" xml:space="preserve"><value>設定の {0} API キーとネットワーク接続を確認してください。</value></data>
+  <data name="Provider_CheckGeneric" xml:space="preserve"><value>設定で AI プロバイダーを確認してください。</value></data>
+  <data name="Provider_TrayConnected" xml:space="preserve"><value>接続済み</value></data>
+  <data name="Provider_TrayDisconnected" xml:space="preserve"><value>未接続</value></data>
+  <data name="Provider_TrayDocuments" xml:space="preserve"><value>{0} 件のドキュメント</value></data>
+  <data name="Chat_GenerationFailedHint" xml:space="preserve"><value>応答の生成中にエラーが発生しました。{0}</value></data>
+  <data name="Chat_OfflineProviderUnavailable" xml:space="preserve"><value>応答を生成できません。{0} を利用できません。</value></data>
+  <data name="Chat_OfflineNoProvider" xml:space="preserve"><value>応答を生成できません。AI プロバイダーを利用できません。</value></data>
   <data name="Main_QuickActions.Content" xml:space="preserve"><value>Quick Actions</value></data>
   <data name="Main_Workflows.Content" xml:space="preserve"><value>ワークフロー</value></data>
   <data name="Main_Knowledge.Content" xml:space="preserve"><value>ナレッジ</value></data>

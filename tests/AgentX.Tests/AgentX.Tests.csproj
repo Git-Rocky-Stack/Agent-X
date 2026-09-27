@@ -136,6 +136,7 @@
     <!-- StatusBarService is pure (no WinUI deps) — uses IServiceProvider and Core services only. -->
     <Compile Include="..\..\src\AgentX.App\Services\IStatusBarService.cs" Link="Services\IStatusBarService.cs" />
     <Compile Include="..\..\src\AgentX.App\Services\StatusBarService.cs" Link="Services\StatusBarService.cs" />
+    <Compile Include="..\..\src\AgentX.App\Services\ProviderStatusText.cs" Link="Services\ProviderStatusText.cs" />
     <Compile Include="..\..\src\AgentX.App\Services\NotificationService.cs" Link="Services\NotificationService.cs" />
     <Compile Include="..\..\src\AgentX.App\Services\IApiHostLifecycleService.cs" Link="Services\IApiHostLifecycleService.cs" />
     <Compile Include="..\..\src\AgentX.App\Services\ApiHostLifecycleService.cs" Link="Services\ApiHostLifecycleService.cs" />

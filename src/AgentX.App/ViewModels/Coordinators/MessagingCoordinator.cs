@@ -7,7 +7,9 @@ using AgentX.Core.Data.Entities;
 using AgentX.Core.Search.Models;
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Chat.Models;
+using AgentX.App.Services;
 using AgentX.Core.Services.Feedback;
+using AgentX.Core.Services.Localization;
 using AgentX.Core.Services.Search;
 using AgentX.Core.Services.Settings;
 using Serilog;
@@ -31,6 +33,7 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
     private readonly IMultiAgentOrchestrator? _multiAgentOrchestrator;
     private readonly IWebSearchService? _webSearchService;
     private readonly ISettingsService? _settingsService;
+    private readonly ILocalizationService? _localization;
 
     // The source of the generation currently running. Every generation owns its own source,
     // so a newer one never shares or disposes an older one's, and Stop reaches the newest.
@@ -56,7 +59,8 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
         IFeedbackService feedbackService,
         IMultiAgentOrchestrator? multiAgentOrchestrator = null,
         IWebSearchService? webSearchService = null,
-        ISettingsService? settingsService = null)
+        ISettingsService? settingsService = null,
+        ILocalizationService? localization = null)
     {
         _chatService = chatService;
         _conversationService = conversationService;
@@ -65,6 +69,7 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
         _multiAgentOrchestrator = multiAgentOrchestrator;
         _webSearchService = webSearchService;
         _settingsService = settingsService;
+        _localization = localization;
     }
 
     /// <inheritdoc />
@@ -185,11 +190,16 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
         }
         catch (Exception ex)
         {
+            var hint = ActiveProviderCheckHint();
             return await FailedAsync(
                 exchange,
                 knownUserMessageId: null,
                 ex,
-                $"An error occurred while generating a response. {ActiveProviderCheckHint()}",
+                ProviderStatusText.Resolve(
+                    _localization?.GetString("Chat_GenerationFailedHint", hint),
+                    "Chat_GenerationFailedHint",
+                    "An error occurred while generating a response. {0}",
+                    hint),
                 "Could not generate a response. Check your AI connection in Settings.",
                 generation);
         }
@@ -886,17 +896,8 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
     private string ActiveProviderCheckHint()
     {
         var (providerId, providerName) = ActiveProviderIdentity();
-        return ProviderCheckHint(providerId, providerName);
+        return ProviderStatusText.CheckHint(_localization, providerId, providerName);
     }
-
-    internal static string ProviderCheckHint(string? providerId, string? providerName) =>
-        providerId?.Trim().ToLowerInvariant() switch
-        {
-            "local" => "Check that the built-in model is installed and that there is enough free memory to load it.",
-            "ollama" => "Check that Ollama is running with a model downloaded, and that its address in Settings is correct.",
-            "openai" or "anthropic" => $"Check the {providerName} API key in Settings and your network connection.",
-            _ => "Check the AI provider in Settings."
-        };
 
     private string? ActiveModelIdOrNull()
     {
@@ -946,7 +947,16 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
             if (responseBuilder.Length == 0)
             {
                 var (_, providerName) = ActiveProviderIdentity();
-                responseBuilder.AppendLine($"Unable to generate a response: {providerName ?? "the AI provider"} is not available.");
+                responseBuilder.AppendLine(providerName is null
+                    ? ProviderStatusText.Resolve(
+                        _localization?.GetString("Chat_OfflineNoProvider"),
+                        "Chat_OfflineNoProvider",
+                        "Unable to generate a response: the AI provider is not available.")
+                    : ProviderStatusText.Resolve(
+                        _localization?.GetString("Chat_OfflineProviderUnavailable", providerName),
+                        "Chat_OfflineProviderUnavailable",
+                        "Unable to generate a response: {0} is not available.",
+                        providerName));
                 responseBuilder.AppendLine();
                 responseBuilder.AppendLine(ActiveProviderCheckHint());
             }
