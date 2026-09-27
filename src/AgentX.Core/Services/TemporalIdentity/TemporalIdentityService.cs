@@ -420,6 +420,7 @@ public class TemporalIdentityService : ITemporalIdentityService
         var keywords = ExtractKeywords(currentProblem);
 
         var similarConversations = await _db.Conversations
+            .AsNoTracking()
             .Where(c => c.Title != null && keywords.Any(k => c.Title.Contains(k)))
             .OrderByDescending(c => c.CreatedAt)
             .Take(5)
@@ -835,6 +836,7 @@ public class TemporalIdentityService : ITemporalIdentityService
     public async Task<List<InsightMomentEntity>> GetTopInsightsAsync(int count = 10, CancellationToken ct = default)
     {
         return await _db.Set<InsightMomentEntity>()
+            .AsNoTracking()
             .OrderByDescending(i => i.SignificanceScore)
             .ThenByDescending(i => i.CapturedAt)
             .Take(count)
