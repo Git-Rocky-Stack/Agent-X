@@ -130,9 +130,4 @@ public class HardwareCapability
         < 8_000_000_000L => 33,   // 6-8 GB: all layers for 3B model
         _ => 33                    // 8+ GB: full offload
     } : 0;
-
-    /// <summary>GPU acceleration summary for display.</summary>
-    public string GpuAccelerationSummary => IsNvidiaGpu
-        ? $"CUDA acceleration available ({GpuVramFormatted} VRAM, {RecommendedGpuLayers} layers)"
-        : "CPU inference (no NVIDIA GPU detected)";
 }
