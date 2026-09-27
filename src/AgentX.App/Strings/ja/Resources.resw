@@ -1792,6 +1792,29 @@
   <data name="WebImport_ImportedSitemapUrlsMany" xml:space="preserve"><value>{1} 件中 {0} 件のサイトマップ URL をインポートしました</value></data>
   <data name="WebImport_SitemapImportCancelled" xml:space="preserve"><value>サイトマップのインポートをキャンセルしました</value></data>
   <data name="WebImport_RowFailed" xml:space="preserve"><value>失敗: {0}</value></data>
+  <data name="Search_ReadyToSearch" xml:space="preserve"><value>検索の準備ができました</value></data>
+  <data name="Search_Searching" xml:space="preserve"><value>検索しています...</value></data>
+  <data name="Search_NoResultsIn" xml:space="preserve"><value>結果は見つかりませんでした ({0} ms)</value></data>
+  <data name="Search_FoundResultsOne" xml:space="preserve"><value>{0} 件の結果が見つかりました ({1} ms)</value></data>
+  <data name="Search_FoundResultsMany" xml:space="preserve"><value>{0} 件の結果が見つかりました ({1} ms)</value></data>
+  <data name="Search_SearchFailed" xml:space="preserve"><value>検索に失敗しました。もう一度お試しください。</value></data>
+  <data name="Search_FilterSaved" xml:space="preserve"><value>フィルターを保存しました</value></data>
+  <data name="Search_FilterSaveFailed" xml:space="preserve"><value>フィルターを保存できませんでした</value></data>
+  <data name="Search_FilterRemoved" xml:space="preserve"><value>フィルターを削除しました</value></data>
+  <data name="Search_FilterRemoveFailed" xml:space="preserve"><value>フィルターを削除できませんでした</value></data>
+  <data name="Search_WorkflowInputSource" xml:space="preserve"><value>ソース: 検索結果</value></data>
+  <data name="Search_WorkflowInputQuery" xml:space="preserve"><value>クエリ: {0}</value></data>
+  <data name="Search_WorkflowInputDocument" xml:space="preserve"><value>ドキュメント: {0}</value></data>
+  <data name="Search_WorkflowInputRelevance" xml:space="preserve"><value>関連度: {0}%</value></data>
+  <data name="Search_WorkflowInputPage" xml:space="preserve"><value>ページ: {0}</value></data>
+  <data name="Search_WorkflowInputExcerpt" xml:space="preserve"><value>抜粋</value></data>
+  <data name="Search_WorkflowInputNoExcerpt" xml:space="preserve"><value>抜粋はありません。</value></data>
+  <data name="Search_WorkflowSourceLabel" xml:space="preserve"><value>「{0}」から検索コンテキストを読み込みました</value></data>
+  <data name="Search_HistoryJustNow" xml:space="preserve"><value>たった今</value></data>
+  <data name="Search_AllCollections" xml:space="preserve"><value>すべてのコレクション</value></data>
+  <data name="Search_SavedFilterModeSemantic" xml:space="preserve"><value>セマンティック</value></data>
+  <data name="Search_SavedFilterModeKeyword" xml:space="preserve"><value>キーワード</value></data>
+  <data name="Search_SavedFilterModeHybrid" xml:space="preserve"><value>ハイブリッド</value></data>
   <data name="WfBuilder_RecentRuns.Text" xml:space="preserve"><value>最近の実行</value></data>
   <data name="WfBuilder_StoredWorkflowResultsYou.Text" xml:space="preserve"><value>再実行せずに開ける、保存済みのワークフロー結果です。</value></data>
   <data name="WfBuilder_OpenedFromOperations.Text" xml:space="preserve"><value>Operations から開きました</value></data>

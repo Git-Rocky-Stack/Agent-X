@@ -1792,6 +1792,29 @@
   <data name="WebImport_ImportedSitemapUrlsMany" xml:space="preserve"><value>URL du sitemap importées : {0} sur {1}</value></data>
   <data name="WebImport_SitemapImportCancelled" xml:space="preserve"><value>Importation du sitemap annulée</value></data>
   <data name="WebImport_RowFailed" xml:space="preserve"><value>Échec : {0}</value></data>
+  <data name="Search_ReadyToSearch" xml:space="preserve"><value>Prêt pour la recherche</value></data>
+  <data name="Search_Searching" xml:space="preserve"><value>Recherche en cours...</value></data>
+  <data name="Search_NoResultsIn" xml:space="preserve"><value>Aucun résultat trouvé en {0} ms</value></data>
+  <data name="Search_FoundResultsOne" xml:space="preserve"><value>{0} résultat trouvé en {1} ms</value></data>
+  <data name="Search_FoundResultsMany" xml:space="preserve"><value>{0} résultats trouvés en {1} ms</value></data>
+  <data name="Search_SearchFailed" xml:space="preserve"><value>La recherche a échoué. Veuillez réessayer.</value></data>
+  <data name="Search_FilterSaved" xml:space="preserve"><value>Filtre enregistré</value></data>
+  <data name="Search_FilterSaveFailed" xml:space="preserve"><value>Impossible d'enregistrer le filtre</value></data>
+  <data name="Search_FilterRemoved" xml:space="preserve"><value>Filtre supprimé</value></data>
+  <data name="Search_FilterRemoveFailed" xml:space="preserve"><value>Impossible de supprimer le filtre</value></data>
+  <data name="Search_WorkflowInputSource" xml:space="preserve"><value>Source : Résultat de recherche</value></data>
+  <data name="Search_WorkflowInputQuery" xml:space="preserve"><value>Requête : {0}</value></data>
+  <data name="Search_WorkflowInputDocument" xml:space="preserve"><value>Document : {0}</value></data>
+  <data name="Search_WorkflowInputRelevance" xml:space="preserve"><value>Pertinence : {0} %</value></data>
+  <data name="Search_WorkflowInputPage" xml:space="preserve"><value>Page : {0}</value></data>
+  <data name="Search_WorkflowInputExcerpt" xml:space="preserve"><value>Extrait</value></data>
+  <data name="Search_WorkflowInputNoExcerpt" xml:space="preserve"><value>Aucun extrait disponible.</value></data>
+  <data name="Search_WorkflowSourceLabel" xml:space="preserve"><value>Contexte de recherche chargé depuis « {0} »</value></data>
+  <data name="Search_HistoryJustNow" xml:space="preserve"><value>à l'instant</value></data>
+  <data name="Search_AllCollections" xml:space="preserve"><value>Toutes les collections</value></data>
+  <data name="Search_SavedFilterModeSemantic" xml:space="preserve"><value>sémantique</value></data>
+  <data name="Search_SavedFilterModeKeyword" xml:space="preserve"><value>mot-clé</value></data>
+  <data name="Search_SavedFilterModeHybrid" xml:space="preserve"><value>hybride</value></data>
   <data name="WfBuilder_RecentRuns.Text" xml:space="preserve"><value>Exécutions récentes</value></data>
   <data name="WfBuilder_StoredWorkflowResultsYou.Text" xml:space="preserve"><value>Résultats de flux de travail enregistrés que vous pouvez rouvrir sans les relancer.</value></data>
   <data name="WfBuilder_OpenedFromOperations.Text" xml:space="preserve"><value>Ouvert depuis Operations</value></data>

@@ -4,6 +4,7 @@ using AgentX.Core.Documents;
 using AgentX.Core.Search;
 using AgentX.Core.Search.Models;
 using AgentX.Core.Services.Collections;
+using AgentX.Tests.Helpers;
 using FluentAssertions;
 using Moq;
 using Serilog;
@@ -35,6 +36,7 @@ public sealed class SearchViewModelTests
             _documentService.Object,
             _collectionService.Object,
             _logger.Object,
+            EnglishResources.Create(),
             _workflowLaunchService.Object)
         {
             QueryText = "market outlook",
@@ -57,8 +59,60 @@ public sealed class SearchViewModelTests
         stagedRequest.InputText.Should().Contain("Document: MarketNotes.md");
         stagedRequest.InputText.Should().Contain("Relevance: 87%");
         stagedRequest.InputText.Should().Contain("Page: 3");
+        stagedRequest.InputText.Should().Contain("Excerpt" + Environment.NewLine + "-------" + Environment.NewLine);
+        stagedRequest.SourceLabel.Should().Be("Loaded search context from \"MarketNotes.md\"");
         stagedRequest.RecommendedWorkflowName.Should().Be("Research Brief");
         navigatedPage.Should().Be("Workflows");
+    }
+
+    // ── Status wording ───────────────────────────────────────────────────────
+    // The status line reads from the resources, with separate wording for one result.
+
+    [Theory]
+    [InlineData(0, "No results found in ")]
+    [InlineData(1, "Found 1 result in ")]
+    [InlineData(2, "Found 2 results in ")]
+    public async Task SearchAsync_ReportsTheResultCountInTheStatusLine(int count, string expectedStart)
+    {
+        _hybridSearch
+            .Setup(service => service.SearchAsync(It.IsAny<SearchQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Enumerable.Range(1, count).Select(id => Result(id, $"doc{id}.md", 0.9f)).ToArray());
+        var viewModel = CreateViewModel();
+        viewModel.StatusMessage.Should().Be("Ready to search");
+        viewModel.QueryText = "plan";
+
+        await viewModel.SearchCommand.ExecuteAsync(null);
+
+        viewModel.StatusMessage.Should().StartWith(expectedStart).And.EndWith("ms");
+    }
+
+    [Fact]
+    public async Task SavedFilters_ShowTheModeNameAndRestoreTheMode()
+    {
+        // The badge shows the mode's name from the resources, and applying the filter
+        // restores the mode itself rather than parsing the badge text.
+        _searchService.Setup(service => service.GetSavedFiltersAsync())
+            .ReturnsAsync(new[]
+            {
+                new SearchHistoryEntry { Id = 7, QueryText = "invoice", SearchType = "hybrid", SearchedAt = DateTime.UtcNow }
+            });
+        _searchService.Setup(service => service.GetSearchHistoryAsync(It.IsAny<int>()))
+            .ReturnsAsync(Array.Empty<SearchHistoryEntry>());
+        _hybridSearch
+            .Setup(service => service.SearchAsync(It.IsAny<SearchQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<SearchResult>());
+        var viewModel = CreateViewModel();
+
+        await viewModel.InitializeAsync();
+
+        var filter = viewModel.SavedFilters.Should().ContainSingle().Subject;
+        filter.SearchType.Should().Be("hybrid");
+        filter.Mode.Should().Be(SearchMode.Hybrid);
+
+        await viewModel.ApplySavedFilterCommand.ExecuteAsync(filter);
+
+        viewModel.SearchMode.Should().Be(SearchMode.Hybrid);
+        viewModel.CollectionFilters.First().Name.Should().Be("All Collections");
     }
 
     // ── Navigation payload ───────────────────────────────────────────────────
@@ -241,5 +295,6 @@ public sealed class SearchViewModelTests
             _documentService.Object,
             _collectionService.Object,
             _logger.Object,
+            EnglishResources.Create(),
             _workflowLaunchService.Object);
 }

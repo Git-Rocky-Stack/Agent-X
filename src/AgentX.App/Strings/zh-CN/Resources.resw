@@ -1792,6 +1792,29 @@
   <data name="WebImport_ImportedSitemapUrlsMany" xml:space="preserve"><value>已导入 {0}/{1} 个站点地图 URL</value></data>
   <data name="WebImport_SitemapImportCancelled" xml:space="preserve"><value>站点地图导入已取消</value></data>
   <data name="WebImport_RowFailed" xml:space="preserve"><value>失败：{0}</value></data>
+  <data name="Search_ReadyToSearch" xml:space="preserve"><value>可以开始搜索</value></data>
+  <data name="Search_Searching" xml:space="preserve"><value>正在搜索...</value></data>
+  <data name="Search_NoResultsIn" xml:space="preserve"><value>未找到结果（{0} ms）</value></data>
+  <data name="Search_FoundResultsOne" xml:space="preserve"><value>找到 {0} 条结果（{1} ms）</value></data>
+  <data name="Search_FoundResultsMany" xml:space="preserve"><value>找到 {0} 条结果（{1} ms）</value></data>
+  <data name="Search_SearchFailed" xml:space="preserve"><value>搜索失败。请重试。</value></data>
+  <data name="Search_FilterSaved" xml:space="preserve"><value>筛选器已保存</value></data>
+  <data name="Search_FilterSaveFailed" xml:space="preserve"><value>无法保存筛选器</value></data>
+  <data name="Search_FilterRemoved" xml:space="preserve"><value>筛选器已删除</value></data>
+  <data name="Search_FilterRemoveFailed" xml:space="preserve"><value>无法删除筛选器</value></data>
+  <data name="Search_WorkflowInputSource" xml:space="preserve"><value>来源：搜索结果</value></data>
+  <data name="Search_WorkflowInputQuery" xml:space="preserve"><value>查询：{0}</value></data>
+  <data name="Search_WorkflowInputDocument" xml:space="preserve"><value>文档：{0}</value></data>
+  <data name="Search_WorkflowInputRelevance" xml:space="preserve"><value>相关性：{0}%</value></data>
+  <data name="Search_WorkflowInputPage" xml:space="preserve"><value>页码：{0}</value></data>
+  <data name="Search_WorkflowInputExcerpt" xml:space="preserve"><value>摘录</value></data>
+  <data name="Search_WorkflowInputNoExcerpt" xml:space="preserve"><value>没有可用的摘录。</value></data>
+  <data name="Search_WorkflowSourceLabel" xml:space="preserve"><value>已从“{0}”加载搜索上下文</value></data>
+  <data name="Search_HistoryJustNow" xml:space="preserve"><value>刚刚</value></data>
+  <data name="Search_AllCollections" xml:space="preserve"><value>全部合集</value></data>
+  <data name="Search_SavedFilterModeSemantic" xml:space="preserve"><value>语义</value></data>
+  <data name="Search_SavedFilterModeKeyword" xml:space="preserve"><value>关键词</value></data>
+  <data name="Search_SavedFilterModeHybrid" xml:space="preserve"><value>混合</value></data>
   <data name="WfBuilder_RecentRuns.Text" xml:space="preserve"><value>最近运行</value></data>
   <data name="WfBuilder_StoredWorkflowResultsYou.Text" xml:space="preserve"><value>已保存的工作流结果,无需重新运行即可再次打开。</value></data>
   <data name="WfBuilder_OpenedFromOperations.Text" xml:space="preserve"><value>从 Operations 打开</value></data>
