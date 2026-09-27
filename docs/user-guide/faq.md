@@ -162,7 +162,7 @@ The Knowledge Graph is an interactive visualization showing connections between:
 Edges show relationships:
 - Document → Collection membership
 - Document → Tag associations
-- Tag co-occurrence
+- Document to document, when two documents share a collection or tag
 
 ### How do I use the command palette?
 

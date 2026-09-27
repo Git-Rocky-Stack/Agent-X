@@ -1708,5 +1708,18 @@
   "Startup_UpgradeFailed": "无法将数据库升级到最新版本。",
   "Startup_FailedHelp": "为保护您的数据，Agent-X 在加载任何功能之前已停止。备份只能在 Agent-X 内部还原，因此无法在此处还原。请先将 %LocalAppData%\\AgentX 文件夹复制到安全的位置，并在报告此问题时附上 %LocalAppData%\\AgentX\\Logs 中的日志文件。",
   "Startup_FailedManualRestore": "手动恢复到备份：在 Agent-X 关闭的情况下，如果 %LocalAppData%\\AgentX 中存在 agentx.db-wal 和 agentx.db-shm，请将其删除，然后用不带密码创建的 .agentxbak 备份中的 database\\agentx.db 文件替换 agentx.db（该文件是 ZIP 压缩包）。带密码创建的备份只能由 Agent-X 打开。",
-  "Startup_ExitButton": "退出"
+  "Startup_ExitButton": "退出",
+  "UserGuide_KnowledgeGraph_Description.Text": "知识图谱将您的 Knowledge Vault 绘制为一张网络。文档、合集和标签都是节点；每个文档与其所属的合集和标签之间以线相连，至少共享一个合集或标签的两个文档之间也会相连。可从导航栏或按 Ctrl+G 打开它，查看哪些文档聚集在一起、哪些孤立存在。",
+  "UserGuide_KnowledgeGraph_Element1.Text": "文档节点：以图例中“文档”颜色显示的圆形，大小取决于分块数量，因此较长的文档显示得更大。将指针悬停在节点上可查看其名称、类型和连接数；单击节点会打开“节点详情”，其中还会显示文件类型。",
+  "UserGuide_KnowledgeGraph_Element2.Text": "合集节点：以“合集”颜色显示的固定大小的中心节点，各自与其成员文档相连。“节点详情”会显示该合集包含多少个文档。",
+  "UserGuide_KnowledgeGraph_Element3.Text": "标签节点：以“标签”颜色显示的较小节点，每个标签一个，无论是自动添加还是手动添加的（“节点详情”会说明是哪一种）。共享同一标签的文档之间会相连，因此布局往往会把它们拉近。",
+  "UserGuide_KnowledgeGraph_Element4.Text": "连线：均为实线。指向合集或标签的连线使用该节点的颜色；两个文档之间的连线使用中性色调，两者共享的合集和标签越多，线条越粗。图谱中没有相似度连线：它反映的是合集和标签，而不是两个文档内容的相似程度。",
+  "UserGuide_KnowledgeGraph_Interaction1.Text": "选择与高亮：单击节点即可选中它并打开“节点详情”（类型、名称、副标题、连接数和位置）。单击合集或标签时，还会高亮其聚类，即该节点及与之相连的所有节点，并淡化其余节点；再次单击该节点、单击空白处或使用“聚类已激活”旁的清除按钮即可恢复。节点不会打开文档，也没有右键菜单。",
+  "UserGuide_KnowledgeGraph_Interaction2.Text": "缩放、筛选和搜索：使用鼠标滚轮或缩放按钮（0.25 倍到 4 倍）进行缩放，并用“重置缩放”恢复；视图不能平移。底部“显示”中的复选框用于显示或隐藏文档、合集和标签。在搜索框中输入文字，会高亮名称或副标题包含该文字的节点，并显示匹配的数量。",
+  "UserGuide_KnowledgeGraph_Interaction3.Text": "布局：节点位置来自构建图谱时运行的 100 步力导向模拟：相连的节点相互吸引，同时所有节点相互排斥。之后布局保持固定；“刷新”会根据当前的 Knowledge Vault 重新构建图谱。只有一种布局，没有物理模拟控件或导航面板；构建仍在进行时离开页面会取消构建。",
+  "UserGuide_WeeklyDigest_Description.Text": "每周摘要是 Agent-X 最近七天的统计报告，根据您的 Knowledge Vault、会话和搜索历史计算得出。它统计您导入、讨论和搜索的内容，将本周与之前的七天进行比较，并保存每份报告供您回顾。报告不是由 AI 模型撰写的：每个数字都直接来自数据库。",
+  "UserGuide_WeeklyDigest_Feature1.Text": "活动总计：每份报告显示本周新增的文档、新增的会话、搜索次数、聊天消息使用的 Token，以及新文档增加的存储空间。",
+  "UserGuide_WeeklyDigest_Feature2.Text": "带趋势的排行榜：列出最多五个重复最多的搜索、新增文档最多的合集以及导入最多的文件类型，并与之前七天相比，分别标注为新增、上升、下降或持平。",
+  "UserGuide_WeeklyDigest_Feature4.Text": "会话亮点：本周最活跃的三个会话，以及它们的消息数和 Token 数。报告只存在于此页面：不支持导出、共享或通过电子邮件发送。",
+  "UserGuide_WeeklyDigest_Feature5.Text": "报告历史：之前的报告会连同日期范围、文档数和搜索次数一起列出；选择其中一份即可重新打开。摘要不会标出未使用的文档、观点冲突或知识空白。"
 }

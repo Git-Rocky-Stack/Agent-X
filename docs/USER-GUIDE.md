@@ -264,7 +264,7 @@ After onboarding, you have access to an enterprise-grade intelligence platform. 
 | **Hybrid Search** | Semantic (vector) + Keyword (FTS5) merged via Reciprocal Rank Fusion (k=60) | HNSW ANN index or linear cosine scan; SQLite FTS5 virtual tables |
 | **Advanced RAG** | Multi-query retrieval, HyDE embeddings, LLM reranking, parent document expansion, contextual compression | 6-stage pipeline with citation chaining |
 | **Conversation Memory** | Durable extraction of facts, preferences, instructions, topics with importance-weighted injection | EF Core `MemoryEntity` with recency decay |
-| **Knowledge Graph** | Force-directed visualization (100-iteration spring-electric layout) of documents, collections, tags | WinUI 3 Canvas-rendered with zoom/pan/hover |
+| **Knowledge Graph** | Force-directed visualization (100-iteration spring-electric layout) of documents, collections, tags | WinUI 3 Canvas-rendered with zoom, hover, search, and cluster highlight |
 | **Auto-Tagging** | AI-powered tag generation with confidence scores on every import | `AutoTagService` with `TagEntity` junction table |
 
 ### Data Layer (v2.1 "Bedrock")
@@ -624,24 +624,24 @@ Hybrid search merges semantic and keyword results using Reciprocal Rank Fusion s
 
 ## 14. Knowledge Graph
 
-Knowledge Graph visualizes relationships among documents, collections, tags, and shared context.
+Knowledge Graph visualizes how documents relate through their collections and tags.
 
 ### What it shows
 
-- Document nodes sized by document/chunk characteristics.
-- Collection and tag nodes.
-- Edges based on shared collection membership, tags, or extracted relationships.
-- Counts for nodes, edges, documents, collections, and tags.
+- Document nodes sized by chunk count.
+- Collection and tag nodes (fixed sizes), colored as in the legend.
+- Edges from each document to its collections and tags, and between two documents that share a collection or tag (thicker when they share more). There are no content-similarity edges.
+- Counts for documents, collections, tags, and connections.
 
 ### Controls
 
-- Refresh graph data.
-- Filter node types.
-- Zoom in/out and reset view.
-- Select nodes to inspect metadata.
-- Navigate from graph items back to source material where supported.
+- Refresh rebuilds the graph and its force-directed layout, which is computed once per build.
+- The SHOW check boxes hide or show documents, collections, and tags.
+- Zoom with the mouse wheel or the zoom buttons (0.25x to 4x) and reset the zoom; the view does not pan.
+- Search highlights the nodes whose name or subtitle contains the text.
+- Click a node to see its details; clicking a collection or tag also highlights its cluster. Nodes do not open documents, and there is no context menu.
 
-Use the graph to spot isolated documents, densely connected topics, and clusters that deserve their own collection or workflow.
+Use the graph to spot isolated documents, densely connected topics, and clusters that deserve their own collection.
 
 ---
 
@@ -780,25 +780,21 @@ Use Smart Inbox for browser clips, plugin and connector-sourced items, and backl
 
 ## 19. Weekly Digest
 
-Weekly Digest summarizes recent activity in the knowledge system.
+Weekly Digest is a statistical report on the last seven days, computed from the database; no AI model writes it.
 
 ### Digest contents
 
-- New document counts.
-- Conversation activity.
-- Top searches.
-- File type distribution.
-- Storage changes.
-- Token usage.
-- AI-generated insights where available.
+- New documents, new conversations, searches, tokens used in chat messages, and the storage the new documents added.
+- Top searches, top collections (by documents added), and imported file types, up to five each, with a trend against the previous seven days.
+- The three most active conversations, with their message and token counts.
 
 ### Actions
 
-- Generate or refresh a digest.
-- Review digest history.
-- Export a digest for reporting or archival use.
+- Generate New Digest builds a report for the last seven days; the window is fixed and nothing runs on a schedule.
+- Review earlier reports in the report history.
+- Reports stay in the app: there is no export or email delivery.
 
-Use Weekly Digest as an operating rhythm: review it at the end of a project week to decide which documents need indexing, which conversations should become decisions, and which workflows deserve automation.
+Use Weekly Digest at the end of a project week to see what came in, what you searched for, and where your conversations went.
 
 ---
 

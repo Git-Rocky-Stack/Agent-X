@@ -409,7 +409,7 @@ Navigation is managed by a `NavigationView` in `MainWindow.xaml`. The `ContentFr
 | Web Import | `WebImport` | Imports articles, feeds, and scraped web content into the vault for later search, RAG, and analysis. |
 | Collections | `Collections` | Hierarchical collection manager. Create, rename, delete, and nest collections. Drag documents between collections. |
 | Semantic Search | `Search` | Unified search page with mode toggle (Semantic / Keyword / Hybrid). Displays results with relevance scores, source excerpts, and citation links. Persistent search history displayed as chips. |
-| Knowledge Graph | `KnowledgeGraph` | Interactive Canvas-rendered force-directed graph. Nodes are color-coded by type (blue = document, purple = collection, amber = tag). Edges indicate collection membership, tag assignment, and shared-connection relationships. Supports pan and zoom. |
+| Knowledge Graph | `KnowledgeGraph` | Interactive Canvas-rendered force-directed graph. Nodes are color-coded by type, as the page legend shows. Edges indicate collection membership, tag assignment, and shared-connection relationships. Supports zoom (no panning), node search, and cluster highlighting; clicking a node shows its details. |
 | Compare Documents | `Comparison` | Multi-document comparison surface for shared themes, unique points, and AI-generated synthesis reports. |
 | Smart Inbox | `Inbox` | Review queue for externally sourced content (browser-extension clips, plugin and connector items) before it enters the vault. Supports accept, reject, defer, and batch operations. |
 | Model Manager | `ModelManager` | Lists all locally installed Ollama models. Pull new models with a download progress bar. Delete models. Set active chat and embedding models. |
