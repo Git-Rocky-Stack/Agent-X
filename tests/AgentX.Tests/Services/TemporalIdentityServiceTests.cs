@@ -824,6 +824,58 @@ public sealed class TemporalIdentityServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Topic_lookups_ignore_case_and_surrounding_spaces()
+    {
+        // Topics are stored sentence-cased as extracted ("I think that AI safety matters" is
+        // recorded as "Ai safety matters"), and the lookup was exact, so the topic as typed was
+        // almost never found.
+        using var db = _dbFactory.CreateContext();
+        var anchor = DateTime.UtcNow.AddDays(-10);
+        db.Set<TemporalBeliefEntity>().Add(new TemporalBeliefEntity
+        {
+            Topic = "Ai safety matters",
+            FirstDetectedAt = anchor,
+            LastObservedAt = anchor,
+            CurrentStance = "I think that AI safety matters",
+        });
+        db.Conversations.Add(new ConversationEntity { Title = "Reading group: AI SAFETY MATTERS", CreatedAt = anchor });
+        db.Documents.Add(new DocumentEntity { FileName = "ai safety matters - notes.pdf", ImportedAt = anchor });
+        await db.SaveChangesAsync();
+        var svc = new TemporalIdentityService(db);
+
+        var past = await svc.GetPastSelfAsync("  AI safety matters ");
+
+        past!.Topic.Should().Be("Ai safety matters");
+        past.Stance.Should().Be("I think that AI safety matters");
+        past.RelatedConversations.Should().Equal("Reading group: AI SAFETY MATTERS");
+        past.RelatedDocuments.Should().Equal("ai safety matters - notes.pdf");
+        (await svc.GetBeliefEvolutionAsync("ai SAFETY matters"))!.Topic.Should().Be("Ai safety matters");
+        (await svc.GetPastSelfAsync("   ")).Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Topic_lookups_prefer_the_exact_wording_and_take_related_titles_literally()
+    {
+        using var db = _dbFactory.CreateContext();
+        var anchor = DateTime.UtcNow.AddDays(-10);
+        db.Set<TemporalBeliefEntity>().AddRange(
+            new TemporalBeliefEntity { Topic = "Remote work", FirstDetectedAt = anchor, CurrentStance = "first" },
+            new TemporalBeliefEntity { Topic = "remote work", FirstDetectedAt = anchor, CurrentStance = "second" },
+            new TemporalBeliefEntity { Topic = "50% remote", FirstDetectedAt = anchor, CurrentStance = "half" });
+        db.Conversations.AddRange(
+            new ConversationEntity { Title = "Plan for 50% remote", CreatedAt = anchor },
+            new ConversationEntity { Title = "500 remote days", CreatedAt = anchor });
+        await db.SaveChangesAsync();
+        var svc = new TemporalIdentityService(db);
+
+        (await svc.GetPastSelfAsync("remote work"))!.Stance.Should().Be("second");
+        (await svc.GetPastSelfAsync("Remote work"))!.Stance.Should().Be("first");
+        (await svc.GetPastSelfAsync("REMOTE WORK"))!.Stance.Should().Be("first", "without an exact match the first recorded wins");
+        (await svc.GetPastSelfAsync("50% Remote"))!.RelatedConversations
+            .Should().Equal(new[] { "Plan for 50% remote" }, "% in a topic is a literal character, not a wildcard");
+    }
+
+    [Fact]
     public async Task Learning_passes_leave_nothing_in_the_shared_change_tracker()
     {
         // The chat runs these after every reply, off the UI thread, on the app-wide context. The

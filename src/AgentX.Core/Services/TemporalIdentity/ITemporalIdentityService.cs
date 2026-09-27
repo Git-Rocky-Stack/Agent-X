@@ -37,6 +37,8 @@ public interface ITemporalIdentityService
     /// <paramref name="at"/> (the earliest recorded stance when <paramref name="at"/> is null);
     /// <see cref="PastSelfResponse.CurrentStance"/> is today's stance when the belief has evolved.
     /// Returns null when the topic is unknown, or was first recorded after <paramref name="at"/>.
+    /// The topic matches regardless of case and surrounding spaces; related conversations and
+    /// documents are those whose title or file name contains it, also regardless of case.
     /// </summary>
     Task<PastSelfResponse?> GetPastSelfAsync(
         string topic,
@@ -46,6 +48,7 @@ public interface ITemporalIdentityService
     /// <summary>
     /// Get belief evolution for a topic across all time.
     /// Shows the journey from "believed X" to "now believes Y".
+    /// The topic matches regardless of case and surrounding spaces.
     /// </summary>
     Task<TemporalBeliefEntity?> GetBeliefEvolutionAsync(
         string topic,

@@ -143,9 +143,7 @@ public class TemporalIdentityService : ITemporalIdentityService
         DateTime? at = null,
         CancellationToken ct = default)
     {
-        var belief = await _db.Set<TemporalBeliefEntity>()
-            .AsNoTracking()
-            .FirstOrDefaultAsync(b => b.Topic == topic, ct);
+        var belief = await FindBeliefAsync(topic, ct);
 
         if (belief == null) return null;
 
@@ -164,8 +162,8 @@ public class TemporalIdentityService : ITemporalIdentityService
             Stance = await GetStanceAtAsync(belief, targetTime, ct),
             Confidence = belief.ConfidenceLevel,
             EvidenceExcerpts = GetEvidenceExcerpts(belief.EvidenceJson),
-            RelatedConversations = await GetRelatedConversationsAsync(topic, targetTime, ct),
-            RelatedDocuments = await GetRelatedDocumentsAsync(topic, targetTime, ct),
+            RelatedConversations = await GetRelatedConversationsAsync(belief.Topic, targetTime, ct),
+            RelatedDocuments = await GetRelatedDocumentsAsync(belief.Topic, targetTime, ct),
             HasEvolved = belief.HasEvolved,
             CurrentStance = belief.HasEvolved ? belief.CurrentStance : null,
         };
@@ -596,9 +594,12 @@ public class TemporalIdentityService : ITemporalIdentityService
     private async Task<string[]> GetRelatedConversationsAsync(string topic, DateTime around, CancellationToken ct)
     {
         // DateTime subtraction is not translatable by the SQLite provider; materialise the
-        // title matches, then apply the ±30-day window + proximity ordering in memory.
+        // title matches, then apply the ±30-day window + proximity ordering in memory. LIKE
+        // matches regardless of case, where Contains (instr) missed "AI safety notes" for the
+        // stored topic "Ai safety".
+        var pattern = ContainsPattern(topic);
         var candidates = await _db.Conversations
-            .Where(c => c.Title != null && c.Title.Contains(topic))
+            .Where(c => c.Title != null && EF.Functions.Like(c.Title, pattern, LikeEscape))
             .Select(c => new { c.Title, c.CreatedAt })
             .ToListAsync(ct);
 
@@ -613,8 +614,9 @@ public class TemporalIdentityService : ITemporalIdentityService
     private async Task<string[]> GetRelatedDocumentsAsync(string topic, DateTime around, CancellationToken ct)
     {
         // Same untranslatable DateTime arithmetic as above; window in memory.
+        var pattern = ContainsPattern(topic);
         var candidates = await _db.Documents
-            .Where(d => d.FileName != null && d.FileName.Contains(topic))
+            .Where(d => d.FileName != null && EF.Functions.Like(d.FileName, pattern, LikeEscape))
             .Select(d => new { d.FileName, d.ImportedAt })
             .ToListAsync(ct);
 
@@ -704,12 +706,35 @@ public class TemporalIdentityService : ITemporalIdentityService
             ct: ct);
     }
 
-    public async Task<TemporalBeliefEntity?> GetBeliefEvolutionAsync(string topic, CancellationToken ct = default)
+    public Task<TemporalBeliefEntity?> GetBeliefEvolutionAsync(string topic, CancellationToken ct = default)
+        => FindBeliefAsync(topic, ct);
+
+    /// <summary>
+    /// The belief recorded under <paramref name="topic"/>, ignoring surrounding spaces and the
+    /// case of its letters. Topics are stored as extracted and sentence-cased ("Ai safety
+    /// matters"), so the exact, case-sensitive lookup this replaces missed nearly every topic as
+    /// typed. An exact match wins; otherwise SQLite's NOCASE comparison is used, which folds
+    /// ASCII letters only.
+    /// </summary>
+    private async Task<TemporalBeliefEntity?> FindBeliefAsync(string topic, CancellationToken ct)
     {
-        return await _db.Set<TemporalBeliefEntity>()
-            .AsNoTracking()
-            .FirstOrDefaultAsync(b => b.Topic == topic, ct);
+        var key = topic?.Trim();
+        if (string.IsNullOrEmpty(key)) return null;
+
+        var beliefs = _db.Set<TemporalBeliefEntity>().AsNoTracking();
+        return await beliefs.FirstOrDefaultAsync(b => b.Topic == key, ct)
+            ?? await beliefs
+                .Where(b => EF.Functions.Collate(b.Topic, "NOCASE") == key)
+                .OrderBy(b => b.Id)
+                .FirstOrDefaultAsync(ct);
     }
+
+    /// <summary>The escape character of <see cref="ContainsPattern"/>.</summary>
+    private const string LikeEscape = "\\";
+
+    /// <summary>A LIKE pattern matching text that contains <paramref name="value"/> literally.</summary>
+    private static string ContainsPattern(string value) =>
+        "%" + value.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_") + "%";
 
     public async Task DetectInsightsAsync(long conversationId, CancellationToken ct = default)
     {
