@@ -3444,5 +3444,11 @@
   "Annot_DeleteConfirmTitle": "Annotation löschen?",
   "Annot_DeleteConfirmMessage": "Die Hervorhebung und die Notiz zu \"{0}\" werden gelöscht. Das Dokument selbst wird nicht geändert. Dies kann nicht rückgängig gemacht werden.",
   "Annot_DeleteConfirmButton": "Löschen",
-  "Annot_ConfirmCancelButton": "Abbrechen"
+  "Annot_ConfirmCancelButton": "Abbrechen",
+  "Annot_ColorAll": "Alle",
+  "Annot_ColorYellow": "Gelb",
+  "Annot_ColorGreen": "Grün",
+  "Annot_ColorBlue": "Blau",
+  "Annot_ColorRed": "Rot",
+  "Annot_ColorPurple": "Lila"
 }

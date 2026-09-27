@@ -3821,4 +3821,10 @@
   <data name="Annot_DeleteConfirmMessage" xml:space="preserve"><value>The highlight and note on "{0}" will be deleted. The document itself is not changed. This cannot be undone.</value></data>
   <data name="Annot_DeleteConfirmButton" xml:space="preserve"><value>Delete</value></data>
   <data name="Annot_ConfirmCancelButton" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Annot_ColorAll" xml:space="preserve"><value>All</value></data>
+  <data name="Annot_ColorYellow" xml:space="preserve"><value>Yellow</value></data>
+  <data name="Annot_ColorGreen" xml:space="preserve"><value>Green</value></data>
+  <data name="Annot_ColorBlue" xml:space="preserve"><value>Blue</value></data>
+  <data name="Annot_ColorRed" xml:space="preserve"><value>Red</value></data>
+  <data name="Annot_ColorPurple" xml:space="preserve"><value>Purple</value></data>
 </root>

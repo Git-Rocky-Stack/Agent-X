@@ -3444,5 +3444,11 @@
   "Annot_DeleteConfirmTitle": "注釈を削除しますか?",
   "Annot_DeleteConfirmMessage": "「{0}」のハイライトとメモを削除します。ドキュメント自体は変更されません。この操作は元に戻せません。",
   "Annot_DeleteConfirmButton": "削除",
-  "Annot_ConfirmCancelButton": "キャンセル"
+  "Annot_ConfirmCancelButton": "キャンセル",
+  "Annot_ColorAll": "すべて",
+  "Annot_ColorYellow": "黄色",
+  "Annot_ColorGreen": "緑",
+  "Annot_ColorBlue": "青",
+  "Annot_ColorRed": "赤",
+  "Annot_ColorPurple": "紫"
 }

@@ -3444,5 +3444,11 @@
   "Annot_DeleteConfirmTitle": "删除注释？",
   "Annot_DeleteConfirmMessage": "将删除“{0}”上的高亮和备注。文档本身不会更改。此操作无法撤消。",
   "Annot_DeleteConfirmButton": "删除",
-  "Annot_ConfirmCancelButton": "取消"
+  "Annot_ConfirmCancelButton": "取消",
+  "Annot_ColorAll": "全部",
+  "Annot_ColorYellow": "黄色",
+  "Annot_ColorGreen": "绿色",
+  "Annot_ColorBlue": "蓝色",
+  "Annot_ColorRed": "红色",
+  "Annot_ColorPurple": "紫色"
 }

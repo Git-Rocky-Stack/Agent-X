@@ -3444,5 +3444,11 @@
   "Annot_DeleteConfirmTitle": "¿Eliminar la anotación?",
   "Annot_DeleteConfirmMessage": "Se eliminarán el resaltado y la nota de \"{0}\". El documento en sí no se modifica. Esta acción no se puede deshacer.",
   "Annot_DeleteConfirmButton": "Eliminar",
-  "Annot_ConfirmCancelButton": "Cancelar"
+  "Annot_ConfirmCancelButton": "Cancelar",
+  "Annot_ColorAll": "Todos",
+  "Annot_ColorYellow": "Amarillo",
+  "Annot_ColorGreen": "Verde",
+  "Annot_ColorBlue": "Azul",
+  "Annot_ColorRed": "Rojo",
+  "Annot_ColorPurple": "Morado"
 }

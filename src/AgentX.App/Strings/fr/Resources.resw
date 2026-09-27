@@ -3711,4 +3711,10 @@
   <data name="Annot_DeleteConfirmMessage" xml:space="preserve"><value>Le surlignage et la note sur « {0} » seront supprimés. Le document lui-même n'est pas modifié. Cette action est irréversible.</value></data>
   <data name="Annot_DeleteConfirmButton" xml:space="preserve"><value>Supprimer</value></data>
   <data name="Annot_ConfirmCancelButton" xml:space="preserve"><value>Annuler</value></data>
+  <data name="Annot_ColorAll" xml:space="preserve"><value>Toutes</value></data>
+  <data name="Annot_ColorYellow" xml:space="preserve"><value>Jaune</value></data>
+  <data name="Annot_ColorGreen" xml:space="preserve"><value>Vert</value></data>
+  <data name="Annot_ColorBlue" xml:space="preserve"><value>Bleu</value></data>
+  <data name="Annot_ColorRed" xml:space="preserve"><value>Rouge</value></data>
+  <data name="Annot_ColorPurple" xml:space="preserve"><value>Violet</value></data>
 </root>

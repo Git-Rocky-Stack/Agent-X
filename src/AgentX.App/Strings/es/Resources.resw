@@ -3711,4 +3711,10 @@
   <data name="Annot_DeleteConfirmMessage" xml:space="preserve"><value>Se eliminarán el resaltado y la nota de "{0}". El documento en sí no se modifica. Esta acción no se puede deshacer.</value></data>
   <data name="Annot_DeleteConfirmButton" xml:space="preserve"><value>Eliminar</value></data>
   <data name="Annot_ConfirmCancelButton" xml:space="preserve"><value>Cancelar</value></data>
+  <data name="Annot_ColorAll" xml:space="preserve"><value>Todos</value></data>
+  <data name="Annot_ColorYellow" xml:space="preserve"><value>Amarillo</value></data>
+  <data name="Annot_ColorGreen" xml:space="preserve"><value>Verde</value></data>
+  <data name="Annot_ColorBlue" xml:space="preserve"><value>Azul</value></data>
+  <data name="Annot_ColorRed" xml:space="preserve"><value>Rojo</value></data>
+  <data name="Annot_ColorPurple" xml:space="preserve"><value>Morado</value></data>
 </root>

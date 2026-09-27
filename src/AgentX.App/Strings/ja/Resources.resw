@@ -3711,4 +3711,10 @@
   <data name="Annot_DeleteConfirmMessage" xml:space="preserve"><value>「{0}」のハイライトとメモを削除します。ドキュメント自体は変更されません。この操作は元に戻せません。</value></data>
   <data name="Annot_DeleteConfirmButton" xml:space="preserve"><value>削除</value></data>
   <data name="Annot_ConfirmCancelButton" xml:space="preserve"><value>キャンセル</value></data>
+  <data name="Annot_ColorAll" xml:space="preserve"><value>すべて</value></data>
+  <data name="Annot_ColorYellow" xml:space="preserve"><value>黄色</value></data>
+  <data name="Annot_ColorGreen" xml:space="preserve"><value>緑</value></data>
+  <data name="Annot_ColorBlue" xml:space="preserve"><value>青</value></data>
+  <data name="Annot_ColorRed" xml:space="preserve"><value>赤</value></data>
+  <data name="Annot_ColorPurple" xml:space="preserve"><value>紫</value></data>
 </root>

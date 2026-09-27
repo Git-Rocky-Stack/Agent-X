@@ -3711,4 +3711,10 @@
   <data name="Annot_DeleteConfirmMessage" xml:space="preserve"><value>将删除“{0}”上的高亮和备注。文档本身不会更改。此操作无法撤消。</value></data>
   <data name="Annot_DeleteConfirmButton" xml:space="preserve"><value>删除</value></data>
   <data name="Annot_ConfirmCancelButton" xml:space="preserve"><value>取消</value></data>
+  <data name="Annot_ColorAll" xml:space="preserve"><value>全部</value></data>
+  <data name="Annot_ColorYellow" xml:space="preserve"><value>黄色</value></data>
+  <data name="Annot_ColorGreen" xml:space="preserve"><value>绿色</value></data>
+  <data name="Annot_ColorBlue" xml:space="preserve"><value>蓝色</value></data>
+  <data name="Annot_ColorRed" xml:space="preserve"><value>红色</value></data>
+  <data name="Annot_ColorPurple" xml:space="preserve"><value>紫色</value></data>
 </root>

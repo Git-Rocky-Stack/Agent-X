@@ -3444,5 +3444,11 @@
   "Annot_DeleteConfirmTitle": "Supprimer l'annotation ?",
   "Annot_DeleteConfirmMessage": "Le surlignage et la note sur « {0} » seront supprimés. Le document lui-même n'est pas modifié. Cette action est irréversible.",
   "Annot_DeleteConfirmButton": "Supprimer",
-  "Annot_ConfirmCancelButton": "Annuler"
+  "Annot_ConfirmCancelButton": "Annuler",
+  "Annot_ColorAll": "Toutes",
+  "Annot_ColorYellow": "Jaune",
+  "Annot_ColorGreen": "Vert",
+  "Annot_ColorBlue": "Bleu",
+  "Annot_ColorRed": "Rouge",
+  "Annot_ColorPurple": "Violet"
 }
