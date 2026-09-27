@@ -563,11 +563,12 @@
 
                     <StackPanel Spacing="12"
                                 Visibility="{x:Bind ViewModel.EnableResearchMode, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                        <!-- Product names (WebSearchProviderChoices); the provider is saved by its enum value. -->
                         <StackPanel Spacing="4">
                             <TextBlock x:Uid="Settings_SearchProvider" Text="Search Provider"
                                        Style="{StaticResource LabelStyle}" />
-                            <ComboBox ItemsSource="{x:Bind ViewModel.WebSearchProviders, Mode=OneWay}"
-                                      SelectedItem="{x:Bind ViewModel.SelectedWebSearchProvider, Mode=TwoWay}"
+                            <ComboBox ItemsSource="{x:Bind ViewModel.WebSearchProviderOptions}"
+                                      SelectedIndex="{x:Bind ViewModel.WebSearchProviderIndex, Mode=TwoWay}"
                                       HorizontalAlignment="Stretch"
                                       MinWidth="200" />
                         </StackPanel>

@@ -96,13 +96,22 @@ public partial class SettingsViewModel : ObservableObject
 
     // ── Deep Research Mode ──────────────────────────────
     [ObservableProperty] private bool _enableResearchMode;
-    [ObservableProperty] private WebSearchProvider _selectedWebSearchProvider = WebSearchProvider.Brave;
+
+    /// <summary>
+    /// Index into <see cref="WebSearchProviderOptions"/>; -1 shows a saved provider that is not
+    /// listed, which saving keeps (see <see cref="WebSearchProviderChoices"/>).
+    /// </summary>
+    [ObservableProperty] private int _webSearchProviderIndex = WebSearchProviderChoices.IndexOf(WebSearchProvider.Brave);
     [ObservableProperty] private string? _webSearchApiKey;
     [ObservableProperty] private int _maxSearchResults = 10;
     [ObservableProperty] private int _searchCacheTtlMinutes = 60;
 
-    public IReadOnlyList<WebSearchProvider> WebSearchProviders { get; }
-        = Enum.GetValues<WebSearchProvider>().ToList();
+    /// <summary>
+    /// Search provider names for the ComboBox items, in <see cref="WebSearchProviderChoices"/>
+    /// order: Brave, Serper and SearXNG, product names that are not translated. The provider is
+    /// saved as its enum value, so the names never reach the settings.
+    /// </summary>
+    public IReadOnlyList<string> WebSearchProviderOptions { get; } = WebSearchProviderChoices.DisplayNames;
 
     // ── Local REST API (browser extension) ───────────────
     [ObservableProperty] private bool _localApiEnabled = true;
@@ -244,7 +253,7 @@ public partial class SettingsViewModel : ObservableObject
 
             // Deep Research Mode
             EnableResearchMode = settings.EnableResearchMode;
-            SelectedWebSearchProvider = settings.WebSearchProvider;
+            WebSearchProviderIndex = WebSearchProviderChoices.IndexOf(settings.WebSearchProvider);
             WebSearchApiKey = settings.WebSearchApiKey;
             MaxSearchResults = settings.MaxSearchResults;
             SearchCacheTtlMinutes = settings.SearchCacheTtlMinutes;
@@ -328,9 +337,9 @@ public partial class SettingsViewModel : ObservableObject
         settings.ActiveRoutingProfileId = RoutingProfileIndexToId(RoutingProfileIndex);
         ActiveRoutingProfileId = settings.ActiveRoutingProfileId;
 
-        // Deep Research Mode
+        // Deep Research Mode (no selection keeps the saved provider)
         settings.EnableResearchMode = EnableResearchMode;
-        settings.WebSearchProvider = SelectedWebSearchProvider;
+        settings.WebSearchProvider = WebSearchProviderChoices.ResolveSelection(WebSearchProviderIndex, settings.WebSearchProvider);
         settings.WebSearchApiKey = string.IsNullOrWhiteSpace(WebSearchApiKey) ? null : WebSearchApiKey;
         settings.MaxSearchResults = MaxSearchResults;
         settings.SearchCacheTtlMinutes = SearchCacheTtlMinutes;
@@ -496,7 +505,7 @@ public partial class SettingsViewModel : ObservableObject
 
         // Deep Research Mode
         EnableResearchMode = false;
-        SelectedWebSearchProvider = WebSearchProvider.Brave;
+        WebSearchProviderIndex = WebSearchProviderChoices.IndexOf(WebSearchProvider.Brave);
         WebSearchApiKey = null;
         MaxSearchResults = 10;
         SearchCacheTtlMinutes = 60;
