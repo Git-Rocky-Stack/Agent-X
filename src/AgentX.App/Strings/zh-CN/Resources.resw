@@ -2435,6 +2435,20 @@
   <data name="Backup_RestoreFailed" xml:space="preserve"><value>还原失败：{0}</value></data>
   <data name="Backup_Deleted" xml:space="preserve"><value>备份已删除</value></data>
   <data name="Backup_DeleteFailed" xml:space="preserve"><value>无法删除备份</value></data>
+  <data name="Workspace_LoadFailed" xml:space="preserve"><value>无法加载工作区配置文件。请尝试刷新。</value></data>
+  <data name="Workspace_RefreshFailed" xml:space="preserve"><value>无法刷新配置文件。请重试。</value></data>
+  <data name="Workspace_ProfileCreated" xml:space="preserve"><value>已创建配置文件“{0}”。</value></data>
+  <data name="Workspace_CreateFailed" xml:space="preserve"><value>无法创建配置文件：{0}</value></data>
+  <data name="Workspace_ProfileMissing" xml:space="preserve"><value>该配置文件已不存在，可能已被删除。</value></data>
+  <data name="Workspace_ProfileSaved" xml:space="preserve"><value>已保存配置文件“{0}”。</value></data>
+  <data name="Workspace_SaveFailed" xml:space="preserve"><value>无法保存配置文件：{0}</value></data>
+  <data name="Workspace_ProfileDeleted" xml:space="preserve"><value>已删除配置文件“{0}”。</value></data>
+  <data name="Workspace_DeleteFailed" xml:space="preserve"><value>无法删除配置文件：{0}</value></data>
+  <data name="Workspace_ProfileIsDefault" xml:space="preserve"><value>配置文件“{0}”现已设为默认。</value></data>
+  <data name="Workspace_SetDefaultFailed" xml:space="preserve"><value>无法设置默认配置文件：{0}</value></data>
+  <data name="Workspace_CopyName" xml:space="preserve"><value>{0}（副本）</value></data>
+  <data name="Workspace_ProfileDuplicated" xml:space="preserve"><value>已将配置文件复制为“{0}”。</value></data>
+  <data name="Workspace_DuplicateFailed" xml:space="preserve"><value>无法复制配置文件：{0}</value></data>
   <data name="Palette_OpenHint.Text" xml:space="preserve"><value>打开</value></data>
   <data name="Palette_CloseHint.Text" xml:space="preserve"><value>关闭</value></data>
   <data name="Palette_Actions" xml:space="preserve"><value>操作</value></data>

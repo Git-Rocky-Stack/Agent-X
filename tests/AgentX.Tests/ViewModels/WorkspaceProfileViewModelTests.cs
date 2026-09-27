@@ -23,7 +23,7 @@ public sealed class WorkspaceProfileViewModelTests
                 CreateProfile(2, "Writing")
             ]);
 
-        var viewModel = new WorkspaceProfileViewModel(_profileService.Object);
+        var viewModel = new WorkspaceProfileViewModel(_profileService.Object, EnglishResources.Create());
 
         await viewModel.InitializeAsync();
 
@@ -45,7 +45,7 @@ public sealed class WorkspaceProfileViewModelTests
         _profileService.Setup(service => service.CreateProfileAsync("Strategy Sprint", "Daily research context"))
             .ReturnsAsync(created);
 
-        var viewModel = new WorkspaceProfileViewModel(_profileService.Object)
+        var viewModel = new WorkspaceProfileViewModel(_profileService.Object, EnglishResources.Create())
         {
             NewProfileName = "  Strategy Sprint  ",
             NewProfileDescription = "  Daily research context  "
@@ -91,7 +91,7 @@ public sealed class WorkspaceProfileViewModelTests
         _profileService.Setup(service => service.SetDefaultProfileAsync(2))
             .Returns(Task.CompletedTask);
 
-        var viewModel = new WorkspaceProfileViewModel(_profileService.Object);
+        var viewModel = new WorkspaceProfileViewModel(_profileService.Object, EnglishResources.Create());
         await viewModel.InitializeAsync();
 
         viewModel.SelectedProfile = viewModel.Profiles.Single(profile => profile.Id == 2);
@@ -137,7 +137,7 @@ public sealed class WorkspaceProfileViewModelTests
         _profileService.Setup(service => service.ClearDefaultProfileAsync(1))
             .Returns(Task.CompletedTask);
 
-        var viewModel = new WorkspaceProfileViewModel(_profileService.Object);
+        var viewModel = new WorkspaceProfileViewModel(_profileService.Object, EnglishResources.Create());
         await viewModel.InitializeAsync();
         viewModel.SelectedProfile = viewModel.Profiles.Single();
         viewModel.EditIsDefault = false;
@@ -160,7 +160,7 @@ public sealed class WorkspaceProfileViewModelTests
         await service.CreateProfileAsync("Research");
         await service.CreateProfileAsync("Writing");
 
-        var viewModel = new WorkspaceProfileViewModel(service);
+        var viewModel = new WorkspaceProfileViewModel(service, EnglishResources.Create());
         await viewModel.InitializeAsync();
         viewModel.SelectedProfile = viewModel.Profiles.Single(profile => profile.Name == "Research");
 
@@ -190,7 +190,7 @@ public sealed class WorkspaceProfileViewModelTests
         _profileService.Setup(service => service.DeleteProfileAsync(5))
             .Returns(Task.CompletedTask);
 
-        var viewModel = new WorkspaceProfileViewModel(_profileService.Object);
+        var viewModel = new WorkspaceProfileViewModel(_profileService.Object, EnglishResources.Create());
         await viewModel.InitializeAsync();
         viewModel.SelectedProfile = viewModel.Profiles[0];
 
@@ -211,7 +211,7 @@ public sealed class WorkspaceProfileViewModelTests
         _profileService.Setup(service => service.DuplicateProfileAsync(7, "Research (Copy)"))
             .ReturnsAsync(CreateProfile(8, "Research (Copy)"));
 
-        var viewModel = new WorkspaceProfileViewModel(_profileService.Object);
+        var viewModel = new WorkspaceProfileViewModel(_profileService.Object, EnglishResources.Create());
         await viewModel.InitializeAsync();
         viewModel.SelectedProfile = viewModel.Profiles[0];
 
@@ -222,6 +222,27 @@ public sealed class WorkspaceProfileViewModelTests
         viewModel.SelectedProfile!.Id.Should().Be(8);
         viewModel.SelectedProfile.Name.Should().Be("Research (Copy)");
         viewModel.StatusMessage.Should().Be("Profile duplicated as \"Research (Copy)\".");
+    }
+
+    [Fact]
+    public async Task DuplicateProfileAsync_names_the_copy_in_the_users_language()
+    {
+        var german = ReswLocalization.For("de");
+        var copyName = german.GetString("Workspace_CopyName", "Research");
+        _profileService.Setup(service => service.GetAllProfilesAsync())
+            .ReturnsAsync([CreateProfile(7, "Research")]);
+        _profileService.Setup(service => service.DuplicateProfileAsync(7, copyName))
+            .ReturnsAsync(CreateProfile(8, copyName));
+
+        var viewModel = new WorkspaceProfileViewModel(_profileService.Object, german);
+        await viewModel.InitializeAsync();
+        viewModel.SelectedProfile = viewModel.Profiles[0];
+
+        await viewModel.DuplicateProfileCommand.ExecuteAsync(null);
+
+        copyName.Should().NotBe("Research (Copy)");
+        _profileService.Verify(service => service.DuplicateProfileAsync(7, copyName), Times.Once);
+        viewModel.StatusMessage.Should().Be(german.GetString("Workspace_ProfileDuplicated", copyName));
     }
 
     private static WorkspaceProfileEntity CreateProfile(

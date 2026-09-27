@@ -2435,6 +2435,20 @@
   <data name="Backup_RestoreFailed" xml:space="preserve"><value>Échec de la restauration : {0}</value></data>
   <data name="Backup_Deleted" xml:space="preserve"><value>Sauvegarde supprimée</value></data>
   <data name="Backup_DeleteFailed" xml:space="preserve"><value>Impossible de supprimer la sauvegarde</value></data>
+  <data name="Workspace_LoadFailed" xml:space="preserve"><value>Impossible de charger les profils d'espace de travail. Essayez d'actualiser.</value></data>
+  <data name="Workspace_RefreshFailed" xml:space="preserve"><value>Impossible d'actualiser les profils. Veuillez réessayer.</value></data>
+  <data name="Workspace_ProfileCreated" xml:space="preserve"><value>Profil « {0} » créé.</value></data>
+  <data name="Workspace_CreateFailed" xml:space="preserve"><value>Impossible de créer le profil : {0}</value></data>
+  <data name="Workspace_ProfileMissing" xml:space="preserve"><value>Le profil n'existe plus. Il a peut-être été supprimé.</value></data>
+  <data name="Workspace_ProfileSaved" xml:space="preserve"><value>Profil « {0} » enregistré.</value></data>
+  <data name="Workspace_SaveFailed" xml:space="preserve"><value>Impossible d'enregistrer le profil : {0}</value></data>
+  <data name="Workspace_ProfileDeleted" xml:space="preserve"><value>Profil « {0} » supprimé.</value></data>
+  <data name="Workspace_DeleteFailed" xml:space="preserve"><value>Impossible de supprimer le profil : {0}</value></data>
+  <data name="Workspace_ProfileIsDefault" xml:space="preserve"><value>Le profil « {0} » est désormais le profil par défaut.</value></data>
+  <data name="Workspace_SetDefaultFailed" xml:space="preserve"><value>Impossible de définir le profil par défaut : {0}</value></data>
+  <data name="Workspace_CopyName" xml:space="preserve"><value>{0} (copie)</value></data>
+  <data name="Workspace_ProfileDuplicated" xml:space="preserve"><value>Profil dupliqué sous le nom « {0} ».</value></data>
+  <data name="Workspace_DuplicateFailed" xml:space="preserve"><value>Impossible de dupliquer le profil : {0}</value></data>
   <data name="Palette_OpenHint.Text" xml:space="preserve"><value>Ouvrir</value></data>
   <data name="Palette_CloseHint.Text" xml:space="preserve"><value>Fermer</value></data>
   <data name="Palette_Actions" xml:space="preserve"><value>ACTIONS</value></data>

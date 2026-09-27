@@ -2435,6 +2435,20 @@
   <data name="Backup_RestoreFailed" xml:space="preserve"><value>Error en la restauración: {0}</value></data>
   <data name="Backup_Deleted" xml:space="preserve"><value>Copia de seguridad eliminada</value></data>
   <data name="Backup_DeleteFailed" xml:space="preserve"><value>No se pudo eliminar la copia de seguridad</value></data>
+  <data name="Workspace_LoadFailed" xml:space="preserve"><value>No se pudieron cargar los perfiles de espacio de trabajo. Intente actualizar.</value></data>
+  <data name="Workspace_RefreshFailed" xml:space="preserve"><value>No se pudieron actualizar los perfiles. Inténtelo de nuevo.</value></data>
+  <data name="Workspace_ProfileCreated" xml:space="preserve"><value>Perfil "{0}" creado correctamente.</value></data>
+  <data name="Workspace_CreateFailed" xml:space="preserve"><value>No se pudo crear el perfil: {0}</value></data>
+  <data name="Workspace_ProfileMissing" xml:space="preserve"><value>El perfil ya no existe. Es posible que se haya eliminado.</value></data>
+  <data name="Workspace_ProfileSaved" xml:space="preserve"><value>Perfil "{0}" guardado correctamente.</value></data>
+  <data name="Workspace_SaveFailed" xml:space="preserve"><value>No se pudo guardar el perfil: {0}</value></data>
+  <data name="Workspace_ProfileDeleted" xml:space="preserve"><value>Perfil "{0}" eliminado.</value></data>
+  <data name="Workspace_DeleteFailed" xml:space="preserve"><value>No se pudo eliminar el perfil: {0}</value></data>
+  <data name="Workspace_ProfileIsDefault" xml:space="preserve"><value>El perfil "{0}" es ahora el predeterminado.</value></data>
+  <data name="Workspace_SetDefaultFailed" xml:space="preserve"><value>No se pudo establecer el perfil predeterminado: {0}</value></data>
+  <data name="Workspace_CopyName" xml:space="preserve"><value>{0} (copia)</value></data>
+  <data name="Workspace_ProfileDuplicated" xml:space="preserve"><value>Perfil duplicado como "{0}".</value></data>
+  <data name="Workspace_DuplicateFailed" xml:space="preserve"><value>No se pudo duplicar el perfil: {0}</value></data>
   <data name="Palette_OpenHint.Text" xml:space="preserve"><value>Abrir</value></data>
   <data name="Palette_CloseHint.Text" xml:space="preserve"><value>Cerrar</value></data>
   <data name="Palette_Actions" xml:space="preserve"><value>ACCIONES</value></data>

@@ -2435,6 +2435,20 @@
   <data name="Backup_RestoreFailed" xml:space="preserve"><value>Wiederherstellung fehlgeschlagen: {0}</value></data>
   <data name="Backup_Deleted" xml:space="preserve"><value>Backup gelöscht</value></data>
   <data name="Backup_DeleteFailed" xml:space="preserve"><value>Backup konnte nicht gelöscht werden</value></data>
+  <data name="Workspace_LoadFailed" xml:space="preserve"><value>Die Workspace-Profile konnten nicht geladen werden. Bitte aktualisieren Sie die Liste.</value></data>
+  <data name="Workspace_RefreshFailed" xml:space="preserve"><value>Die Profile konnten nicht aktualisiert werden. Bitte versuchen Sie es erneut.</value></data>
+  <data name="Workspace_ProfileCreated" xml:space="preserve"><value>Profil „{0}“ wurde erstellt.</value></data>
+  <data name="Workspace_CreateFailed" xml:space="preserve"><value>Das Profil konnte nicht erstellt werden: {0}</value></data>
+  <data name="Workspace_ProfileMissing" xml:space="preserve"><value>Das Profil existiert nicht mehr. Möglicherweise wurde es gelöscht.</value></data>
+  <data name="Workspace_ProfileSaved" xml:space="preserve"><value>Profil „{0}“ wurde gespeichert.</value></data>
+  <data name="Workspace_SaveFailed" xml:space="preserve"><value>Das Profil konnte nicht gespeichert werden: {0}</value></data>
+  <data name="Workspace_ProfileDeleted" xml:space="preserve"><value>Profil „{0}“ wurde gelöscht.</value></data>
+  <data name="Workspace_DeleteFailed" xml:space="preserve"><value>Das Profil konnte nicht gelöscht werden: {0}</value></data>
+  <data name="Workspace_ProfileIsDefault" xml:space="preserve"><value>Profil „{0}“ ist jetzt das Standardprofil.</value></data>
+  <data name="Workspace_SetDefaultFailed" xml:space="preserve"><value>Das Standardprofil konnte nicht festgelegt werden: {0}</value></data>
+  <data name="Workspace_CopyName" xml:space="preserve"><value>{0} (Kopie)</value></data>
+  <data name="Workspace_ProfileDuplicated" xml:space="preserve"><value>Profil als „{0}“ dupliziert.</value></data>
+  <data name="Workspace_DuplicateFailed" xml:space="preserve"><value>Das Profil konnte nicht dupliziert werden: {0}</value></data>
   <data name="Palette_OpenHint.Text" xml:space="preserve"><value>Öffnen</value></data>
   <data name="Palette_CloseHint.Text" xml:space="preserve"><value>Schließen</value></data>
   <data name="Palette_Actions" xml:space="preserve"><value>AKTIONEN</value></data>

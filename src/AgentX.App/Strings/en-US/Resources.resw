@@ -153,6 +153,20 @@
   <data name="Backup_RestoreFailed" xml:space="preserve"><value>Restore failed: {0}</value></data>
   <data name="Backup_Deleted" xml:space="preserve"><value>Backup deleted</value></data>
   <data name="Backup_DeleteFailed" xml:space="preserve"><value>Failed to delete backup</value></data>
+  <data name="Workspace_LoadFailed" xml:space="preserve"><value>Failed to load workspace profiles. Please try refreshing.</value></data>
+  <data name="Workspace_RefreshFailed" xml:space="preserve"><value>Failed to refresh profiles. Please try again.</value></data>
+  <data name="Workspace_ProfileCreated" xml:space="preserve"><value>Profile "{0}" created successfully.</value></data>
+  <data name="Workspace_CreateFailed" xml:space="preserve"><value>Failed to create profile: {0}</value></data>
+  <data name="Workspace_ProfileMissing" xml:space="preserve"><value>Profile no longer exists. It may have been deleted.</value></data>
+  <data name="Workspace_ProfileSaved" xml:space="preserve"><value>Profile "{0}" saved successfully.</value></data>
+  <data name="Workspace_SaveFailed" xml:space="preserve"><value>Failed to save profile: {0}</value></data>
+  <data name="Workspace_ProfileDeleted" xml:space="preserve"><value>Profile "{0}" deleted.</value></data>
+  <data name="Workspace_DeleteFailed" xml:space="preserve"><value>Failed to delete profile: {0}</value></data>
+  <data name="Workspace_ProfileIsDefault" xml:space="preserve"><value>Profile "{0}" is now the default.</value></data>
+  <data name="Workspace_SetDefaultFailed" xml:space="preserve"><value>Failed to set default profile: {0}</value></data>
+  <data name="Workspace_CopyName" xml:space="preserve"><value>{0} (Copy)</value></data>
+  <data name="Workspace_ProfileDuplicated" xml:space="preserve"><value>Profile duplicated as "{0}".</value></data>
+  <data name="Workspace_DuplicateFailed" xml:space="preserve"><value>Failed to duplicate profile: {0}</value></data>
   <data name="Palette_OpenHint.Text" xml:space="preserve"><value>Open</value></data>
   <data name="Palette_CloseHint.Text" xml:space="preserve"><value>Close</value></data>
   <data name="Palette_Actions" xml:space="preserve"><value>ACTIONS</value></data>
