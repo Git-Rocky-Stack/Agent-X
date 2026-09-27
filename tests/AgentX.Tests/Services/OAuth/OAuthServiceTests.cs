@@ -529,6 +529,24 @@ public sealed class OAuthServiceTests : IDisposable
     }
 
     [Fact]
+    public void ApplyProviderSettings_WithABlankTenantOrRedirectUri_UsesTheDefaults()
+    {
+        using var service = CreateService();
+        var settings = ClientSettings(googleId: GoogleClientId, googleSecret: "GOCSPX-secret", microsoftId: MicrosoftClientId);
+        settings.Google.RedirectUri = " ";
+        settings.Microsoft.TenantId = "";
+        settings.Microsoft.RedirectUri = null!;
+
+        service.ApplyProviderSettings(settings);
+
+        var providers = service.GetRegisteredProviders();
+        providers["microsoft"].AuthorizationEndpoint.Should().Be(
+            "https://login.microsoftonline.com/common/oauth2/v2.0/authorize");
+        providers["microsoft"].RedirectUri.Should().Be(new MicrosoftOAuthSettings().RedirectUri);
+        providers["google"].RedirectUri.Should().Be(new GoogleOAuthSettings().RedirectUri);
+    }
+
+    [Fact]
     public void ApplyProviderSettings_ReplacesTheConfigurationOfAChangedProvider()
     {
         using var service = CreateService();

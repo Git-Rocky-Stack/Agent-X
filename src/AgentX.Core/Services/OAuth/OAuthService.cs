@@ -219,7 +219,7 @@ public sealed class OAuthService : IOAuthService, IDisposable
                 RegisterProvider(OAuthProviderRegistry.Google(
                     google.ClientId.Trim(),
                     google.ClientSecret?.Trim() ?? string.Empty,
-                    google.RedirectUri ?? string.Empty));
+                    OrDefault(google.RedirectUri, new GoogleOAuthSettings().RedirectUri)));
             }
 
             var microsoft = settings.Microsoft ?? new MicrosoftOAuthSettings();
@@ -232,11 +232,16 @@ public sealed class OAuthService : IOAuthService, IDisposable
                 RegisterProvider(OAuthProviderRegistry.Microsoft(
                     microsoft.ClientId.Trim(),
                     microsoft.ClientSecret?.Trim() ?? string.Empty,
-                    microsoft.TenantId ?? string.Empty,
-                    microsoft.RedirectUri ?? string.Empty));
+                    OrDefault(microsoft.TenantId, new MicrosoftOAuthSettings().TenantId),
+                    OrDefault(microsoft.RedirectUri, new MicrosoftOAuthSettings().RedirectUri)));
             }
         }
     }
+
+    // A tenant or redirect URI left blank in settings.json built endpoints such as
+    // "https://login.microsoftonline.com//oauth2/..." that no sign-in can use; blank means default.
+    private static string OrDefault(string? value, string fallback) =>
+        string.IsNullOrWhiteSpace(value) ? fallback : value.Trim();
 
     /// <summary>
     /// Returns all registered provider configurations.

@@ -432,24 +432,9 @@ public partial class App : Application
             // Token refresh buffer and consent timeout come from settings.json.
             oauthService.ApplySettings(settings.OAuth);
 
-            // Only register Google if credentials are configured
-            if (!string.IsNullOrWhiteSpace(settings.OAuth.Google.ClientId))
-            {
-                oauthService.RegisterProvider(OAuthProviderRegistry.Google(
-                    settings.OAuth.Google.ClientId,
-                    settings.OAuth.Google.ClientSecret,
-                    settings.OAuth.Google.RedirectUri));
-            }
-
-            // Only register Microsoft if credentials are configured
-            if (!string.IsNullOrWhiteSpace(settings.OAuth.Microsoft.ClientId))
-            {
-                oauthService.RegisterProvider(OAuthProviderRegistry.Microsoft(
-                    settings.OAuth.Microsoft.ClientId,
-                    settings.OAuth.Microsoft.ClientSecret,
-                    settings.OAuth.Microsoft.TenantId,
-                    settings.OAuth.Microsoft.RedirectUri));
-            }
+            // Google and Microsoft come from the client credentials saved under OAuth App
+            // Credentials (Calendar and Email connector pages); saving there re-applies them.
+            oauthService.ApplyProviderSettings(settings.OAuth);
 
             return oauthService;
         });
