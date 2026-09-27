@@ -1,6 +1,6 @@
 # Agent-X Developer Guide
 
-Version 1.0.0 | Last updated: February 2026
+Version 2.2.0 | Last updated: September 2026
 
 ---
 
@@ -24,28 +24,47 @@ Version 1.0.0 | Last updated: February 2026
 
 ## 1. Overview
 
-Agent-X is a local-first AI personal intelligence hub for Windows. It runs entirely on the user's machine — no cloud services required for core functionality. Users import their documents, the application indexes and embeds them, and they can then have grounded AI conversations, run semantic searches, and query their document library directly using natural language.
+Agent-X is a local-first AI document intelligence app for Windows. Users import their documents,
+the app extracts, chunks and embeds them, and they can then chat with answers grounded in those
+documents, search them by meaning or by keyword, and ask questions of the whole library. The
+detailed design is in [ARCHITECTURE.md](ARCHITECTURE.md) and the database in
+[DATABASE_SCHEMA.md](../DATABASE_SCHEMA.md); this guide covers how to build, change and test the
+code.
 
-**What makes Agent-X distinctive:**
+**What local first means in the code:**
 
-- All AI inference runs locally via Ollama (with optional cloud fallback to OpenAI or Anthropic)
-- All document data, embeddings, and conversation history are stored locally in SQLite
-- The application is a self-contained Windows executable with no runtime dependencies
-- Retrieval-Augmented Generation (RAG) grounds AI answers in the user's actual documents
+- The default AI provider is a built-in model: Llama 3.2 3B (a GGUF file) run in-process by
+  LLamaSharp. The OFFLINE installer bundles the file; in a SLIM install the first-run wizard offers
+  to download it. Ollama (on this computer or another), OpenAI and Anthropic are optional
+  providers.
+- Documents, chunks, embeddings, conversations and settings stay under `%LocalAppData%\AgentX`: one
+  SQLite database (SQLCipher, optionally encrypted), `settings.json` and a few side files.
+- When prompts can leave the computer (a cloud provider, an Ollama server on another machine, model
+  routing to a cloud provider, or Research Mode web search), `PrivacyStatusService` says so. The
+  `LOCAL`/`NET` lamp, the Dashboard and the privacy note in an empty chat all use its evaluation.
+- The app is an unpackaged, self-contained Windows executable: the .NET runtime and the Windows App
+  SDK ship with it.
 
-**Tech stack summary:**
+**Tech stack:**
 
 | Layer | Technology |
 |---|---|
-| UI Framework | WinUI 3 (Windows App SDK 1.6) |
-| Language | C# 12 / .NET 8.0 |
+| UI | WinUI 3 (Windows App SDK 1.6.250108002), unpackaged, self-contained |
+| Language and runtime | C# 12, .NET 8 (`net8.0-windows10.0.22621.0`, minimum Windows 10.0.19041) |
 | MVVM | CommunityToolkit.Mvvm 8.2.2 |
-| Database | EF Core 8.0.11 + SQLite |
-| Vector Store | Custom SQLite-based store (cosine similarity in C#) |
-| AI — Local | OllamaSharp 4.0.12 |
-| AI — Cloud | Raw HttpClient (OpenAI, Anthropic) |
-| Document Processing | PDFsharp 6.1.1, DocumentFormat.OpenXml 3.2.0, Markdig 0.37.0 |
-| Logging | Serilog 4.0.2 |
+| Host and DI | Microsoft.Extensions.Hosting 8.0.1 |
+| Database | EF Core 8.0.11 (`Sqlite.Core`) on SQLCipher (`SQLitePCLRaw.bundle_e_sqlcipher` 2.1.7) |
+| Vector search | `vec_embeddings` table with an HNSW index (HnswLite 1.0.6) or a linear scan |
+| Built-in model | LLamaSharp 0.19.0 (CPU and CUDA 12 backends) |
+| Ollama | OllamaSharp 4.0.6 |
+| Cloud providers | `HttpClient` with server-sent events (OpenAI, Anthropic) |
+| Document processing | PDFsharp 6.1.1, DocumentFormat.OpenXml 3.2.0, Markdig 0.37.0, Windows OCR |
+| Audio | Whisper.Net 1.5.0, NAudio 2.2.1 |
+| Web | HtmlAgilityPack 1.11.67, Microsoft.Playwright 1.59.0 |
+| Export | QuestPDF 2024.12.2 (PDF), DocumentFormat.OpenXml (DOCX, PPTX) |
+| Tray | H.NotifyIcon.WinUI 2.1.3 |
+| Logging | Serilog 4.0.2 (file and debug sinks) |
+| Tests | xUnit 2.9.2, Moq 4.20.72, FluentAssertions 6.12.2 |
 | Installer | Inno Setup 6 |
 
 ---
@@ -56,331 +75,205 @@ Agent-X is a local-first AI personal intelligence hub for Windows. It runs entir
 
 | Tool | Version | Notes |
 |---|---|---|
-| Visual Studio 2022 | 17.8 or later | With "Windows application development" workload |
-| .NET SDK | 8.0 (pinned via `global.json`) | Installed automatically with VS or from dotnet.microsoft.com |
-| Windows App SDK | 1.6.x | Installed automatically via NuGet |
-| Windows 10/11 | Build 19041+ (20H1+) | Target platform minimum |
-| Ollama | Latest | For local AI inference during development |
-| Inno Setup 6 | 6.x | Required only for building the installer |
+| Windows | 10 version 2004 (build 19041) or later | The app's minimum platform and the installer's `MinVersion` |
+| .NET SDK | 8.0.421 or a later 8.0 feature band | Pinned in `global.json` (`rollForward: latestFeature`) |
+| Visual Studio 2022 | With the .NET desktop and WinUI (Windows application development) workloads | Optional: the `dotnet` CLI is enough |
+| Windows App SDK | 1.6 | Restored from NuGet; nothing to install |
+| Ollama | Any current release | Optional, only to develop against the Ollama provider |
+| Node 20 | | Only for `browser-extension/` |
+| MAUI Android workload | `dotnet workload install maui-android` | Only for `src/AgentX.Mobile` |
+| Inno Setup 6 | 6.x | Only to build installers |
 
-Visual Studio workloads required:
-
-- .NET desktop development
-- Windows application development (includes Windows App SDK)
-
-**Entity Framework Core CLI.** Database migrations use a repo-pinned local `dotnet-ef` tool (matched to EF Core 8.0.11, recorded in `.config/dotnet-tools.json`). Restore it once after cloning — no global install is required:
+**Entity Framework Core CLI.** Migrations use a repo-pinned local tool: `dotnet-ef` 8.0.11 in
+`.config/dotnet-tools.json`. Restore it once after cloning; no global install is needed:
 
 ```powershell
 dotnet tool restore
 ```
 
-See §6.3 below for the full migration workflow.
+See [6.3](#63-schema-migrations) for the migration workflow.
 
 ### 2.2 Getting Started
 
-Clone the repository and open the solution:
-
-```
+```powershell
 git clone <repository-url>
 cd Agent-X
+dotnet tool restore
+dotnet build -p:Platform=x64
 ```
 
-Open `AgentX.sln` in Visual Studio 2022. The NuGet packages will restore automatically on first build.
+**The platform argument is required.** A bare `dotnet build` of the solution fails (the runtime
+identifier resolves to `win-anycpu`). The app project itself defaults to `x64` when no platform is
+given, so it can also be run on its own:
 
-**Install Ollama for local development:**
-
-Download from [ollama.com](https://ollama.com) and install it. Then pull the recommended models:
-
+```powershell
+dotnet run --project src/AgentX.App/AgentX.App.csproj -p:Platform=x64
 ```
+
+In Visual Studio, open `AgentX.sln`, select the `x64` platform and press F5.
+
+Nothing else is required to run the app. To work with Ollama as well, install it from
+[ollama.com](https://ollama.com), pull a chat model (the Ollama default model setting is
+`llama3.2`), and for Ollama embeddings `all-minilm`:
+
+```powershell
 ollama pull llama3.2
 ollama pull all-minilm
 ```
 
-`llama3.2` is the default inference model. `all-minilm` is the embedding model used for document indexing and semantic search. Both must be available for full functionality.
-
 ### 2.3 First Run Configuration
 
-When Agent-X is launched for the first time, the onboarding wizard runs. It hides the navigation pane and walks the user through:
+On first run (`OnboardingCompleted` is `false`) the onboarding wizard hides the navigation rail and
+walks through five steps: a welcome, the Ollama connection (Test, or Skip), model selection, the
+built-in model and cloud API keys, and a summary. The built-in model step checks for the model file
+and offers to download it (`OnboardingViewModel.DownloadLocalModelAsync`, which calls
+`IBuiltInModelBootstrap.EnsureInstalledAsync`). Finishing sets the active provider to the first
+that is usable: the built-in model if its file is installed, otherwise Ollama if the connection test
+passed, otherwise OpenAI or Anthropic if a key was entered.
 
-1. Selecting an AI provider (Ollama is default)
-2. Choosing a default model
-3. Configuring basic settings
-
-During development you can skip onboarding by editing the settings file directly. The settings file is located at:
+To skip the wizard during development, edit the settings file (camelCase JSON):
 
 ```
 %LocalAppData%\AgentX\settings.json
 ```
 
-Set `"onboardingCompleted": true` to bypass the wizard.
+and set `"onboardingCompleted": true`. Delete the file, or set the value to `false`, to see the
+wizard again.
 
 ### 2.4 Application Data Locations
 
 | Artifact | Path |
 |---|---|
 | Settings | `%LocalAppData%\AgentX\settings.json` |
-| Database | `%LocalAppData%\AgentX\agentx.db` |
-| Log files | `%LocalAppData%\AgentX\Logs\agentx-YYYYMMDD.log` |
+| Database | `%LocalAppData%\AgentX\agentx.db` (fixed path; see [6.1](#61-schema-overview)) |
+| Encryption state | `%LocalAppData%\AgentX\encryption.info.json` (only when encryption is on) |
+| Cost history | `%LocalAppData%\AgentX\usage-history.json` |
+| Built-in model | `%LocalAppData%\AgentX\Models\llama-3.2-3b-instruct-q4_k_m.gguf` |
+| Speech-to-text model | `%LocalAppData%\AgentX\Models\Whisper\ggml-base.bin` |
+| Plugins | `%LocalAppData%\AgentX\Plugins\<PluginId>\` |
+| Logs | `%LocalAppData%\AgentX\Logs\agentx-yyyyMMdd.log` |
+
+The full list is in [DATABASE_SCHEMA.md, Data Outside the Database](../DATABASE_SCHEMA.md#data-outside-the-database).
 
 ---
 
 ## 3. Project Structure
 
-The solution contains two main source projects and one test project:
-
 ```
 Agent-X/
-  AgentX.sln
-  Directory.Build.props           # Shared build properties
+  AgentX.sln                  AgentX.App, AgentX.Core, AgentX.Tests, LocaleAudit.Tool,
+                              LocaleAudit.Tests
+  Directory.Build.props       C# 12, nullable, implicit usings, version 2.2.0
+  global.json                 .NET SDK pin
   src/
-    AgentX.App/                   # WinUI 3 application (presentation layer)
-    AgentX.Core/                  # Business logic class library
+    AgentX.App/               WinUI 3 application (presentation layer)
+    AgentX.Core/              Class library: services, data, AI, search
+    AgentX.Mobile/            .NET MAUI Android companion (not in AgentX.sln)
   tests/
-    AgentX.Tests/                 # xUnit unit tests
-  installer/
-    AgentX-Setup.iss              # Inno Setup 6 script
-  publish/
-    win-x64/                      # Self-contained publish output
-  docs/                           # Documentation
+    AgentX.Tests/             xUnit tests for Core, plus App sources linked into the project
+    LocaleAudit.Tests/        Tests for the locale audit tool and the six locales
+  tools/LocaleAudit/          Localization coverage tool
+  plugins/sample-plugin/      Sample document processor plugin
+  browser-extension/          Browser extension that clips pages into the Smart Inbox
+  installer/AgentX-Setup.iss  Inno Setup script (SLIM and OFFLINE profiles)
+  scripts/                    Release, model download, coverage and localization scripts
+  models/                     The GGUF file the OFFLINE installer bundles (downloaded, not committed)
+  docs/                       Documentation
 ```
 
-### 3.1 AgentX.App — Presentation Layer
+`AgentX.App` references `AgentX.Core`; `AgentX.Core` never references the app.
 
-`AgentX.App` is the WinUI 3 executable project. It owns the UI, navigation shell, view models, and dependency injection configuration. It references `AgentX.Core` but `AgentX.Core` has no reference back to `AgentX.App`.
-
-```
-AgentX.App/
-  App.xaml.cs              # Application entry point, DI container, Serilog setup
-  MainWindow.xaml(.cs)     # Navigation shell, status bar, keyboard shortcuts, backdrop
-  Views/                   # 16 XAML Page files
-    AskFilesPage.xaml(.cs)
-    ChatPage.xaml(.cs)
-    CollectionManagerPage.xaml(.cs)
-    DashboardPage.xaml(.cs)
-    DigestPage.xaml(.cs)
-    HardwareAdvisorPage.xaml(.cs)
-    KnowledgeGraphPage.xaml(.cs)
-    KnowledgeVaultPage.xaml(.cs)
-    ModelManagerPage.xaml(.cs)
-    OnboardingPage.xaml(.cs)
-    PrivacyPolicyPage.xaml(.cs)
-    QuickActionsPage.xaml(.cs)
-    SearchPage.xaml(.cs)
-    CalendarSettingsPage.xaml(.cs)
-    EmailSettingsPage.xaml(.cs)
-    SettingsPage.xaml(.cs)
-    TermsOfServicePage.xaml(.cs)
-    UserGuidePage.xaml(.cs)
-  ViewModels/              # 13 ViewModel files
-    AskFilesViewModel.cs
-    ChatViewModel.cs
-    CollectionManagerViewModel.cs
-    DashboardViewModel.cs
-    DigestViewModel.cs
-    HardwareAdvisorViewModel.cs
-    KnowledgeGraphViewModel.cs
-    KnowledgeVaultViewModel.cs
-    ModelManagerViewModel.cs
-    OnboardingViewModel.cs
-    QuickActionsViewModel.cs
-    SearchViewModel.cs
-    CalendarSettingsViewModel.cs
-    EmailSettingsViewModel.cs
-    SettingsViewModel.cs
-  Controls/                # Custom UserControls
-    CommandPalette.xaml(.cs)        # Ctrl+K VS Code-style command palette
-    MarkdownMessageControl.xaml(.cs) # Rich markdown renderer for chat messages
-  Converters/              # IValueConverter implementations
-    BoolToOpacityConverter.cs
-    BoolToVisibilityConverter.cs
-    CountToVisibilityConverter.cs
-    DoubleToStringConverter.cs
-    InverseBoolConverter.cs
-    NullToVisibilityConverter.cs
-    PercentToWidthConverter.cs
-    StatusToColorConverter.cs
-    StringEmptyToVisibilityConverter.cs
-    StringToVisibilityConverter.cs
-    TimeAgoConverter.cs
-  Helpers/
-    MarkdownParser.cs               # Lightweight markdown-to-segment parser
-  Services/
-    ShortcutCatalog.cs              # Global shortcut descriptors seeded into IShortcutRegistry
-    ShortcutInputRouter.cs          # Registry-backed keyboard dispatch
-  Styles/                  # XAML resource dictionaries
-    Chat.xaml              # Chat bubble and message styles
-    Colors.xaml            # Color palette and brush resources
-    Controls.xaml          # Button, TextBox, and control overrides
-    Documents.xaml         # Document card and vault styles
-    Navigation.xaml        # NavigationView and sidebar styles
-    Typography.xaml        # Font families, text styles
-```
-
-### 3.2 AgentX.Core — Business Logic
-
-`AgentX.Core` is a class library targeting `net8.0-windows`. It contains all domain logic and is fully independent of WinUI. Every service exposes an interface, making it testable in isolation.
+### 3.1 AgentX.App: Presentation Layer
 
 ```
-AgentX.Core/
-  AI/
-    IAiProvider.cs               # Low-level provider interface
-    IAiService.cs                # High-level AI orchestration interface
-    AiService.cs                 # Routes requests to active provider
-    IContextWindowManager.cs
-    ContextWindowManager.cs      # Trims conversation history to fit context window
-    IEmbeddingService.cs
-    EmbeddingService.cs          # Wraps provider embedding calls with batching
-    IHardwareDetector.cs
-    HardwareDetector.cs          # GPU/RAM/CPU detection via System.Management
-    IModelManager.cs
-    ModelManager.cs              # Model listing, install/uninstall coordination
-    Models/
-      AiModel.cs                 # Model metadata (name, family, size, quantization)
-      ChatMessage.cs             # Role + content DTO
-      ChatOptions.cs             # Temperature, MaxTokens, TopP, stop sequences
-      CostTracker.cs             # Token usage and estimated cost accumulation
-      HardwareCapability.cs      # GPU VRAM, recommended model size
-    Providers/
-      OllamaProvider.cs          # OllamaSharp 4.0.x implementation
-      OpenAiProvider.cs          # Raw HttpClient + SSE streaming
-      AnthropicProvider.cs       # Raw HttpClient + SSE streaming (top-level system field)
-  Data/
-    AgentXDbContext.cs           # EF Core DbContext with all 16 entity DbSets
-    Entities/                    # EF Core entity classes
-      CollectionEntity.cs
-      ConversationEntity.cs
-      DigestReportEntity.cs
-      DocumentChunkEntity.cs
-      DocumentCollectionEntity.cs
-      DocumentEntity.cs
-      DocumentTagEntity.cs
-      IndexingJobEntity.cs
-      MemoryEntity.cs
-      MessageEntity.cs
-      SearchHistoryEntity.cs
-      SystemPromptEntity.cs
-      TagEntity.cs
-      UserSettingsEntity.cs
-      WatchFolderEntity.cs
-    VectorDb/
-      IVectorStore.cs
-      VectorStoreFactory.cs      # Chooses HNSW or SQLite linear-scan vector store
-      HnswVectorStore.cs         # HNSW ANN search with SQLite persistence
-      SqliteVecStore.cs          # Linear-scan fallback over SQLite BLOBs
-      VectorSearchResult.cs
-  Documents/
-    IDocumentProcessor.cs        # Per-format text extraction interface
-    IDocumentService.cs
-    DocumentService.cs           # Document import, deduplication, CRUD
-    IChunkingService.cs
-    ChunkingService.cs           # Recursive character text splitter
-    DuplicateCheckResult.cs
-    Models/                      # ProcessedDocument, DocumentChunk
-    Processors/
-      PdfProcessor.cs            # PDFsharp text extraction
-      DocxProcessor.cs           # DocumentFormat.OpenXml extraction
-      TextProcessor.cs           # Plain text passthrough
-      MarkdownProcessor.cs       # Markdig-based markdown stripping
-      CodeFileProcessor.cs       # Source code files (cs, py, ts, etc.)
-      ImageProcessor.cs          # Image metadata extraction (no OCR)
-  Search/
-    ISemanticSearchService.cs
-    SemanticSearchService.cs     # Embed query -> vector ANN search -> hydrate results
-    IKeywordSearchService.cs
-    KeywordSearchService.cs      # SQLite FTS5 full-text search
-    IHybridSearchOrchestrator.cs
-    HybridSearchOrchestrator.cs  # Reciprocal Rank Fusion over semantic + keyword
-    IRagPipeline.cs
-    RagPipeline.cs               # End-to-end RAG: search -> prompt -> stream -> cite
-    IRagReranker.cs
-    RagReranker.cs               # Cross-encoder style reranking of retrieved chunks
-    ICitationService.cs
-    CitationService.cs           # Extract [1], [2] citations from AI responses
-    Models/                      # SearchQuery, SearchResult, RagResponse, Citation
-  Services/
-    Chat/
-      IChatService.cs
-      ChatService.cs             # Streaming orchestrator: persist + stream via IAiService
-      IConversationService.cs
-      ConversationService.cs     # CRUD for conversations and messages
-      IConversationMemoryService.cs
-      ConversationMemoryService.cs # AI-extracted facts from conversations
-      ISystemPromptService.cs
-      SystemPromptService.cs     # Built-in and user-defined system prompt management
-    Collections/
-      ICollectionService.cs
-      CollectionService.cs       # Hierarchical collection management
-    Indexing/
-      IIndexingService.cs
-      IndexingService.cs         # Background pipeline: extract -> chunk -> embed -> store
-      IIndexingQueueService.cs
-      IndexingQueueService.cs    # Channel<long>-based queue wrapper
-      IFileWatcherService.cs
-      FileWatcherService.cs      # FileSystemWatcher for watch folders
-    Intelligence/
-      ISummaryService.cs
-      SummaryService.cs          # AI-generated document summaries
-      IDuplicateDetectionService.cs
-      DuplicateDetectionService.cs # Content hash + semantic similarity dedup
-      IOrganizationSuggestionService.cs
-      OrganizationSuggestionService.cs # AI-suggested collection organization
-      IKnowledgeGraphService.cs
-      KnowledgeGraphService.cs   # Entity/relationship extraction from documents
-      IDigestService.cs
-      DigestService.cs           # Periodic knowledge digest report generation
-    Settings/
-      ISettingsService.cs
-      SettingsService.cs         # JSON-persisted settings with in-memory cache
-      AppSettings.cs             # Settings POCO with defaults
-    Tagging/
-      IAutoTagService.cs
-      AutoTagService.cs          # AI-generated tags applied during indexing
-    OAuth/
-      IOAuthService.cs
-      OAuthService.cs            # OAuth2 with DPAPI encryption, PKCE, CSRF state
-      OAuthCredential.cs         # Credential DTO
-      OAuthProviderConfig.cs     # Per-provider auth endpoint configuration
-      OAuthProviderRegistry.cs   # Google/Microsoft endpoint registry
-    Inbox/
-      IInboxService.cs
-      InboxService.cs            # Smart inbox triage with AI preview generation
-    Plugins/
-      IPlugin.cs                 # Plugin interface (Initialize/Activate/Deactivate/Dispose)
-      IPluginContext.cs           # Plugin DI context (Services, PluginDataPath, Logger)
-      PluginType.cs               # Enum: Agent, DataConnector
-      PluginService.cs            # Plugin lifecycle manager with scoped DI
-      Calendar/
-        CalendarPlugin.cs        # IPlugin for calendar sync
-        ICalendarProvider.cs     # Google/Outlook calendar provider interface
-        ICalendarService.cs
-        CalendarService.cs        # Calendar sync orchestration
-        CalendarSyncService.cs    # Provider → Processor → Inbox pipeline
-        CalendarEventProcessor.cs # CalEvent → TriageExternalAsync conversion
-        GoogleCalendarProvider.cs # Google Calendar API v3
-        OutlookCalendarProvider.cs # Microsoft Graph API v1.0
-        Models/                   # CalEvent, CalAttendee, CalendarInfo, SyncResult, etc.
-      Email/
-        EmailPlugin.cs            # IPlugin for email sync
-        IEmailProvider.cs         # Gmail/Outlook email provider interface
-        IEmailService.cs
-        EmailService.cs           # Email sync orchestration
-        EmailSyncService.cs       # Provider → Processor → Inbox pipeline
-        EmailTriageProcessor.cs   # EmailMessage → TriageExternalAsync conversion
-        GmailProvider.cs          # Gmail API v1 with history delta sync
-        OutlookEmailProvider.cs   # Microsoft Graph API v1.0 with OData delta
-        Models/                   # EmailMessage, EmailContact, EmailFolderInfo, etc.
+src/AgentX.App/
+  App.xaml, App.xaml.cs         Entry point: Serilog, DI host, startup and shutdown
+  MainWindow.xaml(.cs)          Shell: navigation rail, PageMap, command palette, shortcuts,
+                                title bar, backdrop
+  MainWindow.JumpTo.cs          Jump-To dialog
+  MainWindow.StatusTrayOnboarding.cs   Instrument strip lamps, tray, onboarding
+  appsettings.json              "Rag" options
+  RagPrompts.json               RAG prompt texts (reloaded when the file changes)
+  Views/                        30 pages; Dialogs/ (Jump-To, Cheatsheet), ExportDialog,
+                                QuickChatWindow, BranchCompareWindow
+  ViewModels/                   Page and support view models; ChatMessageItem,
+                                ConversationListItem, SystemPromptItem; Coordinators/ (chat);
+                                Sync/ (sync history rows)
+  Controls/                     CommandPalette, Faceplate, LampTile, MarkdownMessageControl,
+                                NotificationOverlay, OAuthAppCredentialsPanel, SegmentMeter
+  Converters/                   11 IValueConverter implementations
+  Helpers/                      PageViewModelFactory, MarkdownParser, SyntaxHighlighter,
+                                ShortcutRegistrationExtensions, ThemeResources, ContentColumn,
+                                WindowPlacement, FlowDirectionHelper, ...
+  Services/                     Shell services: AppNavigationService, OnboardingService,
+                                StatusBarService, AnnunciatorService, SystemTrayService,
+                                ChromeService, ThemeService, LocalizationService,
+                                NotificationService, StartupOrchestrator, StartupGate,
+                                ApiHostLifecycleService, BuiltinConnectorLifecycleService,
+                                Operations page services, ShortcutCatalog, ShortcutInputRouter,
+                                ProviderStatusText, WorkflowLaunchService
+  Models/, Selectors/           User Guide section model and template selector
+  Styles/                       Resource dictionaries: Colors, Hardware, Typography, Controls,
+                                Navigation, Chat, Documents, UserGuideSections*
+  Themes/Generic.xaml           Faceplate control template
+  Strings/<locale>/Resources.resw   UI strings: en-US, de, es, fr, ja, zh-CN
 ```
 
-### 3.3 AgentX.Tests — Unit Tests
+### 3.2 AgentX.Core: Business Logic
+
+`AgentX.Core` targets `net8.0-windows10.0.22621.0` and has no WinUI dependency. Services expose
+interfaces, which keeps them testable in isolation.
 
 ```
-AgentX.Tests/
-  AgentX.Tests.csproj    # xUnit, Moq, FluentAssertions, coverlet
-  AI/                    # AI service and provider tests
-  Data/                  # Vector store and DbContext tests
-  Documents/             # Processor and chunking tests
-  Search/                # Search and RAG pipeline tests
-  Services/              # Service layer tests
+src/AgentX.Core/
+  AI/                   IAiService/AiService, IAiProvider, EmbeddingService,
+                        EmbeddingTargetResolver, CachedEmbeddingService, ModelManager,
+                        BuiltInModelBootstrap, BuiltInModelCatalog, HardwareDetector,
+                        TokenCounter, TokenEstimator, ContextWindowManager, ProviderChoices
+    Providers/          LocalLlmProvider, OllamaProvider, OpenAiProvider, AnthropicProvider
+    Context/            ContextAssemblyService, SemanticContextSelector,
+                        ConversationCompressionService
+    Routing/            TaskTypeDetector, ModelRouterService, routing profiles
+    Agents/             MultiAgentOrchestrator
+    Models/             AiModel, ChatMessage, ChatOptions, CostTracker, ...
+  Configuration/        RagConfiguration ("Rag" options), RAG prompt catalog
+  Data/                 AgentXDbContext, AgentXDbContextFactory (design time),
+                        SerializingConcurrencyDetector, SerializingQueryCompiler,
+                        EncryptedConnectionFactory
+    Entities/           The 37 EF entities
+    Migrations/         11 migrations and the model snapshot
+    MigrationRunner/    MigrationRunner, MigrationResult, BaselineSchemaIncompleteException
+    VectorDb/           IVectorStore, VectorStoreFactory, HnswVectorStore, SqliteVecStore
+  Documents/            DocumentService, ChunkingService, AdaptiveChunkingService,
+                        DocumentExtractionException
+    Models/             ProcessedDocument, DocumentChunk, DocumentMetadata, SupportedFileTypes
+    Processors/         Pdf, Docx, Text, Markdown, CodeFile, Image, Audio, Web processors
+  Search/               SemanticSearchService, KeywordSearchService, HybridSearchOrchestrator,
+                        RagPipeline and its stages (MultiQueryGenerator, HydeService,
+                        RagReranker, LlmReranker, ParentDocumentRetriever, ContextualCompressor,
+                        CitationService, RagEvaluator)
+  Services/             Analytics, Annotations, Api (local REST API), Audio, Backup, Chat,
+                        Collections, Export, FeatureFlags, Feedback, Inbox, Indexing,
+                        Intelligence, Localization, OAuth, Plugins (with Calendar and Email),
+                        Privacy, Screen, Search (web search), Security, Settings, Shortcuts,
+                        Sync, Tagging, TemporalIdentity, Web, Workflows, Workspace
+  Observability/        RagMetrics, PiiDetector
+  Validation/           Settings, sync configuration and plugin manifest validators
+  Helpers/              PathHelper, HashHelper, FormatHelper, FileTypeHelper
+```
+
+[ARCHITECTURE.md](ARCHITECTURE.md) describes each area in detail.
+
+### 3.3 AgentX.Tests
+
+```
+tests/AgentX.Tests/
+  AgentX.Tests.csproj   References AgentX.Core; compiles 83 AgentX.App source files as links
+  AI/ Data/ Documents/ Search/ Services/ ViewModels/ Views/ ...   Tests by area
+  CodeQuality/          Source and XAML guard tests (see 10.3)
+  Helpers/              TestDbContextFactory (in-memory SQLite context) and other helpers
+  TestFixtures/         SqlCipherFixture
+  TestDoubles/, Stubs/  Stand-ins for WinUI-only types
 ```
 
 ---
@@ -389,38 +282,62 @@ AgentX.Tests/
 
 ### 4.1 Dependency Injection
 
-The DI container is configured in `App.xaml.cs` inside `ConfigureServices()`. It uses `Microsoft.Extensions.Hosting` and `Microsoft.Extensions.DependencyInjection`.
+The container is configured in `App.xaml.cs`, `ConfigureServices()`, with
+`Microsoft.Extensions.Hosting`.
 
 **Lifetime rules:**
 
 | Type | Lifetime | Reason |
 |---|---|---|
-| All services (Core) | Singleton | Services hold state, connections, or are expensive to create |
-| All ViewModels | Transient | Each page navigation creates a fresh ViewModel instance |
-| All Views (Pages) | Transient | Each navigation creates a fresh Page instance |
-| `AgentXDbContext` | Singleton | One context shared by the UI and all background work. An EF Core `DbContext` is not thread-safe, so the context serializes its own operations (see below); SQLite does not do this for you |
+| Services (Core and shell) | Singleton | They hold state, connections, caches or timers, or are expensive to create |
+| View models | Transient (32) | A new instance each time a page is built |
+| Pages | Transient (30) | Registered for consistency; navigation creates pages with `Frame.Navigate(pageType, parameter)` |
+| `AgentXDbContext` | Singleton | One context shared by the UI and all background work (see below) |
 
 **The shared `AgentXDbContext`:**
 
-EF Core does not support two operations running at once on one `DbContext` instance, and SQLite's locking (WAL included) does nothing to change that: WAL lets separate connections read while one writes, it does not make one context safe to use from several threads. Agent-X still registers a single context, and reaches it from the UI thread and from background work at the same time (the indexing loop, the local REST API, status-bar polling, scheduled backup and sync, connector timers). So the context serializes itself behind one gate:
+EF Core does not support two operations at once on one `DbContext`, and SQLite's locking (WAL
+included) does not change that: WAL lets separate connections read while one writes; it does not
+make one context safe to use from several threads. Agent-X still registers a single context, and
+reaches it from the UI thread and from background work at the same time (the indexing loop, the
+local REST API, status polling, scheduled backup and sync, connector timers). So the context
+serializes itself behind one gate:
 
-- A custom `IConcurrencyDetector` (`SerializingConcurrencyDetector`) makes an overlapping operation wait for the one in flight instead of throwing "A second operation was started on this context instance". `SerializingQueryCompiler` holds the same gate across whole query executions, including enumerator disposal.
-- `SaveChanges` and `SaveChangesAsync` run under the gate. When a save fails, the pending changes it tried to write are discarded (added entities are detached, modified and deleted ones reverted), so one rejected change is not replayed, and failed again, by every later unrelated save.
-- Raw ADO.NET work on `Database.GetDbConnection()` is invisible to EF and must join the gate for its whole duration, including any transaction it opens: `using (db.EnterDatabaseGate()) { ... }`. The gate is re-entrant within one async flow, so do not fan out parallel database work while holding it.
+- A custom `IConcurrencyDetector` (`SerializingConcurrencyDetector`) makes an overlapping operation
+  wait for the one in flight instead of throwing "A second operation was started on this context
+  instance". `SerializingQueryCompiler` holds the same gate across whole query executions,
+  including enumerator disposal.
+- `SaveChanges` and `SaveChangesAsync` run under the gate. When a save fails, the pending changes
+  are discarded (added entities are detached, modified and deleted ones reverted), so one rejected
+  change is not replayed, and failed again, by every later unrelated save. The change tracker is
+  shared, so this also drops changes another caller staged and had not saved yet: stage and save
+  in one step.
+- Raw ADO.NET work on `Database.GetDbConnection()` is invisible to EF and must join the gate for its
+  whole duration, including any transaction it opens: `using (db.EnterDatabaseGate()) { ... }`. The
+  gate is re-entrant within one async flow, so do not fan out parallel database work while holding
+  it.
 
-Every caller waits on the same gate, the UI thread included, so a long database section stalls everything else. Keep database work in background services short: read what you need, leave the gate, and do the slow part (embedding, model calls, file I/O) outside it.
+Every caller waits on the same gate, the UI thread included, so a long database section stalls
+everything else. Keep database work in background services short: read what you need, leave the
+gate, and do the slow part (embedding, model calls, file I/O) outside it.
 
 **Service resolution:**
 
-Services are resolved via constructor injection in all classes. For the rare case where a service must be resolved imperatively (e.g., in code-behind that cannot use constructor injection), use the static accessor:
+Classes receive services through constructor injection. Code-behind that cannot, uses the static
+accessor:
 
 ```csharp
-var myService = App.GetService<IMyService>();
+var navigation = App.GetService<IAppNavigationService>();
 ```
 
-This is used in `MainWindow.xaml.cs` for the status bar and during startup initialization.
-
-Pages create their ViewModel with `PageViewModelFactory.Create<TViewModel>()` (`Helpers/PageViewModelFactory.cs`), not `App.GetService<TViewModel>()`. `App.GetService` resolves from the root provider, which keeps every transient `IDisposable` it creates until shutdown; the `Frame` caches only ten pages, so each evicted and rebuilt page would leave its old ViewModel (and, through event subscriptions, the old page) alive for the rest of the session. The factory builds the same object with `ActivatorUtilities` without the container tracking it. `PagesCreateDisposableViewModelsUntrackedTests` fails on a page that resolves an `IDisposable` ViewModel through the root provider.
+`App.GetService<T>()` resolves from the root provider (`App.Host.Services`), which keeps every
+transient `IDisposable` it creates until shutdown. The `Frame` caches at most ten pages, so a page
+that resolved an `IDisposable` view model that way would leak the old view model (and, through its
+event subscriptions, the old page) each time it is rebuilt. Pages whose view model is
+`IDisposable` therefore use `PageViewModelFactory.Create<T>()` (`Helpers/PageViewModelFactory.cs`),
+which builds the same object with `ActivatorUtilities` without the container tracking it; 13 pages
+do. `PagesCreateDisposableViewModelsUntrackedTests` fails on a page that resolves an `IDisposable`
+view model through the root provider.
 
 **Registration pattern:**
 
@@ -430,276 +347,298 @@ Pages create their ViewModel with `PageViewModelFactory.Create<TViewModel>()` (`
 // Singleton service
 services.AddSingleton<IMyService, MyService>();
 
-// Transient ViewModel
-services.AddTransient<MyViewModel>();
+// Singleton built by a factory (when constructor selection is not enough)
+services.AddSingleton<IChunkingService>(sp => new ChunkingService(
+    sp.GetRequiredService<ITokenCounter>(),
+    sp.GetService<IAdaptiveChunkingService>(),
+    sp.GetRequiredService<Serilog.ILogger>().ForContext<ChunkingService>()));
 
-// Transient Page
+// Transient view model and page
+services.AddTransient<ViewModels.MyViewModel>();
 services.AddTransient<Views.MyPage>();
 
-// Multiple implementations of the same interface (used for IDocumentProcessor)
+// Several implementations of one interface, consumed as IEnumerable<IDocumentProcessor>
 services.AddSingleton<IDocumentProcessor, PdfProcessor>();
 services.AddSingleton<IDocumentProcessor, DocxProcessor>();
-// Consuming classes inject IEnumerable<IDocumentProcessor>
 ```
+
+Services take the Serilog `ILogger` (registered as `Log.Logger`) and usually call
+`ForContext<T>()` on it.
 
 ### 4.2 MVVM Pattern
 
-Agent-X uses `CommunityToolkit.Mvvm` for source-generated MVVM. The key attributes are:
+View models use the `CommunityToolkit.Mvvm` source generators:
 
-**`[ObservableProperty]`** — Applied to a private field. The source generator creates:
-- A public property with `PropertyChanged` notification
-- An optional partial method `OnPropertyNameChanged(T value)` you can implement
-- An optional partial method `OnPropertyNameChanging(T value)` for pre-change hooks
+**`[ObservableProperty]`** on a private field generates the public property with change
+notification, plus optional `partial void On<Name>Changed(T value)` and `On<Name>Changing` hooks:
 
 ```csharp
-// Declaration
 [ObservableProperty]
 private string _userInput = string.Empty;
 
-// Generated output (you don't write this):
-public string UserInput
-{
-    get => _userInput;
-    set
-    {
-        if (SetProperty(ref _userInput, value))
-            OnPropertyChanged(nameof(UserInput));
-    }
-}
-
-// Optional hook — implement when you need side effects:
+// Optional hook for side effects:
 partial void OnUserInputChanged(string value)
 {
     SendMessageCommand.NotifyCanExecuteChanged();
-    OnPropertyChanged(nameof(CanSend));
 }
 ```
 
-**`[RelayCommand]`** — Applied to a method. The source generator creates an `IRelayCommand` property:
+**`[RelayCommand]`** on a method generates an `IRelayCommand` (or `IAsyncRelayCommand` for an async
+method) named after it:
 
 ```csharp
-// Synchronous command — CanExecute is always true unless canExecute is specified
 [RelayCommand]
 private void CopyMessage(string? content) { ... }
 
-// Async command — the generated property is AsyncRelayCommand
 [RelayCommand]
-private async Task NewConversationAsync() { ... }
+private async Task NewConversationAsync() { ... }       // NewConversationCommand
 
-// Async command with CanExecute guard
 [RelayCommand(CanExecute = nameof(CanSend))]
 private async Task SendMessageAsync() { ... }
 ```
 
-When the CanExecute condition changes, notify the command explicitly:
+Call `SendMessageCommand.NotifyCanExecuteChanged()` when the `CanExecute` condition changes.
+
+**Page and view model wiring.** A page exposes its view model as a `ViewModel` property, creates it
+before `InitializeComponent()` so compiled bindings see it, and starts loading when the page loads:
 
 ```csharp
-SendMessageCommand.NotifyCanExecuteChanged();
-```
-
-**ViewModel initialization pattern:**
-
-ViewModels are created by the DI container (transient), so their constructors cannot perform async work. The pattern used throughout Agent-X is an async `InitializeAsync()` method called from the page's code-behind:
-
-```csharp
-// In the Page code-behind:
-public ChatPage()
+public sealed partial class DigestPage : Page
 {
-    InitializeComponent();
-    DataContext = App.GetService<ChatViewModel>();
-}
+    public DigestViewModel ViewModel { get; }
 
-protected override async void OnNavigatedTo(NavigationEventArgs e)
-{
-    base.OnNavigatedTo(e);
-    if (DataContext is ChatViewModel vm)
+    public DigestPage()
     {
-        await vm.InitializeAsync();
+        ViewModel = App.GetService<DigestViewModel>();
+        InitializeComponent();
+        Loaded += async (_, _) => await ViewModel.InitializeAsync();
     }
 }
 ```
 
-The `InitializeAsync()` method in the ViewModel loads all data needed by the page. It must be guarded with try/catch because navigation can happen before services are fully initialized.
+A page with an `IDisposable` view model uses the factory instead:
+
+```csharp
+ViewModel = PageViewModelFactory.Create<OperationsViewModel>();
+```
+
+XAML binds with `x:Bind` against that property, for example
+`Text="{x:Bind ViewModel.Title, Mode=OneWay}"`; data templates may use `{Binding}`. The load method
+(`InitializeAsync`, `LoadAsync` or similar) catches its own errors: a page must render even when a
+service is unavailable. The window and the rail are usable before the startup migration has
+finished (see [4.5](#45-startup-sequence)), so a view model that reads the database as soon as its
+page appears should await `IStartupGate.WaitForDataReadyAsync()` first, as `DashboardViewModel`
+does.
 
 ### 4.3 Navigation System
 
-Navigation is handled by `MainWindow`. The key data structures are:
+`MainWindow` owns two maps and hands them to `IAppNavigationService` (`AppNavigationService`):
 
 ```csharp
-// Maps tag strings to Page types
-private readonly Dictionary<string, Type> _pageMap = new()
+// Page tag -> page type (30 entries, including Onboarding, which has no rail item)
+private static readonly Dictionary<string, Type> PageMap = new()
 {
     ["Dashboard"] = typeof(Views.DashboardPage),
-    ["Chat"] = typeof(Views.ChatPage),
-    // ... 14 more entries
+    ["Operations"] = typeof(Views.OperationsPage),
+    // ...
 };
 
-// Maps tag strings to NavigationViewItem controls
-// Used to sync the nav pane selection indicator
-private readonly Dictionary<string, NavigationViewItem> _navItemMap = new()
+// Page tag -> rail item (29 entries), used to move the rail's selection indicator
+private Dictionary<string, NavigationViewItem> BuildNavItemMap() => new()
 {
     ["Dashboard"] = NavDashboard,
-    ["Chat"] = NavChat,
-    // ... entries for visible nav items only
+    ["Operations"] = NavOperations,
+    // ...
 };
 ```
 
-**Navigation is initiated from three places:**
+Every route goes through `IAppNavigationService.NavigateToPage(string pageKey, object? parameter = null)`:
+a rail click (`NavigationView.SelectionChanged` reads the item's `Tag`), a keyboard shortcut, the
+command palette, Jump-To, the tray, a status lamp or a link inside a page. The optional parameter
+carries what the user picked (a conversation from Jump-To, a query for Search, an intent such as
+`NavigationIntents.NewConversation`) to the page's `OnNavigatedTo`. `ExecuteAction(actionId)` runs
+non-navigation actions (`NewConversation`, `ImportFiles`, `ToggleTheme`).
 
-1. User clicks a `NavigationViewItem` — handled by `NavView_SelectionChanged`
-2. Keyboard shortcut fires — `ShortcutInputRouter` maps WinUI keys to `KeyChord`, looks up `IShortcutRegistry`, then invokes the descriptor handler.
-3. Command palette selection — routes through `CommandPalette.ExecuteSelected` -> `NavigateToPageRequested` callback -> `NavigateToPage()`
-
-The `NavigateToPage(string pageTag)` method is the single canonical navigation function:
-
-```csharp
-internal void NavigateToPage(string pageTag)
-{
-    if (_pageMap.TryGetValue(pageTag, out var pageType))
-    {
-        ContentFrame.Navigate(pageType);
-
-        // Sync the NavigationView selection indicator
-        if (_navItemMap.TryGetValue(pageTag, out var navItem))
-        {
-            NavView.SelectedItem = navItem;
-        }
-    }
-}
-```
-
-**The `_suppressNavigation` flag** prevents a feedback loop during onboarding. When the onboarding flow hides the nav pane and clears `NavView.SelectedItem`, this flag prevents `NavView_SelectionChanged` from re-triggering navigation to the dashboard.
+While the onboarding wizard owns the shell, `OnboardingService` sets
+`INavigationGate.SuppressNavigation`, so rail selections are ignored; it clears the flag when
+onboarding ends. Leaving the wizard any other way (a shortcut, the palette, Jump-To, the tray, a
+lamp) ends onboarding as skipped.
 
 ### 4.4 Keyboard Shortcuts
 
-Global shortcuts are seeded by `ShortcutCatalog` into the Singleton `AgentX.Core.Services.Shortcuts.IShortcutRegistry`. `ShortcutInputRouter` hooks `RootGrid.PreviewKeyDown`, maps `VirtualKey` + modifiers to `KeyChord`, and dispatches either built-in surfaces (`Ctrl+K`, `Ctrl+Shift+P`, `Ctrl+P`, `F1`, `Ctrl+Shift+?`) or registry descriptors.
+Global shortcuts are seeded by `ShortcutCatalog.SeedDefaults()` (`Services/ShortcutCatalog.cs`)
+into the singleton `IShortcutRegistry`, with labels and categories from `ILocalizationService`.
+`ShortcutInputRouter` hooks `PreviewKeyDown` on the window's root, maps the key and modifiers to a
+`KeyChord`, handles the palette (`Ctrl+K`, `Ctrl+Shift+P`), Jump-To (`Ctrl+P`) and the cheatsheet
+(`F1`, `Ctrl+Shift+?`) itself, and otherwise asks the registry for a descriptor, preferring one
+scoped to the current page (the page's class name) over a global one. Multi-key chords go through
+`ChordStateMachine` (1,000 ms between keys).
+
+Each descriptor is a `ShortcutDescriptor` record:
 
 ```csharp
-_registry.Register(new ShortcutDescriptor(
-    "nav.chat",
-    "New Conversation",
-    ShortcutScope.Global,
-    new[] { new KeyChord(KeyModifiers.Ctrl, VirtualKeyCode.N) },
-    _ => NavigateAsync("Chat"),
-    "Navigation"));
+public sealed record ShortcutDescriptor(
+    string Id,                              // stable id, e.g. "nav.search"
+    string Label,                           // localized label
+    ShortcutScope Scope,                    // ShortcutScope.Global or new ShortcutScope(pageName)
+    IReadOnlyList<KeyChord> Chord,          // one KeyChord, or several for a chord sequence
+    Func<CancellationToken, Task> Handler,
+    string? Category = null);               // cheatsheet group
 ```
 
-Page-scoped shortcuts use `ShortcutRegistrationExtensions.RegisterShortcuts(...)` from `OnNavigatedTo` and dispose the returned token from `OnNavigatedFrom`.
-
-**Default shortcuts:**
+**Default global shortcuts:**
 
 | Shortcut | Action |
 |---|---|
-| `Ctrl+K` | Toggle command palette |
-| `Ctrl+N` | Navigate to Chat |
-| `Ctrl+I` | Navigate to Knowledge Vault |
-| `Ctrl+F` / `Ctrl+Shift+F` | Navigate to Search |
-| `Ctrl+,` | Navigate to Settings |
-| `Escape` | Close command palette |
+| `Ctrl+K`, `Ctrl+Shift+P` | Command Palette |
+| `Ctrl+P` | Jump To |
+| `F1`, `Ctrl+Shift+?` | Keyboard shortcuts (cheatsheet) |
+| `Ctrl+N` | New conversation (opens AI Chat on a new conversation) |
+| `Ctrl+I` | Knowledge Vault |
+| `Ctrl+F`, `Ctrl+Shift+F` | Semantic Search |
+| `Ctrl+,` | Settings |
+| `Ctrl+D` | Dashboard |
+| `Ctrl+G` | Knowledge Graph |
+| `Ctrl+Shift+A` | Analytics |
+| `Ctrl+Shift+O` | Operations |
+| `Ctrl+Shift+W` | Workflows |
+| `Ctrl+Shift+E` | Web Import |
+| `Ctrl+1` to `Ctrl+9` | Dashboard, AI Chat, Ask Your Files, Semantic Search, Knowledge Vault, Collections, Workflows, Model Manager, Settings |
+
+Page-scoped shortcuts: AI Chat `Ctrl+Shift+N` (new conversation) and `Ctrl+B` (toggle the
+conversation pane); Knowledge Vault `F5` (refresh); Settings `Ctrl+S` (save). `Escape` closes the
+command palette. `Win+Shift+A` is a system-wide hotkey registered by `SystemTrayService`; it opens
+Quick Chat. To add a shortcut, see [5.5](#55-adding-a-keyboard-shortcut).
 
 ### 4.5 Startup Sequence
 
-The application startup follows this sequence:
+1. `App()`: `InitializeComponent`, `ConfigureLogging()` (Serilog), `ConfigureExceptionHandling()`.
+2. `OnLaunched()`:
+   - builds the host (`appsettings.json`, `RagPrompts.json`, `UseSerilog`, `ConfigureServices`);
+   - `InitializeLocalizationAsync()` applies the saved UI language before any shell resource loads;
+   - creates `MainWindow` (maps, shortcuts, palette, status strip pollers, the queued navigation to
+     the Dashboard and the onboarding check), configures the tray and shows the window;
+   - calls `InitializeCoreServicesAsync()` without awaiting it.
+3. `InitializeCoreServicesAsync()` awaits each step in order:
+   1. `SQLitePCL.Batteries_V2.Init()`.
+   2. `IDatabaseEncryptionMigrator.RecoverIfNeeded` finishes or undoes an interrupted encryption
+      change.
+   3. If `encryption.info.json` exists, the key is unlocked (DPAPI-wrapped, or a passphrase dialog
+      loop for a legacy passphrase keystore) and cached in `IDatabaseKeyProvider`;
+      `AgentXDbContext.EnsureKeyApplied()` applies it.
+   4. `StartupOrchestrator.RunCriticalStartupAsync()`: `MigrationRunner.RunAsync()`, then
+      `StartupGate.SignalDataReady()`, the local REST API (when enabled) and the built-in calendar
+      and email connectors. A migration failure stops here (see [4.7](#47-error-handling-strategy)).
+   5. FTS5 table (`KeywordSearchService.InitializeFtsAsync`), auto-sync resume, interrupted workflow
+      runs, `IAiService.InitializeAsync()`, feature flags, theme, enabled plugins, scheduled
+      backups, then the indexing pipeline and the watch folders on the thread pool. Each of these
+      logs its own failure and startup continues.
 
-1. `App()` constructor — `ConfigureLogging()` initializes Serilog, `ConfigureExceptionHandling()` hooks unhandled exception handlers
-2. `OnLaunched()` — builds the `IHost` (triggers `ConfigureServices()`), then calls `InitializeCoreServicesAsync()` as fire-and-forget
-3. `InitializeCoreServicesAsync()` — runs concurrently with window display:
-   - If `%LocalAppData%\AgentX\encryption.info.json` is present, unlocks the database key via `IDatabaseKeyService` (transparent DPAPI-wrap available to everyone; a PBKDF2-HMAC-SHA256 passphrase dialog is still honored for legacy keystores) and caches it in `IDatabaseKeyProvider` so every `SqliteConnection` opened through `IEncryptedConnectionFactory` applies the same `PRAGMA key` (C13)
-   - Calls `IMigrationRunner.RunAsync()` — applies pending EF Core migrations (`InitialBaseline`, `AddEncryptionColumns`, `RemoveEncryptionColumns`, and any future migration); baseline-adopts pre-B9 installs by writing `InitialBaseline` to `__EFMigrationsHistory` without re-applying schema (B9)
-   - Calls `keywordSearch.InitializeFtsAsync()` — creates FTS5 virtual table via raw ADO.NET (runs through `IEncryptedConnectionFactory` when encryption is enabled)
-   - Calls `aiService.InitializeAsync()` — registers providers, checks connection
-4. `MainWindow` constructor — sets up the `_pageMap`, `_navItemMap`, keyboard shortcuts, command palette callbacks, window configuration, title bar, backdrop, then navigates to `DashboardPage`
-5. `CheckOnboardingAsync()` — if `OnboardingCompleted` is false, hides the nav pane and navigates to `OnboardingPage`
-6. `ConfigureStatusBar()` — wires the instrument strip and starts the `StatusBarService` and `AnnunciatorService` polling loops
+The full sequence, including shutdown, is in [ARCHITECTURE.md, section 12](ARCHITECTURE.md#12-startup-sequence).
 
 ### 4.6 Instrument Strip (Status Bar)
 
-The instrument strip at the bottom of `MainWindow` is fed by two typed pollers:
+Two typed pollers feed the strip at the bottom of `MainWindow`:
 
-- **`StatusBarService`** (every 30 seconds, initial 5-second delay): connection state and model name for the `MDL` lamp and LCD readout (`IAiService.ActiveProvider.CheckConnectionAsync()`, 3-second timeout), indexing queue depth for `IDX` (`IIndexingService`), and document count for `VAULT` (`IDocumentService`). Each cycle also refreshes the `LOCAL`/`NET` privacy lamp via `IPrivacyStatusService`.
-- **`AnnunciatorService`** (two-cadence): inbox pending count (`IInboxService`) and sync posture (`ISyncService`) every cycle; backup age (`IBackupService`) and workflow-run health (`IAnalyticsService`) every 4th cycle. Drives the `INBOX`/`SYNC`/`JOBS`/`BAK` lamps. Lamp tones are typed enum mappings, never display-string comparisons.
+- **`StatusBarService`** (every 30 seconds, first after 5): the active provider's connection
+  (`CheckConnectionAsync`) and model for the `MDL` lamp and LCD, the indexing queue for `IDX`, the
+  document count for `VAULT`. Each cycle also re-evaluates the `LOCAL`/`NET` privacy lamp through
+  `IPrivacyStatusService`.
+- **`AnnunciatorService`** (every 30 seconds, first after 6): inbox pending count and sync state
+  every cycle; backup age and workflow-run health every fourth cycle. They drive `INBOX`, `SYNC`,
+  `JOBS` and `BAK`.
 
-Both pollers fail soft per source — status display is non-critical, and a failed query leaves the previous lamp state in place. Lit lamps navigate to their source page on click (`LampTile.Invoked`).
+Each source fails soft (a failed query keeps the previous state), and lamps map typed states, never
+display strings. A lit lamp navigates to its source page when clicked; an unlit one ignores clicks.
+The lamp table is in [ARCHITECTURE.md, section 5.2](ARCHITECTURE.md#52-mainwindow-and-navigation-shell).
 
 ### 4.7 Error Handling Strategy
 
-Error handling follows a deliberate tiered approach:
+| Situation | Handling |
+|---|---|
+| `AppDomain.UnhandledException` | `Log.Fatal`, then `Log.CloseAndFlush()` |
+| `Application.UnhandledException` (UI thread) | `Log.Fatal`, and `e.Handled = true` so the app keeps running |
+| `TaskScheduler.UnobservedTaskException` | `Log.Error`, then `SetObserved()` |
+| Startup migration failure | Recovery state: a dialog ("Agent-X could not start", naming missing tables when known), no data-backed feature starts, the app exits |
+| Other startup steps | Logged (`Warning`, or `Error` for the indexing pipeline); startup continues without that feature |
+| Background fire-and-forget work | `try`/`catch` inside the task, logged as a warning |
+| Command failures the user should see | Logged, then shown through a view model status or error property, or `INotificationService.ShowError(title, message)` |
 
-| Severity | Approach | Example |
-|---|---|---|
-| Fatal (unhandled) | `Log.Fatal` + `CloseAndFlush` | AppDomain.UnhandledException |
-| Critical path | `Log.Error` + re-throw | Database init failure |
-| Non-critical pipeline | `Log.Warning` + continue | FTS5 init, auto-tagging, status bar |
-| Background fire-and-forget | Wrap in try/catch | Memory extraction after AI response |
-| User-visible async commands | `Log.Error` + ViewModel error state | SendMessageAsync |
-
-The convention in ViewModels: all `[RelayCommand]`-decorated methods have a top-level `try/catch` that logs with `Log.Error` and sets an error message property for display.
+`INotificationService` (`Services/NotificationService.cs`) also offers `ShowSuccess`,
+`ShowWarning` and `ShowInfo`; the `NotificationOverlay` control displays them.
 
 ### 4.8 Async Patterns
 
-**CancellationToken threading:**
+**Cancellation.** Public service methods take a `CancellationToken` and pass it down the call
+chain. `AgentX.Core` uses `ConfigureAwait(false)` (it also references
+`Microsoft.VisualStudio.Threading.Analyzers`, which reports threading problems as warnings); view
+models do not, because they must return to the UI thread.
 
-All public service methods accept an optional `CancellationToken`. The token is passed through the entire call chain. Methods use `.ConfigureAwait(false)` in `AgentX.Core` (no UI context needed) but omit it in ViewModels (which must marshal back to the UI thread).
-
-**Linked CancellationTokenSource for user cancellation:**
-
-`ChatService.SendMessageAsync` uses a linked `CancellationTokenSource` to support both external cancellation (caller's CT) and user-initiated stop:
+**Linked tokens for Stop.** `ChatService` starts every reply through `BeginGenerationAsync`, which
+cancels any reply in flight and links the caller's token with its own:
 
 ```csharp
 _generationCts = new CancellationTokenSource();
-var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct, _generationCts.Token);
+return CancellationTokenSource.CreateLinkedTokenSource(ct, _generationCts.Token);
 ```
 
-Calling `_generationCts.CancelAsync()` from `StopGenerationAsync()` cancels the linked token, which propagates through the entire streaming chain.
+`StopGenerationAsync()` cancels `_generationCts`, which ends the stream without cancelling the
+caller's token. A lock serializes starts and stops.
 
-**Fire-and-forget patterns:**
-
-Non-critical background operations are launched without awaiting. These are always wrapped in try/catch:
+**Fire and forget.** Non-critical follow-up work runs without being awaited and always catches its
+own exceptions, as memory extraction after a chat reply does:
 
 ```csharp
-// Memory extraction after a chat response — non-critical
 _ = Task.Run(async () =>
 {
     try
     {
-        await _memoryService.ExtractMemoriesAsync(conversationId);
+        if (_semanticMemoryService is not null)
+            await _semanticMemoryService.ExtractMemoriesAsync(conversationId);
+        else
+            await _memoryService.ExtractMemoriesAsync(conversationId);
     }
     catch (Exception ex)
     {
-        Log.Warning(ex, "Memory extraction failed for conversation {Id}", conversationId);
+        _log.Warning(ex, "Background memory extraction failed for conversation {ConversationId}", conversationId);
     }
 });
 ```
 
 ### 4.9 WinUI 3 File and Folder Pickers
 
-WinUI 3 requires the window HWND to initialize file pickers. This cannot be done in a ViewModel (which has no reference to the window). The pattern is to handle picker logic in the code-behind and pass the result to the ViewModel, or to use `App.MainWindow`:
+An unpackaged WinUI 3 app must initialize pickers with the window handle. Most pickers live in page
+code-behind and pass the result to the view model:
 
 ```csharp
-// In a ViewModel command that needs a file picker:
-var picker = new Windows.Storage.Pickers.FileSavePicker();
-picker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.DocumentsLibrary;
-picker.FileTypeChoices.Add("Markdown", new List<string> { ".md" });
-picker.SuggestedFileName = "export";
+var picker = new FileOpenPicker();
+picker.FileTypeFilter.Add(".pdf");
 
-// Required for WinUI 3 — initialize with the window HWND
-var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
-WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+var hwnd = WindowNative.GetWindowHandle(App.MainWindow);
+InitializeWithWindow.Initialize(picker, hwnd);
 
-var file = await picker.PickSaveFileAsync();
+var files = await picker.PickMultipleFilesAsync();
+if (files is not null && files.Count > 0)
+{
+    await ViewModel.ImportWithDedupCommand.ExecuteAsync(files.Select(f => f.Path).ToList());
+}
 ```
 
-Note that `App.MainWindow` is the static property on the `App` class that stores the main window reference. This is intentionally accessible from ViewModels because the alternative (code-behind-only file pickers) creates untestable code.
+`App.MainWindow` is the static reference to the main window. `ChatViewModel.PickAudioFileAsync` is
+the one view model that opens a picker itself, through the same call.
 
 ### 4.10 Markdown Rendering
 
-AI response content is rendered using a custom two-pass pipeline:
+Chat replies are rendered in two passes:
 
-1. **`MarkdownParser.Parse(string content)`** — splits raw markdown text into typed `MarkdownSegment` objects: `Text`, `CodeBlock`, `InlineCode`, `Bold`, `Heading`, `ListItem`. This runs synchronously in `ChatMessageItem.ContentSegments` whenever `Content` changes.
+1. **`MarkdownParser.Parse(string content)`** (`Helpers/MarkdownParser.cs`) splits the text into
+   `MarkdownSegment` objects of type `Text`, `CodeBlock`, `InlineCode`, `Bold`, `Heading` or
+   `ListItem`. `ChatMessageItem.ContentSegments` calls it whenever `Content` changes.
+2. **`MarkdownMessageControl`** renders the segments with WinUI controls. Code blocks get syntax
+   highlighting (`SyntaxHighlighter`) for supported languages and a localized Copy button.
 
-2. **`MarkdownMessageControl`** — a `UserControl` that accepts a list of `MarkdownSegment` objects and renders them using appropriate WinUI 3 controls (TextBlock for text, custom code block with copy button for code, etc.).
-
-The `MarkdownParser` deliberately does not use Markdig for runtime parsing — it is a lightweight pass-through that handles the most common patterns in AI output without the overhead of a full AST.
+The parser is a small regular-expression pass written for model output; it does not use Markdig
+(Markdig is used by the Core `MarkdownProcessor` for imported documents).
 
 ---
 
@@ -707,11 +646,10 @@ The `MarkdownParser` deliberately does not use Markdig for runtime parsing — i
 
 ### 5.1 Adding a New Page
 
-Follow these steps exactly. Skipping any step will result in a page that is not navigable or not properly wired to the DI container.
+A page is done when it is reachable, not when it compiles. Follow every step; the guard tests in
+`tests/AgentX.Tests/CodeQuality/` fail on the steps that are easy to miss.
 
-**Step 1: Create the ViewModel**
-
-Create `src/AgentX.App/ViewModels/MyNewPageViewModel.cs`:
+**Step 1: The view model** (`src/AgentX.App/ViewModels/ReadingListViewModel.cs`):
 
 ```csharp
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -720,34 +658,28 @@ using Serilog;
 
 namespace AgentX.App.ViewModels;
 
-public partial class MyNewPageViewModel : ObservableObject
+public partial class ReadingListViewModel : ObservableObject
 {
-    // Observable properties
-    [ObservableProperty]
-    private string _pageTitle = "My New Page";
+    private readonly IMyService _myService;
 
     [ObservableProperty]
     private bool _isLoading;
 
-    // Inject required services via constructor
-    private readonly IMyService _myService;
-
-    public MyNewPageViewModel(IMyService myService)
+    public ReadingListViewModel(IMyService myService)
     {
         _myService = myService;
     }
 
-    // Async initialization called from code-behind after navigation
     public async Task InitializeAsync()
     {
         IsLoading = true;
         try
         {
-            // Load data here
+            // Load data here.
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Failed to initialize MyNewPageViewModel");
+            Log.Error(ex, "Failed to load the reading list");
         }
         finally
         {
@@ -755,128 +687,97 @@ public partial class MyNewPageViewModel : ObservableObject
         }
     }
 
-    // Commands
     [RelayCommand]
-    private async Task DoSomethingAsync()
-    {
-        try
-        {
-            // Command logic
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "DoSomething failed");
-        }
-    }
+    private async Task RefreshAsync() => await InitializeAsync();
 }
 ```
 
-**Step 2: Create the XAML Page**
-
-Create `src/AgentX.App/Views/MyNewPage.xaml`:
+**Step 2: The page** (`src/AgentX.App/Views/ReadingListPage.xaml` and `.xaml.cs`):
 
 ```xml
 <Page
-    x:Class="AgentX.App.Views.MyNewPage"
+    x:Class="AgentX.App.Views.ReadingListPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:AgentX.App.Views">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <Grid>
-        <TextBlock Text="{Binding PageTitle}" />
+        <TextBlock x:Uid="ReadingList_Title" Text="Reading List" />
+        <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}" />
     </Grid>
 </Page>
 ```
 
-Create `src/AgentX.App/Views/MyNewPage.xaml.cs`:
-
 ```csharp
 using AgentX.App.ViewModels;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Navigation;
 
 namespace AgentX.App.Views;
 
-public sealed partial class MyNewPage : Page
+public sealed partial class ReadingListPage : Page
 {
-    public MyNewPage()
-    {
-        InitializeComponent();
-        DataContext = App.GetService<MyNewPageViewModel>();
-    }
+    public ReadingListViewModel ViewModel { get; }
 
-    protected override async void OnNavigatedTo(NavigationEventArgs e)
+    public ReadingListPage()
     {
-        base.OnNavigatedTo(e);
-        if (DataContext is MyNewPageViewModel vm)
-        {
-            await vm.InitializeAsync();
-        }
+        // Use PageViewModelFactory.Create<ReadingListViewModel>() instead if the view model
+        // implements IDisposable.
+        ViewModel = App.GetService<ReadingListViewModel>();
+        InitializeComponent();
+        Loaded += async (_, _) => await ViewModel.InitializeAsync();
     }
 }
 ```
 
-**Step 3: Register in App.xaml.cs**
+Visual decisions (colors, type, spacing, depth, lamps) come from [DESIGN.md](../DESIGN.md); read it
+before laying out the page.
 
-Add both the ViewModel (transient) and the Page (transient) in `ConfigureServices()`:
-
-```csharp
-// ViewModels (Transient)
-services.AddTransient<ViewModels.MyNewPageViewModel>();
-
-// Views (Transient)
-services.AddTransient<Views.MyNewPage>();
-```
-
-**Step 4: Add to the page map in MainWindow.xaml.cs**
-
-Add an entry to `_pageMap` in the `MainWindow` constructor:
+**Step 3: Register both** in `App.xaml.cs`, `ConfigureServices()`:
 
 ```csharp
-["MyNewPage"] = typeof(Views.MyNewPage),
+services.AddTransient<ViewModels.ReadingListViewModel>();
+services.AddTransient<Views.ReadingListPage>();
 ```
 
-**Step 5: Add a NavigationViewItem in MainWindow.xaml**
+**Step 4: Add the tag to `PageMap`** in `MainWindow.xaml.cs`:
 
-Add a `NavigationViewItem` inside the appropriate section of the `NavigationView`:
+```csharp
+["ReadingList"] = typeof(Views.ReadingListPage),
+```
+
+**Step 5: Add the rail item** in `MainWindow.xaml`, under the group header it belongs to:
 
 ```xml
-<NavigationViewItem
-    x:Name="NavMyNewPage"
-    Content="My New Page"
-    Tag="MyNewPage">
+<NavigationViewItem x:Name="NavReadingList"
+                    x:Uid="Main_ReadingList" Content="Reading List"
+                    Tag="ReadingList"
+                    Style="{StaticResource AgentXNavItemStyle}">
     <NavigationViewItem.Icon>
-        <FontIcon Glyph="&#xE8BD;" />
+        <FontIcon Glyph="&#xE7C3;" FontSize="16" />
     </NavigationViewItem.Icon>
 </NavigationViewItem>
 ```
 
-**Step 6: Add to the nav item map in MainWindow.xaml.cs**
+Pick a glyph no other rail item uses.
 
-Add an entry to `_navItemMap` so the selection indicator syncs correctly:
+**Step 6: Add the tag to `BuildNavItemMap()`** in `MainWindow.xaml.cs`:
 
 ```csharp
-["MyNewPage"] = NavMyNewPage,
+["ReadingList"] = NavReadingList,
 ```
 
-**Step 7: The Command Palette picks the page up by itself**
+**Step 7: Add the strings** (`Main_ReadingList.Content`, `ReadingList_Title.Text` and any others) to
+all six `Strings/<locale>/Resources.resw` files (see [13.9](#139-localized-strings)).
 
-Nothing to add. `MainWindow.ConfigureCommandPalette()` walks `NavView.MenuItems`
-and `FooterMenuItems` and registers every `NavigationViewItem` with the palette
-under the same localized label, icon glyph and group placard the rail shows
-(`src/AgentX.App/MainWindow.xaml.cs`). A page that is on the rail is in the
-palette; `NavRailParityTests` fails the build if the palette ever grows a literal
-page list again.
-
-If the page should have a keyboard chord, register it in `ShortcutCatalog` and add
-the page tag to `PageShortcutIds` there; the palette prints the chord from the live
-registry.
+**The command palette needs nothing.** `MainWindow.ConfigureCommandPalette()` walks
+`NavView.MenuItems` and `FooterMenuItems` and registers every rail item with the palette under the
+rail's localized label, glyph and group. `NavRailParityTests` checks that every rail item has an
+`x:Uid`, a `Tag` with `PageMap` and `BuildNavItemMap` entries, a unique glyph and a group header,
+and that the palette still derives its pages from the rail. To give the page a keyboard shortcut,
+see [5.5](#55-adding-a-keyboard-shortcut).
 
 ### 5.2 Adding a New Service
 
-**Step 1: Create the interface in AgentX.Core**
-
-Place the interface in the appropriate subdirectory of `AgentX.Core/Services/`:
+**Step 1: The interface** in the matching folder of `AgentX.Core/Services/`:
 
 ```csharp
 // AgentX.Core/Services/MyFeature/IMyService.cs
@@ -888,10 +789,11 @@ public interface IMyService
 }
 ```
 
-**Step 2: Create the implementation**
+**Step 2: The implementation:**
 
 ```csharp
 // AgentX.Core/Services/MyFeature/MyService.cs
+using AgentX.Core.AI;
 using Serilog;
 
 namespace AgentX.Core.Services.MyFeature;
@@ -904,223 +806,251 @@ public sealed class MyService : IMyService
     public MyService(IAiService aiService, ILogger logger)
     {
         _aiService = aiService ?? throw new ArgumentNullException(nameof(aiService));
-        _logger = logger?.ForContext<MyService>() ?? throw new ArgumentNullException(nameof(logger));
+        _logger = (logger ?? throw new ArgumentNullException(nameof(logger))).ForContext<MyService>();
     }
 
     public async Task<string> DoWorkAsync(string input, CancellationToken ct = default)
     {
         _logger.Information("Doing work for input length {Length}", input.Length);
-        // Implementation
-        return await Task.FromResult("result");
+        return await Task.FromResult("result").ConfigureAwait(false);
     }
 }
 ```
 
-**Step 3: Register in App.xaml.cs**
-
-Add the registration in `ConfigureServices()`:
+**Step 3: Register it** in `App.xaml.cs`, in the group it belongs to, and add the `using`:
 
 ```csharp
 services.AddSingleton<IMyService, MyService>();
 ```
 
-**Step 4: Add the using statement**
-
-Add the namespace import at the top of `App.xaml.cs`:
-
-```csharp
-using AgentX.Core.Services.MyFeature;
-```
+**Step 4: Make it reachable.** A service nothing resolves is dead code. The container resolves
+services lazily, so a missing registration only shows when the first consumer is built.
 
 ### 5.3 Adding a New Document Processor
 
-Document processors implement `IDocumentProcessor` and are auto-discovered by `DocumentService` and `IndexingService` through `IEnumerable<IDocumentProcessor>` injection.
-
-**Step 1: Implement the interface**
+A processor implements `IDocumentProcessor`:
 
 ```csharp
-// AgentX.Core/Documents/Processors/XmlProcessor.cs
+public interface IDocumentProcessor
+{
+    IReadOnlySet<string> SupportedExtensions { get; }
+    bool CanProcess(string filePath);
+    Task<ProcessedDocument> ProcessAsync(string filePath, CancellationToken ct = default);
+}
+```
+
+`DocumentService` (imports) and `IndexingService` (re-extraction) receive
+`IEnumerable<IDocumentProcessor>` and use the first registered processor whose `CanProcess`
+returns `true`, so check that no built-in processor already claims the extension (the table is in
+[ARCHITECTURE.md, section 6.3](ARCHITECTURE.md#63-document-processing-pipeline)).
+
+**Step 1: Implement the interface.** This example reads SubRip subtitle files:
+
+```csharp
+// AgentX.Core/Documents/Processors/SubtitleProcessor.cs
+using System.Text.RegularExpressions;
 using AgentX.Core.Documents.Models;
-using Serilog;
+using AgentX.Core.Helpers;
 
 namespace AgentX.Core.Documents.Processors;
 
-public sealed class XmlProcessor : IDocumentProcessor
+public sealed class SubtitleProcessor : IDocumentProcessor
 {
-    private static readonly IReadOnlySet<string> _supportedExtensions =
-        new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".xml", ".xsd", ".xslt" };
+    private static readonly HashSet<string> Extensions =
+        new(StringComparer.OrdinalIgnoreCase) { ".srt" };
 
-    public IReadOnlySet<string> SupportedExtensions => _supportedExtensions;
+    private static readonly Regex CueNumberOrTiming = new(
+        @"^\s*(\d+|\d{2}:\d{2}:\d{2},\d{3}\s*-->\s*\d{2}:\d{2}:\d{2},\d{3})\s*$",
+        RegexOptions.Multiline | RegexOptions.Compiled);
 
-    public bool CanProcess(string filePath)
-        => _supportedExtensions.Contains(Path.GetExtension(filePath));
+    public IReadOnlySet<string> SupportedExtensions => Extensions;
+
+    public bool CanProcess(string filePath) => Extensions.Contains(Path.GetExtension(filePath));
 
     public async Task<ProcessedDocument> ProcessAsync(string filePath, CancellationToken ct = default)
     {
-        var content = await File.ReadAllTextAsync(filePath, ct);
+        var fileInfo = new FileInfo(filePath);
+        if (!fileInfo.Exists)
+            throw new FileNotFoundException("Subtitle file not found.", filePath);
 
-        // Strip XML tags, extract text content
-        var text = System.Text.RegularExpressions.Regex.Replace(content, "<[^>]+>", " ");
-        text = System.Text.RegularExpressions.Regex.Replace(text, @"\s+", " ").Trim();
-
-        return new ProcessedDocument
+        try
         {
-            FileName = Path.GetFileName(filePath),
-            FilePath = filePath,
-            ExtractedText = text,
-            PageCount = 1,
-            WordCount = text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length,
-            CharacterCount = text.Length
-        };
+            var raw = await File.ReadAllTextAsync(filePath, ct);
+            var text = CueNumberOrTiming.Replace(raw, string.Empty).Trim();
+
+            return new ProcessedDocument
+            {
+                FilePath = filePath,
+                FileName = fileInfo.Name,
+                FileType = "srt",
+                FileSizeBytes = fileInfo.Length,
+                ContentHash = await HashHelper.ComputeFileHashAsync(filePath, ct),
+                ExtractedText = text,
+                ExtractedTitle = Path.GetFileNameWithoutExtension(filePath),
+                PageCount = 1,
+                WordCount = text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).Length,
+            };
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            // A reason the user can read: the document is recorded as failed with this message.
+            throw new DocumentExtractionException(
+                $"Could not read the subtitle file '{fileInfo.Name}': {ex.Message}", ex);
+        }
     }
 }
 ```
 
-**Step 2: Register in App.xaml.cs**
+`ProcessedDocument` also carries `Language`, `Metadata` (author, subject, dates, custom values) and
+`Chunks`; the chunks are produced later by `ChunkingService`. A processor that separates pages with
+form feeds (`\f`) gets page numbers on its chunks.
 
-Add alongside the other processor registrations. The order determines which processor is tried first when multiple processors claim the same extension:
+**Step 2: Register it** with the other processors in `App.xaml.cs`:
 
 ```csharp
-services.AddSingleton<IDocumentProcessor, XmlProcessor>();
+services.AddSingleton<IDocumentProcessor, SubtitleProcessor>();
 ```
 
-No other changes are needed. `DocumentService` and `IndexingService` both inject `IEnumerable<IDocumentProcessor>` and use the first processor that returns `true` from `CanProcess()`.
+`EveryCollectionServiceIsRegisteredTests` fails when an `IDocumentProcessor` implementation in Core
+has no registration line; two processors once shipped unregistered and their formats were silently
+rejected.
+
+**Step 3: Offer the extension in the import picker** (`KnowledgeVaultPage.xaml.cs`, the
+`FileTypeFilter` list), if users should be able to pick it there.
+`ImportPickerOffersOnlyProcessableTypesTests` fails when the picker offers an extension that no
+processor claims. Watch folders need no change: `FileWatcherService` asks
+`DocumentService.CanProcess`.
+
+**From a plugin.** A plugin can contribute a processor by implementing `IDocumentProcessorPlugin`
+(`IPlugin` plus `IDocumentProcessor`). `DocumentService` tries plugin processors after the built-in
+ones, so a plugin only handles formats no built-in processor accepts. `IndexingService` only knows
+the built-in processors: it indexes a plugin-format document from the text extracted at import, but
+cannot extract it again (a re-index, or a document still queued when the app restarted). See
+[PLUGIN-DEVELOPMENT-GUIDE.md](PLUGIN-DEVELOPMENT-GUIDE.md) and `plugins/sample-plugin/`.
 
 ### 5.4 Adding a New AI Provider
 
-**Step 1: Implement IAiProvider**
+**Step 1: Implement `IAiProvider`** in `AgentX.Core/AI/Providers/`:
 
 ```csharp
-// AgentX.Core/AI/Providers/MyCustomProvider.cs
-using AgentX.Core.AI.Models;
-using System.Runtime.CompilerServices;
-using Serilog;
-
-namespace AgentX.Core.AI.Providers;
-
-public sealed class MyCustomProvider : IAiProvider
+public interface IAiProvider : IDisposable
 {
-    public string ProviderId => "mycustom";
-    public string DisplayName => "My Custom Provider";
-    public bool IsAvailable => _isAvailable;
-
-    private bool _isAvailable;
-    private bool _disposed;
-    private readonly ILogger _logger;
-
-    public MyCustomProvider(string apiKey, string endpoint, ILogger logger)
-    {
-        _logger = logger?.ForContext<MyCustomProvider>()
-            ?? throw new ArgumentNullException(nameof(logger));
-        // Initialize HTTP client or SDK client
-    }
-
-    public async Task<bool> CheckConnectionAsync(CancellationToken ct = default)
-    {
-        // Ping health endpoint or list models
-        _isAvailable = true; // Set based on actual check
-        return _isAvailable;
-    }
-
-    public async Task<IReadOnlyList<AiModel>> ListModelsAsync(CancellationToken ct = default)
-    {
-        // Return available models — static list if no discovery endpoint
-        return Array.Empty<AiModel>();
-    }
-
-    public Task PullModelAsync(string modelName, IProgress<ModelDownloadProgress>? progress = null, CancellationToken ct = default)
-        => Task.CompletedTask; // Not applicable for most cloud providers
-
-    public Task DeleteModelAsync(string modelName, CancellationToken ct = default)
-        => Task.CompletedTask; // Not applicable for most cloud providers
-
-    public async IAsyncEnumerable<string> StreamChatAsync(
-        IReadOnlyList<ChatMessage> messages,
-        ChatOptions? options = null,
-        [EnumeratorCancellation] CancellationToken ct = default)
-    {
-        // Implement SSE streaming — yield each token
-        yield break;
-    }
-
-    public async Task<string> ChatAsync(
-        IReadOnlyList<ChatMessage> messages,
-        ChatOptions? options = null,
-        CancellationToken ct = default)
-    {
-        // Collect all tokens from streaming and return complete response
-        var sb = new System.Text.StringBuilder();
-        await foreach (var token in StreamChatAsync(messages, options, ct))
-            sb.Append(token);
-        return sb.ToString();
-    }
-
-    public Task<float[]> GenerateEmbeddingAsync(string text, string modelName, CancellationToken ct = default)
-        => throw new NotSupportedException("Embeddings not supported by this provider.");
-
-    public Task<IReadOnlyList<float[]>> GenerateEmbeddingsAsync(IReadOnlyList<string> texts, string modelName, CancellationToken ct = default)
-        => throw new NotSupportedException("Embeddings not supported by this provider.");
-
-    public void Dispose()
-    {
-        if (_disposed) return;
-        _disposed = true;
-    }
+    string ProviderId { get; }
+    string DisplayName { get; }
+    bool IsAvailable { get; }
+    Task<bool> CheckConnectionAsync(CancellationToken ct = default);
+    Task<IReadOnlyList<AiModel>> ListModelsAsync(CancellationToken ct = default);
+    Task PullModelAsync(string modelName, IProgress<ModelDownloadProgress>? progress = null, CancellationToken ct = default);
+    Task DeleteModelAsync(string modelName, CancellationToken ct = default);
+    IAsyncEnumerable<string> StreamChatAsync(IReadOnlyList<ChatMessage> messages, ChatOptions? options = null, CancellationToken ct = default);
+    Task<string> ChatAsync(IReadOnlyList<ChatMessage> messages, ChatOptions? options = null, CancellationToken ct = default);
+    Task<float[]> GenerateEmbeddingAsync(string text, string modelName, CancellationToken ct = default);
+    Task<IReadOnlyList<float[]>> GenerateEmbeddingsAsync(IReadOnlyList<string> texts, string modelName, CancellationToken ct = default);
 }
 ```
 
-**Step 2: Add settings properties to AppSettings**
+Follow `OpenAiProvider` for a hosted API: take the key, endpoint, logger and an optional
+`ICostTracker`, stream tokens from server-sent events, and report usage with
+`_costTracker.RecordUsage(modelId, ProviderId, inputTokens, outputTokens)`. A provider without
+embeddings throws `NotSupportedException` from the two embedding methods, as `AnthropicProvider`
+does.
 
-In `AgentX.Core/Services/Settings/AppSettings.cs`, add the configuration properties:
+**Step 2: Add its settings** to `AppSettings` (`AgentX.Core/Services/Settings/AppSettings.cs`), for
+example `MyCustomApiKey`, `MyCustomEndpoint` and `MyCustomDefaultModel`. Add the key to
+`SettingsService.SecretFields`, so it is stored DPAPI-encrypted like the other API keys.
+
+**Step 3: Register it in `AiService.InitializeAsync()`.** Providers are registered through a local
+`Register` function with a fingerprint of their configuration; an unchanged fingerprint keeps the
+existing instance, so saving settings does not cut off a reply that is streaming:
 
 ```csharp
-// My Custom Provider
-public string? MyCustomApiKey { get; set; }
-public string MyCustomEndpoint { get; set; } = "https://api.mycustom.com/v1/";
-public string? MyCustomDefaultModel { get; set; } = "mycustom-default";
-```
-
-**Step 3: Register in AiService.InitializeAsync()**
-
-In `AgentX.Core/AI/AiService.cs`, add registration in the `InitializeAsync()` method after the existing providers:
-
-```csharp
-// Register MyCustom if API key is configured
 if (!string.IsNullOrWhiteSpace(settings.MyCustomApiKey))
 {
-    try
-    {
-        var myCustomProvider = new MyCustomProvider(
-            settings.MyCustomApiKey,
-            settings.MyCustomEndpoint,
-            _logger);
-        _providers["mycustom"] = myCustomProvider;
-    }
-    catch (Exception ex)
-    {
-        _logger.Warning(ex, "Failed to create MyCustom provider");
-    }
+    Register("mycustom", Fingerprint(settings.MyCustomApiKey, settings.MyCustomEndpoint),
+        () => new MyCustomProvider(settings.MyCustomApiKey, settings.MyCustomEndpoint, _logger, _costTracker));
 }
 ```
 
-Also add a model resolution case in `ResolveDefaultModel()`:
+Add its default model to `ResolveDefaultModel()`:
 
 ```csharp
-private static string ResolveDefaultModel(AppSettings settings, string providerId)
+return providerId.ToLowerInvariant() switch
 {
-    return providerId.ToLowerInvariant() switch
-    {
-        "openai" => settings.OpenAiDefaultModel ?? "gpt-4o-mini",
-        "anthropic" => settings.AnthropicDefaultModel ?? AnthropicProvider.DefaultModelId,
-        "mycustom" => settings.MyCustomDefaultModel ?? "mycustom-default",  // Add this
-        _ => settings.DefaultModel
-    };
+    "local" => Or(settings?.LocalModelFileName, BuiltInModelBootstrap.DefaultModelFileName),
+    "openai" => Or(settings?.OpenAiDefaultModel, OpenAiProvider.DefaultModelId),
+    "anthropic" => Or(settings?.AnthropicDefaultModel, AnthropicProvider.DefaultModelId),
+    "mycustom" => Or(settings?.MyCustomDefaultModel, MyCustomProvider.DefaultModelId),   // add
+    _ => Or(settings?.DefaultModel, "llama3.2")
+};
+```
+
+and a case to `ApplyModelSetting()`, which stores a model picked at run time in the provider's own
+setting. `SettingsViewModel` calls `IAiService.InitializeAsync()` again after every save.
+
+**Step 4: Tell the privacy check.** If prompts leave the computer, add the provider to
+`CloudAiProviderName()` and its key to `HasCloudAiKey()` in `PrivacyStatusService`. Otherwise the
+`LOCAL` lamp, the Dashboard and the chat privacy note would claim that nothing leaves the machine.
+
+**Step 5: Make it selectable.** Add it to `ProviderChoices.All` (the Active Provider list), give it
+a section under Settings, AI Providers, with its strings in all six locales, and add its models to
+`CostTracker.KnownCosts` if they are priced. `EmbeddingTargetResolver` chooses embedding providers
+separately and will not pick a new provider unless you extend it.
+
+### 5.5 Adding a Keyboard Shortcut
+
+**A global shortcut** is added in `ShortcutCatalog.SeedDefaults()` with its `Global(...)` helper.
+The label and category come from `ILocalizationService`, so add the label to the six resw files:
+
+```csharp
+Global("nav.readinglist",
+    _localization.GetString("Shortcut_ReadingList"),
+    KeyModifiers.Ctrl | KeyModifiers.Shift,
+    VirtualKeyCode.L,
+    Navigate(actions, "ReadingList"),
+    pageActions);
+```
+
+If the shortcut opens a page, also add the page tag and the shortcut id to `PageShortcutIds`; the
+command palette then prints the chord next to the page, read from the live registry.
+
+**A page-scoped shortcut** is registered when the page is shown and removed when it is left. The
+scope name must be the page's class name, because `ShortcutInputRouter` uses
+`ContentFrame.CurrentSourcePageType?.Name` as the active scope:
+
+```csharp
+// _shortcutRegistry (IShortcutRegistry) and _localization (ILocalizationService) are
+// resolved with App.GetService<T>() in the page constructor.
+private IDisposable? _shortcutScope;
+
+protected override void OnNavigatedTo(NavigationEventArgs e)
+{
+    base.OnNavigatedTo(e);
+    _shortcutScope = _shortcutRegistry.RegisterShortcuts(      // ShortcutRegistrationExtensions
+        new ShortcutDescriptor(
+            "readinglist.refresh",
+            _localization.GetString("Shortcut_ReadingListRefresh"),
+            new ShortcutScope(nameof(ReadingListPage)),
+            new[] { new KeyChord(KeyModifiers.None, VirtualKeyCode.F5) },
+            _ => ViewModel.RefreshCommand.ExecuteAsync(null),
+            _localization.GetString("Shortcut_CategoryActions")));
+}
+
+protected override void OnNavigatedFrom(NavigationEventArgs e)
+{
+    base.OnNavigatedFrom(e);
+    _shortcutScope?.Dispose();
+    _shortcutScope = null;
 }
 ```
 
-**Step 4: Add UI in SettingsPage.xaml**
+The three existing page-scoped registrations (AI Chat, Knowledge Vault, Settings) still pass English
+literals as labels and categories; new ones should use `ILocalizationService` as shown.
 
-Add a configuration section for the new provider in the Settings page, similar to the existing OpenAI and Anthropic sections. Include fields for API key, endpoint, and default model.
+**Choosing a chord.** The registry does not reject duplicates: for a key, a descriptor scoped to the
+current page wins, then the first global one registered. `Ctrl+K`, `Ctrl+Shift+P`, `Ctrl+P`, `F1`
+and `Ctrl+Shift+?` are handled by the router before the registry is consulted, so they cannot be
+reused. Check the tables in [4.4](#44-keyboard-shortcuts) for a free chord. A sequence of several
+chords is a `Chord` list with more than one `KeyChord`.
 
 ---
 
@@ -1128,63 +1058,58 @@ Add a configuration section for the new provider in the Settings page, similar t
 
 ### 6.1 Schema Overview
 
-The database is a single SQLite file at `%LocalAppData%\AgentX\agentx.db`. It contains 16 EF Core-managed tables and 2 additional tables managed via raw ADO.NET:
+The database is one SQLite file at `%LocalAppData%\AgentX\agentx.db`. The native SQLite library
+is SQLCipher (`SQLitePCLRaw.bundle_e_sqlcipher`) whether or not encryption is on; when it is on,
+`IEncryptedConnectionFactory` applies the key (`PRAGMA key`) to every connection. The EF model maps
+37 entities to snake_case tables; two more tables are created with raw SQL:
 
-**EF Core tables:**
+| Table | Created by | Purpose |
+|---|---|---|
+| 37 EF tables | Migrations and `MigrationRunner` | Conversations, messages, documents, chunks, collections, tags, memories, inbox, workflows, sync, plugins, temporal identity and more |
+| `fts_chunks` | `KeywordSearchService.InitializeFtsAsync()` | FTS5 keyword index over chunk text |
+| `vec_embeddings` | The vector store's `InitializeAsync()` | Embedding vectors (float32 BLOBs) with their precomputed norms |
 
-| Table | Purpose |
-|---|---|
-| `conversations` | AI chat conversation records |
-| `messages` | Individual messages within conversations |
-| `documents` | Imported document metadata |
-| `document_chunks` | Text chunks extracted from documents |
-| `collections` | Hierarchical document collections |
-| `document_collections` | Many-to-many: documents in collections |
-| `tags` | Tag catalog |
-| `document_tags` | Many-to-many: tags on documents (with confidence score) |
-| `search_history` | User search query history |
-| `system_prompts` | Built-in and user-defined system prompt library |
-| `user_settings` | Key-value store for fine-grained settings |
-| `watch_folders` | File system watch folder configuration |
-| `indexing_jobs` | Background indexing job tracking |
-| `memories` | AI-extracted conversation memories |
-| `digest_reports` | Periodic knowledge digest report content |
+Every table and column is listed in [DATABASE_SCHEMA.md](../DATABASE_SCHEMA.md).
 
-**ADO.NET-managed tables (created by raw SQL in `InitializeFtsAsync`):**
-
-| Table | Purpose |
-|---|---|
-| `document_chunks_fts` | FTS5 virtual table for full-text keyword search |
-| `vec_embeddings` | Vector embedding storage (float[] BLOBs + magnitude) |
+The EF context always uses the fixed path above. The vector store opens the file named by the
+`StoragePath` setting, which defaults to the same folder, so leave `StoragePath` at its default.
 
 ### 6.2 Entity Framework Core Configuration
 
-`AgentXDbContext` uses the parameterless constructor pattern. The database path is computed at construction time and is not injected, which keeps the `AgentXDbContext` registration simple (no `DbContextOptions` builder required):
+The context is registered through a factory that passes the encrypted connection factory:
 
 ```csharp
-// Registration in App.xaml.cs — no options needed
-services.AddSingleton<AgentXDbContext>();
+services.AddSingleton<AgentXDbContext>(sp =>
+{
+    var options = new DbContextOptionsBuilder<AgentXDbContext>().Options;
+    var factory = sp.GetRequiredService<AgentX.Core.Data.IEncryptedConnectionFactory>();
+    return new AgentXDbContext(options, factory);
+});
 ```
 
-All entity configuration uses the fluent API inside `OnModelCreating()`. There are no data annotations on entity classes. Each entity has a dedicated private static `ConfigureXxx(ModelBuilder)` method for clarity.
+When the options carry no provider, the context configures SQLite on the fixed path itself, and it
+always installs the serializing concurrency detector and query compiler (see
+[4.1](#41-dependency-injection)).
 
-**Example entity relationship configuration:**
+The model is configured with the fluent API in `OnModelCreating()`, one private static
+`ConfigureXxx(ModelBuilder)` method per entity or area. The only data annotations are the
+`[MaxLength]` attributes on `InboxItemEntity`. Relationship examples:
 
 ```csharp
-// Cascade delete: deleting a Conversation deletes all its Messages
+// Cascade: deleting a conversation deletes its messages
 entity.HasOne(e => e.Conversation)
     .WithMany(c => c.Messages)
     .HasForeignKey(e => e.ConversationId)
     .OnDelete(DeleteBehavior.Cascade);
 
-// Restrict delete: deleting a parent Collection is blocked if it has children
+// Restrict: a collection with child collections cannot be deleted
 entity.HasOne(e => e.ParentCollection)
     .WithMany(e => e.ChildCollections)
     .HasForeignKey(e => e.ParentCollectionId)
     .OnDelete(DeleteBehavior.Restrict)
     .IsRequired(false);
 
-// SetNull: deleting a Collection sets WatchFolder.TargetCollectionId to NULL
+// SetNull: deleting a collection clears WatchFolder.TargetCollectionId
 entity.HasOne(e => e.TargetCollection)
     .WithMany()
     .HasForeignKey(e => e.TargetCollectionId)
@@ -1192,65 +1117,110 @@ entity.HasOne(e => e.TargetCollection)
     .IsRequired(false);
 ```
 
-### 6.3 Schema Migrations — EF Core Migration Runner (B9)
+**Raw SQL.** Code that uses `Database.GetDbConnection()` directly holds the gate for the whole
+section:
 
-**Superseded as of v2.1.0-preview.1.** The previous `EnsureCreatedAsync()` + manual `ALTER TABLE` pattern was replaced by a proper EF Core migrations runner in v2.1 Bedrock item B9. All schema changes now flow through tracked, deterministic migrations.
+```csharp
+using (db.EnterDatabaseGate())
+{
+    var connection = db.Database.GetDbConnection();
+    // commands and transactions here
+}
+```
 
-**Runtime pipeline.** `IMigrationRunner.RunAsync()` executes during `InitializeCoreServicesAsync`:
+### 6.3 Schema Migrations
 
-1. Checks `__EFMigrationsHistory` for applied migrations via `GetAppliedMigrationsAsync()`.
-2. **Baseline adoption:** if the table is missing (pre-B9 install that used `EnsureCreatedAsync`), writes the `InitialBaseline` row without re-applying schema. This preserves existing user data on upgrade.
-3. Compares applied vs. `DbContext.Database.GetPendingMigrations()`; if pending migrations exist, applies them in order via `MigrateAsync()`.
-4. Returns a `MigrationResult` reporting applied migration IDs. The runner does not wrap EF Core failures: if `MigrateAsync()` throws, the exception propagates to `InitializeCoreServicesAsync` and startup fails there.
+**Runtime.** `MigrationRunner.RunAsync()` runs on every launch, awaited, before anything else reads
+data:
 
-**Adding a new migration.** Restore the pinned EF tool first (`dotnet tool restore`), then:
+1. It decides from the schema (not from the file) whether a database already existed.
+2. **Baseline adoption:** application tables without `__EFMigrationsHistory` (builds that used
+   `EnsureCreated`) get the history table; missing baseline tables are created from
+   `InitialBaseline`'s own operations, `InitialBaseline` is stamped, and so is every later migration
+   whose schema is already present. If a baseline table is still missing it throws
+   `BaselineSchemaIncompleteException` instead.
+3. **Stamped-baseline repair:** missing baseline tables in a database that stamps `InitialBaseline`
+   are recreated and brought forward.
+4. **Reconciliation** of an old placeholder id for `AddTemporalIdentity`, and of
+   `AddSemanticMemoryColumns` when its columns already exist.
+5. `MigrateAsync()` applies pending migrations.
+6. **Idempotent repairs** on every run: the operations tables, the Temporal Identity columns the
+   `AddTemporalIdentity` migration left out, a compatibility schema for `inbox_items` and
+   `belief_conflicts`, the `conversations` branching columns, and four indexes the model declares
+   but no migration created.
+
+It returns a `MigrationResult` (created, applied, already applied, database path), logged as
+`Migration runner: db=... created=... applied=... alreadyApplied=...`. If it throws, startup enters
+the recovery state described in [4.7](#47-error-handling-strategy).
+
+**The migrations** (in `src/AgentX.Core/Data/Migrations/`):
+
+| Migration | Purpose |
+|---|---|
+| `20260417011607_InitialBaseline` | The 28 baseline tables |
+| `20260418013814_AddEncryptionColumns` | Encryption columns on `user_settings` |
+| `20260418041030_RemoveEncryptionColumns` | Removes them again: encryption state lives in `encryption.info.json` |
+| `20260422120000_AddSemanticMemoryColumns` | Embedding, links, decay, confidence and tags on `memories` |
+| `20260422153000_AddConversationSummaryPersistence` | Summary snapshot and state tables |
+| `20260423093000_AddMessageRecallEmbeddings` | Message embeddings for recall |
+| `20260423153000_AddConversationThemeClustering` | Theme clusters and memberships |
+| `20260423170000_AddConversationThemeDailyMetrics` | Daily theme metrics |
+| `20260430000000_AddTemporalIdentity` | The five Temporal Identity tables |
+| `20260503000000_AddEmbeddingModelVersioning` | Embedding model version, dimensions and time on chunks and memories |
+| `20260528120000_DropLicensesTable` | Drops `licenses` (there are no license tiers) |
+
+**Adding a migration.** Restore the pinned tool first (`dotnet tool restore`), then from the
+repository root:
 
 ```powershell
-# From the repository root
 dotnet ef migrations add <MigrationName> `
   --project src/AgentX.Core `
   --startup-project src/AgentX.Core `
   --output-dir Data/Migrations
 ```
 
-`AgentX.Core` is its own startup project for tooling. It is a plain class library, so `dotnet ef` builds and loads it without the WinUI app's `Platform=x64`/RID requirements — using `--startup-project src/AgentX.App` fails, because the EF host does not pass a platform and the WinUI build then errors. The design-time `AgentXDbContextFactory` supplies the SQLite provider against a throwaway `agentx.design.db` (git-ignored), and the `CopyWindowsSdkProjectionForEfTooling` target in `AgentX.Core.csproj` copies the Windows SDK projection assemblies (`Microsoft.Windows.SDK.NET.dll`, `WinRT.Runtime.dll`) into the build output so the EF host can load the `net8.0-windows` assembly. Review the generated `<timestamp>_<MigrationName>.cs` and `.Designer.cs` files, commit them alongside the entity change, and the next launch applies the migration automatically via `IMigrationRunner`.
+`AgentX.Core` is its own startup project for tooling. `--startup-project src/AgentX.App` fails: the
+EF host does not pass a platform and the WinUI build then errors. The design-time
+`AgentXDbContextFactory` points EF at a throwaway, never-encrypted `agentx.design.db` (git-ignored),
+and the `CopyWindowsSdkProjectionForEfTooling` target in `AgentX.Core.csproj` copies the Windows SDK
+projection assemblies into the build output so the EF host can load the assembly. Review the
+generated migration, commit it with the entity change, and the next launch applies it.
 
-**Rollback.**
+**Rollback during development:**
 
 ```powershell
-# Remove the most recent un-applied migration
+# Remove the most recent migration that has not shipped
 dotnet ef migrations remove --project src/AgentX.Core --startup-project src/AgentX.Core
-
-# Revert the database to a specific migration
-dotnet ef database update <PreviousMigrationName> --project src/AgentX.Core --startup-project src/AgentX.Core
 ```
 
-> **SQLite note:** `dotnet ef migrations script --idempotent` is not supported by the SQLite provider. Use a plain `dotnet ef migrations script`, or rely on the runtime `IMigrationRunner`, which already applies migrations idempotently at launch.
+`dotnet ef database update` only touches the design-time database. The SQLite provider cannot
+generate idempotent scripts (`dotnet ef migrations script --idempotent`); the runtime runner is what
+applies migrations to user databases.
 
-**Migrations that exist in the v2.1.0-preview.1 slice.**
+**Migrations and encryption.** At run time the migration runs on the shared connection after the key
+has been applied, so it works the same on encrypted and plaintext databases. Never toggle encryption
+inside a migration; `IDatabaseEncryptionManager` and `IDatabaseEncryptionMigrator` own that.
 
-| Migration | Purpose |
-|---|---|
-| `20260417011607_InitialBaseline` | Captures the full schema as of the v2.0 ship (the baseline for adoption of pre-B9 installs) |
-| `20260418013814_AddEncryptionColumns` | Adds encryption-state columns to `user_settings` for the C13 enable flow |
-| `20260418041030_RemoveEncryptionColumns` | Drops the encryption-state columns from `user_settings` — the C13 hotfix moved all encryption state out of the DB to `%LocalAppData%\AgentX\encryption.info.json` |
-
-> **When adding a migration that touches encrypted data:** the migration executes under whatever key is currently active — if encryption is enabled, `IEncryptedConnectionFactory` is already applying `PRAGMA key` on the connection the migration uses, so `dotnet ef database update` from a developer machine requires the same key. Use `IDatabaseEncryptionMigrator` for the encryption enable/disable path; never attempt to toggle encryption inside a regular EF migration.
+When an entity, its configuration or a migration changes, update
+[DATABASE_SCHEMA.md](../DATABASE_SCHEMA.md) in the same change.
 
 ### 6.4 Indexing Status Lifecycle
 
-Documents move through a defined set of indexing statuses stored in `documents.indexing_status`:
+`documents.IndexingStatus`:
 
 ```
 pending -> processing -> completed
-                      -> failed
+                      -> failed      (IndexingError holds the reason)
 ```
 
-`IndexingJobEntity` in `indexing_jobs` mirrors this with `Status` values of `queued`, `processing`, `completed`, `failed`. On startup, `IndexingService.InitializeAsync()` resets any stale `processing` jobs back to `queued` to recover from crashes.
+An import whose file cannot be read is saved as `failed` straight away, with the reason, rather than
+as an empty success. `indexing_jobs.Status` moves through `queued`, `processing`, `completed` and
+`failed`. At startup `IndexingService.InitializeAsync()` sets documents left in `processing` back to
+`pending` and jobs back to `queued`, then queues every pending document.
 
 ### 6.5 Vector Storage
 
-The `vec_embeddings` table stores embeddings as raw BLOBs using `Buffer.BlockCopy` (4 bytes per float):
+`vec_embeddings` stores each vector as a BLOB of float32 values, 4 bytes each:
 
 ```csharp
 // Serialization
@@ -1262,28 +1232,48 @@ var floats = new float[blob.Length / sizeof(float)];
 Buffer.BlockCopy(blob, 0, floats, 0, blob.Length);
 ```
 
-The `magnitude` column stores the pre-computed L2 norm so cosine similarity can be computed without re-computing the query embedding's magnitude on every comparison. Similarity search is a full table scan in C# — suitable for collections up to approximately 100,000 embeddings on modern hardware. Beyond that scale, a proper ANN index (HNSW, IVF) would be needed.
+The `magnitude` column holds the precomputed L2 norm for cosine similarity. `VectorStoreFactory`
+chooses `HnswVectorStore` when `EnableHnswIndex` is on (the default): the table stays the source of
+truth, and an HNSW index answers searches above `HnswFallbackThreshold` (10,000) embeddings, with a
+linear scan below that. `SqliteVecStore` always scans linearly. Details, including when the index is
+persisted and how `HnswEfSearch` works, are in
+[ARCHITECTURE.md, section 7.3](ARCHITECTURE.md#73-vector-store-implementation).
 
 ### 6.6 FTS5 Full-Text Search
 
-The FTS5 virtual table is created by `KeywordSearchService.InitializeFtsAsync()` using raw ADO.NET because EF Core does not support FTS5 virtual table creation syntax:
+`KeywordSearchService.InitializeFtsAsync()` creates the table with raw SQL, because EF Core cannot
+create FTS5 virtual tables:
 
 ```sql
-CREATE VIRTUAL TABLE IF NOT EXISTS document_chunks_fts
-USING fts5(content, chunk_id UNINDEXED, document_id UNINDEXED);
+CREATE VIRTUAL TABLE IF NOT EXISTS fts_chunks USING fts5(
+    content,
+    document_id UNINDEXED,
+    chunk_id UNINDEXED,
+    file_name UNINDEXED,
+    file_path UNINDEXED,
+    file_type UNINDEXED,
+    page_number UNINDEXED,
+    chunk_index UNINDEXED,
+    tokenize='porter unicode61'
+);
 ```
 
-The `content` column is indexed for full-text search. `chunk_id` and `document_id` are stored but not indexed (UNINDEXED). Searching uses FTS5 query syntax:
+Only `content` is indexed. A search selects from it with the filters inside the query:
 
 ```sql
-SELECT chunk_id, document_id, snippet(document_chunks_fts, 0, '[', ']', '...', 32)
-FROM document_chunks_fts
-WHERE document_chunks_fts MATCH @query
+SELECT content, document_id, chunk_id, file_name, file_path, file_type,
+       page_number, chunk_index, rank
+FROM fts_chunks
+WHERE fts_chunks MATCH @query
+  AND CAST(document_id AS INTEGER) IN
+      (SELECT DocumentId FROM document_collections WHERE CollectionId = @collectionId)
 ORDER BY rank
-LIMIT @limit;
+LIMIT @topK;
 ```
 
-FTS5 initialization failure is logged as a Warning and execution continues — keyword search will simply return no results.
+(the collection, file type and date conditions are added only when the query asks for them). An FTS5
+initialization failure is logged as a warning and startup continues; keyword search then returns no
+results.
 
 ---
 
@@ -1291,67 +1281,93 @@ FTS5 initialization failure is logged as a Warning and execution continues — k
 
 ### 7.1 Provider Architecture
 
-The provider abstraction has two levels:
+**`IAiProvider`** is the low-level contract: connection check, model listing, pull and delete,
+streaming and complete chat, and single and batch embeddings. **`IAiService`** (`AiService`) builds
+the provider set from settings, keeps the active provider and model, and adds application
+operations (`SummarizeAsync`, `GenerateTagsAsync`, `SwitchProviderAsync`, `SetActiveModelAsync`,
+`ResolveEmbeddingTarget` and others). Services and view models use `IAiService`; the status strip,
+Model Manager and the Dashboard read the active provider through it.
 
-**`IAiProvider`** — the low-level interface. Each provider wraps a specific backend (Ollama, OpenAI API, Anthropic API). Responsibilities:
-- Connection health check
-- Model listing and management (pull, delete)
-- Chat inference: streaming (`IAsyncEnumerable<string>`) and batch
-- Embedding generation: single and batch
+`AiService.InitializeAsync()` registers:
 
-**`IAiService`** — the high-level orchestrator. Responsibilities:
-- Provider lifecycle (initialization, switching)
-- Prepending system prompts to message lists
-- Ensuring the active model ID is set in `ChatOptions`
-- Application-level operations: `SummarizeAsync()`, `GenerateTagsAsync()`
+| Id | Provider | Registered when |
+|---|---|---|
+| `local` | `LocalLlmProvider` (LLamaSharp, GGUF file in `StoragePath\Models`) | Always |
+| `ollama` | `OllamaProvider` (OllamaSharp) | `OllamaEndpoint` is an absolute http(s) URL |
+| `openai` | `OpenAiProvider` | An OpenAI key is set |
+| `anthropic` | `AnthropicProvider` | An Anthropic key is set |
 
-All ViewModel and service code uses `IAiService`, never `IAiProvider` directly (except `MainWindow.UpdateStatusBarAsync()` which checks the active provider's connection).
+The active provider is `ActiveProviderId` (`"local"` by default). If it is not registered, the
+fallback is the built-in model when its file is installed, then Ollama, then whatever is registered.
 
 ### 7.2 Provider Implementations
 
-**OllamaProvider** uses OllamaSharp 4.0.x. Key implementation notes:
-
-- Connection check uses a 3-second timeout via a linked `CancellationTokenSource` to avoid hanging when Ollama is not running
-- Streaming uses `OllamaApiClient.ChatAsync()` which returns `IAsyncEnumerable<ChatResponseStream?>`
-- Batch embeddings use `EmbedRequest` with a `List<string>` input
-- The `SelectedModel` property on the client is set before embed calls
-
-**OpenAiProvider** uses raw `HttpClient` with `Authorization: Bearer {apiKey}`. Streaming parses Server-Sent Events (SSE) lines manually. The endpoint is configurable to support OpenAI-compatible APIs (e.g., LM Studio, Groq).
-
-**AnthropicProvider** uses raw `HttpClient` with `x-api-key: {apiKey}` and `anthropic-version: 2023-06-01` headers. Critical difference from OpenAI: **Anthropic requires the system prompt as a top-level `system` field in the request body**, not as a message with `role: "system"`. The `AiService.PrepareMessages()` method includes system messages as the first message in the list — the `AnthropicProvider` must extract this and move it to the top-level field when building its request payload.
-
-Additionally, Anthropic does not expose a model listing endpoint. `AnthropicProvider.ListModelsAsync()` returns a hardcoded static list of known Claude models.
+- **`LocalLlmProvider`** loads the configured GGUF file (`LocalModelFileName`, default
+  `llama-3.2-3b-instruct-q4_k_m.gguf`) with LLamaSharp on first use. `LocalGpuLayers` controls GPU
+  offload: `0` is automatic, a positive number is used as given, a negative number keeps the model
+  on the CPU. `PullModelAsync` downloads GGUF files listed in `BuiltInModelCatalog`.
+- **`OllamaProvider`** uses OllamaSharp. The connection check times out after 3 seconds, so a
+  stopped Ollama never hangs the caller. Models can be pulled and deleted.
+- **`OpenAiProvider`** uses `HttpClient` with `Authorization: Bearer` and parses server-sent events.
+  The endpoint is configurable for OpenAI-compatible servers.
+- **`AnthropicProvider`** uses `HttpClient` with `x-api-key` and `anthropic-version: 2023-06-01`. The
+  system prompt goes in the top-level `system` field, not in a message. Models come from
+  `GET /v1/models`, with a small fallback list. It has no embeddings.
 
 ### 7.3 Embedding Service
 
-`EmbeddingService` wraps the active provider's embedding calls with:
+`EmbeddingService` does not use the chat provider. `AiService.ResolveEmbeddingTarget()`
+(`EmbeddingTargetResolver`) chooses the embedding provider from the Embedding Model setting, so
+switching the chat model never changes the embedding space:
 
-- Settings lookup for the configured embedding model name (default: `all-minilm`)
-- Batching: splits large lists into groups of 32 before calling the provider
-- Dimension constant: 384 (for all-MiniLM-L6-v2)
+1. An OpenAI embedding model id (`text-embedding-*`) embeds with OpenAI.
+2. A `.gguf` file name selects the built-in provider.
+3. Any other non-default name is used as an Ollama model.
+4. The default (`all-minilm`) uses the built-in model when its file is installed, and Ollama's
+   `all-minilm` otherwise.
 
-The embedding model must be separately configured from the chat model. In Ollama, this typically means pulling `all-minilm` independently of the LLM.
+Batches use `Rag:EmbeddingBatchSize` (32 in `appsettings.json`). The vector size is learned from the
+provider's output, and every document chunk is stamped with an `EmbeddingModelVersion` of the form
+`provider:model:dimensions` (memories and messages have version columns too, but nothing writes
+them). `CachedEmbeddingService` wraps the service with a bounded LRU cache.
 
-### 7.4 Context Window Management
+### 7.4 Context Assembly
 
-`ContextWindowManager` trims conversation history to fit within the configured context window. The strategy:
+`ContextAssemblyService` builds the prompt for a chat reply within the context window minus a
+1,024-token reserve for the answer: the system prompt and the current message, selected history
+(`SemanticContextSelector`), a summary of older overflow (`ConversationCompressionService`), memory
+context, and, when budget remains, up to three passages recalled from other conversations
+(similarity 0.72 or more). If assembly fails, `ContextWindowManager` trims the oldest messages
+instead.
 
-1. Always include the system prompt if present
-2. Always include the most recent user message
-3. Fill remaining token budget with messages from most-recent to oldest
-4. Truncate message content if a single message exceeds the per-message limit
-
-Token count is approximated as `words * 1.3` (a common rough approximation).
+Token counts are estimates from `TokenEstimator` (behind `ITokenCounter`): about four characters
+per token for Latin script, and one or more tokens per character for Chinese, Japanese and Korean.
 
 ### 7.5 Conversation Memory
 
-`ConversationMemoryService` runs after each AI response (fire-and-forget) to extract memorable facts using the AI model itself. The extraction prompt instructs the model to return `category|content` pairs, one per line. Supported categories: `preference`, `fact`, `topic`, `instruction`.
-
-Extracted memories are stored in the `memories` table with an importance score (0.0–1.0) and are injected into the system prompt of future conversations to personalize responses.
+After each reply, `ChatService` extracts memories in the background (see
+[4.8](#48-async-patterns)): through `SemanticMemoryService` when it is registered, otherwise
+`ConversationMemoryService`. The basic service asks the model for `category|content` lines with the
+categories `preference`, `fact`, `topic` and `instruction`. Memories are stored in `memories` with an
+importance, a decay rate and an embedding, and relevant ones are added to later prompts. The chat's
+context inspector lists them and can delete one or all.
 
 ### 7.6 Cost Tracking
 
-`CostTracker` accumulates token counts and estimates costs based on per-provider pricing tables. This is display-only and does not affect billing. It is reset on application restart.
+Providers report token usage to `CostTracker`, which prices it from `KnownCosts` (per 1,000 tokens,
+matched by the longest model-id prefix); the built-in and Ollama models cost nothing. The history is
+saved to `usage-history.json` (90 days, at most 20,000 records, older totals carried forward), so the
+Cost Tracking totals in Settings survive restarts. The figures are estimates for display only.
+
+### 7.7 Routing and Multi-Agent Modes
+
+With Enable Auto-Routing on (Settings, Multi-Model Routing), `ModelRouterService` classifies each
+message (`TaskTypeDetector`) and picks a provider and model from the active profile (`balanced`,
+`cost-optimized` or `quality-optimized`) for that reply only.
+
+`MultiAgentOrchestrator` runs the chat's multi-agent modes: Parallel (researcher, critic and
+synthesizer) and Debate (researcher, critic and creative, two rounds). The final synthesis is
+assembled as text, without another model call. There is no tool calling.
 
 ---
 
@@ -1359,140 +1375,145 @@ Extracted memories are stored in the `memories` table with an importance score (
 
 ### 8.1 Search Architecture
 
-Three search services compose into the `HybridSearchOrchestrator`:
-
 ```
-SearchQuery (mode: Semantic | Keyword | Hybrid)
+SearchQuery (Mode: Semantic | Keyword | Hybrid)
     |
     v
 HybridSearchOrchestrator
-    |-- Semantic only --> SemanticSearchService --> IVectorStore (HNSW when enabled, SQLite linear scan fallback)
-    |-- Keyword only  --> KeywordSearchService  --> FTS5 (BM25 ranking)
-    |-- Hybrid        --> Both in parallel --> Reciprocal Rank Fusion --> merged results
+    |-- Semantic -> SemanticSearchService -> IVectorStore (HNSW index or linear scan)
+    |-- Keyword  -> KeywordSearchService  -> fts_chunks (FTS5, BM25 rank)
+    |-- Hybrid   -> both in parallel -> Reciprocal Rank Fusion -> merged results
 ```
+
+The Semantic Search page starts in Semantic mode; the RAG pipeline uses Hybrid. Results are cached
+by `SearchCacheService`, which indexing and deletion invalidate. The page has type filter chips,
+including `CalendarEvent` and `EmailMessage` for connector items.
 
 ### 8.2 Semantic Search
 
 `SemanticSearchService.SearchAsync()`:
 
-1. Embeds the query text via `IEmbeddingService.EmbedAsync()`
-2. Calls `IVectorStore.SearchAsync()` with the query embedding, `topK`, and `minSimilarity`
-3. Loads chunk and document metadata from EF Core for the returned `chunkId` set
-4. Applies collection filter (if `CollectionId` is specified in the query)
-5. Returns `SearchResult` objects with matched text, excerpts, and scores
+1. Embeds the query (`IEmbeddingService.EmbedAsync`).
+2. Searches the vector store for `TopK` results above the minimum similarity; collection, file type
+   and date scopes restrict the candidates first.
+3. Loads the chunks, documents and collection names with EF Core, skipping chunks whose
+   `EmbeddingModelVersion` differs from the current one.
+4. Returns `SearchResult` objects with the text, an excerpt around the query terms and the score.
 
 ### 8.3 Keyword Search
 
 `KeywordSearchService.SearchAsync()`:
 
-1. Escapes special FTS5 query characters in the user query
-2. Executes FTS5 `MATCH` query against `document_chunks_fts`
-3. Uses FTS5 `snippet()` function to extract highlighted excerpt context
-4. Applies collection filter via a JOIN with `document_collections`
-5. Returns `SearchResult` objects with BM25-ranked results
+1. Turns the input into a MATCH expression: every term is double-quoted, so FTS5 operators and
+   punctuation are matched as text; stop words are dropped and the remaining terms are joined with
+   `OR` (a query of stop words only requires all of them).
+2. Runs the query shown in [6.6](#66-fts5-full-text-search), with the file type, collection and date
+   filters inside the SQL.
+3. Builds each excerpt around the query words in C# (`BuildExcerpt`) and reports scores relative to
+   the best hit.
+
+A malformed MATCH expression is logged and returns no results.
 
 ### 8.4 Hybrid Search and Reciprocal Rank Fusion
 
-`HybridSearchOrchestrator` runs semantic and keyword search in parallel (`Task.WhenAll()`). Each backend receives an expanded query with `TopK * 3` results to give RRF a larger candidate pool.
-
-RRF scoring formula: for each result ranked at position `r` in list `L`:
+`HybridSearchOrchestrator` runs both searches in parallel, each asked for
+`TopK x Rag:RetrievalMultiplier` candidates (3, capped at `Rag:RetrievalCap`, 500). For each result
+at rank `r` (1-based) in a list:
 
 ```
 RRF_score += 1 / (k + r)
 ```
 
-Where `k = 60` (the standard constant from Cormack et al. 2009). Results appearing in both lists accumulate contributions from both. The final score is normalized to [0, 1] by dividing by the maximum possible RRF score (`2 / (k + 1)`).
-
-If one backend fails during hybrid search, the orchestrator gracefully degrades to single-backend results from whichever succeeded.
+with `k = 60` (Cormack, Clarke and Buettcher, 2009). A result in both lists gets both contributions.
+Scores are divided by the maximum, `2 / (k + 1)`, to fall between 0 and 1. If one backend fails, the
+other backend's results are returned.
 
 ### 8.5 RAG Pipeline
 
-`RagPipeline.AskAsync()` orchestrates the complete question-answering flow:
+`RagPipeline.AskAsync(question, collectionId, onToken, enableResearchMode)` serves Ask Your Files:
 
-**Step 1: Semantic search** — retrieves top-8 chunks with minimum similarity 0.25
+1. Multi-query expansion (`MultiQueryGenerator`, 3 variations) and HyDE for questions of 80
+   characters or more.
+2. Hybrid search for every query; results merged by chunk, keeping the best score.
+3. No results: a fixed answer, without a model call.
+4. PII redaction of the context chunks before any stage sends them to a model.
+5. `RagReranker` (near-duplicate removal, query-term boost, document diversity), then `LlmReranker`
+   when enabled and more than two chunks remain.
+6. Parent-document expansion (redacted again) and contextual compression.
+7. Research Mode web results, when requested and a web search provider is configured.
+8. The prompt, with numbered sources `[1]`, `[2]` and prompt texts from `RagPrompts.json`.
+9. The answer streams through `onToken` (temperature 0.3, at most 2,048 tokens, top-p 0.9).
+10. `CitationService.ExtractCitations` maps `[N]` to documents and pages; `RagEvaluator` scores a
+    sample of answers in the background.
 
-**Step 2: Reranking** — `RagReranker` reorders retrieved chunks using a cross-encoder style scoring that considers both semantic relevance and document freshness
-
-**Step 3: Context construction** — builds a numbered context block:
-```
-[1] source: document_name.pdf (page 3)
-chunk text here...
-
-[2] source: another_doc.docx
-more chunk text...
-```
-
-**Step 4: System prompt construction** — prepends the RAG system prompt instructing the model to answer from context only and cite sources using `[1]`, `[2]`, etc.
-
-**Step 5: Streaming inference** — streams the AI response token-by-token, calling the `onToken` callback for each token so the UI can display progressive output
-
-**Step 6: Citation extraction** — `CitationService.ExtractCitations()` scans the completed response for `[N]` patterns, resolves them to the corresponding source chunks, and populates the `Citations` list in `RagResponse`
-
-**Step 7: Return** — returns a `RagResponse` containing: answer text, list of citations, search latency, generation latency, and total latency
+Each optional stage that fails is logged and skipped. The full list, with the `Rag` options that
+control each stage, is in [ARCHITECTURE.md, section 6.5](ARCHITECTURE.md#65-search-and-rag-pipeline).
 
 ### 8.6 Indexing Pipeline
 
-When a document is imported, `IndexingService.IndexDocumentAsync()` enqueues its ID into a `Channel<long>`. The background `ProcessQueueAsync()` loop processes documents sequentially:
+`DocumentService` saves an imported document as `pending` and raises `DocumentPendingIndexing` with
+the extracted text. `IndexingService` enqueues the id in its `Channel<long>` (unbounded, single
+reader) and processes documents one at a time:
 
-1. Load document from database
-2. Set status to `processing`
-3. Find the appropriate `IDocumentProcessor` via `CanProcess()`
-4. Extract text via `processor.ProcessAsync()`
-5. Chunk via `ChunkingService.ChunkDocument()` using configured `ChunkSize` and `ChunkOverlap`
-6. Delete any existing chunks and embeddings (for re-indexing)
-7. Save new `DocumentChunkEntity` records to EF Core
-8. Generate embeddings in batches of 16 via `EmbeddingService.EmbedBatchAsync()`
-9. Store each embedding through `IVectorStore.InsertEmbeddingAsync()`
-10. Update document status to `completed`
-11. Run `AutoTagService.ApplyAutoTagsAsync()` (non-fatal)
-12. Run `KeywordSearchService.IndexDocumentChunksAsync()` to populate FTS5 (non-fatal)
+1. Checks that the vector store is ready; otherwise the document fails with the store's error.
+2. Takes the text extracted at import, or extracts again when the file changed or the handoff is
+   gone (for example after a restart).
+3. Chunks it (`ChunkingService.ChunkDocument` with the `ChunkSize` and `ChunkOverlap` settings).
+4. Removes the document's old keyword rows, vectors and chunks.
+5. Saves the new `DocumentChunkEntity` rows.
+6. Embeds them in batches of `Rag:EmbeddingBatchSize` and stores each vector
+   (`IVectorStore.InsertEmbeddingAsync`), stamping the chunk's embedding version and dimensions.
+7. Writes the keyword rows (`KeywordSearchService.IndexDocumentChunksAsync`, non-fatal).
+8. Marks the document and job `completed`.
+9. Invalidates the search cache and raises `DocumentIndexed`.
+10. Applies automatic tags (`AutoTagService.ApplyAutoTagsAsync`, non-fatal).
 
-The channel is `UnboundedChannelOptions { SingleReader = true, SingleWriter = false }` — multiple threads can enqueue, but only one processes at a time to avoid overwhelming local model inference.
+On an error the document and job are marked `failed` with the message and `DocumentIndexingFailed`
+is raised. When the queue has been empty for 30 seconds the loop picks up documents left `pending`
+by other paths, and re-embeds documents embedded before model versions were recorded.
 
 ### 8.7 Chunking Algorithm
 
-`ChunkingService` implements a recursive character text splitter:
+`ChunkingService` splits recursively:
 
-**Splitting hierarchy:**
-1. Split on `\n\n` (paragraph boundaries)
-2. If a paragraph exceeds `chunkSize` tokens, split on sentence boundaries (`. `, `! `, `? `, `.\n`)
-3. If a sentence exceeds `chunkSize` tokens, split on word boundaries (space-separated)
+1. On paragraph boundaries (`\n\n`).
+2. A paragraph above `chunkSize` tokens is split at sentence boundaries (`. `, `! `, `? `, `.\n`).
+3. A sentence still above `chunkSize` is split at word boundaries.
 
-**Token counting:** approximated as whitespace-delimited word count. This is a safe lower bound since real tokenizers produce approximately 1.3 tokens per word.
+Tokens are counted with `ITokenCounter` (see [7.4](#74-context-assembly)); the constructors without
+one, used in tests, count whitespace-separated words. The overlap repeats the last `chunkOverlap`
+tokens of a chunk at the start of the next. Text with form-feed page breaks (`\f`) is chunked page
+by page, so chunks keep their page number for citations. `AdaptiveChunkingService` classifies the
+content, and for code and tables its recommended size replaces the configured one.
 
-**Overlap:** the last `chunkOverlap` tokens from each chunk are prepended to the next chunk. This ensures no context is lost at chunk boundaries, which is important for RAG retrieval quality.
+Defaults: `ChunkSize` 512 tokens and `ChunkOverlap` 50 (Settings: Chunk Size (tokens), Chunk
+Overlap). The overlap must be smaller than the size. Re-index documents after changing either, or
+the embedding model.
 
-**Multi-page documents:** PDFs extracted with form-feed separators (`\f`) are chunked page-by-page. This preserves page number metadata in `DocumentChunkEntity.PageNumber`, which flows through to `SearchResult.PageNumber` for accurate citations.
+### 8.8 Connector Content in Search
 
-Default settings (configurable in `AppSettings`): `ChunkSize = 512` words, `ChunkOverlap = 50` words.
-
-### 8.8 Data Connector Search Integration
-
-Calendar and Email content from DataConnector plugins is integrated into the search pipeline via the **Inbox-to-Document bridge**:
+Calendar events and email messages reach search through the Smart Inbox:
 
 ```
 CalendarSyncService / EmailSyncService
     |
     v
-IInboxService.TriageExternalAsync()     -- auto-accepts, writes .txt temp file
+IInboxService.UpsertExternalAsync()      content file under the app data folder, an
+    |                                     "accepted" inbox row keyed by plugin and external id
+    v
+IDocumentService.ImportExternalContentAsync(fileTypeOverride: "CalendarEvent" or "EmailMessage")
     |
     v
-IDocumentService.ImportExternalContentAsync()  -- creates DocumentEntity with
-    |                                           semantic FileType preserved
-    v
-IndexingService                          -- chunks, embeds, FTS5 indexes
-    |
-    v
-Searchable via Semantic / Keyword / Hybrid search
+IndexingService                           chunks, embeddings, keyword rows
 ```
 
-**Key design decisions:**
-
-- `InboxItemEntity.FileType` stores the semantic type (`"CalendarEvent"`, `"EmailMessage"`)
-- `DocumentEntity.FileType` also preserves the semantic type via `ImportExternalContentAsync(fileTypeOverride: ...)`
-- The bridge is best-effort — if `IDocumentService` is unavailable, the inbox item is still created; only search indexing is skipped
-- `InboxItemEntity.DocumentId` links back to the `DocumentEntity` for cross-referencing
-- Search filter chips on `SearchPage` support `"CalendarEvent"` and `"EmailMessage"` types with appropriate icons
+- An unchanged item writes nothing; a changed one rewrites its content and re-indexes the linked
+  document.
+- An item that disappears at the source is retired with `RemoveExternalAsync`: a row with no vault
+  document is deleted, and a vault document is kept and marked as removed (a connector never deletes
+  a vault document).
+- The vault import is best effort; if it fails the inbox row still exists.
+- `InboxItemEntity.DocumentId` links the row to its document.
 
 ---
 
@@ -1500,110 +1521,103 @@ Searchable via Semantic / Keyword / Hybrid search
 
 ### 9.1 Plugin Architecture
 
-Data Connectors implement the `IPlugin` interface with `Type = PluginType.DataConnector`. They are loaded by `PluginService` and receive a scoped `IPluginContext` containing:
-
-- `IPluginContext.Services` — DI service provider (includes `IOAuthService`, `IInboxService`)
-- `IPluginContext.PluginDataPath` — per-plugin data directory for settings and delta tokens
-- `IPluginContext.Logger` — Serilog logger
-
-**Plugin lifecycle:**
+Connectors implement `IPlugin` with `Type = PluginType.DataConnector`:
 
 ```
-InitializeAsync(IPluginContext)  -- resolve dependencies, load settings
-    |
-    v
-ActivateAsync()                  -- start sync timer, register providers
-    |
-    v
-[Running: periodic sync cycles]
-    |
-    v
-DeactivateAsync()                -- stop timer, flush state
-    |
-    v
-Dispose()                        -- release resources
+InitializeAsync(IPluginContext)   read settings, resolve services
+ActivateAsync()                   start the sync timer
+[periodic sync cycles]
+DeactivateAsync()                 stop the timer
+Dispose()
 ```
+
+`IPluginContext` provides `Services` (an `IServiceProvider`), `PluginDataPath` and `Logger`. The
+built-in calendar and email connectors are run by `BuiltinConnectorLifecycleService`, which gives
+them `IOAuthService` and `IInboxService`, keeps their data in
+`%LocalAppData%\AgentX\Plugins\com.agentx.calendar\data\` and `...\com.agentx.email\data\`, and
+activates each only when Calendar sync or Email sync is on. It starts after the migration and
+stops at shutdown (15-second cap). Third-party plugins loaded by `PluginService` get only
+`IInboxService`: `IOAuthService` would hand them the user's refresh tokens.
 
 ### 9.2 OAuth2 Service
 
-`IOAuthService` provides provider-agnostic OAuth2 authorization:
+`IOAuthService` (`OAuthService`):
 
 | Method | Purpose |
 |---|---|
-| `AuthorizeAsync(providerId, scopes)` | Launch browser auth flow with CSRF state and PKCE |
-| `GetAccessTokenAsync(providerId)` | Get valid access token (auto-refreshes if expired) |
-| `RefreshTokenAsync(providerId)` | Force token refresh |
-| `RevokeAsync(providerId)` | Revoke and delete credentials |
-| `GetCredentialAsync(providerId)` | Check if a provider is connected |
+| `AuthorizeAsync(provider, scopes = null, redirectUri = null, cancellationToken)` | Browser sign-in with PKCE and a one-time state value, answered on a local loopback callback |
+| `GetAccessTokenAsync(provider)` | A valid access token, refreshed when it is within `TokenRefreshBufferMinutes` (5) of expiry |
+| `RefreshTokenAsync(provider)` | Forces a refresh |
+| `RevokeAsync(provider)` | Revokes and deletes the credential |
+| `GetCredentialAsync(provider)` | The stored credential, or null when not connected |
+| `ApplyProviderSettings(OAuthSettings)` | Applies the client ids, secrets and redirect URIs from settings |
 
-Credentials are stored in SQLite (`oauth_credentials` table) with DPAPI encryption for access/refresh tokens. The `OAuthProviderRegistry` maps provider IDs (`"google"`, `"microsoft"`) to authorization/token endpoints and scopes.
+Credentials are stored in `oauth_credentials` with the tokens DPAPI-encrypted.
+`OAuthProviderRegistry` defines the `google` and `microsoft` endpoints and scopes (read-only
+calendar and mail; Microsoft adds `offline_access` so it issues a refresh token). The client
+credentials are entered under OAuth App Credentials on the Calendar and Email pages; the default
+redirect URIs are `http://localhost:8400/oauth/callback` (Google) and
+`http://localhost:8401/oauth/callback` (Microsoft). `ApplyProviderSettings` unregisters a provider
+whose client id is empty, and connecting it then fails with `OAuthProviderNotConfiguredException`.
 
 ### 9.3 Calendar Connector
 
-**Key files:**
-
 | File | Purpose |
 |---|---|
-| `CalendarPlugin.cs` | IPlugin lifecycle, sync timer, provider registration |
-| `ICalendarProvider.cs` | Provider interface: `ListCalendarsAsync`, `GetEventsAsync` (returns delta token) |
-| `GoogleCalendarProvider.cs` | Google Calendar API v3: sync tokens, all-day events, recurring expansion |
-| `OutlookCalendarProvider.cs` | Microsoft Graph API v1.0: OData delta queries, iCalUId |
-| `CalendarSyncService.cs` | Orchestration: providers → CalendarEventProcessor → IInboxService |
-| `CalendarEventProcessor.cs` | Converts `CalEvent` → `TriageExternalAsync` parameters |
-| `ICalendarService.cs` | Service interface: `SyncCalendarsAsync`, `IsConnectedAsync` |
+| `CalendarPlugin.cs` | Plugin lifecycle, sync timer, `calendar-sync-settings.json` |
+| `ICalendarProvider.cs` | `ListCalendarsAsync`, `GetEventsAsync` with a delta token |
+| `GoogleCalendarProvider.cs` | Google Calendar API v3 |
+| `OutlookCalendarProvider.cs` | Microsoft Graph v1.0 |
+| `CalendarSyncService.cs` | Providers to `CalendarEventProcessor` to `IInboxService` |
+| `CalendarEventProcessor.cs` | Event to inbox item (`fileType` `CalendarEvent`, `sourceType` `calendar-connector`, plugin id `com.agentx.calendar`) |
 
-**Sync flow:**
+Each sync fetches events per enabled calendar with the stored delta token, upserts them, retires
+deleted events (including the stored occurrences of a deleted recurring series), and saves the
+tokens per `provider:calendarId` in `calendar-delta-tokens.json`. The external id is
+`provider:calendarId:eventId`.
 
-1. `CalendarPlugin.ExecuteSyncCycleAsync()` checks `IOAuthService.GetCredentialAsync()` for connected providers
-2. For each connected provider, calls `CalendarSyncService.SyncAsync()`
-3. `CalendarSyncService` iterates enabled calendars, fetches events via `ICalendarProvider.GetEventsAsync(deltaToken)`
-4. Events are converted by `CalendarEventProcessor` into inbox parameters (fileName, fileType="CalendarEvent", sourceType="calendar-connector", externalId=`provider:calendarId:eventId`)
-5. `IInboxService.TriageExternalAsync()` auto-accepts and bridges to the document library
-6. Delta tokens are persisted per `provider:calendarId` key in `calendar-delta-tokens.json`
-
-**Settings page:** `CalendarSettingsPage.xaml` with `CalendarSettingsViewModel` — connect/disconnect Google/Outlook, sync interval, days back, conflict resolution.
+The Calendar page offers Calendar sync, Sync interval (minutes), the past and future day range,
+Conflict resolution, Include attendee details, Include event descriptions, Save Settings and Sync
+Now.
 
 ### 9.4 Email Connector
 
-**Key files:**
-
 | File | Purpose |
 |---|---|
-| `EmailPlugin.cs` | IPlugin lifecycle, sync timer, provider registration |
-| `IEmailProvider.cs` | Provider interface: `ListFoldersAsync`, `GetMessagesAsync` (returns delta token) |
-| `GmailProvider.cs` | Gmail API v1: labels, messages (list+get), history delta sync |
-| `OutlookEmailProvider.cs` | Microsoft Graph API v1.0: mailFolders, messages/delta, OData pagination |
-| `EmailSyncService.cs` | Orchestration: providers → EmailTriageProcessor → IInboxService |
-| `EmailTriageProcessor.cs` | Converts `EmailMessage` to `TriageExternalAsync` parameters and assigns the rule-based triage category |
-| `IEmailService.cs` | Service interface: `SyncMessagesAsync`, `IsConnectedAsync` |
+| `EmailPlugin.cs` | Plugin lifecycle, sync timer, `email-sync-settings.json` |
+| `IEmailProvider.cs` | `ListFoldersAsync`, `GetMessagesAsync` with a delta token |
+| `GmailProvider.cs` | Gmail API v1 (history-based delta) |
+| `OutlookEmailProvider.cs` | Microsoft Graph v1.0 (message delta) |
+| `EmailSyncService.cs` | Providers to `EmailTriageProcessor` to `IInboxService` |
+| `EmailTriageProcessor.cs` | Message to inbox item (`fileType` `EmailMessage`, `sourceType` `email-connector`, plugin id `com.agentx.email`) and its category |
 
-**Sync flow:**
+Each sync reads only the folders selected under Folders to sync (the inbox by default), upserts the
+messages and saves the tokens per `provider:folderId` in `email-delta-tokens.json`. The external id
+is `provider:folderId:messageId`.
 
-1. `EmailPlugin.ExecuteSyncCycleAsync()` checks OAuth credentials for connected providers
-2. For each connected provider, calls `EmailSyncService.SyncAsync()`
-3. `EmailSyncService` iterates enabled folders, fetches messages via `IEmailProvider.GetMessagesAsync(deltaToken)`
-4. Messages are converted by `EmailTriageProcessor` into inbox parameters (fileName, fileType="EmailMessage", sourceType="email-connector", externalId=`provider:folderId:messageId`)
-5. `IInboxService.TriageExternalAsync()` auto-accepts and bridges to the document library
-6. Delta tokens are persisted per `provider:folderId` key in `email-delta-tokens.json`
+**Searchable text.** `EmailTriageProcessor.ExtractSearchableContent()` writes the subject, sender,
+To, Cc, date (ISO, UTC), folder, flags (starred, attachments, read), attachment names (unless
+Include attachment names in search index is off), source provider and body: the plain-text part, or
+the HTML part converted to text when there is no plain-text part (`IncludeHtmlBody`, on by default).
 
-**Email triage content:** `EmailTriageProcessor.ExtractSearchableContent()` builds a full-text representation including Subject, From (formatted), To, Cc, Date, Folder, Flags (Starred, HasAttachments), Attachment names, Source provider, and Body (text preferred, HTML fallback with `StripHtmlTags`).
-
-**Email triage category:** `EmailTriageProcessor.Classify()` gives each message one `EmailCategory` from ordered keyword and sender rules (first match wins): `ActionRequired`, `Meeting`, `Financial`, `Social`, `Promotion`, `Newsletter`, `Notification`, otherwise `Other`. The category travels as the inbox item's `sourceCategory`. It is rule-based: no model is called, and there is no AI categorization setting. `EmailSyncSettings.EnableAiCategorization` and `CategorizationPrompt` are still read from old settings files but are not applied.
-
-**Settings page:** `EmailSettingsPage.xaml` with `EmailSettingsViewModel`: connect/disconnect Gmail/Outlook, email sync on/off, sync interval, max messages per sync, days back, attachment names toggle, Sync Now.
+**Category.** `EmailTriageProcessor.Classify()` assigns one `EmailCategory` from ordered keyword
+and sender rules (first match wins): `ActionRequired`, `Meeting`, `Financial`, `Social`,
+`Promotion`, `Newsletter`, `Notification`, otherwise `Other`. It travels as the inbox item's
+`sourceCategory`. No model is called; `EmailSyncSettings.EnableAiCategorization` and
+`CategorizationPrompt` are read from older settings files but not applied.
 
 ### 9.5 External ID Format
 
-External IDs follow the pattern `{providerId}:{folderOrCalendarId}:{itemId}`:
-
-| Source | Example External ID |
+| Source | Example external id |
 |---|---|
 | Google Calendar | `google:primary:abc123` |
 | Outlook Calendar | `microsoft:AAMkAGI2AAA=:xyz789` |
 | Gmail | `google:INBOX:msg-1` |
 | Outlook Email | `microsoft:AAMkAGI2AAA=:msg-2` |
 
-Deduplication uses `ExternalId + SourcePluginId` — if a matching inbox item already exists, the duplicate is silently skipped.
+Inbox rows are keyed by source plugin id and external id, so a repeated item updates its row instead
+of adding a second one. Content file names are hashes of those ids, so provider ids never reach the
+file system.
 
 ---
 
@@ -1613,133 +1627,141 @@ Deduplication uses `ExternalId + SourcePluginId` — if a matching inbox item al
 
 | Package | Version | Purpose |
 |---|---|---|
-| xUnit | 2.9.2 | Test runner and assertions |
-| FluentAssertions | 6.12.2 | Readable assertion syntax |
-| Moq | 4.20.72 | Interface mocking |
-| coverlet.collector | 6.0.2 | Code coverage collection |
-| Microsoft.NET.Test.Sdk | 17.12.0 | Test host infrastructure |
+| xunit | 2.9.2 | Test framework |
+| xunit.runner.visualstudio | 2.8.2 | Runner |
+| Xunit.SkippableFact | 1.5.23 | Tests that skip when a prerequisite (the Playwright browser) is missing |
+| FluentAssertions | 6.12.2 | Assertions |
+| Moq | 4.20.72 | Interface mocks |
+| coverlet.collector | 6.0.2 | Coverage collection |
+| Microsoft.NET.Test.Sdk | 17.12.0 | Test host |
+| Microsoft.CodeAnalysis.CSharp | 4.5.0 | Compiles throwaway plugin assemblies in `PluginServiceTests` |
+
+The test project references `AgentX.Core` and compiles 83 `AgentX.App` source files as links (view
+models, coordinators and shell services without WinUI dependencies), because the self-contained
+WinUI project cannot be referenced directly.
 
 ### 10.2 Running Tests
 
-```bash
-# Run all tests
-dotnet test
+```powershell
+dotnet test tests/AgentX.Tests/AgentX.Tests.csproj -p:Platform=x64
 
-# Run with coverage collection
-dotnet test --collect:"XPlat Code Coverage"
+# One class or area
+dotnet test tests/AgentX.Tests/AgentX.Tests.csproj -p:Platform=x64 --filter "FullyQualifiedName~ChunkingServiceTests"
 
-# Run specific test class
-dotnet test --filter "FullyQualifiedName~ChunkingServiceTests"
-
-# Run with verbose output
-dotnet test --verbosity normal
+# Locale tool and locale snapshot tests
+dotnet test tests/LocaleAudit.Tests/LocaleAudit.Tests.csproj
 ```
 
-From Visual Studio: open Test Explorer (`Ctrl+E, T`) and run all or selected tests.
+CI (`build-test.yml`) restores, builds the tests and the app in Release x64, installs Playwright's
+Chromium, runs the suite with coverage, and applies the coverage gate
+(`scripts/check-coverage.ps1 -CoverageFile TestResults`). The tests that drive a headless browser
+need Chromium once: `pwsh tests/AgentX.Tests/bin/Release/net8.0-windows*/playwright.ps1 install chromium`
+(or the Debug folder).
+
+**Do not pass `--no-build` after editing anything in `src/AgentX.App`.** The linked App sources are
+compiled into the test assembly, so `--no-build` runs a stale copy and can report a false pass.
+
+The other CI workflows are listed in [CI.md](CI.md).
 
 ### 10.3 What to Test
 
-Focus unit tests on:
+- **Services against a real schema.** `TestDbContextFactory` (`tests/AgentX.Tests/Helpers/`) opens an
+  in-memory SQLite database, creates the schema from the model and hands out contexts that share it;
+  most data-backed service tests use it. Tests that need SQLCipher join the `SqlCipher` collection
+  (`SqlCipherFixture` calls `Batteries_V2.Init()`).
+- **Pure logic:** chunking, reciprocal rank fusion, the FTS query builder, markdown parsing, token
+  estimation, the email classifier.
+- **Vector math and storage:** cosine similarity, BLOB round trips, the HNSW index and its fallback.
+- **Processors:** extraction from small sample files.
+- **Linked view models:** command palette, Jump-To, cheatsheet, Quick Chat and others compiled into
+  the test project.
+- **Guard tests (`CodeQuality/`).** They read the sources and XAML and fail on defect classes that
+  compiled fine before: an unregistered processor or export formatter, an import picker offering an
+  unhandled type, rail and palette drift, interactive controls without an accessible name or without
+  a handler, unreachable view model commands, undefined or orphaned XAML resource keys, theme-blind
+  brushes in code-behind, spacing off the 4-pixel grid, radii off the DESIGN.md scale, banned hues,
+  `NotImplementedException` stubs, disposable view models resolved through the root provider, the
+  release scripts drifting from the app, and more.
 
-- **Pure business logic**: `ChunkingService`, `HybridSearchOrchestrator` (RRF algorithm), `MarkdownParser`, `AiService` (tag parsing, message preparation)
-- **Vector math**: `SqliteVecStore.CosineSimilarity()`, `SerializeEmbedding()`/`DeserializeEmbedding()` round-trips, plus `HnswVectorStore` indexing/fallback behavior
-- **Document processors**: text extraction from sample files
-- **Search orchestration**: correct delegation based on `SearchMode`, RRF merge correctness
-
-Integration tests (requiring a live Ollama or SQLite database) are currently minimal. Use Moq to mock `IAiService`, `IAiProvider`, `IVectorStore`, `ISettingsService`, and `AgentXDbContext` for unit tests.
+Before relying on a new test, break the code it covers and confirm that it fails.
 
 ### 10.4 Writing a Unit Test
+
+From `tests/AgentX.Tests/Documents/ChunkingServiceTests.cs`:
 
 ```csharp
 using AgentX.Core.Documents;
 using FluentAssertions;
+using Serilog;
 using Xunit;
 
 namespace AgentX.Tests.Documents;
 
-public class ChunkingServiceTests
+public sealed class ChunkingServiceTests
 {
-    private readonly ChunkingService _sut = new();
+    private static readonly ILogger Silent = new LoggerConfiguration().CreateLogger();
 
-    [Fact]
-    public void ChunkText_WithShortText_ReturnsSingleChunk()
-    {
-        // Arrange
-        var text = "This is a short text that fits in one chunk.";
-
-        // Act
-        var chunks = _sut.ChunkText(text, chunkSize: 512, chunkOverlap: 50);
-
-        // Assert
-        chunks.Should().HaveCount(1);
-        chunks[0].Content.Should().Contain("short text");
-    }
-
-    [Fact]
-    public void ChunkText_WithOverlapLargerThanChunkSize_ThrowsArgumentOutOfRange()
-    {
-        // Arrange
-        var text = "Some text content for testing.";
-
-        // Act
-        var act = () => _sut.ChunkText(text, chunkSize: 100, chunkOverlap: 100);
-
-        // Assert
-        act.Should().Throw<ArgumentOutOfRangeException>()
-            .WithMessage("*Chunk overlap must be less than chunk size*");
-    }
+    private static ChunkingService Service() => new(Silent);
 
     [Theory]
-    [InlineData(512, 50)]
-    [InlineData(256, 25)]
-    [InlineData(1024, 100)]
-    public void ChunkText_ProducesChunksWithinSizeLimit(int chunkSize, int chunkOverlap)
+    [InlineData(10, 10)]
+    [InlineData(10, 11)]
+    public void ChunkText_OverlapAtOrAboveChunkSize_Throws(int chunkSize, int overlap)
     {
-        // Arrange
-        var text = string.Join(" ", Enumerable.Repeat("word", 2000));
+        var act = () => Service().ChunkText("some text here", chunkSize, overlap);
 
-        // Act
-        var chunks = _sut.ChunkText(text, chunkSize, chunkOverlap);
+        act.Should().Throw<ArgumentOutOfRangeException>().WithParameterName("chunkOverlap");
+    }
 
-        // Assert
-        chunks.Should().AllSatisfy(chunk =>
-            chunk.TokenCount.Should().BeLessOrEqualTo(chunkSize + chunkOverlap));
+    [Fact]
+    public void ChunkText_ShortText_ProducesASingleChunk()
+    {
+        var chunks = Service().ChunkText("A short paragraph of text.", 512, 50);
+
+        chunks.Should().ContainSingle();
+        chunks[0].Content.Should().Be("A short paragraph of text.");
+        chunks[0].TokenCount.Should().Be(5);   // word count: no ITokenCounter was given
     }
 }
 ```
+
+The overlap check throws with the message "Chunk overlap must be less than chunk size to ensure
+forward progress."
 
 ### 10.5 Mocking Services
 
 ```csharp
 using AgentX.Core.AI;
+using AgentX.Core.AI.Context;
 using AgentX.Core.AI.Models;
+using AgentX.Core.Services.Chat;
+using AgentX.Core.Services.Settings;
+using FluentAssertions;
 using Moq;
+using Serilog;
+using Xunit;
 
-public class ChatServiceTests
+public sealed class ChatServiceEmptyMessageTests
 {
-    private readonly Mock<IAiService> _mockAiService = new();
-    private readonly Mock<IConversationService> _mockConversationService = new();
+    private readonly Mock<IAiService> _ai = new();
 
     [Fact]
     public async Task SendMessageAsync_WithEmptyMessage_YieldsNoTokens()
     {
-        // Arrange
-        var chatService = new ChatService(
-            _mockAiService.Object,
-            _mockConversationService.Object,
-            // ... other mocks
-        );
+        var chat = new ChatService(
+            _ai.Object,
+            Mock.Of<IConversationService>(),
+            Mock.Of<ISettingsService>(),
+            Mock.Of<IContextAssemblyService>(),
+            Mock.Of<IConversationMemoryService>(),
+            new LoggerConfiguration().CreateLogger());
 
-        // Act
         var tokens = new List<string>();
-        await foreach (var token in chatService.SendMessageAsync(1, ""))
-        {
+        await foreach (var token in chat.SendMessageAsync(1, ""))
             tokens.Add(token);
-        }
 
-        // Assert
         tokens.Should().BeEmpty();
-        _mockAiService.Verify(s => s.StreamChatAsync(
+        _ai.Verify(s => s.StreamChatAsync(
             It.IsAny<IReadOnlyList<ChatMessage>>(),
             It.IsAny<string?>(),
             It.IsAny<ChatOptions?>(),
@@ -1748,336 +1770,336 @@ public class ChatServiceTests
 }
 ```
 
+The last three `ChatService` constructor parameters (`IModelRouterService`,
+`ISemanticMemoryService`, `IConversationSummaryService`) are optional. `ChatServiceRoutingTests` and
+`ChatServiceContextAssemblyTests` in `tests/AgentX.Tests/Services/Chat/` show fuller setups.
+
 ---
 
 ## 11. Build, Publish, and Packaging
 
 ### 11.1 Development Builds
 
-```bash
-# Build all projects
-dotnet build
+```powershell
+# Whole solution
+dotnet build -p:Platform=x64
 
-# Run the application (development)
-dotnet run --project src/AgentX.App
+# Release configuration
+dotnet build -c Release -p:Platform=x64
 
-# Build in Release configuration
-dotnet build -c Release
+# Run the app
+dotnet run --project src/AgentX.App/AgentX.App.csproj -p:Platform=x64
 ```
 
-In Visual Studio: press F5 to build and run with debugger, Ctrl+F5 to run without debugger.
+Formatting is checked in CI with `dotnet format AgentX.sln --verify-no-changes` (whitespace, LF line
+endings, using order); run `dotnet format AgentX.sln` before committing.
 
 ### 11.2 Self-Contained Publish
 
-The release build produces a self-contained, single-directory publish with all .NET runtime and app dependencies bundled:
+`scripts/build-installers.ps1` publishes with:
 
-```bash
-dotnet publish src/AgentX.App/AgentX.App.csproj \
-    -c Release \
-    -r win-x64 \
-    --self-contained \
-    -o publish/win-x64
+```powershell
+dotnet publish src/AgentX.App/AgentX.App.csproj -c Release -r win-x64 --self-contained true `
+    -p:Platform=x64 -p:WindowsPackageType=None -o publish/win-x64
 ```
 
-Key project settings that control the publish behavior (in `AgentX.App.csproj`):
+Project settings behind the publish (`AgentX.App.csproj`):
 
 | Property | Value | Effect |
 |---|---|---|
-| `WindowsPackageType` | `None` | Unpackaged deployment — no MSIX |
-| `WindowsAppSDKSelfContained` | `true` | Bundles Windows App SDK runtime |
-| `PublishReadyToRun` | `true` | Pre-JIT compilation for faster startup |
-| `TargetFramework` | `net8.0-windows10.0.22621.0` | Windows 10 SDK targeting |
-| `TargetPlatformMinVersion` | `10.0.19041.0` | Minimum Windows 10 2004 (20H1) |
-
-The publish output in `publish/win-x64/` contains all binaries. The installer packages this entire directory.
+| `WindowsPackageType` | `None` | Unpackaged; no MSIX |
+| `WindowsAppSDKSelfContained` | `true` | Bundles the Windows App SDK runtime |
+| `PublishReadyToRun` | `true` | Precompiled code for faster startup |
+| `TargetFramework` | `net8.0-windows10.0.22621.0` | Windows SDK targeting |
+| `TargetPlatformMinVersion` | `10.0.19041.0` | Windows 10 version 2004 minimum |
+| `Platforms` | `x86;x64;ARM64` | The app builds for all three; the installer ships x64 |
 
 ### 11.3 Building the Installer
 
-Prerequisites:
-- Inno Setup 6 must be installed at its default path (`C:\Program Files (x86)\Inno Setup 6\`)
-- The publish output at `publish/win-x64/` must exist (run the publish step first)
+`installer/AgentX-Setup.iss` (Inno Setup 6) packages `publish\win-x64\*` in two profiles:
 
-```bash
-"C:/Program Files (x86)/Inno Setup 6/ISCC.exe" installer/AgentX-Setup.iss
-```
+- **SLIM** (default): no model; the first-run wizard offers the download.
+- **OFFLINE** (`ISCC /DAgentXOffline=1`): bundles `models\llama-3.2-3b-instruct-q4_k_m.gguf` into
+  `%LocalAppData%\AgentX\Models` (never removed by uninstall). Run `scripts/download-model.ps1` first
+  to fetch the file the app itself downloads.
 
-The installer script (`installer/AgentX-Setup.iss`) configures:
+The script sets:
 
-- **App ID**: `{B3F8A2D1-7E4C-4A9B-8F6D-1C5E3A2B9D7F}` — a stable GUID used for upgrades
-- **Installation directory**: `%ProgramFiles%\Agent-X` (user can override)
-- **Privileges**: `PrivilegesRequired=lowest` — no UAC elevation required for normal installs
-- **Architecture**: x64 only (`ArchitecturesAllowed=x64compatible`)
-- **Minimum Windows**: 10.0.18362 (Windows 10 1903)
-- **Compression**: LZMA2 ultra64
-- **Startup script**: Creates `%LocalAppData%\AgentX\{Logs,Data,Models}` directories on first install
-- **Uninstall cleanup**: Removes log files from `%LocalAppData%\AgentX\Logs\` on uninstall; leaves user data (database, settings) intact
+- **AppId** `{B3F8A2D1-7E4C-4A9B-8F6D-1C5E3A2B9D7F}` (stable across upgrades);
+- **install folder** `{autopf}\Agent-X`, with `PrivilegesRequired=lowest` (a per-user install
+  without elevation unless the user chooses otherwise);
+- **architecture** x64 only, **minimum Windows** `10.0.19041`, **compression** `lzma2/max` (solid);
+- after install, `%LocalAppData%\AgentX\Logs` and `Models` are created; a running `AgentX.App.exe`
+  is closed before files are replaced;
+- uninstall removes the log files and leaves the database, settings and models.
 
-The installer output is written to `installer-output/AgentX-Setup-{version}-x64.exe`.
+Output goes to `installer-output\AgentX-Setup-<version>-x64.exe` (OFFLINE adds `-offline`).
+`scripts/build-installers.ps1 -Profiles slim|offline|both` runs the publish (unless `-SkipPublish`)
+and the compiles, and Authenticode-signs the binaries and installers when given a certificate
+(`-RequireSign` makes an unsigned build an error); see [RELEASE-SIGNING.md](RELEASE-SIGNING.md).
+`ReleaseScriptsMatchTheAppTests` checks that the scripts sign the executable the installer ships
+and fetch the model file the app loads.
 
 ### 11.4 Version Numbering
 
-The application version is defined in `installer/AgentX-Setup.iss`:
+The version is set in two places:
 
-```
-#define MyAppVersion "1.0.0"
-```
+- `Directory.Build.props`: `Version`, `AssemblyVersion`, `FileVersion` and `InformationalVersion`
+  (2.2.0).
+- `installer/AgentX-Setup.iss`: `#define MyAppVersion "2.2.0"`.
 
-For a new release:
-1. Update the version in the `.iss` file
-2. Update `Directory.Build.props` if it contains a version property
-3. Publish the new binaries
-4. Build the installer
+For a release, update both, record the changes in `CHANGELOG.md`, then build.
 
-### 11.5 Complete Release Build Script
+### 11.5 Release Build
 
-```bash
-# 1. Build
-dotnet build -c Release
-
-# 2. Test
-dotnet test
-
-# 3. Publish (self-contained, win-x64)
-dotnet publish src/AgentX.App/AgentX.App.csproj \
-    -c Release \
-    -r win-x64 \
-    --self-contained \
-    -o publish/win-x64
-
-# 4. Build installer
-"C:/Program Files (x86)/Inno Setup 6/ISCC.exe" installer/AgentX-Setup.iss
-
-# Output: installer-output/AgentX-Setup-1.0.0-x64.exe
+```powershell
+dotnet build -c Release -p:Platform=x64
+dotnet test tests/AgentX.Tests/AgentX.Tests.csproj -c Release -p:Platform=x64
+./scripts/build-installers.ps1 -Profiles both -CertificateThumbprint <thumbprint> -RequireSign
+# Output: installer-output\AgentX-Setup-2.2.0-x64.exe and ...-x64-offline.exe
 ```
 
 ---
 
 ## 12. Troubleshooting
 
-### 11.1 Application Fails to Start
+### 12.1 Application Fails to Start
 
-**Symptom:** Application crashes immediately on launch with no window appearing.
+**Diagnostic:** the log at `%LocalAppData%\AgentX\Logs\agentx-yyyyMMdd.log`, which is created before
+the window appears.
 
-**Diagnostic:** Check the Serilog log file at `%LocalAppData%\AgentX\Logs\agentx-YYYYMMDD.log`. The log is written before the window appears.
+- **"Agent-X could not start" dialog.** The migration failed and the app stopped before loading any
+  feature. The log has a fatal entry beginning "Startup halted in migration recovery state", with
+  the missing tables when the baseline schema was incomplete. Keep a copy of
+  `%LocalAppData%\AgentX` before trying anything else.
+- **Unreadable `settings.json`.** The app does not overwrite it: it copies the file to
+  `settings.json.corrupt-<UTC timestamp>` and runs on defaults for that session. A secret that cannot
+  be decrypted (settings copied from another Windows account) is cleared and the original file is
+  kept as `settings.json.undecryptable-<UTC timestamp>`.
+- **Encrypted database.** With `encryption.info.json` present, the key is unlocked before the
+  migration; a legacy passphrase keystore asks for the passphrase first.
+- **Windows App SDK.** It is bundled with the app (self-contained); nothing needs to be installed.
 
-**Common causes:**
+### 12.2 AI Provider Not Available
 
-1. **Database permission error** — the `%LocalAppData%\AgentX\` directory cannot be created. Verify the user account has write access to `%LocalAppData%`.
+**Symptom:** the `MDL` readout shows "<provider> not available" in amber (for example "Ollama not
+available" or "Built-in LLM not available") and the `MDL` lamp holds amber.
 
-2. **Settings file corruption** — `settings.json` contains invalid JSON. Delete `%LocalAppData%\AgentX\settings.json` and restart. The application will recreate it with defaults.
+1. The Dashboard shows the hint for the active provider: "Check that the built-in model is installed
+   and that there is enough free memory to load it." or "Check that Ollama is running with a model
+   downloaded, and that its address in Settings is correct."
+2. In the log, `AI service initialized with {Provider} provider, model: {Model}` means it connected;
+   `{Provider} is not reachable. AI service initialized in offline mode.` means it did not.
+   `Preferred provider ... is not registered` means a missing API key or an invalid Ollama endpoint;
+   the app fell back to another provider.
+3. **Built-in model:** install it from the wizard, or from Model Manager while the built-in provider
+   is active; check `%LocalAppData%\AgentX\Models`.
+4. **Ollama:** run `ollama list`, and check the Endpoint under Settings, AI Providers, Ollama (Local)
+   (default `http://localhost:11434`); use Test Connection. The check gives up after 3 seconds.
 
-3. **Windows App SDK version mismatch** — ensure Windows App SDK 1.6.x is available. For the self-contained publish, this is bundled. For development builds, it is installed via NuGet automatically.
+### 12.3 Indexing Fails
 
-### 11.2 Ollama Not Detected
+**Symptom:** a document shows `failed` in the Knowledge Vault; the reason is shown with it (from
+`IndexingError`). The log has `Failed to index document {DocumentId} ({FileName})`.
 
-**Symptom:** The instrument strip shows "Ollama not detected" in amber and the `MDL` lamp holds amber.
+- **"Source file no longer exists"**: the file moved after import. Re-import it from its new
+  location.
+- **"No processor found for file type"**: nothing claims the extension (see
+  [5.3](#53-adding-a-new-document-processor)).
+- **"The vector store is not available (...)"**: the store failed to initialize (the log has "Vector
+  store failed to initialize"). Fix the cause, then use Re-index.
+- **"The speech-to-text model is not installed..."**: install it on the Model Manager page; audio
+  documents that failed for this reason are queued again automatically.
+- **Embedding errors**: the embedding provider (see [7.3](#73-embedding-service)) is not reachable or
+  the model is missing.
+- **Unreadable PDF**: encrypted or malformed files PDFsharp cannot open fail with its message.
 
-**Diagnostic steps:**
+Re-index (on a row, in the preview panel, or for several selected documents) indexes the document
+again from its original file; the Operations page can also queue a failed import again.
 
-1. Verify Ollama is running: open a terminal and run `ollama list`. If Ollama is running, this should list installed models.
-2. Verify the endpoint in Settings matches the Ollama server address (default: `http://localhost:11434`).
-3. Check the log for `Ollama connection check timed out (3s)` — this indicates the Ollama HTTP server is not responding. Restart Ollama.
-4. On first-time setup, ensure the `llama3.2` and `all-minilm` models are pulled: `ollama pull llama3.2 && ollama pull all-minilm`.
+### 12.4 Search Returns No Results
 
-### 11.3 Indexing Fails
+**Semantic search:**
 
-**Symptom:** Documents show "failed" status in the Knowledge Vault.
+1. Only `completed` documents have searchable chunks.
+2. Chunks embedded with another embedding model (a different `EmbeddingModelVersion`) are skipped.
+   After changing the Embedding Model setting, re-index the documents.
+3. On an unencrypted copy of the database, `SELECT COUNT(*) FROM vec_embeddings;` shows whether any
+   vectors were stored.
 
-**Diagnostic:** Check the log for `Failed to index document {DocumentId}`. The `IndexingError` column in the `documents` table also stores the error message.
+**Keyword search:**
 
-**Common causes:**
+1. The log should contain `FTS5 keyword search initialized`; a warning beginning "FTS5
+   initialization failed" means keyword search is off for the session.
+2. `SELECT COUNT(*) FROM fts_chunks;` shows whether keyword rows exist.
+3. Every term is matched literally (quoted); operators and wildcards are not interpreted, and a
+   query of punctuation only returns nothing.
 
-1. **Embedding model not available** — `EmbeddingService` fails if the configured embedding model is not pulled. Pull it: `ollama pull all-minilm`.
+### 12.5 Onboarding Stuck or Not Showing
 
-2. **Source file moved or deleted** — the indexing pipeline checks `File.Exists(document.FilePath)`. If the original file was moved after import, indexing will fail with `FileNotFoundException`. Re-import the file from its new location.
+- **Force onboarding:** set `"onboardingCompleted": false` in `settings.json`, or delete the file.
+- **Skip onboarding:** set `"onboardingCompleted": true`.
+- **Navigation pane hidden after onboarding:** at the next status poll (every 30 seconds) the
+  status strip handler (`OnStatusBarStateChanged` in `MainWindow.StatusTrayOnboarding.cs`) restores
+  a pane that is hidden outside onboarding and logs "Nav pane was hidden outside of onboarding -
+  restored".
 
-3. **Unsupported file format** — no `IDocumentProcessor` claims the file extension. Check `SupportedExtensions` on each processor. Add a new processor for the format if needed.
+### 12.6 Build Errors
 
-4. **PDF extraction failure** — some PDFs use encryption or exotic formats that PDFsharp cannot parse. The pipeline marks these as failed with the PDFsharp exception message.
+- **A bare `dotnet build` fails** with a `win-anycpu` runtime identifier: pass `-p:Platform=x64`.
+- **`dotnet ef` fails with the app as startup project:** use `--startup-project src/AgentX.Core`
+  (see [6.3](#63-schema-migrations)).
+- **Tests pass but the change is not in them:** the test run used `--no-build` after an App edit.
+  Build again.
+- **Playwright tests skip or fail to start:** install Chromium (see [10.2](#102-running-tests)).
+- **Inno Setup "Source file not found":** publish to `publish\win-x64` first, or run
+  `scripts/build-installers.ps1`; an OFFLINE build also needs the model in `models\`.
+- **`dotnet format` fails in CI:** run `dotnet format AgentX.sln` and commit the result.
 
-### 11.4 Search Returns No Results
+### 12.7 Log Files
 
-**Symptom:** Semantic or keyword search returns 0 results even for obvious queries.
+Logs are written to `%LocalAppData%\AgentX\Logs\agentx-yyyyMMdd.log`, one file per day, the last 7
+kept, at `Debug` level and above, in the format
+`{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {Message:lj}`. Levels appear as `[DBG]`, `[INF]`,
+`[WRN]`, `[ERR]` and `[FTL]`.
 
-**Semantic search diagnostic:**
-
-1. Check the indexing status — documents must have `indexing_status = 'completed'` before their chunks appear in search results.
-2. Verify the embedding model used for indexing matches the one used for querying. If you change `EmbeddingModel` in settings after indexing, you must re-index all documents.
-3. Check `vec_embeddings` count: `SELECT COUNT(*) FROM vec_embeddings;` — if 0, embeddings were not generated.
-
-**Keyword search diagnostic:**
-
-1. Check FTS5 initialization in the log — look for `FTS5 keyword search initialized`.
-2. Check `document_chunks_fts` count: `SELECT COUNT(*) FROM document_chunks_fts;` — if 0, FTS5 indexing did not run.
-3. Try a simpler query — FTS5 supports basic boolean operators. Special characters may need to be escaped.
-
-### 11.5 Onboarding Stuck or Not Showing
-
-**Symptom:** The application always shows onboarding, or never shows it.
-
-**To force onboarding:** Delete `%LocalAppData%\AgentX\settings.json`.
-
-**To skip onboarding:** Edit `%LocalAppData%\AgentX\settings.json` and set `"onboardingCompleted": true`.
-
-**Navigation pane stuck hidden:** If the navigation pane is not visible after onboarding completes, the `MainWindow.UpdateStatusBarAsync()` safety net should restore it on the next 30-second poll. Alternatively, restart the application.
-
-### 11.6 Build Errors
-
-**`The type or namespace 'WinRT' could not be found`**
-
-Ensure the `Microsoft.WindowsAppSDK` NuGet package is restored. Run `dotnet restore` and rebuild.
-
-**`NETSDK1179: One of assets or runtimepack must be specified`**
-
-This occurs when targeting `net8.0-windows` without a `RuntimeIdentifier`. The self-contained publish explicitly sets `-r win-x64`. For development builds, this error should not appear if the project is opened in Visual Studio with the correct workloads.
-
-**Inno Setup: `Source file not found`**
-
-Run the publish step (`dotnet publish`) before building the installer. The `.iss` file sources files from `publish\win-x64\*`.
-
-### 11.7 Log File Locations and Interpretation
-
-Logs are written to `%LocalAppData%\AgentX\Logs\agentx-YYYYMMDD.log`. Log level is `Debug` in development.
-
-| Log prefix | Meaning |
-|---|---|
-| `[DBG]` | Debug-level diagnostic information |
-| `[INF]` | Normal operational events |
-| `[WRN]` | Non-fatal issues (degraded functionality) |
-| `[ERR]` | Errors that affect a specific operation |
-| `[FTL]` | Fatal errors that crash the application |
-
-Key startup log events to look for:
+Startup lines to look for:
 
 ```
 Agent-X logging initialized at {LogPath}
-Database initialized at {Path}
+Localization initialized: {Language}
+Migration runner: db={DbPath} created={Created} applied={Applied} alreadyApplied={AlreadyApplied}
 FTS5 keyword search initialized
 AI service initialized with {Provider} provider, model: {Model}
+Theme initialized: {Theme}
+Plugins activated: {Activated}; failed: {Failed}
+Indexing pipeline started
 Agent-X started successfully
 ```
 
-If any of these are missing, look at the preceding `[ERR]` or `[FTL]` lines for the root cause.
+The lines from the migration on come from `InitializeCoreServicesAsync` in this order. "Agent-X
+started successfully" is written when `OnLaunched` returns, which does not wait for that
+initialization, so it can appear anywhere among those lines. If an expected line is missing, read
+the `[WRN]`, `[ERR]` or `[FTL]` lines around it.
 
 ---
 
 ## 13. Code Style Guidelines
 
-### 12.1 General Principles
+### 13.1 General Principles
 
-- Every public type and member has an XML doc comment (`/// <summary>`)
-- Private helper methods have summary comments explaining their purpose and any non-obvious behavior
-- Constants have comments explaining their origin (e.g., the RRF `k = 60` constant cites the original paper)
-- Magic numbers are always named constants, never inline literals
+- Give public types and members an XML doc comment (`/// <summary>`), and explain non-obvious
+  behavior, and why, in private helpers.
+- Prefer named constants to inline literals, with a comment on where a value comes from (the RRF
+  `k = 60` cites its paper).
+- Plain ASCII in documentation and code comments: no em dashes, no decorative glyphs.
+- A feature is done when it is reachable from an entry point, not when it compiles.
 
-### 12.2 C# Language Conventions
+### 13.2 C# Language Conventions
 
-**Namespace declarations:** File-scoped namespaces (`namespace Foo;`) throughout the codebase.
+`.editorconfig` and the `dotnet format` gate set the basics: four-space indentation, LF line endings,
+file-scoped namespaces, `using` directives outside the namespace with `System` first, and `var` when
+the type is apparent.
 
-**Primary constructors:** Used sparingly. Constructor injection with explicit `this.field = param ?? throw new ArgumentNullException(nameof(param))` validation is preferred for service classes.
+**Constructor validation** in services:
 
-**Null handling:**
 ```csharp
-// Argument validation in service constructors
 _service = service ?? throw new ArgumentNullException(nameof(service));
-
-// Null-conditional and null-coalescing
-var name = entity?.Name ?? "Unknown";
-
-// Null-forgiving operator only when logically certain
-var result = maybeNull!.Value; // Add a comment explaining why it cannot be null
 ```
 
-**Pattern matching:** Preferred over type casting and `is` checks:
+**Pattern matching** over casts:
+
 ```csharp
-// Preferred
 if (args.SelectedItemContainer is NavigationViewItem selectedItem)
 {
     var tag = selectedItem.Tag?.ToString();
 }
-
-// Avoid
-var selectedItem = args.SelectedItemContainer as NavigationViewItem;
-if (selectedItem != null)
-{
-    var tag = selectedItem.Tag?.ToString();
-}
 ```
 
-**Switch expressions:** Used for multi-branch returns:
+**Switch expressions** for multi-branch values:
+
 ```csharp
 var defaultModel = providerId.ToLowerInvariant() switch
 {
-    "openai"    => settings.OpenAiDefaultModel ?? "gpt-4o-mini",
-    "anthropic" => settings.AnthropicDefaultModel ?? AnthropicProvider.DefaultModelId,
-    _           => settings.DefaultModel
+    "openai"    => Or(settings?.OpenAiDefaultModel, OpenAiProvider.DefaultModelId),
+    "anthropic" => Or(settings?.AnthropicDefaultModel, AnthropicProvider.DefaultModelId),
+    _           => Or(settings?.DefaultModel, "llama3.2")
 };
 ```
 
-### 12.3 Async Conventions
+Use the null-forgiving operator only when the value cannot be null, with a comment saying why.
 
-- All async methods end in `Async` and accept `CancellationToken ct = default`
-- `ConfigureAwait(false)` on every `await` in `AgentX.Core` (library code, no UI context)
-- `ConfigureAwait(false)` omitted in `AgentX.App` ViewModels (must marshal to UI thread)
-- `async void` is used only in WinUI event handlers and `OnNavigatedTo` overrides
-- Never use `Task.Result` or `.Wait()` — use `await` or fire-and-forget with explicit error handling
+### 13.3 Async Conventions
 
-### 12.4 Logging Conventions
+- Async methods end in `Async` and accept `CancellationToken ct = default` last.
+- `ConfigureAwait(false)` in `AgentX.Core`; not in view models, which must return to the UI thread.
+- `async void` only for event handlers (and `App.InitializeCoreServicesAsync`, which nothing can
+  await).
+- No `.Result` or `.Wait()` on the UI thread; await, or run the work in the background with its own
+  error handling.
 
-Use structured logging with named parameters throughout:
+### 13.4 Logging Conventions
+
+Use message templates with named properties:
 
 ```csharp
-// Correct — named parameters create searchable structured data
+// Structured: the properties are searchable
 _logger.Information("Indexed document {DocumentId} ({FileName}): {ChunkCount} chunks in {ElapsedMs:F0}ms",
     documentId, document.FileName, chunkEntities.Count, elapsed);
 
-// Avoid — string interpolation creates unstructured plain text
-_logger.Information($"Indexed document {documentId} ({document.FileName})");
+// Avoid: interpolation produces plain text
+_logger.Information($"Indexed document {documentId}");
 ```
 
-Log level guidelines:
-
-| Level | When to use |
+| Level | When |
 |---|---|
-| `Debug` | Per-request diagnostics, counts, paths |
-| `Information` | Service lifecycle events, successful operations |
-| `Warning` | Non-fatal degraded functionality, recoverable errors |
-| `Error` | Operation failed, user-visible failure |
-| `Fatal` | Application cannot continue |
+| `Debug` | Per-request detail, counts, paths |
+| `Information` | Lifecycle events, completed operations |
+| `Warning` | Degraded but working, recoverable errors |
+| `Error` | An operation failed |
+| `Fatal` | The app cannot continue |
 
-Truncate user-generated content before logging to avoid log file bloat:
+Logs name files and show shortened queries; do not log document text, prompts in full, API keys or
+tokens. Shorten user text before logging it:
 
 ```csharp
 _logger.Debug("Streaming chat: {MessagePreview}",
     userContent.Length > 50 ? userContent[..50] + "..." : userContent);
 ```
 
-### 12.5 File Organization
+The logger is flushed and closed only at shutdown; `LoggerIsFlushedOnlyAtShutdownTests` guards this.
 
-Each file contains exactly one primary type. Closely related secondary types (item classes, enums used exclusively within a class) may be placed in the same file. The `ChatViewModel.cs` file demonstrates this with `ChatMessageItem`, `ConversationListItem`, and `SystemPromptItem` defined at the bottom of the file.
+### 13.5 File Organization
 
-Interface and implementation files are kept adjacent. For `IMyService.cs` and `MyService.cs`, place both in the same directory.
+One primary type per file; small types used only by it (an enum, a result record) may share the
+file. Chat's list items (`ChatMessageItem`, `ConversationListItem`, `SystemPromptItem`) have their
+own files next to `ChatViewModel`. Interfaces sit next to their implementations.
 
-### 12.6 XAML Conventions
+### 13.6 XAML Conventions
 
-- All `x:Name` attributes use PascalCase: `SearchInput`, `ResultsPanel`
-- Binding paths match ViewModel property names exactly
-- Resource keys in `Styles/` use PascalCase: `TextPrimaryBrush`, `AccentPrimaryBrush`
-- Font icon glyphs use Unicode escape: `&#xE8BD;` in XAML or `"\uE8BD"` in code
-- Visual decisions (colors, fonts, spacing, depth, status semantics) anchor to [`DESIGN.md`](../DESIGN.md) at the repository root - read it before any UI work. Brushes are consumed via `ThemeResource` so all three themes resolve; a `ThemeResource` key must exist in every theme dictionary or the app crashes at parse time. The high-contrast theme stays bound to `SystemColor*` tokens and is exempt from the hardware skin.
+- **Read [DESIGN.md](../DESIGN.md) before any UI work.** It defines the Command Console design:
+  colors, type, spacing, depth recipes and lamp semantics. Guard tests enforce parts of it (4-pixel
+  spacing grid, the radius scale, banned hues).
+- `x:Name` in PascalCase; binding paths match view model property names; resource keys in `Styles/`
+  in PascalCase (`TextPrimaryBrush`).
+- Brushes come from `ThemeResource`, so the Default, Light and HighContrast theme dictionaries all
+  resolve; a key used as a `ThemeResource` must exist in each. HighContrast stays bound to
+  `SystemColor*` tokens and is exempt from the hardware skin.
+- In code-behind, resolve theme-varying brushes with `ThemeResources.Brush(key)`, not
+  `Application.Current.Resources[key]`, which ignores the theme applied to the window root.
+- Every user-visible text has an `x:Uid`; every interactive control has an accessible name and a
+  handler or command.
+- Font icons use escapes: `&#xE8BD;` in XAML, `"\uE8BD"` in C#.
 
-### 12.7 Interface Design
+### 13.7 Interface Design
 
-All services expose an interface. The interface lives in the same directory as the implementation. Interface methods:
+- `Task`-returning async members, with `CancellationToken ct = default` last.
+- `IReadOnlyList<T>` for returned collections callers must not change.
+- Concrete parameter types unless polymorphism is needed.
 
-- Are defined with `Task` return types for all async operations
-- Accept `CancellationToken ct = default` as the last parameter
-- Use `IReadOnlyList<T>` for output collections that callers should not modify
-- Use concrete types for input parameters (not interfaces) unless polymorphism is needed
+### 13.8 Disposable Resources
 
-### 12.8 Disposable Resources
-
-Services that hold disposable resources (`HttpClient`, `SqliteConnection`, provider instances) implement `IDisposable`. The pattern:
+Services that own `HttpClient`, connections, timers or provider instances implement `IDisposable`:
 
 ```csharp
 public sealed class MyService : IMyService, IDisposable
@@ -2088,97 +2110,70 @@ public sealed class MyService : IMyService, IDisposable
     {
         if (_disposed) return;
         _disposed = true;
-
-        // Release managed resources here
-
-        _logger.Debug("MyService disposed");
+        // Release resources here.
     }
 
-    private void ThrowIfDisposed()
-    {
-        if (_disposed) throw new ObjectDisposedException(nameof(MyService));
-    }
+    private void ThrowIfDisposed() => ObjectDisposedException.ThrowIf(_disposed, this);
 }
 ```
 
-Services registered as Singletons are disposed by the `IHost` when the application shuts down.
+The host disposes singletons at shutdown. Page view models created with `PageViewModelFactory` are
+not disposed by anyone, by design: their `Dispose` methods only log or cancel work that should keep
+running when the page is left.
 
-### 12.9 Adding or changing localized strings
+### 13.9 Localized Strings
 
-All user-visible text must flow through the localization pipeline. There are two valid call sites:
+All user-visible text goes through the localization pipeline, in all six locales: `en-US` (the
+source), `de`, `es`, `fr`, `ja` and `zh-CN` (`src/AgentX.App/Strings/<locale>/Resources.resw`).
 
-**1. XAML via `x:Uid`** — preferred when the element lives in markup and has a localizable `Content`, `Text`, `Header`, `PlaceholderText`, or tooltip property.
+**XAML: `x:Uid`.** The resource name is the uid plus the property:
 
 ```xml
-<Button x:Uid="MyNewButton" />
+<Button x:Uid="ReadingList_Refresh" Content="Refresh" />
 ```
 
-Add entries to **every** `Strings/<locale>/Resources.resw` file. Start with `Strings/en-US/Resources.resw` (canonical, authoritative):
-
 ```xml
-<data name="MyNewButton.Content" xml:space="preserve">
-  <value>My Button</value>
+<data name="ReadingList_Refresh.Content" xml:space="preserve">
+  <value>Refresh</value>
 </data>
 ```
 
-Then add translated entries to `Strings/{de,es,fr,ja,zh-CN}/Resources.resw`. Keep entries alphabetically sorted by `name` to minimize merge conflicts.
-
-**2. C# via `ILocalizationService.GetString(key)`** — required when the string is produced programmatically (nav menu items, status bar text, toast messages, dialog titles). Keys are flat (no dot) by convention.
-
-```csharp
-var title = _localization.GetString("Dialog_ConfirmDelete_Title");
-```
-
-Add matching resw entries whose `name` is the exact key (no property suffix):
-
-```xml
-<data name="Dialog_ConfirmDelete_Title" xml:space="preserve">
-  <value>Delete this conversation?</value>
-</data>
-```
-
-**Pluralization.** Use `_one` / `_other` suffixes and call `FormatPlural`:
-
-```xml
-<data name="DocumentsImported_one"><value>Imported {0} document</value></data>
-<data name="DocumentsImported_other"><value>Imported {0} documents</value></data>
-```
+**C#: `ILocalizationService.GetString(key)`**, for text produced in code (status text, dialogs,
+notifications, shortcut labels). The resource name is the key itself:
 
 ```csharp
-var status = _localization.FormatPlural("DocumentsImported", count, count);
+var title = _localization.GetString("Startup_FailedTitle");
+var status = _localization.GetString("Provider_NotAvailable", providerName);   // with format args
 ```
 
-Locale-specific plural categories (e.g., Arabic `zero` / `two` / `few` / `many`) are supported via `CldrPluralRuleProvider`. Missing categories fall back to `_other`.
+**Plurals.** Define `<key>_one` and `<key>_other` (and other CLDR categories where a language needs
+them) and call `FormatPlural(baseKey, count, args)`; a missing category falls back to `_other`
+(`CldrPluralRuleProvider`).
 
-**Pre-push check.** Run the locale audit locally before opening a PR:
+**Checks:**
 
-```bash
-dotnet run --project tools/LocaleAudit/LocaleAudit.Tool.csproj -- \
-  src/AgentX.App \
-  src \
-  src/AgentX.App/Strings \
-  --fail-below 98
-```
+- `tools/LocaleAudit` computes coverage per locale:
 
-Exit code 0 = all locales ≥ 98% covered, no orphans created. Exit code 1 = gate violation — fix the reported missing keys before pushing.
+  ```powershell
+  dotnet run --project tools/LocaleAudit/LocaleAudit.Tool.csproj -- src/AgentX.App src src/AgentX.App/Strings --fail-below 98
+  ```
 
-**CI gate.** `.github/workflows/locale-audit.yml` runs the same check on every PR plus the `LocaleAudit.Tests` suite (extractors + coverage report + `PerPageLocaleSnapshotTests`). PRs that drop any locale below 98% or leave orphan entries are blocked.
+  It exits 1 when a locale is below the threshold (2 for bad arguments, 3 when the audit itself
+  fails) and writes `audit-report.json` (or the `--output` path).
+- `LocaleAudit.Tests` fails when any locale has an orphan entry (a key nothing references), a
+  blank value, a different key set from `en-US`, or coverage below 98%.
+- `scripts/translations/<locale>.json` is the legacy translation record read by
+  `inject-translations.py`. When a string is removed, remove it there too:
+  `LegacyTranslationMirrorTests` fails when a mirror keeps a key the resw files no longer define.
 
-**Never hard-code user-visible strings.** A quick sniff test on a draft PR: `grep -n '"\w.*\w"' src/AgentX.App/Views/*.xaml.cs` — any user-visible literal is a bug that should route through `ILocalizationService` or XAML `x:Uid` instead.
+`.github/workflows/locale-audit.yml` runs the audit and `LocaleAudit.Tests` on pull requests and on
+pushes to `main`.
 
-### Adding Keyboard Shortcuts
+### 13.10 Keyboard Shortcuts
 
-To add a new global shortcut, add a descriptor in `ShortcutCatalog.SeedDefaults()`. To add a page-scoped shortcut, call `RegisterPageShortcuts(registry, scopeName, descriptors)` in your page's `OnNavigatedTo` handler and `UnregisterScope(scopeName)` in `OnNavigatedFrom`.
-
-Each `ShortcutDescriptor` requires:
-- `Chord` — the key combination (e.g., `KeyChord.From("Ctrl+Shift+P")`)
-- `Scope` — `ShortcutScope.Global` or `ShortcutScope.Page("PageName")`
-- `Label` — human-readable name (localized via Resources.resw)
-- `Category` — grouping for cheatsheet display
-- `Handler` — `Func<Task>` to execute when triggered
-
-Shortcut labels must be added to all 6 locale `.resw` files. The locale coverage gate enforces >=98% parity.
+See [5.5](#55-adding-a-keyboard-shortcut).
 
 ---
 
-*This developer guide reflects the Agent-X codebase as of version 1.0.0 (February 2026). For architecture decisions and high-level system design, refer to `docs/ARCHITECTURE.md`. For the public API reference, refer to `docs/API-REFERENCE.md`.*
+*This guide describes the Agent-X code as of version 2.2.0 (September 2026). For the system design
+see [ARCHITECTURE.md](ARCHITECTURE.md); for the public API see [API-REFERENCE.md](API-REFERENCE.md).*
