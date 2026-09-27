@@ -24,6 +24,7 @@ public partial class SettingsViewModel : ObservableObject
     private readonly IModelRouterService? _modelRouterService;
     private readonly IEncryptionStateFile _encryptionStateFile;
     private readonly IApiHostLifecycleService _apiHostLifecycle;
+    private readonly ILocalizationService _localization;
     private readonly IDatabaseEncryptionManager? _databaseEncryptionManager;
     private bool _encryptionChangeInFlight;
 
@@ -67,6 +68,10 @@ public partial class SettingsViewModel : ObservableObject
     // ── Appearance ──────────────────────────────────────────
     [ObservableProperty] private bool _compactMode;
     [ObservableProperty] private int _themeIndex;
+
+    // Index into LanguageOptions: 0 follows Windows, then SupportedLanguages in order.
+    [ObservableProperty] private int _languageIndex;
+    private bool _loadingLanguage;
 
     // ── Cost Tracking ────────────────────────────────────────
     [ObservableProperty] private string _totalCostDisplay = "$0.00";
@@ -135,6 +140,11 @@ public partial class SettingsViewModel : ObservableObject
     public List<string> ThemeOptions { get; } = new() { "Dark", "Light", "System Default" };
 
     /// <summary>
+    /// UI language choices: "Windows default" first, then each shipped language in its own name.
+    /// </summary>
+    public List<string> LanguageOptions { get; }
+
+    /// <summary>
     /// Routing profile display names for the ComboBox. Order must match RoutingProfileIndexToId.
     /// </summary>
     public List<string> RoutingProfileOptions { get; } = RoutingProfile.AllDefaults
@@ -162,6 +172,9 @@ public partial class SettingsViewModel : ObservableObject
         _apiHostLifecycle = apiHostLifecycle;
         _modelRouterService = modelRouterService;
         _databaseEncryptionManager = databaseEncryptionManager;
+        _localization = localization;
+        LanguageOptions = new List<string> { localization.GetString("Settings_LanguageWindowsDefault") };
+        LanguageOptions.AddRange(localization.SupportedLanguages.Select(l => l.NativeName));
         WatchFolders = new WatchFolderSettingsViewModel(fileWatcherService, settingsService, localization);
 
         StoragePath = Path.Combine(
@@ -234,6 +247,11 @@ public partial class SettingsViewModel : ObservableObject
             Microsoft.UI.Xaml.ElementTheme.Light => 1,
             _ => 2
         };
+
+        // Load the saved UI language without saving it straight back
+        _loadingLanguage = true;
+        LanguageIndex = IndexOfLanguage(settings?.LanguageOverride);
+        _loadingLanguage = false;
 
         // Load security status
         AreKeysEncrypted = _securityStatusService.AreKeysEncrypted;
@@ -561,6 +579,56 @@ public partial class SettingsViewModel : ObservableObject
             _ => Microsoft.UI.Xaml.ElementTheme.Default
         };
         _ = _themeService.SetThemeAsync(theme);
+    }
+
+    /// <summary>
+    /// Saves the picked UI language. Resources loaded from now on use it; the shell and pages
+    /// already built switch on the next launch, which the caption under the picker explains.
+    /// </summary>
+    partial void OnLanguageIndexChanged(int value)
+    {
+        if (_loadingLanguage)
+        {
+            return;
+        }
+
+        _ = ApplyLanguageAsync(value > 0 && value <= _localization.SupportedLanguages.Count
+            ? _localization.SupportedLanguages[value - 1].Code
+            : null);
+    }
+
+    private async Task ApplyLanguageAsync(string? languageCode)
+    {
+        try
+        {
+            HasSaveError = false;
+            await _localization.SetLanguageAsync(languageCode);
+        }
+        catch (Exception ex)
+        {
+            SaveErrorMessage = ex.Message;
+            HasSaveError = true;
+            Log.Warning(ex, "Could not save the UI language {Language}", languageCode);
+        }
+    }
+
+    private int IndexOfLanguage(string? languageCode)
+    {
+        if (string.IsNullOrWhiteSpace(languageCode))
+        {
+            return 0;
+        }
+
+        var languages = _localization.SupportedLanguages;
+        for (var i = 0; i < languages.Count; i++)
+        {
+            if (string.Equals(languages[i].Code, languageCode, StringComparison.OrdinalIgnoreCase))
+            {
+                return i + 1;
+            }
+        }
+
+        return 0;
     }
 
     /// <summary>

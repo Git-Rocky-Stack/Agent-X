@@ -13,6 +13,10 @@ public class AppSettings
     // keys by AppSettings property name, so ThemeService must use "Theme".
     public string Theme { get; set; } = "Dark";
 
+    // UI language picked in Settings ("en-US", "de", "es", "fr", "ja" or "zh-CN"). Null follows
+    // the Windows display language. Applied at startup, before the shell is built.
+    public string? LanguageOverride { get; set; }
+
     // AI Provider — Active selection ("local", "ollama", "openai", "anthropic")
     public string ActiveProviderId { get; set; } = "local";
 

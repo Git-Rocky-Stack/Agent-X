@@ -2210,4 +2210,8 @@
   <data name="Settings_WatchFolderRemoveFailed" xml:space="preserve"><value>The folder could not be removed: {0}</value></data>
   <data name="Settings_WatchFolderWithSubfolders" xml:space="preserve"><value>Includes subfolders. Files imported: {0}</value></data>
   <data name="Settings_WatchFolderTopLevelOnly" xml:space="preserve"><value>This folder only. Files imported: {0}</value></data>
+  <data name="Settings_Language.Text" xml:space="preserve"><value>Language</value></data>
+  <data name="Settings_LanguagePicker.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Display language</value></data>
+  <data name="Settings_LanguageWindowsDefault" xml:space="preserve"><value>Windows default</value></data>
+  <data name="Settings_LanguageRestartHint.Text" xml:space="preserve"><value>Saved immediately. Restart Agent-X to see every page in the new language. 'Windows default' follows your Windows display language.</value></data>
 </root>

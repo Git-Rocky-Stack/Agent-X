@@ -2100,4 +2100,8 @@
   <data name="Settings_WatchFolderRemoveFailed" xml:space="preserve"><value>Impossible de supprimer le dossier : {0}</value></data>
   <data name="Settings_WatchFolderWithSubfolders" xml:space="preserve"><value>Sous-dossiers inclus. Fichiers importés : {0}</value></data>
   <data name="Settings_WatchFolderTopLevelOnly" xml:space="preserve"><value>Ce dossier uniquement. Fichiers importés : {0}</value></data>
+  <data name="Settings_Language.Text" xml:space="preserve"><value>Langue</value></data>
+  <data name="Settings_LanguagePicker.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Langue d'affichage</value></data>
+  <data name="Settings_LanguageWindowsDefault" xml:space="preserve"><value>Valeur par défaut de Windows</value></data>
+  <data name="Settings_LanguageRestartHint.Text" xml:space="preserve"><value>Enregistré immédiatement. Redémarrez Agent-X pour afficher toutes les pages dans la nouvelle langue. « Valeur par défaut de Windows » suit la langue d'affichage de Windows.</value></data>
 </root>

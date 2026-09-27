@@ -2100,4 +2100,8 @@
   <data name="Settings_WatchFolderRemoveFailed" xml:space="preserve"><value>No se pudo quitar la carpeta: {0}</value></data>
   <data name="Settings_WatchFolderWithSubfolders" xml:space="preserve"><value>Incluye subcarpetas. Archivos importados: {0}</value></data>
   <data name="Settings_WatchFolderTopLevelOnly" xml:space="preserve"><value>Solo esta carpeta. Archivos importados: {0}</value></data>
+  <data name="Settings_Language.Text" xml:space="preserve"><value>Idioma</value></data>
+  <data name="Settings_LanguagePicker.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Idioma de la interfaz</value></data>
+  <data name="Settings_LanguageWindowsDefault" xml:space="preserve"><value>Predeterminado de Windows</value></data>
+  <data name="Settings_LanguageRestartHint.Text" xml:space="preserve"><value>Se guarda de inmediato. Reinicie Agent-X para ver todas las páginas en el nuevo idioma. 'Predeterminado de Windows' sigue el idioma de visualización de Windows.</value></data>
 </root>

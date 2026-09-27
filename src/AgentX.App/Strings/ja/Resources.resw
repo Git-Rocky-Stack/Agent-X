@@ -2100,4 +2100,8 @@
   <data name="Settings_WatchFolderRemoveFailed" xml:space="preserve"><value>フォルダーを削除できませんでした: {0}</value></data>
   <data name="Settings_WatchFolderWithSubfolders" xml:space="preserve"><value>サブフォルダーを含む。インポートしたファイル: {0}</value></data>
   <data name="Settings_WatchFolderTopLevelOnly" xml:space="preserve"><value>このフォルダーのみ。インポートしたファイル: {0}</value></data>
+  <data name="Settings_Language.Text" xml:space="preserve"><value>言語</value></data>
+  <data name="Settings_LanguagePicker.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>表示言語</value></data>
+  <data name="Settings_LanguageWindowsDefault" xml:space="preserve"><value>Windows の既定値</value></data>
+  <data name="Settings_LanguageRestartHint.Text" xml:space="preserve"><value>すぐに保存されます。すべてのページを新しい言語で表示するには、Agent-X を再起動してください。「Windows の既定値」は Windows の表示言語に従います。</value></data>
 </root>

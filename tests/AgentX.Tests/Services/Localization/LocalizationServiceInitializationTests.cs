@@ -78,11 +78,46 @@ public sealed class LocalizationServiceInitializationTests
         sut.GetString("Palette_Actions").Should().Be("Palette_Actions");
     }
 
+    [Fact]
+    public async Task SetLanguageAsync_SavesTheChoiceSoTheNextLaunchAppliesIt()
+    {
+        // The choice used to be written only when the settings object was an
+        // AppSettingsExtended, which the settings service never returns.
+        var saved = new AppSettings();
+        var settings = new Mock<ISettingsService>();
+        settings.Setup(s => s.GetSettingsAsync()).ReturnsAsync(saved);
+        var loader = new RecordingResourceLoader();
+        var sut = new LocalizationService(settings.Object, new CldrPluralRuleProvider(), loader);
+
+        await sut.SetLanguageAsync("de");
+
+        settings.Verify(s => s.SaveSettingsAsync(It.Is<AppSettings>(a => a.LanguageOverride == "de")), Times.Once);
+        sut.CurrentLanguage.Should().Be("de");
+
+        var nextLaunch = new LocalizationService(SettingsWithOverride(saved.LanguageOverride), new CldrPluralRuleProvider(), new RecordingResourceLoader());
+        await nextLaunch.InitializeAsync();
+        nextLaunch.CurrentLanguage.Should().Be("de");
+    }
+
+    [Fact]
+    public async Task SetLanguageAsync_WithNoLanguage_ClearsTheSavedChoice()
+    {
+        var saved = new AppSettings { LanguageOverride = "ja" };
+        var settings = new Mock<ISettingsService>();
+        settings.Setup(s => s.GetSettingsAsync()).ReturnsAsync(saved);
+        var sut = new LocalizationService(settings.Object, new CldrPluralRuleProvider(), new RecordingResourceLoader());
+
+        await sut.SetLanguageAsync(null);
+
+        saved.LanguageOverride.Should().BeNull();
+        settings.Verify(s => s.SaveSettingsAsync(saved), Times.Once);
+    }
+
     private static ISettingsService SettingsWithOverride(string? languageOverride)
     {
         var settings = new Mock<ISettingsService>();
         settings.Setup(s => s.GetSettingsAsync())
-            .ReturnsAsync(new AppSettingsExtended { LanguageOverride = languageOverride });
+            .ReturnsAsync(new AppSettings { LanguageOverride = languageOverride });
         return settings.Object;
     }
 

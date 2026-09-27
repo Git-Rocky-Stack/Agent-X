@@ -2100,4 +2100,8 @@
   <data name="Settings_WatchFolderRemoveFailed" xml:space="preserve"><value>无法移除该文件夹：{0}</value></data>
   <data name="Settings_WatchFolderWithSubfolders" xml:space="preserve"><value>包括子文件夹。已导入文件：{0}</value></data>
   <data name="Settings_WatchFolderTopLevelOnly" xml:space="preserve"><value>仅此文件夹。已导入文件：{0}</value></data>
+  <data name="Settings_Language.Text" xml:space="preserve"><value>语言</value></data>
+  <data name="Settings_LanguagePicker.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>显示语言</value></data>
+  <data name="Settings_LanguageWindowsDefault" xml:space="preserve"><value>Windows 默认</value></data>
+  <data name="Settings_LanguageRestartHint.Text" xml:space="preserve"><value>立即保存。重新启动 Agent-X 后，所有页面都会以新语言显示。“Windows 默认”跟随 Windows 显示语言。</value></data>
 </root>

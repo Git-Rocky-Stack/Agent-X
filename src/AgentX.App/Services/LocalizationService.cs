@@ -54,7 +54,7 @@ public sealed class LocalizationService : ILocalizationService
         try
         {
             var settings = await _settingsService.GetSettingsAsync();
-            var languageOverride = settings is AppSettingsExtended ext ? ext.LanguageOverride : null;
+            var languageOverride = settings.LanguageOverride;
 
             if (!string.IsNullOrEmpty(languageOverride))
             {
@@ -88,33 +88,18 @@ public sealed class LocalizationService : ILocalizationService
 
     public async Task SetLanguageAsync(string? languageCode)
     {
-        try
-        {
-            if (string.IsNullOrEmpty(languageCode))
-            {
-                _resourceLoader.SetLanguageOverride(null);
-                _currentLanguage = _resourceLoader.GetActiveLanguage();
-            }
-            else
-            {
-                _resourceLoader.SetLanguageOverride(languageCode);
-                _currentLanguage = languageCode;
-            }
+        var code = string.IsNullOrWhiteSpace(languageCode) ? null : languageCode;
 
-            // Persist the language override in settings
-            var settings = await _settingsService.GetSettingsAsync();
-            if (settings is AppSettingsExtended ext)
-            {
-                ext.LanguageOverride = languageCode;
-                await _settingsService.SaveSettingsAsync(ext);
-            }
+        // Persist first: the choice only matters if the next launch can read it back. This used
+        // to write only when the settings object was an AppSettingsExtended, which the settings
+        // service never returns, so the choice was silently dropped.
+        var settings = await _settingsService.GetSettingsAsync();
+        settings.LanguageOverride = code;
+        await _settingsService.SaveSettingsAsync(settings);
 
-            Log.Information("Language changed to {Language} — restart required for full effect", _currentLanguage);
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Failed to set language to {Language}", languageCode);
-        }
+        _resourceLoader.SetLanguageOverride(code);
+        _currentLanguage = code ?? _resourceLoader.GetActiveLanguage();
+        Log.Information("UI language set to {Language}; it applies everywhere after a restart", _currentLanguage);
     }
 
     public string GetString(string resourceKey)
@@ -181,18 +166,4 @@ public sealed class LocalizationService : ILocalizationService
             return template;
         }
     }
-}
-
-/// <summary>
-/// Extended AppSettings with localization support.
-/// Inherits from the base AppSettings to add language configuration.
-/// </summary>
-public class AppSettingsExtended : AgentX.Core.Services.Settings.AppSettings
-{
-    public string? LanguageOverride { get; set; }
-    public string? BackupDestination { get; set; }
-    public bool ScheduledBackupEnabled { get; set; }
-    public int ScheduledBackupIntervalHours { get; set; } = 168;
-    public int MaxBackupsToKeep { get; set; } = 5;
-    public string? ScheduledBackupPassword { get; set; }
 }

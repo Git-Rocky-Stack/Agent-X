@@ -263,6 +263,19 @@
                         <TextBlock x:Uid="Settings_ChangesApplyImmediatelySystem" Text="Changes apply immediately. 'System Default' follows your Windows theme."
                                    Style="{StaticResource CaptionStyle}" />
                     </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock x:Uid="Settings_Language" Text="Language"
+                                   Style="{StaticResource LabelStyle}" />
+                        <ComboBox x:Uid="Settings_LanguagePicker"
+                                  ItemsSource="{x:Bind ViewModel.LanguageOptions}"
+                                  SelectedIndex="{x:Bind ViewModel.LanguageIndex, Mode=TwoWay}"
+                                  HorizontalAlignment="Stretch"
+                                  MinWidth="200" />
+                        <TextBlock x:Uid="Settings_LanguageRestartHint" Text="Saved immediately. Restart Agent-X to see every page in the new language. 'Windows default' follows your Windows display language."
+                                   Style="{StaticResource CaptionStyle}"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
                 </StackPanel>
             </controls:Faceplate>
 

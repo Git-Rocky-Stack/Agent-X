@@ -2100,4 +2100,8 @@
   <data name="Settings_WatchFolderRemoveFailed" xml:space="preserve"><value>Der Ordner konnte nicht entfernt werden: {0}</value></data>
   <data name="Settings_WatchFolderWithSubfolders" xml:space="preserve"><value>Mit Unterordnern. Importierte Dateien: {0}</value></data>
   <data name="Settings_WatchFolderTopLevelOnly" xml:space="preserve"><value>Nur dieser Ordner. Importierte Dateien: {0}</value></data>
+  <data name="Settings_Language.Text" xml:space="preserve"><value>Sprache</value></data>
+  <data name="Settings_LanguagePicker.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Anzeigesprache</value></data>
+  <data name="Settings_LanguageWindowsDefault" xml:space="preserve"><value>Windows-Standard</value></data>
+  <data name="Settings_LanguageRestartHint.Text" xml:space="preserve"><value>Wird sofort gespeichert. Starten Sie Agent-X neu, um alle Seiten in der neuen Sprache zu sehen. „Windows-Standard“ folgt der Anzeigesprache von Windows.</value></data>
 </root>

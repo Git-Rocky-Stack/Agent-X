@@ -29,8 +29,9 @@ public interface ILocalizationService
     IReadOnlyList<LanguageOption> SupportedLanguages { get; }
 
     /// <summary>
-    /// Sets the active language. Pass null to use system default.
-    /// Changes take effect on next app restart.
+    /// Saves the UI language to settings and applies it to resources loaded from now on. Pass
+    /// null to follow the Windows display language. The shell picks it up fully on the next
+    /// launch. Throws when the settings cannot be saved.
     /// </summary>
     Task SetLanguageAsync(string? languageCode);
 

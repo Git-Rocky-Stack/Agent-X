@@ -1016,7 +1016,7 @@ Settings is the control plane for provider, inference, indexing, security, stora
 | Knowledge Vault | Chunk size, chunk overlap (smaller than the chunk size), top-K, watch folders and the Auto-index watch folders switch |
 | Research Mode | Web search on or off, the search provider, and its credential: the API key for Brave or Serper, or the instance URL for SearXNG |
 | Database Encryption | SQLCipher enablement and key/passphrase flow |
-| Language/UI | Locale follows Windows display language |
+| Language | Settings > Appearance > Language: "Windows default" (follows the Windows display language) or English, Deutsch, Español, Français, 日本語 or 简体中文. Saved immediately; restart Agent-X to see every page in the new language |
 
 ### Database encryption
 
