@@ -1,4 +1,4 @@
-# Agent-X — Signed Release Process
+# Agent-X - Signed Release Process
 
 Covers QA findings **AX-QA-001** (the public v2.1.1 asset predated the security remediation)
 and **AX-QA-007** (distributed binaries are unsigned).
@@ -11,32 +11,32 @@ timestamps the artifacts, verifies the signatures, and records SHA-256 sums.
 
 Agent-X uses **two complementary signatures**, each answering a different question:
 
-| | Layer 1 — Authenticode | Layer 2 — Keyless provenance |
+| | Layer 1 - Authenticode | Layer 2 - Keyless provenance |
 |---|---|---|
 | **Answers** | "Can Windows trust this publisher?" | "Did this artifact come from the public build pipeline, unmodified?" |
 | **Tool** | `signtool` (this script) | `cosign` (CI) |
 | **Where it runs** | **Locally**, by the maintainer | **GitHub Actions** (`release-provenance.yml`) |
-| **Key material** | A real code-signing certificate | **None** — ephemeral, via GitHub OIDC → Fulcio |
+| **Key material** | A real code-signing certificate | **None** - ephemeral, via GitHub OIDC -> Fulcio |
 | **Visible to** | Every Windows user (removes SmartScreen "Unknown Publisher") | Anyone who runs `cosign verify-blob` |
 | **Recorded in** | The signature + RFC-3161 timestamp | The public **Rekor** transparency log |
 
 They are not substitutes. Authenticode is what suppresses the Windows install warning; cosign/Rekor
 is cryptographic supply-chain provenance for the security-conscious. The rest of this document
 covers Layer 1 (local); Layer 2 is described under
-[CI keyless provenance](#layer-2--ci-keyless-provenance-cosign--rekor) below.
+[CI keyless provenance](#layer-2---ci-keyless-provenance-cosign--rekor) below.
 
 > **No cert yet?** A free Authenticode certificate for open-source projects is being pursued through
-> the SignPath Foundation — see [`SIGNPATH-APPLICATION.md`](SIGNPATH-APPLICATION.md). Layer 2
+> the SignPath Foundation - see [`SIGNPATH-APPLICATION.md`](SIGNPATH-APPLICATION.md). Layer 2
 > (cosign/Rekor) is already live and needs no certificate.
 
-## Layer 1 — Authenticode (local)
+## Layer 1 - Authenticode (local)
 
 ### Prerequisites
 
 - **Inno Setup 6** (`ISCC.exe`) on PATH or in its default install location.
 - **Windows SDK signing tools** (`signtool.exe`).
-- A **code-signing certificate** — OV, or EV for instant SmartScreen reputation. Either:
-  - imported into the Windows certificate store (preferred — reference it by **thumbprint**, so
+- A **code-signing certificate** - OV, or EV for instant SmartScreen reputation. Either:
+  - imported into the Windows certificate store (preferred - reference it by **thumbprint**, so
     no secret appears on the command line), or
   - a **PFX** file + password.
 
@@ -65,7 +65,7 @@ loud warning is printed and the artifacts must not be published).
 
 1. **Provenance (AX-QA-001).** After publishing, it asserts the published `AgentX.Core.dll`
    contains the security types `LocalApiSecurity` and `ResolveContainedPath`. If they are absent
-   the build aborts — this is exactly the regression that shipped in the public v2.1.1 asset,
+   the build aborts - this is exactly the regression that shipped in the public v2.1.1 asset,
    which was built from stale source. The source commit is printed.
 2. **Signing + timestamp (AX-QA-007).** The app binary and both installers are signed with
    SHA-256 and an RFC-3161 timestamp, so signatures stay valid after the certificate expires.
@@ -79,7 +79,7 @@ loud warning is printed and the artifacts must not be published).
 The signing **certificate must not leave the maintainer's protected environment**, so Authenticode
 signing runs in this manual release pipeline rather than a normal CI job. CI covers everything that
 does not need the certificate: build, tests, coverage, formatting, dependency + locale audits, the
-Android build — and Layer 2 provenance below, which needs **no** secret.
+Android build - and Layer 2 provenance below, which needs **no** secret.
 
 ## Release checklist (from the QA audit)
 
@@ -91,7 +91,7 @@ Android build — and Layer 2 provenance below, which needs **no** secret.
 5. Smoke-test the signed installer on a clean Windows profile and a representative legacy-upgrade
    database before upload.
 
-## Layer 2 — CI keyless provenance (cosign + Rekor)
+## Layer 2 - CI keyless provenance (cosign + Rekor)
 
 `.github/workflows/release-provenance.yml` adds supply-chain provenance **in CI, with no secret and
 no long-lived key**. When a GitHub Release is published (or via manual `workflow_dispatch` for a
@@ -107,8 +107,8 @@ tag), the workflow:
 
 **Why sign the manifest, not each installer.** `SHA256SUMS.txt` lists the SHA-256 of both the SLIM
 installer (GitHub asset) and the OFFLINE installer (~2 GB, on Cloudflare R2). Signing the one small
-manifest transitively proves the integrity of **every** artifact — including the R2-hosted one CI
-never downloads — and keeps the job fast. The chain is: *cosign proves the manifest is authentic →
+manifest transitively proves the integrity of **every** artifact - including the R2-hosted one CI
+never downloads - and keeps the job fast. The chain is: *cosign proves the manifest is authentic ->
 the manifest's hash proves your download is authentic.*
 
 This layer needs no certificate, so it runs today regardless of the Authenticode (Layer 1) status.

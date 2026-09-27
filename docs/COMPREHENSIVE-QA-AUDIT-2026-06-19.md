@@ -5,12 +5,12 @@
 **Checkout:** `main` at `b7e9fe76dc915fac2631a58cff0cfe37229ddc3f`  
 **Release reviewed:** `v2.1.1`  
 **Decision:** **NO-GO**  
-**Cross-surface release health:** **38/100** _(at time of audit — see resolution status below)_
+**Cross-surface release health:** **38/100** _(at time of audit - see resolution status below)_
 
-> ### ✅ RESOLUTION STATUS — updated 2026-06-21 (v2.1.2)
+> ### RESOLUTION STATUS - updated 2026-06-21 (v2.1.2)
 >
 > This audit's **NO-GO** verdict predates the v2.1.2 remediation. **All findings AX-QA-001 through
-> AX-QA-016 are now resolved** — see [`../CHANGELOG.md`](../CHANGELOG.md) and [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md).
+> AX-QA-016 are now resolved** - see [`../CHANGELOG.md`](../CHANGELOG.md) and [`KNOWN-ISSUES.md`](KNOWN-ISSUES.md).
 > In brief: authenticated local API with contained file boundaries and encrypted secrets;
 > self-healing + fail-closed migration startup (002/003); state-aware privacy claim (008); vault
 > document-reload race fixed (009); the dormant vulnerable SQLite binary removed (010); test
@@ -18,7 +18,7 @@
 > (006/009/012); browser-extension ellipsis + assistive-tech live region (013/015); single-source
 > version display (014); the dev-only npm advisory cleared (016); hardened mobile transport with the
 > TLS-bypass removed (005); and a **green, CI-gated mobile Android build** (004). The signing-ready
-> release pipeline with a provenance gate closes **001/007 in source** — the one remaining action is
+> release pipeline with a provenance gate closes **001/007 in source** - the one remaining action is
 > the **signed republish**, which awaits a code-signing certificate.
 >
 > The findings below are retained verbatim as the historical record of the 2026-06-19 review.
@@ -44,7 +44,7 @@ Release should remain blocked until the P0 and P1 findings below are fixed, regr
 
 ## Findings
 
-### AX-QA-001 — P0 blocker — Public v2.1.1 installers predate and exclude the security remediation
+### AX-QA-001 - P0 blocker - Public v2.1.1 installers predate and exclude the security remediation
 
 **Evidence**
 
@@ -66,7 +66,7 @@ Installed v2.1.1 copies can expose document/conversation/search data to arbitrar
 3. Prove the packaged DLL contains the security types and run live anonymous/authenticated API, malicious-origin CORS, backup traversal, and plugin containment tests against the installed artifact.
 4. Publish hashes and an incident/release note explaining that the prior asset did not contain the remediation.
 
-### AX-QA-002 — P1 critical — Legacy upgrade databases can be stamped as complete while baseline tables are missing
+### AX-QA-002 - P1 critical - Legacy upgrade databases can be stamped as complete while baseline tables are missing
 
 **Location:** `src/AgentX.Core/Data/MigrationRunner/MigrationRunner.cs:209`, `:409`
 
@@ -84,7 +84,7 @@ The database integrity check itself returns `ok`, so this is migration-history/s
 
 Baseline adoption must validate the complete baseline schema or create missing baseline objects before stamping. Add fixtures for every supported pre-migration schema, especially partial schemas from older public versions, and assert both table existence and migration history after upgrade.
 
-### AX-QA-003 — P1 critical — Startup is fire-and-forget and continues after database initialization failure
+### AX-QA-003 - P1 critical - Startup is fire-and-forget and continues after database initialization failure
 
 **Location:** `src/AgentX.App/App.xaml.cs:103`, `:122`, `:191`
 
@@ -101,7 +101,7 @@ Runtime evidence included:
 
 Make startup awaitable and ordered. A migration failure must enter a blocking recovery/error state; it must not start the API, connectors, or data-backed pages. Add a packaged startup test that asserts ordering and fail-closed behavior.
 
-### AX-QA-004 — P1 critical — The physical mobile companion cannot reach the desktop API
+### AX-QA-004 - P1 critical - The physical mobile companion cannot reach the desktop API
 
 **Location:** `src/AgentX.Core/Services/Api/ApiHostService.cs:117`, `:120`; `src/AgentX.Mobile/Services/AgentXApiClient.cs:43`
 
@@ -113,7 +113,7 @@ No mobile project is included in `AgentX.sln`, no CI job builds it, and this wor
 
 Choose and document an explicit transport: authenticated TLS on a deliberately configured LAN interface, OS-native pairing/relay, or remove the mobile claim. Add an Android build job and an end-to-end device/emulator reachability test.
 
-### AX-QA-005 — P1 critical — Mobile transport exposes the bearer token or accepts any TLS certificate
+### AX-QA-005 - P1 critical - Mobile transport exposes the bearer token or accepts any TLS certificate
 
 **Location:** `src/AgentX.Mobile/Services/AgentXApiClient.cs:23`, `:43`, `:301`
 
@@ -123,7 +123,7 @@ The default and documented LAN URL use HTTP, so the pairing token and private do
 
 Require HTTPS for non-loopback addresses, validate a pinned/pairing-established certificate, and remove the dangerous validator. Do not broaden the desktop listener until this is fixed.
 
-### AX-QA-006 — P1 critical — CI does not gate the surfaces that failed this audit
+### AX-QA-006 - P1 critical - CI does not gate the surfaces that failed this audit
 
 Only two workflows exist: desktop/core tests and localization. CI does not:
 
@@ -138,21 +138,21 @@ Only two workflows exist: desktop/core tests and localization. CI does not:
 
 This gap directly allowed the public installer to drift behind source security fixes.
 
-### AX-QA-007 — P1 critical — Distributed Windows binaries are unsigned
+### AX-QA-007 - P1 critical - Distributed Windows binaries are unsigned
 
 `Get-AuthenticodeSignature` returned `NotSigned` for both installers and both app executables. This is already listed in `docs/KNOWN-ISSUES.md`, but it remains a release trust and SmartScreen blocker.
 
 **Required action:** sign and timestamp the application and installer in a protected release pipeline, then verify the signature before upload.
 
-### AX-QA-008 — P1 critical — The dashboard makes an unconditional privacy claim contradicted by product behavior
+### AX-QA-008 - P1 critical - The dashboard makes an unconditional privacy claim contradicted by product behavior
 
 **Location:** `src/AgentX.App/Views/DashboardPage.xaml:1212-1213`
 
-The dashboard states: “All AI processing runs locally... Your data never leaves this machine. No cloud. No exceptions.” Settings explicitly support OpenAI, Anthropic, Brave/Serper web search, Google/Microsoft OAuth, and cloud-optimized routing.
+The dashboard states: "All AI processing runs locally... Your data never leaves this machine. No cloud. No exceptions." Settings explicitly support OpenAI, Anthropic, Brave/Serper web search, Google/Microsoft OAuth, and cloud-optimized routing.
 
 This is a trust/compliance problem, not cosmetic copy. The claim must become state-aware and accurately disclose which selected providers transmit what data.
 
-### AX-QA-009 — P2 high — Core coverage is 46.43% line / 33.15% branch despite 1,877 passing tests
+### AX-QA-009 - P2 high - Core coverage is 46.43% line / 33.15% branch despite 1,877 passing tests
 
 Coverage: 18,904 / 40,707 lines and 3,876 / 11,689 branches.
 
@@ -167,13 +167,13 @@ High-risk main classes with **0%** measured coverage include:
 
 Passing count is therefore not sufficient release confidence. Add integration and branch coverage gates, with security- and migration-critical targets above the repository-wide minimum.
 
-### AX-QA-010 — P2 high — A high-severity SQLite advisory is present in every desktop project
+### AX-QA-010 - P2 high - A high-severity SQLite advisory is present in every desktop project
 
 `dotnet list package --vulnerable --include-transitive` reports `SQLitePCLRaw.lib.e_sqlite3 2.1.6` under Core, Tests, and App for [GHSA-2m69-gcr7-jv3q](https://github.com/advisories/GHSA-2m69-gcr7-jv3q) / CVE-2025-6965. The advisory describes memory corruption in SQLite before 3.50.2 and currently lists no patched `SQLitePCLRaw.lib.e_sqlite3` package version.
 
 Both `e_sqlite3.dll` and `e_sqlcipher.dll` ship. Runtime module inspection showed Agent-X loads `e_sqlcipher.dll`, not `e_sqlite3.dll`, which lowers immediate exploitability but does not justify shipping the dormant vulnerable native binary. Resolve the duplicate bundle graph or document a verified compensating control.
 
-### AX-QA-011 — P2 high — Tests write temporary workflow artifacts into the real Agent-X profile and leave them behind
+### AX-QA-011 - P2 high - Tests write temporary workflow artifacts into the real Agent-X profile and leave them behind
 
 **Location:** `src/AgentX.App/ViewModels/WorkflowBuilderViewModel.cs:1197-1205`; `tests/AgentX.Tests/ViewModels/WorkflowBuilderViewModelTests.cs:546-603`, `:665-720`
 
@@ -181,7 +181,7 @@ The unit tests execute production code that writes under `%LOCALAPPDATA%/AgentX/
 
 Inject an artifact/temp-path service and give every test a disposable per-test directory.
 
-### AX-QA-012 — P2 high — Repository formatting gate fails with 69,052 diagnostics across 400 files
+### AX-QA-012 - P2 high - Repository formatting gate fails with 69,052 diagnostics across 400 files
 
 `dotnet format AgentX.sln --verify-no-changes --severity info` returned:
 
@@ -190,28 +190,28 @@ Inject an artifact/temp-path service and give every test a disposable per-test d
 
 Root cause: `.editorconfig` requires LF, `.gitattributes` uses `text=auto`, and this Windows checkout has `core.autocrlf=true`, producing CRLF. Align `.gitattributes` and `.editorconfig`, then add a CI formatting gate. Do not mix this mechanical normalization with functional fixes.
 
-### AX-QA-013 — P2 high — Extension recent-item ellipsis does not work
+### AX-QA-013 - P2 high - Extension recent-item ellipsis does not work
 
 **Location:** `browser-extension/src/popup/popup.css:333-347`
 
 Long recent-clip titles/URLs overlap neighboring content instead of truncating. The spans are inline, so `overflow: hidden` and `text-overflow: ellipsis` do not constrain them. Chromium reproduction is visible in [extension-popup-connected.png](../.gstack/qa-reports/screenshots/extension-popup-connected.png). Script-like title content remained inert, confirming the DOM-based rendering is XSS-safe.
 
-### AX-QA-014 — P2 high — User-facing version metadata is stale and contradictory
+### AX-QA-014 - P2 high - User-facing version metadata is stale and contradictory
 
 - Desktop footer: `Agent-X v1.2.0` (`src/AgentX.App/MainWindow.xaml:500`)
-- README “Current version”: v2.1.0 (`README.md:5`)
+- README "Current version": v2.1.0 (`README.md:5`)
 - Assembly/release: v2.1.1
 - Mobile display: v1.0.0
 
 Generate version presentation from one release source rather than hardcoded UI/docs strings.
 
-### AX-QA-015 — P3 medium — Extension feedback is not announced to assistive technology
+### AX-QA-015 - P3 medium - Extension feedback is not announced to assistive technology
 
 **Location:** `browser-extension/src/popup/popup.html:41`, `popup.ts:166`
 
 Success/error text is dynamically inserted into a generic `div` with no `role="status"`, `role="alert"`, or `aria-live`. Keyboard controls and visible focus passed, but screen-reader users will not reliably hear pairing/clip results.
 
-### AX-QA-016 — P3 low — One dev-only npm advisory remains
+### AX-QA-016 - P3 low - One dev-only npm advisory remains
 
 `npm audit` reports low-severity [GHSA-4x5r-pxfx-6jf8](https://github.com/advisories/GHSA-4x5r-pxfx-6jf8) in transitive `@babel/core <= 7.29.0`. `npm audit --omit=dev` is clean, so this does not ship in the extension runtime. Update the toolchain when compatible.
 
