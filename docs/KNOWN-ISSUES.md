@@ -212,6 +212,12 @@ annotation color names.
 - Web Import reads a feed once, when you import it, and takes up to 100 pages from a sitemap.
 - The Weekly Digest covers a fixed seven-day window and is built only when you click Generate New
   Digest.
+- `storagePath` in `settings.json` does not move the data folder. The database, settings, logs and
+  encryption key always stay in `%LOCALAPPDATA%\AgentX`, while models, Web Import pages, exports
+  and the vector store follow `storagePath`, so a changed value would write the embeddings to a
+  second `agentx.db` there. Settings shows the value as Data Location, read-only; leave it at the
+  default.
+- Changes to the `Rag` section of `appsettings.json` take effect only after a restart.
 
 ---
 
