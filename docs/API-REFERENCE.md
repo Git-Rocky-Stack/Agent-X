@@ -749,7 +749,9 @@ Task<IReadOnlyList<DocumentEntity>> ImportFilesAsync(
     CancellationToken ct = default);
 ```
 
-Imports several files and reports the number of files completed through `progress`.
+Imports several files and reports the number of files completed through `progress`. It runs
+`ImportFilesWithReportAsync` without `allowDuplicates`, so duplicates and files that cannot be
+imported are skipped (and logged) rather than thrown.
 
 **Returns:** The documents created.
 
