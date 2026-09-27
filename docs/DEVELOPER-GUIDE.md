@@ -1328,8 +1328,10 @@ switching the chat model never changes the embedding space:
 
 Batches use `Rag:EmbeddingBatchSize` (32 in `appsettings.json`). The vector size is learned from the
 provider's output, and every document chunk is stamped with an `EmbeddingModelVersion` of the form
-`provider:model:dimensions` (memories and messages have version columns too, but nothing writes
-them). `CachedEmbeddingService` wraps the service with a bounded LRU cache.
+`provider:model:dimensions`; new memories record the same version and their vector size, and
+embedded messages their vector size. Memory retrieval and conversation recall skip vectors whose
+size differs from the query's, which happens after a switch to another embedding model.
+`CachedEmbeddingService` wraps the service with a bounded LRU cache.
 
 ### 7.4 Context Assembly
 

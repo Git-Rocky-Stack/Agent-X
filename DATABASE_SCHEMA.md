@@ -149,7 +149,7 @@ Tables with no relationships: `search_history`, `system_prompts`, `user_settings
 | `SortOrder` | INTEGER | req | Position in the conversation |
 | `Embedding` | TEXT | null | Comma-separated floats used by conversation recall |
 | `EmbeddingModel` | TEXT | null | Embedding model of `Embedding` |
-| `EmbeddingDimensions` | INTEGER | null | Not written by the current code (always null) |
+| `EmbeddingDimensions` | INTEGER | null | Vector size of `Embedding`; recall skips vectors whose size differs from the query's |
 | `EmbeddedAt` | TEXT | null | When `Embedding` was written |
 
 **Indexes:** `(ConversationId, SortOrder)`, `EmbeddedAt`, `EmbeddingModel`.
@@ -290,9 +290,9 @@ Tables with no relationships: `search_history`, `system_prompts`, `user_settings
 | `LinkedMemoryId` | INTEGER | null | | FK `memories.Id` (restrict), associative link |
 | `Confidence` | REAL | req | `0.8` | Extraction confidence |
 | `Tags` | TEXT | null | | Comma-separated tags |
-| `EmbeddingModelVersion` | TEXT | null | | Not written by the current code (always null) |
-| `EmbeddingDimensions` | INTEGER | null | | Not written by the current code (always null) |
-| `EmbeddedAt` | TEXT | null | | Not written by the current code (always null) |
+| `EmbeddingModelVersion` | TEXT | null | | `provider:model:dimensions` of `Embedding` (null for memories saved before this was recorded) |
+| `EmbeddingDimensions` | INTEGER | null | | Vector size of `Embedding`; retrieval skips vectors whose size differs from the query's |
+| `EmbeddedAt` | TEXT | null | | When `Embedding` was written |
 
 **Indexes:** `Category`, `IsActive`, `Importance`, `LinkedMemoryId`, `LastUsedAt`, `CreatedAt`,
 `EmbeddingModelVersion`.
@@ -362,7 +362,7 @@ No indexes besides the primary key.
 | `ChunkCount` | INTEGER | req | | Chunks produced by the last indexing |
 | `PageCount` | INTEGER | req | | Pages |
 | `WordCount` | INTEGER | req | | Words in the extracted text |
-| `Summary` | TEXT | null | | Stored summary |
+| `Summary` | TEXT | null | | Summary saved by the Quick Actions summarize action (or copied by sync); shown in the Knowledge Vault preview |
 | `ExtractedTitle` | TEXT | null | | Title found in the content |
 | `Language` | TEXT | null | | Detected language |
 | `ThumbnailPath` | TEXT | null | | Thumbnail file |
