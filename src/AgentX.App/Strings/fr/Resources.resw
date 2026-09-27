@@ -2036,6 +2036,18 @@
   <data name="Privacy_YourDataNeverLeaves.Text" xml:space="preserve"><value>Vos données ne quittent jamais votre appareil. Tout le traitement IA, le stockage des documents et les conversations restent entièrement sur votre machine.</value></data>
   <data name="Privacy_Verified.Text" xml:space="preserve"><value>VÉRIFIÉ</value></data>
   <data name="Privacy_OurCommitmentToPrivacy.Text" xml:space="preserve"><value>Notre engagement envers la confidentialité</value></data>
+  <data name="TimeAgo_JustNow" xml:space="preserve"><value>à l'instant</value></data>
+  <data name="TimeAgo_MinuteAgo" xml:space="preserve"><value>il y a 1 min</value></data>
+  <data name="TimeAgo_MinutesAgo" xml:space="preserve"><value>il y a {0} min</value></data>
+  <data name="TimeAgo_HourAgo" xml:space="preserve"><value>il y a 1 h</value></data>
+  <data name="TimeAgo_HoursAgo" xml:space="preserve"><value>il y a {0} h</value></data>
+  <data name="TimeAgo_DayAgo" xml:space="preserve"><value>il y a 1 j</value></data>
+  <data name="TimeAgo_DaysAgo" xml:space="preserve"><value>il y a {0} j</value></data>
+  <data name="TimeAgo_WeekAgo" xml:space="preserve"><value>il y a 1 sem.</value></data>
+  <data name="TimeAgo_WeeksAgo" xml:space="preserve"><value>il y a {0} sem.</value></data>
+  <data name="TimeAgo_MonthAgo" xml:space="preserve"><value>il y a 1 mois</value></data>
+  <data name="TimeAgo_MonthsAgo" xml:space="preserve"><value>il y a {0} mois</value></data>
+  <data name="TimeAgo_DateFormat" xml:space="preserve"><value>d MMM yyyy</value></data>
   <data name="Privacy_AgentXIsDesigned.Text" xml:space="preserve"><value>Agent-X est conçu avec la confidentialité comme principe fondamental. Toutes vos données — documents, conversations, embeddings et paramètres — sont stockées localement sur votre appareil. Nous n'exploitons aucun serveur cloud qui traite ou stocke vos données personnelles.</value></data>
   <data name="Privacy_OurLocalFirstArchitecture.Text" xml:space="preserve"><value>Notre architecture locale d'abord signifie que vous conservez la pleine propriété et le contrôle de chaque information que vous créez ou importez dans Agent-X. Aucun compte à créer, aucune synchronisation de données, aucune télémétrie transmise.</value></data>
   <data name="Privacy_InformationWeCollect.Text" xml:space="preserve"><value>Informations que nous collectons</value></data>

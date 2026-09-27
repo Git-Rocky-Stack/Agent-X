@@ -2036,6 +2036,18 @@
   <data name="Privacy_YourDataNeverLeaves.Text" xml:space="preserve"><value>データがデバイスの外に出ることはありません。AI 処理、ドキュメント保存、会話はすべてお使いのマシン内で完結します。</value></data>
   <data name="Privacy_Verified.Text" xml:space="preserve"><value>検証済み</value></data>
   <data name="Privacy_OurCommitmentToPrivacy.Text" xml:space="preserve"><value>プライバシーへの取り組み</value></data>
+  <data name="TimeAgo_JustNow" xml:space="preserve"><value>たった今</value></data>
+  <data name="TimeAgo_MinuteAgo" xml:space="preserve"><value>1 分前</value></data>
+  <data name="TimeAgo_MinutesAgo" xml:space="preserve"><value>{0} 分前</value></data>
+  <data name="TimeAgo_HourAgo" xml:space="preserve"><value>1 時間前</value></data>
+  <data name="TimeAgo_HoursAgo" xml:space="preserve"><value>{0} 時間前</value></data>
+  <data name="TimeAgo_DayAgo" xml:space="preserve"><value>1 日前</value></data>
+  <data name="TimeAgo_DaysAgo" xml:space="preserve"><value>{0} 日前</value></data>
+  <data name="TimeAgo_WeekAgo" xml:space="preserve"><value>1 週間前</value></data>
+  <data name="TimeAgo_WeeksAgo" xml:space="preserve"><value>{0} 週間前</value></data>
+  <data name="TimeAgo_MonthAgo" xml:space="preserve"><value>1 か月前</value></data>
+  <data name="TimeAgo_MonthsAgo" xml:space="preserve"><value>{0} か月前</value></data>
+  <data name="TimeAgo_DateFormat" xml:space="preserve"><value>yyyy年M月d日</value></data>
   <data name="Privacy_AgentXIsDesigned.Text" xml:space="preserve"><value>Agent-X はプライバシーを基本原則として設計されています。ドキュメント、会話、埋め込み、設定など、すべてのデータはデバイスにローカル保存されます。当社は、お客様の個人データを処理・保存するクラウド サーバーを運用していません。</value></data>
   <data name="Privacy_OurLocalFirstArchitecture.Text" xml:space="preserve"><value>ローカルファーストのアーキテクチャにより、Agent-X で作成またはインポートしたすべての情報の所有権と管理権はお客様が完全に保持します。アカウント作成、データ同期、テレメトリ送信は一切ありません。</value></data>
   <data name="Privacy_InformationWeCollect.Text" xml:space="preserve"><value>収集する情報</value></data>

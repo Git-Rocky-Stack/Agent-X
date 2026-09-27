@@ -2036,6 +2036,18 @@
   <data name="Privacy_YourDataNeverLeaves.Text" xml:space="preserve"><value>Ihre Daten verlassen niemals Ihr Gerät. Sämtliche KI-Verarbeitung, Dokumentenspeicherung und Konversationen verbleiben vollständig auf Ihrem Rechner.</value></data>
   <data name="Privacy_Verified.Text" xml:space="preserve"><value>VERIFIZIERT</value></data>
   <data name="Privacy_OurCommitmentToPrivacy.Text" xml:space="preserve"><value>Unser Datenschutzversprechen</value></data>
+  <data name="TimeAgo_JustNow" xml:space="preserve"><value>gerade eben</value></data>
+  <data name="TimeAgo_MinuteAgo" xml:space="preserve"><value>vor 1 Min.</value></data>
+  <data name="TimeAgo_MinutesAgo" xml:space="preserve"><value>vor {0} Min.</value></data>
+  <data name="TimeAgo_HourAgo" xml:space="preserve"><value>vor 1 Std.</value></data>
+  <data name="TimeAgo_HoursAgo" xml:space="preserve"><value>vor {0} Std.</value></data>
+  <data name="TimeAgo_DayAgo" xml:space="preserve"><value>vor 1 Tag</value></data>
+  <data name="TimeAgo_DaysAgo" xml:space="preserve"><value>vor {0} Tagen</value></data>
+  <data name="TimeAgo_WeekAgo" xml:space="preserve"><value>vor 1 Woche</value></data>
+  <data name="TimeAgo_WeeksAgo" xml:space="preserve"><value>vor {0} Wochen</value></data>
+  <data name="TimeAgo_MonthAgo" xml:space="preserve"><value>vor 1 Monat</value></data>
+  <data name="TimeAgo_MonthsAgo" xml:space="preserve"><value>vor {0} Monaten</value></data>
+  <data name="TimeAgo_DateFormat" xml:space="preserve"><value>d. MMM yyyy</value></data>
   <data name="Privacy_AgentXIsDesigned.Text" xml:space="preserve"><value>Agent-X wurde mit Datenschutz als Grundprinzip entwickelt. Alle Ihre Daten — Dokumente, Konversationen, Embeddings und Einstellungen — werden lokal auf Ihrem Gerät gespeichert. Wir betreiben keine Cloud-Server, die Ihre personenbezogenen Daten verarbeiten oder speichern.</value></data>
   <data name="Privacy_OurLocalFirstArchitecture.Text" xml:space="preserve"><value>Unsere Local-First-Architektur bedeutet, dass Sie die volle Eigentümerschaft und Kontrolle über jede Information behalten, die Sie in Agent-X erstellen oder importieren. Es gibt keine Konten, keine Datensynchronisierung und keine Telemetrie-Übertragung.</value></data>
   <data name="Privacy_InformationWeCollect.Text" xml:space="preserve"><value>Welche Informationen wir erfassen</value></data>
