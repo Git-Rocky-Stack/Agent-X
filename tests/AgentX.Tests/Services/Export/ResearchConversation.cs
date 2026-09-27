@@ -35,16 +35,16 @@ internal static class ResearchConversation
 
     private static MessageEntity Message(
         long id, string role, string content, int sortOrder, string? modelId = null, params WebCitation[] sources) => new()
-    {
-        Id = id,
-        ConversationId = 7,
-        Role = role,
-        Content = content,
-        SortOrder = sortOrder,
-        Timestamp = new DateTime(2026, 9, 1, 9, sortOrder, 0, DateTimeKind.Utc),
-        ModelId = modelId,
-        CitationsJson = MessageCitations.Serialize(sources),
-    };
+        {
+            Id = id,
+            ConversationId = 7,
+            Role = role,
+            Content = content,
+            SortOrder = sortOrder,
+            Timestamp = new DateTime(2026, 9, 1, 9, sortOrder, 0, DateTimeKind.Utc),
+            ModelId = modelId,
+            CitationsJson = MessageCitations.Serialize(sources),
+        };
 
     private static WebCitation Web(string title, string url) => new()
     {
