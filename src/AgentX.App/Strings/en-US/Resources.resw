@@ -1092,6 +1092,17 @@
   <data name="Chat_GenerationFailedHint" xml:space="preserve"><value>An error occurred while generating a response. {0}</value></data>
   <data name="Chat_OfflineProviderUnavailable" xml:space="preserve"><value>Unable to generate a response: {0} is not available.</value></data>
   <data name="Chat_OfflineNoProvider" xml:space="preserve"><value>Unable to generate a response: the AI provider is not available.</value></data>
+  <data name="Dash_BeliefEvolvedStatus" xml:space="preserve"><value>Belief evolution detected</value></data>
+  <data name="Dash_BeliefEvolvedDetailOne" xml:space="preserve"><value>Your view on 1 topic has evolved over time.</value></data>
+  <data name="Dash_BeliefEvolvedDetailMany" xml:space="preserve"><value>Your views on {0} topics have evolved over time.</value></data>
+  <data name="Dash_BeliefNoneStatus" xml:space="preserve"><value>No beliefs to compare yet</value></data>
+  <data name="Dash_BeliefNoneDetail" xml:space="preserve"><value>Agent-X has not recorded your views on any topic more than once, so there is nothing to compare yet.</value></data>
+  <data name="Dash_BeliefConsistentStatus" xml:space="preserve"><value>Your beliefs are consistent</value></data>
+  <data name="Dash_BeliefConsistentDetail" xml:space="preserve"><value>No detected contradictions between your past and current views.</value></data>
+  <data name="Dash_BeliefAcknowledgedStatus" xml:space="preserve"><value>No open conflicts</value></data>
+  <data name="Dash_BeliefAcknowledgedDetail" xml:space="preserve"><value>All belief conflicts have been acknowledged.</value></data>
+  <data name="Dash_BeliefUnavailableStatus" xml:space="preserve"><value>Belief status unavailable</value></data>
+  <data name="Dash_BeliefUnavailableDetail" xml:space="preserve"><value>Agent-X could not load your belief history.</value></data>
   <data name="Main_QuickActions.Content" xml:space="preserve"><value>Quick Actions</value></data>
   <data name="Main_Workflows.Content" xml:space="preserve"><value>Workflows</value></data>
   <data name="Main_Knowledge.Content" xml:space="preserve"><value>KNOWLEDGE</value></data>
@@ -1126,7 +1137,6 @@
   <data name="Dash_Title.Text" xml:space="preserve"><value>DASHBOARD</value></data>
   <data name="Dash_Subtitle.Text" xml:space="preserve"><value>Your private AI intelligence center. Everything runs on your machine.</value></data>
   <data name="Dash_RefreshBtn.Content" xml:space="preserve"><value>Refresh</value></data>
-  <data name="Dash_ConnectOllamaHint.Text" xml:space="preserve"><value>Connect Ollama to unlock AI chat, semantic search, and file intelligence.</value></data>
   <data name="Dash_SetupAiBtn.Content" xml:space="preserve"><value>Setup AI</value></data>
   <data name="Dash_SearchBox.PlaceholderText" xml:space="preserve"><value>Search your knowledge vault...  (Ctrl+K)</value></data>
   <data name="Dash_DocsOverline.Text" xml:space="preserve"><value>DOCUMENTS</value></data>

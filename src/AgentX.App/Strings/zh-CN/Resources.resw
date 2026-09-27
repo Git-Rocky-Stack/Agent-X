@@ -970,6 +970,17 @@
   <data name="Chat_GenerationFailedHint" xml:space="preserve"><value>生成回复时出错。{0}</value></data>
   <data name="Chat_OfflineProviderUnavailable" xml:space="preserve"><value>无法生成回复：{0} 不可用。</value></data>
   <data name="Chat_OfflineNoProvider" xml:space="preserve"><value>无法生成回复：AI 提供商不可用。</value></data>
+  <data name="Dash_BeliefEvolvedStatus" xml:space="preserve"><value>检测到观点演变</value></data>
+  <data name="Dash_BeliefEvolvedDetailOne" xml:space="preserve"><value>您对 1 个主题的看法随时间发生了变化。</value></data>
+  <data name="Dash_BeliefEvolvedDetailMany" xml:space="preserve"><value>您对 {0} 个主题的看法随时间发生了变化。</value></data>
+  <data name="Dash_BeliefNoneStatus" xml:space="preserve"><value>尚无可比较的观点</value></data>
+  <data name="Dash_BeliefNoneDetail" xml:space="preserve"><value>Agent-X 尚未对任何主题多次记录您的看法，因此暂时没有可比较的内容。</value></data>
+  <data name="Dash_BeliefConsistentStatus" xml:space="preserve"><value>您的观点保持一致</value></data>
+  <data name="Dash_BeliefConsistentDetail" xml:space="preserve"><value>未检测到您过去与当前看法之间的矛盾。</value></data>
+  <data name="Dash_BeliefAcknowledgedStatus" xml:space="preserve"><value>没有未处理的冲突</value></data>
+  <data name="Dash_BeliefAcknowledgedDetail" xml:space="preserve"><value>所有观点冲突均已确认。</value></data>
+  <data name="Dash_BeliefUnavailableStatus" xml:space="preserve"><value>观点状态不可用</value></data>
+  <data name="Dash_BeliefUnavailableDetail" xml:space="preserve"><value>Agent-X 无法加载您的观点历史记录。</value></data>
   <data name="Main_QuickActions.Content" xml:space="preserve"><value>Quick Actions</value></data>
   <data name="Main_Workflows.Content" xml:space="preserve"><value>工作流</value></data>
   <data name="Main_Knowledge.Content" xml:space="preserve"><value>知识</value></data>
@@ -1004,7 +1015,6 @@
   <data name="Dash_Title.Text" xml:space="preserve"><value>仪表板</value></data>
   <data name="Dash_Subtitle.Text" xml:space="preserve"><value>您的私人 AI 智能中心。一切都在您的电脑上运行。</value></data>
   <data name="Dash_RefreshBtn.Content" xml:space="preserve"><value>刷新</value></data>
-  <data name="Dash_ConnectOllamaHint.Text" xml:space="preserve"><value>连接 Ollama 即可解锁 AI 聊天、语义搜索和文件智能。</value></data>
   <data name="Dash_SetupAiBtn.Content" xml:space="preserve"><value>设置 AI</value></data>
   <data name="Dash_SearchBox.PlaceholderText" xml:space="preserve"><value>搜索 Knowledge Vault...  (Ctrl+K)</value></data>
   <data name="Dash_DocsOverline.Text" xml:space="preserve"><value>文档</value></data>

@@ -970,6 +970,17 @@
   <data name="Chat_GenerationFailedHint" xml:space="preserve"><value>Une erreur s'est produite lors de la génération d'une réponse. {0}</value></data>
   <data name="Chat_OfflineProviderUnavailable" xml:space="preserve"><value>Impossible de générer une réponse : {0} n'est pas disponible.</value></data>
   <data name="Chat_OfflineNoProvider" xml:space="preserve"><value>Impossible de générer une réponse : le fournisseur d'IA n'est pas disponible.</value></data>
+  <data name="Dash_BeliefEvolvedStatus" xml:space="preserve"><value>Évolution des convictions détectée</value></data>
+  <data name="Dash_BeliefEvolvedDetailOne" xml:space="preserve"><value>Votre point de vue sur 1 sujet a évolué au fil du temps.</value></data>
+  <data name="Dash_BeliefEvolvedDetailMany" xml:space="preserve"><value>Vos points de vue sur {0} sujets ont évolué au fil du temps.</value></data>
+  <data name="Dash_BeliefNoneStatus" xml:space="preserve"><value>Aucune conviction à comparer pour le moment</value></data>
+  <data name="Dash_BeliefNoneDetail" xml:space="preserve"><value>Agent-X n'a enregistré vos points de vue sur aucun sujet plus d'une fois, il n'y a donc encore rien à comparer.</value></data>
+  <data name="Dash_BeliefConsistentStatus" xml:space="preserve"><value>Vos convictions sont cohérentes</value></data>
+  <data name="Dash_BeliefConsistentDetail" xml:space="preserve"><value>Aucune contradiction détectée entre vos points de vue passés et actuels.</value></data>
+  <data name="Dash_BeliefAcknowledgedStatus" xml:space="preserve"><value>Aucun conflit en attente</value></data>
+  <data name="Dash_BeliefAcknowledgedDetail" xml:space="preserve"><value>Tous les conflits de convictions ont été pris en compte.</value></data>
+  <data name="Dash_BeliefUnavailableStatus" xml:space="preserve"><value>État des convictions indisponible</value></data>
+  <data name="Dash_BeliefUnavailableDetail" xml:space="preserve"><value>Agent-X n'a pas pu charger l'historique de vos convictions.</value></data>
   <data name="Main_QuickActions.Content" xml:space="preserve"><value>Quick Actions</value></data>
   <data name="Main_Workflows.Content" xml:space="preserve"><value>Workflows</value></data>
   <data name="Main_Knowledge.Content" xml:space="preserve"><value>CONNAISSANCES</value></data>
@@ -1004,7 +1015,6 @@
   <data name="Dash_Title.Text" xml:space="preserve"><value>TABLEAU DE BORD</value></data>
   <data name="Dash_Subtitle.Text" xml:space="preserve"><value>Votre centre privé d'intelligence IA. Tout s'exécute sur votre machine.</value></data>
   <data name="Dash_RefreshBtn.Content" xml:space="preserve"><value>Actualiser</value></data>
-  <data name="Dash_ConnectOllamaHint.Text" xml:space="preserve"><value>Connectez Ollama pour débloquer le chat IA, la recherche sémantique et l'intelligence des fichiers.</value></data>
   <data name="Dash_SetupAiBtn.Content" xml:space="preserve"><value>Configurer l'IA</value></data>
   <data name="Dash_SearchBox.PlaceholderText" xml:space="preserve"><value>Rechercher dans votre coffre-fort...  (Ctrl+K)</value></data>
   <data name="Dash_DocsOverline.Text" xml:space="preserve"><value>DOCUMENTS</value></data>

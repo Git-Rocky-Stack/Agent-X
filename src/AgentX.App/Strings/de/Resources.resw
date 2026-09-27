@@ -970,6 +970,17 @@
   <data name="Chat_GenerationFailedHint" xml:space="preserve"><value>Beim Erstellen einer Antwort ist ein Fehler aufgetreten. {0}</value></data>
   <data name="Chat_OfflineProviderUnavailable" xml:space="preserve"><value>Es kann keine Antwort erstellt werden: {0} ist nicht verfügbar.</value></data>
   <data name="Chat_OfflineNoProvider" xml:space="preserve"><value>Es kann keine Antwort erstellt werden: Der KI-Anbieter ist nicht verfügbar.</value></data>
+  <data name="Dash_BeliefEvolvedStatus" xml:space="preserve"><value>Überzeugungsentwicklung erkannt</value></data>
+  <data name="Dash_BeliefEvolvedDetailOne" xml:space="preserve"><value>Ihre Ansicht zu 1 Thema hat sich im Laufe der Zeit verändert.</value></data>
+  <data name="Dash_BeliefEvolvedDetailMany" xml:space="preserve"><value>Ihre Ansichten zu {0} Themen haben sich im Laufe der Zeit verändert.</value></data>
+  <data name="Dash_BeliefNoneStatus" xml:space="preserve"><value>Noch keine Überzeugungen zum Vergleichen</value></data>
+  <data name="Dash_BeliefNoneDetail" xml:space="preserve"><value>Agent-X hat Ihre Ansichten zu keinem Thema mehr als einmal erfasst, daher gibt es noch nichts zu vergleichen.</value></data>
+  <data name="Dash_BeliefConsistentStatus" xml:space="preserve"><value>Ihre Überzeugungen sind stimmig</value></data>
+  <data name="Dash_BeliefConsistentDetail" xml:space="preserve"><value>Keine Widersprüche zwischen Ihren früheren und aktuellen Ansichten erkannt.</value></data>
+  <data name="Dash_BeliefAcknowledgedStatus" xml:space="preserve"><value>Keine offenen Konflikte</value></data>
+  <data name="Dash_BeliefAcknowledgedDetail" xml:space="preserve"><value>Alle Überzeugungskonflikte wurden bestätigt.</value></data>
+  <data name="Dash_BeliefUnavailableStatus" xml:space="preserve"><value>Überzeugungsstatus nicht verfügbar</value></data>
+  <data name="Dash_BeliefUnavailableDetail" xml:space="preserve"><value>Agent-X konnte Ihren Überzeugungsverlauf nicht laden.</value></data>
   <data name="Main_QuickActions.Content" xml:space="preserve"><value>Quick Actions</value></data>
   <data name="Main_Workflows.Content" xml:space="preserve"><value>Workflows</value></data>
   <data name="Main_Knowledge.Content" xml:space="preserve"><value>WISSEN</value></data>
@@ -1004,7 +1015,6 @@
   <data name="Dash_Title.Text" xml:space="preserve"><value>DASHBOARD</value></data>
   <data name="Dash_Subtitle.Text" xml:space="preserve"><value>Ihre private KI-Intelligenzzentrale. Alles läuft auf Ihrem Rechner.</value></data>
   <data name="Dash_RefreshBtn.Content" xml:space="preserve"><value>Aktualisieren</value></data>
-  <data name="Dash_ConnectOllamaHint.Text" xml:space="preserve"><value>Verbinden Sie Ollama, um KI-Chat, semantische Suche und Datei-Intelligenz freizuschalten.</value></data>
   <data name="Dash_SetupAiBtn.Content" xml:space="preserve"><value>KI einrichten</value></data>
   <data name="Dash_SearchBox.PlaceholderText" xml:space="preserve"><value>Wissens-Tresor durchsuchen...  (Strg+K)</value></data>
   <data name="Dash_DocsOverline.Text" xml:space="preserve"><value>DOKUMENTE</value></data>

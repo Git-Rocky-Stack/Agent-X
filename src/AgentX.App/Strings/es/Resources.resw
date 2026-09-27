@@ -970,6 +970,17 @@
   <data name="Chat_GenerationFailedHint" xml:space="preserve"><value>Se produjo un error al generar una respuesta. {0}</value></data>
   <data name="Chat_OfflineProviderUnavailable" xml:space="preserve"><value>No se puede generar una respuesta: {0} no está disponible.</value></data>
   <data name="Chat_OfflineNoProvider" xml:space="preserve"><value>No se puede generar una respuesta: el proveedor de IA no está disponible.</value></data>
+  <data name="Dash_BeliefEvolvedStatus" xml:space="preserve"><value>Evolución de creencias detectada</value></data>
+  <data name="Dash_BeliefEvolvedDetailOne" xml:space="preserve"><value>Su punto de vista sobre 1 tema ha evolucionado con el tiempo.</value></data>
+  <data name="Dash_BeliefEvolvedDetailMany" xml:space="preserve"><value>Sus puntos de vista sobre {0} temas han evolucionado con el tiempo.</value></data>
+  <data name="Dash_BeliefNoneStatus" xml:space="preserve"><value>Aún no hay creencias que comparar</value></data>
+  <data name="Dash_BeliefNoneDetail" xml:space="preserve"><value>Agent-X no ha registrado sus puntos de vista sobre ningún tema más de una vez, así que aún no hay nada que comparar.</value></data>
+  <data name="Dash_BeliefConsistentStatus" xml:space="preserve"><value>Sus creencias son coherentes</value></data>
+  <data name="Dash_BeliefConsistentDetail" xml:space="preserve"><value>No se detectaron contradicciones entre sus puntos de vista pasados y actuales.</value></data>
+  <data name="Dash_BeliefAcknowledgedStatus" xml:space="preserve"><value>No hay conflictos pendientes</value></data>
+  <data name="Dash_BeliefAcknowledgedDetail" xml:space="preserve"><value>Se han confirmado todos los conflictos de creencias.</value></data>
+  <data name="Dash_BeliefUnavailableStatus" xml:space="preserve"><value>Estado de las creencias no disponible</value></data>
+  <data name="Dash_BeliefUnavailableDetail" xml:space="preserve"><value>Agent-X no pudo cargar el historial de sus creencias.</value></data>
   <data name="Main_QuickActions.Content" xml:space="preserve"><value>Quick Actions</value></data>
   <data name="Main_Workflows.Content" xml:space="preserve"><value>Workflows</value></data>
   <data name="Main_Knowledge.Content" xml:space="preserve"><value>CONOCIMIENTO</value></data>
@@ -1004,7 +1015,6 @@
   <data name="Dash_Title.Text" xml:space="preserve"><value>PANEL</value></data>
   <data name="Dash_Subtitle.Text" xml:space="preserve"><value>Su centro privado de inteligencia de IA. Todo se ejecuta en su equipo.</value></data>
   <data name="Dash_RefreshBtn.Content" xml:space="preserve"><value>Actualizar</value></data>
-  <data name="Dash_ConnectOllamaHint.Text" xml:space="preserve"><value>Conecte Ollama para desbloquear el chat de IA, la búsqueda semántica y la inteligencia de archivos.</value></data>
   <data name="Dash_SetupAiBtn.Content" xml:space="preserve"><value>Configurar IA</value></data>
   <data name="Dash_SearchBox.PlaceholderText" xml:space="preserve"><value>Buscar en su bóveda de conocimiento...  (Ctrl+K)</value></data>
   <data name="Dash_DocsOverline.Text" xml:space="preserve"><value>DOCUMENTOS</value></data>

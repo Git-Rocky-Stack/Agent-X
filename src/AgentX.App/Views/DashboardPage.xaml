@@ -79,7 +79,9 @@
                         <TextBlock Text="{x:Bind ViewModel.ActiveModelName, Mode=OneWay}"
                                    Style="{StaticResource HeadingLargeStyle}" />
 
-                        <TextBlock x:Uid="Dash_ConnectOllamaHint" Text="Connect Ollama to unlock AI chat, semantic search, and file intelligence."
+                        <!-- Advice for the active provider, only while it cannot be reached -->
+                        <TextBlock Text="{x:Bind ViewModel.ProviderAttentionHint, Mode=OneWay}"
+                                   Visibility="{x:Bind ViewModel.HasProviderAttentionHint, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                                    Style="{StaticResource BodySecondaryStyle}"
                                    MaxWidth="500"
                                    TextWrapping="Wrap" />
@@ -1088,12 +1090,12 @@
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
-                    <!-- New Chat -->
+                    <!-- New Chat: starts a conversation, like Ctrl+N -->
                     <Button Grid.Column="0"
                             Style="{StaticResource SecondaryButtonStyle}"
                             HorizontalAlignment="Stretch"
                             Padding="16,12"
-                            Command="{x:Bind ViewModel.NavigateToChatCommand}"
+                            Command="{x:Bind ViewModel.StartNewChatCommand}"
                             AutomationProperties.LabeledBy="{x:Bind NewChatTileLabel}">
                         <StackPanel Orientation="Horizontal" Spacing="8"
                                     HorizontalAlignment="Center">

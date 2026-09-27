@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Globalization;
 using AgentX.App.Services;
 using AgentX.Core.AI;
 using AgentX.Core.Data.Entities;
@@ -8,6 +9,7 @@ using AgentX.Core.Search;
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Collections;
 using AgentX.Core.Services.Indexing;
+using AgentX.Core.Services.Localization;
 using AgentX.Core.Services.Privacy;
 using AgentX.Core.Services.TemporalIdentity;
 using AgentX.Core.Services.TemporalIdentity.Models;
@@ -32,12 +34,23 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     private readonly ITemporalIdentityService _temporalIdentity;
     private readonly IStartupGate _startupGate;
     private readonly IPrivacyStatusService _privacyStatusService;
+    private readonly ILocalizationService? _localization;
     private OperationsOverviewSnapshot _operationsSnapshot = new();
 
     // ── AI Status ───────────────────────────────────────────
     [ObservableProperty] private bool _isOllamaConnected;
     [ObservableProperty] private string _activeModelName = "No model loaded";
     [ObservableProperty] private string _connectionStatus = "Checking connection...";
+
+    /// <summary>
+    /// What to check about the active provider, shown under the connection card only while that
+    /// provider cannot be reached. It used to tell everyone to connect Ollama.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasProviderAttentionHint))]
+    private string _providerAttentionHint = string.Empty;
+
+    public bool HasProviderAttentionHint => !string.IsNullOrEmpty(ProviderAttentionHint);
 
     // ── Knowledge Vault Stats ───────────────────────────────
     [ObservableProperty] private int _totalDocuments;
@@ -101,11 +114,13 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     [ObservableProperty] private ObservableCollection<DashboardTopCollectionItem> _topCollections = new();
 
     // ── Temporal Identity: Belief Conflicts ────────────────────
+    // Empty until the beliefs have been read: "consistent" is claimed only when beliefs exist and
+    // none of them conflicts (LoadBeliefConflictsAsync).
     [ObservableProperty] private ObservableCollection<BeliefConflictDisplayItem> _beliefConflicts = new();
     [ObservableProperty] private bool _hasBeliefConflicts;
-    [ObservableProperty] private string _beliefConflictsHeadline = "No conflicts detected";
-    [ObservableProperty] private string _beliefConflictsStatus = "Your beliefs are consistent";
-    [ObservableProperty] private string _beliefConflictsDetail = "No detected contradictions between your past and current views.";
+    [ObservableProperty] private string _beliefConflictsHeadline = string.Empty;
+    [ObservableProperty] private string _beliefConflictsStatus = string.Empty;
+    [ObservableProperty] private string _beliefConflictsDetail = string.Empty;
 
     // ── Privacy Posture (AX-QA-008) ────────────────────────────
     // State-aware replacement for the former unconditional "no cloud, no exceptions" claim. Driven by
@@ -133,7 +148,8 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         ITemporalIdentityService temporalIdentity,
         IStartupGate startupGate,
         IPrivacyStatusService privacyStatusService,
-        IOperationsDrillInService? operationsDrillInService = null)
+        IOperationsDrillInService? operationsDrillInService = null,
+        ILocalizationService? localization = null)
     {
         _aiService = aiService;
         _conversationService = conversationService;
@@ -147,6 +163,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         _startupGate = startupGate;
         _privacyStatusService = privacyStatusService;
         _operationsDrillInService = operationsDrillInService;
+        _localization = localization;
         Log.Debug("DashboardViewModel created with services");
     }
 
@@ -230,7 +247,8 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     private async Task LoadAiStatusAsync()
     {
         // The status names the active provider (the built-in model is the default), not Ollama.
-        var providerName = "AI provider";
+        var providerName = ProviderStatusText.GenericName(_localization);
+        string? providerId = null;
         try
         {
             IAiProvider activeProvider;
@@ -244,9 +262,11 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
                 IsOllamaConnected = false;
                 ConnectionStatus = "AI service starting...";
                 ActiveModelName = "Initializing...";
+                ProviderAttentionHint = string.Empty;
                 return;
             }
 
+            providerId = activeProvider.ProviderId;
             if (!string.IsNullOrWhiteSpace(activeProvider.DisplayName))
             {
                 providerName = activeProvider.DisplayName;
@@ -254,17 +274,25 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
 
             var connected = await activeProvider.CheckConnectionAsync();
             IsOllamaConnected = connected;
-            ConnectionStatus = connected ? $"Connected to {providerName}" : $"{providerName} not available";
+            ConnectionStatus = connected
+                ? ProviderStatusText.ConnectedTo(_localization, providerName)
+                : ProviderStatusText.NotAvailable(_localization, providerName);
             ActiveModelName = connected && !string.IsNullOrEmpty(_aiService.ActiveModelId)
                 ? _aiService.ActiveModelId
                 : "Setup required";
+
+            // Only a provider that cannot be reached needs attention, and the advice is for it.
+            ProviderAttentionHint = connected
+                ? string.Empty
+                : ProviderStatusText.CheckHint(_localization, providerId, providerName);
         }
         catch (Exception ex)
         {
             Log.Warning(ex, "Failed to check AI connection status for dashboard");
             IsOllamaConnected = false;
-            ConnectionStatus = $"{providerName} not available";
+            ConnectionStatus = ProviderStatusText.NotAvailable(_localization, providerName);
             ActiveModelName = "Setup required";
+            ProviderAttentionHint = ProviderStatusText.CheckHint(_localization, providerId, providerName);
         }
     }
 
@@ -757,6 +785,17 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         NavigateRequested?.Invoke("Chat");
     }
 
+    /// <summary>
+    /// The New Chat tile starts a conversation the way Ctrl+N and the palette's New Conversation
+    /// do. A plain navigation reopened whatever thread the cached Chat page had open.
+    /// </summary>
+    [RelayCommand]
+    private void StartNewChat()
+    {
+        Log.Debug("New chat requested from Dashboard");
+        NavigateRequested?.Invoke("Chat", NavigationIntents.NewConversation);
+    }
+
     [RelayCommand]
     private void NavigateToVault()
     {
@@ -922,6 +961,12 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
 
     // ── Temporal Identity: Belief Conflicts ────────────────────────
 
+    /// <summary>
+    /// Days back <see cref="ITemporalIdentityService.GetActiveTopicsAsync"/> looks for beliefs when
+    /// the card asks whether any were recorded at all.
+    /// </summary>
+    private const int AllRecordedBeliefsDays = 36_500;
+
     private async Task LoadBeliefConflictsAsync()
     {
         try
@@ -942,24 +987,71 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
                         OriginalConflict = c
                     }));
                 HasBeliefConflicts = true;
-                BeliefConflictsHeadline = conflicts.Count.ToString();
-                BeliefConflictsStatus = "Belief evolution detected";
-                BeliefConflictsDetail = $"Your views on {conflicts.Count} topic{(conflicts.Count > 1 ? "s" : "")} have evolved over time.";
+                BeliefConflictsHeadline = conflicts.Count.ToString(CultureInfo.CurrentCulture);
+                BeliefConflictsStatus = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_BeliefEvolvedStatus"),
+                    "Dash_BeliefEvolvedStatus",
+                    "Belief evolution detected");
+                BeliefConflictsDetail = conflicts.Count == 1
+                    ? ProviderStatusText.Resolve(
+                        _localization?.GetString("Dash_BeliefEvolvedDetailOne"),
+                        "Dash_BeliefEvolvedDetailOne",
+                        "Your view on 1 topic has evolved over time.")
+                    : ProviderStatusText.Resolve(
+                        _localization?.GetString("Dash_BeliefEvolvedDetailMany", conflicts.Count),
+                        "Dash_BeliefEvolvedDetailMany",
+                        "Your views on {0} topics have evolved over time.",
+                        conflicts.Count);
+                return;
             }
-            else
+
+            BeliefConflicts = new ObservableCollection<BeliefConflictDisplayItem>();
+            HasBeliefConflicts = false;
+            BeliefConflictsHeadline = "0";
+
+            // "Consistent" needs something to compare. With no belief recorded nothing was checked,
+            // which the card used to report as "Your beliefs are consistent". The query lists every
+            // belief observed since it was stamped; the only rows it misses are beliefs seen once
+            // before LastObservedAt was set on creation, and a view seen once has nothing to be
+            // compared with either, which is what the card says.
+            var recordedTopics = await _temporalIdentity.GetActiveTopicsAsync(days: AllRecordedBeliefsDays);
+            if (recordedTopics is not { Count: > 0 })
             {
-                BeliefConflicts = new ObservableCollection<BeliefConflictDisplayItem>();
-                HasBeliefConflicts = false;
-                BeliefConflictsHeadline = "No conflicts";
-                BeliefConflictsStatus = "Your beliefs are consistent";
-                BeliefConflictsDetail = "No detected contradictions between your past and current views.";
+                BeliefConflictsStatus = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_BeliefNoneStatus"),
+                    "Dash_BeliefNoneStatus",
+                    "No beliefs to compare yet");
+                BeliefConflictsDetail = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_BeliefNoneDetail"),
+                    "Dash_BeliefNoneDetail",
+                    "Agent-X has not recorded your views on any topic more than once, so there is nothing to compare yet.");
+                return;
             }
+
+            BeliefConflictsStatus = ProviderStatusText.Resolve(
+                _localization?.GetString("Dash_BeliefConsistentStatus"),
+                "Dash_BeliefConsistentStatus",
+                "Your beliefs are consistent");
+            BeliefConflictsDetail = ProviderStatusText.Resolve(
+                _localization?.GetString("Dash_BeliefConsistentDetail"),
+                "Dash_BeliefConsistentDetail",
+                "No detected contradictions between your past and current views.");
         }
         catch (Exception ex)
         {
+            // Unknown is not consistent: say the history could not be read.
             Log.Warning(ex, "Failed to load belief conflicts for dashboard");
             BeliefConflicts = new ObservableCollection<BeliefConflictDisplayItem>();
             HasBeliefConflicts = false;
+            BeliefConflictsHeadline = string.Empty;
+            BeliefConflictsStatus = ProviderStatusText.Resolve(
+                _localization?.GetString("Dash_BeliefUnavailableStatus"),
+                "Dash_BeliefUnavailableStatus",
+                "Belief status unavailable");
+            BeliefConflictsDetail = ProviderStatusText.Resolve(
+                _localization?.GetString("Dash_BeliefUnavailableDetail"),
+                "Dash_BeliefUnavailableDetail",
+                "Agent-X could not load your belief history.");
         }
     }
 
@@ -985,10 +1077,17 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
 
             if (!BeliefConflicts.Any())
             {
+                // Acknowledged is not consistent: the views did change.
                 HasBeliefConflicts = false;
-                BeliefConflictsHeadline = "No conflicts";
-                BeliefConflictsStatus = "Your beliefs are consistent";
-                BeliefConflictsDetail = "All belief conflicts have been acknowledged.";
+                BeliefConflictsHeadline = "0";
+                BeliefConflictsStatus = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_BeliefAcknowledgedStatus"),
+                    "Dash_BeliefAcknowledgedStatus",
+                    "No open conflicts");
+                BeliefConflictsDetail = ProviderStatusText.Resolve(
+                    _localization?.GetString("Dash_BeliefAcknowledgedDetail"),
+                    "Dash_BeliefAcknowledgedDetail",
+                    "All belief conflicts have been acknowledged.");
             }
 
             Log.Information("Acknowledged belief conflict for topic: {Topic}", conflict.Topic);

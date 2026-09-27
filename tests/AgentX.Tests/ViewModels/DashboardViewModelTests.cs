@@ -8,9 +8,11 @@ using AgentX.Core.Search;
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Collections;
 using AgentX.Core.Services.Indexing;
+using AgentX.Core.Services.Localization;
 using AgentX.Core.Services.Privacy;
 using AgentX.Core.Services.TemporalIdentity;
 using AgentX.Core.Services.TemporalIdentity.Models;
+using AgentX.Tests.Helpers;
 using FluentAssertions;
 using Moq;
 using Xunit;
@@ -77,6 +79,8 @@ public sealed class DashboardViewModelTests
 
         _temporalIdentity.Setup(service => service.GetBeliefConflictsAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<BeliefConflictEntity>());
+        _temporalIdentity.Setup(service => service.GetActiveTopicsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<string>());
 
         _operationsOverviewService.Setup(service => service.GetSnapshotAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new OperationsOverviewSnapshot
@@ -294,6 +298,229 @@ public sealed class DashboardViewModelTests
 
         viewModel.ConnectionStatus.Should().Be(expected);
         viewModel.ConnectionStatus.Should().NotContain("Ollama");
+    }
+
+    // ── Provider attention hint ──────────────────────────────────────────────
+    // "Connect Ollama to unlock AI chat" showed under the connection card whatever the provider
+    // was and whether or not it was reachable.
+
+    [Theory]
+    [InlineData("ollama", "Ollama", "Check that Ollama is running with a model downloaded, and that its address in Settings is correct.")]
+    [InlineData("local", "Built-in LLM", "Check that the built-in model is installed and that there is enough free memory to load it.")]
+    [InlineData("openai", "OpenAI", "Check the OpenAI API key in Settings and your network connection.")]
+    public async Task InitializeAsync_when_the_active_provider_is_unreachable_says_what_to_check_for_it(
+        string providerId, string displayName, string expected)
+    {
+        _aiProvider.SetupGet(provider => provider.ProviderId).Returns(providerId);
+        _aiProvider.SetupGet(provider => provider.DisplayName).Returns(displayName);
+        _aiProvider.Setup(provider => provider.CheckConnectionAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        var viewModel = CreateViewModel();
+
+        await viewModel.InitializeAsync();
+
+        viewModel.HasProviderAttentionHint.Should().BeTrue();
+        viewModel.ProviderAttentionHint.Should().Be(expected);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_when_the_active_provider_is_reachable_shows_no_hint()
+    {
+        _aiProvider.SetupGet(provider => provider.ProviderId).Returns("local");
+        _aiProvider.SetupGet(provider => provider.DisplayName).Returns("Built-in LLM");
+
+        var viewModel = CreateViewModel();
+
+        await viewModel.InitializeAsync();
+
+        viewModel.HasProviderAttentionHint.Should().BeFalse();
+        viewModel.ProviderAttentionHint.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task InitializeAsync_while_the_ai_service_is_starting_shows_no_hint()
+    {
+        _aiService.SetupGet(service => service.ActiveProvider)
+            .Throws(new InvalidOperationException("AI service has not been initialized. Call InitializeAsync first."));
+
+        var viewModel = CreateViewModel();
+
+        await viewModel.InitializeAsync();
+
+        viewModel.HasProviderAttentionHint.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task InitializeAsync_names_the_provider_and_its_advice_in_the_users_language()
+    {
+        _aiProvider.SetupGet(provider => provider.ProviderId).Returns("ollama");
+        _aiProvider.SetupGet(provider => provider.DisplayName).Returns("Ollama");
+        _aiProvider.Setup(provider => provider.CheckConnectionAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        var viewModel = CreateViewModel(localization: ReswLocalization.For("de"));
+
+        await viewModel.InitializeAsync();
+
+        viewModel.ConnectionStatus.Should().Be("Ollama nicht verfügbar");
+        viewModel.ProviderAttentionHint.Should().Be(
+            "Prüfen Sie, ob Ollama läuft und ein Modell heruntergeladen ist und ob die Adresse in den Einstellungen stimmt.");
+    }
+
+    // ── New Chat ─────────────────────────────────────────────────────────────
+    // The New Chat tile was a plain navigation to Chat, so the cached Chat page reopened the last
+    // conversation. It now carries the intent Ctrl+N and the palette's New Conversation use.
+
+    [Fact]
+    public void StartNewChatCommand_opens_chat_with_the_new_conversation_intent()
+    {
+        var viewModel = CreateViewModel();
+        var navigations = new List<(string Page, object? Parameter)>();
+        viewModel.NavigateRequested = (page, parameter) => navigations.Add((page, parameter));
+
+        viewModel.StartNewChatCommand.Execute(null);
+
+        navigations.Should().Equal(("Chat", (object?)NavigationIntents.NewConversation));
+    }
+
+    [Fact]
+    public void NavigateToChatCommand_still_opens_chat_where_it_was_left()
+    {
+        // "View All" under Recent Conversations shows the conversations, not a new one.
+        var viewModel = CreateViewModel();
+        var navigations = new List<(string Page, object? Parameter)>();
+        viewModel.NavigateRequested = (page, parameter) => navigations.Add((page, parameter));
+
+        viewModel.NavigateToChatCommand.Execute(null);
+
+        navigations.Should().Equal(("Chat", (object?)null));
+    }
+
+    // ── Belief card ──────────────────────────────────────────────────────────
+    // The card said "Your beliefs are consistent" / "No detected contradictions" when no belief
+    // had been recorded at all, so there was nothing to compare.
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task InitializeAsync_with_no_recorded_beliefs_does_not_claim_they_are_consistent(bool withEnglishResources)
+    {
+        _temporalIdentity.Setup(service => service.GetActiveTopicsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<string>());
+
+        var viewModel = CreateViewModel(localization: EnglishOrNone(withEnglishResources));
+
+        await viewModel.InitializeAsync();
+
+        viewModel.HasBeliefConflicts.Should().BeFalse();
+        viewModel.BeliefConflictsStatus.Should().Be("No beliefs to compare yet");
+        viewModel.BeliefConflictsDetail.Should().Be(
+            "Agent-X has not recorded your views on any topic more than once, so there is nothing to compare yet.");
+        viewModel.BeliefConflictsDetail.Should().NotContain("contradictions");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task InitializeAsync_with_recorded_beliefs_and_no_conflict_says_they_are_consistent(bool withEnglishResources)
+    {
+        _temporalIdentity.Setup(service => service.GetActiveTopicsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<string> { "Microservices" });
+
+        var viewModel = CreateViewModel(localization: EnglishOrNone(withEnglishResources));
+
+        await viewModel.InitializeAsync();
+
+        viewModel.HasBeliefConflicts.Should().BeFalse();
+        viewModel.BeliefConflictsStatus.Should().Be("Your beliefs are consistent");
+        viewModel.BeliefConflictsDetail.Should().Be("No detected contradictions between your past and current views.");
+    }
+
+    [Fact]
+    public async Task InitializeAsync_asks_for_every_recorded_belief_not_only_recent_ones()
+    {
+        // A belief recorded a year ago still makes "consistent" a claim about something.
+        var viewModel = CreateViewModel();
+
+        await viewModel.InitializeAsync();
+
+        _temporalIdentity.Verify(
+            service => service.GetActiveTopicsAsync(It.Is<int>(days => days >= 36_500), It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Theory]
+    [InlineData(1, "Your view on 1 topic has evolved over time.", false)]
+    [InlineData(3, "Your views on 3 topics have evolved over time.", false)]
+    [InlineData(1, "Your view on 1 topic has evolved over time.", true)]
+    [InlineData(3, "Your views on 3 topics have evolved over time.", true)]
+    public async Task InitializeAsync_with_conflicts_lists_them(int count, string expectedDetail, bool withEnglishResources)
+    {
+        var conflicts = Enumerable.Range(1, count)
+            .Select(i => new BeliefConflictEntity { Id = i, PreviousStance = "before", CurrentStance = "after" })
+            .ToList();
+        _temporalIdentity.Setup(service => service.GetBeliefConflictsAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(conflicts);
+
+        var viewModel = CreateViewModel(localization: EnglishOrNone(withEnglishResources));
+
+        await viewModel.InitializeAsync();
+
+        viewModel.HasBeliefConflicts.Should().BeTrue();
+        viewModel.BeliefConflictsHeadline.Should().Be(count.ToString());
+        viewModel.BeliefConflictsStatus.Should().Be("Belief evolution detected");
+        viewModel.BeliefConflictsDetail.Should().Be(expectedDetail);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task AcknowledgingTheLastConflict_says_so_rather_than_claiming_consistency(bool withEnglishResources)
+    {
+        var conflict = new BeliefConflictEntity { Id = 7, PreviousStance = "before", CurrentStance = "after" };
+        _temporalIdentity.Setup(service => service.GetBeliefConflictsAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<BeliefConflictEntity> { conflict });
+        _temporalIdentity.Setup(service => service.AcknowledgeConflictAsync(7, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+        var viewModel = CreateViewModel(localization: EnglishOrNone(withEnglishResources));
+        await viewModel.InitializeAsync();
+
+        await viewModel.AcknowledgeConflictCommand.ExecuteAsync(viewModel.BeliefConflicts.Single());
+
+        viewModel.HasBeliefConflicts.Should().BeFalse();
+        viewModel.BeliefConflictsStatus.Should().Be("No open conflicts");
+        viewModel.BeliefConflictsDetail.Should().Be("All belief conflicts have been acknowledged.");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task InitializeAsync_when_the_belief_history_cannot_be_read_says_so(bool withEnglishResources)
+    {
+        _temporalIdentity.Setup(service => service.GetBeliefConflictsAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("database unavailable"));
+
+        var viewModel = CreateViewModel(localization: EnglishOrNone(withEnglishResources));
+
+        await viewModel.InitializeAsync();
+
+        viewModel.HasBeliefConflicts.Should().BeFalse();
+        viewModel.BeliefConflictsStatus.Should().Be("Belief status unavailable");
+        viewModel.BeliefConflictsDetail.Should().Be("Agent-X could not load your belief history.");
+    }
+
+    [Fact]
+    public async Task The_belief_card_is_read_from_the_users_language()
+    {
+        _temporalIdentity.Setup(service => service.GetActiveTopicsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<string>());
+
+        var viewModel = CreateViewModel(localization: ReswLocalization.For("fr"));
+
+        await viewModel.InitializeAsync();
+
+        viewModel.BeliefConflictsStatus.Should().Be("Aucune conviction à comparer pour le moment");
     }
 
     [Fact]
@@ -570,7 +797,14 @@ public sealed class DashboardViewModelTests
         _documentService.Verify(service => service.GetTotalDocumentCountAsync(), Times.Never);
     }
 
-    private DashboardViewModel CreateViewModel(IStartupGate? startupGate = null)
+    /// <summary>
+    /// The shipped en-US resources, or none: the view model then uses its English fallbacks, which
+    /// must read the same.
+    /// </summary>
+    private static ILocalizationService? EnglishOrNone(bool withEnglishResources) =>
+        withEnglishResources ? ReswLocalization.For("en-US") : null;
+
+    private DashboardViewModel CreateViewModel(IStartupGate? startupGate = null, ILocalizationService? localization = null)
     {
         // Default to an already-open gate so the many InitializeAsync tests proceed immediately;
         // tests exercising the gate itself pass an explicit (closed) gate.
@@ -594,6 +828,7 @@ public sealed class DashboardViewModelTests
             _temporalIdentity.Object,
             gate,
             _privacyStatusService.Object,
-            _operationsDrillInService.Object);
+            _operationsDrillInService.Object,
+            localization);
     }
 }

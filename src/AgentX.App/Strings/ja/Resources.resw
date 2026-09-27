@@ -970,6 +970,17 @@
   <data name="Chat_GenerationFailedHint" xml:space="preserve"><value>応答の生成中にエラーが発生しました。{0}</value></data>
   <data name="Chat_OfflineProviderUnavailable" xml:space="preserve"><value>応答を生成できません。{0} を利用できません。</value></data>
   <data name="Chat_OfflineNoProvider" xml:space="preserve"><value>応答を生成できません。AI プロバイダーを利用できません。</value></data>
+  <data name="Dash_BeliefEvolvedStatus" xml:space="preserve"><value>信念の変化を検出しました</value></data>
+  <data name="Dash_BeliefEvolvedDetailOne" xml:space="preserve"><value>1 件のトピックについて、見方が時間とともに変化しました。</value></data>
+  <data name="Dash_BeliefEvolvedDetailMany" xml:space="preserve"><value>{0} 件のトピックについて、見方が時間とともに変化しました。</value></data>
+  <data name="Dash_BeliefNoneStatus" xml:space="preserve"><value>比較できる信念はまだありません</value></data>
+  <data name="Dash_BeliefNoneDetail" xml:space="preserve"><value>Agent-X は、どのトピックについてもあなたの見方を 2 回以上記録していないため、まだ比較するものがありません。</value></data>
+  <data name="Dash_BeliefConsistentStatus" xml:space="preserve"><value>信念に矛盾はありません</value></data>
+  <data name="Dash_BeliefConsistentDetail" xml:space="preserve"><value>過去と現在の見方の間に矛盾は検出されていません。</value></data>
+  <data name="Dash_BeliefAcknowledgedStatus" xml:space="preserve"><value>未確認の矛盾はありません</value></data>
+  <data name="Dash_BeliefAcknowledgedDetail" xml:space="preserve"><value>信念の矛盾はすべて確認済みです。</value></data>
+  <data name="Dash_BeliefUnavailableStatus" xml:space="preserve"><value>信念の状態を取得できません</value></data>
+  <data name="Dash_BeliefUnavailableDetail" xml:space="preserve"><value>Agent-X は信念の履歴を読み込めませんでした。</value></data>
   <data name="Main_QuickActions.Content" xml:space="preserve"><value>Quick Actions</value></data>
   <data name="Main_Workflows.Content" xml:space="preserve"><value>ワークフロー</value></data>
   <data name="Main_Knowledge.Content" xml:space="preserve"><value>ナレッジ</value></data>
@@ -1004,7 +1015,6 @@
   <data name="Dash_Title.Text" xml:space="preserve"><value>ダッシュボード</value></data>
   <data name="Dash_Subtitle.Text" xml:space="preserve"><value>あなた専用のプライベート AI インテリジェンス センター。すべてお使いのマシン上で動作します。</value></data>
   <data name="Dash_RefreshBtn.Content" xml:space="preserve"><value>更新</value></data>
-  <data name="Dash_ConnectOllamaHint.Text" xml:space="preserve"><value>Ollama に接続すると、AI チャット、セマンティック検索、ファイル インテリジェンスが利用できます。</value></data>
   <data name="Dash_SetupAiBtn.Content" xml:space="preserve"><value>AI をセットアップ</value></data>
   <data name="Dash_SearchBox.PlaceholderText" xml:space="preserve"><value>Knowledge Vault を検索...  (Ctrl+K)</value></data>
   <data name="Dash_DocsOverline.Text" xml:space="preserve"><value>ドキュメント</value></data>
