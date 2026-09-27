@@ -95,6 +95,25 @@ public sealed class ApiHostServiceTests
         harness.Client.Dispose();
     }
 
+    [Fact]
+    public async Task StartAsync_WhenThePortIsTaken_ThrowsAndLeavesTheHostStoppedAndStartable()
+    {
+        await using var owner = await ApiHostHarness.StartAsync();
+        await using var second = ApiHostHarness.CreateStopped();
+
+        var act = () => second.Service.StartAsync(owner.Port, DefaultToken);
+
+        await act.Should().ThrowAsync<HttpListenerException>();
+        second.Service.IsRunning.Should().BeFalse("a start that failed must not report a running host");
+        second.Service.BaseUrl.Should().BeEmpty("the host never listened on the taken port");
+
+        var freePort = ApiHostHarness.GetFreeTcpPort();
+        await second.Service.StartAsync(freePort, DefaultToken);
+
+        second.Service.IsRunning.Should().BeTrue();
+        second.Service.Port.Should().Be(freePort);
+    }
+
     // ══════════════════════════════════════════════════════════════════════
     //  Authentication
     // ══════════════════════════════════════════════════════════════════════
@@ -1124,6 +1143,9 @@ public sealed class ApiHostServiceTests
                 Settings.Object, AppPaths);
         }
 
+        /// <summary>Creates a harness whose host has not been started.</summary>
+        public static ApiHostHarness CreateStopped() => new();
+
         public static async Task<ApiHostHarness> StartAsync(string? token = DefaultToken)
         {
             var harness = new ApiHostHarness();
@@ -1163,7 +1185,7 @@ public sealed class ApiHostServiceTests
         public void SetAuthToken(string token) =>
             Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        private static int GetFreeTcpPort()
+        public static int GetFreeTcpPort()
         {
             var listener = new TcpListener(IPAddress.Loopback, 0);
             listener.Start();

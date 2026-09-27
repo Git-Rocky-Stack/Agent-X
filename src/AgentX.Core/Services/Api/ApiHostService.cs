@@ -126,22 +126,27 @@ public sealed class ApiHostService : IApiHostService, IAsyncDisposable
             _log.Warning("ApiHostService starting WITHOUT an auth token — all non-public routes will return 401.");
         }
 
-        Port = port;
-        BaseUrl = $"http://localhost:{port}/";
-
-        _listener = new HttpListener();
-        _listener.Prefixes.Add(BaseUrl);
+        var baseUrl = $"http://localhost:{port}/";
+        var listener = new HttpListener();
+        listener.Prefixes.Add(baseUrl);
 
         try
         {
-            _listener.Start();
+            listener.Start();
         }
         catch (HttpListenerException ex)
         {
-            _log.Error(ex, "Failed to start HTTP listener on {BaseUrl}. Ensure no other process owns the port.", BaseUrl);
+            _log.Error(ex, "Failed to start HTTP listener on {BaseUrl}. Ensure no other process owns the port.", baseUrl);
+
+            // Release the listener that failed to start; the host stays stopped and a later
+            // start (for example on another port) begins from a clean state.
+            listener.Close();
             throw;
         }
 
+        _listener = listener;
+        Port = port;
+        BaseUrl = baseUrl;
         IsRunning = true;
         _startedAt = DateTime.UtcNow;
         _listenerCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
@@ -252,7 +257,8 @@ public sealed class ApiHostService : IApiHostService, IAsyncDisposable
             if (req.HttpMethod.Equals("OPTIONS", StringComparison.OrdinalIgnoreCase))
             {
                 WriteCorsHeaders(resp, origin);
-                resp.StatusCode = 204;
+                statusCode = 204;
+                resp.StatusCode = statusCode;
                 resp.Close();
                 return;
             }
