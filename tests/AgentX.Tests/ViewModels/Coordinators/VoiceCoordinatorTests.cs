@@ -1,6 +1,7 @@
 using AgentX.App.ViewModels.Coordinators;
 using AgentX.Core.Services.Audio;
 using AgentX.Core.Services.Audio.Models;
+using AgentX.Core.Services.Localization;
 using FluentAssertions;
 using Moq;
 using Xunit;
@@ -10,6 +11,7 @@ namespace AgentX.Tests.ViewModels.Coordinators;
 public class VoiceCoordinatorTests : IDisposable
 {
     private readonly Mock<ITranscriptionService> _transcriptionService;
+    private readonly Mock<ILocalizationService> _localization = new();
     private readonly VoiceCoordinator _coordinator;
 
     public VoiceCoordinatorTests()
@@ -18,7 +20,12 @@ public class VoiceCoordinatorTests : IDisposable
         _transcriptionService.SetupGet(s => s.SupportedFormats)
             .Returns(new List<string> { ".wav", ".mp3" });
 
-        _coordinator = new VoiceCoordinator(_transcriptionService.Object);
+        // Resource lookups come back as their keys, followed by their arguments.
+        _localization.Setup(l => l.GetString(It.IsAny<string>())).Returns((string key) => key);
+        _localization.Setup(l => l.GetString(It.IsAny<string>(), It.IsAny<object[]>()))
+            .Returns((string key, object[] args) => $"{key}: {string.Join(" ", args)}");
+
+        _coordinator = new VoiceCoordinator(_transcriptionService.Object, _localization.Object);
     }
 
     public void Dispose()
@@ -113,7 +120,7 @@ public class VoiceCoordinatorTests : IDisposable
                 It.IsAny<TranscriptionOptions>(),
                 It.IsAny<IProgress<TranscriptionProgress>>(),
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new InvalidOperationException("Whisper model not found"));
+            .ThrowsAsync(new TranscriptionModelMissingException("base", "/models/ggml-base.bin"));
 
         // Act
         var text = await _coordinator.TranscribeFileAsync("/test/audio.wav");
@@ -225,15 +232,41 @@ public class VoiceCoordinatorTests : IDisposable
                 It.IsAny<TranscriptionOptions>(),
                 It.IsAny<IProgress<TranscriptionProgress>>(),
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new InvalidOperationException("Whisper model not found"));
+            .ThrowsAsync(new TranscriptionModelMissingException("base", "/models/ggml-base.bin"));
 
         // Act
         await _coordinator.TranscribeFileAsync("/test/audio.wav");
 
-        // Assert
+        // Assert: the text comes from the resources, and it names the Model Manager page (it
+        // used to send the user to a "Settings > Voice" page that does not exist).
         notification.Should().NotBeNull();
         notification!.Level.Should().Be("error");
-        notification.Title.Should().Be("Model Required");
+        notification.Title.Should().Be("Voice_ModelRequiredTitle");
+        notification.Message.Should().Be("Voice_ModelRequiredMessage");
+    }
+
+    [Fact]
+    public async Task TranscribeFileAsync_DamagedModel_IsReportedAsAFailure_NotAsAMissingModel()
+    {
+        // A model that is installed but cannot be loaded mentions "model" in its message. The
+        // coordinator used to match on that word and ask for a download the user already made.
+        NotificationRequestEventArgs? notification = null;
+        _coordinator.NotificationRequested += (s, e) => notification = e;
+
+        _transcriptionService
+            .Setup(s => s.TranscribeFileAsync(
+                It.IsAny<string>(),
+                It.IsAny<TranscriptionOptions>(),
+                It.IsAny<IProgress<TranscriptionProgress>>(),
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("The speech-to-text model file could not be loaded."));
+
+        await _coordinator.TranscribeFileAsync("/test/audio.wav");
+
+        notification.Should().NotBeNull();
+        notification!.Title.Should().Be("Voice_TranscriptionFailedTitle");
+        notification.Message.Should().Be(
+            "Voice_FileTranscriptionFailed: The speech-to-text model file could not be loaded.");
     }
 
     [Fact]
@@ -257,7 +290,8 @@ public class VoiceCoordinatorTests : IDisposable
         // Assert
         notification.Should().NotBeNull();
         notification!.Level.Should().Be("error");
-        notification.Title.Should().Be("Transcription Failed");
+        notification.Title.Should().Be("Voice_TranscriptionFailedTitle");
+        notification.Message.Should().Be("Voice_FileTranscriptionFailed: Network error");
     }
 
     // ── ToggleRecordingAsync (start path only — stop requires NAudio hardware) ──

@@ -112,6 +112,10 @@
     <Compile Include="..\..\src\AgentX.App\ViewModels\BackupRestoreViewModel.cs" Link="ViewModels\BackupRestoreViewModel.cs" />
     <!-- WatchFolderSettingsViewModel is the WinUI-free Watch Folders section of Settings. -->
     <Compile Include="..\..\src\AgentX.App\ViewModels\WatchFolderSettingsViewModel.cs" Link="ViewModels\WatchFolderSettingsViewModel.cs" />
+    <!-- ModelManagerViewModel and its WinUI-free Speech-to-Text Model section (download, remove,
+         and the requeue of audio waiting for the model). -->
+    <Compile Include="..\..\src\AgentX.App\ViewModels\ModelManagerViewModel.cs" Link="ViewModels\ModelManagerViewModel.cs" />
+    <Compile Include="..\..\src\AgentX.App\ViewModels\SpeechModelViewModel.cs" Link="ViewModels\SpeechModelViewModel.cs" />
     <!-- ShortcutInputRouter dispatch core is pure; WinUI attach lives in a separate file. -->
     <Compile Include="..\..\src\AgentX.App\Services\ShortcutInputRouter.cs" Link="Services\ShortcutInputRouter.cs" />
     <!-- ShortcutRegistrationExtensions is pure registry composition for page-scoped shortcuts. -->

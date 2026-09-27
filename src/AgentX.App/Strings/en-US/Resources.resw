@@ -774,6 +774,35 @@
   <data name="Comp_CancelBtn.Content" xml:space="preserve"><value>Cancel</value></data>
   <data name="Comp_Title.Text" xml:space="preserve"><value>COMPARATIVE ANALYSIS</value></data>
   <data name="Comp_Subtitle.Text" xml:space="preserve"><value>Select 2+ documents to generate a structured side-by-side comparison.</value></data>
+  <data name="ModelMgr_SttTitle.Text" xml:space="preserve"><value>Speech-to-Text Model</value></data>
+  <data name="ModelMgr_SttPurpose.Text" xml:space="preserve"><value>Transcribes the audio files you import and your voice input in AI Chat, on this computer.</value></data>
+  <data name="ModelMgr_SttDownload.Content" xml:space="preserve"><value>Download</value></data>
+  <data name="ModelMgr_SttCancel.Content" xml:space="preserve"><value>Cancel download</value></data>
+  <data name="ModelMgr_SttRemove.Content" xml:space="preserve"><value>Remove</value></data>
+  <data name="ModelMgr_SttInstalled" xml:space="preserve"><value>Installed. {0} on disk.</value></data>
+  <data name="ModelMgr_SttNotInstalled" xml:space="preserve"><value>Not installed. Nothing is downloaded until you choose Download.</value></data>
+  <data name="ModelMgr_SttStatusFailed" xml:space="preserve"><value>Could not check whether the model is installed: {0}</value></data>
+  <data name="ModelMgr_SttDownloading" xml:space="preserve"><value>Downloading: {0}%</value></data>
+  <data name="ModelMgr_SttDownloadCancelled" xml:space="preserve"><value>Download cancelled. Nothing was installed.</value></data>
+  <data name="ModelMgr_SttDownloadFailed" xml:space="preserve"><value>Download failed, nothing was installed: {0}</value></data>
+  <data name="ModelMgr_SttDownloadFailedTitle" xml:space="preserve"><value>Speech-to-text model not installed</value></data>
+  <data name="ModelMgr_SttReadyTitle" xml:space="preserve"><value>Speech-to-text model installed</value></data>
+  <data name="ModelMgr_SttReady" xml:space="preserve"><value>Imported audio files and voice input can now be transcribed.</value></data>
+  <data name="ModelMgr_SttQueued" xml:space="preserve"><value>Audio files queued for transcription: {0}.</value></data>
+  <data name="ModelMgr_SttRequeueFailed" xml:space="preserve"><value>The model is installed, but the audio files waiting for it could not be queued: {0}</value></data>
+  <data name="ModelMgr_SttRemoved" xml:space="preserve"><value>Model removed. Audio files and voice input cannot be transcribed until you download it again.</value></data>
+  <data name="ModelMgr_SttRemoveFailed" xml:space="preserve"><value>Could not remove the model: {0}</value></data>
+  <data name="Voice_ModelRequiredTitle" xml:space="preserve"><value>Speech-to-Text Model Required</value></data>
+  <data name="Voice_ModelRequiredMessage" xml:space="preserve"><value>Install the speech-to-text model on the Model Manager page, then try again.</value></data>
+  <data name="Voice_TranscriptionFailedTitle" xml:space="preserve"><value>Transcription Failed</value></data>
+  <data name="Voice_FileTranscriptionFailed" xml:space="preserve"><value>Could not transcribe the selected file: {0}</value></data>
+  <data name="Voice_RecordingTranscriptionFailed" xml:space="preserve"><value>Could not transcribe the recording: {0}</value></data>
+  <data name="Voice_RecordingFailedTitle" xml:space="preserve"><value>Recording Failed</value></data>
+  <data name="Voice_RecordingFailedMessage" xml:space="preserve"><value>Could not start voice recording. Ensure a microphone is connected and permissions are granted.</value></data>
+  <data name="Voice_NoSpeechTitle" xml:space="preserve"><value>No Speech Detected</value></data>
+  <data name="Voice_NoSpeechMessage" xml:space="preserve"><value>Could not detect speech in the recording. Try again in a quieter environment.</value></data>
+  <data name="Voice_TooShortTitle" xml:space="preserve"><value>Recording Too Short</value></data>
+  <data name="Voice_TooShortMessage" xml:space="preserve"><value>The recording was too short to transcribe. Speak for longer before you stop recording.</value></data>
   <data name="Comp_SummaryTitle.Text" xml:space="preserve"><value>Summary</value></data>
   <data name="Comp_TokensRun.Text" xml:space="preserve"><value>tokens</value></data>
   <data name="Comp_MsRun.Text" xml:space="preserve"><value>ms</value></data>

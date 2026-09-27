@@ -652,6 +652,35 @@
   <data name="Comp_CancelBtn.Content" xml:space="preserve"><value>キャンセル</value></data>
   <data name="Comp_Title.Text" xml:space="preserve"><value>比較分析</value></data>
   <data name="Comp_Subtitle.Text" xml:space="preserve"><value>2 つ以上のドキュメントを選択すると、構造化された並列比較を生成します。</value></data>
+  <data name="ModelMgr_SttTitle.Text" xml:space="preserve"><value>音声認識モデル</value></data>
+  <data name="ModelMgr_SttPurpose.Text" xml:space="preserve"><value>インポートした音声ファイルと AI Chat での音声入力を、このコンピューター上で文字起こしします。</value></data>
+  <data name="ModelMgr_SttDownload.Content" xml:space="preserve"><value>ダウンロード</value></data>
+  <data name="ModelMgr_SttCancel.Content" xml:space="preserve"><value>ダウンロードをキャンセル</value></data>
+  <data name="ModelMgr_SttRemove.Content" xml:space="preserve"><value>削除</value></data>
+  <data name="ModelMgr_SttInstalled" xml:space="preserve"><value>インストール済み。ディスク上のサイズ: {0}</value></data>
+  <data name="ModelMgr_SttNotInstalled" xml:space="preserve"><value>未インストールです。「ダウンロード」を選択するまで何もダウンロードされません。</value></data>
+  <data name="ModelMgr_SttStatusFailed" xml:space="preserve"><value>モデルがインストールされているか確認できませんでした: {0}</value></data>
+  <data name="ModelMgr_SttDownloading" xml:space="preserve"><value>ダウンロード中: {0}%</value></data>
+  <data name="ModelMgr_SttDownloadCancelled" xml:space="preserve"><value>ダウンロードをキャンセルしました。何もインストールされていません。</value></data>
+  <data name="ModelMgr_SttDownloadFailed" xml:space="preserve"><value>ダウンロードに失敗したため、何もインストールされていません: {0}</value></data>
+  <data name="ModelMgr_SttDownloadFailedTitle" xml:space="preserve"><value>音声認識モデルがインストールされていません</value></data>
+  <data name="ModelMgr_SttReadyTitle" xml:space="preserve"><value>音声認識モデルをインストールしました</value></data>
+  <data name="ModelMgr_SttReady" xml:space="preserve"><value>インポートした音声ファイルと音声入力を文字起こしできるようになりました。</value></data>
+  <data name="ModelMgr_SttQueued" xml:space="preserve"><value>文字起こしのキューに追加した音声ファイル: {0} 件。</value></data>
+  <data name="ModelMgr_SttRequeueFailed" xml:space="preserve"><value>モデルはインストールされましたが、モデルを待っていた音声ファイルをキューに追加できませんでした: {0}</value></data>
+  <data name="ModelMgr_SttRemoved" xml:space="preserve"><value>モデルを削除しました。再度ダウンロードするまで、音声ファイルと音声入力は文字起こしできません。</value></data>
+  <data name="ModelMgr_SttRemoveFailed" xml:space="preserve"><value>モデルを削除できませんでした: {0}</value></data>
+  <data name="Voice_ModelRequiredTitle" xml:space="preserve"><value>音声認識モデルが必要です</value></data>
+  <data name="Voice_ModelRequiredMessage" xml:space="preserve"><value>モデル マネージャー ページで音声認識モデルをインストールしてから、もう一度お試しください。</value></data>
+  <data name="Voice_TranscriptionFailedTitle" xml:space="preserve"><value>文字起こしに失敗しました</value></data>
+  <data name="Voice_FileTranscriptionFailed" xml:space="preserve"><value>選択したファイルを文字起こしできませんでした: {0}</value></data>
+  <data name="Voice_RecordingTranscriptionFailed" xml:space="preserve"><value>録音を文字起こしできませんでした: {0}</value></data>
+  <data name="Voice_RecordingFailedTitle" xml:space="preserve"><value>録音に失敗しました</value></data>
+  <data name="Voice_RecordingFailedMessage" xml:space="preserve"><value>音声録音を開始できませんでした。マイクが接続され、アクセス許可が付与されていることを確認してください。</value></data>
+  <data name="Voice_NoSpeechTitle" xml:space="preserve"><value>音声が検出されませんでした</value></data>
+  <data name="Voice_NoSpeechMessage" xml:space="preserve"><value>録音から音声を検出できませんでした。より静かな環境でもう一度お試しください。</value></data>
+  <data name="Voice_TooShortTitle" xml:space="preserve"><value>録音が短すぎます</value></data>
+  <data name="Voice_TooShortMessage" xml:space="preserve"><value>録音が短すぎて文字起こしできません。録音を停止する前に、もう少し長く話してください。</value></data>
   <data name="Comp_SummaryTitle.Text" xml:space="preserve"><value>要約</value></data>
   <data name="Comp_TokensRun.Text" xml:space="preserve"><value>トークン</value></data>
   <data name="Comp_MsRun.Text" xml:space="preserve"><value>ms</value></data>

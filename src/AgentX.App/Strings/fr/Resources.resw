@@ -652,6 +652,35 @@
   <data name="Comp_CancelBtn.Content" xml:space="preserve"><value>Annuler</value></data>
   <data name="Comp_Title.Text" xml:space="preserve"><value>ANALYSE COMPARATIVE</value></data>
   <data name="Comp_Subtitle.Text" xml:space="preserve"><value>Sélectionnez au moins deux documents pour générer une comparaison structurée côte à côte.</value></data>
+  <data name="ModelMgr_SttTitle.Text" xml:space="preserve"><value>Modèle de reconnaissance vocale</value></data>
+  <data name="ModelMgr_SttPurpose.Text" xml:space="preserve"><value>Transcrit les fichiers audio que vous importez et votre saisie vocale dans AI Chat, sur cet ordinateur.</value></data>
+  <data name="ModelMgr_SttDownload.Content" xml:space="preserve"><value>Télécharger</value></data>
+  <data name="ModelMgr_SttCancel.Content" xml:space="preserve"><value>Annuler le téléchargement</value></data>
+  <data name="ModelMgr_SttRemove.Content" xml:space="preserve"><value>Supprimer</value></data>
+  <data name="ModelMgr_SttInstalled" xml:space="preserve"><value>Installé. {0} sur le disque.</value></data>
+  <data name="ModelMgr_SttNotInstalled" xml:space="preserve"><value>Non installé. Rien n'est téléchargé tant que vous ne choisissez pas Télécharger.</value></data>
+  <data name="ModelMgr_SttStatusFailed" xml:space="preserve"><value>Impossible de vérifier si le modèle est installé : {0}</value></data>
+  <data name="ModelMgr_SttDownloading" xml:space="preserve"><value>Téléchargement : {0} %</value></data>
+  <data name="ModelMgr_SttDownloadCancelled" xml:space="preserve"><value>Téléchargement annulé. Rien n'a été installé.</value></data>
+  <data name="ModelMgr_SttDownloadFailed" xml:space="preserve"><value>Échec du téléchargement, rien n'a été installé : {0}</value></data>
+  <data name="ModelMgr_SttDownloadFailedTitle" xml:space="preserve"><value>Modèle de reconnaissance vocale non installé</value></data>
+  <data name="ModelMgr_SttReadyTitle" xml:space="preserve"><value>Modèle de reconnaissance vocale installé</value></data>
+  <data name="ModelMgr_SttReady" xml:space="preserve"><value>Les fichiers audio importés et la saisie vocale peuvent maintenant être transcrits.</value></data>
+  <data name="ModelMgr_SttQueued" xml:space="preserve"><value>Fichiers audio mis en file d'attente pour transcription : {0}.</value></data>
+  <data name="ModelMgr_SttRequeueFailed" xml:space="preserve"><value>Le modèle est installé, mais les fichiers audio qui l'attendaient n'ont pas pu être mis en file d'attente : {0}</value></data>
+  <data name="ModelMgr_SttRemoved" xml:space="preserve"><value>Modèle supprimé. Les fichiers audio et la saisie vocale ne pourront plus être transcrits tant que vous ne l'aurez pas téléchargé à nouveau.</value></data>
+  <data name="ModelMgr_SttRemoveFailed" xml:space="preserve"><value>Impossible de supprimer le modèle : {0}</value></data>
+  <data name="Voice_ModelRequiredTitle" xml:space="preserve"><value>Modèle de reconnaissance vocale requis</value></data>
+  <data name="Voice_ModelRequiredMessage" xml:space="preserve"><value>Installez le modèle de reconnaissance vocale sur la page Gestionnaire de modèles, puis réessayez.</value></data>
+  <data name="Voice_TranscriptionFailedTitle" xml:space="preserve"><value>Échec de la transcription</value></data>
+  <data name="Voice_FileTranscriptionFailed" xml:space="preserve"><value>Impossible de transcrire le fichier sélectionné : {0}</value></data>
+  <data name="Voice_RecordingTranscriptionFailed" xml:space="preserve"><value>Impossible de transcrire l'enregistrement : {0}</value></data>
+  <data name="Voice_RecordingFailedTitle" xml:space="preserve"><value>Échec de l'enregistrement</value></data>
+  <data name="Voice_RecordingFailedMessage" xml:space="preserve"><value>Impossible de démarrer l'enregistrement vocal. Vérifiez qu'un microphone est branché et que les autorisations sont accordées.</value></data>
+  <data name="Voice_NoSpeechTitle" xml:space="preserve"><value>Aucune parole détectée</value></data>
+  <data name="Voice_NoSpeechMessage" xml:space="preserve"><value>Aucune parole n'a été détectée dans l'enregistrement. Réessayez dans un environnement plus calme.</value></data>
+  <data name="Voice_TooShortTitle" xml:space="preserve"><value>Enregistrement trop court</value></data>
+  <data name="Voice_TooShortMessage" xml:space="preserve"><value>L'enregistrement était trop court pour être transcrit. Parlez plus longtemps avant d'arrêter l'enregistrement.</value></data>
   <data name="Comp_SummaryTitle.Text" xml:space="preserve"><value>Résumé</value></data>
   <data name="Comp_TokensRun.Text" xml:space="preserve"><value>tokens</value></data>
   <data name="Comp_MsRun.Text" xml:space="preserve"><value>ms</value></data>

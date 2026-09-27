@@ -652,6 +652,35 @@
   <data name="Comp_CancelBtn.Content" xml:space="preserve"><value>Cancelar</value></data>
   <data name="Comp_Title.Text" xml:space="preserve"><value>ANÁLISIS COMPARATIVO</value></data>
   <data name="Comp_Subtitle.Text" xml:space="preserve"><value>Seleccione 2 o más documentos para generar una comparación estructurada lado a lado.</value></data>
+  <data name="ModelMgr_SttTitle.Text" xml:space="preserve"><value>Modelo de voz a texto</value></data>
+  <data name="ModelMgr_SttPurpose.Text" xml:space="preserve"><value>Transcribe los archivos de audio que importa y su entrada de voz en AI Chat, en este equipo.</value></data>
+  <data name="ModelMgr_SttDownload.Content" xml:space="preserve"><value>Descargar</value></data>
+  <data name="ModelMgr_SttCancel.Content" xml:space="preserve"><value>Cancelar descarga</value></data>
+  <data name="ModelMgr_SttRemove.Content" xml:space="preserve"><value>Quitar</value></data>
+  <data name="ModelMgr_SttInstalled" xml:space="preserve"><value>Instalado. {0} en disco.</value></data>
+  <data name="ModelMgr_SttNotInstalled" xml:space="preserve"><value>No instalado. No se descarga nada hasta que elija Descargar.</value></data>
+  <data name="ModelMgr_SttStatusFailed" xml:space="preserve"><value>No se pudo comprobar si el modelo está instalado: {0}</value></data>
+  <data name="ModelMgr_SttDownloading" xml:space="preserve"><value>Descargando: {0} %</value></data>
+  <data name="ModelMgr_SttDownloadCancelled" xml:space="preserve"><value>Descarga cancelada. No se instaló nada.</value></data>
+  <data name="ModelMgr_SttDownloadFailed" xml:space="preserve"><value>La descarga falló y no se instaló nada: {0}</value></data>
+  <data name="ModelMgr_SttDownloadFailedTitle" xml:space="preserve"><value>Modelo de voz a texto no instalado</value></data>
+  <data name="ModelMgr_SttReadyTitle" xml:space="preserve"><value>Modelo de voz a texto instalado</value></data>
+  <data name="ModelMgr_SttReady" xml:space="preserve"><value>Los archivos de audio importados y la entrada de voz ya se pueden transcribir.</value></data>
+  <data name="ModelMgr_SttQueued" xml:space="preserve"><value>Archivos de audio en cola para transcripción: {0}.</value></data>
+  <data name="ModelMgr_SttRequeueFailed" xml:space="preserve"><value>El modelo está instalado, pero no se pudieron poner en cola los archivos de audio que lo esperaban: {0}</value></data>
+  <data name="ModelMgr_SttRemoved" xml:space="preserve"><value>Modelo quitado. Los archivos de audio y la entrada de voz no se podrán transcribir hasta que lo vuelva a descargar.</value></data>
+  <data name="ModelMgr_SttRemoveFailed" xml:space="preserve"><value>No se pudo quitar el modelo: {0}</value></data>
+  <data name="Voice_ModelRequiredTitle" xml:space="preserve"><value>Se requiere el modelo de voz a texto</value></data>
+  <data name="Voice_ModelRequiredMessage" xml:space="preserve"><value>Instale el modelo de voz a texto en la página Gestor de modelos y vuelva a intentarlo.</value></data>
+  <data name="Voice_TranscriptionFailedTitle" xml:space="preserve"><value>Error de transcripción</value></data>
+  <data name="Voice_FileTranscriptionFailed" xml:space="preserve"><value>No se pudo transcribir el archivo seleccionado: {0}</value></data>
+  <data name="Voice_RecordingTranscriptionFailed" xml:space="preserve"><value>No se pudo transcribir la grabación: {0}</value></data>
+  <data name="Voice_RecordingFailedTitle" xml:space="preserve"><value>Error de grabación</value></data>
+  <data name="Voice_RecordingFailedMessage" xml:space="preserve"><value>No se pudo iniciar la grabación de voz. Asegúrese de que haya un micrófono conectado y de que se hayan concedido los permisos.</value></data>
+  <data name="Voice_NoSpeechTitle" xml:space="preserve"><value>No se detectó voz</value></data>
+  <data name="Voice_NoSpeechMessage" xml:space="preserve"><value>No se detectó voz en la grabación. Inténtelo de nuevo en un entorno más silencioso.</value></data>
+  <data name="Voice_TooShortTitle" xml:space="preserve"><value>Grabación demasiado corta</value></data>
+  <data name="Voice_TooShortMessage" xml:space="preserve"><value>La grabación fue demasiado corta para transcribirla. Hable durante más tiempo antes de detener la grabación.</value></data>
   <data name="Comp_SummaryTitle.Text" xml:space="preserve"><value>Resumen</value></data>
   <data name="Comp_TokensRun.Text" xml:space="preserve"><value>tokens</value></data>
   <data name="Comp_MsRun.Text" xml:space="preserve"><value>ms</value></data>

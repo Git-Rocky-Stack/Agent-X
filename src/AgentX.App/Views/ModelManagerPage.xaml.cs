@@ -9,12 +9,28 @@ public sealed partial class ModelManagerPage : Page
 {
     public ModelManagerViewModel ViewModel { get; }
 
+    /// <summary>The Speech-to-Text Model section (row 5), bound by the XAML.</summary>
+    public SpeechModelViewModel SpeechModel => ViewModel.SpeechModel;
+
     public ModelManagerPage()
     {
         ViewModel = PageViewModelFactory.Create<ModelManagerViewModel>();
         InitializeComponent();
         Loaded += async (_, _) => await ViewModel.InitializeAsync();
     }
+
+    /// <summary>
+    /// Stencil word of the speech-to-text lamp: HOLD while the model downloads, GO once it is
+    /// installed, STBY while it is not. Equipment vocabulary, not localized.
+    /// </summary>
+    private string SpeechLampCode(bool isInstalled, bool isDownloading) =>
+        isDownloading ? "HOLD" : isInstalled ? "GO" : "STBY";
+
+    /// <summary>LED state matching <see cref="SpeechLampCode"/>: amber, green, or unlit.</summary>
+    private Controls.LampState SpeechLampState(bool isInstalled, bool isDownloading) =>
+        isDownloading ? Controls.LampState.Hold
+        : isInstalled ? Controls.LampState.Go
+        : Controls.LampState.Off;
 
     /// <summary>
     /// Helper for empty state visibility: returns Visible when model count is 0.

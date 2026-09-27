@@ -1,8 +1,12 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using AgentX.App.Services;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
+using AgentX.Core.Documents;
 using AgentX.Core.Helpers;
+using AgentX.Core.Services.Audio;
+using AgentX.Core.Services.Localization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Serilog;
@@ -32,11 +36,24 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
 
     public ObservableCollection<ModelDisplayItem> InstalledModels { get; } = new();
 
+    /// <summary>
+    /// The Speech-to-Text Model section: the Whisper model that transcribes imported audio
+    /// files and voice input, installed and removed from this page.
+    /// </summary>
+    public SpeechModelViewModel SpeechModel { get; }
+
     // ── Constructor ────────────────────────────────────────────
-    public ModelManagerViewModel(IModelManager modelManager, IAiService aiService)
+    public ModelManagerViewModel(
+        IModelManager modelManager,
+        IAiService aiService,
+        ITranscriptionService transcriptionService,
+        IDocumentService documentService,
+        ILocalizationService localization,
+        INotificationService? notifications = null)
     {
         _modelManager = modelManager;
         _aiService = aiService;
+        SpeechModel = new SpeechModelViewModel(transcriptionService, documentService, localization, notifications);
         Log.Debug("ModelManagerViewModel created with services");
     }
 
@@ -44,6 +61,9 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
     public async Task InitializeAsync()
     {
         Log.Information("ModelManager initializing...");
+
+        // A local file check, so the section is filled in before the provider round-trips below.
+        await SpeechModel.LoadAsync();
 
         try
         {
@@ -344,6 +364,7 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
     {
         _downloadCts?.Cancel();
         _downloadCts?.Dispose();
+        SpeechModel.Dispose();
         Log.Debug("ModelManagerViewModel disposed");
     }
 }

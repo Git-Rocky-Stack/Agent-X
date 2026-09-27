@@ -652,6 +652,35 @@
   <data name="Comp_CancelBtn.Content" xml:space="preserve"><value>取消</value></data>
   <data name="Comp_Title.Text" xml:space="preserve"><value>对比分析</value></data>
   <data name="Comp_Subtitle.Text" xml:space="preserve"><value>选择 2 份以上文档,生成结构化的并排对比。</value></data>
+  <data name="ModelMgr_SttTitle.Text" xml:space="preserve"><value>语音转文字模型</value></data>
+  <data name="ModelMgr_SttPurpose.Text" xml:space="preserve"><value>在这台电脑上转录您导入的音频文件和您在 AI Chat 中的语音输入。</value></data>
+  <data name="ModelMgr_SttDownload.Content" xml:space="preserve"><value>下载</value></data>
+  <data name="ModelMgr_SttCancel.Content" xml:space="preserve"><value>取消下载</value></data>
+  <data name="ModelMgr_SttRemove.Content" xml:space="preserve"><value>移除</value></data>
+  <data name="ModelMgr_SttInstalled" xml:space="preserve"><value>已安装。占用磁盘空间 {0}。</value></data>
+  <data name="ModelMgr_SttNotInstalled" xml:space="preserve"><value>未安装。在您选择“下载”之前，不会下载任何内容。</value></data>
+  <data name="ModelMgr_SttStatusFailed" xml:space="preserve"><value>无法检查模型是否已安装：{0}</value></data>
+  <data name="ModelMgr_SttDownloading" xml:space="preserve"><value>正在下载：{0}%</value></data>
+  <data name="ModelMgr_SttDownloadCancelled" xml:space="preserve"><value>下载已取消。未安装任何内容。</value></data>
+  <data name="ModelMgr_SttDownloadFailed" xml:space="preserve"><value>下载失败，未安装任何内容：{0}</value></data>
+  <data name="ModelMgr_SttDownloadFailedTitle" xml:space="preserve"><value>语音转文字模型未安装</value></data>
+  <data name="ModelMgr_SttReadyTitle" xml:space="preserve"><value>语音转文字模型已安装</value></data>
+  <data name="ModelMgr_SttReady" xml:space="preserve"><value>现在可以转录导入的音频文件和语音输入了。</value></data>
+  <data name="ModelMgr_SttQueued" xml:space="preserve"><value>已加入转录队列的音频文件：{0} 个。</value></data>
+  <data name="ModelMgr_SttRequeueFailed" xml:space="preserve"><value>模型已安装，但无法将等待该模型的音频文件加入队列：{0}</value></data>
+  <data name="ModelMgr_SttRemoved" xml:space="preserve"><value>模型已移除。在您重新下载之前，无法转录音频文件和语音输入。</value></data>
+  <data name="ModelMgr_SttRemoveFailed" xml:space="preserve"><value>无法移除模型：{0}</value></data>
+  <data name="Voice_ModelRequiredTitle" xml:space="preserve"><value>需要语音转文字模型</value></data>
+  <data name="Voice_ModelRequiredMessage" xml:space="preserve"><value>请在“模型管理器”页面安装语音转文字模型，然后重试。</value></data>
+  <data name="Voice_TranscriptionFailedTitle" xml:space="preserve"><value>转录失败</value></data>
+  <data name="Voice_FileTranscriptionFailed" xml:space="preserve"><value>无法转录所选文件：{0}</value></data>
+  <data name="Voice_RecordingTranscriptionFailed" xml:space="preserve"><value>无法转录录音：{0}</value></data>
+  <data name="Voice_RecordingFailedTitle" xml:space="preserve"><value>录音失败</value></data>
+  <data name="Voice_RecordingFailedMessage" xml:space="preserve"><value>无法开始录音。请确保已连接麦克风并已授予权限。</value></data>
+  <data name="Voice_NoSpeechTitle" xml:space="preserve"><value>未检测到语音</value></data>
+  <data name="Voice_NoSpeechMessage" xml:space="preserve"><value>录音中未检测到语音。请在更安静的环境中重试。</value></data>
+  <data name="Voice_TooShortTitle" xml:space="preserve"><value>录音太短</value></data>
+  <data name="Voice_TooShortMessage" xml:space="preserve"><value>录音太短，无法转录。请在停止录音前多说一会儿。</value></data>
   <data name="Comp_SummaryTitle.Text" xml:space="preserve"><value>摘要</value></data>
   <data name="Comp_TokensRun.Text" xml:space="preserve"><value>token</value></data>
   <data name="Comp_MsRun.Text" xml:space="preserve"><value>ms</value></data>

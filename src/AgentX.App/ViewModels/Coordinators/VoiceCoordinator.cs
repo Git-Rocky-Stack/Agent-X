@@ -1,5 +1,6 @@
 using AgentX.Core.Services.Audio;
 using AgentX.Core.Services.Audio.Models;
+using AgentX.Core.Services.Localization;
 using NAudio.Wave;
 using Serilog;
 
@@ -7,11 +8,14 @@ namespace AgentX.App.ViewModels.Coordinators;
 
 /// <summary>
 /// Orchestrates voice recording (via NAudio) and transcription (via ITranscriptionService).
-/// Raises events for the ChatViewModel to synchronize UI state.
+/// Raises events for the ChatViewModel to synchronize UI state. Notification text comes from
+/// the string resources; a missing speech-to-text model points the user at the Model Manager
+/// page, where it is installed.
 /// </summary>
 public sealed class VoiceCoordinator : IVoiceCoordinator, IDisposable
 {
     private readonly ITranscriptionService _transcriptionService;
+    private readonly ILocalizationService _localization;
 
     // ── NAudio recording resources ──────────────────────────────
     private WaveInEvent? _waveIn;
@@ -36,9 +40,10 @@ public sealed class VoiceCoordinator : IVoiceCoordinator, IDisposable
     public event EventHandler<string>? StatusChanged;
     public event EventHandler<NotificationRequestEventArgs>? NotificationRequested;
 
-    public VoiceCoordinator(ITranscriptionService transcriptionService)
+    public VoiceCoordinator(ITranscriptionService transcriptionService, ILocalizationService localization)
     {
         _transcriptionService = transcriptionService;
+        _localization = localization;
     }
 
     /// <inheritdoc />
@@ -76,15 +81,10 @@ public sealed class VoiceCoordinator : IVoiceCoordinator, IDisposable
 
             return null;
         }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("model", StringComparison.OrdinalIgnoreCase))
+        catch (TranscriptionModelMissingException ex)
         {
             Log.Warning(ex, "Whisper model not available for file transcription");
-            NotificationRequested?.Invoke(this, new NotificationRequestEventArgs
-            {
-                Level = "error",
-                Title = "Model Required",
-                Message = "Download a Whisper model first. Go to Settings > Voice to download one."
-            });
+            NotifyModelRequired();
             return null;
         }
         catch (Exception ex)
@@ -93,8 +93,8 @@ public sealed class VoiceCoordinator : IVoiceCoordinator, IDisposable
             NotificationRequested?.Invoke(this, new NotificationRequestEventArgs
             {
                 Level = "error",
-                Title = "Transcription Failed",
-                Message = $"Could not transcribe the selected file: {ex.Message}"
+                Title = _localization.GetString("Voice_TranscriptionFailedTitle"),
+                Message = _localization.GetString("Voice_FileTranscriptionFailed", ex.Message)
             });
             return null;
         }
@@ -141,8 +141,8 @@ public sealed class VoiceCoordinator : IVoiceCoordinator, IDisposable
             NotificationRequested?.Invoke(this, new NotificationRequestEventArgs
             {
                 Level = "error",
-                Title = "Recording Failed",
-                Message = "Could not start voice recording. Ensure a microphone is connected and permissions are granted."
+                Title = _localization.GetString("Voice_RecordingFailedTitle"),
+                Message = _localization.GetString("Voice_RecordingFailedMessage")
             });
         }
     }
@@ -185,8 +185,8 @@ public sealed class VoiceCoordinator : IVoiceCoordinator, IDisposable
                         NotificationRequested?.Invoke(this, new NotificationRequestEventArgs
                         {
                             Level = "info",
-                            Title = "No Speech Detected",
-                            Message = "Could not detect speech in the recording. Try again in a quieter environment."
+                            Title = _localization.GetString("Voice_NoSpeechTitle"),
+                            Message = _localization.GetString("Voice_NoSpeechMessage")
                         });
                     }
                 }
@@ -195,23 +195,18 @@ public sealed class VoiceCoordinator : IVoiceCoordinator, IDisposable
                     NotificationRequested?.Invoke(this, new NotificationRequestEventArgs
                     {
                         Level = "info",
-                        Title = "Recording Too Short",
-                        Message = "The recording was too short to transcribe. Hold the button longer while speaking."
+                        Title = _localization.GetString("Voice_TooShortTitle"),
+                        Message = _localization.GetString("Voice_TooShortMessage")
                     });
                 }
             }
 
             return null;
         }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("model", StringComparison.OrdinalIgnoreCase))
+        catch (TranscriptionModelMissingException ex)
         {
             Log.Warning(ex, "Whisper model not available");
-            NotificationRequested?.Invoke(this, new NotificationRequestEventArgs
-            {
-                Level = "error",
-                Title = "Model Required",
-                Message = "Download a Whisper model first. Go to Settings > Voice to download one."
-            });
+            NotifyModelRequired();
             return null;
         }
         catch (Exception ex)
@@ -220,8 +215,8 @@ public sealed class VoiceCoordinator : IVoiceCoordinator, IDisposable
             NotificationRequested?.Invoke(this, new NotificationRequestEventArgs
             {
                 Level = "error",
-                Title = "Transcription Failed",
-                Message = $"Could not transcribe the recording: {ex.Message}"
+                Title = _localization.GetString("Voice_TranscriptionFailedTitle"),
+                Message = _localization.GetString("Voice_RecordingTranscriptionFailed", ex.Message)
             });
             return null;
         }
@@ -259,6 +254,19 @@ public sealed class VoiceCoordinator : IVoiceCoordinator, IDisposable
     }
 
     // ── State helpers ────────────────────────────────────────────
+
+    /// <summary>
+    /// The speech-to-text model is not installed: say where to install it (the Model Manager page).
+    /// </summary>
+    private void NotifyModelRequired()
+    {
+        NotificationRequested?.Invoke(this, new NotificationRequestEventArgs
+        {
+            Level = "error",
+            Title = _localization.GetString("Voice_ModelRequiredTitle"),
+            Message = _localization.GetString("Voice_ModelRequiredMessage")
+        });
+    }
 
     private void SetRecording(bool value)
     {

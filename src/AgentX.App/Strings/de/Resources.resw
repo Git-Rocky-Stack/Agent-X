@@ -652,6 +652,35 @@
   <data name="Comp_CancelBtn.Content" xml:space="preserve"><value>Abbrechen</value></data>
   <data name="Comp_Title.Text" xml:space="preserve"><value>VERGLEICHSANALYSE</value></data>
   <data name="Comp_Subtitle.Text" xml:space="preserve"><value>Wählen Sie mindestens zwei Dokumente aus, um einen strukturierten Direktvergleich zu erstellen.</value></data>
+  <data name="ModelMgr_SttTitle.Text" xml:space="preserve"><value>Spracherkennungsmodell</value></data>
+  <data name="ModelMgr_SttPurpose.Text" xml:space="preserve"><value>Transkribiert die Audiodateien, die Sie importieren, und Ihre Spracheingabe in AI Chat, auf diesem Computer.</value></data>
+  <data name="ModelMgr_SttDownload.Content" xml:space="preserve"><value>Herunterladen</value></data>
+  <data name="ModelMgr_SttCancel.Content" xml:space="preserve"><value>Download abbrechen</value></data>
+  <data name="ModelMgr_SttRemove.Content" xml:space="preserve"><value>Entfernen</value></data>
+  <data name="ModelMgr_SttInstalled" xml:space="preserve"><value>Installiert. {0} auf dem Datenträger.</value></data>
+  <data name="ModelMgr_SttNotInstalled" xml:space="preserve"><value>Nicht installiert. Es wird nichts heruntergeladen, bevor Sie Herunterladen wählen.</value></data>
+  <data name="ModelMgr_SttStatusFailed" xml:space="preserve"><value>Es konnte nicht geprüft werden, ob das Modell installiert ist: {0}</value></data>
+  <data name="ModelMgr_SttDownloading" xml:space="preserve"><value>Wird heruntergeladen: {0} %</value></data>
+  <data name="ModelMgr_SttDownloadCancelled" xml:space="preserve"><value>Download abgebrochen. Es wurde nichts installiert.</value></data>
+  <data name="ModelMgr_SttDownloadFailed" xml:space="preserve"><value>Download fehlgeschlagen, es wurde nichts installiert: {0}</value></data>
+  <data name="ModelMgr_SttDownloadFailedTitle" xml:space="preserve"><value>Spracherkennungsmodell nicht installiert</value></data>
+  <data name="ModelMgr_SttReadyTitle" xml:space="preserve"><value>Spracherkennungsmodell installiert</value></data>
+  <data name="ModelMgr_SttReady" xml:space="preserve"><value>Importierte Audiodateien und Spracheingaben können jetzt transkribiert werden.</value></data>
+  <data name="ModelMgr_SttQueued" xml:space="preserve"><value>Zur Transkription eingereihte Audiodateien: {0}.</value></data>
+  <data name="ModelMgr_SttRequeueFailed" xml:space="preserve"><value>Das Modell ist installiert, aber die darauf wartenden Audiodateien konnten nicht eingereiht werden: {0}</value></data>
+  <data name="ModelMgr_SttRemoved" xml:space="preserve"><value>Modell entfernt. Audiodateien und Spracheingaben können erst wieder transkribiert werden, wenn Sie es erneut herunterladen.</value></data>
+  <data name="ModelMgr_SttRemoveFailed" xml:space="preserve"><value>Das Modell konnte nicht entfernt werden: {0}</value></data>
+  <data name="Voice_ModelRequiredTitle" xml:space="preserve"><value>Spracherkennungsmodell erforderlich</value></data>
+  <data name="Voice_ModelRequiredMessage" xml:space="preserve"><value>Installieren Sie das Spracherkennungsmodell auf der Seite Modellverwaltung und versuchen Sie es dann erneut.</value></data>
+  <data name="Voice_TranscriptionFailedTitle" xml:space="preserve"><value>Transkription fehlgeschlagen</value></data>
+  <data name="Voice_FileTranscriptionFailed" xml:space="preserve"><value>Die ausgewählte Datei konnte nicht transkribiert werden: {0}</value></data>
+  <data name="Voice_RecordingTranscriptionFailed" xml:space="preserve"><value>Die Aufnahme konnte nicht transkribiert werden: {0}</value></data>
+  <data name="Voice_RecordingFailedTitle" xml:space="preserve"><value>Aufnahme fehlgeschlagen</value></data>
+  <data name="Voice_RecordingFailedMessage" xml:space="preserve"><value>Die Sprachaufnahme konnte nicht gestartet werden. Stellen Sie sicher, dass ein Mikrofon angeschlossen ist und die Berechtigungen erteilt sind.</value></data>
+  <data name="Voice_NoSpeechTitle" xml:space="preserve"><value>Keine Sprache erkannt</value></data>
+  <data name="Voice_NoSpeechMessage" xml:space="preserve"><value>In der Aufnahme wurde keine Sprache erkannt. Versuchen Sie es in einer ruhigeren Umgebung erneut.</value></data>
+  <data name="Voice_TooShortTitle" xml:space="preserve"><value>Aufnahme zu kurz</value></data>
+  <data name="Voice_TooShortMessage" xml:space="preserve"><value>Die Aufnahme war zu kurz zum Transkribieren. Sprechen Sie länger, bevor Sie die Aufnahme beenden.</value></data>
   <data name="Comp_SummaryTitle.Text" xml:space="preserve"><value>Zusammenfassung</value></data>
   <data name="Comp_TokensRun.Text" xml:space="preserve"><value>Tokens</value></data>
   <data name="Comp_MsRun.Text" xml:space="preserve"><value>ms</value></data>

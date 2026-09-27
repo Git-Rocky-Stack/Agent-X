@@ -30,6 +30,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <!-- =======================================================
@@ -471,6 +472,101 @@
                     </StackPanel>
                 </Border>
             </StackPanel>
+
+            <!-- =======================================================
+                 ROW 5: SPEECH-TO-TEXT MODEL (SpeechModelViewModel)
+                 The Whisper model behind audio import and voice input. It is
+                 downloaded only when the user presses Download.
+                 ======================================================= -->
+            <controls:Faceplate Grid.Row="5" Kicker="MOD - MDL - 03">
+                <StackPanel Spacing="20">
+                    <!-- Section heading, purpose, and the model's lamp: GO installed,
+                         HOLD downloading, STBY (unlit) not installed. The stencil
+                         word is equipment vocabulary and is not localized. -->
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Spacing="4">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE720;" FontSize="18"
+                                          Foreground="{ThemeResource TextAccentBrush}" />
+                                <TextBlock x:Uid="ModelMgr_SttTitle" Text="Speech-to-Text Model"
+                                           Style="{StaticResource HeadingMediumStyle}" />
+                                <Border Style="{StaticResource BadgeDefaultStyle}"
+                                        VerticalAlignment="Center">
+                                    <TextBlock Text="whisper-base"
+                                               Style="{StaticResource MonoSmallStyle}" />
+                                </Border>
+                            </StackPanel>
+                            <TextBlock x:Uid="ModelMgr_SttPurpose" Text="Transcribes the audio files you import and your voice input in AI Chat, on this computer."
+                                       Style="{StaticResource BodySecondaryStyle}"
+                                       TextWrapping="Wrap"
+                                       Margin="28,0,0,0" />
+                        </StackPanel>
+
+                        <controls:LampTile Grid.Column="1"
+                                           Code="{x:Bind SpeechLampCode(SpeechModel.IsInstalled, SpeechModel.IsDownloading), Mode=OneWay}"
+                                           State="{x:Bind SpeechLampState(SpeechModel.IsInstalled, SpeechModel.IsDownloading), Mode=OneWay}"
+                                           IsTabStop="False"
+                                           VerticalAlignment="Center" />
+                    </Grid>
+
+                    <!-- Status and actions -->
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Text="{x:Bind SpeechModel.StatusText, Mode=OneWay}"
+                                   Style="{StaticResource BodyStyle}"
+                                   TextWrapping="Wrap"
+                                   VerticalAlignment="Center" />
+
+                        <Button Grid.Column="1"
+                                x:Uid="ModelMgr_SttDownload" Content="Download"
+                                Style="{StaticResource AccentButtonStyle}"
+                                Command="{x:Bind SpeechModel.DownloadCommand}"
+                                Visibility="{x:Bind SpeechModel.CanDownload, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+
+                        <Button Grid.Column="1"
+                                x:Uid="ModelMgr_SttCancel" Content="Cancel download"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Command="{x:Bind SpeechModel.CancelDownloadCommand}"
+                                Visibility="{x:Bind SpeechModel.IsDownloading, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+
+                        <Button Grid.Column="2"
+                                x:Uid="ModelMgr_SttRemove" Content="Remove"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Command="{x:Bind SpeechModel.RemoveCommand}"
+                                Visibility="{x:Bind SpeechModel.CanRemove, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+                    </Grid>
+
+                    <!-- Download progress -->
+                    <ProgressBar Value="{x:Bind SpeechModel.DownloadProgress, Mode=OneWay}"
+                                 Maximum="100"
+                                 Style="{StaticResource AccentProgressBarStyle}"
+                                 MinHeight="6"
+                                 MaxHeight="6"
+                                 Visibility="{x:Bind SpeechModel.IsDownloading, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+
+                    <!-- What the last download or removal did, or why it failed -->
+                    <TextBlock Text="{x:Bind SpeechModel.ResultMessage, Mode=OneWay}"
+                               Style="{StaticResource BodySmallStyle}"
+                               Foreground="{ThemeResource TextSecondaryBrush}"
+                               TextWrapping="Wrap"
+                               Visibility="{x:Bind SpeechModel.ResultMessage, Mode=OneWay, Converter={StaticResource StringToVis}}" />
+                    <TextBlock Text="{x:Bind SpeechModel.ErrorMessage, Mode=OneWay}"
+                               Style="{StaticResource BodySmallStyle}"
+                               Foreground="{ThemeResource ErrorBrush}"
+                               TextWrapping="Wrap"
+                               Visibility="{x:Bind SpeechModel.ErrorMessage, Mode=OneWay, Converter={StaticResource StringToVis}}" />
+                </StackPanel>
+            </controls:Faceplate>
 
         </Grid>
     </ScrollViewer>
