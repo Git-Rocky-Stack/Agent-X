@@ -101,6 +101,13 @@ public sealed class DatabaseEncryptionManagerTests : IDisposable
         spy.DatabaseWasOpenDuringMigration.Should().BeFalse();
     }
 
+    /// <summary>
+    /// Upper bound for waits that include SQLCipher work (export, swap, keyed reopen). This test
+    /// checks ordering, not speed: on a loaded CI runner a single migration takes 10 to 13 seconds,
+    /// and a 30-second bound on the whole enable failed there although the gate behaved.
+    /// </summary>
+    private static readonly TimeSpan SqlCipherWorkTimeout = TimeSpan.FromMinutes(2);
+
     [Fact]
     public async Task EnableEncryptionAsync_holds_the_database_gate_while_the_file_is_migrated()
     {
@@ -117,7 +124,7 @@ public sealed class DatabaseEncryptionManagerTests : IDisposable
         });
 
         var enable = CreateSut(migrator: migrator).EnableEncryptionAsync();
-        await queryStarted.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        await queryStarted.Task.WaitAsync(SqlCipherWorkTimeout);
         await Task.Delay(300);
 
         // Without the gate the query reopened the connection on the plaintext file while it was
@@ -125,8 +132,8 @@ public sealed class DatabaseEncryptionManagerTests : IDisposable
         otherFlow.IsCompleted.Should().BeFalse("EF work from another flow must wait while the file is migrated");
 
         migrator.Continue.SetResult();
-        (await enable.WaitAsync(TimeSpan.FromSeconds(30))).Should().BeTrue();
-        (await otherFlow.WaitAsync(TimeSpan.FromSeconds(10))).Should().Be(1, "it runs on the encrypted file once the key is applied");
+        (await enable.WaitAsync(SqlCipherWorkTimeout)).Should().BeTrue();
+        (await otherFlow.WaitAsync(SqlCipherWorkTimeout)).Should().Be(1, "it runs on the encrypted file once the key is applied");
     }
 
     [Fact]
