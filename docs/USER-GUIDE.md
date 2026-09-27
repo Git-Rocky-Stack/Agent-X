@@ -516,6 +516,8 @@ Multi-select documents to:
 
 Re-index after changing embedding models, moving source files, or resolving an extraction failure.
 
+Documents indexed by earlier versions of Agent-X, which did not record the embedding model behind each chunk, are embedded again automatically while nothing else is being indexed. Their stored chunk text is reused (nothing is extracted again) and embedded with the embedding model currently selected in Settings.
+
 ---
 
 ## 11. Web Import

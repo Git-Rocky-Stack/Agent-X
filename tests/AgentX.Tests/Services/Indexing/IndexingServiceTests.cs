@@ -386,6 +386,110 @@ public sealed class IndexingServiceTests : IDisposable
         document.IndexingError.Should().BeNull();
     }
 
+    // Chunks embedded before embedding model versions were recorded
+    // They carry no version or "all-minilm:1.0", whatever provider really embedded them.
+    // Retrieval drops chunks whose version differs from the current "provider:model:dims",
+    // and HNSW serves only vectors of the current size, so these documents had silently
+    // fallen out of semantic search until someone re-indexed each one by hand.
+
+    [Fact]
+    public async Task LegacyChunks_AreEmbeddedAgainFromTheirStoredText_AndStampedWithTheCurrentVersion()
+    {
+        var legacyDoc = SeedEmbeddedDocument("old.txt", "completed",
+            ("first stored chunk", null),
+            ("second stored chunk", IndexingService.LegacyEmbeddingModelVersion));
+        var currentDoc = SeedEmbeddedDocument("new.txt", "completed", ("already current", "test-embed:1.0"));
+        long[] legacyChunkIds;
+        using (var db = NewContext())
+        {
+            legacyChunkIds = await db.DocumentChunks.Where(c => c.DocumentId == legacyDoc)
+                .OrderBy(c => c.ChunkIndex).Select(c => c.Id).ToArrayAsync();
+        }
+
+        var service = NewService();
+        var reembedded = await service.ReembedLegacyChunksAsync(CancellationToken.None);
+
+        reembedded.Should().Be(1);
+        _embedding.Verify(e => e.EmbedBatchAsync(
+            It.Is<IEnumerable<string>>(texts => texts.SequenceEqual(new[] { "first stored chunk", "second stored chunk" })),
+            It.IsAny<CancellationToken>()), Times.Once);
+        _vectorStore.Verify(v => v.DeleteEmbeddingsForDocumentAsync(
+            legacyDoc, It.Is<IReadOnlyList<long>>(ids => ids.SequenceEqual(legacyChunkIds)), It.IsAny<CancellationToken>()), Times.Once);
+        foreach (var chunkId in legacyChunkIds)
+        {
+            _vectorStore.Verify(v => v.InsertEmbeddingAsync(chunkId, It.IsAny<float[]>(), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        _vectorStore.Verify(v => v.DeleteEmbeddingsForDocumentAsync(currentDoc, It.IsAny<IReadOnlyList<long>>(), It.IsAny<CancellationToken>()), Times.Never);
+        _processor.Calls.Should().Be(0, "the stored chunk text is embedded again; nothing is extracted");
+        _keywordSearch.Verify(k => k.IndexDocumentChunksAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()), Times.Never);
+        _keywordSearch.Verify(k => k.RemoveDocumentFromFtsAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()), Times.Never);
+
+        using var check = NewContext();
+        var chunks = await check.DocumentChunks.Where(c => c.DocumentId == legacyDoc).OrderBy(c => c.ChunkIndex).ToListAsync();
+        chunks.Select(c => c.Id).Should().Equal(legacyChunkIds, "the chunks are kept, only their vectors change");
+        chunks.Select(c => c.Content).Should().Equal("first stored chunk", "second stored chunk");
+        chunks.Should().OnlyContain(c =>
+            c.IsEmbedded
+            && c.EmbeddingModelVersion == "test-embed:1.0"
+            && c.EmbeddingDimensions == 3
+            && c.EmbeddedAt != null
+            && c.VectorRowId != null);
+        (await check.Documents.SingleAsync(d => d.Id == legacyDoc)).IndexingStatus.Should().Be("completed");
+    }
+
+    [Fact]
+    public async Task LegacyChunks_WhenEmbeddingFails_StayAsTheyWereAndAreNotRetriedAtOnce()
+    {
+        var legacyDoc = SeedEmbeddedDocument("old.txt", "completed", ("stored chunk", null));
+        _embedding
+            .Setup(e => e.EmbedBatchAsync(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new HttpRequestException("Ollama is not running"));
+        var service = NewService();
+
+        (await service.ReembedLegacyChunksAsync(CancellationToken.None)).Should().Be(0);
+        (await service.ReembedLegacyChunksAsync(CancellationToken.None)).Should().Be(0);
+
+        _embedding.Verify(e => e.EmbedBatchAsync(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()), Times.Once,
+            "a failure pauses re-embedding instead of hammering an unavailable provider");
+        _vectorStore.Verify(v => v.DeleteEmbeddingsForDocumentAsync(It.IsAny<long>(), It.IsAny<IReadOnlyList<long>>(), It.IsAny<CancellationToken>()), Times.Never);
+        using var check = NewContext();
+        (await check.DocumentChunks.SingleAsync(c => c.DocumentId == legacyDoc)).EmbeddingModelVersion.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task LegacyChunks_OfDocumentsNotYetIndexed_AreLeftToThePipeline()
+    {
+        SeedEmbeddedDocument("queued.txt", "pending", ("stored chunk", null));
+        var service = NewService();
+
+        (await service.ReembedLegacyChunksAsync(CancellationToken.None)).Should().Be(0);
+
+        _embedding.Verify(e => e.EmbedBatchAsync(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task IdleSweep_ReembedsLegacyChunks()
+    {
+        var legacyDoc = SeedEmbeddedDocument("old.txt", "completed", ("stored chunk", IndexingService.LegacyEmbeddingModelVersion));
+        var service = NewService();
+        service.PendingSweepInterval = TimeSpan.FromMilliseconds(100);
+        await service.InitializeAsync();
+
+        var stopwatch = Stopwatch.StartNew();
+        string? version = IndexingService.LegacyEmbeddingModelVersion;
+        while (stopwatch.Elapsed < WaitLimit && version != "test-embed:1.0")
+        {
+            await Task.Delay(50);
+            using var check = NewContext();
+            version = await check.DocumentChunks.Where(c => c.DocumentId == legacyDoc)
+                .Select(c => c.EmbeddingModelVersion).SingleAsync();
+        }
+
+        await StopAsync(service);
+        version.Should().Be("test-embed:1.0");
+    }
+
     // Helpers
 
     private AgentXDbContext NewContext()
@@ -480,6 +584,42 @@ public sealed class IndexingServiceTests : IDisposable
         for (var i = 0; i < chunkContents.Length; i++)
         {
             document.Chunks.Add(new DocumentChunkEntity { ChunkIndex = i, Content = chunkContents[i] });
+        }
+
+        db.Documents.Add(document);
+        db.SaveChanges();
+        return document.Id;
+    }
+
+    /// <summary>
+    /// Seeds a document whose chunks are already embedded, each with the given text and
+    /// embedding model version. Returns the document id.
+    /// </summary>
+    private long SeedEmbeddedDocument(string fileName, string status, params (string Content, string? Version)[] chunks)
+    {
+        using var db = NewContext();
+        var document = new DocumentEntity
+        {
+            FileName = fileName,
+            FilePath = Path.Combine(_tempDir, fileName),
+            FileType = "txt",
+            ContentHash = Guid.NewGuid().ToString("N"),
+            ImportedAt = DateTime.UtcNow,
+            FileModifiedAt = DateTime.UtcNow,
+            IndexingStatus = status,
+            ChunkCount = chunks.Length,
+        };
+
+        for (var i = 0; i < chunks.Length; i++)
+        {
+            document.Chunks.Add(new DocumentChunkEntity
+            {
+                ChunkIndex = i,
+                Content = chunks[i].Content,
+                IsEmbedded = true,
+                VectorRowId = 1_000 + i,
+                EmbeddingModelVersion = chunks[i].Version,
+            });
         }
 
         db.Documents.Add(document);

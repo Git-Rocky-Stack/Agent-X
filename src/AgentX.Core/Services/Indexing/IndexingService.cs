@@ -30,9 +30,25 @@ namespace AgentX.Core.Services.Indexing;
 /// <see cref="IDocumentService.DocumentPendingIndexing"/> event fires; explicit
 /// <see cref="IndexDocumentAsync"/> calls; and a periodic sweep for "pending" documents
 /// written by paths that do not signal the indexer (web import, sync, the local API).
+/// When that sweep finds nothing to index either, chunks embedded before embedding model
+/// versions were recorded are embedded again with the current model (see
+/// <see cref="ReembedLegacyChunksAsync"/>).
 /// </summary>
 public sealed class IndexingService : IIndexingService
 {
+    /// <summary>
+    /// The version every chunk was stamped with before versions named the provider, model and
+    /// vector size (<c>provider:model:dims</c>): the embeddings came from whichever provider was
+    /// active, whatever this said. Chunks carrying it, or no version at all, are legacy.
+    /// </summary>
+    internal const string LegacyEmbeddingModelVersion = "all-minilm:1.0";
+
+    /// <summary>Attempts per document and session before legacy re-embedding gives up on it.</summary>
+    private const int MaxLegacyReembedAttempts = 3;
+
+    /// <summary>How long legacy re-embedding pauses after a failure (a provider that is down).</summary>
+    private static readonly TimeSpan LegacyReembedBackoff = TimeSpan.FromMinutes(10);
+
     private readonly AgentXDbContext _db;
     private readonly IEnumerable<IDocumentProcessor> _processors;
     private readonly IChunkingService _chunkingService;
@@ -83,6 +99,11 @@ public sealed class IndexingService : IIndexingService
     private int _notStartedWarned;
     private volatile bool _isProcessing;
     private bool _disposed;
+
+    // Legacy re-embedding: failed attempts per document, and the pause after a failure. Only
+    // the background loop (or a test driving it) touches these.
+    private readonly Dictionary<long, int> _legacyReembedFailures = new();
+    private DateTime _legacyReembedPausedUntilUtc = DateTime.MinValue;
 
     /// <inheritdoc />
     public bool IsProcessing => _isProcessing;
@@ -408,6 +429,10 @@ public sealed class IndexingService : IIndexingService
                     // Idle long enough: pick up documents left "pending" by paths that write
                     // documents directly instead of going through IDocumentService.
                     await EnqueuePendingDocumentsAsync(ct);
+
+                    // Still nothing to index: bring chunks embedded before embedding model
+                    // versions were recorded into the current embedding space.
+                    await ReembedLegacyChunksAsync(ct);
                 }
             }
         }
@@ -842,6 +867,224 @@ public sealed class IndexingService : IIndexingService
             _logger.Warning(ex,
                 "Could not return interrupted document {DocumentId} to the queue; it will be recovered at the next start",
                 document.Id);
+        }
+    }
+
+    /// <summary>
+    /// Embeds the chunks of completed documents again when they were embedded before embedding
+    /// model versions were recorded (version <see cref="LegacyEmbeddingModelVersion"/> or none).
+    /// Retrieval excludes chunks whose version differs from the current one, and the vector
+    /// index only serves vectors of the current size, so such documents had dropped out of
+    /// semantic search. Runs one document at a time and only while nothing is queued for
+    /// indexing. The stored chunk text is embedded again: nothing is extracted or chunked, and
+    /// chunk ids and keyword rows stay as they are. A failure pauses re-embedding for
+    /// <see cref="LegacyReembedBackoff"/>; a document that keeps failing is left for the next
+    /// session.
+    /// </summary>
+    /// <returns>The number of documents re-embedded.</returns>
+    internal async Task<int> ReembedLegacyChunksAsync(CancellationToken ct)
+    {
+        var reembedded = 0;
+
+        while (!ct.IsCancellationRequested
+               && _queuedDocumentIds.IsEmpty
+               && DateTime.UtcNow >= _legacyReembedPausedUntilUtc)
+        {
+            var currentVersion = _embeddingService.ModelVersion;
+            if (string.IsNullOrEmpty(currentVersion) || currentVersion == LegacyEmbeddingModelVersion)
+            {
+                return reembedded; // nothing better to stamp them with
+            }
+
+            long? documentId;
+            try
+            {
+                documentId = await FindDocumentWithLegacyChunksAsync(ct);
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.Warning(ex, "Failed to look up chunks embedded before embedding model versions were recorded");
+                return reembedded;
+            }
+
+            if (documentId is null)
+            {
+                return reembedded;
+            }
+
+            await EnsureVectorStoreReadyAsync(ct);
+            if (!_vectorStoreReady)
+            {
+                return reembedded;
+            }
+
+            if (await ReembedDocumentAsync(documentId.Value, ct))
+            {
+                reembedded++;
+                continue;
+            }
+
+            _legacyReembedFailures[documentId.Value] = _legacyReembedFailures.GetValueOrDefault(documentId.Value) + 1;
+            _legacyReembedPausedUntilUtc = DateTime.UtcNow + LegacyReembedBackoff;
+            return reembedded;
+        }
+
+        return reembedded;
+    }
+
+    private async Task<long?> FindDocumentWithLegacyChunksAsync(CancellationToken ct)
+    {
+        var givenUp = _legacyReembedFailures
+            .Where(failure => failure.Value >= MaxLegacyReembedAttempts)
+            .Select(failure => failure.Key)
+            .ToList();
+
+        return await _db.DocumentChunks
+            .AsNoTracking()
+            .Where(c => c.IsEmbedded
+                        && (c.EmbeddingModelVersion == null
+                            || c.EmbeddingModelVersion == string.Empty
+                            || c.EmbeddingModelVersion == LegacyEmbeddingModelVersion)
+                        && c.Document.IndexingStatus == "completed"
+                        && !givenUp.Contains(c.DocumentId))
+            .OrderBy(c => c.DocumentId)
+            .Select(c => (long?)c.DocumentId)
+            .FirstOrDefaultAsync(ct);
+    }
+
+    /// <summary>
+    /// Replaces the vectors of one document's legacy chunks. Every vector is computed before
+    /// anything is changed, so a provider failure leaves the document exactly as it was. The
+    /// chunks are read untracked and stamped with set-based updates, so this background pass
+    /// adds nothing to the shared context. Returns false when the document could not be
+    /// re-embedded.
+    /// </summary>
+    private async Task<bool> ReembedDocumentAsync(long documentId, CancellationToken ct)
+    {
+        try
+        {
+            var chunks = await _db.DocumentChunks
+                .AsNoTracking()
+                .Where(c => c.DocumentId == documentId
+                            && c.IsEmbedded
+                            && (c.EmbeddingModelVersion == null
+                                || c.EmbeddingModelVersion == string.Empty
+                                || c.EmbeddingModelVersion == LegacyEmbeddingModelVersion))
+                .OrderBy(c => c.ChunkIndex)
+                .Select(c => new { c.Id, c.Content })
+                .ToListAsync(ct);
+
+            if (chunks.Count == 0)
+            {
+                return true;
+            }
+
+            // A chunk without text has nothing to embed: it is marked as not embedded instead,
+            // so it is not picked up again.
+            var withText = chunks.Where(c => !string.IsNullOrWhiteSpace(c.Content)).ToList();
+            var withoutText = chunks.Where(c => string.IsNullOrWhiteSpace(c.Content)).Select(c => c.Id).ToList();
+            var batchSize = Math.Max(1, _ragConfiguration?.EmbeddingBatchSize ?? FallbackEmbeddingBatchSize);
+            var vectors = new List<float[]>(withText.Count);
+
+            for (var start = 0; start < withText.Count; start += batchSize)
+            {
+                ct.ThrowIfCancellationRequested();
+
+                var texts = withText.Skip(start).Take(batchSize).Select(c => c.Content).ToList();
+                var embeddings = await _embeddingService.EmbedBatchAsync(texts, ct);
+                if (embeddings.Count != texts.Count)
+                {
+                    throw new InvalidOperationException(
+                        $"The embedding service returned {embeddings.Count} embeddings for {texts.Count} chunks.");
+                }
+
+                vectors.AddRange(embeddings);
+            }
+
+            // Read after embedding: the version carries the vector size the provider returned.
+            var modelVersion = _embeddingService.ModelVersion;
+            if (string.IsNullOrEmpty(modelVersion) || modelVersion == LegacyEmbeddingModelVersion)
+            {
+                throw new InvalidOperationException("The embedding service reported no usable model version.");
+            }
+
+            await _vectorStore.DeleteEmbeddingsForDocumentAsync(documentId, chunks.Select(c => c.Id).ToList(), ct);
+
+            var embeddedAt = DateTime.UtcNow;
+            for (var i = 0; i < withText.Count; i++)
+            {
+                var chunkId = withText[i].Id;
+                var dimensions = vectors[i].Length;
+                var rowId = await _vectorStore.InsertEmbeddingAsync(chunkId, vectors[i], ct);
+
+                var stamped = await _db.DocumentChunks
+                    .Where(c => c.Id == chunkId)
+                    .ExecuteUpdateAsync(setters => setters
+                        .SetProperty(c => c.VectorRowId, rowId)
+                        .SetProperty(c => c.EmbeddingModelVersion, modelVersion)
+                        .SetProperty(c => c.EmbeddingDimensions, dimensions)
+                        .SetProperty(c => c.EmbeddedAt, embeddedAt), ct);
+
+                if (stamped == 0)
+                {
+                    // The chunk was removed meanwhile (a re-index or delete): drop its vector.
+                    await _vectorStore.DeleteEmbeddingAsync(chunkId, ct);
+                }
+            }
+
+            if (withoutText.Count > 0)
+            {
+                await _db.DocumentChunks
+                    .Where(c => withoutText.Contains(c.Id))
+                    .ExecuteUpdateAsync(setters => setters
+                        .SetProperty(c => c.IsEmbedded, false)
+                        .SetProperty(c => c.VectorRowId, (long?)null)
+                        .SetProperty(c => c.EmbeddingModelVersion, (string?)null)
+                        .SetProperty(c => c.EmbeddingDimensions, (int?)null)
+                        .SetProperty(c => c.EmbeddedAt, (DateTime?)null), ct);
+            }
+
+            await RefreshTrackedChunksAsync(chunks.Select(c => c.Id).ToHashSet(), ct);
+
+            _logger.Information(
+                "Re-embedded {Count} chunks of document {DocumentId} that predate embedding model versions, as {ModelVersion}",
+                withText.Count, documentId, modelVersion);
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning(ex,
+                "Could not re-embed the chunks of document {DocumentId}; retrying in {Minutes} minutes",
+                documentId, LegacyReembedBackoff.TotalMinutes);
+            return false;
+        }
+
+        // Result sets cached while these chunks were excluded are stale.
+        _searchCacheService?.InvalidateAll();
+        return true;
+    }
+
+    /// <summary>
+    /// Set-based updates bypass the change tracker, so a copy of one of these chunks that the
+    /// shared context already tracks is reloaded; otherwise tracked queries would keep serving
+    /// the old values. Copies with unsaved changes are left alone.
+    /// </summary>
+    private async Task RefreshTrackedChunksAsync(IReadOnlySet<long> chunkIds, CancellationToken ct)
+    {
+        var tracked = _db.ChangeTracker.Entries<DocumentChunkEntity>()
+            .Where(entry => entry.State == EntityState.Unchanged && chunkIds.Contains(entry.Entity.Id))
+            .ToList();
+
+        foreach (var entry in tracked)
+        {
+            await entry.ReloadAsync(ct);
         }
     }
 
