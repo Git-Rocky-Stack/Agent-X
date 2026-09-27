@@ -1746,6 +1746,7 @@
   <data name="PastSelf_StyleCasual" xml:space="preserve"><value>随意</value></data>
   <data name="PastSelf_StyleBalanced" xml:space="preserve"><value>适中</value></data>
   <data name="PastSelf_StyleFormal" xml:space="preserve"><value>正式</value></data>
+  <data name="PastSelf_GuideQueryExample.Text" xml:space="preserve"><value>主题：Remote work is better for focus；时间范围：过去一年</value></data>
   <data name="Settings_ApiKey2.Text" xml:space="preserve"><value>API 密钥</value></data>
   <data name="Settings_Endpoint3.Text" xml:space="preserve"><value>端点</value></data>
   <data name="Settings_DefaultModel2.Text" xml:space="preserve"><value>默认模型</value></data>

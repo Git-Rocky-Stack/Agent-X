@@ -1382,6 +1382,7 @@
   "PastSelf_StyleCasual": "カジュアル",
   "PastSelf_StyleBalanced": "バランス",
   "PastSelf_StyleFormal": "フォーマル",
+  "PastSelf_GuideQueryExample.Text": "トピック: Remote work is better for focus、期間: 過去 1 年",
   "Settings_ApiKey2.Text": "API キー",
   "Settings_Endpoint3.Text": "エンドポイント",
   "Settings_DefaultModel2.Text": "既定のモデル",

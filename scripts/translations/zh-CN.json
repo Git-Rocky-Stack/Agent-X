@@ -1382,6 +1382,7 @@
   "PastSelf_StyleCasual": "随意",
   "PastSelf_StyleBalanced": "适中",
   "PastSelf_StyleFormal": "正式",
+  "PastSelf_GuideQueryExample.Text": "主题：Remote work is better for focus；时间范围：过去一年",
   "Settings_ApiKey2.Text": "API 密钥",
   "Settings_Endpoint3.Text": "端点",
   "Settings_DefaultModel2.Text": "默认模型",

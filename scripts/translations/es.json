@@ -1382,6 +1382,7 @@
   "PastSelf_StyleCasual": "Informal",
   "PastSelf_StyleBalanced": "Equilibrado",
   "PastSelf_StyleFormal": "Formal",
+  "PastSelf_GuideQueryExample.Text": "Tema: Remote work is better for focus; Período: Último año",
   "Settings_ApiKey2.Text": "Clave de API",
   "Settings_Endpoint3.Text": "Endpoint",
   "Settings_DefaultModel2.Text": "Modelo predeterminado",

@@ -1117,7 +1117,7 @@
                     <StackPanel Spacing="4">
                         <TextBlock x:Uid="UserGuide_PastSelf_QueryExample_Label"
                                    Style="{StaticResource OverlineStyle}" />
-                        <TextBlock Text="&quot;What did I think about AI safety last year?&quot;"
+                        <TextBlock x:Uid="PastSelf_GuideQueryExample"
                                    Style="{StaticResource MonoSmallStyle}"
                                    Foreground="{ThemeResource TextSecondaryBrush}" />
                     </StackPanel>

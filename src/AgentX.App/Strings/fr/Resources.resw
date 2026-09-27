@@ -1746,6 +1746,7 @@
   <data name="PastSelf_StyleCasual" xml:space="preserve"><value>Décontracté</value></data>
   <data name="PastSelf_StyleBalanced" xml:space="preserve"><value>Équilibré</value></data>
   <data name="PastSelf_StyleFormal" xml:space="preserve"><value>Soutenu</value></data>
+  <data name="PastSelf_GuideQueryExample.Text" xml:space="preserve"><value>Sujet : Remote work is better for focus ; Période : Année passée</value></data>
   <data name="Settings_ApiKey2.Text" xml:space="preserve"><value>Clé API</value></data>
   <data name="Settings_Endpoint3.Text" xml:space="preserve"><value>Point de terminaison</value></data>
   <data name="Settings_DefaultModel2.Text" xml:space="preserve"><value>Modèle par défaut</value></data>
