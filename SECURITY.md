@@ -5,7 +5,8 @@ documents, their embeddings, your conversations and your settings on your own ma
 `%LOCALAPPDATA%\AgentX`. By default the AI runs on your computer (the built-in model, or
 Ollama if you choose it) and nothing is sent to a cloud service. Content leaves the machine
 only through features you turn on or use: an OpenAI or Anthropic API key, Research Mode web
-search, the calendar and email connectors, web import, or a model download. The SQLite
+search, the calendar and email connectors, or web import. Model downloads (the built-in model,
+the speech-to-text model, Ollama models) fetch files but send none of your content. The SQLite
 database can be encrypted from **Settings > Database Encryption** (SQLCipher, with a key tied
 to your Windows account); API keys, the local API token and OAuth client secrets are always
 stored encrypted with Windows DPAPI.

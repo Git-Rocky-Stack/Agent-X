@@ -368,7 +368,8 @@ vaults created with a passphrase ask for it at startup.
   Anthropic as provider (chat messages, Ask Your Files questions with retrieved passages,
   document text for tags and titles, Quick Actions and Workflows input), OpenAI embeddings,
   Multi-Model Routing to a cloud provider, Research Mode web search, calendar and email
-  connectors, Web Import, and model downloads from Hugging Face or Ollama.
+  connectors, and Web Import. Model downloads (from Hugging Face, or Ollama pulls) fetch
+  files without sending user content.
 - The local REST API listens on `localhost:9846` only; every route except
   `/api/extension/health` requires the bearer token; CORS answers only browser-extension
   origins.
