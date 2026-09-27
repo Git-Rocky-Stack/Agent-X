@@ -14,7 +14,8 @@ namespace AgentX.Core.Validation;
 /// <list type="bullet">
 ///   <item><see cref="AppSettings.ActiveProviderId"/> must be one of
 ///         <c>"local"</c>, <c>"ollama"</c>, <c>"openai"</c>, or <c>"anthropic"</c>.</item>
-///   <item>Numeric inference and chunking parameters must fall within their documented ranges.</item>
+///   <item>Numeric inference and chunking parameters must fall within their documented ranges;
+///         the chunk overlap must be smaller than the chunk size, as ChunkingService requires.</item>
 ///   <item>Provider-specific endpoints must be valid URIs when their provider is active.</item>
 ///   <item>Provider-specific API keys must be non-empty when their provider is active.</item>
 ///   <item><see cref="AppSettings.StoragePath"/> must not be null or whitespace.</item>
@@ -86,11 +87,13 @@ public sealed class AppSettingsValidator : IValidator<AppSettings>
                 $"ChunkSize must be between 64 and 8192. Got {instance.ChunkSize}."));
         }
 
-        if (instance.ChunkOverlap < 0 || instance.ChunkOverlap > instance.ChunkSize)
+        // The same rule ChunkingService enforces: an overlap as large as the chunk would leave no
+        // room for new text, so the chunker rejects it and every document would fail to index.
+        if (instance.ChunkOverlap < 0 || instance.ChunkOverlap >= instance.ChunkSize)
         {
             errors.Add(new ValidationError(
                 nameof(AppSettings.ChunkOverlap),
-                $"ChunkOverlap must be between 0 and ChunkSize ({instance.ChunkSize}). Got {instance.ChunkOverlap}."));
+                $"ChunkOverlap must be at least 0 and less than ChunkSize ({instance.ChunkSize}). Got {instance.ChunkOverlap}."));
         }
 
         if (instance.TopKResults < 1 || instance.TopKResults > 100)
