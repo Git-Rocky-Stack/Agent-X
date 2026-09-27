@@ -1,4 +1,5 @@
 using AgentX.Core.Services.Chat.Models;
+using AgentX.Core.Services.Localization;
 using Microsoft.UI;
 using Microsoft.UI.Text;
 using Microsoft.UI.Windowing;
@@ -13,17 +14,21 @@ namespace AgentX.App.Views;
 /// <summary>
 /// Side-by-side branch comparison window. Built programmatically (no XAML)
 /// to avoid the WinUI 3 XAML compiler crash that occurs when a secondary
-/// Window class has its own XAML file.
+/// Window class has its own XAML file. Without XAML there is no x:Uid, so
+/// every text it shows comes from the string resources here.
 /// </summary>
 public sealed class BranchCompareWindow : Window
 {
+    private readonly ILocalizationService _localization;
+
     public BranchCompareWindow(
         ConversationBranchTree mainBranch,
         ConversationBranchTree compareBranch,
         string mainTitle,
         string compareTitle)
     {
-        Title = "Branch Comparison";
+        _localization = App.GetService<ILocalizationService>();
+        Title = _localization.GetString("BranchCompare_WindowTitle");
 
         // Size and position the window
         var appWindow = this.AppWindow;
@@ -108,7 +113,7 @@ public sealed class BranchCompareWindow : Window
         this.Content = root;
     }
 
-    private static StackPanel BuildHeaderPanel(string title, ConversationBranchTree branch)
+    private StackPanel BuildHeaderPanel(string title, ConversationBranchTree branch)
     {
         var panel = new StackPanel { Spacing = 4 };
 
@@ -120,8 +125,8 @@ public sealed class BranchCompareWindow : Window
         });
 
         var label = !string.IsNullOrEmpty(branch.BranchLabel)
-            ? $"Branch: {branch.BranchLabel}"
-            : "Main Thread";
+            ? _localization.GetString("BranchCompare_BranchLabel", branch.BranchLabel)
+            : _localization.GetString("Chat_MainThread");
         panel.Children.Add(new TextBlock
         {
             Text = label,
@@ -129,10 +134,13 @@ public sealed class BranchCompareWindow : Window
             FontSize = 12
         });
 
-        var subLabel = branch.Conversation?.Title ?? "Untitled";
+        var subLabel = branch.Conversation?.Title ?? _localization.GetString("BranchCompare_Untitled");
+        var summary = branch.Children.Count == 1
+            ? _localization.GetString("BranchCompare_HeaderSummaryOne", subLabel, branch.Children.Count)
+            : _localization.GetString("BranchCompare_HeaderSummaryMany", subLabel, branch.Children.Count);
         panel.Children.Add(new TextBlock
         {
-            Text = $"{subLabel} \u2014 {branch.Children.Count} sub-branches",
+            Text = summary,
             FontSize = 12,
             Foreground = new SolidColorBrush(Colors.Gray)
         });
@@ -140,7 +148,7 @@ public sealed class BranchCompareWindow : Window
         return panel;
     }
 
-    private static StackPanel BuildBranchContentPanel(ConversationBranchTree branch)
+    private StackPanel BuildBranchContentPanel(ConversationBranchTree branch)
     {
         var panel = new StackPanel { Spacing = 8 };
 
@@ -158,7 +166,7 @@ public sealed class BranchCompareWindow : Window
 
             metaPanel.Children.Add(new TextBlock
             {
-                Text = branch.Conversation.Title ?? "Untitled Conversation",
+                Text = branch.Conversation.Title ?? _localization.GetString("BranchCompare_UntitledConversation"),
                 FontWeight = FontWeights.SemiBold,
                 FontSize = 14
             });
@@ -167,7 +175,7 @@ public sealed class BranchCompareWindow : Window
             {
                 metaPanel.Children.Add(new TextBlock
                 {
-                    Text = $"Label: {branch.BranchLabel}",
+                    Text = _localization.GetString("BranchCompare_Label", branch.BranchLabel),
                     FontSize = 12,
                     Foreground = new SolidColorBrush(Colors.Gray)
                 });
@@ -177,7 +185,7 @@ public sealed class BranchCompareWindow : Window
             {
                 metaPanel.Children.Add(new TextBlock
                 {
-                    Text = $"Branched from message #{branch.BranchPointMessageId}",
+                    Text = _localization.GetString("BranchCompare_BranchedFrom", branch.BranchPointMessageId),
                     FontSize = 11,
                     Foreground = new SolidColorBrush(Colors.Gray)
                 });
@@ -185,7 +193,9 @@ public sealed class BranchCompareWindow : Window
 
             metaPanel.Children.Add(new TextBlock
             {
-                Text = $"{branch.Children.Count} sub-branch(es)",
+                Text = branch.Children.Count == 1
+                    ? _localization.GetString("BranchCompare_SubBranchesOne", branch.Children.Count)
+                    : _localization.GetString("BranchCompare_SubBranchesMany", branch.Children.Count),
                 FontSize = 11,
                 Foreground = new SolidColorBrush(Colors.Gray)
             });
@@ -210,7 +220,9 @@ public sealed class BranchCompareWindow : Window
 
             var childLabel = !string.IsNullOrEmpty(child.BranchLabel)
                 ? child.BranchLabel
-                : $"Branch at msg #{child.BranchPointMessageId}";
+                : _localization.GetString(
+                    "BranchCompare_BranchAtMessage",
+                    child.BranchPointMessageId?.ToString() ?? string.Empty);
             childPanel.Children.Add(new TextBlock
             {
                 Text = childLabel,
@@ -222,7 +234,7 @@ public sealed class BranchCompareWindow : Window
             {
                 childPanel.Children.Add(new TextBlock
                 {
-                    Text = child.Conversation.Title ?? "Untitled",
+                    Text = child.Conversation.Title ?? _localization.GetString("BranchCompare_Untitled"),
                     FontSize = 12,
                     Foreground = new SolidColorBrush(Colors.Gray)
                 });

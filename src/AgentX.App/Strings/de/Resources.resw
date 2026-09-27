@@ -2650,6 +2650,22 @@
   <data name="Chat_BranchDeletedTitle" xml:space="preserve"><value>Zweig gelöscht</value></data>
   <data name="Chat_BranchDeletedBody" xml:space="preserve"><value>Der Zweig wurde entfernt.</value></data>
   <data name="Chat_BranchDeleteFailedTitle" xml:space="preserve"><value>Löschen fehlgeschlagen</value></data>
+  <data name="BranchCompare_WindowTitle" xml:space="preserve"><value>Zweigvergleich</value></data>
+  <data name="BranchCompare_BranchLabel" xml:space="preserve"><value>Zweig: {0}</value></data>
+  <data name="BranchCompare_Untitled" xml:space="preserve"><value>Unbenannt</value></data>
+  <data name="BranchCompare_UntitledConversation" xml:space="preserve"><value>Unbenannte Unterhaltung</value></data>
+  <data name="BranchCompare_HeaderSummaryOne" xml:space="preserve"><value>{0} — {1} Unterzweig</value></data>
+  <data name="BranchCompare_HeaderSummaryMany" xml:space="preserve"><value>{0} — {1} Unterzweige</value></data>
+  <data name="BranchCompare_Label" xml:space="preserve"><value>Bezeichnung: {0}</value></data>
+  <data name="BranchCompare_BranchedFrom" xml:space="preserve"><value>Abgezweigt von Nachricht #{0}</value></data>
+  <data name="BranchCompare_SubBranchesOne" xml:space="preserve"><value>{0} Unterzweig</value></data>
+  <data name="BranchCompare_SubBranchesMany" xml:space="preserve"><value>{0} Unterzweige</value></data>
+  <data name="BranchCompare_BranchAtMessage" xml:space="preserve"><value>Zweig bei Nachricht #{0}</value></data>
+  <data name="Main_JumpToKindPage" xml:space="preserve"><value>Seite</value></data>
+  <data name="Main_JumpToKindDocument" xml:space="preserve"><value>Dokument</value></data>
+  <data name="Main_JumpToKindConversation" xml:space="preserve"><value>Unterhaltung</value></data>
+  <data name="Main_JumpToUntitledConversation" xml:space="preserve"><value>Unbenannte Unterhaltung</value></data>
+  <data name="Main_JumpToOnboarding" xml:space="preserve"><value>Ersteinrichtung</value></data>
   <data name="PastSelf_CancelDraft.Content" xml:space="preserve"><value>Abbrechen</value></data>
   <data name="PastSelf_DraftWriting.Text" xml:space="preserve"><value>Der Entwurf wird geschrieben...</value></data>
   <data name="PastSelf_DraftNeedsContext" xml:space="preserve"><value>Beschreiben Sie zuerst unter „Kontext“, was Sie schreiben möchten.</value></data>

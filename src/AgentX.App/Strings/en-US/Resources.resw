@@ -2989,6 +2989,22 @@
   <data name="Chat_BranchDeletedTitle" xml:space="preserve"><value>Branch Deleted</value></data>
   <data name="Chat_BranchDeletedBody" xml:space="preserve"><value>The branch has been removed.</value></data>
   <data name="Chat_BranchDeleteFailedTitle" xml:space="preserve"><value>Delete Failed</value></data>
+  <data name="BranchCompare_WindowTitle" xml:space="preserve"><value>Branch Comparison</value></data>
+  <data name="BranchCompare_BranchLabel" xml:space="preserve"><value>Branch: {0}</value></data>
+  <data name="BranchCompare_Untitled" xml:space="preserve"><value>Untitled</value></data>
+  <data name="BranchCompare_UntitledConversation" xml:space="preserve"><value>Untitled Conversation</value></data>
+  <data name="BranchCompare_HeaderSummaryOne" xml:space="preserve"><value>{0} — {1} sub-branch</value></data>
+  <data name="BranchCompare_HeaderSummaryMany" xml:space="preserve"><value>{0} — {1} sub-branches</value></data>
+  <data name="BranchCompare_Label" xml:space="preserve"><value>Label: {0}</value></data>
+  <data name="BranchCompare_BranchedFrom" xml:space="preserve"><value>Branched from message #{0}</value></data>
+  <data name="BranchCompare_SubBranchesOne" xml:space="preserve"><value>{0} sub-branch</value></data>
+  <data name="BranchCompare_SubBranchesMany" xml:space="preserve"><value>{0} sub-branches</value></data>
+  <data name="BranchCompare_BranchAtMessage" xml:space="preserve"><value>Branch at msg #{0}</value></data>
+  <data name="Main_JumpToKindPage" xml:space="preserve"><value>Page</value></data>
+  <data name="Main_JumpToKindDocument" xml:space="preserve"><value>Document</value></data>
+  <data name="Main_JumpToKindConversation" xml:space="preserve"><value>Conversation</value></data>
+  <data name="Main_JumpToUntitledConversation" xml:space="preserve"><value>Untitled Conversation</value></data>
+  <data name="Main_JumpToOnboarding" xml:space="preserve"><value>Onboarding</value></data>
   <data name="PastSelf_CancelDraft.Content" xml:space="preserve"><value>Cancel</value></data>
   <data name="PastSelf_DraftWriting.Text" xml:space="preserve"><value>Writing the draft...</value></data>
   <data name="PastSelf_DraftNeedsContext" xml:space="preserve"><value>Describe what you want to write in Context first.</value></data>

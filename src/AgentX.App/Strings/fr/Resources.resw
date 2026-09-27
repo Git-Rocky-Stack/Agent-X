@@ -2650,6 +2650,22 @@
   <data name="Chat_BranchDeletedTitle" xml:space="preserve"><value>Branche supprimée</value></data>
   <data name="Chat_BranchDeletedBody" xml:space="preserve"><value>La branche a été supprimée.</value></data>
   <data name="Chat_BranchDeleteFailedTitle" xml:space="preserve"><value>Échec de la suppression</value></data>
+  <data name="BranchCompare_WindowTitle" xml:space="preserve"><value>Comparaison des branches</value></data>
+  <data name="BranchCompare_BranchLabel" xml:space="preserve"><value>Branche : {0}</value></data>
+  <data name="BranchCompare_Untitled" xml:space="preserve"><value>Sans titre</value></data>
+  <data name="BranchCompare_UntitledConversation" xml:space="preserve"><value>Conversation sans titre</value></data>
+  <data name="BranchCompare_HeaderSummaryOne" xml:space="preserve"><value>{0} — {1} sous-branche</value></data>
+  <data name="BranchCompare_HeaderSummaryMany" xml:space="preserve"><value>{0} — {1} sous-branches</value></data>
+  <data name="BranchCompare_Label" xml:space="preserve"><value>Libellé : {0}</value></data>
+  <data name="BranchCompare_BranchedFrom" xml:space="preserve"><value>Branche créée à partir du message n° {0}</value></data>
+  <data name="BranchCompare_SubBranchesOne" xml:space="preserve"><value>{0} sous-branche</value></data>
+  <data name="BranchCompare_SubBranchesMany" xml:space="preserve"><value>{0} sous-branches</value></data>
+  <data name="BranchCompare_BranchAtMessage" xml:space="preserve"><value>Branche au message n° {0}</value></data>
+  <data name="Main_JumpToKindPage" xml:space="preserve"><value>Page</value></data>
+  <data name="Main_JumpToKindDocument" xml:space="preserve"><value>Document</value></data>
+  <data name="Main_JumpToKindConversation" xml:space="preserve"><value>Conversation</value></data>
+  <data name="Main_JumpToUntitledConversation" xml:space="preserve"><value>Conversation sans titre</value></data>
+  <data name="Main_JumpToOnboarding" xml:space="preserve"><value>Prise en main</value></data>
   <data name="PastSelf_CancelDraft.Content" xml:space="preserve"><value>Annuler</value></data>
   <data name="PastSelf_DraftWriting.Text" xml:space="preserve"><value>Rédaction du brouillon...</value></data>
   <data name="PastSelf_DraftNeedsContext" xml:space="preserve"><value>Décrivez d'abord dans Contexte ce que vous voulez écrire.</value></data>
