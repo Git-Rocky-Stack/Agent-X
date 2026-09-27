@@ -885,6 +885,7 @@ public sealed class IndexingService : IIndexingService
     internal async Task<int> ReembedLegacyChunksAsync(CancellationToken ct)
     {
         var reembedded = 0;
+        long? previousDocumentId = null;
 
         while (!ct.IsCancellationRequested
                && _queuedDocumentIds.IsEmpty
@@ -922,9 +923,12 @@ public sealed class IndexingService : IIndexingService
                 return reembedded;
             }
 
-            if (await ReembedDocumentAsync(documentId.Value, ct))
+            // The same document again right after it was re-embedded means its chunks did not
+            // change: count it as a failure instead of spinning on it.
+            if (documentId != previousDocumentId && await ReembedDocumentAsync(documentId.Value, ct))
             {
                 reembedded++;
+                previousDocumentId = documentId;
                 continue;
             }
 
