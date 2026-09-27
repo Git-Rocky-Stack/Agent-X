@@ -1,0 +1,375 @@
+{
+  "_comment": "Guide translation and accuracy pass 2026-09, identity pages: Temporal Identity, Past Self, Draft As Me and Insight Harvesting (checked against the integrated identity work: ChatViewModel runs ProcessMessageAsync, LearnFromMessageAsync and DetectInsightsAsync after each reply; AnnotationService hands new highlights to ProcessAnnotationAsync; EngagementTracker records chat and vault-preview view time). TemporalIdentityService uses fixed word rules: beliefs only from 20-100 character sentences with 'I think/believe/feel ... that', topics matched by exact text, positivity from word lists, a change recorded when the score moves by more than 0.5; insights from marker words in AI replies (first 500 characters, significance 0.6 to 0.9); a voice profile of two moving averages; GenerateAsUserAsync fills fixed templates without calling a model. Past Self has no timeline, period comparison, free-text questions or insight management; engagement time is recorded but shown nowhere; nothing in the app creates annotations. Apply with python scripts/apply-guide-accuracy.py scripts/translations/guide-l10n-identity-2026-09.json",
+  "removePrefixes": [],
+  "update": {
+    "UserGuide_TemporalIdentity_Description.Text": {
+      "en-US": "Temporal Identity keeps a simple local record of how you think and write, built from what you do in the app: beliefs you state in chat messages, insight moments in AI replies, a basic voice profile, and how long you keep a conversation or a vault document open. It works with fixed word rules on English phrasing, not with an AI model. Past Self and the Dashboard read this record.",
+      "de": "Die zeitliche Identität führt eine einfache lokale Aufzeichnung darüber, wie Sie denken und schreiben, gewonnen aus Ihrer Arbeit in der App: Überzeugungen, die Sie in Chatnachrichten äußern, Erkenntnismomente in KI-Antworten, ein einfaches Stilprofil und wie lange Sie eine Unterhaltung oder ein Tresor-Dokument geöffnet lassen. Sie arbeitet mit festen Wortregeln für englische Formulierungen, nicht mit einem KI-Modell. „Vergangenes Ich“ und das Dashboard lesen diese Aufzeichnung.",
+      "es": "La identidad temporal guarda un registro local sencillo de cómo piensa y escribe, a partir de lo que hace en la aplicación: las creencias que expresa en los mensajes del chat, los momentos de insight en las respuestas de la IA, un perfil de voz básico y cuánto tiempo mantiene abierta una conversación o un documento de la bóveda. Funciona con reglas de palabras fijas sobre frases en inglés, no con un modelo de IA. Tu yo del pasado y el Panel leen este registro.",
+      "fr": "L'identité temporelle tient un registre local simple de votre façon de penser et d'écrire, construit à partir de ce que vous faites dans l'application : les convictions que vous exprimez dans vos messages de chat, les moments d'insight dans les réponses de l'IA, un profil de style élémentaire et le temps pendant lequel une conversation ou un document du coffre-fort reste ouvert. Elle fonctionne avec des règles de mots fixes sur des formulations anglaises, pas avec un modèle d'IA. Moi d'avant et le tableau de bord lisent ce registre.",
+      "ja": "時系列的アイデンティティは、アプリでの操作をもとに、あなたの考え方と書き方を簡単な記録としてローカルに残します。記録されるのは、チャットのメッセージで述べた信念、AI の回答に含まれるインサイトの瞬間、基本的な文体プロファイル、会話や Vault のドキュメントを開いていた時間です。AI モデルではなく、英語の言い回しに対する固定の単語ルールで動作します。Past Self とダッシュボードがこの記録を読み取ります。",
+      "zh-CN": "时序身份会根据您在应用中的操作，在本地保存一份关于您如何思考和写作的简单记录：您在聊天消息中表达的观点、AI 回复中的洞见时刻、一个基础的文风画像，以及您打开某个对话或 Vault 文档的时长。它使用针对英语措辞的固定词语规则，而不是 AI 模型。“过往的自己”和仪表板会读取这份记录。"
+    },
+    "UserGuide_TemporalIdentity_Tracking1.Text": {
+      "en-US": "Beliefs - After each reply, your message is checked for sentences between 20 and 100 characters long that contain 'I think', 'I believe' or 'I feel' followed by 'that'. The rest of the sentence after 'that' (4 to 49 characters) becomes a belief's topic, up to five per message; the first sentence that mentions it becomes your stance, and a word-list score (good, agree or support against bad, disagree or wrong, for example) records how positive it is. Other phrasings are not tracked.",
+      "de": "Überzeugungen - Nach jeder Antwort wird Ihre Nachricht nach Sätzen mit 20 bis 100 Zeichen durchsucht, die „I think“, „I believe“ oder „I feel“ gefolgt von „that“ enthalten. Der Rest des Satzes nach „that“ (4 bis 49 Zeichen) wird zum Thema einer Überzeugung, bis zu fünf pro Nachricht; der erste Satz, der es erwähnt, wird zu Ihrer Haltung, und ein Wortlistenwert (etwa good, agree oder support gegenüber bad, disagree oder wrong) hält fest, wie positiv sie ist. Andere Formulierungen werden nicht erfasst.",
+      "es": "Creencias - Después de cada respuesta, se buscan en su mensaje frases de entre 20 y 100 caracteres que contengan «I think», «I believe» o «I feel» seguido de «that». El resto de la frase después de «that» (de 4 a 49 caracteres) se convierte en el tema de una creencia, hasta cinco por mensaje; la primera frase que lo menciona pasa a ser su postura, y una puntuación basada en listas de palabras (por ejemplo, good, agree o support frente a bad, disagree o wrong) registra lo positiva que es. Las demás formulaciones no se registran.",
+      "fr": "Convictions - Après chaque réponse, votre message est examiné à la recherche de phrases de 20 à 100 caractères contenant « I think », « I believe » ou « I feel » suivi de « that ». La suite de la phrase après « that » (4 à 49 caractères) devient le sujet d'une conviction, jusqu'à cinq par message ; la première phrase qui le mentionne devient votre position, et un score fondé sur des listes de mots (par exemple good, agree ou support contre bad, disagree ou wrong) mesure à quel point elle est positive. Les autres formulations ne sont pas suivies.",
+      "ja": "信念：回答のたびに、あなたのメッセージから、「I think」「I believe」「I feel」の後に「that」が続く 20～100 文字の文が探されます。「that」以降の部分 (4～49 文字) が信念のトピックになり (1 メッセージにつき最大 5 件)、そのトピックに最初に触れた文があなたの立場として記録されます。単語リストによるスコア (good、agree、support と bad、disagree、wrong など) で、その立場がどれだけ肯定的かが記録されます。これ以外の言い回しは追跡されません。",
+      "zh-CN": "观点：每次回复后，系统会在您的消息中查找长度为 20 到 100 个字符、包含“I think”“I believe”或“I feel”且其后跟有“that”的句子。“that”之后的部分（4 到 49 个字符）成为一个观点的主题，每条消息最多五个；第一个提到该主题的句子成为您的立场，并用基于词表的分数（例如 good、agree、support 与 bad、disagree、wrong 的对比）记录其积极程度。其他措辞不会被追踪。"
+    },
+    "UserGuide_TemporalIdentity_Tracking2.Text": {
+      "en-US": "Insights - After each reply, the conversation's AI replies are also scanned for marker words such as 'key insight', 'important' or 'realize', or an exclamation mark, and each matching reply is kept once as an insight. A highlight created through the annotation service becomes an insight too, but the app has no command for creating highlights yet. See Insight Harvesting.",
+      "de": "Erkenntnisse - Nach jeder Antwort werden außerdem die KI-Antworten der Unterhaltung nach Markierungswörtern wie „key insight“, „important“ oder „realize“ oder nach einem Ausrufezeichen durchsucht, und jede passende Antwort wird einmal als Erkenntnis gespeichert. Auch eine über den Annotationsdienst angelegte Hervorhebung wird zur Erkenntnis, doch die App hat noch keinen Befehl zum Anlegen von Hervorhebungen. Siehe Insight-Sammlung.",
+      "es": "Ideas - Después de cada respuesta, también se examinan las respuestas de la IA de la conversación en busca de palabras clave como «key insight», «important» o «realize», o de un signo de exclamación, y cada respuesta que coincide se guarda una vez como idea. Un resaltado creado mediante el servicio de anotaciones también se convierte en idea, pero la aplicación todavía no tiene ningún comando para crear resaltados. Consulte Recolección de insights.",
+      "fr": "Idées - Après chaque réponse, les réponses de l'IA de la conversation sont aussi examinées à la recherche de mots repères comme « key insight », « important » ou « realize », ou d'un point d'exclamation, et chaque réponse correspondante est conservée une fois comme idée. Un surlignage créé via le service d'annotations devient aussi une idée, mais l'application n'a pas encore de commande pour créer des surlignages. Voir Collecte d'insights.",
+      "ja": "インサイト：回答のたびに、会話内の AI の回答からも「key insight」「important」「realize」などのマーカー語や感嘆符が探され、該当する回答はそれぞれ一度だけインサイトとして保存されます。注釈サービスで作成されたハイライトもインサイトになりますが、アプリにはまだハイライトを作成するコマンドがありません。「Insight の収集」を参照してください。",
+      "zh-CN": "洞见：每次回复后，系统还会在对话的 AI 回复中查找“key insight”“important”“realize”等标记词或感叹号，每条匹配的回复只会被保存一次，作为洞见。通过注释服务创建的高亮也会成为洞见，但应用目前还没有创建高亮的命令。参见“洞见采集”。"
+    },
+    "UserGuide_TemporalIdentity_Tracking3.Text": {
+      "en-US": "Voice - Each message you send updates a voice profile with two running averages: words per sentence, and a formality score that rises with 'therefore' or 'however' and falls with apostrophes, as in contractions. Past Self shows the profile, and Draft As Me uses it.",
+      "de": "Stil - Jede gesendete Nachricht aktualisiert ein Stilprofil mit zwei gleitenden Durchschnitten: Wörter pro Satz und ein Förmlichkeitswert, der mit „therefore“ oder „however“ steigt und mit Apostrophen wie in Zusammenziehungen sinkt. „Vergangenes Ich“ zeigt das Profil an, und „Als ich entwerfen“ verwendet es.",
+      "es": "Voz - Cada mensaje que envía actualiza un perfil de voz con dos medias móviles: las palabras por frase y una puntuación de formalidad que sube con «therefore» o «however» y baja con los apóstrofos, como en las contracciones. Tu yo del pasado muestra el perfil y Redactar como yo lo utiliza.",
+      "fr": "Style - Chaque message envoyé met à jour un profil de style avec deux moyennes glissantes : le nombre de mots par phrase et un score de formalité qui augmente avec « therefore » ou « however » et baisse avec les apostrophes, comme dans les contractions. Moi d'avant affiche le profil et Rédiger comme moi l'utilise.",
+      "ja": "文体：送信したメッセージごとに文体プロファイルが更新されます。内容は 2 つの移動平均で、1 文あたりの単語数と、「therefore」や「however」で上がり、短縮形などのアポストロフィで下がる丁寧さのスコアです。Past Self でプロファイルを確認でき、「自分らしく下書き」がこれを使います。",
+      "zh-CN": "文风：您发送的每条消息都会更新文风画像中的两个移动平均值：每句的单词数，以及一个正式程度分数（出现“therefore”或“however”时上升，出现缩写等撇号时下降）。“过往的自己”会显示该画像，“以我的口吻起草”会使用它。"
+    },
+    "UserGuide_TemporalIdentity_Tracking4.Text": {
+      "en-US": "Changes and reading time - When the positivity score of a known topic moves by more than 0.5, the change is recorded with the earlier and the new stance (see Conflict Detection). Agent-X also records how long a conversation stays open in AI Chat and a document stays open in the Knowledge Vault preview; a view under a second is skipped and one view counts for at most 30 minutes. No page shows these times yet.",
+      "de": "Änderungen und Lesezeit - Verschiebt sich der Positivitätswert eines bekannten Themas um mehr als 0,5, wird die Änderung mit der früheren und der neuen Haltung erfasst (siehe Konflikterkennung). Außerdem erfasst Agent-X, wie lange eine Unterhaltung in AI Chat und ein Dokument in der Vorschau des Wissens-Tresors geöffnet bleibt; Ansichten unter einer Sekunde werden übersprungen, und eine Ansicht zählt höchstens 30 Minuten. Noch zeigt keine Seite diese Zeiten an.",
+      "es": "Cambios y tiempo de lectura - Cuando la puntuación de positividad de un tema conocido varía más de 0,5, el cambio se registra con la postura anterior y la nueva (consulte Detección de conflictos). Agent-X también registra cuánto tiempo permanece abierta una conversación en AI Chat y un documento en la vista previa de la Bóveda de Conocimiento; las vistas de menos de un segundo se omiten y cada vista cuenta como máximo 30 minutos. Todavía ninguna página muestra estos tiempos.",
+      "fr": "Changements et temps de lecture - Quand le score de positivité d'un sujet connu varie de plus de 0,5, le changement est enregistré avec l'ancienne et la nouvelle position (voir Détection des conflits). Agent-X enregistre aussi combien de temps une conversation reste ouverte dans AI Chat et un document dans l'aperçu du Coffre-fort de Connaissances ; une vue de moins d'une seconde est ignorée et une vue compte au maximum 30 minutes. Aucune page n'affiche encore ces durées.",
+      "ja": "変化と閲覧時間：既知のトピックの肯定度スコアが 0.5 を超えて変わると、以前の立場と新しい立場とともにその変化が記録されます (「矛盾の検出」を参照)。また Agent-X は、会話が AI Chat で開かれていた時間と、ドキュメントが Knowledge Vault のプレビューで開かれていた時間も記録します。1 秒未満の表示は記録されず、1 回の表示は最大 30 分として数えられます。これらの時間を表示するページはまだありません。",
+      "zh-CN": "变化与阅读时长：当某个已知主题的积极程度分数变化超过 0.5 时，系统会记录这一变化以及之前和新的立场（参见“冲突检测”）。Agent-X 还会记录对话在 AI Chat 中、文档在 Knowledge Vault 预览中保持打开的时长；不足一秒的查看会被忽略，每次查看最多计为 30 分钟。目前还没有页面显示这些时长。"
+    },
+    "UserGuide_TemporalIdentity_BeliefEvolution_Title.Text": {
+      "en-US": "Belief Evolution",
+      "de": "Überzeugungsentwicklung",
+      "es": "Evolución de creencias",
+      "fr": "Évolution des convictions",
+      "ja": "信念の変化",
+      "zh-CN": "观点演变"
+    },
+    "UserGuide_TemporalIdentity_BeliefEvolution_Description.Text": {
+      "en-US": "There is no timeline view. On the Past Self page, type a topic exactly as it was recorded and click Show Belief Evolution: it says since when the belief has been tracked and whether it has changed, with the earlier stance and when it changed. Get Active Topics lists the topics recorded in the last 30 days in their exact wording.",
+      "de": "Eine Zeitleistenansicht gibt es nicht. Geben Sie auf der Seite „Vergangenes Ich“ ein Thema genau so ein, wie es erfasst wurde, und klicken Sie auf „Entwicklung der Überzeugungen anzeigen“: Die Anzeige nennt, seit wann die Überzeugung verfolgt wird und ob sie sich geändert hat, mit der früheren Haltung und dem Zeitpunkt der Änderung. „Aktive Themen abrufen“ listet die in den letzten 30 Tagen erfassten Themen in ihrem genauen Wortlaut auf.",
+      "es": "No hay vista de línea temporal. En la página Tu yo del pasado, escriba un tema exactamente como se registró y haga clic en Mostrar evolución de creencias: se indica desde cuándo se sigue la creencia y si ha cambiado, con la postura anterior y el momento del cambio. Obtener temas activos muestra los temas registrados en los últimos 30 días con su redacción exacta.",
+      "fr": "Il n'y a pas de vue chronologique. Sur la page Moi d'avant, saisissez un sujet exactement tel qu'il a été enregistré et cliquez sur Afficher l'évolution des convictions : la page indique depuis quand la conviction est suivie et si elle a changé, avec l'ancienne position et la date du changement. Obtenir les sujets actifs liste les sujets enregistrés au cours des 30 derniers jours dans leur formulation exacte.",
+      "ja": "タイムライン表示はありません。Past Self ページで、記録されたとおりの表記でトピックを入力して [考えの変遷を表示] をクリックすると、その信念をいつから追跡しているか、変化したかどうかが、以前の立場と変化した時期とともに表示されます。[アクティブなトピックを取得] では、過去 30 日間に記録されたトピックが正確な表記で一覧表示されます。",
+      "zh-CN": "没有时间线视图。在“过往的自己”页面中，按记录时的原样输入主题，然后点击“显示观点演变”：页面会说明该观点从何时开始被追踪、是否发生过变化，并显示之前的立场及其变化时间。“获取活跃主题”会按原样列出过去 30 天内记录的主题。"
+    },
+    "UserGuide_TemporalIdentity_Conflicts_Description.Text": {
+      "en-US": "Each recorded change is a belief conflict. The Dashboard's Your Belief Evolution card lists up to five unacknowledged conflicts, largest change first, with the topic, the earlier and the current stance and the size of the change. Acknowledge a conflict to hide it for good. There are no resolution choices and no confidence setting, and acknowledging teaches the detector nothing.",
+      "de": "Jede erfasste Änderung ist ein Überzeugungskonflikt. Die Karte „Ihre Überzeugungsentwicklung“ im Dashboard listet bis zu fünf unbestätigte Konflikte auf, die größte Änderung zuerst, mit Thema, früherer und aktueller Haltung und dem Ausmaß der Änderung. Bestätigen Sie einen Konflikt, um ihn dauerhaft auszublenden. Es gibt keine Auflösungsoptionen und keine Konfidenzeinstellung, und das Bestätigen bringt der Erkennung nichts bei.",
+      "es": "Cada cambio registrado es un conflicto de creencias. La tarjeta La evolución de sus creencias del Panel muestra hasta cinco conflictos sin confirmar, primero el cambio mayor, con el tema, la postura anterior y la actual y la magnitud del cambio. Confirme un conflicto para ocultarlo definitivamente. No hay opciones de resolución ni ajuste de confianza, y confirmar no enseña nada al detector.",
+      "fr": "Chaque changement enregistré est un conflit de convictions. La carte L'évolution de vos convictions du tableau de bord liste jusqu'à cinq conflits non traités, le plus grand changement d'abord, avec le sujet, l'ancienne et l'actuelle position et l'ampleur du changement. Accusez réception d'un conflit pour le masquer définitivement. Il n'y a ni choix de résolution ni réglage de confiance, et accuser réception n'apprend rien au détecteur.",
+      "ja": "記録された変化はそれぞれ信念の矛盾として扱われます。ダッシュボードの「信念の変化」カードには、未確認の矛盾が変化の大きい順に最大 5 件、トピック、以前と現在の立場、変化の大きさとともに表示されます。矛盾を確認済みにすると、以後表示されなくなります。解決方法の選択肢や確信度の設定はなく、確認済みにしても検出の精度は変わりません。",
+      "zh-CN": "每一次记录下来的变化都是一个观点冲突。仪表板上的“您的观点演变”卡片按变化幅度从大到小列出最多五个未确认的冲突，并显示主题、之前和当前的立场以及变化幅度。确认某个冲突即可将其永久隐藏。没有可选择的处理方式，也没有置信度设置，确认操作也不会让检测变得更准确。"
+    },
+    "UserGuide_TemporalIdentity_Conflicts1.Text": {
+      "en-US": "Read a conflict as a prompt for reflection, not a verdict. The stances are sentences you wrote, and the change is measured only with the word-list score, so a reworded sentence can look like a change of mind while a real reversal may go unnoticed.",
+      "de": "Verstehen Sie einen Konflikt als Anlass zum Nachdenken, nicht als Urteil. Die Haltungen sind Sätze, die Sie geschrieben haben, und die Änderung wird nur über den Wortlistenwert gemessen: Ein umformulierter Satz kann wie ein Sinneswandel aussehen, während eine echte Kehrtwende unbemerkt bleiben kann.",
+      "es": "Tome un conflicto como una invitación a reflexionar, no como un veredicto. Las posturas son frases que usted escribió y el cambio se mide solo con la puntuación de las listas de palabras, así que una frase reformulada puede parecer un cambio de opinión mientras que un giro real puede pasar desapercibido.",
+      "fr": "Voyez un conflit comme une invitation à réfléchir, pas comme un verdict. Les positions sont des phrases que vous avez écrites et le changement n'est mesuré qu'avec le score des listes de mots : une phrase reformulée peut ressembler à un changement d'avis, tandis qu'un vrai revirement peut passer inaperçu.",
+      "ja": "矛盾は判定ではなく、振り返りのきっかけとして捉えてください。立場はあなたが書いた文そのもので、変化は単語リストのスコアだけで測られます。そのため、言い回しを変えただけの文が考えの変化に見えることもあれば、本当の方針転換が見逃されることもあります。",
+      "zh-CN": "请把冲突当作反思的提示，而不是结论。立场就是您写下的句子，变化只通过词表分数来衡量，因此换一种说法的句子可能看起来像改变了主意，而真正的转变却可能被忽略。"
+    },
+    "UserGuide_TemporalIdentity_Conflicts2.Text": {
+      "en-US": "A conflict card shows the topic, both stances and the size of the change (between 0.5 and 2). It does not link to the source conversations, show the time between the two stances or add any AI analysis, and it cannot be annotated.",
+      "de": "Eine Konfliktkarte zeigt das Thema, beide Haltungen und das Ausmaß der Änderung (zwischen 0,5 und 2). Sie verlinkt nicht auf die Ursprungsunterhaltungen, zeigt nicht die Zeit zwischen den beiden Haltungen, enthält keine KI-Analyse und lässt sich nicht kommentieren.",
+      "es": "Una tarjeta de conflicto muestra el tema, las dos posturas y la magnitud del cambio (entre 0,5 y 2). No enlaza con las conversaciones de origen, no muestra el tiempo transcurrido entre ambas posturas ni añade ningún análisis de IA, y no se puede anotar.",
+      "fr": "Une carte de conflit affiche le sujet, les deux positions et l'ampleur du changement (entre 0,5 et 2). Elle ne renvoie pas aux conversations d'origine, n'indique pas le temps écoulé entre les deux positions, n'ajoute aucune analyse d'IA et ne peut pas être annotée.",
+      "ja": "矛盾カードには、トピック、2 つの立場、変化の大きさ (0.5～2) が表示されます。元の会話へのリンク、2 つの立場の間の経過時間、AI による分析はなく、注釈を付けることもできません。",
+      "zh-CN": "冲突卡片显示主题、两种立场以及变化幅度（0.5 到 2 之间）。它不会链接到来源对话，不显示两种立场之间相隔的时间，也没有 AI 分析，并且无法添加注释。"
+    },
+    "UserGuide_PastSelf_Description.Text": {
+      "en-US": "Past Self answers 'what did I think about this topic then?' from the record that Temporal Identity keeps, and it hosts Draft As Me. It looks topics up by their recorded wording; it does not read your conversations as free text or ask an AI model.",
+      "de": "„Vergangenes Ich“ beantwortet die Frage „Was habe ich damals über dieses Thema gedacht?“ anhand der Aufzeichnung der zeitlichen Identität und enthält „Als ich entwerfen“. Es sucht Themen anhand ihres erfassten Wortlauts; es liest Ihre Unterhaltungen nicht als freien Text und fragt kein KI-Modell.",
+      "es": "Tu yo del pasado responde a «¿qué pensaba entonces sobre este tema?» a partir del registro de la identidad temporal, e incluye Redactar como yo. Busca los temas por su redacción registrada; no lee sus conversaciones como texto libre ni consulta a un modelo de IA.",
+      "fr": "Moi d'avant répond à « que pensais-je alors de ce sujet ? » à partir du registre de l'identité temporelle, et accueille Rédiger comme moi. Il recherche les sujets d'après leur formulation enregistrée ; il ne lit pas vos conversations comme du texte libre et n'interroge aucun modèle d'IA.",
+      "ja": "Past Self は、時系列的アイデンティティの記録をもとに「当時このトピックについてどう考えていたか」に答え、「自分らしく下書き」も備えています。トピックは記録された表記で検索され、会話を自由なテキストとして読んだり AI モデルに問い合わせたりはしません。",
+      "zh-CN": "“过往的自己”根据时序身份保存的记录回答“我当时对这个主题怎么看？”，并提供“以我的口吻起草”。它按记录时的措辞查找主题，不会把您的对话当作自由文本阅读，也不会询问 AI 模型。"
+    },
+    "UserGuide_PastSelf_Timeline_Title.Text": {
+      "en-US": "Choosing a Time",
+      "de": "Zeitpunkt wählen",
+      "es": "Elegir un momento",
+      "fr": "Choisir un moment",
+      "ja": "期間の選択",
+      "zh-CN": "选择时间"
+    },
+    "UserGuide_PastSelf_Timeline_Description.Text": {
+      "en-US": "There is no timeline. Choose the moment to ask about with the Time period options: All time, Past week, Past month (selected by default), Past year or Custom date.",
+      "de": "Eine Zeitleiste gibt es nicht. Den Zeitpunkt, nach dem Sie fragen, wählen Sie unter „Zeitraum“: „Gesamter Zeitraum“, „Letzte Woche“, „Letzter Monat“ (standardmäßig ausgewählt), „Letztes Jahr“ oder „Benutzerdefiniertes Datum“.",
+      "es": "No hay línea temporal. Elija el momento sobre el que preguntar con las opciones de Período: Todo el tiempo, Última semana, Último mes (seleccionado de forma predeterminada), Último año o Fecha personalizada.",
+      "fr": "Il n'y a pas de chronologie. Choisissez le moment sur lequel porte la question avec les options de Période : Depuis toujours, Semaine passée, Mois passé (sélectionné par défaut), Année passée ou Date personnalisée.",
+      "ja": "タイムラインはありません。問い合わせる時点は [期間] の選択肢 (全期間、過去 1 週間、過去 1 か月 (既定)、過去 1 年、カスタム日付) で選びます。",
+      "zh-CN": "没有时间线。请通过“时间范围”选项选择要查询的时间点：全部时间、过去一周、过去一个月（默认选中）、过去一年或自定义日期。"
+    },
+    "UserGuide_PastSelf_Timeline1.Text": {
+      "en-US": "All time asks for the stance you recorded first; the other options ask for the stance you held at that moment, so for a belief that changed after it you see the earlier stance. A belief that never changed shows the same stance whatever you choose.",
+      "de": "„Gesamter Zeitraum“ fragt nach der zuerst erfassten Haltung; die übrigen Optionen fragen nach der Haltung zu diesem Zeitpunkt, sodass Sie bei einer Überzeugung, die sich danach geändert hat, die frühere Haltung sehen. Eine Überzeugung, die sich nie geändert hat, zeigt unabhängig von der Auswahl dieselbe Haltung.",
+      "es": "Todo el tiempo pide la primera postura registrada; las demás opciones piden la postura que tenía en ese momento, de modo que, si una creencia cambió después, verá la postura anterior. Una creencia que nunca cambió muestra la misma postura elija lo que elija.",
+      "fr": "Depuis toujours demande la première position enregistrée ; les autres options demandent la position que vous aviez à ce moment-là, si bien que pour une conviction qui a changé ensuite, vous voyez l'ancienne position. Une conviction qui n'a jamais changé affiche la même position quel que soit votre choix.",
+      "ja": "[全期間] では最初に記録された立場を、その他の選択肢ではその時点での立場を問い合わせます。そのため、その後に変化した信念では以前の立場が表示されます。一度も変化していない信念は、どれを選んでも同じ立場が表示されます。",
+      "zh-CN": "“全部时间”查询最早记录的立场；其他选项查询您在那个时间点的立场，因此对于之后发生过变化的观点，您会看到之前的立场。从未变化过的观点，无论选择哪个选项都会显示相同的立场。"
+    },
+    "UserGuide_PastSelf_Timeline2.Text": {
+      "en-US": "Search Past Self only finds a topic typed exactly as it was recorded, with a capital first letter and the rest in lowercase. Get Active Topics lists up to 15 topics recorded in the last 30 days, so you can see the exact wording.",
+      "de": "„Vergangenes Ich durchsuchen“ findet ein Thema nur, wenn es genau so eingegeben wird, wie es erfasst wurde: mit großem Anfangsbuchstaben und sonst in Kleinbuchstaben. „Aktive Themen abrufen“ listet bis zu 15 in den letzten 30 Tagen erfasste Themen auf, sodass Sie den genauen Wortlaut sehen.",
+      "es": "Buscar en tu yo del pasado solo encuentra un tema escrito exactamente como se registró, con la primera letra en mayúscula y el resto en minúsculas. Obtener temas activos muestra hasta 15 temas registrados en los últimos 30 días, para que vea la redacción exacta.",
+      "fr": "Rechercher dans mon moi d'avant ne trouve un sujet que s'il est saisi exactement tel qu'il a été enregistré, avec une majuscule initiale et le reste en minuscules. Obtenir les sujets actifs liste jusqu'à 15 sujets enregistrés au cours des 30 derniers jours, pour que vous voyiez la formulation exacte.",
+      "ja": "[Past Self を検索] では、記録されたとおりの表記 (先頭だけ大文字で残りは小文字) で入力したトピックしか見つかりません。[アクティブなトピックを取得] で過去 30 日間に記録されたトピックが最大 15 件表示されるので、正確な表記を確認できます。",
+      "zh-CN": "“搜索过往的自己”只能找到按记录原样输入的主题：首字母大写，其余小写。“获取活跃主题”会列出过去 30 天内记录的最多 15 个主题，方便您查看准确的措辞。"
+    },
+    "UserGuide_PastSelf_Timeline3.Text": {
+      "en-US": "There is no side-by-side comparison of two periods. To see whether a view changed, use Show Belief Evolution or the Dashboard's belief card.",
+      "de": "Einen Vergleich zweier Zeiträume nebeneinander gibt es nicht. Ob sich eine Sichtweise geändert hat, zeigen „Entwicklung der Überzeugungen anzeigen“ oder die Überzeugungskarte im Dashboard.",
+      "es": "No hay una comparación en paralelo de dos períodos. Para ver si una opinión cambió, use Mostrar evolución de creencias o la tarjeta de creencias del Panel.",
+      "fr": "Il n'existe pas de comparaison côte à côte de deux périodes. Pour savoir si un point de vue a changé, utilisez Afficher l'évolution des convictions ou la carte des convictions du tableau de bord.",
+      "ja": "2 つの期間を並べて比較する機能はありません。考えが変わったかどうかは、[考えの変遷を表示] かダッシュボードの信念カードで確認します。",
+      "zh-CN": "没有并排比较两个时间段的功能。要查看某个观点是否发生了变化，请使用“显示观点演变”或仪表板上的观点卡片。"
+    },
+    "UserGuide_PastSelf_Querying_Description.Text": {
+      "en-US": "Type a topic and click Search Past Self. When it is found, the page shows your stance at the chosen time with a confidence bar, an excerpt from the message in which the belief was first recorded, up to three conversations and documents whose title or file name contains the topic and that date from within 30 days of that time, and your current stance if your view has changed since. Get Relevant Insights adds up to five insights whose text contains one of the words you typed.",
+      "de": "Geben Sie ein Thema ein und klicken Sie auf „Vergangenes Ich durchsuchen“. Wird es gefunden, zeigt die Seite Ihre Haltung zum gewählten Zeitpunkt mit einem Konfidenzbalken, einen Auszug aus der Nachricht, in der die Überzeugung zuerst erfasst wurde, bis zu drei Unterhaltungen und Dokumente, deren Titel oder Dateiname das Thema enthält und die aus den 30 Tagen um diesen Zeitpunkt stammen, sowie Ihre aktuelle Haltung, falls sich Ihre Sichtweise seitdem geändert hat. „Relevante Erkenntnisse abrufen“ ergänzt bis zu fünf Erkenntnisse, deren Text eines der eingegebenen Wörter enthält.",
+      "es": "Escriba un tema y haga clic en Buscar en tu yo del pasado. Si se encuentra, la página muestra su postura en el momento elegido con una barra de confianza, un extracto del mensaje en el que se registró la creencia por primera vez, hasta tres conversaciones y documentos cuyo título o nombre de archivo contiene el tema y que datan de los 30 días en torno a ese momento, y su postura actual si su opinión ha cambiado desde entonces. Obtener ideas relevantes añade hasta cinco ideas cuyo texto contiene alguna de las palabras que escribió.",
+      "fr": "Saisissez un sujet et cliquez sur Rechercher dans mon moi d'avant. S'il est trouvé, la page affiche votre position au moment choisi avec une barre de confiance, un extrait du message dans lequel la conviction a été enregistrée pour la première fois, jusqu'à trois conversations et documents dont le titre ou le nom de fichier contient le sujet et qui datent des 30 jours autour de ce moment, ainsi que votre position actuelle si votre point de vue a changé depuis. Obtenir des idées pertinentes ajoute jusqu'à cinq idées dont le texte contient l'un des mots saisis.",
+      "ja": "トピックを入力して [Past Self を検索] をクリックします。見つかった場合は、選んだ時点でのあなたの立場が確信度バーとともに表示され、その信念が最初に記録されたメッセージの抜粋、タイトルまたはファイル名にトピックを含み、その時点の前後 30 日以内の会話とドキュメント (それぞれ最大 3 件)、その後に考えが変わっていれば現在の立場も表示されます。[関連するインサイトを取得] では、入力した単語のいずれかを本文に含むインサイトが最大 5 件追加されます。",
+      "zh-CN": "输入一个主题，然后点击“搜索过往的自己”。找到后，页面会显示您在所选时间点的立场及置信度条、该观点最初被记录时那条消息的摘录、标题或文件名包含该主题且时间在该时间点前后 30 天内的对话和文档（各最多三个），以及在观点此后发生变化时您当前的立场。“获取相关洞见”会追加最多五条正文包含您输入的任一词语的洞见。"
+    },
+    "UserGuide_PastSelf_QueryExample_Label.Text": {
+      "en-US": "Past Self does not understand full questions such as:",
+      "de": "Ganze Fragen wie diese versteht „Vergangenes Ich“ nicht:",
+      "es": "Tu yo del pasado no entiende preguntas completas como esta:",
+      "fr": "Moi d'avant ne comprend pas les questions complètes comme celle-ci :",
+      "ja": "Past Self は次のような文章の質問には対応していません：",
+      "zh-CN": "“过往的自己”无法理解如下完整问句："
+    },
+    "UserGuide_PastSelf_UseCase1_Description.Text": {
+      "en-US": "Look up a topic you have stated a view on to see the first stance you recorded (All time) and an excerpt of the message it came from.",
+      "de": "Schlagen Sie ein Thema nach, zu dem Sie eine Meinung geäußert haben, um die zuerst erfasste Haltung („Gesamter Zeitraum“) und einen Auszug aus der zugehörigen Nachricht zu sehen.",
+      "es": "Busque un tema sobre el que haya dado su opinión para ver la primera postura registrada (Todo el tiempo) y un extracto del mensaje del que procede.",
+      "fr": "Recherchez un sujet sur lequel vous avez exprimé un avis pour voir la première position enregistrée (Depuis toujours) et un extrait du message d'où elle vient.",
+      "ja": "意見を述べたことのあるトピックを調べると、最初に記録された立場 ([全期間]) と、その元になったメッセージの抜粋を確認できます。",
+      "zh-CN": "查询您曾表达过看法的主题，即可看到最早记录的立场（“全部时间”）以及其来源消息的摘录。"
+    },
+    "UserGuide_PastSelf_UseCase2_Description.Text": {
+      "en-US": "Pick the date of a past decision (Custom date) and search the topic to see the stance you held then, with conversations and documents on that topic from around that date.",
+      "de": "Wählen Sie das Datum einer früheren Entscheidung („Benutzerdefiniertes Datum“) und suchen Sie das Thema, um Ihre damalige Haltung zu sehen, zusammen mit Unterhaltungen und Dokumenten zu diesem Thema aus der Zeit um dieses Datum.",
+      "es": "Elija la fecha de una decisión pasada (Fecha personalizada) y busque el tema para ver la postura que tenía entonces, junto con conversaciones y documentos sobre ese tema de alrededor de esa fecha.",
+      "fr": "Choisissez la date d'une décision passée (Date personnalisée) et recherchez le sujet pour voir la position que vous aviez alors, avec les conversations et documents sur ce sujet datant de cette période.",
+      "ja": "過去の決定の日付を選び ([カスタム日付])、トピックを検索すると、当時の立場と、その日付前後のそのトピックに関する会話やドキュメントを確認できます。",
+      "zh-CN": "选择过去某个决定的日期（“自定义日期”）并搜索该主题，即可看到您当时的立场，以及那段时间前后与该主题相关的对话和文档。"
+    },
+    "UserGuide_PastSelf_UseCase3_Description.Text": {
+      "en-US": "Show Belief Evolution, or the Dashboard's belief card, tells you whether your stance on a topic has changed since it was first recorded.",
+      "de": "„Entwicklung der Überzeugungen anzeigen“ oder die Überzeugungskarte im Dashboard zeigt Ihnen, ob sich Ihre Haltung zu einem Thema seit der ersten Erfassung geändert hat.",
+      "es": "Mostrar evolución de creencias, o la tarjeta de creencias del Panel, le indica si su postura sobre un tema ha cambiado desde que se registró por primera vez.",
+      "fr": "Afficher l'évolution des convictions, ou la carte des convictions du tableau de bord, vous indique si votre position sur un sujet a changé depuis son premier enregistrement.",
+      "ja": "[考えの変遷を表示] またはダッシュボードの信念カードで、あるトピックについての立場が最初の記録から変わったかどうかがわかります。",
+      "zh-CN": "“显示观点演变”或仪表板上的观点卡片会告诉您，您对某个主题的立场自首次记录以来是否发生了变化。"
+    },
+    "UserGuide_PastSelf_UseCase4_Description.Text": {
+      "en-US": "Get Active Topics shows what you have stated views on in the last 30 days, and Load Profile shows where your sentence length and formality have settled. There is no summary of how your thinking changed between two periods.",
+      "de": "„Aktive Themen abrufen“ zeigt, wozu Sie sich in den letzten 30 Tagen geäußert haben, und „Profil laden“ zeigt, wo sich Ihre Satzlänge und Förmlichkeit eingependelt haben. Eine Zusammenfassung, wie sich Ihr Denken zwischen zwei Zeiträumen verändert hat, gibt es nicht.",
+      "es": "Obtener temas activos muestra sobre qué ha opinado en los últimos 30 días, y Cargar perfil muestra dónde se han estabilizado la longitud de sus frases y su formalidad. No hay un resumen de cómo cambió su forma de pensar entre dos períodos.",
+      "fr": "Obtenir les sujets actifs montre sur quoi vous avez exprimé des avis au cours des 30 derniers jours, et Charger le profil montre où se sont stabilisées la longueur de vos phrases et votre formalité. Il n'existe pas de résumé de l'évolution de votre réflexion entre deux périodes.",
+      "ja": "[アクティブなトピックを取得] では過去 30 日間に意見を述べたトピックが、[プロファイルを読み込む] では文の長さと丁寧さの現在の傾向がわかります。2 つの期間の間で考え方がどう変わったかをまとめる機能はありません。",
+      "zh-CN": "“获取活跃主题”显示您在过去 30 天里表达过看法的主题，“加载画像”显示您的句子长度和正式程度目前稳定在什么水平。没有总结两个时间段之间思维变化的功能。"
+    },
+    "UserGuide_GenerativeIdentity_Title.Text": {
+      "en-US": "Generative Identity: Draft As Me",
+      "de": "Generative Identität: Als ich entwerfen",
+      "es": "Identidad generativa: Redactar como yo",
+      "fr": "Identité générative : Rédiger comme moi",
+      "ja": "生成的アイデンティティ：自分らしく下書き",
+      "zh-CN": "生成式身份：以我的口吻起草"
+    },
+    "UserGuide_GenerativeIdentity_Description.Text": {
+      "en-US": "Draft As Me, on the Past Self page, turns a short description of what you want to write, and an optional goal, into a starting draft of three or four sentences. The draft is assembled from fixed sentence templates picked by your voice profile's formality and sentence length. No AI model is called, and nothing else from your messages is imitated or quoted.",
+      "de": "„Als ich entwerfen“ auf der Seite „Vergangenes Ich“ macht aus einer kurzen Beschreibung dessen, was Sie schreiben möchten, und einem optionalen Ziel einen ersten Entwurf aus drei oder vier Sätzen. Der Entwurf wird aus festen Satzvorlagen zusammengesetzt, die anhand der Förmlichkeit und Satzlänge Ihres Stilprofils ausgewählt werden. Es wird kein KI-Modell aufgerufen, und darüber hinaus wird nichts aus Ihren Nachrichten nachgeahmt oder zitiert.",
+      "es": "Redactar como yo, en la página Tu yo del pasado, convierte una breve descripción de lo que quiere escribir, y un objetivo opcional, en un borrador inicial de tres o cuatro frases. El borrador se compone con plantillas de frases fijas elegidas según la formalidad y la longitud de frase de su perfil de voz. No se llama a ningún modelo de IA, y no se imita ni se cita nada más de sus mensajes.",
+      "fr": "Rédiger comme moi, sur la page Moi d'avant, transforme une courte description de ce que vous voulez écrire, et un objectif facultatif, en un premier brouillon de trois ou quatre phrases. Le brouillon est assemblé à partir de modèles de phrases fixes choisis selon la formalité et la longueur de phrase de votre profil de style. Aucun modèle d'IA n'est appelé, et rien d'autre de vos messages n'est imité ni cité.",
+      "ja": "Past Self ページの「自分らしく下書き」は、書きたい内容の短い説明と任意の目的から、3～4 文の下書きを作ります。下書きは、文体プロファイルの丁寧さと文の長さに応じて選ばれる固定の文テンプレートで組み立てられます。AI モデルは呼び出されず、それ以外にメッセージの内容を模倣したり引用したりすることもありません。",
+      "zh-CN": "“过往的自己”页面上的“以我的口吻起草”会根据您对要写内容的简短描述和可选的目标，生成一份三到四句的初稿。初稿由固定的句子模板拼成，模板根据文风画像中的正式程度和句子长度来选择。不会调用 AI 模型，除此之外也不会模仿或引用您消息中的任何内容。"
+    },
+    "UserGuide_GenerativeIdentity_Step1.Text": {
+      "en-US": "Each chat message you send updates the voice profile. Load Profile on the Past Self page shows the number of samples, the average sentence length and a style label (Casual, Balanced or Formal), or Not enough data before your first message.",
+      "de": "Jede gesendete Chatnachricht aktualisiert das Stilprofil. „Profil laden“ auf der Seite „Vergangenes Ich“ zeigt die Anzahl der Stichproben, die durchschnittliche Satzlänge und eine Stilbezeichnung (Casual, Balanced oder Formal) oder vor Ihrer ersten Nachricht „Not enough data“.",
+      "es": "Cada mensaje de chat que envía actualiza el perfil de voz. Cargar perfil, en la página Tu yo del pasado, muestra el número de muestras, la longitud media de las frases y una etiqueta de estilo (Casual, Balanced o Formal), o Not enough data antes de su primer mensaje.",
+      "fr": "Chaque message de chat envoyé met à jour le profil de style. Charger le profil, sur la page Moi d'avant, affiche le nombre d'échantillons, la longueur moyenne des phrases et une étiquette de style (Casual, Balanced ou Formal), ou Not enough data avant votre premier message.",
+      "ja": "チャットでメッセージを送信するたびに文体プロファイルが更新されます。Past Self ページの [プロファイルを読み込む] では、サンプル数、平均の文の長さ、文体ラベル (Casual、Balanced、Formal) が表示されます。最初のメッセージを送る前は「Not enough data」と表示されます。",
+      "zh-CN": "您发送的每条聊天消息都会更新文风画像。“过往的自己”页面上的“加载画像”会显示样本数、平均句长和文风标签（Casual、Balanced 或 Formal）；在您发送第一条消息之前显示“Not enough data”。"
+    },
+    "UserGuide_GenerativeIdentity_Step2.Text": {
+      "en-US": "Enter the context (what you are writing about) and, if you like, the goal, then click Generate Draft. The draft opens with a sentence chosen by your formality score, restates your context and goal, and ends with a stock closing sentence; before any voice sample exists, a neutral template is used.",
+      "de": "Geben Sie den Kontext (worüber Sie schreiben) und bei Bedarf das Ziel ein und klicken Sie auf „Entwurf erstellen“. Der Entwurf beginnt mit einem Satz, der nach Ihrem Förmlichkeitswert gewählt wird, wiederholt Kontext und Ziel und endet mit einem Standardschlusssatz; solange es keine Stilstichprobe gibt, wird eine neutrale Vorlage verwendet.",
+      "es": "Escriba el contexto (sobre qué escribe) y, si quiere, el objetivo, y haga clic en Generar borrador. El borrador empieza con una frase elegida según su puntuación de formalidad, repite su contexto y su objetivo y termina con una frase de cierre estándar; mientras no haya ninguna muestra de voz, se usa una plantilla neutra.",
+      "fr": "Saisissez le contexte (le sujet de votre texte) et, si vous le souhaitez, l'objectif, puis cliquez sur Générer un brouillon. Le brouillon commence par une phrase choisie selon votre score de formalité, reprend votre contexte et votre objectif, et se termine par une phrase de conclusion toute faite ; tant qu'aucun échantillon de style n'existe, un modèle neutre est utilisé.",
+      "ja": "コンテキスト (何について書くか) と、必要に応じて目的を入力し、[下書きを生成] をクリックします。下書きは丁寧さのスコアに応じて選ばれた文で始まり、コンテキストと目的を言い直し、定型の締めの文で終わります。文体のサンプルがまだない場合は中立的なテンプレートが使われます。",
+      "zh-CN": "输入上下文（您要写的内容）以及可选的目标，然后点击“生成草稿”。草稿以根据您的正式程度分数选择的句子开头，复述您的上下文和目标，并以一句固定的结束语收尾；在还没有任何文风样本时，会使用中性模板。"
+    },
+    "UserGuide_GenerativeIdentity_Step3.Text": {
+      "en-US": "Copy and Copy for Chat both put the draft on the clipboard, so paste it wherever you need it. There is no rating, no regeneration with adjusted settings and no way to insert the draft into a conversation directly.",
+      "de": "„Kopieren“ und „Für Chat kopieren“ legen den Entwurf beide in die Zwischenablage; fügen Sie ihn ein, wo Sie ihn brauchen. Es gibt keine Bewertung, keine Neugenerierung mit angepassten Einstellungen und keine Möglichkeit, den Entwurf direkt in eine Unterhaltung einzufügen.",
+      "es": "Copiar y Copiar para el chat ponen ambos el borrador en el portapapeles, así que péguelo donde lo necesite. No hay valoración, ni regeneración con ajustes distintos, ni forma de insertar el borrador directamente en una conversación.",
+      "fr": "Copier et Copier pour le chat placent tous deux le brouillon dans le presse-papiers : collez-le là où vous en avez besoin. Il n'y a ni notation, ni régénération avec des réglages modifiés, ni moyen d'insérer directement le brouillon dans une conversation.",
+      "ja": "[コピー] と [チャット用にコピー] はどちらも下書きをクリップボードにコピーするので、必要な場所に貼り付けてください。評価、設定を変えての再生成、会話への直接挿入の機能はありません。",
+      "zh-CN": "“复制”和“复制到聊天”都会把草稿放到剪贴板上，您可以将其粘贴到需要的地方。没有评分功能，不能调整设置后重新生成，也无法将草稿直接插入对话。"
+    },
+    "UserGuide_GenerativeIdentity_Voice_Description.Text": {
+      "en-US": "The voice profile has two measures, both updated from your chat messages:",
+      "de": "Das Stilprofil hat zwei Kennzahlen, die beide aus Ihren Chatnachrichten aktualisiert werden:",
+      "es": "El perfil de voz tiene dos medidas, ambas actualizadas a partir de sus mensajes de chat:",
+      "fr": "Le profil de style comporte deux mesures, toutes deux mises à jour à partir de vos messages de chat :",
+      "ja": "文体プロファイルには 2 つの指標があり、どちらもチャットのメッセージから更新されます：",
+      "zh-CN": "文风画像包含两项指标，都根据您的聊天消息更新："
+    },
+    "UserGuide_GenerativeIdentity_Voice1.Text": {
+      "en-US": "Sentence length - The average number of words per sentence, as a moving average in which each new message counts for 10%. An average of 10 words or fewer limits drafts to three sentences; otherwise they can have four.",
+      "de": "Satzlänge - Die durchschnittliche Anzahl der Wörter pro Satz als gleitender Durchschnitt, in den jede neue Nachricht mit 10 % eingeht. Bei einem Durchschnitt von höchstens 10 Wörtern sind Entwürfe auf drei Sätze begrenzt, sonst können sie vier haben.",
+      "es": "Longitud de las frases - El número medio de palabras por frase, como media móvil en la que cada mensaje nuevo cuenta un 10 %. Con una media de 10 palabras o menos, los borradores se limitan a tres frases; si no, pueden tener cuatro.",
+      "fr": "Longueur des phrases - Le nombre moyen de mots par phrase, en moyenne glissante où chaque nouveau message compte pour 10 %. Avec une moyenne de 10 mots ou moins, les brouillons sont limités à trois phrases ; sinon, ils peuvent en avoir quatre.",
+      "ja": "文の長さ：1 文あたりの平均単語数で、新しいメッセージが 10% の重みを持つ移動平均です。平均が 10 語以下の場合、下書きは 3 文に限られ、それ以外は 4 文になることがあります。",
+      "zh-CN": "句子长度：每句平均单词数，采用移动平均，每条新消息占 10% 的权重。平均值不超过 10 个单词时，草稿限制为三句；否则最多可有四句。"
+    },
+    "UserGuide_GenerativeIdentity_Voice2.Text": {
+      "en-US": "Formality - A score that rises when a message uses 'therefore' or 'however' and falls with each apostrophe, as in contractions; each new message counts for 5%. Vocabulary, signature phrases and punctuation habits are not analyzed.",
+      "de": "Förmlichkeit - Ein Wert, der steigt, wenn eine Nachricht „therefore“ oder „however“ verwendet, und mit jedem Apostroph sinkt, wie bei Zusammenziehungen; jede neue Nachricht geht mit 5 % ein. Wortschatz, typische Wendungen und Zeichensetzungsgewohnheiten werden nicht analysiert.",
+      "es": "Formalidad - Una puntuación que sube cuando un mensaje usa «therefore» o «however» y baja con cada apóstrofo, como en las contracciones; cada mensaje nuevo cuenta un 5 %. No se analizan el vocabulario, las expresiones características ni los hábitos de puntuación.",
+      "fr": "Formalité - Un score qui augmente quand un message emploie « therefore » ou « however » et diminue à chaque apostrophe, comme dans les contractions ; chaque nouveau message compte pour 5 %. Le vocabulaire, les expressions fétiches et les habitudes de ponctuation ne sont pas analysés.",
+      "ja": "丁寧さ：メッセージに「therefore」や「however」が含まれると上がり、短縮形などのアポストロフィ 1 つごとに下がるスコアで、新しいメッセージが 5% の重みを持ちます。語彙、特徴的な言い回し、句読点の癖は分析されません。",
+      "zh-CN": "正式程度：消息中使用“therefore”或“however”时上升、每出现一个撇号（如缩写）时下降的分数；每条新消息占 5% 的权重。不分析词汇、惯用语或标点习惯。"
+    },
+    "UserGuide_GenerativeIdentity_Voice3.Text": {
+      "en-US": "Style label - Below 0.3 the profile reads Casual, below 0.6 Balanced, and Formal above that. There is a single profile with no separate registers to choose from, and it cannot be edited or reset in the app.",
+      "de": "Stilbezeichnung - Unter 0,3 lautet das Profil Casual, unter 0,6 Balanced, darüber Formal. Es gibt ein einziges Profil ohne wählbare Stilebenen, und es lässt sich in der App weder bearbeiten noch zurücksetzen.",
+      "es": "Etiqueta de estilo - Por debajo de 0,3 el perfil indica Casual, por debajo de 0,6 Balanced y, por encima, Formal. Hay un único perfil, sin registros distintos entre los que elegir, y no se puede editar ni restablecer en la aplicación.",
+      "fr": "Étiquette de style - En dessous de 0,3, le profil indique Casual, en dessous de 0,6 Balanced, et Formal au-delà. Il n'existe qu'un seul profil, sans registres distincts à choisir, et il ne peut être ni modifié ni réinitialisé dans l'application.",
+      "ja": "文体ラベル：0.3 未満は Casual、0.6 未満は Balanced、それ以上は Formal と表示されます。プロファイルは 1 つだけで、選べる文体の種類はなく、アプリ内で編集やリセットはできません。",
+      "zh-CN": "文风标签：低于 0.3 显示为 Casual，低于 0.6 显示为 Balanced，更高则为 Formal。只有一个画像，没有可选择的不同语体，也无法在应用中编辑或重置。"
+    },
+    "UserGuide_GenerativeIdentity_Access_Description.Text": {
+      "en-US": "Draft As Me is on the Past Self page only:",
+      "de": "„Als ich entwerfen“ gibt es nur auf der Seite „Vergangenes Ich“:",
+      "es": "Redactar como yo solo está en la página Tu yo del pasado:",
+      "fr": "Rédiger comme moi ne se trouve que sur la page Moi d'avant :",
+      "ja": "「自分らしく下書き」は Past Self ページにしかありません：",
+      "zh-CN": "“以我的口吻起草”只在“过往的自己”页面中提供："
+    },
+    "UserGuide_GenerativeIdentity_Access1.Text": {
+      "en-US": "Open Past Self, go to Draft as Me, fill in the context and the optional goal, and click Generate Draft. There are no length, tone or time-period options.",
+      "de": "Öffnen Sie „Vergangenes Ich“, gehen Sie zu „Als ich entwerfen“, füllen Sie den Kontext und optional das Ziel aus und klicken Sie auf „Entwurf erstellen“. Optionen für Länge, Tonfall oder Zeitraum gibt es nicht.",
+      "es": "Abra Tu yo del pasado, vaya a Redactar como yo, rellene el contexto y el objetivo opcional y haga clic en Generar borrador. No hay opciones de longitud, tono ni período.",
+      "fr": "Ouvrez Moi d'avant, allez à Rédiger comme moi, renseignez le contexte et l'objectif facultatif, puis cliquez sur Générer un brouillon. Il n'y a pas d'options de longueur, de ton ou de période.",
+      "ja": "Past Self を開いて「自分らしく下書き」に移動し、コンテキストと任意の目的を入力して [下書きを生成] をクリックします。長さ、トーン、期間の選択肢はありません。",
+      "zh-CN": "打开“过往的自己”，转到“以我的口吻起草”，填写上下文和可选的目标，然后点击“生成草稿”。没有长度、语气或时间段选项。"
+    },
+    "UserGuide_GenerativeIdentity_Access2.Text": {
+      "en-US": "AI Chat has no /draft or /refine commands, and Draft As Me cannot be started from a conversation.",
+      "de": "AI Chat kennt keine Befehle /draft oder /refine, und „Als ich entwerfen“ lässt sich nicht aus einer Unterhaltung heraus starten.",
+      "es": "AI Chat no tiene comandos /draft ni /refine, y Redactar como yo no se puede iniciar desde una conversación.",
+      "fr": "AI Chat n'a pas de commandes /draft ou /refine, et Rédiger comme moi ne peut pas être lancé depuis une conversation.",
+      "ja": "AI Chat には /draft や /refine のコマンドはなく、会話から「自分らしく下書き」を始めることはできません。",
+      "zh-CN": "AI Chat 没有 /draft 或 /refine 命令，也无法从对话中启动“以我的口吻起草”。"
+    },
+    "UserGuide_InsightHarvesting_Description.Text": {
+      "en-US": "Insight Harvesting keeps short records of moments that looked significant. After each reply, Agent-X scans the conversation's AI replies for marker words and stores each matching reply once as an insight. Insights stay on your computer and appear only on the Past Self page, when you ask for relevant insights; they are not shown on the Dashboard, in the Weekly Digest or in search.",
+      "de": "Die Insight-Sammlung hält kurze Aufzeichnungen von Momenten fest, die bedeutsam wirkten. Nach jeder Antwort durchsucht Agent-X die KI-Antworten der Unterhaltung nach Markierungswörtern und speichert jede passende Antwort einmal als Erkenntnis. Erkenntnisse bleiben auf Ihrem Computer und erscheinen nur auf der Seite „Vergangenes Ich“, wenn Sie relevante Erkenntnisse abrufen; im Dashboard, im Wochen-Digest oder in der Suche werden sie nicht angezeigt.",
+      "es": "La recolección de insights guarda registros breves de momentos que parecían importantes. Después de cada respuesta, Agent-X examina las respuestas de la IA de la conversación en busca de palabras clave y guarda una vez cada respuesta que coincide como idea. Las ideas se quedan en su equipo y solo aparecen en la página Tu yo del pasado cuando pide ideas relevantes; no se muestran en el Panel, en el Resumen semanal ni en la búsqueda.",
+      "fr": "La collecte d'insights conserve de courts enregistrements des moments qui semblaient importants. Après chaque réponse, Agent-X examine les réponses de l'IA de la conversation à la recherche de mots repères et conserve une fois chaque réponse correspondante comme idée. Les idées restent sur votre ordinateur et n'apparaissent que sur la page Moi d'avant, lorsque vous demandez des idées pertinentes ; elles ne s'affichent ni sur le tableau de bord, ni dans le Résumé hebdomadaire, ni dans la recherche.",
+      "ja": "Insight の収集は、重要そうに見えた瞬間を短い記録として残します。回答のたびに、Agent-X は会話内の AI の回答からマーカー語を探し、該当する回答をそれぞれ一度だけインサイトとして保存します。インサイトは PC 上に保存され、Past Self ページで関連するインサイトを取得したときにだけ表示されます。ダッシュボード、週次ダイジェスト、検索には表示されません。",
+      "zh-CN": "洞见采集会为看起来重要的时刻保存简短记录。每次回复后，Agent-X 会在对话的 AI 回复中查找标记词，并把每条匹配的回复保存一次，作为洞见。洞见保存在您的电脑上，只有在“过往的自己”页面中获取相关洞见时才会显示；它们不会出现在仪表板、每周摘要或搜索中。"
+    },
+    "UserGuide_InsightHarvesting_Automatic_Description.Text": {
+      "en-US": "Detection runs after every reply, over the AI replies in the conversation that were not captured yet, with fixed word lists:",
+      "de": "Die Erkennung läuft nach jeder Antwort über die noch nicht erfassten KI-Antworten der Unterhaltung und arbeitet mit festen Wortlisten:",
+      "es": "La detección se ejecuta después de cada respuesta, sobre las respuestas de la IA de la conversación que aún no se han capturado, con listas de palabras fijas:",
+      "fr": "La détection s'exécute après chaque réponse, sur les réponses de l'IA de la conversation qui n'ont pas encore été capturées, avec des listes de mots fixes :",
+      "ja": "検出は回答のたびに、会話内でまだ保存されていない AI の回答に対して、固定の単語リストを使って行われます：",
+      "zh-CN": "每次回复后，系统会使用固定词表，对对话中尚未采集的 AI 回复进行检测："
+    },
+    "UserGuide_InsightHarvesting_Automatic1.Text": {
+      "en-US": "Breakthrough words - A reply containing 'breakthrough', 'key insight', 'important', 'realize', 'discover', 'aha' or 'eureka' is captured, and these words add 0.2 to its base significance of 0.6.",
+      "de": "Durchbruchswörter - Eine Antwort, die „breakthrough“, „key insight“, „important“, „realize“, „discover“, „aha“ oder „eureka“ enthält, wird erfasst, und diese Wörter erhöhen ihre Grundbedeutsamkeit von 0,6 um 0,2.",
+      "es": "Palabras de avance - Se captura una respuesta que contenga «breakthrough», «key insight», «important», «realize», «discover», «aha» o «eureka», y estas palabras suman 0,2 a su relevancia base de 0,6.",
+      "fr": "Mots de percée - Une réponse contenant « breakthrough », « key insight », « important », « realize », « discover », « aha » ou « eureka » est capturée, et ces mots ajoutent 0,2 à son importance de base de 0,6.",
+      "ja": "ブレークスルー語：「breakthrough」「key insight」「important」「realize」「discover」「aha」「eureka」を含む回答が保存され、これらの語で重要度が基準の 0.6 から 0.2 加算されます。",
+      "zh-CN": "突破类词语：包含“breakthrough”“key insight”“important”“realize”“discover”“aha”或“eureka”的回复会被采集，这些词会使其基础重要性 0.6 增加 0.2。"
+    },
+    "UserGuide_InsightHarvesting_Automatic2.Text": {
+      "en-US": "Excitement markers - An exclamation mark or 'amazing', 'incredible', 'fascinating' or 'interesting' also captures a reply and adds 0.1. Because these words are common, many ordinary replies are captured as well.",
+      "de": "Begeisterungsmarker - Ein Ausrufezeichen oder „amazing“, „incredible“, „fascinating“ oder „interesting“ führt ebenfalls zur Erfassung einer Antwort und fügt 0,1 hinzu. Da diese Wörter häufig sind, werden auch viele gewöhnliche Antworten erfasst.",
+      "es": "Marcadores de entusiasmo - Un signo de exclamación o «amazing», «incredible», «fascinating» o «interesting» también hacen que se capture una respuesta y suman 0,1. Como estas palabras son habituales, también se capturan muchas respuestas corrientes.",
+      "fr": "Marqueurs d'enthousiasme - Un point d'exclamation ou « amazing », « incredible », « fascinating » ou « interesting » font aussi capturer une réponse et ajoutent 0,1. Comme ces mots sont courants, beaucoup de réponses ordinaires sont également capturées.",
+      "ja": "感嘆マーカー：感嘆符や「amazing」「incredible」「fascinating」「interesting」でも回答が保存され、0.1 加算されます。これらの語はよく使われるため、ごく普通の回答も多く保存されます。",
+      "zh-CN": "兴奋标记：感叹号或“amazing”“incredible”“fascinating”“interesting”同样会使回复被采集，并增加 0.1。由于这些词很常见，许多普通回复也会被采集。"
+    },
+    "UserGuide_InsightHarvesting_Automatic3.Text": {
+      "en-US": "Highlights - A highlight created through the annotation service becomes an insight with significance 0.7, its topic taken from its note or highlighted text. The app has no command for creating highlights yet, so in practice insights come from chat replies. Novel connections and synthesis are not detected.",
+      "de": "Hervorhebungen - Eine über den Annotationsdienst angelegte Hervorhebung wird zu einer Erkenntnis mit der Bedeutsamkeit 0,7, deren Thema aus ihrer Notiz oder dem hervorgehobenen Text stammt. Die App hat noch keinen Befehl zum Anlegen von Hervorhebungen, daher stammen Erkenntnisse in der Praxis aus Chatantworten. Neue Verknüpfungen oder Synthesen werden nicht erkannt.",
+      "es": "Resaltados - Un resaltado creado mediante el servicio de anotaciones se convierte en una idea con relevancia 0,7, cuyo tema se toma de su nota o del texto resaltado. La aplicación todavía no tiene ningún comando para crear resaltados, así que en la práctica las ideas proceden de las respuestas del chat. No se detectan conexiones nuevas ni síntesis.",
+      "fr": "Surlignages - Un surlignage créé via le service d'annotations devient une idée d'importance 0,7, dont le sujet vient de sa note ou du texte surligné. L'application n'a pas encore de commande pour créer des surlignages ; en pratique, les idées viennent donc des réponses du chat. Les connexions nouvelles et les synthèses ne sont pas détectées.",
+      "ja": "ハイライト：注釈サービスで作成されたハイライトは重要度 0.7 のインサイトになり、トピックはメモまたはハイライトしたテキストから取られます。アプリにはまだハイライトを作成するコマンドがないため、実際にはインサイトはチャットの回答から生まれます。新しい関連付けや統合は検出されません。",
+      "zh-CN": "高亮：通过注释服务创建的高亮会成为重要性为 0.7 的洞见，其主题取自备注或高亮文本。应用目前还没有创建高亮的命令，因此实际上洞见都来自聊天回复。不会检测新的关联或综合结论。"
+    },
+    "UserGuide_InsightHarvesting_Cards_Title.Text": {
+      "en-US": "Stored Insights",
+      "de": "Gespeicherte Erkenntnisse",
+      "es": "Ideas guardadas",
+      "fr": "Idées enregistrées",
+      "ja": "保存されるインサイト",
+      "zh-CN": "保存的洞见"
+    },
+    "UserGuide_InsightHarvesting_Cards_Description.Text": {
+      "en-US": "Each insight stores the first 500 characters of the reply, a topic ('I think that ...' phrasing if the reply has it, otherwise General Insight), a significance score and the time it was captured. For example:",
+      "de": "Jede Erkenntnis speichert die ersten 500 Zeichen der Antwort, ein Thema (die Formulierung „I think that ...“, falls die Antwort sie enthält, sonst General Insight), einen Bedeutsamkeitswert und den Zeitpunkt der Erfassung. Zum Beispiel:",
+      "es": "Cada idea guarda los primeros 500 caracteres de la respuesta, un tema (la frase «I think that ...» si la respuesta la contiene; si no, General Insight), una puntuación de relevancia y el momento en que se capturó. Por ejemplo:",
+      "fr": "Chaque idée conserve les 500 premiers caractères de la réponse, un sujet (la formulation « I think that ... » si la réponse la contient, sinon General Insight), un score d'importance et le moment de sa capture. Par exemple :",
+      "ja": "各インサイトには、回答の最初の 500 文字、トピック (回答に「I think that ...」の言い回しがあればそれ、なければ General Insight)、重要度スコア、保存された日時が記録されます。例：",
+      "zh-CN": "每条洞见保存回复的前 500 个字符、一个主题（如果回复中有“I think that ...”的说法则取之，否则为 General Insight）、重要性分数以及采集时间。例如："
+    },
+    "UserGuide_InsightHarvesting_CardExample_Title.Text": {
+      "en-US": "\"The key insight is that productivity comes from doing less of what does not matter.\"",
+      "de": "„The key insight is that productivity comes from doing less of what does not matter.“",
+      "es": "«The key insight is that productivity comes from doing less of what does not matter.»",
+      "fr": "« The key insight is that productivity comes from doing less of what does not matter. »",
+      "ja": "「The key insight is that productivity comes from doing less of what does not matter.」",
+      "zh-CN": "“The key insight is that productivity comes from doing less of what does not matter.”"
+    },
+    "UserGuide_InsightHarvesting_CardExample_Content.Text": {
+      "en-US": "Captured from an AI reply because it says 'key insight'. Topic: General Insight. Significance: 0.8.",
+      "de": "Aus einer KI-Antwort erfasst, weil sie „key insight“ enthält. Thema: General Insight. Bedeutsamkeit: 0,8.",
+      "es": "Capturada de una respuesta de la IA porque dice «key insight». Tema: General Insight. Relevancia: 0,8.",
+      "fr": "Capturée dans une réponse de l'IA parce qu'elle contient « key insight ». Sujet : General Insight. Importance : 0,8.",
+      "ja": "「key insight」を含むため AI の回答から保存。トピック：General Insight。重要度：0.8。",
+      "zh-CN": "因包含“key insight”而从 AI 回复中采集。主题：General Insight。重要性：0.8。"
+    },
+    "UserGuide_InsightHarvesting_Managing1.Text": {
+      "en-US": "Insights are listed only on the Past Self page: type a word and click Get Relevant Insights to see up to five insights with a significance above 0.5 whose text contains a word you typed, most significant first, each with its age and the reason it matched. There is no insight list on the Dashboard, no command-palette entry and no sorting or filtering.",
+      "de": "Erkenntnisse werden nur auf der Seite „Vergangenes Ich“ aufgelistet: Geben Sie ein Wort ein und klicken Sie auf „Relevante Erkenntnisse abrufen“, um bis zu fünf Erkenntnisse mit einer Bedeutsamkeit über 0,5 zu sehen, deren Text eines Ihrer Wörter enthält, die bedeutsamste zuerst, jeweils mit Alter und Grund der Übereinstimmung. Eine Erkenntnisliste im Dashboard, einen Eintrag in der Befehlspalette oder Sortieren und Filtern gibt es nicht.",
+      "es": "Las ideas solo se muestran en la página Tu yo del pasado: escriba una palabra y haga clic en Obtener ideas relevantes para ver hasta cinco ideas con una relevancia superior a 0,5 cuyo texto contiene alguna de sus palabras, primero la más relevante, cada una con su antigüedad y el motivo de la coincidencia. No hay lista de ideas en el Panel, ni entrada en la paleta de comandos, ni opciones de ordenación o filtrado.",
+      "fr": "Les idées ne sont listées que sur la page Moi d'avant : saisissez un mot et cliquez sur Obtenir des idées pertinentes pour voir jusqu'à cinq idées d'importance supérieure à 0,5 dont le texte contient l'un de vos mots, la plus importante d'abord, chacune avec son ancienneté et la raison de la correspondance. Il n'y a ni liste d'idées sur le tableau de bord, ni entrée dans la palette de commandes, ni tri ou filtrage.",
+      "ja": "インサイトが一覧表示されるのは Past Self ページだけです。単語を入力して [関連するインサイトを取得] をクリックすると、入力した単語を本文に含み重要度が 0.5 を超えるインサイトが、重要度の高い順に最大 5 件、経過時間と一致した理由とともに表示されます。ダッシュボードのインサイト一覧、コマンド パレットの項目、並べ替えや絞り込みはありません。",
+      "zh-CN": "洞见只在“过往的自己”页面中列出：输入一个词并点击“获取相关洞见”，即可看到最多五条重要性高于 0.5、正文包含您输入的词语的洞见，按重要性从高到低排列，并显示其时间和匹配原因。仪表板上没有洞见列表，命令面板中也没有相关条目，且不支持排序或筛选。"
+    },
+    "UserGuide_InsightHarvesting_Managing2.Text": {
+      "en-US": "An insight does not link back to its conversation, and it cannot be copied with attribution, saved as an annotation or turned into a vault note.",
+      "de": "Eine Erkenntnis verlinkt nicht auf ihre Unterhaltung und lässt sich weder mit Quellenangabe kopieren noch als Annotation speichern oder in eine Tresor-Notiz umwandeln.",
+      "es": "Una idea no enlaza con su conversación, y no se puede copiar con atribución, guardar como anotación ni convertir en una nota de la bóveda.",
+      "fr": "Une idée ne renvoie pas à sa conversation et ne peut être ni copiée avec attribution, ni enregistrée comme annotation, ni transformée en note du coffre-fort.",
+      "ja": "インサイトから元の会話に戻るリンクはなく、出典付きでのコピー、注釈としての保存、Vault のメモへの変換もできません。",
+      "zh-CN": "洞见不会链接回其所在的对话，也无法带出处复制、另存为注释或转换为 Vault 笔记。"
+    },
+    "UserGuide_InsightHarvesting_Managing3.Text": {
+      "en-US": "Insights cannot be starred, dismissed, edited or deleted in the app, and no feedback tunes the detector; the word lists are fixed.",
+      "de": "Erkenntnisse lassen sich in der App weder markieren noch verwerfen, bearbeiten oder löschen, und kein Feedback stimmt die Erkennung ab; die Wortlisten sind fest.",
+      "es": "Las ideas no se pueden marcar con estrella, descartar, editar ni eliminar en la aplicación, y ningún comentario ajusta el detector; las listas de palabras son fijas.",
+      "fr": "Les idées ne peuvent être ni mises en favori, ni écartées, ni modifiées, ni supprimées dans l'application, et aucun retour n'ajuste le détecteur ; les listes de mots sont fixes.",
+      "ja": "インサイトにスターを付ける、非表示にする、編集する、削除することはアプリではできず、フィードバックで検出が調整されることもありません。単語リストは固定です。",
+      "zh-CN": "无法在应用中为洞见加星标、忽略、编辑或删除，也没有任何反馈能调整检测；词表是固定的。"
+    }
+  },
+  "add": {}
+}

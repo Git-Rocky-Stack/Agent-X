@@ -40,11 +40,11 @@ Requirements: Windows 10 build 19041+ or Windows 11, x64. No account, no subscri
 - Streaming Markdown chat with conversation branching, pinning, folders, and full-text history search; export a conversation to any of 8 formats, copy it as Markdown, or export your whole history in one pass
 - **Built-in local model** (Llama 3.2 3B, GGUF via LLamaSharp with optional GPU offload) — works fully offline, out of the box
 - Ollama for any local model; opt-in cloud providers: OpenAI (GPT-4o, GPT-4o-mini, o1, o3) and Anthropic (Claude Sonnet 4, Opus, Haiku)
-- Model Manager for download/removal and per-task model selection; Hardware Advisor recommends models and GPU offload settings for your machine
+- Model Manager to list, download, remove and activate the active provider's models; Hardware Advisor suggests Ollama models that fit your GPU memory or RAM
 
 **Document intelligence**
 - **Document Comparison**: structured AI comparison of 2+ documents — shared themes, key differences, unique points, Markdown export
-- Temporal Identity: belief tracking, insight harvesting, Past Self queries, and generate-as-you drafting learned from your own writing voice
+- Temporal Identity: rule-based belief tracking from your chat messages, insight capture from AI replies, Past Self topic lookups, and template drafts shaped by a simple voice profile
 - Weekly Digest and an Analytics dashboard (usage, trends, indexing health) — computed locally from your own data
 
 **Automation & power use**

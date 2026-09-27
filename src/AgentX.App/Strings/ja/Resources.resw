@@ -296,67 +296,67 @@
   <data name="UserGuide_GettingHelp_Footer2.Text" xml:space="preserve"><value>すべての人にローカルファーストの AI を</value></data>
 
   <data name="UserGuide_TemporalIdentity_Title.Text" xml:space="preserve"><value>時系列的アイデンティティの一貫性</value></data>
-  <data name="UserGuide_TemporalIdentity_Description.Text" xml:space="preserve"><value>Your thoughts and beliefs evolve over time. Agent-X tracks this evolution, creating a temporal map of your intellectual journey. The system learns from every conversation, capturing insights and detecting when new ideas conflict with your past self - giving you the power to see how your thinking has changed and even query past versions of yourself.</value></data>
+  <data name="UserGuide_TemporalIdentity_Description.Text" xml:space="preserve"><value>時系列的アイデンティティは、アプリでの操作をもとに、あなたの考え方と書き方を簡単な記録としてローカルに残します。記録されるのは、チャットのメッセージで述べた信念、AI の回答に含まれるインサイトの瞬間、基本的な文体プロファイル、会話や Vault のドキュメントを開いていた時間です。AI モデルではなく、英語の言い回しに対する固定の単語ルールで動作します。Past Self とダッシュボードがこの記録を読み取ります。</value></data>
   <data name="UserGuide_TemporalIdentity_Tracking_Title.Text" xml:space="preserve"><value>追跡される項目</value></data>
-  <data name="UserGuide_TemporalIdentity_Tracking1.Text" xml:space="preserve"><value>Beliefs - Persistent opinions, positions, and convictions you express across conversations.</value></data>
-  <data name="UserGuide_TemporalIdentity_Tracking2.Text" xml:space="preserve"><value>Insights - Breakthrough moments, realizations, and novel ideas the system detects in your writing.</value></data>
-  <data name="UserGuide_TemporalIdentity_Tracking3.Text" xml:space="preserve"><value>Voice Patterns - Your unique writing style, vocabulary, and communication preferences.</value></data>
-  <data name="UserGuide_TemporalIdentity_Tracking4.Text" xml:space="preserve"><value>Temporal Changes - How your thinking shifts over weeks and months.</value></data>
-  <data name="UserGuide_TemporalIdentity_BeliefEvolution_Title.Text" xml:space="preserve"><value>信念の変遷タイムライン</value></data>
-  <data name="UserGuide_TemporalIdentity_BeliefEvolution_Description.Text" xml:space="preserve"><value>As you converse with Agent-X, the system identifies statements that express beliefs or opinions. These are captured with timestamps, creating an evolution timeline. On the Past Self page, you can see exactly what you believed at any point in time and trace how your views have changed.</value></data>
+  <data name="UserGuide_TemporalIdentity_Tracking1.Text" xml:space="preserve"><value>信念：回答のたびに、あなたのメッセージから、「I think」「I believe」「I feel」の後に「that」が続く 20～100 文字の文が探されます。「that」以降の部分 (4～49 文字) が信念のトピックになり (1 メッセージにつき最大 5 件)、そのトピックに最初に触れた文があなたの立場として記録されます。単語リストによるスコア (good、agree、support と bad、disagree、wrong など) で、その立場がどれだけ肯定的かが記録されます。これ以外の言い回しは追跡されません。</value></data>
+  <data name="UserGuide_TemporalIdentity_Tracking2.Text" xml:space="preserve"><value>インサイト：回答のたびに、会話内の AI の回答からも「key insight」「important」「realize」などのマーカー語や感嘆符が探され、該当する回答はそれぞれ一度だけインサイトとして保存されます。注釈サービスで作成されたハイライトもインサイトになりますが、アプリにはまだハイライトを作成するコマンドがありません。「Insight の収集」を参照してください。</value></data>
+  <data name="UserGuide_TemporalIdentity_Tracking3.Text" xml:space="preserve"><value>文体：送信したメッセージごとに文体プロファイルが更新されます。内容は 2 つの移動平均で、1 文あたりの単語数と、「therefore」や「however」で上がり、短縮形などのアポストロフィで下がる丁寧さのスコアです。Past Self でプロファイルを確認でき、「自分らしく下書き」がこれを使います。</value></data>
+  <data name="UserGuide_TemporalIdentity_Tracking4.Text" xml:space="preserve"><value>変化と閲覧時間：既知のトピックの肯定度スコアが 0.5 を超えて変わると、以前の立場と新しい立場とともにその変化が記録されます (「矛盾の検出」を参照)。また Agent-X は、会話が AI Chat で開かれていた時間と、ドキュメントが Knowledge Vault のプレビューで開かれていた時間も記録します。1 秒未満の表示は記録されず、1 回の表示は最大 30 分として数えられます。これらの時間を表示するページはまだありません。</value></data>
+  <data name="UserGuide_TemporalIdentity_BeliefEvolution_Title.Text" xml:space="preserve"><value>信念の変化</value></data>
+  <data name="UserGuide_TemporalIdentity_BeliefEvolution_Description.Text" xml:space="preserve"><value>タイムライン表示はありません。Past Self ページで、記録されたとおりの表記でトピックを入力して [考えの変遷を表示] をクリックすると、その信念をいつから追跡しているか、変化したかどうかが、以前の立場と変化した時期とともに表示されます。[アクティブなトピックを取得] では、過去 30 日間に記録されたトピックが正確な表記で一覧表示されます。</value></data>
   <data name="UserGuide_TemporalIdentity_Conflicts_Title.Text" xml:space="preserve"><value>矛盾の検出</value></data>
-  <data name="UserGuide_TemporalIdentity_Conflicts_Description.Text" xml:space="preserve"><value>When a new statement contradicts your past beliefs, Agent-X identifies the conflict. These are surfaced on the Dashboard so you can reflect on what changed your mind.</value></data>
-  <data name="UserGuide_TemporalIdentity_Conflicts1.Text" xml:space="preserve"><value>Conflicts are opportunities for reflection - they mark moments of growth, learning, or shifts in perspective.</value></data>
-  <data name="UserGuide_TemporalIdentity_Conflicts2.Text" xml:space="preserve"><value>Each conflict shows your past belief, your new position, and the conversation where the change occurred.</value></data>
+  <data name="UserGuide_TemporalIdentity_Conflicts_Description.Text" xml:space="preserve"><value>記録された変化はそれぞれ信念の矛盾として扱われます。ダッシュボードの「信念の変化」カードには、未確認の矛盾が変化の大きい順に最大 5 件、トピック、以前と現在の立場、変化の大きさとともに表示されます。矛盾を確認済みにすると、以後表示されなくなります。解決方法の選択肢や確信度の設定はなく、確認済みにしても検出の精度は変わりません。</value></data>
+  <data name="UserGuide_TemporalIdentity_Conflicts1.Text" xml:space="preserve"><value>矛盾は判定ではなく、振り返りのきっかけとして捉えてください。立場はあなたが書いた文そのもので、変化は単語リストのスコアだけで測られます。そのため、言い回しを変えただけの文が考えの変化に見えることもあれば、本当の方針転換が見逃されることもあります。</value></data>
+  <data name="UserGuide_TemporalIdentity_Conflicts2.Text" xml:space="preserve"><value>矛盾カードには、トピック、2 つの立場、変化の大きさ (0.5～2) が表示されます。元の会話へのリンク、2 つの立場の間の経過時間、AI による分析はなく、注釈を付けることもできません。</value></data>
   <data name="UserGuide_PastSelf_Title.Text" xml:space="preserve"><value>Past Self</value></data>
-  <data name="UserGuide_PastSelf_Description.Text" xml:space="preserve"><value>The Past Self feature is a time machine for your ideas. Query conversations from specific time periods to understand what you thought, believed, or cared about at that moment. It is like having a conversation with your past self.</value></data>
-  <data name="UserGuide_PastSelf_Timeline_Title.Text" xml:space="preserve"><value>タイムライン ナビゲーション</value></data>
-  <data name="UserGuide_PastSelf_Timeline_Description.Text" xml:space="preserve"><value>The Past Self page displays your conversational history as a timeline. Each point represents a snapshot of your thinking at that moment.</value></data>
-  <data name="UserGuide_PastSelf_Timeline1.Text" xml:space="preserve"><value>Select any point on the timeline to filter conversations to that time period.</value></data>
-  <data name="UserGuide_PastSelf_Timeline2.Text" xml:space="preserve"><value>Scroll through months of conversations to see the ebb and flow of your interests and focus areas.</value></data>
-  <data name="UserGuide_PastSelf_Timeline3.Text" xml:space="preserve"><value>Compare beliefs across time by selecting different points and observing how positions have shifted.</value></data>
+  <data name="UserGuide_PastSelf_Description.Text" xml:space="preserve"><value>Past Self は、時系列的アイデンティティの記録をもとに「当時このトピックについてどう考えていたか」に答え、「自分らしく下書き」も備えています。トピックは記録された表記で検索され、会話を自由なテキストとして読んだり AI モデルに問い合わせたりはしません。</value></data>
+  <data name="UserGuide_PastSelf_Timeline_Title.Text" xml:space="preserve"><value>期間の選択</value></data>
+  <data name="UserGuide_PastSelf_Timeline_Description.Text" xml:space="preserve"><value>タイムラインはありません。問い合わせる時点は [期間] の選択肢 (全期間、過去 1 週間、過去 1 か月 (既定)、過去 1 年、カスタム日付) で選びます。</value></data>
+  <data name="UserGuide_PastSelf_Timeline1.Text" xml:space="preserve"><value>[全期間] では最初に記録された立場を、その他の選択肢ではその時点での立場を問い合わせます。そのため、その後に変化した信念では以前の立場が表示されます。一度も変化していない信念は、どれを選んでも同じ立場が表示されます。</value></data>
+  <data name="UserGuide_PastSelf_Timeline2.Text" xml:space="preserve"><value>[Past Self を検索] では、記録されたとおりの表記 (先頭だけ大文字で残りは小文字) で入力したトピックしか見つかりません。[アクティブなトピックを取得] で過去 30 日間に記録されたトピックが最大 15 件表示されるので、正確な表記を確認できます。</value></data>
+  <data name="UserGuide_PastSelf_Timeline3.Text" xml:space="preserve"><value>2 つの期間を並べて比較する機能はありません。考えが変わったかどうかは、[考えの変遷を表示] かダッシュボードの信念カードで確認します。</value></data>
   <data name="UserGuide_PastSelf_Querying_Title.Text" xml:space="preserve"><value>Past Self への問い合わせ</value></data>
-  <data name="UserGuide_PastSelf_Querying_Description.Text" xml:space="preserve"><value>Ask natural language questions about your past thinking. The system searches only within the selected time window, giving you answers from that specific version of yourself.</value></data>
-  <data name="UserGuide_PastSelf_QueryExample_Label.Text" xml:space="preserve"><value>クエリの例:</value></data>
+  <data name="UserGuide_PastSelf_Querying_Description.Text" xml:space="preserve"><value>トピックを入力して [Past Self を検索] をクリックします。見つかった場合は、選んだ時点でのあなたの立場が確信度バーとともに表示され、その信念が最初に記録されたメッセージの抜粋、タイトルまたはファイル名にトピックを含み、その時点の前後 30 日以内の会話とドキュメント (それぞれ最大 3 件)、その後に考えが変わっていれば現在の立場も表示されます。[関連するインサイトを取得] では、入力した単語のいずれかを本文に含むインサイトが最大 5 件追加されます。</value></data>
+  <data name="UserGuide_PastSelf_QueryExample_Label.Text" xml:space="preserve"><value>Past Self は次のような文章の質問には対応していません：</value></data>
   <data name="UserGuide_PastSelf_UseCases_Title.Text" xml:space="preserve"><value>ユース ケース</value></data>
   <data name="UserGuide_PastSelf_UseCase1_Title.Text" xml:space="preserve"><value>知的考古学</value></data>
-  <data name="UserGuide_PastSelf_UseCase1_Description.Text" xml:space="preserve"><value>Rediscover ideas you had forgotten or trace the origin of current beliefs.</value></data>
+  <data name="UserGuide_PastSelf_UseCase1_Description.Text" xml:space="preserve"><value>意見を述べたことのあるトピックを調べると、最初に記録された立場 ([全期間]) と、その元になったメッセージの抜粋を確認できます。</value></data>
   <data name="UserGuide_PastSelf_UseCase2_Title.Text" xml:space="preserve"><value>意思決定のレビュー</value></data>
-  <data name="UserGuide_PastSelf_UseCase2_Description.Text" xml:space="preserve"><value>Examine the reasoning behind past decisions by reading your thoughts from that time.</value></data>
+  <data name="UserGuide_PastSelf_UseCase2_Description.Text" xml:space="preserve"><value>過去の決定の日付を選び ([カスタム日付])、トピックを検索すると、当時の立場と、その日付前後のそのトピックに関する会話やドキュメントを確認できます。</value></data>
   <data name="UserGuide_PastSelf_UseCase3_Title.Text" xml:space="preserve"><value>一貫性チェック</value></data>
-  <data name="UserGuide_PastSelf_UseCase3_Description.Text" xml:space="preserve"><value>Verify whether your current actions align with what you believed in the past.</value></data>
+  <data name="UserGuide_PastSelf_UseCase3_Description.Text" xml:space="preserve"><value>[考えの変遷を表示] またはダッシュボードの信念カードで、あるトピックについての立場が最初の記録から変わったかどうかがわかります。</value></data>
   <data name="UserGuide_PastSelf_UseCase4_Title.Text" xml:space="preserve"><value>成長の追跡</value></data>
-  <data name="UserGuide_PastSelf_UseCase4_Description.Text" xml:space="preserve"><value>See how your thinking has matured or changed over months of exploration.</value></data>
-  <data name="UserGuide_GenerativeIdentity_Title.Text" xml:space="preserve"><value>生成的アイデンティティ: Draft As Me</value></data>
-  <data name="UserGuide_GenerativeIdentity_Description.Text" xml:space="preserve"><value>Draft As Me transforms how you write. Instead of writing from scratch, provide a topic and let Agent-X generate text in your voice - drawing on your unique writing style, vocabulary preferences, and communication patterns learned from your entire conversation history. The result is a first draft that sounds like you, ready for review and refinement.</value></data>
+  <data name="UserGuide_PastSelf_UseCase4_Description.Text" xml:space="preserve"><value>[アクティブなトピックを取得] では過去 30 日間に意見を述べたトピックが、[プロファイルを読み込む] では文の長さと丁寧さの現在の傾向がわかります。2 つの期間の間で考え方がどう変わったかをまとめる機能はありません。</value></data>
+  <data name="UserGuide_GenerativeIdentity_Title.Text" xml:space="preserve"><value>生成的アイデンティティ：自分らしく下書き</value></data>
+  <data name="UserGuide_GenerativeIdentity_Description.Text" xml:space="preserve"><value>Past Self ページの「自分らしく下書き」は、書きたい内容の短い説明と任意の目的から、3～4 文の下書きを作ります。下書きは、文体プロファイルの丁寧さと文の長さに応じて選ばれる固定の文テンプレートで組み立てられます。AI モデルは呼び出されず、それ以外にメッセージの内容を模倣したり引用したりすることもありません。</value></data>
   <data name="UserGuide_GenerativeIdentity_HowItWorks_Title.Text" xml:space="preserve"><value>仕組み</value></data>
-  <data name="UserGuide_GenerativeIdentity_Step1.Text" xml:space="preserve"><value>Agent-X analyzes your writing across all conversations to build a voice profile: sentence structure, word choice, tone, and idioms.</value></data>
-  <data name="UserGuide_GenerativeIdentity_Step2.Text" xml:space="preserve"><value>When you request a draft, the system uses your voice profile as a style guide for generation.</value></data>
-  <data name="UserGuide_GenerativeIdentity_Step3.Text" xml:space="preserve"><value>The generated text is injected into the chat, ready for you to edit, refine, or use as-is.</value></data>
+  <data name="UserGuide_GenerativeIdentity_Step1.Text" xml:space="preserve"><value>チャットでメッセージを送信するたびに文体プロファイルが更新されます。Past Self ページの [プロファイルを読み込む] では、サンプル数、平均の文の長さ、文体ラベル (Casual、Balanced、Formal) が表示されます。最初のメッセージを送る前は「Not enough data」と表示されます。</value></data>
+  <data name="UserGuide_GenerativeIdentity_Step2.Text" xml:space="preserve"><value>コンテキスト (何について書くか) と、必要に応じて目的を入力し、[下書きを生成] をクリックします。下書きは丁寧さのスコアに応じて選ばれた文で始まり、コンテキストと目的を言い直し、定型の締めの文で終わります。文体のサンプルがまだない場合は中立的なテンプレートが使われます。</value></data>
+  <data name="UserGuide_GenerativeIdentity_Step3.Text" xml:space="preserve"><value>[コピー] と [チャット用にコピー] はどちらも下書きをクリップボードにコピーするので、必要な場所に貼り付けてください。評価、設定を変えての再生成、会話への直接挿入の機能はありません。</value></data>
   <data name="UserGuide_GenerativeIdentity_Voice_Title.Text" xml:space="preserve"><value>ボイス解析</value></data>
-  <data name="UserGuide_GenerativeIdentity_Voice_Description.Text" xml:space="preserve"><value>Your voice profile is built from patterns extracted from your messages:</value></data>
-  <data name="UserGuide_GenerativeIdentity_Voice1.Text" xml:space="preserve"><value>Sentence patterns - Average length, use of complex vs simple sentences, and punctuation habits.</value></data>
-  <data name="UserGuide_GenerativeIdentity_Voice2.Text" xml:space="preserve"><value>Vocabulary - Favorite words, phrases you use frequently, and domain-specific terminology.</value></data>
-  <data name="UserGuide_GenerativeIdentity_Voice3.Text" xml:space="preserve"><value>Tone and formality - Whether you tend to be casual, professional, concise, or elaborative.</value></data>
+  <data name="UserGuide_GenerativeIdentity_Voice_Description.Text" xml:space="preserve"><value>文体プロファイルには 2 つの指標があり、どちらもチャットのメッセージから更新されます：</value></data>
+  <data name="UserGuide_GenerativeIdentity_Voice1.Text" xml:space="preserve"><value>文の長さ：1 文あたりの平均単語数で、新しいメッセージが 10% の重みを持つ移動平均です。平均が 10 語以下の場合、下書きは 3 文に限られ、それ以外は 4 文になることがあります。</value></data>
+  <data name="UserGuide_GenerativeIdentity_Voice2.Text" xml:space="preserve"><value>丁寧さ：メッセージに「therefore」や「however」が含まれると上がり、短縮形などのアポストロフィ 1 つごとに下がるスコアで、新しいメッセージが 5% の重みを持ちます。語彙、特徴的な言い回し、句読点の癖は分析されません。</value></data>
+  <data name="UserGuide_GenerativeIdentity_Voice3.Text" xml:space="preserve"><value>文体ラベル：0.3 未満は Casual、0.6 未満は Balanced、それ以上は Formal と表示されます。プロファイルは 1 つだけで、選べる文体の種類はなく、アプリ内で編集やリセットはできません。</value></data>
   <data name="UserGuide_GenerativeIdentity_Access_Title.Text" xml:space="preserve"><value>Draft As Me へのアクセス</value></data>
-  <data name="UserGuide_GenerativeIdentity_Access_Description.Text" xml:space="preserve"><value>The Draft As Me feature is available in the Past Self page:</value></data>
-  <data name="UserGuide_GenerativeIdentity_Access1.Text" xml:space="preserve"><value>Enter your topic or prompt in the Draft As Me panel.</value></data>
-  <data name="UserGuide_GenerativeIdentity_Access2.Text" xml:space="preserve"><value>Click Generate to create a draft written in your voice.</value></data>
+  <data name="UserGuide_GenerativeIdentity_Access_Description.Text" xml:space="preserve"><value>「自分らしく下書き」は Past Self ページにしかありません：</value></data>
+  <data name="UserGuide_GenerativeIdentity_Access1.Text" xml:space="preserve"><value>Past Self を開いて「自分らしく下書き」に移動し、コンテキストと任意の目的を入力して [下書きを生成] をクリックします。長さ、トーン、期間の選択肢はありません。</value></data>
+  <data name="UserGuide_GenerativeIdentity_Access2.Text" xml:space="preserve"><value>AI Chat には /draft や /refine のコマンドはなく、会話から「自分らしく下書き」を始めることはできません。</value></data>
   <data name="UserGuide_InsightHarvesting_Title.Text" xml:space="preserve"><value>Insight の収集</value></data>
-  <data name="UserGuide_InsightHarvesting_Description.Text" xml:space="preserve"><value>Breakthrough moments happen unexpectedly - a new connection, a sudden realization, a novel idea. Insight Harvesting automatically detects these moments in your conversations and preserves them as insight cards, ensuring your best ideas are never lost to time.</value></data>
+  <data name="UserGuide_InsightHarvesting_Description.Text" xml:space="preserve"><value>Insight の収集は、重要そうに見えた瞬間を短い記録として残します。回答のたびに、Agent-X は会話内の AI の回答からマーカー語を探し、該当する回答をそれぞれ一度だけインサイトとして保存します。インサイトは PC 上に保存され、Past Self ページで関連するインサイトを取得したときにだけ表示されます。ダッシュボード、週次ダイジェスト、検索には表示されません。</value></data>
   <data name="UserGuide_InsightHarvesting_Automatic_Title.Text" xml:space="preserve"><value>自動検出</value></data>
-  <data name="UserGuide_InsightHarvesting_Automatic_Description.Text" xml:space="preserve"><value>After each conversation, Agent-X analyzes the exchange for markers of insight:</value></data>
-  <data name="UserGuide_InsightHarvesting_Automatic1.Text" xml:space="preserve"><value>Novel connections - When you relate two previously unrelated concepts.</value></data>
-  <data name="UserGuide_InsightHarvesting_Automatic2.Text" xml:space="preserve"><value>Realization language - Phrases like "I just realized," "The key insight is," "That changes everything."</value></data>
-  <data name="UserGuide_InsightHarvesting_Automatic3.Text" xml:space="preserve"><value>Synthesis moments - When complex ideas are condensed into clear, actionable understanding.</value></data>
-  <data name="UserGuide_InsightHarvesting_Cards_Title.Text" xml:space="preserve"><value>Insight カード</value></data>
-  <data name="UserGuide_InsightHarvesting_Cards_Description.Text" xml:space="preserve"><value>Each detected insight becomes a card with:</value></data>
-  <data name="UserGuide_InsightHarvesting_CardExample_Title.Text" xml:space="preserve"><value>「生産性とは、より多くをこなすことではありません。重要でないことをいかに減らすかが重要です。」</value></data>
-  <data name="UserGuide_InsightHarvesting_CardExample_Content.Text" xml:space="preserve"><value>時間管理に関する会話で検出。2025 年 6 月 15 日。</value></data>
+  <data name="UserGuide_InsightHarvesting_Automatic_Description.Text" xml:space="preserve"><value>検出は回答のたびに、会話内でまだ保存されていない AI の回答に対して、固定の単語リストを使って行われます：</value></data>
+  <data name="UserGuide_InsightHarvesting_Automatic1.Text" xml:space="preserve"><value>ブレークスルー語：「breakthrough」「key insight」「important」「realize」「discover」「aha」「eureka」を含む回答が保存され、これらの語で重要度が基準の 0.6 から 0.2 加算されます。</value></data>
+  <data name="UserGuide_InsightHarvesting_Automatic2.Text" xml:space="preserve"><value>感嘆マーカー：感嘆符や「amazing」「incredible」「fascinating」「interesting」でも回答が保存され、0.1 加算されます。これらの語はよく使われるため、ごく普通の回答も多く保存されます。</value></data>
+  <data name="UserGuide_InsightHarvesting_Automatic3.Text" xml:space="preserve"><value>ハイライト：注釈サービスで作成されたハイライトは重要度 0.7 のインサイトになり、トピックはメモまたはハイライトしたテキストから取られます。アプリにはまだハイライトを作成するコマンドがないため、実際にはインサイトはチャットの回答から生まれます。新しい関連付けや統合は検出されません。</value></data>
+  <data name="UserGuide_InsightHarvesting_Cards_Title.Text" xml:space="preserve"><value>保存されるインサイト</value></data>
+  <data name="UserGuide_InsightHarvesting_Cards_Description.Text" xml:space="preserve"><value>各インサイトには、回答の最初の 500 文字、トピック (回答に「I think that ...」の言い回しがあればそれ、なければ General Insight)、重要度スコア、保存された日時が記録されます。例：</value></data>
+  <data name="UserGuide_InsightHarvesting_CardExample_Title.Text" xml:space="preserve"><value>「The key insight is that productivity comes from doing less of what does not matter.」</value></data>
+  <data name="UserGuide_InsightHarvesting_CardExample_Content.Text" xml:space="preserve"><value>「key insight」を含むため AI の回答から保存。トピック：General Insight。重要度：0.8。</value></data>
   <data name="UserGuide_InsightHarvesting_Managing_Title.Text" xml:space="preserve"><value>Insight の管理</value></data>
-  <data name="UserGuide_InsightHarvesting_Managing1.Text" xml:space="preserve"><value>View all insights on the Dashboard or Past Self page, sorted by recency.</value></data>
-  <data name="UserGuide_InsightHarvesting_Managing2.Text" xml:space="preserve"><value>Click any insight card to jump to the original conversation context.</value></data>
-  <data name="UserGuide_InsightHarvesting_Managing3.Text" xml:space="preserve"><value>Dismiss or keep insights - dismissed insights will not be shown again.</value></data>
+  <data name="UserGuide_InsightHarvesting_Managing1.Text" xml:space="preserve"><value>インサイトが一覧表示されるのは Past Self ページだけです。単語を入力して [関連するインサイトを取得] をクリックすると、入力した単語を本文に含み重要度が 0.5 を超えるインサイトが、重要度の高い順に最大 5 件、経過時間と一致した理由とともに表示されます。ダッシュボードのインサイト一覧、コマンド パレットの項目、並べ替えや絞り込みはありません。</value></data>
+  <data name="UserGuide_InsightHarvesting_Managing2.Text" xml:space="preserve"><value>インサイトから元の会話に戻るリンクはなく、出典付きでのコピー、注釈としての保存、Vault のメモへの変換もできません。</value></data>
+  <data name="UserGuide_InsightHarvesting_Managing3.Text" xml:space="preserve"><value>インサイトにスターを付ける、非表示にする、編集する、削除することはアプリではできず、フィードバックで検出が調整されることもありません。単語リストは固定です。</value></data>
 
   <!-- UserGuide Extended sections (parity restoration) -->
   <data name="UserGuide_KeyboardShortcuts_Action8.Text" xml:space="preserve"><value>キーボード ショートカット一覧を表示(リアルタイム、検索可能)</value></data>
