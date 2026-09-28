@@ -183,13 +183,14 @@ applied, and nothing loads a profile at startup.
 ---
 
 ## Text that is not translated yet
-The resource strings are translated in all six languages, but some text is still built in code in
-English whatever the language: several AI Chat notifications (for example "Message deleted" and
-"Only the latest response can be regenerated"), the export notifications on the AI Chat and
-Collections pages, the shortcuts that pages add to the cheatsheet and the Command Palette, the page
-names and labels in Jump To, the Theme choices and the connection-test and encryption status texts
-in Settings, the description above the local API switch, the Dashboard's privacy line, and the
-annotation color names.
+The app's pages, dialogs, notifications and status texts are translated in all six languages. A few
+texts are still English whatever the language:
+- the reasons Settings gives when it refuses to save invalid values (for example "ChunkOverlap must
+  be at least 0 and less than ChunkSize"), which come from the settings validator;
+- the labels inside exported files (for example "Exported from Agent-X on", "Sources:" and the
+  headings of search result and collection exports), and the "All Conversations" title of a batch
+  chat export;
+- the Android companion app, which has no translations.
 
 ---
 
