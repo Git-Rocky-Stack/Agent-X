@@ -28,9 +28,9 @@ namespace AgentX.Core.Services.Search;
 /// </summary>
 public sealed class SearchCacheService : ISearchCacheService, IDisposable
 {
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Constants & defaults
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>Default maximum number of entries the cache can hold.</summary>
     private const int DefaultMaxEntries = 100;
@@ -38,9 +38,9 @@ public sealed class SearchCacheService : ISearchCacheService, IDisposable
     /// <summary>Default time-to-live for each cache entry.</summary>
     private static readonly TimeSpan DefaultTtl = TimeSpan.FromMinutes(5);
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Internal data structures
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>
     /// Represents a single cached search result set, including metadata used
@@ -61,9 +61,9 @@ public sealed class SearchCacheService : ISearchCacheService, IDisposable
         public DateTime LastAccessedAtUtc { get; set; }
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Fields
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     private readonly int _maxEntries;
     private readonly TimeSpan _ttl;
@@ -90,9 +90,9 @@ public sealed class SearchCacheService : ISearchCacheService, IDisposable
     private int _missCount;
     private bool _disposed;
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Constructor
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>
     /// Initializes a new instance of <see cref="SearchCacheService"/> with configurable
@@ -129,9 +129,9 @@ public sealed class SearchCacheService : ISearchCacheService, IDisposable
         _featureFlags = featureFlags;
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  ISearchCacheService implementation
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <inheritdoc />
     public IReadOnlyList<SearchResult>? TryGetCached(SearchQuery query)
@@ -161,7 +161,7 @@ public sealed class SearchCacheService : ISearchCacheService, IDisposable
             // Check TTL expiration
             if (IsExpired(entry))
             {
-                // Entry has expired — evict it
+                // Entry has expired - evict it
                 _lock.EnterWriteLock();
                 try
                 {
@@ -325,9 +325,9 @@ public sealed class SearchCacheService : ISearchCacheService, IDisposable
         return new CacheStatistics(entryCount, hits, misses, hitRate);
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Cache key generation
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>
     /// Generates a deterministic cache key from a <see cref="SearchQuery"/> by normalizing
@@ -366,9 +366,9 @@ public sealed class SearchCacheService : ISearchCacheService, IDisposable
         return Convert.ToHexString(hashBytes).ToLowerInvariant();
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Internal helpers
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>
     /// Determines whether a cache entry has exceeded its TTL.
@@ -396,9 +396,9 @@ public sealed class SearchCacheService : ISearchCacheService, IDisposable
         ObjectDisposedException.ThrowIf(_disposed, this);
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  IDisposable
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>
     /// Releases the <see cref="ReaderWriterLockSlim"/> and clears all cached data.

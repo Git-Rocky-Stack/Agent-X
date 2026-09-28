@@ -104,7 +104,7 @@ public sealed class ThemeVaryingBrushesAreResolvedPerRootTests
         }
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
+    // -- Helpers --------------------------------------------------------------
 
     /// <summary>
     /// Returns every x:Key declared inside a ThemeDictionary in Colors.xaml.

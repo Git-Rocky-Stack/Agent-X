@@ -17,7 +17,7 @@ public class StructuredDataExtractorTests
         _extractor = new StructuredDataExtractor(loggerMock.Object);
     }
 
-    // ─── Constructor ────────────────────────────────────────────────────────
+    // --- Constructor --------------------------------------------------------
 
     [Fact]
     public void Constructor_Throws_WhenLoggerIsNull()
@@ -26,7 +26,7 @@ public class StructuredDataExtractorTests
         act.Should().Throw<ArgumentNullException>().WithParameterName("logger");
     }
 
-    // ─── ExtractJsonLd ─────────────────────────────────────────────────────
+    // --- ExtractJsonLd -----------------------------------------------------
 
     [Fact]
     public void ExtractJsonLd_ParsesArticleSchema()
@@ -270,7 +270,7 @@ public class StructuredDataExtractorTests
         result.DatePublished!.Value.Day.Should().Be(25);
     }
 
-    // ─── ExtractOpenGraph ──────────────────────────────────────────────────
+    // --- ExtractOpenGraph --------------------------------------------------
 
     [Fact]
     public void ExtractOpenGraph_PullsAllOgProperties()
@@ -350,7 +350,7 @@ public class StructuredDataExtractorTests
         result.Should().BeNull();
     }
 
-    // ─── ExtractMetaTags ───────────────────────────────────────────────────
+    // --- ExtractMetaTags ---------------------------------------------------
 
     [Fact]
     public void ExtractMetaTags_ExtractsAllMetaTags()
@@ -429,7 +429,7 @@ public class StructuredDataExtractorTests
         result[0].Content.Should().Be("Valid Author");
     }
 
-    // ─── ExtractAuthor ────────────────────────────────────────────────────
+    // --- ExtractAuthor ----------------------------------------------------
 
     [Fact]
     public void ExtractAuthor_PrefersJsonLdAuthor_OverMetaAuthor()
@@ -598,7 +598,7 @@ public class StructuredDataExtractorTests
         result.Should().Be("Graph Author");
     }
 
-    // ─── Handles Missing Structured Data Gracefully ────────────────────────
+    // --- Handles Missing Structured Data Gracefully ------------------------
 
     [Fact]
     public void ExtractJsonLd_SkipsJsonLdBlockWithoutType()

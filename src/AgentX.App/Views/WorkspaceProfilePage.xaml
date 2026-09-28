@@ -24,7 +24,7 @@
 
     <Grid Background="{ThemeResource PageBackgroundBrush}">
 
-        <!-- ═══════ ADAPTIVE LAYOUT (Tier 3) — see Colors.xaml breakpoints ═══════
+        <!-- ======= ADAPTIVE LAYOUT (Tier 3) - see Colors.xaml breakpoints =======
              Narrow (<960):  sidebar 240   |  Medium (>=960): sidebar 260
              Wide (>=1280):  sidebar 280 (markup default) -->
         <VisualStateManager.VisualStateGroups>
@@ -54,7 +54,7 @@
         </VisualStateManager.VisualStateGroups>
 
         <Grid.ColumnDefinitions>
-            <!-- Left panel: Profile list (adaptive width — 240/260/280) -->
+            <!-- Left panel: Profile list (adaptive width - 240/260/280) -->
             <ColumnDefinition x:Name="SidebarColumn" Width="280" />
             <!-- Right panel: Profile editor -->
             <ColumnDefinition Width="*" />

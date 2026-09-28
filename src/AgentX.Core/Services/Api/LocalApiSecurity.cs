@@ -23,7 +23,7 @@ public static class LocalApiSecurity
     private const string BearerScheme = "Bearer ";
 
     /// <summary>
-    /// Routes reachable without authentication. Only the extension health probe qualifies — it
+    /// Routes reachable without authentication. Only the extension health probe qualifies - it
     /// returns no user data and lets the extension detect whether AgentX is running before pairing.
     /// </summary>
     public static bool IsPublicPath(string path) =>
@@ -37,7 +37,7 @@ public static class LocalApiSecurity
     public static bool IsAuthorized(string? authorizationHeader, string? expectedToken)
     {
         if (string.IsNullOrEmpty(expectedToken))
-            return false; // no token provisioned → deny everything (fail closed)
+            return false; // no token provisioned -> deny everything (fail closed)
 
         if (string.IsNullOrWhiteSpace(authorizationHeader))
             return false;

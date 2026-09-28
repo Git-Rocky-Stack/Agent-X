@@ -89,7 +89,7 @@ public sealed class ChatViewModelTests
         viewModel.ActiveConversationId.Should().Be(42);
         viewModel.HasConversationIntelligenceStrip.Should().BeTrue();
         viewModel.ConversationIntelligenceBadgeText.Should().Be("Current");
-        viewModel.ConversationIntelligenceStatusText.Should().Be("Summary current • 2 key points available");
+        viewModel.ConversationIntelligenceStatusText.Should().Be("Summary current | 2 key points available");
         viewModel.ShowConversationSummaryRefreshAction.Should().BeFalse();
         viewModel.HasContextInspection.Should().BeTrue();
         viewModel.HasContextStory.Should().BeTrue();
@@ -210,7 +210,7 @@ public sealed class ChatViewModelTests
 
         viewModel.ConversationIntelligenceBadgeText.Should().Be("Stale");
         viewModel.ConversationIntelligenceIsStale.Should().BeTrue();
-        viewModel.ConversationIntelligenceStatusText.Should().Be("Summary stale • 3 newer messages not folded in");
+        viewModel.ConversationIntelligenceStatusText.Should().Be("Summary stale | 3 newer messages not folded in");
         viewModel.ContextStoryText.Should().Be("Using a stale durable summary with 3 newer messages still outside it and 1 recalled message from another conversation.");
         viewModel.ContextStorySourceChips.Select(chip => chip.Label).Should().Contain("Stale Summary");
         viewModel.ShowConversationSummaryRefreshAction.Should().BeTrue();
@@ -680,7 +680,7 @@ public sealed class ChatViewModelTests
         viewModel.HasConversationSummaryRefreshError.Should().BeFalse();
         viewModel.ConversationIntelligenceIsCurrent.Should().BeTrue();
         viewModel.ConversationIntelligenceBadgeText.Should().Be("Current");
-        viewModel.ConversationIntelligenceStatusText.Should().Be("Summary current • 2 key points available");
+        viewModel.ConversationIntelligenceStatusText.Should().Be("Summary current | 2 key points available");
         viewModel.ShowConversationSummaryRefreshAction.Should().BeFalse();
         viewModel.ContextSummaryPreview.Should().Be("Focused on startup retries and backoff behavior.");
     }
@@ -723,7 +723,7 @@ public sealed class ChatViewModelTests
         viewModel.ContextSummaryPreview.Should().Be("Focused on startup retries and backoff behavior.");
     }
 
-    // ── Model selection ──────────────────────────────────────────────────────
+    // -- Model selection ------------------------------------------------------
     // The chat header's model picker is the only way to switch models mid-session.
     // It bound ItemsSource but never surfaced the selection, so choosing a model was
     // silently discarded; these cover the selection path end to end.
@@ -755,7 +755,7 @@ public sealed class ChatViewModelTests
             Times.Never);
     }
 
-    // ── Navigation payload ───────────────────────────────────────────────────
+    // -- Navigation payload ---------------------------------------------------
     // Jump-To lists individual conversations. Selecting one used to open Chat on whatever
     // thread happened to be active, so the chosen conversation never opened.
 

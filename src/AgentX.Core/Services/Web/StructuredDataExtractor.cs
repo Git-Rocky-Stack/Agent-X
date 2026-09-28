@@ -204,7 +204,7 @@ public class StructuredDataExtractor : IStructuredDataExtractor
         }
     }
 
-    // ─── JSON-LD Helpers ────────────────────────────────────────────────────
+    // --- JSON-LD Helpers ----------------------------------------------------
 
     /// <summary>
     /// Builds a <see cref="JsonLdData"/> record from a parsed JSON element,
@@ -339,7 +339,7 @@ public class StructuredDataExtractor : IStructuredDataExtractor
         return null;
     }
 
-    // ─── Meta Tag Helpers ───────────────────────────────────────────────────
+    // --- Meta Tag Helpers ---------------------------------------------------
 
     /// <summary>
     /// Retrieves the "content" attribute value from a meta tag matched by name or property.

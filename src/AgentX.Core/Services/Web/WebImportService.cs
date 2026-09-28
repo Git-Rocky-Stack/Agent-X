@@ -361,7 +361,7 @@ public class WebImportService : IWebImportService
         return results.AsReadOnly();
     }
 
-    // ─── Private Helpers ────────────────────────────────────────────────────
+    // --- Private Helpers ----------------------------------------------------
 
     /// <summary>
     /// Builds a Markdown-formatted string from the extracted web content.

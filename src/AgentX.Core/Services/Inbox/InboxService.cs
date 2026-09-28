@@ -69,7 +69,7 @@ public sealed class InboxService : IInboxService
         _appPaths = appPaths ?? new AppPathService();
     }
 
-    // ── Ingestion ────────────────────────────────────────────────────────────
+    // -- Ingestion ------------------------------------------------------------
 
     /// <inheritdoc />
     public async Task<InboxItemEntity> AddToInboxAsync(
@@ -99,7 +99,7 @@ public sealed class InboxService : IInboxService
         if (!File.Exists(normalizedPath))
         {
             throw new FileNotFoundException(
-                $"Cannot add file to inbox — file does not exist: {normalizedPath}",
+                $"Cannot add file to inbox - file does not exist: {normalizedPath}",
                 normalizedPath);
         }
 
@@ -129,7 +129,7 @@ public sealed class InboxService : IInboxService
         return item;
     }
 
-    // ── Queries ──────────────────────────────────────────────────────────────
+    // -- Queries --------------------------------------------------------------
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<InboxItemEntity>> GetPendingItemsAsync()
@@ -204,7 +204,7 @@ public sealed class InboxService : IInboxService
         }
     }
 
-    // ── Single-item triage ───────────────────────────────────────────────────
+    // -- Single-item triage ---------------------------------------------------
 
     /// <inheritdoc />
     public async Task<InboxAcceptResult> AcceptItemAsync(long itemId, long? collectionId = null)
@@ -318,7 +318,7 @@ public sealed class InboxService : IInboxService
         }
     }
 
-    // ── Batch triage ─────────────────────────────────────────────────────────
+    // -- Batch triage ---------------------------------------------------------
 
     /// <inheritdoc />
     public async Task<InboxBatchAcceptResult> AcceptSelectedAsync(
@@ -397,7 +397,7 @@ public sealed class InboxService : IInboxService
         }
     }
 
-    // ── AI preview generation ────────────────────────────────────────────────
+    // -- AI preview generation ------------------------------------------------
 
     /// <inheritdoc />
     public async Task GeneratePreviewAsync(long itemId, CancellationToken ct = default)
@@ -409,7 +409,7 @@ public sealed class InboxService : IInboxService
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "InboxService: GeneratePreview — could not load item {ItemId}", itemId);
+            Log.Error(ex, "InboxService: GeneratePreview - could not load item {ItemId}", itemId);
             throw;
         }
 
@@ -423,7 +423,7 @@ public sealed class InboxService : IInboxService
         if (string.IsNullOrWhiteSpace(snippet))
         {
             Log.Warning(
-                "InboxService: File is empty or unreadable for item {ItemId} '{FileName}' — skipping preview",
+                "InboxService: File is empty or unreadable for item {ItemId} '{FileName}' - skipping preview",
                 item.Id, item.FileName);
             return;
         }
@@ -530,7 +530,7 @@ public sealed class InboxService : IInboxService
                 .ConfigureAwait(false);
 
             Log.Information(
-                "InboxService: GenerateAllPreviews — {Count} items require preview generation",
+                "InboxService: GenerateAllPreviews - {Count} items require preview generation",
                 items.Count);
 
             var succeeded = 0;
@@ -551,7 +551,7 @@ public sealed class InboxService : IInboxService
                 }
                 catch (Exception ex)
                 {
-                    // Log and continue — a single bad file should not abort the batch.
+                    // Log and continue - a single bad file should not abort the batch.
                     Log.Warning(
                         ex,
                         "InboxService: Preview generation failed for item {ItemId}, continuing batch",
@@ -561,7 +561,7 @@ public sealed class InboxService : IInboxService
             }
 
             Log.Information(
-                "InboxService: GenerateAllPreviews complete — {Succeeded} succeeded, {Failed} failed",
+                "InboxService: GenerateAllPreviews complete - {Succeeded} succeeded, {Failed} failed",
                 succeeded, failed);
         }
         catch (OperationCanceledException)
@@ -576,7 +576,7 @@ public sealed class InboxService : IInboxService
         }
     }
 
-    // ── Maintenance ──────────────────────────────────────────────────────────
+    // -- Maintenance ----------------------------------------------------------
 
     /// <inheritdoc />
     public async Task DeleteProcessedItemsAsync()
@@ -592,7 +592,7 @@ public sealed class InboxService : IInboxService
 
             if (processed.Count == 0)
             {
-                Log.Debug("InboxService: DeleteProcessedItems — no processed items to remove");
+                Log.Debug("InboxService: DeleteProcessedItems - no processed items to remove");
                 return;
             }
 
@@ -610,7 +610,7 @@ public sealed class InboxService : IInboxService
         }
     }
 
-    // ── External (plugin-sourced) items ────────────────────────────────────────
+    // -- External (plugin-sourced) items ----------------------------------------
 
     /// <inheritdoc />
     public async Task<InboxItemEntity> TriageExternalAsync(
@@ -1270,7 +1270,7 @@ public sealed class InboxService : IInboxService
         }
     }
 
-    // ── Private helpers ──────────────────────────────────────────────────────
+    // -- Private helpers ------------------------------------------------------
 
     /// <summary>
     /// Loads a tracked <see cref="InboxItemEntity"/> by ID or throws
@@ -1305,7 +1305,7 @@ public sealed class InboxService : IInboxService
 
         try
         {
-            // Use a small buffer — we only need the first PreviewReadChars chars.
+            // Use a small buffer - we only need the first PreviewReadChars chars.
             await using var stream = new FileStream(
                 filePath,
                 FileMode.Open,
@@ -1325,7 +1325,7 @@ public sealed class InboxService : IInboxService
         {
             Log.Warning(
                 ex,
-                "InboxService: Could not read snippet from file '{FilePath}' — file may be binary or locked",
+                "InboxService: Could not read snippet from file '{FilePath}' - file may be binary or locked",
                 filePath);
             return string.Empty;
         }

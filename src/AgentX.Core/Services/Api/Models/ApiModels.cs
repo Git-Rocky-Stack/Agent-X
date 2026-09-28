@@ -1,6 +1,6 @@
 namespace AgentX.Core.Services.Api.Models;
 
-// ── Generic envelope ─────────────────────────────────────────────────────────
+// -- Generic envelope ---------------------------------------------------------
 
 /// <summary>
 /// Standard JSON envelope for every API response.
@@ -20,7 +20,7 @@ public sealed class ApiResponse<T>
     /// <summary>Server-side UTC timestamp when this response was generated.</summary>
     public DateTime Timestamp { get; init; } = DateTime.UtcNow;
 
-    // ── Factories ─────────────────────────────────────────────────────────────
+    // -- Factories -------------------------------------------------------------
 
     /// <summary>Creates a successful response wrapping <paramref name="data"/>.</summary>
     public static ApiResponse<T> Ok(T data) =>
@@ -31,7 +31,7 @@ public sealed class ApiResponse<T>
         new() { Success = false, Error = error };
 }
 
-// ── Document DTOs ─────────────────────────────────────────────────────────────
+// -- Document DTOs -------------------------------------------------------------
 
 /// <summary>
 /// Lightweight document representation returned by the API.
@@ -44,7 +44,7 @@ public sealed record ApiDocumentDto(
     DateTime ImportedAt,
     string IndexingStatus);
 
-// ── Conversation DTOs ─────────────────────────────────────────────────────────
+// -- Conversation DTOs ---------------------------------------------------------
 
 /// <summary>
 /// Lightweight conversation representation returned by the API.
@@ -58,7 +58,7 @@ public sealed record ApiConversationDto(
     int MessageCount,
     long TokensUsed);
 
-// ── Collection DTOs ──────────────────────────────────────────────────────────
+// -- Collection DTOs ----------------------------------------------------------
 
 /// <summary>
 /// Lightweight collection representation returned by the API.
@@ -70,7 +70,7 @@ public sealed record ApiCollectionDto(
     int DocumentCount,
     DateTime CreatedAt);
 
-// ── Search DTOs ───────────────────────────────────────────────────────────────
+// -- Search DTOs ---------------------------------------------------------------
 
 /// <summary>
 /// Request body for POST /api/search.
@@ -84,7 +84,7 @@ public sealed class ApiSearchRequest
     public int TopK { get; init; } = 10;
 
     /// <summary>
-    /// Minimum relevance score (0.0 – 1.0) for a result to be included.
+    /// Minimum relevance score (0.0-1.0) for a result to be included.
     /// Defaults to 0.3.
     /// </summary>
     public float MinScore { get; init; } = 0.3f;
@@ -99,7 +99,7 @@ public sealed record ApiSearchResultDto(
     string ChunkContent,
     float Score);
 
-// ── Health DTO ────────────────────────────────────────────────────────────────
+// -- Health DTO ----------------------------------------------------------------
 
 /// <summary>
 /// Response payload for GET /api/health.

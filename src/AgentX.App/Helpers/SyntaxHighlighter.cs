@@ -14,7 +14,7 @@ namespace AgentX.App.Helpers;
 /// </summary>
 public static class SyntaxHighlighter
 {
-    // ── Token colors (Command Console palette, DESIGN.md) ────────────────────
+    // -- Token colors (Command Console palette, DESIGN.md) --------------------
     //
     // Was One Dark Pro, which put a #C678DD purple on every keyword and a
     // #61AFEF blue on every call. DESIGN.md bans purple outright and admits no
@@ -38,7 +38,7 @@ public static class SyntaxHighlighter
     private static readonly Color TagColor = Color.FromArgb(255, 0x58, 0xC4, 0xBC);       // LedScope
     private static readonly Color AttrColor = Color.FromArgb(255, 0xFF, 0xB0, 0x00);      // LedHold
 
-    // ── Language definitions ──
+    // -- Language definitions --
 
     private static readonly Dictionary<string, LanguageDefinition> Languages = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -99,9 +99,9 @@ public static class SyntaxHighlighter
         return Tokenize(code, langDef);
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     // TOKENIZER
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     private static List<Run> Tokenize(string code, LanguageDefinition lang)
     {
@@ -176,9 +176,9 @@ public static class SyntaxHighlighter
         return runs;
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     // LANGUAGE DEFINITIONS
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     private static LanguageDefinition CSharp() => new(
     [
@@ -363,7 +363,7 @@ public static class SyntaxHighlighter
         Rule(@"[+\-*/%=!<>&|^~?:]+|->|::", OperatorColor),
     ]);
 
-    // ── Helpers ──
+    // -- Helpers --
 
     private static TokenRule Rule(string pattern, Color color, RegexOptions options = RegexOptions.None, int captureGroup = 0) =>
         new(new Regex(pattern, RegexOptions.Compiled | options), color, captureGroup);

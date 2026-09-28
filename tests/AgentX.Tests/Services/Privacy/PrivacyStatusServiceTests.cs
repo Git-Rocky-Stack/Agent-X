@@ -10,7 +10,7 @@ using Xunit;
 namespace AgentX.Tests.Services.Privacy;
 
 /// <summary>
-/// AX-QA-008: the dashboard's "your data never leaves this machine — no cloud, no exceptions" claim
+/// AX-QA-008: the dashboard's "your data never leaves this machine - no cloud, no exceptions" claim
 /// must become state-aware. These tests pin the evaluation that drives it: every cloud/third-party
 /// surface the product actually exposes (cloud AI provider, cloud-routing, web search, calendar and
 /// email connectors) must flip the status off "fully local" and add an accurate disclosure, while a

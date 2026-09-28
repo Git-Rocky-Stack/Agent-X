@@ -163,7 +163,7 @@ public sealed class ApiHostLifecycleServiceTests
         apiHost.AppliedTokens.Should().Equal(settings.Current.LocalApiToken);
     }
 
-    // ── Test doubles ─────────────────────────────────────────────────────────
+    // -- Test doubles ---------------------------------------------------------
 
     private sealed class RecordingApiHostService : IApiHostService
     {

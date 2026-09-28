@@ -126,7 +126,7 @@ public sealed class OperationsOverviewServiceTests
         snapshot.Connectors.Detail.Should().Be("Email Connector, Calendar Connector");
         snapshot.WorkflowActivity.Detail.Should().Be("Top workflow: Research Briefing, 4 runs");
         snapshot.ConnectorPreviews[0].Detail.Should().Be("Connector: Indexes meeting events and follow-up tasks.");
-        AllTexts(snapshot).Should().NotContain(text => text.Contains('·'));
+        AllTexts(snapshot).Should().NotContain(text => text.Contains('|'));
     }
 
     [Theory]

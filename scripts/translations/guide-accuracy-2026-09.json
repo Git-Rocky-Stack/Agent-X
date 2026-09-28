@@ -4,11 +4,11 @@
   "update": {
     "UserGuide_Welcome_Description2.Text": {
       "en-US": "Agent-X unifies a remarkable breadth of capabilities under one roof: chat with local Ollama models or cloud frontier models from OpenAI and Anthropic; ask grounded questions about your own documents using Retrieval-Augmented Generation (RAG) with citations; build a curated Knowledge Vault with auto-tagging, duplicate detection, and a force-directed Knowledge Graph; run hybrid semantic+keyword search with FTS5 and Reciprocal Rank Fusion; capture web content via the browser extension or built-in scraper; transcribe audio; annotate PDFs; run repeatable multi-step Workflows on demand; track how your beliefs evolve over time with Temporal Identity; and extend the platform with plugins, calendar/email connectors, and an Android companion app for browsing and searching your vault.",
-      "de": "Agent-X supports multiple AI providers: Ollama for local inference with open-source models, and optional cloud providers including OpenAI and Anthropic Claude for users who want access to frontier models. Chat with AI models, ask questions about your own documents using Retrieval-Augmented Generation (RAG), manage a local knowledge vault, run pre-built AI actions, and search your files using semantic vector search — all with a local-first architecture that keeps your data on your device.",
-      "es": "Agent-X supports multiple AI providers: Ollama for local inference with open-source models, and optional cloud providers including OpenAI and Anthropic Claude for users who want access to frontier models. Chat with AI models, ask questions about your own documents using Retrieval-Augmented Generation (RAG), manage a local knowledge vault, run pre-built AI actions, and search your files using semantic vector search — all with a local-first architecture that keeps your data on your device.",
-      "fr": "Agent-X supports multiple AI providers: Ollama for local inference with open-source models, and optional cloud providers including OpenAI and Anthropic Claude for users who want access to frontier models. Chat with AI models, ask questions about your own documents using Retrieval-Augmented Generation (RAG), manage a local knowledge vault, run pre-built AI actions, and search your files using semantic vector search — all with a local-first architecture that keeps your data on your device.",
-      "ja": "Agent-X supports multiple AI providers: Ollama for local inference with open-source models, and optional cloud providers including OpenAI and Anthropic Claude for users who want access to frontier models. Chat with AI models, ask questions about your own documents using Retrieval-Augmented Generation (RAG), manage a local knowledge vault, run pre-built AI actions, and search your files using semantic vector search — all with a local-first architecture that keeps your data on your device.",
-      "zh-CN": "Agent-X supports multiple AI providers: Ollama for local inference with open-source models, and optional cloud providers including OpenAI and Anthropic Claude for users who want access to frontier models. Chat with AI models, ask questions about your own documents using Retrieval-Augmented Generation (RAG), manage a local knowledge vault, run pre-built AI actions, and search your files using semantic vector search — all with a local-first architecture that keeps your data on your device."
+      "de": "Agent-X supports multiple AI providers: Ollama for local inference with open-source models, and optional cloud providers including OpenAI and Anthropic Claude for users who want access to frontier models. Chat with AI models, ask questions about your own documents using Retrieval-Augmented Generation (RAG), manage a local knowledge vault, run pre-built AI actions, and search your files using semantic vector search - all with a local-first architecture that keeps your data on your device.",
+      "es": "Agent-X supports multiple AI providers: Ollama for local inference with open-source models, and optional cloud providers including OpenAI and Anthropic Claude for users who want access to frontier models. Chat with AI models, ask questions about your own documents using Retrieval-Augmented Generation (RAG), manage a local knowledge vault, run pre-built AI actions, and search your files using semantic vector search - all with a local-first architecture that keeps your data on your device.",
+      "fr": "Agent-X supports multiple AI providers: Ollama for local inference with open-source models, and optional cloud providers including OpenAI and Anthropic Claude for users who want access to frontier models. Chat with AI models, ask questions about your own documents using Retrieval-Augmented Generation (RAG), manage a local knowledge vault, run pre-built AI actions, and search your files using semantic vector search - all with a local-first architecture that keeps your data on your device.",
+      "ja": "Agent-X supports multiple AI providers: Ollama for local inference with open-source models, and optional cloud providers including OpenAI and Anthropic Claude for users who want access to frontier models. Chat with AI models, ask questions about your own documents using Retrieval-Augmented Generation (RAG), manage a local knowledge vault, run pre-built AI actions, and search your files using semantic vector search - all with a local-first architecture that keeps your data on your device.",
+      "zh-CN": "Agent-X supports multiple AI providers: Ollama for local inference with open-source models, and optional cloud providers including OpenAI and Anthropic Claude for users who want access to frontier models. Chat with AI models, ask questions about your own documents using Retrieval-Augmented Generation (RAG), manage a local knowledge vault, run pre-built AI actions, and search your files using semantic vector search - all with a local-first architecture that keeps your data on your device."
     },
     "UserGuide_GettingStarted_FirstLaunch_Description.Text": {
       "en-US": "The first time you open Agent-X the Onboarding wizard takes over. It tests the connection to your Ollama endpoint (you can skip this step), lists your locally installed Ollama models so you can pick a default chat model and a default embedding model, checks the built-in local model and your GPU acceleration (and offers to download the model if your installer did not include it), and takes optional OpenAI and Anthropic API keys before a final summary. You import documents afterwards, from the Knowledge Vault.",
@@ -28,11 +28,11 @@
     },
     "UserGuide_Dashboard_Feature3.Text": {
       "en-US": "Recent Activity Timeline - A reverse-chronological feed of conversations, document imports, search queries, Quick Action runs, workflow executions, and detected insights. Click any entry to jump straight back to that context.",
-      "de": "Recent Activity — A timeline of your latest actions: recent chats, document imports, search queries, and quick action results.",
-      "es": "Recent Activity — A timeline of your latest actions: recent chats, document imports, search queries, and quick action results.",
-      "fr": "Recent Activity — A timeline of your latest actions: recent chats, document imports, search queries, and quick action results.",
-      "ja": "Recent Activity — A timeline of your latest actions: recent chats, document imports, search queries, and quick action results.",
-      "zh-CN": "Recent Activity — A timeline of your latest actions: recent chats, document imports, search queries, and quick action results."
+      "de": "Recent Activity - A timeline of your latest actions: recent chats, document imports, search queries, and quick action results.",
+      "es": "Recent Activity - A timeline of your latest actions: recent chats, document imports, search queries, and quick action results.",
+      "fr": "Recent Activity - A timeline of your latest actions: recent chats, document imports, search queries, and quick action results.",
+      "ja": "Recent Activity - A timeline of your latest actions: recent chats, document imports, search queries, and quick action results.",
+      "zh-CN": "Recent Activity - A timeline of your latest actions: recent chats, document imports, search queries, and quick action results."
     },
     "UserGuide_Dashboard_QuickAction1_Description.Text": {
       "en-US": "Open Settings to reconfigure the AI provider, Ollama, and models.",
@@ -44,11 +44,11 @@
     },
     "UserGuide_KnowledgeVault_Import3.Text": {
       "en-US": "Folder import - Click Import Folder to import every supported file in a folder and its subfolders in one pass. Watch folders, which would pick up new files on their own, are not available yet: Settings shows an Auto-index watch folders switch, but the app has no way to add a folder to watch, so import new files yourself.",
-      "de": "Folder import — Select an entire folder to recursively import all supported files. Subfolders are scanned automatically.",
-      "es": "Folder import — Select an entire folder to recursively import all supported files. Subfolders are scanned automatically.",
-      "fr": "Folder import — Select an entire folder to recursively import all supported files. Subfolders are scanned automatically.",
-      "ja": "Folder import — Select an entire folder to recursively import all supported files. Subfolders are scanned automatically.",
-      "zh-CN": "Folder import — Select an entire folder to recursively import all supported files. Subfolders are scanned automatically."
+      "de": "Folder import - Select an entire folder to recursively import all supported files. Subfolders are scanned automatically.",
+      "es": "Folder import - Select an entire folder to recursively import all supported files. Subfolders are scanned automatically.",
+      "fr": "Folder import - Select an entire folder to recursively import all supported files. Subfolders are scanned automatically.",
+      "ja": "Folder import - Select an entire folder to recursively import all supported files. Subfolders are scanned automatically.",
+      "zh-CN": "Folder import - Select an entire folder to recursively import all supported files. Subfolders are scanned automatically."
     },
     "UserGuide_Settings_Group3_Description.Text": {
       "en-US": "Control indexing behavior: chunk size (default 512 tokens), chunk overlap (default 50 tokens), and how many chunks are retrieved per query (top-K, default 5). The Auto-index watch folders switch lives here too, but the app has no way to add a watch folder yet, so the switch has nothing to act on.",
@@ -60,19 +60,19 @@
     },
     "UserGuide_Collections_Description.Text": {
       "en-US": "Collections are the organizational layer above the Knowledge Vault. Think of them as smart folders that any document can belong to multiple times - a single research paper can simultaneously live in \"AI Safety,\" \"2025 Reading,\" and \"Cited in Q4 Report.\" Collections drive scoped retrieval: every Quick Action, Semantic Search, RAG query, and Workflow can be scoped to a Collection so the AI only sees what is relevant to the task.",
-      "de": "Collections let you organize your documents into logical groups. Think of them as folders or tags for your Knowledge Vault — a single document can belong to multiple collections.",
-      "es": "Collections let you organize your documents into logical groups. Think of them as folders or tags for your Knowledge Vault — a single document can belong to multiple collections.",
-      "fr": "Collections let you organize your documents into logical groups. Think of them as folders or tags for your Knowledge Vault — a single document can belong to multiple collections.",
-      "ja": "Collections let you organize your documents into logical groups. Think of them as folders or tags for your Knowledge Vault — a single document can belong to multiple collections.",
-      "zh-CN": "Collections let you organize your documents into logical groups. Think of them as folders or tags for your Knowledge Vault — a single document can belong to multiple collections."
+      "de": "Collections let you organize your documents into logical groups. Think of them as folders or tags for your Knowledge Vault - a single document can belong to multiple collections.",
+      "es": "Collections let you organize your documents into logical groups. Think of them as folders or tags for your Knowledge Vault - a single document can belong to multiple collections.",
+      "fr": "Collections let you organize your documents into logical groups. Think of them as folders or tags for your Knowledge Vault - a single document can belong to multiple collections.",
+      "ja": "Collections let you organize your documents into logical groups. Think of them as folders or tags for your Knowledge Vault - a single document can belong to multiple collections.",
+      "zh-CN": "Collections let you organize your documents into logical groups. Think of them as folders or tags for your Knowledge Vault - a single document can belong to multiple collections."
     },
     "UserGuide_Collections_Working3.Text": {
       "en-US": "Scope retrieval - In Search, Ask Your Files, Workflows, and Quick Actions, pick a Collection from the scope selector to confine retrieval to its members only. Combine multiple Collections with AND/OR logic for advanced queries like \"Q4 docs AND tagged 'pricing'.\" Scoped retrieval typically improves answer precision by 20-40% on focused tasks.",
-      "de": "Collection-scoped search — When using Semantic Search or Ask Your Files, you can scope your query to a specific collection to narrow results to only the relevant documents.",
-      "es": "Collection-scoped search — When using Semantic Search or Ask Your Files, you can scope your query to a specific collection to narrow results to only the relevant documents.",
-      "fr": "Collection-scoped search — When using Semantic Search or Ask Your Files, you can scope your query to a specific collection to narrow results to only the relevant documents.",
-      "ja": "Collection-scoped search — When using Semantic Search or Ask Your Files, you can scope your query to a specific collection to narrow results to only the relevant documents.",
-      "zh-CN": "Collection-scoped search — When using Semantic Search or Ask Your Files, you can scope your query to a specific collection to narrow results to only the relevant documents."
+      "de": "Collection-scoped search - When using Semantic Search or Ask Your Files, you can scope your query to a specific collection to narrow results to only the relevant documents.",
+      "es": "Collection-scoped search - When using Semantic Search or Ask Your Files, you can scope your query to a specific collection to narrow results to only the relevant documents.",
+      "fr": "Collection-scoped search - When using Semantic Search or Ask Your Files, you can scope your query to a specific collection to narrow results to only the relevant documents.",
+      "ja": "Collection-scoped search - When using Semantic Search or Ask Your Files, you can scope your query to a specific collection to narrow results to only the relevant documents.",
+      "zh-CN": "Collection-scoped search - When using Semantic Search or Ask Your Files, you can scope your query to a specific collection to narrow results to only the relevant documents."
     },
     "UserGuide_WeeklyDigest_Feature3.Text": {
       "en-US": "On-Demand Reports - Click Generate New Digest on the Weekly Digest page to build a report covering the last seven days. Every report is kept in the digest history, so you can reopen earlier weeks. Digests are not produced on a schedule, and the seven-day window is fixed.",
@@ -316,11 +316,11 @@
     },
     "UserGuide_Inbox_Description.Text": {
       "en-US": "The Smart Inbox is the triage queue for content entering your knowledge base. Captures from the browser extension and plugins land here first, so you decide what is worth keeping - instead of letting everything pile into the vault unsorted.",
-      "de": "Die Smart Inbox ist die Triage-Warteschlange für Inhalte auf dem Weg in Ihre Wissensbasis. Erfassungen aus der Browser-Erweiterung und von Plugins landen zuerst hier — Sie entscheiden, was es wert ist, behalten zu werden, statt alles unsortiert in den Tresor laufen zu lassen.",
+      "de": "Die Smart Inbox ist die Triage-Warteschlange für Inhalte auf dem Weg in Ihre Wissensbasis. Erfassungen aus der Browser-Erweiterung und von Plugins landen zuerst hier - Sie entscheiden, was es wert ist, behalten zu werden, statt alles unsortiert in den Tresor laufen zu lassen.",
       "es": "La Smart Inbox es la cola de clasificación del contenido que entra en su base de conocimiento. Las capturas de la extensión del navegador y de los plugins llegan aquí primero, de modo que usted decide qué merece conservarse en lugar de dejar que todo se acumule sin clasificar en la bóveda.",
       "fr": "La Smart Inbox est la file de triage du contenu qui entre dans votre base de connaissances. Les captures de l'extension de navigateur et des plugins y arrivent d'abord : c'est vous qui décidez ce qui mérite d'être conservé, au lieu de laisser tout s'entasser sans tri dans le coffre.",
       "ja": "Smart Inbox は、ナレッジベースに入ってくるコンテンツのトリアージキューです。ブラウザ拡張機能とプラグインからのキャプチャはまずここに届きます。すべてを未整理のままボールトに流し込むのではなく、残す価値があるものをあなたが判断できます。",
-      "zh-CN": "Smart Inbox 是内容进入知识库前的分拣队列。来自浏览器扩展和插件的捕获内容会先到达这里，由您决定哪些值得保留 — 而不是让所有内容未经整理就堆进知识库。"
+      "zh-CN": "Smart Inbox 是内容进入知识库前的分拣队列。来自浏览器扩展和插件的捕获内容会先到达这里，由您决定哪些值得保留 - 而不是让所有内容未经整理就堆进知识库。"
     },
     "UserGuide_Inbox_Feature3_Description.Text": {
       "en-US": "Web captures from the browser extension and content contributed by plugins all flow into one queue with a consistent triage workflow.",
@@ -332,11 +332,11 @@
     },
     "UserGuide_AudioTranscription_Description.Text": {
       "en-US": "Drop audio files (MP3, M4A, WAV, FLAC, OGG, WebM) into Agent-X and they're transcribed locally with Whisper-class models, indexed into the Knowledge Vault with timestamped chunks, and available to every other feature - RAG, Search, Quick Actions, Workflows. Voice memos, podcast episodes, meeting recordings, lectures, interviews - all become first-class searchable content.",
-      "de": "Werfen Sie Audiodateien (MP3, M4A, WAV, FLAC, OGG, WebM) in Agent-X, und sie werden lokal mit Whisper-Klasse-Modellen transkribiert, mit zeitgestempelten Chunks in den Wissens-Tresor indiziert und stehen jeder anderen Funktion zur Verfügung — RAG, Suche, Quick Actions, Workflows. Sprachnotizen, Podcast-Folgen, Meeting-Aufzeichnungen, Vorlesungen, Interviews — alles wird zu erstklassigem, durchsuchbarem Inhalt.",
-      "es": "Suelta archivos de audio (MP3, M4A, WAV, FLAC, OGG, WebM) en Agent-X y se transcriben localmente con modelos clase Whisper, se indexan en la Bóveda de Conocimiento con fragmentos con marca de tiempo, y quedan disponibles para todas las demás funciones — RAG, Búsqueda, Quick Actions, Workflows. Notas de voz, episodios de podcast, grabaciones de reuniones, conferencias, entrevistas — todo se convierte en contenido buscable de primera clase.",
-      "fr": "Déposez des fichiers audio (MP3, M4A, WAV, FLAC, OGG, WebM) dans Agent-X et ils sont transcrits localement avec des modèles classe Whisper, indexés dans le Coffre-fort de Connaissances avec des fragments horodatés, et disponibles pour chaque autre fonctionnalité — RAG, Recherche, Quick Actions, Workflows. Notes vocales, épisodes de podcast, enregistrements de réunion, conférences, interviews — tout devient un contenu recherchable de premier ordre.",
-      "ja": "音声ファイル(MP3、M4A、WAV、FLAC、OGG、WebM)を Agent-X にドロップすると、Whisper クラスのモデルでローカルに文字起こしされ、タイムスタンプ付きチャンクで Knowledge Vault にインデックスされ、他のすべての機能 — RAG、検索、Quick Actions、Workflows — で利用可能になります。音声メモ、ポッドキャスト エピソード、会議録音、講義、インタビュー — すべてが一級の検索可能なコンテンツになります。",
-      "zh-CN": "将音频文件(MP3、M4A、WAV、FLAC、OGG、WebM)拖入 Agent-X,会以 Whisper 级模型在本地完成转录,并按带时间戳的片段索引到 Knowledge Vault,从而对所有其他功能可用——RAG、搜索、Quick Actions、Workflows。语音备忘、播客集、会议录音、讲座、访谈——全部成为一等可搜索内容。"
+      "de": "Werfen Sie Audiodateien (MP3, M4A, WAV, FLAC, OGG, WebM) in Agent-X, und sie werden lokal mit Whisper-Klasse-Modellen transkribiert, mit zeitgestempelten Chunks in den Wissens-Tresor indiziert und stehen jeder anderen Funktion zur Verfügung - RAG, Suche, Quick Actions, Workflows. Sprachnotizen, Podcast-Folgen, Meeting-Aufzeichnungen, Vorlesungen, Interviews - alles wird zu erstklassigem, durchsuchbarem Inhalt.",
+      "es": "Suelta archivos de audio (MP3, M4A, WAV, FLAC, OGG, WebM) en Agent-X y se transcriben localmente con modelos clase Whisper, se indexan en la Bóveda de Conocimiento con fragmentos con marca de tiempo, y quedan disponibles para todas las demás funciones - RAG, Búsqueda, Quick Actions, Workflows. Notas de voz, episodios de podcast, grabaciones de reuniones, conferencias, entrevistas - todo se convierte en contenido buscable de primera clase.",
+      "fr": "Déposez des fichiers audio (MP3, M4A, WAV, FLAC, OGG, WebM) dans Agent-X et ils sont transcrits localement avec des modèles classe Whisper, indexés dans le Coffre-fort de Connaissances avec des fragments horodatés, et disponibles pour chaque autre fonctionnalité - RAG, Recherche, Quick Actions, Workflows. Notes vocales, épisodes de podcast, enregistrements de réunion, conférences, interviews - tout devient un contenu recherchable de premier ordre.",
+      "ja": "音声ファイル(MP3、M4A、WAV、FLAC、OGG、WebM)を Agent-X にドロップすると、Whisper クラスのモデルでローカルに文字起こしされ、タイムスタンプ付きチャンクで Knowledge Vault にインデックスされ、他のすべての機能 - RAG、検索、Quick Actions、Workflows - で利用可能になります。音声メモ、ポッドキャスト エピソード、会議録音、講義、インタビュー - すべてが一級の検索可能なコンテンツになります。",
+      "zh-CN": "将音频文件(MP3、M4A、WAV、FLAC、OGG、WebM)拖入 Agent-X,会以 Whisper 级模型在本地完成转录,并按带时间戳的片段索引到 Knowledge Vault,从而对所有其他功能可用--RAG、搜索、Quick Actions、Workflows。语音备忘、播客集、会议录音、讲座、访谈--全部成为一等可搜索内容。"
     },
     "UserGuide_AudioTranscription_Step1.Text": {
       "en-US": "Import via drag-and-drop or the file picker. Files queue in the Audio Transcription pipeline and the indexing queue shows live progress in Operations.",
@@ -348,11 +348,11 @@
     },
     "UserGuide_AudioTranscription_UseCase3.Text": {
       "en-US": "Voice journaling - Record voice notes with any recorder app, import the audio files, and they transcribe and feed into Temporal Identity tracking just like written messages do.",
-      "de": "Sprach-Journaling — Nehmen Sie Sprachnotizen mit einer beliebigen Aufnahme-App auf und importieren Sie die Audiodateien; sie werden transkribiert und fließen in das Temporal-Identity-Tracking ein, genau wie geschriebene Nachrichten.",
-      "es": "Diario de voz — Graba notas de voz con cualquier aplicación de grabación e importa los archivos de audio; se transcriben y alimentan el seguimiento de Temporal Identity igual que los mensajes escritos.",
-      "fr": "Journal vocal — Enregistrez des notes vocales avec n'importe quelle application d'enregistrement, puis importez les fichiers audio ; ils sont transcrits et alimentent le suivi Temporal Identity comme les messages écrits.",
-      "ja": "ボイス ジャーナリング — 任意の録音アプリで音声メモを録音し、その音声ファイルをインポートします。文字起こしされ、書かれたメッセージと同様に Temporal Identity トラッキングに供給されます。",
-      "zh-CN": "语音日记 — 使用任意录音应用录制语音备忘，然后导入音频文件；它们会被转录，并像书面消息一样进入 Temporal Identity 跟踪。"
+      "de": "Sprach-Journaling - Nehmen Sie Sprachnotizen mit einer beliebigen Aufnahme-App auf und importieren Sie die Audiodateien; sie werden transkribiert und fließen in das Temporal-Identity-Tracking ein, genau wie geschriebene Nachrichten.",
+      "es": "Diario de voz - Graba notas de voz con cualquier aplicación de grabación e importa los archivos de audio; se transcriben y alimentan el seguimiento de Temporal Identity igual que los mensajes escritos.",
+      "fr": "Journal vocal - Enregistrez des notes vocales avec n'importe quelle application d'enregistrement, puis importez les fichiers audio ; ils sont transcrits et alimentent le suivi Temporal Identity comme les messages écrits.",
+      "ja": "ボイス ジャーナリング - 任意の録音アプリで音声メモを録音し、その音声ファイルをインポートします。文字起こしされ、書かれたメッセージと同様に Temporal Identity トラッキングに供給されます。",
+      "zh-CN": "语音日记 - 使用任意录音应用录制语音备忘，然后导入音频文件；它们会被转录，并像书面消息一样进入 Temporal Identity 跟踪。"
     },
     "UserGuide_Workflows_CreateStep1.Text": {
       "en-US": "Open Workflows from the navigation rail (or press Ctrl+Shift+W) and click New Workflow, or pick one of the built-in templates and click Use Template to start from it.",

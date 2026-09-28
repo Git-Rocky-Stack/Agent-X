@@ -26,8 +26,8 @@ public interface IComparisonService
     /// </param>
     /// <param name="progress">
     /// Optional progress reporter that receives human-readable status messages as
-    /// the operation advances through its stages (e.g. "Loading documents…",
-    /// "Running AI analysis…"). Suitable for display in a progress dialog.
+    /// the operation advances through its stages (e.g. "Loading documents...",
+    /// "Running AI analysis..."). Suitable for display in a progress dialog.
     /// </param>
     /// <param name="ct">Cancellation token.</param>
     /// <returns>

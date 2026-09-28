@@ -17,7 +17,7 @@ using Xunit;
 namespace AgentX.Tests.Services.Backup;
 
 /// <summary>
-/// Behavioural coverage for <see cref="BackupService"/> — the create / restore / validate /
+/// Behavioural coverage for <see cref="BackupService"/> - the create / restore / validate /
 /// history / delete / estimate / scheduled-backup surface. Complements
 /// <see cref="BackupServiceSecurityTests"/> (which exercises the pure static crypto + path-guard
 /// helpers) by driving the real service end-to-end.
@@ -25,8 +25,8 @@ namespace AgentX.Tests.Services.Backup;
 /// <para><b>Harness design.</b> The service copies the file the context uses; this harness's context is
 /// in-memory, so the copy source falls back to <c>%LocalAppData%\AgentX\agentx.db</c>. The SQLite Online Backup API copy is taken
 /// through the injectable <see cref="IEncryptedConnectionFactory"/>, so the harness mocks the factory
-/// to (a) redirect the <i>source</i> open to a seeded throwaway temp database — never the real user
-/// DB — and (b) honour the generated <i>destination</i> temp path. Every write target
+/// to (a) redirect the <i>source</i> open to a seeded throwaway temp database - never the real user
+/// DB - and (b) honour the generated <i>destination</i> temp path. Every write target
 /// (<see cref="BackupOptions.DestinationPath"/>, the documents storage path) is a per-test temp
 /// directory. A full <see cref="BackupService.CreateBackupAsync"/> therefore round-trips safely,
 /// producing a real <c>.agentxbak</c> archive on disk.</para>
@@ -38,7 +38,7 @@ namespace AgentX.Tests.Services.Backup;
 /// </summary>
 public sealed class BackupServiceTests : IDisposable
 {
-    // ── Harness ──────────────────────────────────────────────────────────────
+    // -- Harness --------------------------------------------------------------
 
     private sealed class BackupHarness : IDisposable
     {
@@ -84,7 +84,7 @@ public sealed class BackupServiceTests : IDisposable
             CurrentSettings = new AppSettings { StoragePath = StorageDir };
             Settings.Setup(s => s.GetSettingsAsync()).ReturnsAsync(() => CurrentSettings);
 
-            // Source open → seeded temp DB; destination temp copy (".tmp") → honour the requested path.
+            // Source open -> seeded temp DB; destination temp copy (".tmp") -> honour the requested path.
             ConnFactory
                 .Setup(f => f.OpenKeyed(It.IsAny<string>()))
                 .Returns<string>(p =>
@@ -144,7 +144,7 @@ public sealed class BackupServiceTests : IDisposable
             h.Dispose();
     }
 
-    /// <summary>Synchronous progress collector — deterministic, unlike <see cref="Progress{T}"/>.</summary>
+    /// <summary>Synchronous progress collector - deterministic, unlike <see cref="Progress{T}"/>.</summary>
     private sealed class CollectingProgress : IProgress<BackupProgress>
     {
         private readonly List<BackupProgress> _items = new();
@@ -159,7 +159,7 @@ public sealed class BackupServiceTests : IDisposable
         }
     }
 
-    // ── Constructor guards ───────────────────────────────────────────────────
+    // -- Constructor guards ---------------------------------------------------
 
     [Fact]
     public void Ctor_NullDbContext_Throws()
@@ -185,7 +185,7 @@ public sealed class BackupServiceTests : IDisposable
         act.Should().Throw<ArgumentNullException>().WithParameterName("connectionFactory");
     }
 
-    // ── CreateBackupAsync ────────────────────────────────────────────────────
+    // -- CreateBackupAsync ----------------------------------------------------
 
     [Fact]
     public async Task CreateBackupAsync_NullOptions_Throws()
@@ -388,7 +388,7 @@ public sealed class BackupServiceTests : IDisposable
         result.ErrorMessage.Should().Be("settings exploded");
     }
 
-    // ── RestoreFromBackupAsync (guard / validation / encrypted / error only) ──
+    // -- RestoreFromBackupAsync (guard / validation / encrypted / error only) --
 
     [Fact]
     public async Task RestoreFromBackupAsync_NullPath_Throws()
@@ -468,7 +468,7 @@ public sealed class BackupServiceTests : IDisposable
         result.ErrorMessage.Should().Contain("cancelled");
     }
 
-    // ── GetBackupHistoryAsync ────────────────────────────────────────────────
+    // -- GetBackupHistoryAsync ------------------------------------------------
 
     [Fact]
     public async Task GetBackupHistoryAsync_ReturnsNewestFirst()
@@ -493,7 +493,7 @@ public sealed class BackupServiceTests : IDisposable
         (await h.Service.GetBackupHistoryAsync()).Should().BeEmpty();
     }
 
-    // ── DeleteBackupAsync ────────────────────────────────────────────────────
+    // -- DeleteBackupAsync ----------------------------------------------------
 
     [Fact]
     public async Task DeleteBackupAsync_RemovesRecordAndArchiveFile()
@@ -566,7 +566,7 @@ public sealed class BackupServiceTests : IDisposable
             id = e.Id;
         });
 
-        // Hold an exclusive lock so File.Delete throws — the service must swallow it and still
+        // Hold an exclusive lock so File.Delete throws - the service must swallow it and still
         // remove the history record.
         using (var _ = new FileStream(archivePath, FileMode.Open, FileAccess.Read, FileShare.None))
         {
@@ -577,7 +577,7 @@ public sealed class BackupServiceTests : IDisposable
         ctx.Backups.Should().BeEmpty();
     }
 
-    // ── EstimateBackupSizeAsync ──────────────────────────────────────────────
+    // -- EstimateBackupSizeAsync ----------------------------------------------
 
     [Fact]
     public async Task EstimateBackupSizeAsync_CountsOnlyTheDocumentFoldersABackupIncludes()
@@ -612,7 +612,7 @@ public sealed class BackupServiceTests : IDisposable
         estimate.DocumentsSizeMB.Should().Be(0);
     }
 
-    // ── ValidateBackupAsync ──────────────────────────────────────────────────
+    // -- ValidateBackupAsync --------------------------------------------------
 
     [Fact]
     public async Task ValidateBackupAsync_NullPath_Throws()
@@ -695,7 +695,7 @@ public sealed class BackupServiceTests : IDisposable
         (await h.Service.ValidateBackupAsync(path)).Should().BeFalse();
     }
 
-    // ── TryValidateDocumentEntries (null guard) ──────────────────────────────
+    // -- TryValidateDocumentEntries (null guard) ------------------------------
 
     [Fact]
     public void TryValidateDocumentEntries_NullArchive_Throws()
@@ -704,7 +704,7 @@ public sealed class BackupServiceTests : IDisposable
         act.Should().Throw<ArgumentNullException>();
     }
 
-    // ── Encrypt / Decrypt guard branches (beyond the security suite) ──────────
+    // -- Encrypt / Decrypt guard branches (beyond the security suite) ----------
 
     [Fact]
     public void EncryptBytes_NullPlaintext_Throws()
@@ -758,7 +758,7 @@ public sealed class BackupServiceTests : IDisposable
         act.Should().Throw<InvalidOperationException>().WithMessage("*too short*");
     }
 
-    // ── Scheduled backups: config loading + lifecycle ────────────────────────
+    // -- Scheduled backups: config loading + lifecycle ------------------------
 
     [Fact]
     public async Task StartScheduledBackupsAsync_DefaultSettings_DoesNotStartLoop()
@@ -767,7 +767,7 @@ public sealed class BackupServiceTests : IDisposable
 
         await h.Service.StartScheduledBackupsAsync();
 
-        // Disabled by default → calling stop is a safe no-op.
+        // Disabled by default -> calling stop is a safe no-op.
         var act = () => h.Service.StopScheduledBackups();
         act.Should().NotThrow();
     }
@@ -905,7 +905,7 @@ public sealed class BackupServiceTests : IDisposable
         act.Should().NotThrow();
     }
 
-    // ── EnforceRetentionPolicyAsync (private; reached by reflection) ──────────
+    // -- EnforceRetentionPolicyAsync (private; reached by reflection) ----------
 
     [Fact]
     public async Task EnforceRetentionPolicy_DeletesOldestScheduledBeyondCap()
@@ -977,7 +977,7 @@ public sealed class BackupServiceTests : IDisposable
         ctx.Backups.Count(b => b.BackupType == "scheduled").Should().Be(2);
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
+    // -- Helpers --------------------------------------------------------------
 
     private static Task InvokeEnforceRetentionAsync(BackupService service, int maxToKeep)
     {

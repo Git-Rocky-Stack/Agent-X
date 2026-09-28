@@ -15,7 +15,7 @@ export interface ExtractedPage {
   clipMode: 'full' | 'selection' | 'reader';
 }
 
-// ── Metadata helpers ────────────────────────────────────────────────────────
+// -- Metadata helpers --------------------------------------------------------
 
 function getMetaContent(name: string): string | null {
   // Try <meta name="..."> first, then <meta property="..."> (Open Graph)
@@ -101,7 +101,7 @@ function countWords(text: string): number {
   return text.trim().split(/\s+/).filter(w => w.length > 0).length;
 }
 
-// ── Extractors ─────────────────────────────────────────────────────────────
+// -- Extractors -------------------------------------------------------------
 
 /**
  * Extract the whole page body as markdown text. This used to send
@@ -184,7 +184,7 @@ export function extractReaderMode(): ExtractedPage {
   };
 }
 
-// ── Markdown conversion ─────────────────────────────────────────────────────
+// -- Markdown conversion -----------------------------------------------------
 
 /** Elements whose text is never page content: code, templates, and navigation chrome. */
 const SKIPPED_TAGS = new Set(['script', 'style', 'noscript', 'template', 'nav', 'footer']);
@@ -258,7 +258,7 @@ function nodeToMarkdown(root: Node): string {
       return;
     }
 
-    // Paragraphs — add blank line separation
+    // Paragraphs - add blank line separation
     if (tag === 'p') {
       const text = textOf(el);
       if (text) {

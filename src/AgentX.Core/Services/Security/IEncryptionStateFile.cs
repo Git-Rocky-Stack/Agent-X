@@ -18,7 +18,7 @@ public interface IEncryptionStateFile
     /// <summary>
     /// Writes the given <see cref="EncryptionStateInfo"/> record. Overwrites any
     /// existing marker. Call this LAST in the enable-encryption flow, after
-    /// MigrateToEncryptedAsync succeeds — so a failed conversion does not leave a
+    /// MigrateToEncryptedAsync succeeds - so a failed conversion does not leave a
     /// stale marker claiming encryption is on when it is not.
     /// </summary>
     Task WriteAsync(EncryptionStateInfo info);

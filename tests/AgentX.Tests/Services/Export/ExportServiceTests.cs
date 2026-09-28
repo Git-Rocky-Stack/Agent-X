@@ -19,7 +19,7 @@ namespace AgentX.Tests.Services.Export;
 /// Tests the thin orchestrator that delegates formatting to <see cref="IExportFormatter"/>
 /// implementations while handling file I/O and special-case exports
 /// (search results, collections) inline. Every export format is unconditionally
-/// available — there is no license gating.
+/// available - there is no license gating.
 /// </summary>
 public sealed class ExportServiceTests : IDisposable
 {
@@ -499,7 +499,7 @@ public sealed class ExportServiceTests : IDisposable
     {
         // Markdown search-result export was formerly gated behind a paid tier; it must
         // now succeed unconditionally. (PDF/HTML are not supported for search results
-        // by design — a format-capability limit unrelated to licensing.)
+        // by design - a format-capability limit unrelated to licensing.)
         var results = new List<SearchResultExportItem>
         {
             new SearchResultExportItem { Query = "test", Content = "Test", DocumentName = "Test.pdf" }

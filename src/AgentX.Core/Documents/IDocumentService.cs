@@ -189,7 +189,7 @@ public interface IDocumentService
     /// </summary>
     IReadOnlySet<string> GetSupportedExtensions();
 
-    // ── Duplicate Detection ──────────────────────────────────────
+    // -- Duplicate Detection --------------------------------------
 
     /// <summary>
     /// Checks an incoming file against the knowledge vault for duplicate content
@@ -201,7 +201,7 @@ public interface IDocumentService
     /// <returns>A <see cref="DuplicateCheckResult"/> indicating whether a duplicate exists.</returns>
     Task<DuplicateCheckResult> CheckForDuplicateAsync(string filePath, CancellationToken ct = default);
 
-    // ── Bulk Operations ──────────────────────────────────────────
+    // -- Bulk Operations ------------------------------------------
 
     /// <summary>
     /// Deletes multiple documents by their IDs. Failures for individual documents

@@ -40,16 +40,16 @@ public sealed record CommandPalettePage(
 /// </summary>
 public sealed partial class CommandPalette : UserControl
 {
-    // ── Constants ─────────────────────────────────────────────────────
+    // -- Constants -----------------------------------------------------
     private const double AnimationDurationMs = 200;
 
     /// <summary>Rail groups sort by their rail order; these two follow them.</summary>
     private const int ActionsGroupOrder = 900;
     private const int OnThisPageGroupOrder = 950;
 
-    private const string KeyboardGlyph = "";
+    private const string KeyboardGlyph = "\uE765";
 
-    // ── State ─────────────────────────────────────────────────────────
+    // -- State ---------------------------------------------------------
     private bool _isOpen;
     private int _selectedIndex = -1;
     private IReadOnlyList<CommandPalettePage> _pages = Array.Empty<CommandPalettePage>();
@@ -61,7 +61,7 @@ public sealed partial class CommandPalette : UserControl
     private List<CommandItem> _filteredItems = new();
     private readonly List<Border> _renderedItemBorders = new();
 
-    // ── Callbacks ─────────────────────────────────────────────────────
+    // -- Callbacks -----------------------------------------------------
     /// <summary>
     /// Delegate invoked when the user selects a page. The string parameter is the
     /// page tag (e.g., "Dashboard", "Chat").
@@ -84,9 +84,9 @@ public sealed partial class CommandPalette : UserControl
         InitializeComponent();
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  REGISTRATION
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>
     /// Hands the palette the rail's pages and the two lookups it cannot own itself.
@@ -137,9 +137,9 @@ public sealed partial class CommandPalette : UserControl
 
         // Keys are literal at the call site so the LocaleAudit extractor sees them.
         var actions = Localization.GetString("Palette_Actions");
-        items.Add(Action(actions, "NewConversation", Localization.GetString("Palette_NewConversation"), ""));
-        items.Add(Action(actions, "ImportFiles", Localization.GetString("Palette_ImportFiles"), ""));
-        items.Add(Action(actions, "ToggleTheme", Localization.GetString("Palette_ToggleTheme"), ""));
+        items.Add(Action(actions, "NewConversation", Localization.GetString("Palette_NewConversation"), "\uE8E5"));
+        items.Add(Action(actions, "ImportFiles", Localization.GetString("Palette_ImportFiles"), "\uE8B5"));
+        items.Add(Action(actions, "ToggleTheme", Localization.GetString("Palette_ToggleTheme"), "\uE793"));
 
         var scope = _activeScopeName();
         if (!string.IsNullOrEmpty(scope))
@@ -164,9 +164,9 @@ public sealed partial class CommandPalette : UserControl
         new(label, group, ActionsGroupOrder, glyph, id,
             CommandItemKind.Action, _actionShortcutHint(id), null);
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  SHOW / HIDE WITH ANIMATION
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>
     /// Opens the command palette with a fade-in and slide-down animation.
@@ -295,9 +295,9 @@ public sealed partial class CommandPalette : UserControl
             Show();
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  SEARCH & FILTERING
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     private void SearchInput_TextChanged(object sender, TextChangedEventArgs e)
     {
@@ -322,9 +322,9 @@ public sealed partial class CommandPalette : UserControl
         _filteredItems = matches.OrderBy(item => item.GroupOrder).ToList();
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  RESULTS RENDERING
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     private void RenderResults()
     {
@@ -382,7 +382,7 @@ public sealed partial class CommandPalette : UserControl
 
         emptyPanel.Children.Add(new FontIcon
         {
-            Glyph = "",
+            Glyph = "\uE773",
             FontSize = 28,
             Foreground = ThemeResources.Brush("TextTertiaryBrush"),
         });
@@ -576,9 +576,9 @@ public sealed partial class CommandPalette : UserControl
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  KEYBOARD HANDLING
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     private void SearchInput_KeyDown(object sender, KeyRoutedEventArgs e)
     {
@@ -632,9 +632,9 @@ public sealed partial class CommandPalette : UserControl
         UpdateSelectionVisuals();
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  COMMAND EXECUTION
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     private void ExecuteSelected()
     {
@@ -663,9 +663,9 @@ public sealed partial class CommandPalette : UserControl
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  BACKDROP DISMISS
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     private void BackdropLayer_Tapped(object sender, TappedRoutedEventArgs e)
     {
@@ -673,9 +673,9 @@ public sealed partial class CommandPalette : UserControl
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════════
+// =======================================================================
 //  DATA MODELS
-// ═══════════════════════════════════════════════════════════════════════
+// =======================================================================
 
 /// <summary>
 /// One row in the palette. <see cref="Category"/> is the group placard text and

@@ -17,7 +17,7 @@ namespace AgentX.Tests.Search;
 
 /// <summary>
 /// FU-6: integration tests covering the RAG pipeline behaviors added across
-/// the audit waves — HyDE gating, PII redaction, search-mode routing, eval
+/// the audit waves - HyDE gating, PII redaction, search-mode routing, eval
 /// sample-rate gating, multi-block system prompt selection, and fail-open
 /// behavior on optional service exceptions.
 ///
@@ -38,7 +38,7 @@ public sealed class RagPipelineTests
 
     public RagPipelineTests()
     {
-        // Sensible defaults — individual tests override as needed.
+        // Sensible defaults - individual tests override as needed.
         _config.Setup(c => c.DefaultTopK).Returns(8);
         _config.Setup(c => c.DefaultMinScore).Returns(0.25f);
         _config.Setup(c => c.DefaultSearchMode).Returns("Hybrid");
@@ -134,9 +134,9 @@ public sealed class RagPipelineTests
         CollectionNames = new List<string>()
     };
 
-    // ════════════════════════════════════════════════════════════════════
+    // ====================================================================
     //  HyDE gating
-    // ════════════════════════════════════════════════════════════════════
+    // ====================================================================
 
     [Fact]
     public async Task AskAsync_HydeDisabled_DoesNotInvokeHyde()
@@ -148,7 +148,7 @@ public sealed class RagPipelineTests
 
         var pipeline = BuildPipeline(hyde: hyde.Object);
 
-        // Long question — would clear the length gate if HyDE were enabled.
+        // Long question - would clear the length gate if HyDE were enabled.
         var longQuestion = new string('x', 200);
         await pipeline.AskAsync(longQuestion);
 
@@ -208,7 +208,7 @@ public sealed class RagPipelineTests
         seenQueries.Should().HaveCount(2);
         seenQueries.Should().Contain(longQuestion, "the original question is always searched");
         seenQueries.Should().Contain(hypotheticalDoc,
-            "the hypothetical document text must be added as a second search query — that's the whole point of HyDE");
+            "the hypothetical document text must be added as a second search query - that's the whole point of HyDE");
     }
 
     [Fact]
@@ -233,9 +233,9 @@ public sealed class RagPipelineTests
             Times.Once);
     }
 
-    // ════════════════════════════════════════════════════════════════════
+    // ====================================================================
     //  PII redaction
-    // ════════════════════════════════════════════════════════════════════
+    // ====================================================================
 
     [Fact]
     public async Task AskAsync_PiiEnabled_RedactsContextBeforeLlmCall()
@@ -444,9 +444,9 @@ public sealed class RagPipelineTests
         pii.Verify(p => p.RedactPii(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
 
-    // ════════════════════════════════════════════════════════════════════
+    // ====================================================================
     //  Search-mode routing
-    // ════════════════════════════════════════════════════════════════════
+    // ====================================================================
 
     [Fact]
     public async Task AskAsync_SemanticSearchMode_RoutesToSemantic()
@@ -493,9 +493,9 @@ public sealed class RagPipelineTests
             Times.AtLeastOnce);
     }
 
-    // ════════════════════════════════════════════════════════════════════
+    // ====================================================================
     //  Eval sample-rate gating
-    // ════════════════════════════════════════════════════════════════════
+    // ====================================================================
 
     [Fact]
     public async Task AskAsync_EvalSampleRateZero_DoesNotInvokeEvaluator()
@@ -509,7 +509,7 @@ public sealed class RagPipelineTests
         var pipeline = BuildPipeline(evaluator: evaluator.Object);
         await pipeline.AskAsync("question");
 
-        // Give the fire-and-forget Task.Run a chance — should be a no-op anyway.
+        // Give the fire-and-forget Task.Run a chance - should be a no-op anyway.
         await Task.Delay(50);
 
         evaluator.Verify(e => e.EvaluateAsync(
@@ -551,9 +551,9 @@ public sealed class RagPipelineTests
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
-    // ════════════════════════════════════════════════════════════════════
+    // ====================================================================
     //  Multi-block system prompt
-    // ════════════════════════════════════════════════════════════════════
+    // ====================================================================
 
     [Fact]
     public async Task AskAsync_AlwaysSetsSystemPromptBlocks()
@@ -586,9 +586,9 @@ public sealed class RagPipelineTests
         capturedOptions.SystemPromptBlocks![1].Cacheable.Should().BeFalse("the per-question context is not cacheable");
     }
 
-    // ════════════════════════════════════════════════════════════════════
+    // ====================================================================
     //  No-results path
-    // ════════════════════════════════════════════════════════════════════
+    // ====================================================================
 
     [Fact]
     public async Task AskAsync_NoSearchResults_ReturnsNoResultsMessageAndDoesNotCallLlm()
@@ -608,9 +608,9 @@ public sealed class RagPipelineTests
             It.IsAny<CancellationToken>()), Times.Never);
     }
 
-    // ════════════════════════════════════════════════════════════════════
+    // ====================================================================
     //  Fail-open on optional services
-    // ════════════════════════════════════════════════════════════════════
+    // ====================================================================
 
     [Fact]
     public async Task AskAsync_MultiQueryThrows_FailsOpenWithOriginalQueryOnly()

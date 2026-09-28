@@ -274,7 +274,7 @@ public sealed class OutlookEmailProvider : IEmailProvider
     private Task<string> GetAccessTokenAsync()
         => _oauthService.GetAccessTokenAsync(ProviderId);
 
-    // ── Internal JSON models ───────────────────────────────────────────────────
+    // -- Internal JSON models ---------------------------------------------------
 
     private sealed class GraphMailFolderListResponse
     {

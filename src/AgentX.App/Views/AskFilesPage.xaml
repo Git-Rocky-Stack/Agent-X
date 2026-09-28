@@ -28,7 +28,7 @@
 
     <Grid Background="{ThemeResource PageBackgroundBrush}">
 
-        <!-- ═══════ ADAPTIVE LAYOUT (Tier 3) — see Colors.xaml breakpoints ═══════
+        <!-- ======= ADAPTIVE LAYOUT (Tier 3) - see Colors.xaml breakpoints =======
              Narrow (<960):  citations 260   |  Medium (>=960): citations 300
              Wide (>=1280):  citations 320 (markup default) -->
         <VisualStateManager.VisualStateGroups>
@@ -60,7 +60,7 @@
         <Grid.ColumnDefinitions>
             <!-- Chat area -->
             <ColumnDefinition Width="*" />
-            <!-- Citations sidebar (adaptive width — 260/300/320) -->
+            <!-- Citations sidebar (adaptive width - 260/300/320) -->
             <ColumnDefinition x:Name="CitationsSidebarColumn" Width="320" />
         </Grid.ColumnDefinitions>
 

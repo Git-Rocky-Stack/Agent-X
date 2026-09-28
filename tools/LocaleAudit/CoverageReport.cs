@@ -15,7 +15,7 @@ public sealed class LocaleCoverage
     public List<string> MissingKeys { get; set; } = new();
     /// <summary>
     /// Keys present in this locale's resw but NOT referenced by any XAML x:Uid or
-    /// C# GetString literal. These are dead entries — likely historical cruft from
+    /// C# GetString literal. These are dead entries - likely historical cruft from
     /// removed UI. Use to drive cleanup (see plan Task 7).
     /// </summary>
     public List<string> OrphanKeys { get; set; } = new();
@@ -56,7 +56,7 @@ public sealed class CoverageReport
                 else coverage.MissingKeys.Add(key);
             }
             // Orphan = resw entry whose base-name (before any first dot) is NOT in the union.
-            // Handles both XAML-style ("Foo.Content" → base "Foo") and code-style ("Nav_Bar" → base "Nav_Bar").
+            // Handles both XAML-style ("Foo.Content" -> base "Foo") and code-style ("Nav_Bar" -> base "Nav_Bar").
             // A leading '.' (dotIndex == 0) would yield an empty baseName; we treat such malformed keys
             // as orphans by keeping the full key for lookup (guaranteed miss against the non-empty union).
             foreach (var reswKey in entries.Keys)
@@ -92,7 +92,7 @@ public sealed class CoverageReport
 
     public static void PrintSummary(CoverageReport report, TextWriter writer, double threshold = 98.0)
     {
-        writer.WriteLine($"LocaleAudit — {report.TotalKeys} unique localization keys (XAML + C# union)");
+        writer.WriteLine($"LocaleAudit - {report.TotalKeys} unique localization keys (XAML + C# union)");
         foreach (var (locale, c) in report.PerLocale.OrderBy(kv => kv.Key))
         {
             var status = c.CoveragePercent >= threshold ? "OK" : "LOW";

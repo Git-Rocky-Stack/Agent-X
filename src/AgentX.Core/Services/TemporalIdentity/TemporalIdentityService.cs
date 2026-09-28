@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 namespace AgentX.Core.Services.TemporalIdentity;
 
 /// <summary>
-/// Temporal Identity Service — implementation.
+/// Temporal Identity Service - implementation.
 ///
 /// Mines the user's conversational and document interaction history to build
 /// a temporal model of their evolving beliefs, insights, and voice.
@@ -39,7 +39,7 @@ public class TemporalIdentityService : ITemporalIdentityService
         _db = db;
     }
 
-    // ─── Belief Tracking ────────────────────────────────────────────────────────
+    // --- Belief Tracking --------------------------------------------------------
 
     public async Task ProcessMessageAsync(long messageId, CancellationToken ct = default)
     {
@@ -215,7 +215,7 @@ public class TemporalIdentityService : ITemporalIdentityService
         return true;
     }
 
-    // ─── Insight Harvesting ─────────────────────────────────────────────────────
+    // --- Insight Harvesting -----------------------------------------------------
 
     public async Task CaptureInsightAsync(
         string topic,
@@ -273,7 +273,7 @@ public class TemporalIdentityService : ITemporalIdentityService
         return relevant.OrderByDescending(i => i.Significance).Take(5).ToList();
     }
 
-    // ─── Engagement Tracking ───────────────────────────────────────────────────
+    // --- Engagement Tracking ---------------------------------------------------
 
     public async Task RecordEngagementAsync(
         EngagementTargetType targetType,
@@ -348,7 +348,7 @@ public class TemporalIdentityService : ITemporalIdentityService
             .ToListAsync(ct);
     }
 
-    // ─── Voice Learning ─────────────────────────────────────────────────────────
+    // --- Voice Learning ---------------------------------------------------------
 
     public async Task LearnFromMessageAsync(long messageId, CancellationToken ct = default)
     {
@@ -410,7 +410,7 @@ public class TemporalIdentityService : ITemporalIdentityService
     // active AI provider. A template generator used to live here and returned canned sentences
     // around the user's context as if they had been written in their voice.
 
-    // ─── Pattern Recognition ─────────────────────────────────────────────────────
+    // --- Pattern Recognition -----------------------------------------------------
 
     public async Task<List<ProblemSolvingPattern>> FindSimilarProblemsAsync(
         string currentProblem,
@@ -477,11 +477,11 @@ public class TemporalIdentityService : ITemporalIdentityService
             .ToListAsync(ct);
     }
 
-    // ─── Helpers ─────────────────────────────────────────────────────────────────
+    // --- Helpers -----------------------------------------------------------------
 
     private BeliefAnalysis AnalyzeBeliefContent(string content)
     {
-        // Simplified NLP — in production, use AI model
+        // Simplified NLP - in production, use AI model
         var words = content.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         var topics = ExtractTopics(content);
         var sentiment = AnalyzeSentiment(content);
@@ -527,7 +527,7 @@ public class TemporalIdentityService : ITemporalIdentityService
 
     private double AnalyzeSentiment(string content)
     {
-        // Very basic sentiment — should use AI in production
+        // Very basic sentiment - should use AI in production
         var positiveWords = new[] { "good", "great", "love", "excellent", "agree", "support", "believe" };
         var negativeWords = new[] { "bad", "hate", "terrible", "disagree", "oppose", "wrong", "problem" };
 
@@ -697,11 +697,11 @@ public class TemporalIdentityService : ITemporalIdentityService
         return "General Problem";
     }
 
-    // ─── Full Implementation of Placeholder Methods ───────────────────────────────
+    // --- Full Implementation of Placeholder Methods -------------------------------
 
     public async Task ProcessAnnotationAsync(long annotationId, CancellationToken ct = default)
     {
-        // Annotations are strong belief indicators — user chose to highlight
+        // Annotations are strong belief indicators - user chose to highlight
         var annotation = await _db.Annotations
             .AsNoTracking()
             .Where(a => a.Id == annotationId)
@@ -886,7 +886,7 @@ public class TemporalIdentityService : ITemporalIdentityService
         }
     }
 
-    // ─── Internal Types ───────────────────────────────────────────────────────────
+    // --- Internal Types -----------------------------------------------------------
 
     private record BeliefAnalysis(List<string> Topics, double Sentiment, double Confidence);
     private record VoiceAnalysis(double AvgSentenceLength, double Formality);

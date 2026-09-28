@@ -1,6 +1,6 @@
 namespace AgentX.Core.Services.Sync.Models;
 
-// ── Enumerations ──────────────────────────────────────────────────────────────
+// -- Enumerations --------------------------------------------------------------
 
 /// <summary>
 /// Represents the current operational state of the sync engine.
@@ -86,7 +86,7 @@ public enum SyncResolution
     Merged,
 }
 
-// ── Configuration & status ────────────────────────────────────────────────────
+// -- Configuration & status ----------------------------------------------------
 
 /// <summary>
 /// Persisted configuration for the Collaborative Sync feature.
@@ -158,7 +158,7 @@ public sealed class SyncStatus
     public double LastSyncDurationMs { get; set; }
 }
 
-// ── Change tracking ───────────────────────────────────────────────────────────
+// -- Change tracking -----------------------------------------------------------
 
 /// <summary>
 /// A portable, serialisable package of changes produced by one Agent-X installation
@@ -239,7 +239,7 @@ public sealed class SyncChange
     public string? SerializedData { get; set; }
 }
 
-// ── Conflict handling ─────────────────────────────────────────────────────────
+// -- Conflict handling ---------------------------------------------------------
 
 /// <summary>
 /// Describes a situation where both the local installation and a remote change set

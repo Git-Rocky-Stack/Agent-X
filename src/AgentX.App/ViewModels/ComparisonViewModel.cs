@@ -17,13 +17,13 @@ public partial class ComparisonViewModel : ObservableObject
     private readonly IDocumentService _documentService;
     private readonly ILocalizationService _localization;
 
-    // ── Page State ───────────────────────────────────────────
+    // -- Page State -------------------------------------------
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private bool _isComparing;
     [ObservableProperty] private string _statusMessage = string.Empty;
     [ObservableProperty] private string _progressMessage = string.Empty;
 
-    // ── Document Selection ───────────────────────────────────
+    // -- Document Selection -----------------------------------
     public ObservableCollection<DocumentSelectItem> AvailableDocuments { get; } = new();
     public ObservableCollection<DocumentSelectItem> SelectedDocuments { get; } = new();
     [ObservableProperty] private string _focusQuery = string.Empty;
@@ -36,7 +36,7 @@ public partial class ComparisonViewModel : ObservableObject
 
     [ObservableProperty] private ComparisonDetailLevelOption? _detailLevel;
 
-    // ── Report Results ───────────────────────────────────────
+    // -- Report Results ---------------------------------------
     [ObservableProperty] private bool _hasReport;
     [ObservableProperty] private string _reportSummary = string.Empty;
     public ObservableCollection<string> Similarities { get; } = new();

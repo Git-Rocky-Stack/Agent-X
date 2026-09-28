@@ -11,9 +11,9 @@
 
     <Page.Resources>
 
-        <!-- ═══════════════════════════════════════════════════════════
+        <!-- ===========================================================
              CONVERTERS
-             ═══════════════════════════════════════════════════════════ -->
+             =========================================================== -->
 
         <converters:BoolToVisibilityConverter x:Key="BoolToVis" />
         <converters:BoolToVisibilityConverter x:Key="InverseBoolToVis" IsInverted="True" />
@@ -26,7 +26,7 @@
 
     <Grid Background="{ThemeResource PageBackgroundBrush}">
 
-        <!-- ═══════ ADAPTIVE LAYOUT (Tier 3) — see Colors.xaml breakpoints ═══════
+        <!-- ======= ADAPTIVE LAYOUT (Tier 3) - see Colors.xaml breakpoints =======
              Narrow (<960):  sidebar 240   |  Medium (>=960): sidebar 260
              Wide (>=1280):  sidebar 280 (markup default) -->
         <VisualStateManager.VisualStateGroups>
@@ -56,17 +56,17 @@
         </VisualStateManager.VisualStateGroups>
 
         <Grid.ColumnDefinitions>
-            <!-- Left panel: Plugin list sidebar (adaptive width — 240/260/280) -->
+            <!-- Left panel: Plugin list sidebar (adaptive width - 240/260/280) -->
             <ColumnDefinition x:Name="SidebarColumn" Width="280" />
             <!-- Right panel: Selected plugin detail -->
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <!-- ═══════════════════════════════════════════════════════════════
+        <!-- ===============================================================
              LEFT PANEL: PLUGIN LIST SIDEBAR
              Scrollable list of installed plugins, each shown as a compact
              card with icon, name, version, author, and status indicator.
-             ═══════════════════════════════════════════════════════════════ -->
+             =============================================================== -->
         <Grid Grid.Column="0"
               Background="{ThemeResource SidebarGradientBrush}"
               BorderBrush="{ThemeResource BorderSubtleBrush}"
@@ -78,9 +78,9 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <!-- ═══════════════════════════════════════════════════════
-                 SIDEBAR ROW 0: Header — Title + Count + Install + Refresh
-                 ═══════════════════════════════════════════════════════ -->
+            <!-- =======================================================
+                 SIDEBAR ROW 0: Header - Title + Count + Install + Refresh
+                 ======================================================= -->
             <Border Grid.Row="0" Style="{StaticResource SidebarHeaderStyle}">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -133,9 +133,9 @@
                 </Grid>
             </Border>
 
-            <!-- ═══════════════════════════════════════════════════════
+            <!-- =======================================================
                  SIDEBAR ROW 1: Error bar (conditionally visible)
-                 ═══════════════════════════════════════════════════════ -->
+                 ======================================================= -->
             <Border Grid.Row="1"
                     Visibility="{x:Bind ViewModel.HasError, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                     Background="{ThemeResource ErrorSubtleBrush}"
@@ -194,9 +194,9 @@
                 </StackPanel>
             </Border>
 
-            <!-- ═══════════════════════════════════════════════════════
+            <!-- =======================================================
                  SIDEBAR ROW 2: Loading indicator (centered overlay)
-                 ═══════════════════════════════════════════════════════ -->
+                 ======================================================= -->
             <StackPanel Grid.Row="2"
                         Spacing="12"
                         HorizontalAlignment="Center"
@@ -210,9 +210,9 @@
                            HorizontalAlignment="Center" />
             </StackPanel>
 
-            <!-- ═══════════════════════════════════════════════════════
+            <!-- =======================================================
                  SIDEBAR ROW 2: Plugin list (visible when NOT loading)
-                 ═══════════════════════════════════════════════════════ -->
+                 ======================================================= -->
             <ListView Grid.Row="2"
                       x:Name="PluginListView"
                       ItemsSource="{x:Bind ViewModel.Plugins, Mode=OneWay}"
@@ -279,7 +279,7 @@
                                                    Style="{StaticResource CaptionStyle}"
                                                    MaxLines="1"
                                                    TextTrimming="CharacterEllipsis" />
-                                        <TextBlock Text="·"
+                                        <TextBlock Text="|"
                                                    Style="{StaticResource CaptionStyle}"
                                                    Foreground="{ThemeResource TextTertiaryBrush}" />
                                         <TextBlock Style="{StaticResource CaptionStyle}"
@@ -310,10 +310,10 @@
                 </ListView.ItemTemplate>
             </ListView>
 
-            <!-- ═══════════════════════════════════════════════════════
+            <!-- =======================================================
                  SIDEBAR ROW 2 (overlay): Empty state when no plugins
                  Only visible when NOT loading AND plugin count is 0
-                 ═══════════════════════════════════════════════════════ -->
+                 ======================================================= -->
             <Border Grid.Row="2"
                     Visibility="{x:Bind HasNoPlugins(ViewModel.PluginCount), Mode=OneWay}"
                     Padding="24,0"
@@ -345,9 +345,9 @@
                 </StackPanel>
             </Border>
 
-            <!-- ═══════════════════════════════════════════════════════
+            <!-- =======================================================
                  SIDEBAR ROW 3: Footer with status message
-                 ═══════════════════════════════════════════════════════ -->
+                 ======================================================= -->
             <Border Grid.Row="3"
                     Padding="16,8,16,8"
                     BorderBrush="{ThemeResource BorderSubtleBrush}"
@@ -379,16 +379,16 @@
             </Border>
         </Grid>
 
-        <!-- ═══════════════════════════════════════════════════════════════
+        <!-- ===============================================================
              RIGHT PANEL: SELECTED PLUGIN DETAIL
              Shows full plugin details when a plugin is selected from the
              sidebar list. Otherwise displays an empty/welcome state.
-             ═══════════════════════════════════════════════════════════════ -->
+             =============================================================== -->
         <Grid Grid.Column="1">
 
-            <!-- ═══════════════════════════════════════════════════════
+            <!-- =======================================================
                  Empty state: No plugin selected (WelcomeCard)
-                 ═══════════════════════════════════════════════════════ -->
+                 ======================================================= -->
             <Border x:Name="EmptyStatePanel"
                     Style="{StaticResource WelcomeCardStyle}"
                     Visibility="Visible">
@@ -418,9 +418,9 @@
                 </StackPanel>
             </Border>
 
-            <!-- ═══════════════════════════════════════════════════════
+            <!-- =======================================================
                  Plugin detail panel (visible when a plugin is selected)
-                 ═══════════════════════════════════════════════════════ -->
+                 ======================================================= -->
             <ScrollViewer x:Name="DetailPanel"
                           Visibility="Collapsed"
                           VerticalScrollBarVisibility="Auto"

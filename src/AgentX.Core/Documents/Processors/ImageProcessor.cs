@@ -244,7 +244,7 @@ public class ImageProcessor : IDocumentProcessor
 
         ct.ThrowIfCancellationRequested();
 
-        // Ensure the bitmap is in Bgra8 / Premultiplied — OcrEngine requirement
+        // Ensure the bitmap is in Bgra8 / Premultiplied - OcrEngine requirement
         SoftwareBitmap? ocrBitmap = null;
         SoftwareBitmap bitmapToOcr;
 
@@ -274,7 +274,7 @@ public class ImageProcessor : IDocumentProcessor
                 "Scaling SoftwareBitmap from {OrigW}x{OrigH} to {ScaledW}x{ScaledH} for OCR",
                 bitmapToOcr.PixelWidth, bitmapToOcr.PixelHeight, scaledWidth, scaledHeight);
 
-            // Use BitmapDecoder round-trip for scaling — create an in-memory stream,
+            // Use BitmapDecoder round-trip for scaling - create an in-memory stream,
             // encode the bitmap to it, then decode with a transform
             using var stream = new Windows.Storage.Streams.InMemoryRandomAccessStream();
             var encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId, stream);

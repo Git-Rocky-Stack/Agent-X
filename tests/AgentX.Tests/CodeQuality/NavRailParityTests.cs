@@ -173,7 +173,7 @@ public sealed class NavRailParityTests
             "the registration must walk the rail, not a second list");
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
+    // -- Helpers --------------------------------------------------------------
 
     /// <summary>
     /// Placards and separators are ordering facts, so the two guards that read them walk the

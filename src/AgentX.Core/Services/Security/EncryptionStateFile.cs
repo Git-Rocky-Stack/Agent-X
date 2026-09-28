@@ -26,7 +26,7 @@ public sealed class EncryptionStateFile : IEncryptionStateFile
     {
     }
 
-    // Exposed for tests — lets the tests point at a temp path.
+    // Exposed for tests - lets the tests point at a temp path.
     public EncryptionStateFile(string filePath)
     {
         _filePath = filePath;

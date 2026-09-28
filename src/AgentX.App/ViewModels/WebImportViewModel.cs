@@ -12,13 +12,13 @@ namespace AgentX.App.ViewModels;
 
 public partial class WebImportViewModel : ObservableObject
 {
-    // ── Services ─────────────────────────────────────────────
+    // -- Services ---------------------------------------------
     private readonly IWebImportService _webImportService;
     private readonly IWebScraperService _webScraperService;
     private readonly ICollectionService _collectionService;
     private readonly ILocalizationService _localization;
 
-    // ── Input State ──────────────────────────────────────────
+    // -- Input State ------------------------------------------
     [ObservableProperty] private string _urlInput = string.Empty;
     [ObservableProperty] private bool _isImporting;
     [ObservableProperty] private bool _isPreviewing;
@@ -26,7 +26,7 @@ public partial class WebImportViewModel : ObservableObject
     [ObservableProperty] private int _importProgress;
     [ObservableProperty] private int _importTotal;
 
-    // ── Preview State ────────────────────────────────────────
+    // -- Preview State ----------------------------------------
     [ObservableProperty] private string _previewTitle = string.Empty;
     [ObservableProperty] private string _previewContent = string.Empty;
     [ObservableProperty] private string _previewAuthor = string.Empty;
@@ -34,17 +34,17 @@ public partial class WebImportViewModel : ObservableObject
     [ObservableProperty] private long _previewWordCount;
     [ObservableProperty] private bool _hasPreview;
 
-    // ── Collection Selection ─────────────────────────────────
+    // -- Collection Selection ---------------------------------
     public ObservableCollection<CollectionEntity> Collections { get; } = new();
     [ObservableProperty] private CollectionEntity? _selectedCollection;
 
-    // ── Results ──────────────────────────────────────────────
+    // -- Results ----------------------------------------------
     public ObservableCollection<WebImportResultItem> ImportResults { get; } = new();
     [ObservableProperty] private bool _hasResults;
     [ObservableProperty] private int _successCount;
     [ObservableProperty] private int _failCount;
 
-    // ── Feed & Sitemap State ────────────────────────────────
+    // -- Feed & Sitemap State --------------------------------
     [ObservableProperty] private string _feedUrl = string.Empty;
     [ObservableProperty] private string _sitemapUrl = string.Empty;
     [ObservableProperty] private bool _isSubscribingFeed;
@@ -202,7 +202,7 @@ public partial class WebImportViewModel : ObservableObject
         StatusMessage = string.Empty;
     }
 
-    // ── Feed Subscription ────────────────────────────────────
+    // -- Feed Subscription ------------------------------------
 
     [RelayCommand]
     private async Task SubscribeToFeedAsync()
@@ -279,7 +279,7 @@ public partial class WebImportViewModel : ObservableObject
         }
     }
 
-    // ── Sitemap Import ──────────────────────────────────────
+    // -- Sitemap Import --------------------------------------
 
     [RelayCommand]
     private async Task ImportSitemapAsync()

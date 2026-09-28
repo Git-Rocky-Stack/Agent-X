@@ -36,7 +36,7 @@ public sealed class AudioProcessorTests : IDisposable
         try { Directory.Delete(_tempDirectory, recursive: true); } catch (IOException) { }
     }
 
-    // ── CanProcess / SupportedExtensions ─────────────────────────────────────
+    // -- CanProcess / SupportedExtensions -------------------------------------
 
     [Theory]
     [InlineData("talk.mp3", true)]
@@ -69,7 +69,7 @@ public sealed class AudioProcessorTests : IDisposable
         await act.Should().ThrowAsync<FileNotFoundException>();
     }
 
-    // ── Happy path ───────────────────────────────────────────────────────────
+    // -- Happy path -----------------------------------------------------------
 
     [Fact]
     public async Task ProcessAsync_TranscribesAudioIntoASearchableDocument()
@@ -174,7 +174,7 @@ public sealed class AudioProcessorTests : IDisposable
         document.Metadata.Custom["segmentCount"].Should().Be("0");
     }
 
-    // ── Degraded paths ───────────────────────────────────────────────────────
+    // -- Degraded paths -------------------------------------------------------
     //
     // A file that cannot be transcribed used to come back as a document holding a placeholder
     // ("[Audio transcript unavailable ...]") or no text at all, which the pipeline chunked,
@@ -278,7 +278,7 @@ public sealed class AudioProcessorTests : IDisposable
         await act.Should().ThrowAsync<OperationCanceledException>();
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
+    // -- Helpers --------------------------------------------------------------
 
     private string WriteAudio(string name)
     {

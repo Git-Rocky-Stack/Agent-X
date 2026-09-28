@@ -40,7 +40,7 @@ public interface IResourceLoaderAdapter
     /// <summary>
     /// Returns the localized string for <paramref name="key"/>, or <c>null</c>
     /// if the key is absent or the loader is not yet initialized. Must NOT
-    /// return the literal key on miss — callers distinguish "missing" from
+    /// return the literal key on miss - callers distinguish "missing" from
     /// "present-but-equal-to-key" on the strength of this null signal.
     /// </summary>
     string? GetString(string key);

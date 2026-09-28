@@ -194,12 +194,12 @@ public sealed class HybridSearchOrchestratorTests
         // start signal before returning. If launches are parallel, both signals fire and both
         // mocks complete. If launches are sequential (e.g. someone changes the production code
         // to `await semantic; await keyword;`), the second mock never starts and the first
-        // mock's await deadlocks — surfaced as a 5-second test timeout.
+        // mock's await deadlocks - surfaced as a 5-second test timeout.
         //
         // The original test version used `ReturnsAsync(Func<T>)` to defer lambda execution,
         // but Moq invokes that Func eagerly (synchronously when the mocked method is called),
         // so on a single thread the assertions inside the Func ran before the second backend
-        // had a chance to set its flag — the test failed deterministically rather than flakily.
+        // had a chance to set its flag - the test failed deterministically rather than flakily.
 
         // Arrange
         var query = new SearchQuery
@@ -235,7 +235,7 @@ public sealed class HybridSearchOrchestratorTests
                 return (IReadOnlyList<SearchResult>)keywordResults;
             });
 
-        // Act — race against a 5-second timeout to catch a regression to sequential launch.
+        // Act - race against a 5-second timeout to catch a regression to sequential launch.
         var searchTask = _orchestrator.SearchAsync(query);
         var winner = await Task.WhenAny(searchTask, Task.Delay(TimeSpan.FromSeconds(5)));
 

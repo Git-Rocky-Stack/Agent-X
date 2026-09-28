@@ -153,9 +153,9 @@ public sealed class PiiDetector : IPiiDetector
         return stats;
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Private helpers
-    //════════════════════════════════════════════════════════════════════
+    //====================================================================
 
     private static void AddMatches(ICollection<PiiMatch> matches, MatchCollection regexMatches, PiiType type)
     {

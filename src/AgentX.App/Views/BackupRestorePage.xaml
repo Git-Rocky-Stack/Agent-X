@@ -29,7 +29,7 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <!-- ═══ PAGE HEADER ═══ -->
+            <!-- === PAGE HEADER === -->
             <StackPanel Grid.Row="0" Spacing="4">
                 <TextBlock x:Uid="Backup_BackupRestore" Text="Backup &amp; Restore"
                            Style="{StaticResource DisplaySmallStyle}" />
@@ -37,7 +37,7 @@
                            Style="{StaticResource BodySecondaryStyle}" />
             </StackPanel>
 
-            <!-- ═══ SIZE ESTIMATE CARD ═══ -->
+            <!-- === SIZE ESTIMATE CARD === -->
             <controls:Faceplate Grid.Row="1" Padding="24" Visibility="{x:Bind ViewModel.HasEstimate, Mode=OneWay, Converter={StaticResource BoolToVis}}" Kicker="MOD - BAK - 01">
                 <Grid ColumnSpacing="32">
                     <Grid.ColumnDefinitions>
@@ -108,7 +108,7 @@
                 </Grid>
             </controls:Faceplate>
 
-            <!-- ═══ CREATE BACKUP CARD ═══ -->
+            <!-- === CREATE BACKUP CARD === -->
             <controls:Faceplate Grid.Row="2" Padding="24" Kicker="MOD - BAK - 02">
                 <StackPanel Spacing="20">
                     <TextBlock x:Uid="Backup_CreateBackup" Text="Create Backup"
@@ -169,7 +169,7 @@
                                      Maximum="100" />
                         <TextBlock Style="{StaticResource CaptionStyle}">
                             <Run Text="{x:Bind ViewModel.ProgressPhase, Mode=OneWay}" />
-                            <Run Text=" — " />
+                            <Run Text=" - " />
                             <Run Text="{x:Bind ViewModel.ProgressItem, Mode=OneWay}" />
                         </TextBlock>
                     </StackPanel>
@@ -278,7 +278,7 @@
                 </StackPanel>
             </controls:Faceplate>
 
-            <!-- ═══ RESTORE CARD ═══ -->
+            <!-- === RESTORE CARD === -->
             <controls:Faceplate Grid.Row="4" Padding="24" Kicker="MOD - BAK - 04">
                 <StackPanel Spacing="20">
                     <TextBlock x:Uid="Backup_RestoreFromBackup" Text="Restore from Backup"
@@ -333,7 +333,7 @@
                 </StackPanel>
             </controls:Faceplate>
 
-            <!-- ═══ BACKUP HISTORY ═══ -->
+            <!-- === BACKUP HISTORY === -->
             <controls:Faceplate Grid.Row="5" Padding="24" Visibility="{x:Bind ViewModel.HasHistory, Mode=OneWay, Converter={StaticResource BoolToVis}}" Kicker="MOD - BAK - 05">
                 <StackPanel Spacing="16">
                     <TextBlock x:Uid="Backup_BackupHistory" Text="Backup History"
@@ -378,7 +378,7 @@
                                             </StackPanel>
                                         </StackPanel>
 
-                                        <!-- Integrity Badge — label + color bound to real IsValid
+                                        <!-- Integrity Badge - label + color bound to real IsValid
                                              state instead of a constant green "Valid". -->
                                         <Border Grid.Column="2"
                                                 CornerRadius="{StaticResource RControl}"
@@ -419,7 +419,7 @@
                 </StackPanel>
             </controls:Faceplate>
 
-            <!-- ═══ STATUS ═══ -->
+            <!-- === STATUS === -->
             <TextBlock Grid.Row="6"
                        Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
                        Style="{StaticResource CaptionStyle}" />

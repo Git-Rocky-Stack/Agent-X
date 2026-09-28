@@ -350,7 +350,7 @@
             </controls:Faceplate>
 
             <!-- ==========================================================
-                 ROW 7: GENERATIVE IDENTITY — "DRAFT AS ME"
+                 ROW 7: GENERATIVE IDENTITY - "DRAFT AS ME"
                  ========================================================== -->
             <controls:Faceplate Grid.Row="7" Kicker="MOD - PAST - 06">
                 <StackPanel Spacing="16">

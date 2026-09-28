@@ -49,7 +49,7 @@ public class WebScraperService : IWebScraperService
                ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    // ─── IWebScraperService Implementation ──────────────────────────────────
+    // --- IWebScraperService Implementation ----------------------------------
 
     /// <inheritdoc />
     public async Task<WebContent> ExtractContentAsync(string url, CancellationToken ct = default)
@@ -257,7 +257,7 @@ public class WebScraperService : IWebScraperService
         return uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps;
     }
 
-    // ─── Pipeline Composition ─────────────────────────────────────────────
+    // --- Pipeline Composition ---------------------------------------------
 
     /// <summary>
     /// Composes the full pipeline result by delegating to the three extracted services
@@ -303,7 +303,7 @@ public class WebScraperService : IWebScraperService
         };
     }
 
-    // ─── Utility Methods ────────────────────────────────────────────────────
+    // --- Utility Methods ----------------------------------------------------
 
     /// <summary>
     /// Counts words by splitting on whitespace, filtering out empty entries.

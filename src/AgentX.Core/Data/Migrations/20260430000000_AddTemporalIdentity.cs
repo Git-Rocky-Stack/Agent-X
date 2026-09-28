@@ -13,7 +13,7 @@ namespace AgentX.Core.Data.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // TemporalBeliefs table — track beliefs/opinions over time
+            // TemporalBeliefs table - track beliefs/opinions over time
             migrationBuilder.CreateTable(
                 name: "temporal_beliefs",
                 columns: table => new
@@ -54,7 +54,7 @@ namespace AgentX.Core.Data.Migrations
                 table: "temporal_beliefs",
                 column: "HasEvolved");
 
-            // InsightMoments table — capture and resurface breakthrough insights
+            // InsightMoments table - capture and resurface breakthrough insights
             migrationBuilder.CreateTable(
                 name: "insight_moments",
                 columns: table => new
@@ -92,7 +92,7 @@ namespace AgentX.Core.Data.Migrations
                 table: "insight_moments",
                 column: "CapturedAt");
 
-            // EngagementMetrics table — track depth of interaction with content
+            // EngagementMetrics table - track depth of interaction with content
             migrationBuilder.CreateTable(
                 name: "engagement_metrics",
                 columns: table => new
@@ -126,7 +126,7 @@ namespace AgentX.Core.Data.Migrations
                 table: "engagement_metrics",
                 column: "LastEngagedAt");
 
-            // BeliefConflicts table — detect when past self disagrees with current self
+            // BeliefConflicts table - detect when past self disagrees with current self
             migrationBuilder.CreateTable(
                 name: "belief_conflicts",
                 columns: table => new
@@ -178,7 +178,7 @@ namespace AgentX.Core.Data.Migrations
                 table: "belief_conflicts",
                 column: "ConflictMagnitude");
 
-            // VoiceProfiles table — learn user's communication patterns
+            // VoiceProfiles table - learn user's communication patterns
             migrationBuilder.CreateTable(
                 name: "voice_profiles",
                 columns: table => new

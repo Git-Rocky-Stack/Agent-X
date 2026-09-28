@@ -183,7 +183,7 @@ public sealed class OpenAiProvider : IAiProvider
         IProgress<ModelDownloadProgress>? progress = null,
         CancellationToken ct = default)
     {
-        _logger.Debug("PullModelAsync called for OpenAI — cloud models do not require pulling");
+        _logger.Debug("PullModelAsync called for OpenAI - cloud models do not require pulling");
         return Task.CompletedTask;
     }
 
@@ -193,7 +193,7 @@ public sealed class OpenAiProvider : IAiProvider
     /// </remarks>
     public Task DeleteModelAsync(string modelName, CancellationToken ct = default)
     {
-        _logger.Debug("DeleteModelAsync called for OpenAI — cloud models cannot be deleted locally");
+        _logger.Debug("DeleteModelAsync called for OpenAI - cloud models cannot be deleted locally");
         return Task.CompletedTask;
     }
 
@@ -649,7 +649,7 @@ public sealed class OpenAiProvider : IAiProvider
         _logger.Debug("OpenAiProvider disposed");
     }
 
-    // ── Private Helpers ─────────────────────────────────────────────
+    // -- Private Helpers ---------------------------------------------
 
     /// <summary>
     /// Converts the application's ChatMessage list into the OpenAI API message format.

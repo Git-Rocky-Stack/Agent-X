@@ -14,19 +14,19 @@ using Xunit;
 namespace AgentX.Tests.Services;
 
 /// <summary>
-/// Behavioural coverage for <see cref="ComparisonService"/> — the AI-powered cross-document
-/// comparison pipeline: resolve document metadata → retrieve each document's most-relevant chunks
-/// via semantic search → assemble a structured prompt → synthesize a JSON analysis via the AI →
-/// parse it into a <see cref="ComparisonReport"/> (with a plain-text fallback) — plus the Markdown
+/// Behavioural coverage for <see cref="ComparisonService"/> - the AI-powered cross-document
+/// comparison pipeline: resolve document metadata -> retrieve each document's most-relevant chunks
+/// via semantic search -> assemble a structured prompt -> synthesize a JSON analysis via the AI ->
+/// parse it into a <see cref="ComparisonReport"/> (with a plain-text fallback) - plus the Markdown
 /// export renderer.
 ///
 /// <para><b>Harness design.</b> The service composes four collaborators, all mocked:
 /// <see cref="IAiService"/> (only consumed when the default <see cref="IDocumentSynthesisService"/>
 /// is constructed), <see cref="IDocumentService"/> (<c>GetDocumentAsync</c> per id),
-/// <see cref="ISemanticSearchService"/> (<c>SearchAsync</c> per document), and — the key seam —
+/// <see cref="ISemanticSearchService"/> (<c>SearchAsync</c> per document), and - the key seam -
 /// an injected <see cref="IDocumentSynthesisService"/> whose <c>SynthesizeComparisonAsync</c> returns
 /// a caller-controlled <c>RawResponse</c>, letting each test drive the parser deterministically
-/// (valid JSON, malformed JSON → plain-text fallback, cancellation, or AI failure). A real silent
+/// (valid JSON, malformed JSON -> plain-text fallback, cancellation, or AI failure). A real silent
 /// Serilog logger is supplied because the ctor consumes <c>logger.ForContext&lt;T&gt;()</c>.
 /// One integration-style test omits the synthesis seam so the real
 /// <see cref="DocumentSynthesisService"/> is built from <see cref="IAiService"/>, exercising the
@@ -51,7 +51,7 @@ public sealed class ComparisonServiceTests : IDisposable
         }
     }
 
-    // ─── Harness ────────────────────────────────────────────────────────────────
+    // --- Harness ----------------------------------------------------------------
 
     private sealed class Harness : IDisposable
     {
@@ -160,9 +160,9 @@ public sealed class ComparisonServiceTests : IDisposable
         MatchedText = text,
     };
 
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
     //  Constructor validation
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
 
     [Fact]
     public void Constructor_NullAiService_Throws()
@@ -207,9 +207,9 @@ public sealed class ComparisonServiceTests : IDisposable
         act.Should().NotThrow();
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  CompareDocumentsAsync — input validation
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
+    //  CompareDocumentsAsync - input validation
+    // ==========================================================================
 
     [Fact]
     public async Task CompareDocumentsAsync_NullIds_ThrowsArgumentException()
@@ -235,9 +235,9 @@ public sealed class ComparisonServiceTests : IDisposable
         await act.Should().ThrowAsync<ArgumentException>().WithParameterName("documentIds");
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  CompareDocumentsAsync — document resolution
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
+    //  CompareDocumentsAsync - document resolution
+    // ==========================================================================
 
     [Fact]
     public async Task CompareDocumentsAsync_FewerThanTwoResolvable_ThrowsInvalidOperation()
@@ -255,7 +255,7 @@ public sealed class ComparisonServiceTests : IDisposable
     [Fact]
     public async Task CompareDocumentsAsync_SkipsUnresolvableButProceedsWithTwo()
     {
-        // Three ids; the middle one is unresolvable → skipped with a warning, two remain → success.
+        // Three ids; the middle one is unresolvable -> skipped with a warning, two remain -> success.
         var h = NewHarness()
             .WithDocument(1, "a.txt")
             .WithDocument(3, "c.txt")
@@ -268,9 +268,9 @@ public sealed class ComparisonServiceTests : IDisposable
         h.Docs.Verify(d => d.GetDocumentAsync(2L), Times.Once);
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  CompareDocumentsAsync — chunk retrieval, filtering, query selection
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
+    //  CompareDocumentsAsync - chunk retrieval, filtering, query selection
+    // ==========================================================================
 
     [Fact]
     public async Task CompareDocumentsAsync_ScopesChunksToOwningDocument_AndOrdersByChunkIndex()
@@ -297,7 +297,7 @@ public sealed class ComparisonServiceTests : IDisposable
     [Fact]
     public async Task CompareDocumentsAsync_DocumentWithNoChunks_UsesPlaceholderBody()
     {
-        // doc 2 has no chunks returned for it → the placeholder body is used so it still appears.
+        // doc 2 has no chunks returned for it -> the placeholder body is used so it still appears.
         var h = NewHarness()
             .WithDocument(1, "a.txt")
             .WithDocument(2, "b.txt")
@@ -373,7 +373,7 @@ public sealed class ComparisonServiceTests : IDisposable
             .WithChunks(Chunk(1, 0, "a"), Chunk(2, 0, "b"));
         var sut = h.Build();
 
-        await sut.CompareDocumentsAsync(new long[] { 1, 2 }); // options == null → defaults
+        await sut.CompareDocumentsAsync(new long[] { 1, 2 }); // options == null -> defaults
 
         h.LastQuery!.TopK.Should().Be(100);          // MaxChunksPerDoc default 5 x 2 documents x 10 candidates
         h.LastQuery.QueryText.Should().Be("main topics key findings conclusions summary");
@@ -486,9 +486,9 @@ public sealed class ComparisonServiceTests : IDisposable
         await act.Should().ThrowAsync<ArgumentException>().WithMessage("*two different documents*");
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  CompareDocumentsAsync — synthesis failure handling
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
+    //  CompareDocumentsAsync - synthesis failure handling
+    // ==========================================================================
 
     [Fact]
     public async Task CompareDocumentsAsync_SynthesisCancelled_RethrowsOperationCanceled()
@@ -524,9 +524,9 @@ public sealed class ComparisonServiceTests : IDisposable
         assertion.Which.InnerException.Should().BeSameAs(inner);
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  CompareDocumentsAsync — JSON parsing (happy path)
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
+    //  CompareDocumentsAsync - JSON parsing (happy path)
+    // ==========================================================================
 
     [Fact]
     public async Task CompareDocumentsAsync_ValidJson_MapsEveryField()
@@ -565,12 +565,12 @@ public sealed class ComparisonServiceTests : IDisposable
     [Fact]
     public async Task CompareDocumentsAsync_TotalTokens_IsPromptPlusResponseEstimate()
     {
-        // rawResponse length 8 → ceil(8/4) = 2 completion tokens; prompt estimate 100 → total 102.
+        // rawResponse length 8 -> ceil(8/4) = 2 completion tokens; prompt estimate 100 -> total 102.
         var h = NewHarness()
             .WithDocument(1, "a.txt")
             .WithDocument(2, "b.txt")
             .WithChunks(Chunk(1, 0, "a"), Chunk(2, 0, "b"))
-            .SetSynthesisResponse("{\"x\":1}", estimatedPromptTokens: 100); // 7 chars → ceil(7/4)=2
+            .SetSynthesisResponse("{\"x\":1}", estimatedPromptTokens: 100); // 7 chars -> ceil(7/4)=2
         var sut = h.Build();
 
         var report = await sut.CompareDocumentsAsync(new long[] { 1, 2 });
@@ -647,7 +647,7 @@ public sealed class ComparisonServiceTests : IDisposable
     [Fact]
     public async Task CompareDocumentsAsync_NullLists_SanitiseToEmpty()
     {
-        // Every list omitted → SanitiseList's null branch → empty lists, empty summary.
+        // Every list omitted -> SanitiseList's null branch -> empty lists, empty summary.
         var h = NewHarness()
             .WithDocument(1, "a.txt")
             .WithDocument(2, "b.txt")
@@ -664,15 +664,15 @@ public sealed class ComparisonServiceTests : IDisposable
         report.UniquePoints.Should().ContainKeys("a.txt", "b.txt");
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  CompareDocumentsAsync — plain-text fallback
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
+    //  CompareDocumentsAsync - plain-text fallback
+    // ==========================================================================
 
     [Fact]
     public async Task CompareDocumentsAsync_NoJsonDelimiters_UsesPlainTextFallbackAndExtractsSections()
     {
-        // No braces → ParseJsonResponse throws (no delimiters) → plain-text fallback.
-        // Exercises heading detection via '#' and via trailing ':', bullets via -, *, •,
+        // No braces -> ParseJsonResponse throws (no delimiters) -> plain-text fallback.
+        // Exercises heading detection via '#' and via trailing ':', bullets via -, *, -,
         // a blank bullet (skipped), a non-heading non-bullet line (skipped), and a heading
         // that does not match the section keyword (turns the section off).
         const string raw =
@@ -680,7 +680,7 @@ public sealed class ComparisonServiceTests : IDisposable
             "# Similarities\n" +
             "- alpha\n" +
             "* beta\n" +
-            "• gamma\n" +
+            "\u2022 gamma\n" +
             "- \n" +
             "Differences:\n" +
             "- delta\n" +
@@ -701,7 +701,7 @@ public sealed class ComparisonServiceTests : IDisposable
         report.Similarities.Should().Equal("alpha", "beta", "gamma");
         report.Differences.Should().Equal("delta");
         report.Contradictions.Should().Equal("epsilon");
-        report.Summary.Should().Be(raw);                     // short → full response retained
+        report.Summary.Should().Be(raw);                     // short -> full response retained
         report.UniquePoints.Should().ContainKeys("a.txt", "b.txt");
         report.UniquePoints["a.txt"].Should().BeEmpty();
     }
@@ -709,8 +709,8 @@ public sealed class ComparisonServiceTests : IDisposable
     [Fact]
     public async Task CompareDocumentsAsync_MalformedJsonBody_FallsBackToPlainText()
     {
-        // Has both delimiters (so extraction runs) but the body is invalid JSON → the deserializer
-        // throws → the outer catch routes to the plain-text fallback.
+        // Has both delimiters (so extraction runs) but the body is invalid JSON -> the deserializer
+        // throws -> the outer catch routes to the plain-text fallback.
         const string raw = "{ this is not valid json }";
         var h = NewHarness()
             .WithDocument(1, "a.txt")
@@ -721,7 +721,7 @@ public sealed class ComparisonServiceTests : IDisposable
 
         var report = await sut.CompareDocumentsAsync(new long[] { 1, 2 });
 
-        // Fallback path: no section headings → empty structured lists, summary holds the raw text.
+        // Fallback path: no section headings -> empty structured lists, summary holds the raw text.
         report.Similarities.Should().BeEmpty();
         report.Summary.Should().Be(raw);
     }
@@ -747,7 +747,7 @@ public sealed class ComparisonServiceTests : IDisposable
     [Fact]
     public async Task CompareDocumentsAsync_LongUnparseableResponse_TruncatesSummaryTo600Chars()
     {
-        var raw = new string('x', 700); // no braces → fallback; > 600 chars → truncated + ellipsis
+        var raw = new string('x', 700); // no braces -> fallback; > 600 chars -> truncated + ellipsis
         var h = NewHarness()
             .WithDocument(1, "a.txt")
             .WithDocument(2, "b.txt")
@@ -757,13 +757,13 @@ public sealed class ComparisonServiceTests : IDisposable
 
         var report = await sut.CompareDocumentsAsync(new long[] { 1, 2 });
 
-        report.Summary.Should().HaveLength(601);         // 600 chars + the ellipsis
-        report.Summary.Should().EndWith("…");
+        report.Summary.Should().HaveLength(603);         // 600 chars + "..."
+        report.Summary.Should().EndWith("...");
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  CompareDocumentsAsync — cancellation
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
+    //  CompareDocumentsAsync - cancellation
+    // ==========================================================================
 
     [Fact]
     public async Task CompareDocumentsAsync_TokenCancelledBeforeResolution_ThrowsOperationCanceled()
@@ -799,9 +799,9 @@ public sealed class ComparisonServiceTests : IDisposable
         h.Search.Verify(s => s.SearchAsync(It.IsAny<SearchQuery>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  CompareDocumentsAsync — progress reporting & default synthesis integration
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
+    //  CompareDocumentsAsync - progress reporting & default synthesis integration
+    // ==========================================================================
 
     [Fact]
     public async Task CompareDocumentsAsync_ReportsProgress_ThroughEveryStage()
@@ -817,9 +817,9 @@ public sealed class ComparisonServiceTests : IDisposable
 
         await sut.CompareDocumentsAsync(new long[] { 1, 2 }, progress: progress);
 
-        progress.Messages.Should().Contain("Loading document metadata…");
+        progress.Messages.Should().Contain("Loading document metadata...");
         progress.Messages.Should().Contain("Comparison complete.");
-        progress.Messages.Should().Contain(m => m.Contains("a.txt")); // "Reading chunks for 'a.txt'…"
+        progress.Messages.Should().Contain(m => m.Contains("a.txt")); // "Reading chunks for 'a.txt'..."
     }
 
     private sealed class CollectingProgress : IProgress<string>
@@ -831,7 +831,7 @@ public sealed class ComparisonServiceTests : IDisposable
     [Fact]
     public async Task CompareDocumentsAsync_DefaultSynthesisService_RunsRealPipelineEndToEnd()
     {
-        // No injected synthesis seam → the ctor built a real DocumentSynthesisService, which calls
+        // No injected synthesis seam -> the ctor built a real DocumentSynthesisService, which calls
         // IAiService.ChatAsync. This exercises the default-construction branch end to end.
         var h = NewHarness()
             .WithDocument(1, "a.txt")
@@ -867,9 +867,9 @@ public sealed class ComparisonServiceTests : IDisposable
         h.LastSynthesisRequest!.Options.DetailLevel.Should().Be("summary");
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
     //  ExportComparisonAsMarkdownAsync
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
 
     [Fact]
     public async Task ExportComparisonAsMarkdownAsync_NullReport_Throws()
@@ -892,9 +892,9 @@ public sealed class ComparisonServiceTests : IDisposable
             UniquePoints = new Dictionary<string, List<string>>
             {
                 ["a.txt"] = new() { "unique-a" },
-                ["b.txt"] = new(), // empty list → per-document "no exclusive points" line
+                ["b.txt"] = new(), // empty list -> per-document "no exclusive points" line
             },
-            TotalTokensUsed = 999, // < 1000 → no culture-dependent thousands separator in the assertion
+            TotalTokensUsed = 999, // < 1000 -> no culture-dependent thousands separator in the assertion
             DurationMs = 42,
         };
         var sut = NewHarness().Build();
@@ -919,7 +919,7 @@ public sealed class ComparisonServiceTests : IDisposable
         var report = new ComparisonReport
         {
             DocumentNames = new List<string> { "a.txt" },
-            Summary = "   ", // whitespace → "no summary generated"
+            Summary = "   ", // whitespace -> "no summary generated"
         };
         var sut = NewHarness().Build();
 

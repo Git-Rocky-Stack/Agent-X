@@ -39,9 +39,9 @@
                            Style="{StaticResource BodySecondaryStyle}" />
             </StackPanel>
 
-            <!-- ════════════════════════════════════════════════════════
+            <!-- ========================================================
                  AI PROVIDERS
-                 ════════════════════════════════════════════════════════ -->
+                 ======================================================== -->
             <controls:Faceplate Grid.Row="1" Kicker="MOD - PROV - 01">
                 <StackPanel Spacing="20">
                     <TextBlock x:Uid="Settings_AiProviders" Text="AI Providers"
@@ -95,7 +95,7 @@
                     <!-- Separator -->
                     <Border Style="{StaticResource SeparatorStyle}" />
 
-                    <!-- ── Ollama (Local) ─────────────────────────── -->
+                    <!-- == Ollama (Local) =========================== -->
                     <StackPanel Spacing="12">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <TextBlock x:Uid="Settings_OllamaLocal" Text="Ollama (Local)"
@@ -153,7 +153,7 @@
                     <!-- Separator -->
                     <Border Style="{StaticResource SeparatorStyle}" />
 
-                    <!-- ── OpenAI ─────────────────────────────────── -->
+                    <!-- == OpenAI =================================== -->
                     <StackPanel Spacing="12">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <TextBlock Text="OpenAI"
@@ -212,7 +212,7 @@
                     <!-- Separator -->
                     <Border Style="{StaticResource SeparatorStyle}" />
 
-                    <!-- ── Anthropic Claude ────────────────────────── -->
+                    <!-- == Anthropic Claude ========================== -->
                     <StackPanel Spacing="12">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <TextBlock Text="Anthropic Claude"
@@ -273,9 +273,9 @@
                 </StackPanel>
             </controls:Faceplate>
 
-            <!-- ════════════════════════════════════════════════════════
+            <!-- ========================================================
                  APPEARANCE
-                 ════════════════════════════════════════════════════════ -->
+                 ======================================================== -->
             <controls:Faceplate Grid.Row="2" Kicker="MOD - SHIFT - 02">
                 <StackPanel Spacing="16">
                     <TextBlock x:Uid="Settings_Appearance" Text="Appearance"
@@ -307,9 +307,9 @@
                 </StackPanel>
             </controls:Faceplate>
 
-            <!-- ════════════════════════════════════════════════════════
+            <!-- ========================================================
                  COST TRACKING
-                 ════════════════════════════════════════════════════════ -->
+                 ======================================================== -->
             <!-- Multi-Model Routing section -->
             <controls:Faceplate Grid.Row="3" Kicker="MOD - ROUTE - 03">
                 <StackPanel Spacing="16">
@@ -334,11 +334,11 @@
                                   IsEnabled="{x:Bind ViewModel.EnableModelRouting, Mode=OneWay}" />
 
                         <StackPanel Spacing="4" Padding="4,0,0,0">
-                            <TextBlock x:Uid="Settings_CostOptimizedLocalModels" Text="Cost Optimized — Local models for all tasks, cloud only as fallback"
+                            <TextBlock x:Uid="Settings_CostOptimizedLocalModels" Text="Cost Optimized - Local models for all tasks, cloud only as fallback"
                                        Style="{StaticResource CaptionStyle}" />
-                            <TextBlock x:Uid="Settings_QualityOptimizedCloudModels" Text="Quality Optimized — Cloud models for analysis, code, creative"
+                            <TextBlock x:Uid="Settings_QualityOptimizedCloudModels" Text="Quality Optimized - Cloud models for analysis, code, creative"
                                        Style="{StaticResource CaptionStyle}" />
-                            <TextBlock x:Uid="Settings_BalancedLocalForSimple" Text="Balanced — Local for simple tasks, cloud for quality-critical tasks"
+                            <TextBlock x:Uid="Settings_BalancedLocalForSimple" Text="Balanced - Local for simple tasks, cloud for quality-critical tasks"
                                        Style="{StaticResource CaptionStyle}" />
                         </StackPanel>
                     </StackPanel>
@@ -396,9 +396,9 @@
                 </StackPanel>
             </controls:Faceplate>
 
-            <!-- ════════════════════════════════════════════════════════
+            <!-- ========================================================
                  INFERENCE PARAMETERS
-                 ════════════════════════════════════════════════════════ -->
+                 ======================================================== -->
             <controls:Faceplate Grid.Row="5" Kicker="MOD - INFER - 05">
                 <StackPanel Spacing="20">
                     <TextBlock x:Uid="Settings_Inference" Text="Inference"
@@ -439,9 +439,9 @@
                 </StackPanel>
             </controls:Faceplate>
 
-            <!-- ════════════════════════════════════════════════════════
+            <!-- ========================================================
                  KNOWLEDGE VAULT
-                 ════════════════════════════════════════════════════════ -->
+                 ======================================================== -->
             <controls:Faceplate Grid.Row="6" Kicker="MOD - VAULT - 06">
                 <StackPanel Spacing="20">
                     <TextBlock x:Uid="Settings_KnowledgeVault" Text="Knowledge Vault"
@@ -544,9 +544,9 @@
                 </StackPanel>
             </controls:Faceplate>
 
-            <!-- ════════════════════════════════════════════════════════
+            <!-- ========================================================
                  RESEARCH MODE AND SCREEN AWARENESS
-                 ════════════════════════════════════════════════════════ -->
+                 ======================================================== -->
             <controls:Faceplate Grid.Row="7" Kicker="MOD - RSRCH - 07">
                 <StackPanel Spacing="16">
                     <TextBlock x:Uid="Settings_ResearchMode" Text="Research Mode"
@@ -627,9 +627,9 @@
                 </StackPanel>
             </controls:Faceplate>
 
-            <!-- ════════════════════════════════════════════════════════
+            <!-- ========================================================
                  STORAGE
-                 ════════════════════════════════════════════════════════ -->
+                 ======================================================== -->
             <controls:Faceplate Grid.Row="8" Kicker="MOD - STOR - 08">
                 <StackPanel Spacing="12">
                     <TextBlock x:Uid="Settings_Storage" Text="Storage"
@@ -644,9 +644,9 @@
                 </StackPanel>
             </controls:Faceplate>
 
-            <!-- ════════════════════════════════════════════════════════
+            <!-- ========================================================
                  DATABASE ENCRYPTION
-                 ════════════════════════════════════════════════════════ -->
+                 ======================================================== -->
             <controls:Faceplate Grid.Row="9" Kicker="MOD - CRYPT - 09">
                 <StackPanel Spacing="12">
                     <TextBlock x:Name="EncryptionSectionHeader"
@@ -669,9 +669,9 @@
                 </StackPanel>
             </controls:Faceplate>
 
-            <!-- ════════════════════════════════════════════════════════
+            <!-- ========================================================
                  CONNECTIONS (Local REST API / Browser Extension)
-                 ════════════════════════════════════════════════════════ -->
+                 ======================================================== -->
             <controls:Faceplate Grid.Row="10" Kicker="MOD - API - 10">
                 <StackPanel Spacing="16">
                     <TextBlock x:Uid="Settings_Connections" Text="Connections"
@@ -733,9 +733,9 @@
                 </StackPanel>
             </controls:Faceplate>
 
-            <!-- ════════════════════════════════════════════════════════
+            <!-- ========================================================
                  ACTIONS
-                 ════════════════════════════════════════════════════════ -->
+                 ======================================================== -->
             <Grid Grid.Row="11" ColumnSpacing="12" RowSpacing="12">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />

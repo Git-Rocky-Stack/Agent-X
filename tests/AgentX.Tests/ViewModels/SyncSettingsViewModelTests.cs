@@ -336,7 +336,7 @@ public sealed class SyncSettingsViewModelTests
         viewModel.StatusMessage.Should().Be("Resolved the focused sync history entry by running a fresh sync pass.");
     }
 
-    // ── Auto-sync toggle ─────────────────────────────────────────────────────
+    // -- Auto-sync toggle -----------------------------------------------------
     // The Auto-Sync switch bound straight to the flag, so turning it off left the
     // background loop running: the control reported a state it did not enforce.
 

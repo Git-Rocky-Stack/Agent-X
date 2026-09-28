@@ -21,7 +21,7 @@ public sealed class LlmReranker : ILlmReranker
     private readonly ILogger _logger;
 
     /// <summary>
-    /// P2-4: returns the active reranker system prompt — catalog when registered,
+    /// P2-4: returns the active reranker system prompt - catalog when registered,
     /// compile-time default otherwise.
     /// </summary>
     private string SystemPrompt
@@ -217,7 +217,7 @@ public sealed class LlmReranker : ILlmReranker
                 return scores;
             }
 
-            // No parseable JSON — emit a redacted summary (P2-10) so operators
+            // No parseable JSON - emit a redacted summary (P2-10) so operators
             // can correlate failures by hash without dumping passages the model
             // may have echoed back in its response.
             _logger.Warning(

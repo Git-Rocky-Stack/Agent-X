@@ -31,9 +31,9 @@ public sealed class PluginManifestValidatorTests
         Permissions = []
     };
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Valid manifest
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Validate_WithValidManifest_Passes()
@@ -77,9 +77,9 @@ public sealed class PluginManifestValidatorTests
         result.IsValid.Should().BeTrue();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Empty Id
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Theory]
     [InlineData("")]
@@ -113,9 +113,9 @@ public sealed class PluginManifestValidatorTests
         result.Errors.Should().Contain(e => e.FieldName == nameof(PluginManifest.Id));
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Id without dot (not reverse-DNS)
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Theory]
     [InlineData("myplugin")]
@@ -154,9 +154,9 @@ public sealed class PluginManifestValidatorTests
         result.Errors.Should().NotContain(e => e.FieldName == nameof(PluginManifest.Id));
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Empty Name
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Theory]
     [InlineData("")]
@@ -190,9 +190,9 @@ public sealed class PluginManifestValidatorTests
         result.Errors.Should().Contain(e => e.FieldName == nameof(PluginManifest.Name));
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Name exceeding 100 chars
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Validate_NameExceeding100Characters_Fails()
@@ -239,9 +239,9 @@ public sealed class PluginManifestValidatorTests
         result.Errors.Should().NotContain(e => e.FieldName == nameof(PluginManifest.Name));
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Invalid Version format
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Theory]
     [InlineData("1.0")]            // only major.minor
@@ -318,9 +318,9 @@ public sealed class PluginManifestValidatorTests
         result.Errors.Should().NotContain(e => e.FieldName == nameof(PluginManifest.Version));
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  EntryAssembly not ending in .dll
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Theory]
     [InlineData("MyPlugin.exe")]
@@ -393,9 +393,9 @@ public sealed class PluginManifestValidatorTests
         result.Errors.Should().Contain(e => e.FieldName == nameof(PluginManifest.EntryAssembly));
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Null instance
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Validate_NullInstance_ThrowsArgumentNullException()
@@ -407,9 +407,9 @@ public sealed class PluginManifestValidatorTests
         act.Should().Throw<ArgumentNullException>();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Multiple errors
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Validate_MultipleInvalidFields_ReportsAllErrors()

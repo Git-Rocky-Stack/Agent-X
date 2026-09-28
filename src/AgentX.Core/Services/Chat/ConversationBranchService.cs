@@ -497,9 +497,9 @@ public class ConversationBranchService : IConversationBranchService
         }
     }
 
-    // ────────────────────────────────────────────────────────────────
+    // ----------------------------------------------------------------
     // Private helpers
-    // ────────────────────────────────────────────────────────────────
+    // ----------------------------------------------------------------
 
     /// <summary>
     /// Walks up the ParentConversationId chain to find the root conversation.

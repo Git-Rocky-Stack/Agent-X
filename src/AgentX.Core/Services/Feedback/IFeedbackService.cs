@@ -11,12 +11,12 @@ namespace AgentX.Core.Services.Feedback;
 /// The service operates in two modes:
 /// <list type="bullet">
 ///   <item><description>
-///     <b>Collection</b> — callers submit ratings and optional corrected responses via
+///     <b>Collection</b> - callers submit ratings and optional corrected responses via
 ///     <see cref="SubmitFeedbackAsync"/>. Each call upserts exactly one row per message so
 ///     users can revise their rating at any time.
 ///   </description></item>
 ///   <item><description>
-///     <b>Retrieval</b> — positive examples are returned as formatted few-shot blocks
+///     <b>Retrieval</b> - positive examples are returned as formatted few-shot blocks
 ///     suitable for prepending to a system prompt, giving the model concrete demonstrations
 ///     of preferred output style and correctness.
 ///   </description></item>

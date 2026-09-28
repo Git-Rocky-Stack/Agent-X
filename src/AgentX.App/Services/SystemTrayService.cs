@@ -18,7 +18,7 @@ namespace AgentX.App.Services;
 /// </summary>
 public sealed class SystemTrayService : IDisposable
 {
-    // ── Win32 Constants ──────────────────────────────────────────
+    // -- Win32 Constants ------------------------------------------
     private const int WM_HOTKEY = 0x0312;
     private const int GWLP_WNDPROC = -4;
     private const int MOD_SHIFT = 0x0004;
@@ -33,7 +33,7 @@ public sealed class SystemTrayService : IDisposable
     private bool _hotkeyRegistered;
     private bool _disposed;
 
-    // ── Window lifecycle state ──────────────────────────────────
+    // -- Window lifecycle state ----------------------------------
     private Window? _window;
     private AppWindow? _appWindow;
     private bool _isReallyClosing;
@@ -225,9 +225,9 @@ public sealed class SystemTrayService : IDisposable
     /// </summary>
     public void InvokeSettingsRequested() => SettingsRequested?.Invoke();
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  WINDOW LIFECYCLE (minimize-to-tray, restore, close)
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>
     /// Configures the system tray for a specific window. Wires up the tray icon,
@@ -369,9 +369,9 @@ public sealed class SystemTrayService : IDisposable
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  PRIVATE: WINDOW SUBCLASS FOR GLOBAL HOTKEY
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     private void InstallSubclass()
     {
@@ -387,7 +387,7 @@ public sealed class SystemTrayService : IDisposable
     {
         if (msg == WM_HOTKEY && wParam.ToInt32() == HOTKEY_ID)
         {
-            Log.Debug("Global hotkey Win+Shift+A activated — requesting Quick Chat");
+            Log.Debug("Global hotkey Win+Shift+A activated - requesting Quick Chat");
             QuickChatRequested?.Invoke();
             return IntPtr.Zero;
         }
@@ -395,9 +395,9 @@ public sealed class SystemTrayService : IDisposable
         return CallWindowProc(_oldWndProc, hWnd, msg, wParam, lParam);
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  P/INVOKE DECLARATIONS
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]

@@ -22,7 +22,7 @@ public partial class QuickChatViewModel : ObservableObject
     private readonly ILocalizationService _localization;
     private CancellationTokenSource? _queryCts;
 
-    // ── Observable Properties ─────────────────────────────────────
+    // -- Observable Properties -------------------------------------
 
     [ObservableProperty]
     private string _queryText = string.Empty;
@@ -63,7 +63,7 @@ public partial class QuickChatViewModel : ObservableObject
         _screenCaptureService = screenCaptureService;
     }
 
-    // ── Commands ─────────────────────────────────────────────────
+    // -- Commands -------------------------------------------------
 
     /// <summary>
     /// Submits the query to the AI service and streams the response token-by-token.
@@ -123,7 +123,7 @@ public partial class QuickChatViewModel : ObservableObject
                 contextSection.AppendLine();
                 contextSection.AppendLine();
 
-                // IDE context comes first — it's structured and more precise than OCR
+                // IDE context comes first - it's structured and more precise than OCR
                 if (screenContext.IdeContext is not null)
                 {
                     contextSection.AppendLine("--- IDE CONTEXT ---");

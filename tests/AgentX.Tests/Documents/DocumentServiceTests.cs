@@ -19,7 +19,7 @@ using Xunit;
 namespace AgentX.Tests.Documents;
 
 /// <summary>
-/// Behavioural coverage for <see cref="DocumentService"/> — the full import / query / delete /
+/// Behavioural coverage for <see cref="DocumentService"/> - the full import / query / delete /
 /// reindex / duplicate-detection / bulk-operation surface of the knowledge-vault ingestion pipeline.
 ///
 /// <para><b>Harness design.</b> The service is a straight EF-Core orchestrator over the shared
@@ -52,7 +52,7 @@ public sealed class DocumentServiceTests : IDisposable
         }
     }
 
-    // ─── Harness ──────────────────────────────────────────────────────────────
+    // --- Harness --------------------------------------------------------------
 
     private sealed class DocHarness : IDisposable
     {
@@ -171,7 +171,7 @@ public sealed class DocumentServiceTests : IDisposable
         }
     }
 
-    // ─── Seed helpers ─────────────────────────────────────────────────────────
+    // --- Seed helpers ---------------------------------------------------------
 
     private static DocumentEntity NewDoc(
         string fileName = "doc.txt",
@@ -195,9 +195,9 @@ public sealed class DocumentServiceTests : IDisposable
         };
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  Constructor guards
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public void Ctor_NullDb_Throws()
@@ -244,9 +244,9 @@ public sealed class DocumentServiceTests : IDisposable
         act.Should().Throw<ArgumentNullException>().WithParameterName("logger");
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  ImportFileAsync
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task ImportFileAsync_FileMissing_ThrowsFileNotFound()
@@ -465,7 +465,7 @@ public sealed class DocumentServiceTests : IDisposable
     [Fact]
     public async Task ImportFileAsync_EmptyMetadata_LeavesMetadataJsonNull()
     {
-        var h = NewHarness(); // default processor → empty DocumentMetadata
+        var h = NewHarness(); // default processor -> empty DocumentMetadata
         var path = h.WriteFile("plain.txt");
 
         var entity = await h.Service.ImportFileAsync(path);
@@ -585,9 +585,9 @@ public sealed class DocumentServiceTests : IDisposable
         h.Db.ChangeTracker.Entries().Should().BeEmpty();
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  ImportExternalContentAsync
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Theory]
     [InlineData("", "CalendarEvent", "My Event")]
@@ -697,9 +697,9 @@ public sealed class DocumentServiceTests : IDisposable
         (await fresh.DocumentCollections.CountAsync()).Should().Be(0);
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  ImportFilesAsync (batch)
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task ImportFilesAsync_NullList_ReturnsEmpty()
@@ -844,9 +844,9 @@ public sealed class DocumentServiceTests : IDisposable
         thrown.ExistingFileName.Should().Be("first.txt");
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  GetDocumentAsync / GetDocumentByHashAsync
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task GetDocumentAsync_Existing_ReturnsWithIncludes()
@@ -902,9 +902,9 @@ public sealed class DocumentServiceTests : IDisposable
         (await h.Service.GetDocumentByHashAsync("nomatch")).Should().BeNull();
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  GetDocumentPreviewTextAsync
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task GetDocumentPreviewTextAsync_ShortSummary_ReturnsTrimmed()
@@ -959,7 +959,7 @@ public sealed class DocumentServiceTests : IDisposable
             id = d.Id;
         });
 
-        // maxChars below the 200 floor → clamped up to 200.
+        // maxChars below the 200 floor -> clamped up to 200.
         var preview = await h.Service.GetDocumentPreviewTextAsync(id, maxChars: 5);
 
         preview!.Length.Should().Be(203);
@@ -1024,9 +1024,9 @@ public sealed class DocumentServiceTests : IDisposable
         (await h.Service.GetDocumentPreviewTextAsync(id)).Should().BeNull();
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  GetAllDocumentsAsync (filters + sorting)
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task GetAllDocumentsAsync_NoFilters_ReturnsAllNewestFirst()
@@ -1184,8 +1184,8 @@ public sealed class DocumentServiceTests : IDisposable
     //   delta.txt  type aaa  size    5  imported t0+3
     //   mid.txt    type mmm  size   50  imported t0+2
     //   zeta.txt   type zzz  size 9999  imported t0+4 (newest & biggest)
-    // name → alpha (first alphabetically); size → zeta (largest); type → delta
-    //   (aaa group, then ImportedAt desc → delta before alpha); date/unknown → zeta (newest).
+    // name -> alpha (first alphabetically); size -> zeta (largest); type -> delta
+    //   (aaa group, then ImportedAt desc -> delta before alpha); date/unknown -> zeta (newest).
     [Theory]
     [InlineData("name", "alpha.txt")]
     [InlineData("size", "zeta.txt")]
@@ -1210,9 +1210,9 @@ public sealed class DocumentServiceTests : IDisposable
         result[0].FileName.Should().Be(expectedFirst);
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  GetRecentDocumentsAsync
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task GetRecentDocumentsAsync_RespectsLimitAndOrder()
@@ -1251,9 +1251,9 @@ public sealed class DocumentServiceTests : IDisposable
         result.Should().ContainSingle();
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  DeleteDocumentAsync
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task DeleteDocumentAsync_Missing_NoThrow()
@@ -1476,9 +1476,9 @@ public sealed class DocumentServiceTests : IDisposable
         (await fresh.Collections.CountAsync()).Should().Be(1, "only the document goes, not the collection");
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  ReindexDocumentAsync
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task ReindexDocumentAsync_Missing_ThrowsInvalidOperation()
@@ -1657,9 +1657,9 @@ public sealed class DocumentServiceTests : IDisposable
         (await fresh.Documents.FindAsync(id))!.IndexingStatus.Should().Be("pending");
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  Statistics
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task GetTotalDocumentCountAsync_ReturnsCount()
@@ -1714,9 +1714,9 @@ public sealed class DocumentServiceTests : IDisposable
         dist["txt"].Should().Be(1);
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  CanProcess / GetSupportedExtensions
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Theory]
     [InlineData(null)]
@@ -1752,13 +1752,13 @@ public sealed class DocumentServiceTests : IDisposable
         var exts = h.Service.GetSupportedExtensions();
 
         exts.Should().Contain(new[] { ".txt", ".md", ".pdf" });
-        // Lazy union is memoized — second call returns the same instance.
+        // Lazy union is memoized - second call returns the same instance.
         h.Service.GetSupportedExtensions().Should().BeSameAs(exts);
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  CheckForDuplicateAsync
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task CheckForDuplicateAsync_FileMissing_NotDuplicate()
@@ -1816,9 +1816,9 @@ public sealed class DocumentServiceTests : IDisposable
         result.IsDuplicate.Should().BeFalse();
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  Bulk operations
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task BulkDeleteAsync_NullOrEmpty_NoOp()
@@ -1885,7 +1885,7 @@ public sealed class DocumentServiceTests : IDisposable
             goodId = d.Id;
         });
 
-        // 999 does not exist → ReindexDocumentAsync throws, caught by the bulk loop;
+        // 999 does not exist -> ReindexDocumentAsync throws, caught by the bulk loop;
         // goodId still gets reset to pending.
         await h.Service.BulkReindexAsync(new[] { 999L, goodId });
 

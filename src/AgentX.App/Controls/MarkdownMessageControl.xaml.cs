@@ -21,13 +21,13 @@ namespace AgentX.App.Controls;
 /// </summary>
 public sealed partial class MarkdownMessageControl : UserControl
 {
-    // ── Inline formatting regex ──────────────────────────────────────
+    // -- Inline formatting regex --------------------------------------
     // Matches **bold** and `inline code` patterns for rich text rendering.
     private static readonly Regex InlineFormattingRegex = new(
         @"(\*\*(.+?)\*\*)|(`([^`]+)`)",
         RegexOptions.Compiled);
 
-    // ── Dependency Property ──────────────────────────────────────────
+    // -- Dependency Property ------------------------------------------
 
     public static readonly DependencyProperty SegmentsProperty =
         DependencyProperty.Register(
@@ -47,9 +47,9 @@ public sealed partial class MarkdownMessageControl : UserControl
         InitializeComponent();
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     // PROPERTY CHANGE CALLBACK
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     private static void OnSegmentsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
@@ -59,9 +59,9 @@ public sealed partial class MarkdownMessageControl : UserControl
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     // SEGMENT RENDERING
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     private void RenderSegments()
     {
@@ -84,9 +84,9 @@ public sealed partial class MarkdownMessageControl : UserControl
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     // CODE BLOCK RENDERING
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>
     /// Creates a complete code block element with:
@@ -99,7 +99,7 @@ public sealed partial class MarkdownMessageControl : UserControl
         grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
-        // ── Header: language label + copy button ──────────────────
+        // -- Header: language label + copy button ------------------
         var headerBorder = new Border
         {
             Background = ThemeResources.Brush("WellBrush"),
@@ -191,7 +191,7 @@ public sealed partial class MarkdownMessageControl : UserControl
         Grid.SetRow(headerBorder, 0);
         grid.Children.Add(headerBorder);
 
-        // ── Code content area (with syntax highlighting) ──────────
+        // -- Code content area (with syntax highlighting) ----------
         var codeBorder = new Border
         {
             Background = ThemeResources.Brush("VoidBrush"),
@@ -267,9 +267,9 @@ public sealed partial class MarkdownMessageControl : UserControl
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     // HEADING RENDERING
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     private static UIElement CreateHeading(MarkdownSegment segment)
     {
@@ -284,9 +284,9 @@ public sealed partial class MarkdownMessageControl : UserControl
         };
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     // LIST ITEM RENDERING
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     private static UIElement CreateListItem(MarkdownSegment segment)
     {
@@ -312,18 +312,18 @@ public sealed partial class MarkdownMessageControl : UserControl
         return panel;
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     // PLAIN TEXT RENDERING
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     private static UIElement CreateTextBlock(MarkdownSegment segment)
     {
         return CreateInlineFormattedText(segment.Content);
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     // INLINE FORMATTING (bold + inline code)
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>
     /// Creates a TextBlock that renders inline formatting:

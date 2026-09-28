@@ -18,7 +18,7 @@ public sealed class AdaptiveChunkingService : IAdaptiveChunkingService
     // Content type patterns
     private const string CodePattern = @"^\s*```|\b(function|class|def|public|private|if\s*\(|for\s*\(|while\s*\()";
     private const string TablePattern = @"^\|.*\|$|^[\s\-+]+\|";
-    private const string ListItemPattern = @"^\s*[-*•]\s+|^\s*\d+[.)]\s+";
+    private const string ListItemPattern = @"^\s*[-*\u2022]\s+|^\s*\d+[.)]\s+";
 
     public AdaptiveChunkingService(IRagConfiguration configuration, ILogger log)
     {
@@ -50,13 +50,13 @@ public sealed class AdaptiveChunkingService : IAdaptiveChunkingService
         return info;
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Private helpers
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     private static ContentType DetectContentType(string[] lines, string? fileName)
     {
-        // FU-2: removed dead `hasCode/hasTable/hasList/hasProse` locals — the actual
+        // FU-2: removed dead `hasCode/hasTable/hasList/hasProse` locals - the actual
         // content type is decided below from `*LineCount` totals, not from boolean
         // flags. The booleans were assigned-but-never-read (CS0219).
 

@@ -16,41 +16,41 @@ public partial class BackupRestoreViewModel : ObservableObject
     private readonly ISettingsService _settingsService;
     private readonly ILocalizationService _localization;
 
-    // ── Page State ───────────────────────────────────────────
+    // -- Page State -------------------------------------------
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private bool _isBackingUp;
     [ObservableProperty] private bool _isRestoring;
     [ObservableProperty] private string _statusMessage = string.Empty;
 
-    // ── Backup Options ───────────────────────────────────────
+    // -- Backup Options ---------------------------------------
     [ObservableProperty] private string _backupDestination = string.Empty;
     [ObservableProperty] private string _encryptionPassword = string.Empty;
     [ObservableProperty] private bool _useEncryption;
     [ObservableProperty] private bool _includeDocuments = true;
     [ObservableProperty] private string _backupNotes = string.Empty;
 
-    // ── Size Estimate ────────────────────────────────────────
+    // -- Size Estimate ----------------------------------------
     [ObservableProperty] private double _estimatedSizeMB;
     [ObservableProperty] private double _databaseSizeMB;
     [ObservableProperty] private double _documentsSizeMB;
     [ObservableProperty] private int _estimatedDocCount;
     [ObservableProperty] private bool _hasEstimate;
 
-    // ── Progress ─────────────────────────────────────────────
+    // -- Progress ---------------------------------------------
     [ObservableProperty] private int _progressPercent;
     [ObservableProperty] private string _progressPhase = string.Empty;
     [ObservableProperty] private string _progressItem = string.Empty;
 
-    // ── Backup History ───────────────────────────────────────
+    // -- Backup History ---------------------------------------
     public ObservableCollection<BackupHistoryItem> BackupHistory { get; } = new();
     [ObservableProperty] private bool _hasHistory;
 
-    // ── Restore ──────────────────────────────────────────────
+    // -- Restore ----------------------------------------------
     [ObservableProperty] private string _restoreFilePath = string.Empty;
     [ObservableProperty] private bool _restoreCompleted;
     [ObservableProperty] private string _restoreSummary = string.Empty;
 
-    // ── Schedule ─────────────────────────────────────────────
+    // -- Schedule ---------------------------------------------
     [ObservableProperty] private bool _scheduledBackupEnabled;
     [ObservableProperty] private int _scheduledIntervalHours = 168;
     [ObservableProperty] private int _maxBackupsToKeep = 5;

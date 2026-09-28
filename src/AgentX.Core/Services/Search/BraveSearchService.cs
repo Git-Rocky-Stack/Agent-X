@@ -156,7 +156,7 @@ public sealed class BraveSearchService : IWebSearchService
                     DateTime? publishedDate = null;
                     if (item.TryGetProperty("age", out var ageEl) && ageEl.ValueKind == JsonValueKind.String)
                     {
-                        // Brave returns age as a relative string like "2 days ago" — not parseable as DateTime
+                        // Brave returns age as a relative string like "2 days ago" - not parseable as DateTime
                         // Leave publishedDate null; could be enhanced later
                     }
 

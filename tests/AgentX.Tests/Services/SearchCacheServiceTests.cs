@@ -46,9 +46,9 @@ public sealed class SearchCacheServiceTests : IDisposable
         }).ToList();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Cache miss
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void TryGetCached_WhenCacheMiss_ReturnsNull()
@@ -64,9 +64,9 @@ public sealed class SearchCacheServiceTests : IDisposable
         result.Should().BeNull();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Cache hit
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void TryGetCached_WhenCacheHit_ReturnsCachedResults()
@@ -119,9 +119,9 @@ public sealed class SearchCacheServiceTests : IDisposable
         result.Should().BeNull();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  TTL expiration
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void TryGetCached_WhenEntryExpired_ReturnsNull()
@@ -160,9 +160,9 @@ public sealed class SearchCacheServiceTests : IDisposable
         result.Should().BeEquivalentTo(expected);
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  LRU eviction
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Cache_WhenCapacityExceeded_EvictsLeastRecentlyUsed()
@@ -231,9 +231,9 @@ public sealed class SearchCacheServiceTests : IDisposable
         result!.First().DocumentId.Should().Be(99, "the entry should have been overwritten");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  InvalidateAll
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void InvalidateAll_ClearsEverything()
@@ -256,9 +256,9 @@ public sealed class SearchCacheServiceTests : IDisposable
         stats.EntryCount.Should().Be(0);
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  InvalidateForDocument
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void InvalidateForDocument_RemovesMatchingEntries()
@@ -297,9 +297,9 @@ public sealed class SearchCacheServiceTests : IDisposable
         _sut.TryGetCached(query).Should().NotBeNull("no entries reference document 999");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Statistics
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void GetStatistics_TracksMissesCorrectly()
@@ -375,9 +375,9 @@ public sealed class SearchCacheServiceTests : IDisposable
         stats.EntryCount.Should().Be(0);
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Thread safety
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void ConcurrentAccess_DoesNotThrow()
@@ -458,9 +458,9 @@ public sealed class SearchCacheServiceTests : IDisposable
         act.Should().NotThrow();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Dispose
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Dispose_PreventsFurtherOperations_TryGetCached()
@@ -550,9 +550,9 @@ public sealed class SearchCacheServiceTests : IDisposable
         act.Should().NotThrow("Dispose should be idempotent");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Constructor validation
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Constructor_WithZeroMaxEntries_ThrowsArgumentOutOfRange()

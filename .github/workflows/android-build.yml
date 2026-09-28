@@ -1,8 +1,8 @@
 name: Android Build
 
 # AX-QA-004: compile-verify the AgentX.Mobile MAUI companion (net8.0-android). The mobile
-# project is intentionally NOT in AgentX.sln — its MAUI workloads would break the Windows
-# desktop build — so this dedicated job installs the maui-android workload and builds the
+# project is intentionally NOT in AgentX.sln - its MAUI workloads would break the Windows
+# desktop build - so this dedicated job installs the maui-android workload and builds the
 # Android target. The mobile code (incl. the AX-QA-005 transport hardening) can no longer
 # drift compile-unverified.
 #
@@ -27,7 +27,7 @@ jobs:
   android:
     name: Build AgentX.Mobile (net8.0-android)
     runs-on: ubuntu-latest
-    # Hard gate (blocking). The mobile project — including the AX-QA-005 transport hardening — builds
+    # Hard gate (blocking). The mobile project - including the AX-QA-005 transport hardening - builds
     # clean for net8.0-android. The earlier "compile-unverified" status (AX-QA-004) was a wrong-API
     # bug in MauiProgram.cs (a non-existent parameterless `.UseMaui()`), now fixed to `.UseMauiApp<App>()`
     # and verified by a local MAUI build loop (Debug + Release, 0 warnings). See docs/MOBILE-TRANSPORT.md.

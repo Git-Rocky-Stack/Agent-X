@@ -26,7 +26,7 @@ public class BranchingCoordinatorTests
     private BranchingCoordinator CreateCoordinator(ILocalizationService localization) =>
         new(_branchService.Object, _conversationService.Object, localization);
 
-    // ── BranchFromMessageAsync ──────────────────────────────────────
+    // -- BranchFromMessageAsync --------------------------------------
 
     [Fact]
     public async Task BranchFromMessageAsync_ReturnsResult_OnSuccess()
@@ -112,7 +112,7 @@ public class BranchingCoordinatorTests
         notification.Title.Should().Be("Branch Failed");
     }
 
-    // ── LoadBranchTreeAsync ─────────────────────────────────────────
+    // -- LoadBranchTreeAsync -----------------------------------------
 
     [Fact]
     public async Task LoadBranchTreeAsync_ReturnsTree_OnSuccess()
@@ -177,7 +177,7 @@ public class BranchingCoordinatorTests
         notification!.Title.Should().Be("Branch Load Failed");
     }
 
-    // ── MergeToMainAsync ────────────────────────────────────────────
+    // -- MergeToMainAsync --------------------------------------------
 
     [Fact]
     public async Task MergeToMainAsync_CallsService_WithProvidedMessageIds()
@@ -285,7 +285,7 @@ public class BranchingCoordinatorTests
             Times.Never);
     }
 
-    // ── DeleteBranchAsync ───────────────────────────────────────────
+    // -- DeleteBranchAsync -------------------------------------------
 
     [Fact]
     public async Task DeleteBranchAsync_CallsService()

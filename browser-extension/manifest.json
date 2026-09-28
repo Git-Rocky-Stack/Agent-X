@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "AgentX Web Clipper",
   "version": "1.4.0",
-  "description": "Clip web content directly into AgentX Smart Inbox — full page, selection, or reader mode.",
+  "description": "Clip web content directly into AgentX Smart Inbox - full page, selection, or reader mode.",
   "permissions": [
     "activeTab",
     "scripting",

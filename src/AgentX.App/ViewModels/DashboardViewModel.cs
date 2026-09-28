@@ -25,7 +25,7 @@ namespace AgentX.App.ViewModels;
 /// </summary>
 public partial class DashboardViewModel : ObservableObject, IDisposable
 {
-    // ── Services ─────────────────────────────────────────────
+    // -- Services ---------------------------------------------
     private readonly IAiService _aiService;
     private readonly IConversationService _conversationService;
     private readonly IDocumentService _documentService;
@@ -43,7 +43,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     // The recommended actions read the typed status of the cards, never their (translated) text.
     private bool _operationsSnapshotUnavailable;
 
-    // ── AI Status ───────────────────────────────────────────
+    // -- AI Status -------------------------------------------
     // IsOllamaConnected is true while the active provider answers, whichever provider it is. It
     // drives the connection card's status dot.
     [ObservableProperty] private bool _isOllamaConnected;
@@ -60,18 +60,18 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
 
     public bool HasProviderAttentionHint => !string.IsNullOrEmpty(ProviderAttentionHint);
 
-    // ── Knowledge Vault Stats ───────────────────────────────
+    // -- Knowledge Vault Stats -------------------------------
     [ObservableProperty] private int _totalDocuments;
     [ObservableProperty] private int _totalChunks;
     [ObservableProperty] private int _totalCollections;
     [ObservableProperty] private string _totalStorageSize = "0 MB";
     [ObservableProperty] private string _indexingStatus = "Idle";
 
-    // ── Chat Stats ──────────────────────────────────────────
+    // -- Chat Stats ------------------------------------------
     [ObservableProperty] private int _totalConversations;
     [ObservableProperty] private long _totalTokensUsed;
 
-    // ── System ──────────────────────────────────────────────
+    // -- System ----------------------------------------------
     [ObservableProperty] private string _gpuName = string.Empty;
     [ObservableProperty] private string _availableRam = string.Empty;
     [ObservableProperty] private bool _hasNpu;
@@ -79,7 +79,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _totalRamInfo = string.Empty;
     [ObservableProperty] private string _gpuVramInfo = string.Empty;
 
-    // ── Operations Overview ───────────────────────────────────
+    // -- Operations Overview -----------------------------------
     [ObservableProperty] private string _conversationIntelligenceHeadline = "0";
     [ObservableProperty] private string _conversationIntelligenceStatus = string.Empty;
     [ObservableProperty] private string _conversationIntelligenceDetail = string.Empty;
@@ -98,30 +98,30 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _workflowAverageDuration = string.Empty;
     [ObservableProperty] private string _workflowDetail = string.Empty;
 
-    // ── Indexing ─────────────────────────────────────────────
+    // -- Indexing ---------------------------------------------
     [ObservableProperty] private int _indexedPercent;
     [ObservableProperty] private int _pendingIndexCount;
 
-    // ── Quick Actions ───────────────────────────────────────
+    // -- Quick Actions ---------------------------------------
     [ObservableProperty] private string _quickSearchQuery = string.Empty;
     [ObservableProperty] private ObservableCollection<DashboardRecommendedActionItem> _recommendedActions = new();
 
-    // ── Recent Activity ─────────────────────────────────────
+    // -- Recent Activity -------------------------------------
     [ObservableProperty] private ObservableCollection<DashboardRecentDocumentItem> _recentDocuments = new();
     [ObservableProperty] private ObservableCollection<DashboardRecentConversationItem> _recentConversations = new();
 
-    // ── Visibility Helpers ──────────────────────────────────
+    // -- Visibility Helpers ----------------------------------
     [ObservableProperty] private bool _hasRecentDocuments;
     [ObservableProperty] private bool _hasRecentConversations;
     [ObservableProperty] private bool _hasFileTypeData;
     [ObservableProperty] private bool _hasCollectionData;
     public bool HasRecommendedActions => RecommendedActions.Count > 0;
 
-    // ── Knowledge Insights ──────────────────────────────────
+    // -- Knowledge Insights ----------------------------------
     [ObservableProperty] private ObservableCollection<DashboardFileTypeBreakdownItem> _fileTypeBreakdown = new();
     [ObservableProperty] private ObservableCollection<DashboardTopCollectionItem> _topCollections = new();
 
-    // ── Temporal Identity: Belief Conflicts ────────────────────
+    // -- Temporal Identity: Belief Conflicts --------------------
     // Empty until the beliefs have been read: "consistent" is claimed only when beliefs exist and
     // none of them conflicts (LoadBeliefConflictsAsync).
     [ObservableProperty] private ObservableCollection<BeliefConflictDisplayItem> _beliefConflicts = new();
@@ -130,7 +130,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _beliefConflictsStatus = string.Empty;
     [ObservableProperty] private string _beliefConflictsDetail = string.Empty;
 
-    // ── Privacy Posture (AX-QA-008) ────────────────────────────
+    // -- Privacy Posture (AX-QA-008) ----------------------------
     // State-aware replacement for the former unconditional "no cloud, no exceptions" claim. Driven by
     // IPrivacyStatusService over the user's actual settings; the footer shows the strong local-only
     // assurance only when nothing is configured to leave the machine.
@@ -139,7 +139,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _privacySummary = string.Empty;
     [ObservableProperty] private ObservableCollection<DashboardPrivacyDisclosureItem> _privacyDisclosures = new();
 
-    // ── Navigation ────────────────────────────────────────────
+    // -- Navigation --------------------------------------------
     public NavigateHandler? NavigateRequested { get; set; }
 
     public DashboardViewModel(
@@ -229,8 +229,8 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     {
         Log.Information("Dashboard initializing...");
 
-        // AX-QA-003 follow-up (dashboard race): MainWindow shows this page's shell immediately —
-        // before the awaited startup migration completes — so do NOT touch the database until the
+        // AX-QA-003 follow-up (dashboard race): MainWindow shows this page's shell immediately -
+        // before the awaited startup migration completes - so do NOT touch the database until the
         // migration gate has opened. If startup failed and entered the recovery state the gate is
         // cancelled; skip loading entirely (the app is exiting) rather than query a broken schema.
         try
@@ -239,7 +239,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         }
         catch (OperationCanceledException)
         {
-            Log.Warning("Dashboard initialization skipped — startup did not reach a data-ready state");
+            Log.Warning("Dashboard initialization skipped - startup did not reach a data-ready state");
             return;
         }
 
@@ -304,7 +304,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         }
         catch (Exception ex)
         {
-            // Never silently fall back to the strong "100% private" claim on error — that is exactly
+            // Never silently fall back to the strong "100% private" claim on error - that is exactly
             // the false assurance AX-QA-008 is about. Show an honest, neutral state instead.
             Log.Warning(ex, "Failed to evaluate dashboard privacy status");
             IsFullyPrivate = false;
@@ -771,7 +771,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
             AddAction(new DashboardRecommendedActionItem
             {
                 CategoryLabel = categorySetup,
-                IconGlyph = "",
+                IconGlyph = "\uE8BD",
                 Title = ProviderStatusText.Resolve(
                     _localization?.GetString("Dash_ActionAiSetupTitle"), "Dash_ActionAiSetupTitle", "Finish local AI setup"),
                 Detail = ProviderStatusText.Resolve(
@@ -789,7 +789,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
             AddAction(new DashboardRecommendedActionItem
             {
                 CategoryLabel = categoryAttention,
-                IconGlyph = "",
+                IconGlyph = "\uE721",
                 Title = ProviderStatusText.Resolve(
                     _localization?.GetString("Dash_ActionIndexingTitle"), "Dash_ActionIndexingTitle", "Clear the indexing backlog"),
                 Detail = PendingIndexCount == 1
@@ -816,7 +816,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
             AddAction(new DashboardRecommendedActionItem
             {
                 CategoryLabel = categoryAttention,
-                IconGlyph = "",
+                IconGlyph = "\uE8B7",
                 Title = ProviderStatusText.Resolve(
                     _localization?.GetString("Dash_ActionTriageTitle"), "Dash_ActionTriageTitle", "Triage new incoming content"),
                 Detail = inboxCount == 1
@@ -844,7 +844,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
             AddAction(new DashboardRecommendedActionItem
             {
                 CategoryLabel = categorySetup,
-                IconGlyph = "",
+                IconGlyph = "\uE895",
                 Title = ProviderStatusText.Resolve(
                     _localization?.GetString("Dash_ActionSyncTitle"), "Dash_ActionSyncTitle", "Configure workspace sync"),
                 Detail = ProviderStatusText.Resolve(
@@ -863,7 +863,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
             {
                 CategoryLabel = ProviderStatusText.Resolve(
                     _localization?.GetString("Dash_ActionCategoryExpansion"), "Dash_ActionCategoryExpansion", "Expansion"),
-                IconGlyph = "",
+                IconGlyph = "\uE943",
                 Title = ProviderStatusText.Resolve(
                     _localization?.GetString("Dash_ActionConnectTitle"), "Dash_ActionConnectTitle", "Connect a live source"),
                 Detail = ProviderStatusText.Resolve(
@@ -886,7 +886,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
             {
                 CategoryLabel = ProviderStatusText.Resolve(
                     _localization?.GetString("Dash_ActionCategoryMemory"), "Dash_ActionCategoryMemory", "Memory"),
-                IconGlyph = "",
+                IconGlyph = "\uE9D2",
                 Title = ProviderStatusText.Resolve(
                     _localization?.GetString("Dash_ActionRecallTitle"), "Dash_ActionRecallTitle", "Strengthen durable recall"),
                 Detail = ProviderStatusText.Resolve(
@@ -903,7 +903,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
             AddAction(new DashboardRecommendedActionItem
             {
                 CategoryLabel = categoryAutomation,
-                IconGlyph = "",
+                IconGlyph = "\uE8C7",
                 Title = ProviderStatusText.Resolve(
                     _localization?.GetString("Dash_ActionReviewRunTitle", targetWorkflowRun.Title),
                     "Dash_ActionReviewRunTitle",
@@ -925,7 +925,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
             AddAction(new DashboardRecommendedActionItem
             {
                 CategoryLabel = categoryAutomation,
-                IconGlyph = "",
+                IconGlyph = "\uE8C7",
                 Title = ProviderStatusText.Resolve(
                     _localization?.GetString("Dash_ActionWorkflowTitle"), "Dash_ActionWorkflowTitle", "Create a repeatable workflow"),
                 Detail = ProviderStatusText.Resolve(
@@ -944,7 +944,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
             {
                 CategoryLabel = ProviderStatusText.Resolve(
                     _localization?.GetString("Dash_ActionCategoryExplore"), "Dash_ActionCategoryExplore", "Explore"),
-                IconGlyph = IsOllamaConnected ? "" : "",
+                IconGlyph = IsOllamaConnected ? "\uE9D9" : "\uE8B5",
                 Title = IsOllamaConnected
                     ? ProviderStatusText.Resolve(
                         _localization?.GetString("Dash_ActionAskTitle"), "Dash_ActionAskTitle", "Ask across your vault")
@@ -971,7 +971,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
             {
                 CategoryLabel = ProviderStatusText.Resolve(
                     _localization?.GetString("Dash_ActionCategoryReview"), "Dash_ActionCategoryReview", "Review"),
-                IconGlyph = "",
+                IconGlyph = "\uE946",
                 Title = ProviderStatusText.Resolve(
                     _localization?.GetString("Dash_ActionHealthTitle"), "Dash_ActionHealthTitle", "Review system-wide health"),
                 Detail = ProviderStatusText.Resolve(
@@ -986,7 +986,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
             {
                 CategoryLabel = ProviderStatusText.Resolve(
                     _localization?.GetString("Dash_ActionCategoryInsight"), "Dash_ActionCategoryInsight", "Insight"),
-                IconGlyph = "",
+                IconGlyph = "\uE9D2",
                 Title = ProviderStatusText.Resolve(
                     _localization?.GetString("Dash_ActionTrendsTitle"), "Dash_ActionTrendsTitle", "Review intelligence trends"),
                 Detail = ProviderStatusText.Resolve(
@@ -1025,7 +1025,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         _operationsSnapshot.WorkflowActivity.SupportingPrimaryKind == OperationsStatusKind.WorkflowsNoRecentRuns ||
         _operationsSnapshot.WorkflowActivity.StatusKind == OperationsStatusKind.WorkflowReadyToAutomate;
 
-    // ── Commands ─────────────────────────────────────────────
+    // -- Commands ---------------------------------------------
 
     [RelayCommand]
     private async Task RefreshAsync()
@@ -1213,7 +1213,7 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
         }
     }
 
-    // ── Temporal Identity: Belief Conflicts ────────────────────────
+    // -- Temporal Identity: Belief Conflicts ------------------------
 
     /// <summary>
     /// Days back <see cref="ITemporalIdentityService.GetActiveTopicDetailsAsync"/> looks for beliefs when
@@ -1367,9 +1367,9 @@ public partial class DashboardViewModel : ObservableObject, IDisposable
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════
+// ===================================================================
 //  TEMPORAL IDENTITY DISPLAY ITEMS
-// ═══════════════════════════════════════════════════════════════════
+// ===================================================================
 
 /// <summary>
 /// Display wrapper for BeliefConflictEntity that includes the Topic from the related Belief.
@@ -1385,9 +1385,9 @@ public class BeliefConflictDisplayItem
     public BeliefConflictEntity? OriginalConflict { get; set; }
 }
 
-// ═══════════════════════════════════════════════════════════════════
+// ===================================================================
 //  DISPLAY ITEM CLASSES (top-level for x:Bind DataTemplate support)
-// ═══════════════════════════════════════════════════════════════════
+// ===================================================================
 
 /// <summary>
 /// A single privacy disclosure (a feature that sends data off the machine) for display in the
@@ -1412,13 +1412,13 @@ public class DashboardRecentDocumentItem
 
     public string FileTypeIcon => FileType.ToLowerInvariant() switch
     {
-        "pdf" => "",
-        "docx" or "doc" => "",
-        "txt" => "",
-        "md" => "",
-        "cs" or "py" or "js" or "ts" => "",
-        "png" or "jpg" or "jpeg" or "gif" => "",
-        _ => ""
+        "pdf" => "\uEA90",
+        "docx" or "doc" => "\uE8A5",
+        "txt" => "\uE8A4",
+        "md" => "\uE943",
+        "cs" or "py" or "js" or "ts" => "\uE943",
+        "png" or "jpg" or "jpeg" or "gif" => "\uEB9F",
+        _ => "\uE7C3"
     };
 }
 

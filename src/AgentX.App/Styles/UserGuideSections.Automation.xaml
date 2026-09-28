@@ -2,18 +2,18 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!--
-    ╔══════════════════════════════════════════════════════════════════╗
-    ║          USER GUIDE AUTOMATION SECTIONS                          ║
-    ║                                                                  ║
-    ║  WorkflowsTemplate — on-demand multi-step pipelines. Scheduled   ║
-    ║  and event-triggered automation are not shipped features; guide  ║
-    ║  sections describing them were removed (2026-07 accuracy pass).  ║
-    ╚══════════════════════════════════════════════════════════════════╝
+    +==================================================================+
+    |          USER GUIDE AUTOMATION SECTIONS                          |
+    |                                                                  |
+    |  WorkflowsTemplate - on-demand multi-step pipelines. Scheduled   |
+    |  and event-triggered automation are not shipped features; guide  |
+    |  sections describing them were removed (2026-07 accuracy pass).  |
+    +==================================================================+
     -->
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          WORKFLOWS
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
     <DataTemplate x:Key="WorkflowsTemplate">
         <Border Style="{StaticResource CardStyle}">
             <StackPanel Spacing="16">

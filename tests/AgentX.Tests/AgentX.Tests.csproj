@@ -24,7 +24,7 @@
     <PackageReference Include="Moq" Version="4.20.72" />
     <PackageReference Include="FluentAssertions" Version="6.12.2" />
     <!-- Roslyn: compiles real, loadable plugin assemblies in-process so PluginServiceTests can
-         exercise the AssemblyLoadContext load → discover → instantiate → lifecycle path for real
+         exercise the AssemblyLoadContext load -> discover -> instantiate -> lifecycle path for real
          (AX-QA-009). Test-only; never referenced by AgentX.Core or AgentX.App. -->
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.5.0" />
     <PackageReference Include="System.IO.FileSystem.AccessControl" Version="5.0.0" />
@@ -63,7 +63,7 @@
          dependencies, so linking compiles cleanly against AgentX.Core alone. -->
     <Compile Include="..\..\src\AgentX.App\Services\LocalizationService.cs" Link="Services\LocalizationService.cs" />
     <!-- CommandPaletteViewModel depends only on AgentX.Core.Services.Shortcuts
-         and CommunityToolkit.Mvvm — no Windows.* deps — so it links cleanly. -->
+         and CommunityToolkit.Mvvm - no Windows.* deps - so it links cleanly. -->
     <Compile Include="..\..\src\AgentX.App\ViewModels\CommandPaletteViewModel.cs" Link="ViewModels\CommandPaletteViewModel.cs" />
     <!-- JumpToViewModel follows the same pure-VM shape as CommandPaletteViewModel. -->
     <Compile Include="..\..\src\AgentX.App\ViewModels\JumpToViewModel.cs" Link="ViewModels\JumpToViewModel.cs" />
@@ -145,7 +145,7 @@
     <Compile Include="..\..\src\AgentX.App\ViewModels\Coordinators\VoiceCoordinator.cs" Link="ViewModels\Coordinators\VoiceCoordinator.cs" />
     <Compile Include="..\..\src\AgentX.App\ViewModels\Coordinators\IBranchingCoordinator.cs" Link="ViewModels\Coordinators\IBranchingCoordinator.cs" />
     <Compile Include="..\..\src\AgentX.App\ViewModels\Coordinators\BranchingCoordinator.cs" Link="ViewModels\Coordinators\BranchingCoordinator.cs" />
-    <!-- StatusBarService is pure (no WinUI deps) — uses IServiceProvider and Core services only. -->
+    <!-- StatusBarService is pure (no WinUI deps) - uses IServiceProvider and Core services only. -->
     <Compile Include="..\..\src\AgentX.App\Services\IStatusBarService.cs" Link="Services\IStatusBarService.cs" />
     <Compile Include="..\..\src\AgentX.App\Services\StatusBarService.cs" Link="Services\StatusBarService.cs" />
     <Compile Include="..\..\src\AgentX.App\Services\ProviderStatusText.cs" Link="Services\ProviderStatusText.cs" />
@@ -172,7 +172,7 @@
     <Compile Include="..\..\src\AgentX.App\Services\WorkflowLaunchRequest.cs" Link="Services\WorkflowLaunchRequest.cs" />
     <Compile Include="..\..\src\AgentX.App\Helpers\MarkdownParser.cs" Link="Helpers\MarkdownParser.cs" />
     <Compile Include="..\..\src\AgentX.App\Helpers\StatusToneResolver.cs" Link="Helpers\StatusToneResolver.cs" />
-    <!-- UserGuideViewModel is pure (no WinUI deps) — only ObservableCollection and Models. -->
+    <!-- UserGuideViewModel is pure (no WinUI deps) - only ObservableCollection and Models. -->
     <Compile Include="..\..\src\AgentX.App\ViewModels\UserGuideViewModel.cs" Link="ViewModels\UserGuideViewModel.cs" />
     <Compile Include="..\..\src\AgentX.App\Models\UserGuideSection.cs" Link="Models\UserGuideSection.cs" />
   </ItemGroup>

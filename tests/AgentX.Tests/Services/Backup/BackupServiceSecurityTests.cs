@@ -143,7 +143,7 @@ public sealed class BackupServiceSecurityTests
     {
         var blob = BackupService.EncryptBytes(RandomNumberGenerator.GetBytes(2048), "pw");
 
-        // Flip a bit in the final ciphertext byte — GCM authentication must reject it.
+        // Flip a bit in the final ciphertext byte - GCM authentication must reject it.
         blob[^1] ^= 0xFF;
 
         var act = () => BackupService.DecryptBytes(blob, "pw");

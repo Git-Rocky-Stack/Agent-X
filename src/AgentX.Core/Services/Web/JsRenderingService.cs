@@ -11,7 +11,7 @@ namespace AgentX.Core.Services.Web;
 /// <para>
 /// Implements both <see cref="IDisposable"/> and <see cref="IAsyncDisposable"/> to properly
 /// release the Playwright browser process and its associated resources. Async disposal is
-/// strongly preferred — Playwright's <see cref="IBrowser"/> only exposes <c>DisposeAsync</c>;
+/// strongly preferred - Playwright's <see cref="IBrowser"/> only exposes <c>DisposeAsync</c>;
 /// the sync <see cref="Dispose"/> path blocks on it as a fallback for sync-using callers.
 /// </para>
 /// </summary>
@@ -252,7 +252,7 @@ public sealed class JsRenderingService : IJsRenderingService, IDisposable, IAsyn
 
     /// <summary>
     /// Asynchronously disposes the Playwright browser and Playwright instance, releasing all
-    /// associated resources. Preferred over <see cref="Dispose"/> — Playwright's
+    /// associated resources. Preferred over <see cref="Dispose"/> - Playwright's
     /// <see cref="IBrowser"/> only exposes async teardown.
     /// </summary>
     public async ValueTask DisposeAsync()
@@ -269,7 +269,7 @@ public sealed class JsRenderingService : IJsRenderingService, IDisposable, IAsyn
 
     /// <summary>
     /// Synchronous fallback disposal. Blocks the calling thread on Playwright's async
-    /// browser teardown — prefer <see cref="DisposeAsync"/> when the caller can await.
+    /// browser teardown - prefer <see cref="DisposeAsync"/> when the caller can await.
     /// </summary>
     public void Dispose()
     {

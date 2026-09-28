@@ -7,7 +7,7 @@ namespace AgentX.Core.Services.OAuth;
 /// </summary>
 /// <remarks>
 /// Instances are typically loaded from <c>AppSettings</c> or registered via DI.
-/// The class is intentionally simple and immutable — all properties are <c>init</c>-only
+/// The class is intentionally simple and immutable - all properties are <c>init</c>-only
 /// to prevent accidental mutation after construction.
 /// </remarks>
 public sealed class OAuthProviderConfig

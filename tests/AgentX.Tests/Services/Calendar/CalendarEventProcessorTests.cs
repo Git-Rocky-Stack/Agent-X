@@ -8,7 +8,7 @@ using Xunit;
 namespace AgentX.Tests.Services.Calendar;
 
 /// <summary>
-/// Unit tests for <see cref="CalendarEventProcessor"/> — validates
+/// Unit tests for <see cref="CalendarEventProcessor"/> - validates
 /// event-to-inbox parameter conversion, content extraction, and
 /// searchable text generation.
 /// </summary>
@@ -28,9 +28,9 @@ public sealed class CalendarEventProcessorTests : IDisposable
         (_logger as IDisposable)?.Dispose();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Construction
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Constructor_ThrowsOnNullLogger()
@@ -39,9 +39,9 @@ public sealed class CalendarEventProcessorTests : IDisposable
         act.Should().Throw<ArgumentNullException>();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Constants
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void PluginId_IsComAgentXCalendar()
@@ -61,9 +61,9 @@ public sealed class CalendarEventProcessorTests : IDisposable
         CalendarEventProcessor.SourceType.Should().Be("calendar-connector");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  ConvertToInboxParameters
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void ConvertToInboxParameters_ThrowsOnNullEvent()
@@ -144,9 +144,9 @@ public sealed class CalendarEventProcessorTests : IDisposable
         result.ContentText.Should().NotBeEmpty();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  ExtractSearchableContent
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void ExtractSearchableContent_ThrowsOnNullEvent()
@@ -371,9 +371,9 @@ public sealed class CalendarEventProcessorTests : IDisposable
         cancelled.ExternalId.Should().Be(active.ExternalId);
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Helper
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     private static CalEvent CreateSampleEvent(bool isCancelled = false) => new()
     {

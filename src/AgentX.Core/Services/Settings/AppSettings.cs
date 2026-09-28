@@ -18,7 +18,7 @@ public class AppSettings
     // the Windows display language. Applied at startup, before the shell is built.
     public string? LanguageOverride { get; set; }
 
-    // AI Provider — Active selection ("local", "ollama", "openai", "anthropic")
+    // AI Provider - Active selection ("local", "ollama", "openai", "anthropic")
     public string ActiveProviderId { get; set; } = "local";
 
     // Built-in Local LLM (LLamaSharp)

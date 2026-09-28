@@ -1,6 +1,6 @@
 namespace AgentX.Mobile.Models;
 
-// ── Generic envelope ─────────────────────────────────────────────────────────
+// -- Generic envelope ---------------------------------------------------------
 
 /// <summary>
 /// Mirror of the desktop AgentX REST API response envelope.
@@ -65,7 +65,7 @@ public sealed class ApiResult<T>
         new(status, default, errorMessage ?? "The request failed.");
 }
 
-// ── Document ─────────────────────────────────────────────────────────────────
+// -- Document -----------------------------------------------------------------
 
 /// <summary>
 /// A document as returned by GET /api/documents.
@@ -79,7 +79,7 @@ public sealed class DocumentDto
     public DateTime ImportedAt { get; init; }
     public string IndexingStatus { get; init; } = string.Empty;
 
-    // ── Derived display helpers ───────────────────────────────────────────────
+    // -- Derived display helpers -----------------------------------------------
 
     /// <summary>Human-readable file size (e.g., "1.4 MB").</summary>
     public string FileSizeDisplay => FileSizeBytes switch
@@ -111,7 +111,7 @@ public sealed class DocumentDto
     };
 }
 
-// ── Conversation ─────────────────────────────────────────────────────────────
+// -- Conversation -------------------------------------------------------------
 
 /// <summary>
 /// A conversation as returned by GET /api/conversations.
@@ -146,7 +146,7 @@ public sealed class ConversationDto
     }
 }
 
-// ── Collection ────────────────────────────────────────────────────────────────
+// -- Collection ----------------------------------------------------------------
 
 /// <summary>
 /// A collection as returned by GET /api/collections.
@@ -160,7 +160,7 @@ public sealed class CollectionDto
     public DateTime CreatedAt { get; init; }
 }
 
-// ── Search ────────────────────────────────────────────────────────────────────
+// -- Search --------------------------------------------------------------------
 
 /// <summary>
 /// A single result from POST /api/search.
@@ -186,11 +186,11 @@ public sealed class SearchResultDto
 
     /// <summary>Content trimmed to a reasonable preview length.</summary>
     public string ContentPreview => ChunkContent.Length > 250
-        ? string.Concat(ChunkContent.AsSpan(0, 247), "…")
+        ? string.Concat(ChunkContent.AsSpan(0, 247), "...")
         : ChunkContent;
 }
 
-// ── Health ────────────────────────────────────────────────────────────────────
+// -- Health --------------------------------------------------------------------
 
 /// <summary>
 /// Response payload from GET /api/health.

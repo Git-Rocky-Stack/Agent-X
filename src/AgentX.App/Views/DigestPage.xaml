@@ -21,9 +21,9 @@
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
 
-        <!-- ═══════════════════════════════════════════════════════════
+        <!-- ===========================================================
              COLUMN 0: MAIN CONTENT
-             ═══════════════════════════════════════════════════════════ -->
+             =========================================================== -->
         <ScrollViewer x:Name="PageScroller"
                       Grid.Column="0"
                       VerticalScrollBarVisibility="Auto"
@@ -39,9 +39,9 @@
                     <RowDefinition Height="Auto" /> <!-- Row 2: Main content sections -->
                 </Grid.RowDefinitions>
 
-                <!-- ═══════════════════════════════════════════════════════
+                <!-- =======================================================
                      ROW 0: PAGE HEADER
-                     ═══════════════════════════════════════════════════════ -->
+                     ======================================================= -->
                 <Grid Grid.Row="0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -89,9 +89,9 @@
                     </StackPanel>
                 </Grid>
 
-                <!-- ═══════════════════════════════════════════════════════
+                <!-- =======================================================
                      ROW 1: STATS BAR (4 columns)
-                     ═══════════════════════════════════════════════════════ -->
+                     ======================================================= -->
                 <StackPanel Grid.Row="1"
                             Visibility="{x:Bind ViewModel.HasReport, Mode=OneWay, Converter={StaticResource BoolToVis}}">
                     <StackPanel Orientation="Horizontal" Spacing="12">
@@ -201,9 +201,9 @@
                     </StackPanel>
                 </StackPanel>
 
-                <!-- ═══════════════════════════════════════════════════════
+                <!-- =======================================================
                      ROW 2: MAIN CONTENT SECTIONS
-                     ═══════════════════════════════════════════════════════ -->
+                     ======================================================= -->
                 <Grid Grid.Row="2">
 
                     <!-- Loading state -->
@@ -255,7 +255,7 @@
                     <StackPanel Visibility="{x:Bind ViewModel.HasReport, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                                 Spacing="20">
 
-                        <!-- ─── Row: Top Searches + Top Collections ─── -->
+                        <!-- === Row: Top Searches + Top Collections === -->
                         <Grid ColumnSpacing="20">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
@@ -376,7 +376,7 @@
                             </controls:Faceplate>
                         </Grid>
 
-                        <!-- ─── Row: File Type Breakdown + Conversation Highlights ─── -->
+                        <!-- === Row: File Type Breakdown + Conversation Highlights === -->
                         <Grid ColumnSpacing="20">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
@@ -516,9 +516,9 @@
             </Grid>
         </ScrollViewer>
 
-        <!-- ═══════════════════════════════════════════════════════════
+        <!-- ===========================================================
              COLUMN 1: REPORT HISTORY SIDEBAR
-             ═══════════════════════════════════════════════════════════ -->
+             =========================================================== -->
         <Border Grid.Column="1"
                 Width="280"
                 Background="{ThemeResource PageBackgroundBrush}"

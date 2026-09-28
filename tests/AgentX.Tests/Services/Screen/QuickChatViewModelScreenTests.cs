@@ -27,7 +27,7 @@ public sealed class QuickChatViewModelScreenTests
         _mockScreenCapture = new Mock<IScreenCaptureService>();
     }
 
-    // ── Constructor ────────────────────────────────────────────────────────────
+    // -- Constructor ------------------------------------------------------------
 
     [Fact]
     public void Constructor_WithScreenCaptureService_AcceptsService()
@@ -35,7 +35,7 @@ public sealed class QuickChatViewModelScreenTests
         // Act
         var vm = CreateViewModel();
 
-        // Assert — should not throw
+        // Assert - should not throw
         vm.Should().NotBeNull();
     }
 
@@ -45,11 +45,11 @@ public sealed class QuickChatViewModelScreenTests
         // Act
         var vm = new QuickChatViewModel(_mockAiService.Object, EnglishResources.Create());
 
-        // Assert — should not throw; screen context simply won't be captured
+        // Assert - should not throw; screen context simply won't be captured
         vm.Should().NotBeNull();
     }
 
-    // ── Screen context captured flag ────────────────────────────────────────────
+    // -- Screen context captured flag --------------------------------------------
 
     [Fact]
     public async Task SubmitQueryAsync_WithScreenContext_SetsScreenContextCapturedTrue()
@@ -141,12 +141,12 @@ public sealed class QuickChatViewModelScreenTests
         // Act
         await vm.SubmitQueryCommand.ExecuteAsync(null);
 
-        // Assert — failure should be caught gracefully, query still proceeds
+        // Assert - failure should be caught gracefully, query still proceeds
         vm.ScreenContextCaptured.Should().BeFalse();
         vm.ResponseText.Should().Be("AI response");
     }
 
-    // ── System prompt construction ─────────────────────────────────────────────
+    // -- System prompt construction ---------------------------------------------
 
     [Fact]
     public async Task SubmitQueryAsync_WithScreenContext_PassesContextToAiService()
@@ -183,7 +183,7 @@ public sealed class QuickChatViewModelScreenTests
         // Act
         await vm.SubmitQueryCommand.ExecuteAsync(null);
 
-        // Assert — system prompt should contain screen context markers
+        // Assert - system prompt should contain screen context markers
         capturedSystemPrompt.Should().NotBeNull();
         capturedSystemPrompt.Should().Contain("--- SCREEN CONTEXT ---");
         capturedSystemPrompt.Should().Contain("Screen OCR text");
@@ -210,19 +210,19 @@ public sealed class QuickChatViewModelScreenTests
             .Returns((IReadOnlyList<ChatMessage> messages, string? systemPrompt, ChatOptions? options, CancellationToken ct) =>
                 StreamTokensAsync("AI response"));
 
-        // No screen capture service (null) — no screen context
+        // No screen capture service (null) - no screen context
         var vm = new QuickChatViewModel(_mockAiService.Object, EnglishResources.Create());
         vm.QueryText = "Tell me about AI";
 
         // Act
         await vm.SubmitQueryCommand.ExecuteAsync(null);
 
-        // Assert — system prompt should NOT contain screen context markers
+        // Assert - system prompt should NOT contain screen context markers
         capturedSystemPrompt.Should().NotBeNull();
         capturedSystemPrompt.Should().NotContain("--- SCREEN CONTEXT ---");
     }
 
-    // ── Clear resets screen context ─────────────────────────────────────────────
+    // -- Clear resets screen context ---------------------------------------------
 
     [Fact]
     public void Clear_ResetsScreenContextCaptured()
@@ -238,7 +238,7 @@ public sealed class QuickChatViewModelScreenTests
         vm.ScreenContextCaptured.Should().BeFalse();
     }
 
-    // ── Query still works without screen capture service ────────────────────────
+    // -- Query still works without screen capture service ------------------------
 
     [Fact]
     public async Task SubmitQueryAsync_WithoutScreenCaptureService_StillWorks()
@@ -257,7 +257,7 @@ public sealed class QuickChatViewModelScreenTests
         vm.ScreenContextCaptured.Should().BeFalse();
     }
 
-    // ── Status message ──────────────────────────────────────────────────────────
+    // -- Status message ----------------------------------------------------------
 
     [Fact]
     public async Task SubmitQueryAsync_WhenProcessingComplete_StatusIsDone()
@@ -295,7 +295,7 @@ public sealed class QuickChatViewModelScreenTests
         // Act
         await vm.SubmitQueryCommand.ExecuteAsync(null);
 
-        // Assert — should still succeed with AI response
+        // Assert - should still succeed with AI response
         vm.StatusMessage.Should().Be("Done");
         vm.ResponseText.Should().Be("Response text");
     }
@@ -337,7 +337,7 @@ public sealed class QuickChatViewModelScreenTests
         vm.ResponseText.Should().Be("Keine Antwort erhalten: provider offline");
     }
 
-    // ── Cancellation ────────────────────────────────────────────────────────────
+    // -- Cancellation ------------------------------------------------------------
 
     [Fact]
     public void CancelQuery_StopsProcessing()
@@ -345,14 +345,14 @@ public sealed class QuickChatViewModelScreenTests
         // Arrange
         var vm = CreateViewModel();
 
-        // Act — should not throw even when nothing is in progress
+        // Act - should not throw even when nothing is in progress
         vm.CancelQuery();
 
         // Assert
         vm.IsProcessing.Should().BeFalse();
     }
 
-    // ── Helpers ─────────────────────────────────────────────────────────────────
+    // -- Helpers -----------------------------------------------------------------
 
     private QuickChatViewModel CreateViewModel()
     {

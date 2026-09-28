@@ -8,10 +8,10 @@ namespace AgentX.App.Services;
 /// A one-shot gate that data-backed UI awaits before issuing its first database read, so nothing
 /// queries the schema until the startup migration gate has passed.
 ///
-/// AX-QA-003 follow-up — closes the dashboard-load-vs-migration race: <c>MainWindow</c> shows the
+/// AX-QA-003 follow-up - closes the dashboard-load-vs-migration race: <c>MainWindow</c> shows the
 /// <c>DashboardPage</c> shell immediately (before the awaited migration completes), so without this
 /// gate <c>DashboardViewModel.InitializeAsync</c> would fan out reads against a not-yet-migrated
-/// schema. <see cref="StartupOrchestrator"/> opens the gate the instant the migration succeeds —
+/// schema. <see cref="StartupOrchestrator"/> opens the gate the instant the migration succeeds -
 /// before the REST API and connectors start, since data-backed reads only need a valid schema. If
 /// startup enters the recovery state the gate is faulted so any waiter is released (the app is
 /// exiting anyway) instead of awaiting forever.
@@ -55,7 +55,7 @@ public sealed class StartupGate : IStartupGate
 
     public async Task WaitForDataReadyAsync(CancellationToken cancellationToken = default)
     {
-        // Fast path: already opened (or failed) — observe the result (success or cancellation) now.
+        // Fast path: already opened (or failed) - observe the result (success or cancellation) now.
         if (_ready.Task.IsCompleted || !cancellationToken.CanBeCanceled)
         {
             await _ready.Task.ConfigureAwait(false);

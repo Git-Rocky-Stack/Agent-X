@@ -64,7 +64,7 @@ public sealed class HardwareDetector : IHardwareDetector
         }
     }
 
-    // ── GPU Detection via Win32_VideoController ─────────────────────
+    // -- GPU Detection via Win32_VideoController ---------------------
 
     private void DetectGpu(HardwareCapability capability)
     {
@@ -100,7 +100,7 @@ public sealed class HardwareDetector : IHardwareDetector
         }
     }
 
-    // ── CPU Detection via Win32_Processor ───────────────────────────
+    // -- CPU Detection via Win32_Processor ---------------------------
 
     private void DetectCpu(HardwareCapability capability)
     {
@@ -150,7 +150,7 @@ public sealed class HardwareDetector : IHardwareDetector
         }
     }
 
-    // ── Memory Detection ────────────────────────────────────────────
+    // -- Memory Detection --------------------------------------------
 
     private void DetectMemory(HardwareCapability capability)
     {
@@ -206,7 +206,7 @@ public sealed class HardwareDetector : IHardwareDetector
         }
     }
 
-    // ── NPU Detection ───────────────────────────────────────────────
+    // -- NPU Detection -----------------------------------------------
 
     private void DetectNpu(HardwareCapability capability)
     {
@@ -254,7 +254,7 @@ public sealed class HardwareDetector : IHardwareDetector
         }
     }
 
-    // ── Helpers ─────────────────────────────────────────────────────
+    // -- Helpers -----------------------------------------------------
 
     /// <summary>
     /// Heuristic to detect integrated GPUs by name pattern.

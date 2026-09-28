@@ -11,7 +11,7 @@ import { ExtractedPage } from '../content/extractors';
 
 const api = new AgentXApi();
 
-// ── API token (pairing) ─────────────────────────────────────────────────────
+// -- API token (pairing) -----------------------------------------------------
 // The desktop app requires a per-install bearer token on all data routes. The user pairs by
 // pasting it into the popup; the worker validates it against the authenticated /api/auth/check
 // route before storing it under chrome.storage.local.apiToken.
@@ -57,7 +57,7 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
   }
 });
 
-// ── Recent Clips Storage ────────────────────────────────────────────────────
+// -- Recent Clips Storage ----------------------------------------------------
 
 interface RecentClip {
   title: string;
@@ -142,7 +142,7 @@ async function extractFromTab(tabId: number, mode: string): Promise<ExtractPageR
   return parseExtractPageResponse(results[0]?.result);
 }
 
-// ── Message Handling ────────────────────────────────────────────────────────
+// -- Message Handling --------------------------------------------------------
 
 interface ExtensionMessage {
   action: string;
@@ -180,7 +180,7 @@ chrome.runtime.onMessage.addListener(
   }
 );
 
-// ── Handlers ───────────────────────────────────────────────────────────────
+// -- Handlers ---------------------------------------------------------------
 
 function toClipRequest(page: ExtractedPage, clipMode: ClipRequest['clipMode']): ClipRequest {
   return {

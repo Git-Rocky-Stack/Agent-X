@@ -314,7 +314,7 @@ public sealed class WorkspaceProfileService : IWorkspaceProfileService
 
         // Clone all content fields.  Id is intentionally omitted so EF Core
         // generates a new primary key.  Name is replaced with the caller-supplied
-        // value.  IsDefault is always false — the duplicate starts as a neutral profile.
+        // value.  IsDefault is always false - the duplicate starts as a neutral profile.
         var duplicate = new WorkspaceProfileEntity
         {
             Name = newName.Trim(),
@@ -334,7 +334,7 @@ public sealed class WorkspaceProfileService : IWorkspaceProfileService
             await _db.SaveChangesAsync().ConfigureAwait(false);
 
             Log.Information(
-                "Duplicated workspace profile {SourceId} '{SourceName}' → {NewId} '{NewName}'",
+                "Duplicated workspace profile {SourceId} '{SourceName}' -> {NewId} '{NewName}'",
                 sourceId, source.Name, duplicate.Id, duplicate.Name);
 
             return duplicate;

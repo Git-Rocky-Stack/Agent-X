@@ -42,7 +42,7 @@ public sealed class WebProcessorTests : IDisposable
         try { Directory.Delete(_tempDirectory, recursive: true); } catch (IOException) { }
     }
 
-    // ── Construction ─────────────────────────────────────────────────────────
+    // -- Construction ---------------------------------------------------------
 
     [Fact]
     public void Constructor_NullScraper_Throws()
@@ -52,7 +52,7 @@ public sealed class WebProcessorTests : IDisposable
         act.Should().Throw<ArgumentNullException>().WithParameterName("webScraper");
     }
 
-    // ── CanProcess ───────────────────────────────────────────────────────────
+    // -- CanProcess -----------------------------------------------------------
 
     [Theory]
     [InlineData("bookmark.url", true)]
@@ -73,7 +73,7 @@ public sealed class WebProcessorTests : IDisposable
         _processor.SupportedExtensions.Should().BeEquivalentTo(new[] { ".url", ".webloc" });
     }
 
-    // ── Missing file ─────────────────────────────────────────────────────────
+    // -- Missing file ---------------------------------------------------------
 
     [Fact]
     public async Task ProcessAsync_MissingFile_ThrowsFileNotFound()
@@ -85,7 +85,7 @@ public sealed class WebProcessorTests : IDisposable
         await act.Should().ThrowAsync<FileNotFoundException>();
     }
 
-    // ── .url (Windows INI) parsing ───────────────────────────────────────────
+    // -- .url (Windows INI) parsing -------------------------------------------
 
     [Fact]
     public async Task ProcessAsync_WindowsShortcut_ExtractsUrlAndScrapedContent()
@@ -137,7 +137,7 @@ public sealed class WebProcessorTests : IDisposable
         await act.Should().ThrowAsync<DocumentExtractionException>().WithMessage("No URL found in shortcut file.");
     }
 
-    // ── .webloc (macOS plist) parsing ────────────────────────────────────────
+    // -- .webloc (macOS plist) parsing ----------------------------------------
 
     [Fact]
     public async Task ProcessAsync_WeblocShortcut_ExtractsUrlFromPlist()
@@ -184,7 +184,7 @@ public sealed class WebProcessorTests : IDisposable
         await act.Should().ThrowAsync<DocumentExtractionException>().WithMessage("No URL found in shortcut file.");
     }
 
-    // ── Validation and scraper failure paths ─────────────────────────────────
+    // -- Validation and scraper failure paths ---------------------------------
 
     [Fact]
     public async Task ProcessAsync_InvalidUrl_SkipsScrapingAndReportsTheUrl()
@@ -321,7 +321,7 @@ public sealed class WebProcessorTests : IDisposable
         WebProcessor.IsNonPublicAddress(IPAddress.Parse(address)).Should().Be(expected);
     }
 
-    // ── Optional metadata mapping ────────────────────────────────────────────
+    // -- Optional metadata mapping --------------------------------------------
 
     [Fact]
     public async Task ProcessAsync_PopulatesEveryOptionalMetadataFieldWhenPresent()
@@ -369,7 +369,7 @@ public sealed class WebProcessorTests : IDisposable
         document.Metadata.Author.Should().BeNull();
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
+    // -- Helpers --------------------------------------------------------------
 
     private string WriteFile(string name, string content)
     {

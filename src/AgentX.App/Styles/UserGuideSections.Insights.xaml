@@ -2,19 +2,19 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!--
-    ╔══════════════════════════════════════════════════════════════════╗
-    ║       USER GUIDE INSIGHTS & OPERATIONS SECTIONS                   ║
-    ║                                                                  ║
-    ║  ComparisonTemplate, InboxTemplate, AnalyticsTemplate,           ║
-    ║  OperationsTemplate, SyncTemplate — added by the 2026-07         ║
-    ║  documentation accuracy pass so every navigation destination     ║
-    ║  has guide coverage.                                             ║
-    ╚══════════════════════════════════════════════════════════════════╝
+    +==================================================================+
+    |       USER GUIDE INSIGHTS & OPERATIONS SECTIONS                   |
+    |                                                                  |
+    |  ComparisonTemplate, InboxTemplate, AnalyticsTemplate,           |
+    |  OperationsTemplate, SyncTemplate - added by the 2026-07         |
+    |  documentation accuracy pass so every navigation destination     |
+    |  has guide coverage.                                             |
+    +==================================================================+
     -->
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          DOCUMENT COMPARISON
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
     <DataTemplate x:Key="ComparisonTemplate">
         <Border Style="{StaticResource CardStyle}">
             <StackPanel Spacing="16">
@@ -92,9 +92,9 @@
         </Border>
     </DataTemplate>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          SMART INBOX
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
     <DataTemplate x:Key="InboxTemplate">
         <Border Style="{StaticResource CardStyle}">
             <StackPanel Spacing="16">
@@ -172,9 +172,9 @@
         </Border>
     </DataTemplate>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          ANALYTICS
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
     <DataTemplate x:Key="AnalyticsTemplate">
         <Border Style="{StaticResource CardStyle}">
             <StackPanel Spacing="16">
@@ -252,9 +252,9 @@
         </Border>
     </DataTemplate>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          OPERATIONS
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
     <DataTemplate x:Key="OperationsTemplate">
         <Border Style="{StaticResource CardStyle}">
             <StackPanel Spacing="16">
@@ -332,9 +332,9 @@
         </Border>
     </DataTemplate>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          COLLABORATIVE SYNC
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
     <DataTemplate x:Key="SyncTemplate">
         <Border Style="{StaticResource CardStyle}">
             <StackPanel Spacing="16">

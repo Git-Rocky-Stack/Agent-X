@@ -317,7 +317,7 @@ public sealed class ConversationCoordinator : IConversationCoordinator
                     }
                     catch
                     {
-                        // Non-critical — skip feedback loading
+                        // Non-critical - skip feedback loading
                     }
                 }
 

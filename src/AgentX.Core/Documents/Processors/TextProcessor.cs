@@ -9,7 +9,7 @@ namespace AgentX.Core.Documents.Processors;
 /// Processes plain text and structured text files (.txt, .csv, .log, .json, .xml, .yaml, etc.).
 /// <para>
 /// Reads file content as-is without format-specific parsing. Structured formats like
-/// JSON, XML, YAML, and CSV are treated as raw text — no schema-aware parsing is performed.
+/// JSON, XML, YAML, and CSV are treated as raw text - no schema-aware parsing is performed.
 /// Encoding detection tries UTF-8 first, then falls back to the system default encoding.
 /// </para>
 /// </summary>
@@ -136,7 +136,7 @@ public class TextProcessor : IDocumentProcessor
                 return (Encoding.BigEndianUnicode.GetString(bytes, 2, bytes.Length - 2), "UTF-16 BE");
             }
 
-            // No BOM — try UTF-8 first with strict validation
+            // No BOM - try UTF-8 first with strict validation
             try
             {
                 var strictUtf8 = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);

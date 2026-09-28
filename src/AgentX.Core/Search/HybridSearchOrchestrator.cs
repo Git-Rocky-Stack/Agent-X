@@ -119,9 +119,9 @@ public sealed class HybridSearchOrchestrator : IHybridSearchOrchestrator
         _ => SearchType.Hybrid
     };
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Mode-specific execution
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     private async Task<IReadOnlyList<SearchResult>> ExecuteSemanticSearchAsync(SearchQuery query, CancellationToken ct)
     {
@@ -235,9 +235,9 @@ public sealed class HybridSearchOrchestrator : IHybridSearchOrchestrator
         return merged;
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Reciprocal Rank Fusion (RRF)
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>
     /// Merges two ranked result lists using Reciprocal Rank Fusion.

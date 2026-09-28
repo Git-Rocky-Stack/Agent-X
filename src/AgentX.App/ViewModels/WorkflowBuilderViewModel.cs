@@ -37,7 +37,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
         ContentRepurpose
     }
 
-    // ── Services ─────────────────────────────────────────────
+    // -- Services ---------------------------------------------
     private readonly IWorkflowService _workflowService;
     private readonly IWorkflowEngine _workflowEngine;
     private readonly IModelManager _modelManager;
@@ -48,26 +48,26 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
     private readonly IAppPathService _appPaths;
     private readonly ILocalizationService? _localization;
 
-    // ── Page State ───────────────────────────────────────────
+    // -- Page State -------------------------------------------
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private bool _isEditing;
     [ObservableProperty] private bool _isRunning;
     [ObservableProperty] private string _statusMessage = string.Empty;
     [ObservableProperty] private string _focusedWorkflowRunSourceLabel = string.Empty;
 
-    // ── Workflow List ────────────────────────────────────────
+    // -- Workflow List ----------------------------------------
     public ObservableCollection<WorkflowListItem> Workflows { get; } = new();
     [ObservableProperty] private WorkflowListItem? _selectedWorkflow;
     [ObservableProperty] private bool _hasWorkflows;
     public ObservableCollection<WorkflowRunHistoryDisplayItem> RecentRuns { get; } = new();
 
-    // ── Editor State ─────────────────────────────────────────
+    // -- Editor State -----------------------------------------
     [ObservableProperty] private string _editName = string.Empty;
     [ObservableProperty] private string _editDescription = string.Empty;
     [ObservableProperty] private string _editCategory = "Custom";
     public ObservableCollection<WorkflowStepItem> EditSteps { get; } = new();
 
-    // ── Runner State ─────────────────────────────────────────
+    // -- Runner State -----------------------------------------
     [ObservableProperty] private string _runInput = string.Empty;
     [ObservableProperty] private string _runOutput = string.Empty;
     [ObservableProperty] private int _runProgress;
@@ -90,11 +90,11 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _lastSavedWorkflowDocumentName = string.Empty;
     public ObservableCollection<StepOutputItem> StepOutputs { get; } = new();
 
-    // ── Models ───────────────────────────────────────────────
+    // -- Models -----------------------------------------------
     public ObservableCollection<AiModel> AvailableModels { get; } = new();
     public NavigateHandler? NavigateRequested { get; set; }
 
-    // ── Category Options ─────────────────────────────────────
+    // -- Category Options -------------------------------------
     /// <summary>The stored category values the editor offers, in the order of <see cref="CategoryOptions"/>.</summary>
     public List<string> Categories { get; } = new() { "Custom", "Research", "Writing", "Analysis", "Productivity" };
 
@@ -1015,7 +1015,7 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
             StatusMessage = WorkflowBuilderText.Resolve(
                 _localization?.GetString("WfBuilder_ImportInvalidJson"),
                 "WfBuilder_ImportInvalidJson",
-                "Import failed — invalid workflow JSON");
+                "Import failed - invalid workflow JSON");
         }
     }
 
@@ -1684,9 +1684,9 @@ public partial class WorkflowBuilderViewModel : ObservableObject, IDisposable
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════
+// ===================================================================
 // VIEW MODELS for list items and step display
-// ═══════════════════════════════════════════════════════════════════
+// ===================================================================
 
 public partial class WorkflowListItem : ObservableObject
 {
@@ -2000,7 +2000,7 @@ public sealed partial class WorkflowRunHistoryDisplayItem : ObservableObject
                 parts.Add($"{durationMs:F0} ms");
             }
 
-            return string.Join(" • ", parts);
+            return string.Join(" | ", parts);
         }
     }
 

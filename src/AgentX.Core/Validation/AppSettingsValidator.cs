@@ -43,7 +43,7 @@ public sealed class AppSettingsValidator : IValidator<AppSettings>
 
         var errors = new List<ValidationError>();
 
-        // ── ActiveProviderId ─────────────────────────────────────────────
+        // -- ActiveProviderId ---------------------------------------------
         if (string.IsNullOrWhiteSpace(instance.ActiveProviderId))
         {
             errors.Add(new ValidationError(
@@ -57,7 +57,7 @@ public sealed class AppSettingsValidator : IValidator<AppSettings>
                 $"Active provider ID must be one of: {string.Join(", ", ValidProviderIds)}. Got '{instance.ActiveProviderId}'."));
         }
 
-        // ── Numeric inference parameters ─────────────────────────────────
+        // -- Numeric inference parameters ---------------------------------
         if (instance.Temperature < 0.0 || instance.Temperature > 2.0)
         {
             errors.Add(new ValidationError(
@@ -79,7 +79,7 @@ public sealed class AppSettingsValidator : IValidator<AppSettings>
                 $"ContextWindow must be between 512 and 1048576. Got {instance.ContextWindow}."));
         }
 
-        // ── Knowledge Vault chunking parameters ──────────────────────────
+        // -- Knowledge Vault chunking parameters --------------------------
         if (instance.ChunkSize < 64 || instance.ChunkSize > AppConstants.MaxChunkSize)
         {
             errors.Add(new ValidationError(
@@ -103,7 +103,7 @@ public sealed class AppSettingsValidator : IValidator<AppSettings>
                 $"TopKResults must be between 1 and 100. Got {instance.TopKResults}."));
         }
 
-        // ── Provider-specific endpoint and API key validation ────────────
+        // -- Provider-specific endpoint and API key validation ------------
         string providerId = instance.ActiveProviderId?.ToLowerInvariant() ?? string.Empty;
 
         if (providerId == "ollama")
@@ -138,7 +138,7 @@ public sealed class AppSettingsValidator : IValidator<AppSettings>
             }
         }
 
-        // ── Storage path ─────────────────────────────────────────────────
+        // -- Storage path -------------------------------------------------
         if (string.IsNullOrWhiteSpace(instance.StoragePath))
         {
             errors.Add(new ValidationError(

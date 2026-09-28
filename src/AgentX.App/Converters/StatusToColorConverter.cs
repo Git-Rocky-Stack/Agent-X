@@ -19,7 +19,7 @@ namespace AgentX.App.Converters;
 /// </summary>
 public sealed class StatusToColorConverter : IValueConverter
 {
-    // ── Pre-allocated brushes to avoid repeated allocations ─────────────
+    // -- Pre-allocated brushes to avoid repeated allocations -------------
 
     // Night Shift: LED text tones on dark grounds (Colors.xaml Default dict)
     private static readonly SolidColorBrush NightGreen =

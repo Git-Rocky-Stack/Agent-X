@@ -17,7 +17,7 @@ namespace AgentX.Tests.Services.OAuth;
 
 /// <summary>
 /// Coverage for the HTTP-dependent and browser-walled paths of <see cref="OAuthService"/>
-/// that the base <c>OAuthServiceTests</c> cannot reach (AX-QA-009 — lifting the binding
+/// that the base <c>OAuthServiceTests</c> cannot reach (AX-QA-009 - lifting the binding
 /// OAuth critical namespace so the global coverage floor can ratchet further).
 ///
 /// The service constructs its own <see cref="HttpClient"/> with no injection seam, so the
@@ -26,7 +26,7 @@ namespace AgentX.Tests.Services.OAuth;
 /// endpoints point at it). The token-exchange, credential-persistence, scope-building, PKCE
 /// and authorization-URL helpers are only reachable through <c>AuthorizeAsync</c>, which
 /// launches the system browser via <c>Process.Start</c> (untestable in CI), so they are
-/// invoked directly by reflection — the same approach used for other unreachable-by-public-API
+/// invoked directly by reflection - the same approach used for other unreachable-by-public-API
 /// internals in this initiative.
 /// </summary>
 public sealed class OAuthServiceHttpFlowTests : IDisposable
@@ -89,7 +89,7 @@ public sealed class OAuthServiceHttpFlowTests : IDisposable
         return await ctx.OAuthCredentials.AsNoTracking().FirstOrDefaultAsync(c => c.ProviderId == "google");
     }
 
-    // ── Reflection bridges for the browser-walled internals ─────────────────────
+    // -- Reflection bridges for the browser-walled internals ---------------------
 
     private static async Task<object?> InvokePrivateAsync(OAuthService svc, string method, params object?[] args)
     {
@@ -118,9 +118,9 @@ public sealed class OAuthServiceHttpFlowTests : IDisposable
         return tr;
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
     //  In-process token/revocation stub server
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
 
     private sealed class StubHttpServer : IDisposable
     {
@@ -193,9 +193,9 @@ public sealed class OAuthServiceHttpFlowTests : IDisposable
         }
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  RefreshTokenAsync — success + branch coverage (real HTTP)
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
+    //  RefreshTokenAsync - success + branch coverage (real HTTP)
+    // ==========================================================================
 
     [Fact]
     public async Task RefreshTokenAsync_Success_UpdatesCredentialAndReturnsTrue()
@@ -226,7 +226,7 @@ public sealed class OAuthServiceHttpFlowTests : IDisposable
     public async Task RefreshTokenAsync_Success_KeepsOldRefreshToken_AndDefaultsExpiry_WhenServerOmitsThem()
     {
         using var server = new StubHttpServer();
-        // No refresh_token and no expires_in → keep old refresh cipher, default 1-hour expiry.
+        // No refresh_token and no expires_in -> keep old refresh cipher, default 1-hour expiry.
         server.Handler = _ => (200, """{"access_token":"new-access-token","token_type":"Bearer"}""");
 
         SeedCredential(refreshCipher: "DPAPI:original-refresh");
@@ -302,7 +302,7 @@ public sealed class OAuthServiceHttpFlowTests : IDisposable
     [Fact]
     public async Task RefreshTokenAsync_ReturnsFalse_OnNetworkError()
     {
-        // Endpoint that refuses the connection → HttpRequestException caught → false.
+        // Endpoint that refuses the connection -> HttpRequestException caught -> false.
         SeedCredential();
         _encryption.Setup(e => e.Decrypt("DPAPI:refresh")).Returns("refresh-plain");
 
@@ -312,9 +312,9 @@ public sealed class OAuthServiceHttpFlowTests : IDisposable
         (await service.RefreshTokenAsync("google")).Should().BeFalse();
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  GetAccessTokenAsync — successful auto-refresh path (real HTTP)
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
+    //  GetAccessTokenAsync - successful auto-refresh path (real HTTP)
+    // ==========================================================================
 
     [Fact]
     public async Task GetAccessTokenAsync_RefreshesExpiredToken_AndReturnsNewAccessToken()
@@ -322,7 +322,7 @@ public sealed class OAuthServiceHttpFlowTests : IDisposable
         using var server = new StubHttpServer();
         server.Handler = _ => (200, """{"access_token":"refreshed-access","token_type":"Bearer","expires_in":3600}""");
 
-        // Expires within the 5-minute refresh buffer → triggers auto-refresh.
+        // Expires within the 5-minute refresh buffer -> triggers auto-refresh.
         SeedCredential(expiry: DateTime.UtcNow.AddMinutes(2));
         _encryption.Setup(e => e.Decrypt("DPAPI:refresh")).Returns("refresh-plain");
         _encryption.Setup(e => e.Decrypt("ENC:refreshed-access")).Returns("refreshed-access-plain");
@@ -335,9 +335,9 @@ public sealed class OAuthServiceHttpFlowTests : IDisposable
         token.Should().Be("refreshed-access-plain");
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  RevokeAsync — server-side revocation success (real HTTP)
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
+    //  RevokeAsync - server-side revocation success (real HTTP)
+    // ==========================================================================
 
     [Fact]
     public async Task RevokeAsync_PerformsServerSideRevocation_ThenDeletesCredential()
@@ -357,9 +357,9 @@ public sealed class OAuthServiceHttpFlowTests : IDisposable
         server.Requests.Should().ContainSingle().Which.Should().Contain("token=access-plain");
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  ExchangeCodeForTokensAsync (reflection — walled behind AuthorizeAsync)
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
+    //  ExchangeCodeForTokensAsync (reflection - walled behind AuthorizeAsync)
+    // ==========================================================================
 
     [Fact]
     public async Task ExchangeCodeForTokens_Success_ReturnsTokenResponse()
@@ -486,9 +486,9 @@ public sealed class OAuthServiceHttpFlowTests : IDisposable
         request.Should().Contain("code_verifier=verifier");
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  PersistCredentialAsync (reflection — walled behind AuthorizeAsync)
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
+    //  PersistCredentialAsync (reflection - walled behind AuthorizeAsync)
+    // ==========================================================================
 
     [Fact]
     public async Task PersistCredential_InsertsNewCredential()
@@ -553,9 +553,9 @@ public sealed class OAuthServiceHttpFlowTests : IDisposable
         entity.TokenExpiry.Should().BeCloseTo(DateTime.UtcNow.AddSeconds(3600), TimeSpan.FromMinutes(1)); // default
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
     //  DecryptEntity failure branches (via GetCredentialAsync)
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
 
     [Fact]
     public async Task GetCredentialAsync_Throws_WhenAccessTokenDecryptFails()
@@ -588,9 +588,9 @@ public sealed class OAuthServiceHttpFlowTests : IDisposable
 
     private sealed class CryptographicExceptionStub : Exception { }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  AuthorizeAsync — early validation (runs before the browser launch)
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
+    //  AuthorizeAsync - early validation (runs before the browser launch)
+    // ==========================================================================
 
     [Fact]
     public async Task AuthorizeAsync_Throws_WhenRedirectUriIsNotLocalhost()
@@ -626,9 +626,9 @@ public sealed class OAuthServiceHttpFlowTests : IDisposable
         thrown.Provider.Should().Be("google");
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  BuildScopes (reflection — static helper)
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
+    //  BuildScopes (reflection - static helper)
+    // ==========================================================================
 
     [Fact]
     public void BuildScopes_ReturnsDefault_WhenAdditionalIsBlank()
@@ -652,9 +652,9 @@ public sealed class OAuthServiceHttpFlowTests : IDisposable
         scopes.Should().BeEquivalentTo("openid", "profile", "email");
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  BuildAuthorizationUrl (reflection — static helper)
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
+    //  BuildAuthorizationUrl (reflection - static helper)
+    // ==========================================================================
 
     [Fact]
     public void BuildAuthorizationUrl_IncludesPkceStateAndExtraParameters()
@@ -704,9 +704,9 @@ public sealed class OAuthServiceHttpFlowTests : IDisposable
         url.Should().Contain("code_challenge_method=S256");
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  CSRF / PKCE helpers (reflection — static)
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
+    //  CSRF / PKCE helpers (reflection - static)
+    // ==========================================================================
 
     [Fact]
     public void GenerateState_ProducesDecodable32ByteValue()
@@ -747,9 +747,9 @@ public sealed class OAuthServiceHttpFlowTests : IDisposable
         encoded.Should().NotContain("+").And.NotContain("/").And.NotContain("=");
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
     //  Dispose
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
 
     [Fact]
     public async Task Dispose_IsIdempotent_AndDisposesRefreshLocks()

@@ -18,7 +18,7 @@ public sealed class MultiQueryGenerator : IMultiQueryGenerator
     private readonly ILogger _logger;
 
     /// <summary>
-    /// P2-4: returns the active multi-query system prompt — catalog when
+    /// P2-4: returns the active multi-query system prompt - catalog when
     /// registered, compile-time default otherwise.
     /// </summary>
     private string SystemPrompt

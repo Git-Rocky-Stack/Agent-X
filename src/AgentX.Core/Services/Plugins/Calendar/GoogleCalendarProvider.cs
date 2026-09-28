@@ -206,7 +206,7 @@ public sealed class GoogleCalendarProvider : ICalendarProvider
         return (new CalendarEventBatch(events, isCompleteWindow: !incremental), nextSyncToken);
     }
 
-    // ── Private: HTTP request helper ────────────────────────────────────────────
+    // -- Private: HTTP request helper --------------------------------------------
 
     /// <summary>
     /// Sends a GET with the bearer token. The caller inspects the status: an incremental
@@ -224,7 +224,7 @@ public sealed class GoogleCalendarProvider : ICalendarProvider
             .ConfigureAwait(false);
     }
 
-    // ── Private: response mapping ───────────────────────────────────────────────
+    // -- Private: response mapping -----------------------------------------------
 
     private static CalEvent MapToCalEvent(GoogleCalendarEvent item, string calendarId)
     {
@@ -307,7 +307,7 @@ public sealed class GoogleCalendarProvider : ICalendarProvider
         return (DateTime.MinValue, false);
     }
 
-    // ── Private: Google API JSON response models ────────────────────────────────
+    // -- Private: Google API JSON response models --------------------------------
     // These are internal deserialization-only models matching the Google Calendar
     // API v3 JSON response format. Kept minimal to reduce memory allocations.
 

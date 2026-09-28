@@ -23,13 +23,13 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
     private readonly ILocalizationService _localization;
     private readonly ILogger _log;
 
-    // ── Loading State ────────────────────────────────────────────────────────
+    // -- Loading State --------------------------------------------------------
 
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private bool _hasError;
     [ObservableProperty] private string _errorMessage = string.Empty;
 
-    // ── Summary Card Values ──────────────────────────────────────────────────
+    // -- Summary Card Values --------------------------------------------------
 
     [ObservableProperty] private string _totalConversations = "0";
     [ObservableProperty] private string _totalMessages = "0";
@@ -42,13 +42,13 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _documentsIndexed = "0";
     [ObservableProperty] private string _documentsPending = "0";
 
-    // ── Indexing Progress ────────────────────────────────────────────────────
+    // -- Indexing Progress ----------------------------------------------------
 
-    /// <summary>Fraction of documents that are indexed (0.0–1.0) for the progress indicator.</summary>
+    /// <summary>Fraction of documents that are indexed (0.0-1.0) for the progress indicator.</summary>
     [ObservableProperty] private double _indexingCompletionFraction;
     [ObservableProperty] private string _indexingCompletionLabel = "0%";
 
-    // ── Daily Activity Trends ────────────────────────────────────────────────
+    // -- Daily Activity Trends ------------------------------------------------
 
     [ObservableProperty] private ObservableCollection<AnalyticsDailyItem> _dailyConversations = new();
     [ObservableProperty] private ObservableCollection<AnalyticsDailyItem> _dailyDocuments = new();
@@ -58,32 +58,32 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _hasDailyDocumentData;
     [ObservableProperty] private bool _hasDailySearchData;
 
-    // ── Model Usage ──────────────────────────────────────────────────────────
+    // -- Model Usage ----------------------------------------------------------
 
     [ObservableProperty] private ObservableCollection<AnalyticsModelItem> _modelUsage = new();
     [ObservableProperty] private bool _hasModelData;
 
-    // ── File Type Distribution ───────────────────────────────────────────────
+    // -- File Type Distribution -----------------------------------------------
 
     [ObservableProperty] private ObservableCollection<AnalyticsFileTypeItem> _fileTypeDistribution = new();
     [ObservableProperty] private bool _hasFileTypeData;
 
-    // ── Performance Metrics ──────────────────────────────────────────────────
+    // -- Performance Metrics --------------------------------------------------
 
     [ObservableProperty] private string _perfAverage;
     [ObservableProperty] private string _perfMedian;
     [ObservableProperty] private string _perfP95;
     [ObservableProperty] private string _perfFastest;
     [ObservableProperty] private string _perfSlowest;
-    [ObservableProperty] private string _perfTotalInference = "—";
-    [ObservableProperty] private string _perfTokensPerSecond = "—";
+    [ObservableProperty] private string _perfTotalInference = "-";
+    [ObservableProperty] private string _perfTokensPerSecond = "-";
     [ObservableProperty] private bool _hasPerformanceData;
 
-    // ── Workflow Intelligence ──────────────────────────────────────────────
+    // -- Workflow Intelligence ----------------------------------------------
 
     [ObservableProperty] private string _workflowRunsTotal = "0";
-    [ObservableProperty] private string _workflowSuccessRate = "—";
-    [ObservableProperty] private string _workflowAverageRunDuration = "—";
+    [ObservableProperty] private string _workflowSuccessRate = "-";
+    [ObservableProperty] private string _workflowAverageRunDuration = "-";
     [ObservableProperty] private string _workflowActiveRecently = "0";
     [ObservableProperty] private string _workflowIntelligenceStatusMessage;
     [ObservableProperty] private ObservableCollection<AnalyticsDailyItem> _dailyWorkflowRuns = new();
@@ -94,7 +94,7 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _hasTopWorkflows;
     [ObservableProperty] private bool _hasRecentWorkflowRuns;
 
-    // ── Conversation Intelligence ───────────────────────────────────────────
+    // -- Conversation Intelligence -------------------------------------------
 
     [ObservableProperty] private string _summarizedConversations = "0";
     [ObservableProperty] private string _currentSummarySnapshots = "0";
@@ -109,7 +109,7 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
     public bool HasFocusedConversationLanding => !string.IsNullOrWhiteSpace(FocusedConversationSourceLabel);
     public bool HasConversationIntelligenceStatusMessage => !string.IsNullOrWhiteSpace(ConversationIntelligenceStatusMessage);
 
-    // ── Conversation Recall ─────────────────────────────────────────────────
+    // -- Conversation Recall -------------------------------------------------
 
     [ObservableProperty] private string _embeddedMessages = "0";
     [ObservableProperty] private string _pendingMessageEmbeddings = "0";
@@ -122,7 +122,7 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _hasConversationRecallCoverage;
     [ObservableProperty] private bool _hasConversationRecallResults;
 
-    // ── Conversation Themes ─────────────────────────────────────────────────
+    // -- Conversation Themes -------------------------------------------------
 
     [ObservableProperty] private string _activeThemeClusters = "0";
     [ObservableProperty] private string _clusteredThemeConversations = "0";
@@ -132,7 +132,7 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _hasConversationThemes;
     [ObservableProperty] private bool _hasConversationThemeClusters;
 
-    // ── Theme Trends ────────────────────────────────────────────────────────
+    // -- Theme Trends --------------------------------------------------------
 
     [ObservableProperty] private string _trendingThemes = "0";
     [ObservableProperty] private string _newThemeEntries7d = "0";
@@ -141,7 +141,7 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
     [ObservableProperty] private ObservableCollection<AnalyticsConversationThemeTrendItem> _conversationThemeTrends = new();
     [ObservableProperty] private bool _hasConversationThemeTrends;
 
-    // ── Computed Insights ────────────────────────────────────────────────────
+    // -- Computed Insights ----------------------------------------------------
 
     /// <summary>Formatted tokens per conversation (TotalTokens / TotalConversations).</summary>
     [ObservableProperty] private string _tokensPerConversation = "0";
@@ -181,7 +181,7 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
         _lastThemeTrendRefresh = _localization.GetString("Ana_NoTrendsYet");
     }
 
-    // ── Data Loading ─────────────────────────────────────────────────────────
+    // -- Data Loading ---------------------------------------------------------
 
     public async Task LoadDataAsync(CancellationToken ct = default)
     {
@@ -321,7 +321,7 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
                     ConversationCount = m.ConversationCount,
                     TotalTokens = FormatTokens(m.TotalTokens),
                     Percentage = m.Percentage,
-                    // BarWidthFraction: 0.0–1.0 for PercentToWidthConverter
+                    // BarWidthFraction: 0.0-1.0 for PercentToWidthConverter
                     BarWidthFraction = m.Percentage / 100.0,
                     Color = colors[i % colors.Length],
                     PercentageLabel = $"{m.Percentage:F1}%",
@@ -352,7 +352,7 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
                     Count = m.Count,
                     TotalSize = FormatHelper.FormatBytes(m.TotalSizeBytes),
                     Percentage = m.Percentage,
-                    // BarWidthFraction: 0.0–1.0 for PercentToWidthConverter
+                    // BarWidthFraction: 0.0-1.0 for PercentToWidthConverter
                     BarWidthFraction = m.Percentage / 100.0,
                     Color = colors[i % colors.Length],
                     PercentageLabel = $"{m.Percentage:F1}%",
@@ -420,10 +420,10 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
             WorkflowRunsTotal = FormatNumber(overview.TotalRuns);
             WorkflowSuccessRate = completedOutcomes > 0
                 ? $"{overview.SuccessRate:F1}%"
-                : "—";
+                : "-";
             WorkflowAverageRunDuration = overview.AverageRunDurationMs > 0
                 ? FormatMs(overview.AverageRunDurationMs)
-                : "—";
+                : "-";
             WorkflowActiveRecently = FormatNumber(overview.ActiveWorkflowsRecently);
 
             DailyWorkflowRuns = BuildDailyItems(dailyMetrics, "#FFB000");
@@ -467,8 +467,8 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
         {
             _log.Warning(ex, "Analytics: failed to load workflow intelligence");
             WorkflowRunsTotal = "0";
-            WorkflowSuccessRate = "—";
-            WorkflowAverageRunDuration = "—";
+            WorkflowSuccessRate = "-";
+            WorkflowAverageRunDuration = "-";
             WorkflowActiveRecently = "0";
             DailyWorkflowRuns = new ObservableCollection<AnalyticsDailyItem>();
             TopWorkflows = new ObservableCollection<AnalyticsWorkflowTopItem>();
@@ -771,7 +771,7 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
         }
     }
 
-    // ── Commands ─────────────────────────────────────────────────────────────
+    // -- Commands -------------------------------------------------------------
 
     partial void OnRecallQueryChanged(string value)
     {
@@ -931,7 +931,7 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
             ? _localization.GetString("Ana_SummaryUnchanged", title)
             : _localization.GetString("Ana_SummaryUnchangedUntitled");
 
-    // ── Private Helpers ──────────────────────────────────────────────────────
+    // -- Private Helpers ------------------------------------------------------
 
     /// <summary>
     /// Converts a list of <see cref="DailyMetric"/> records into display items with
@@ -951,7 +951,7 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
                 Count = m.Count,
                 Label = m.Label,
                 Color = color,
-                // BarHeightPercent: 0–100 relative to the series maximum
+                // BarHeightPercent: 0-100 relative to the series maximum
                 BarHeightPercent = m.Count * 100.0 / max,
                 // Clamp minimum bar height so zero days are visually distinguishable
                 BarHeight = m.Count > 0 ? Math.Max(2.0, m.Count * 60.0 / max) : 1.0,
@@ -1144,9 +1144,9 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════
+// ===================================================================
 //  DISPLAY ITEM CLASSES (top-level for x:Bind DataTemplate support)
-// ═══════════════════════════════════════════════════════════════════
+// ===================================================================
 
 /// <summary>
 /// Represents a single day's activity for display in a bar-chart row.
@@ -1192,7 +1192,7 @@ public sealed class AnalyticsWorkflowRecentRunItem
     public string PreviewText { get; init; } = string.Empty;
     public string TimelineLabel => string.IsNullOrWhiteSpace(DurationLabel)
         ? StartedAtLabel
-        : $"{StartedAtLabel} · {DurationLabel}";
+        : $"{StartedAtLabel} | {DurationLabel}";
 }
 
 /// <summary>
@@ -1248,7 +1248,7 @@ public sealed class AnalyticsConversationSummaryItem
     public string SourceLabel { get; init; } = string.Empty;
     public bool HasKeyPoints => KeyPoints.Count > 0;
     public bool HasSourceLabel => !string.IsNullOrWhiteSpace(SourceLabel);
-    public string KeyPointsPreview => string.Join(" · ", KeyPoints);
+    public string KeyPointsPreview => string.Join(" | ", KeyPoints);
 
     /// <summary>How many messages the summary covers, e.g. "6 messages covered".</summary>
     public string CoverageLabel { get; init; } = string.Empty;
@@ -1269,7 +1269,7 @@ public sealed class AnalyticsConversationRecallItem
     public string SimilarityLabel { get; init; } = string.Empty;
     public DateTime Timestamp { get; init; }
     public string TimestampLabel { get; init; } = string.Empty;
-    public string ConversationLabel => $"{ConversationTitle} · {RoleLabel}";
+    public string ConversationLabel => $"{ConversationTitle} | {RoleLabel}";
 }
 
 /// <summary>
@@ -1288,8 +1288,8 @@ public sealed class AnalyticsConversationThemeItem
     public IReadOnlyList<string> RecentConversationTitles { get; init; } = Array.Empty<string>();
     public bool HasKeyPoints => KeyPoints.Count > 0;
     public bool HasRecentConversations => RecentConversationTitles.Count > 0;
-    public string KeyPointsPreview => string.Join(" · ", KeyPoints);
-    public string RecentConversationsPreview => string.Join(" · ", RecentConversationTitles);
+    public string KeyPointsPreview => string.Join(" | ", KeyPoints);
+    public string RecentConversationsPreview => string.Join(" | ", RecentConversationTitles);
 
     /// <summary>The cluster's size and recent activity: conversations, and how many were active in 7 and 30 days.</summary>
     public string ActivityLabel { get; init; } = string.Empty;
@@ -1321,7 +1321,7 @@ public sealed class AnalyticsConversationThemeTrendBarItem
     public string Tooltip { get; init; } = string.Empty;
 }
 
-// ─── Task tuple extension ────────────────────────────────────────────────────
+// --- Task tuple extension ----------------------------------------------------
 // Allows awaiting a ValueTuple of Tasks elegantly in LoadDailyTrendsAsync.
 
 file static class TaskTupleExtensions

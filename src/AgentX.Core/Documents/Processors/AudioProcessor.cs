@@ -50,7 +50,7 @@ public sealed class AudioProcessor : IDocumentProcessor
     /// </summary>
     internal const string LegacyTranscriptionErrorMarker = "\"errorType\":";
 
-    // ── Static fields ─────────────────────────────────────────────────────────
+    // -- Static fields ---------------------------------------------------------
 
     private static readonly ILogger Log = Serilog.Log.ForContext<AudioProcessor>();
 
@@ -81,7 +81,7 @@ public sealed class AudioProcessor : IDocumentProcessor
             [".webm"] = "webm",
         };
 
-    // ── Constructor ───────────────────────────────────────────────────────────
+    // -- Constructor -----------------------------------------------------------
 
     private readonly ITranscriptionService _transcriptionService;
 
@@ -97,7 +97,7 @@ public sealed class AudioProcessor : IDocumentProcessor
         _transcriptionService = transcriptionService;
     }
 
-    // ── IDocumentProcessor ────────────────────────────────────────────────────
+    // -- IDocumentProcessor ----------------------------------------------------
 
     /// <inheritdoc />
     public IReadOnlySet<string> SupportedExtensions => Extensions;
@@ -154,7 +154,7 @@ public sealed class AudioProcessor : IDocumentProcessor
             var transcriptionProgress = new Progress<TranscriptionProgress>(p =>
             {
                 Log.Debug(
-                    "Transcription progress — file: {FileName}, phase: {Phase}, pct: {Percent:F1}%",
+                    "Transcription progress - file: {FileName}, phase: {Phase}, pct: {Percent:F1}%",
                     document.FileName, p.CurrentPhase, p.PercentComplete);
             });
 
@@ -234,7 +234,7 @@ public sealed class AudioProcessor : IDocumentProcessor
         return document;
     }
 
-    // ── Private helpers ───────────────────────────────────────────────────────
+    // -- Private helpers -------------------------------------------------------
 
     /// <summary>
     /// The extraction failure a transcription failure is recorded as. The missing model gets the
@@ -257,7 +257,7 @@ public sealed class AudioProcessor : IDocumentProcessor
     {
         var sb = new StringBuilder();
 
-        // ── Header block ─────────────────────────────────────────────────────
+        // -- Header block -----------------------------------------------------
         // Provides provenance metadata that downstream semantic search can surface
         // in citations. Formatted as a compact, parseable key-value preamble.
         sb.AppendLine("=== Audio Transcript ===");
@@ -275,7 +275,7 @@ public sealed class AudioProcessor : IDocumentProcessor
         sb.AppendLine("========================");
         sb.AppendLine();
 
-        // ── Transcript body ──────────────────────────────────────────────────
+        // -- Transcript body --------------------------------------------------
 
         if (result.Segments.Count > 0)
         {
@@ -303,7 +303,7 @@ public sealed class AudioProcessor : IDocumentProcessor
         }
         else if (!string.IsNullOrWhiteSpace(result.FullText))
         {
-            // No per-segment data — emit the flat transcript directly.
+            // No per-segment data - emit the flat transcript directly.
             sb.AppendLine(result.FullText.Trim());
         }
         else

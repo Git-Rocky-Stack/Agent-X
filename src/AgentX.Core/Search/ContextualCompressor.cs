@@ -22,7 +22,7 @@ public sealed class ContextualCompressor : IContextualCompressor
     private readonly ILogger _logger;
 
     /// <summary>
-    /// P2-4: returns the active compressor system prompt — catalog when
+    /// P2-4: returns the active compressor system prompt - catalog when
     /// registered, compile-time default otherwise.
     /// </summary>
     private string SystemPrompt
@@ -47,7 +47,7 @@ public sealed class ContextualCompressor : IContextualCompressor
     // P2-7: structured-output prompt content lives in RagPromptDefaults.CompressorSystem
     // (compile-time fallback) and RagPrompts.json (runtime override via catalog).
     // The previous version returned a free-text extraction or the literal string
-    // "NOT_RELEVANT" — a brittle contract that false-positives any chunk that
+    // "NOT_RELEVANT" - a brittle contract that false-positives any chunk that
     // happens to contain those characters. JSON mode + a typed schema makes
     // the contract explicit and lets the provider's native JSON enforcement do
     // the heavy lifting where available.
@@ -83,7 +83,7 @@ public sealed class ContextualCompressor : IContextualCompressor
         if (chunks is null || chunks.Count == 0)
             return new List<RagContextChunk>();
 
-        // P1-3: bounded parallelism. Concurrency cap defaults to 4 — enough to
+        // P1-3: bounded parallelism. Concurrency cap defaults to 4 - enough to
         // hide LLM latency on cloud providers while not saturating local models
         // (which typically serve a small number of concurrent requests).
         var concurrency = Math.Max(1, _ragConfiguration?.CompressionConcurrency ?? 4);
@@ -123,7 +123,7 @@ public sealed class ContextualCompressor : IContextualCompressor
                         Temperature = 0.0, // Deterministic extraction
                         MaxTokens = AppConstants.CompressionMaxTokens,
                         // P1-1: the compressor system prompt is static across every chunk
-                        // (and every call). Cacheable on Anthropic — at N chunks per RAG
+                        // (and every call). Cacheable on Anthropic - at N chunks per RAG
                         // turn, this is the highest-leverage cache point in the pipeline.
                         CacheSystemPrompt = true,
                         // P2-7: ask the provider for native JSON-object mode where it's
@@ -140,7 +140,7 @@ public sealed class ContextualCompressor : IContextualCompressor
                     var parsed = TryParse(raw);
                     if (parsed is null)
                     {
-                        // Parse failure is treated as a soft pass — keep the original
+                        // Parse failure is treated as a soft pass - keep the original
                         // chunk rather than dropping it. Logging is redacted (P2-10).
                         _logger.Warning(
                             "Compressor JSON parse failed for chunk {ChunkId}; keeping original. Response summary: {Summary}",
@@ -158,7 +158,7 @@ public sealed class ContextualCompressor : IContextualCompressor
 
                     if (string.IsNullOrWhiteSpace(parsed.Extracted))
                     {
-                        // Model said "relevant=true" but didn't include extracted text —
+                        // Model said "relevant=true" but didn't include extracted text -
                         // an invalid combination. Keep the original chunk to avoid silent
                         // information loss.
                         _logger.Debug(
@@ -211,7 +211,7 @@ public sealed class ContextualCompressor : IContextualCompressor
 
     /// <summary>
     /// P2-7: parses the structured-output JSON. Returns null on any parse failure
-    /// — caller decides the failure mode (we currently soft-fail by keeping the
+    /// - caller decides the failure mode (we currently soft-fail by keeping the
     /// original chunk). Tolerates the response containing surrounding prose by
     /// scanning for the first <c>{</c> through the last <c>}</c>.
     /// </summary>

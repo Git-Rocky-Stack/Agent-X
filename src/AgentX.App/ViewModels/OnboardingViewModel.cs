@@ -11,19 +11,19 @@ namespace AgentX.App.ViewModels;
 
 public partial class OnboardingViewModel : ObservableObject
 {
-    // ── Services ─────────────────────────────────────────────
+    // -- Services ---------------------------------------------
     private readonly IAiService _aiService;
     private readonly ISettingsService _settingsService;
     private readonly IHardwareDetector _hardwareDetector;
     private readonly IBuiltInModelBootstrap _bootstrap;
     private readonly ILocalizationService _localization;
 
-    // ── Step Navigation ──────────────────────────────────────
+    // -- Step Navigation --------------------------------------
     [ObservableProperty] private int _currentStep;
     [ObservableProperty] private bool _canGoBack;
     [ObservableProperty] private bool _canGoNext = true;
 
-    // ── Step Visibility ──────────────────────────────────────
+    // -- Step Visibility --------------------------------------
     [ObservableProperty] private bool _isStep0Visible = true;
     [ObservableProperty] private bool _isStep1Visible;
     [ObservableProperty] private bool _isStep2Visible;
@@ -31,7 +31,7 @@ public partial class OnboardingViewModel : ObservableObject
     [ObservableProperty] private bool _isStep4Visible;
     [ObservableProperty] private bool _showNextButton;
 
-    // ── Step 1: Ollama Connection ────────────────────────────
+    // -- Step 1: Ollama Connection ----------------------------
     [ObservableProperty] private string _ollamaEndpoint = "http://localhost:11434";
     [ObservableProperty] private bool _isTestingConnection;
 
@@ -54,7 +54,7 @@ public partial class OnboardingViewModel : ObservableObject
         _ => "idle"
     };
 
-    // ── Step 2: Model Selection ──────────────────────────────
+    // -- Step 2: Model Selection ------------------------------
     [ObservableProperty] private ObservableCollection<OnboardingModelItem> _availableModels = new();
     [ObservableProperty] private string _selectedChatModel = "";
     [ObservableProperty] private string _selectedEmbeddingModel = "";
@@ -62,7 +62,7 @@ public partial class OnboardingViewModel : ObservableObject
     [ObservableProperty] private bool _isLoadingModels;
     [ObservableProperty] private string _hardwareInfo = "";
 
-    // ── Step 3: Built-in AI & Cloud API Keys ─────────────────
+    // -- Step 3: Built-in AI & Cloud API Keys -----------------
     [ObservableProperty] private bool _isLocalModelAvailable;
     [ObservableProperty] private string _gpuAccelerationInfo;
     [ObservableProperty] private string _localModelName = "Llama 3.2 3B Instruct";
@@ -76,7 +76,7 @@ public partial class OnboardingViewModel : ObservableObject
     [ObservableProperty] private double _localModelDownloadProgress;
     [ObservableProperty] private string _localModelDownloadStatus = "";
 
-    // ── Step 4: Summary ──────────────────────────────────────
+    // -- Step 4: Summary --------------------------------------
     [ObservableProperty] private string _summaryOllamaStatus;
     [ObservableProperty] private string _summaryChatModel;
     [ObservableProperty] private string _summaryEmbeddingModel;
@@ -106,9 +106,9 @@ public partial class OnboardingViewModel : ObservableObject
         Log.Debug("OnboardingViewModel created");
     }
 
-    // ═══════════════════════════════════════════════════════════
+    // ===========================================================
     //  STEP NAVIGATION
-    // ═══════════════════════════════════════════════════════════
+    // ===========================================================
 
     [RelayCommand]
     private async Task NextStepAsync()
@@ -179,9 +179,9 @@ public partial class OnboardingViewModel : ObservableObject
         CanGoNext = CurrentStep < 4;
     }
 
-    // ═══════════════════════════════════════════════════════════
+    // ===========================================================
     //  STEP 1: OLLAMA CONNECTION
-    // ═══════════════════════════════════════════════════════════
+    // ===========================================================
 
     [RelayCommand]
     private async Task TestConnectionAsync()
@@ -226,9 +226,9 @@ public partial class OnboardingViewModel : ObservableObject
         }
     }
 
-    // ═══════════════════════════════════════════════════════════
+    // ===========================================================
     //  STEP 2: MODEL SELECTION
-    // ═══════════════════════════════════════════════════════════
+    // ===========================================================
 
     private async Task LoadModelsAsync()
     {
@@ -311,9 +311,9 @@ public partial class OnboardingViewModel : ObservableObject
         IsLoadingModels = false;
     }
 
-    // ═══════════════════════════════════════════════════════════
+    // ===========================================================
     //  STEP 3: BUILT-IN AI MODEL & CLOUD API KEYS
-    // ═══════════════════════════════════════════════════════════
+    // ===========================================================
 
     private async Task CheckBuiltInModelAsync()
     {
@@ -469,9 +469,9 @@ public partial class OnboardingViewModel : ObservableObject
             "Onb_DownloadProgress", done.ToString("F2"), total.ToString("F2"), p.PercentComplete.ToString("F0"));
     }
 
-    // ═══════════════════════════════════════════════════════════
+    // ===========================================================
     //  STEP 4: SUMMARY & COMPLETION
-    // ═══════════════════════════════════════════════════════════
+    // ===========================================================
 
     private void BuildSummary()
     {
@@ -579,9 +579,9 @@ public partial class OnboardingViewModel : ObservableObject
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════
+// ===================================================================
 //  DISPLAY ITEM CLASSES
-// ═══════════════════════════════════════════════════════════════════
+// ===================================================================
 
 /// <summary>
 /// Represents an AI model available for selection during onboarding.

@@ -44,7 +44,7 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
         _syncStatusText = _localization.GetString("CalSet_NotSyncedYet");
     }
 
-    // ── Observable properties ──────────────────────────────────────────────────
+    // -- Observable properties --------------------------------------------------
 
     [ObservableProperty]
     private bool _isGoogleConnected;
@@ -65,10 +65,10 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
     private string _syncStatusText;
 
     [ObservableProperty]
-    private string _lastSyncTime = "—";
+    private string _lastSyncTime = "-";
 
     [ObservableProperty]
-    private string _nextSyncTime = "—";
+    private string _nextSyncTime = "-";
 
     [ObservableProperty]
     private bool _enableCalendarSync;
@@ -108,7 +108,7 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
     /// </summary>
     public List<int> SyncIntervalOptions { get; } = [5, 10, 15, 30, 60];
 
-    // ── Initialization ─────────────────────────────────────────────────────────
+    // -- Initialization ---------------------------------------------------------
 
     /// <summary>
     /// Loads current settings and checks OAuth connection status.
@@ -150,7 +150,7 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
         }
     }
 
-    // ── Commands ───────────────────────────────────────────────────────────────
+    // -- Commands ---------------------------------------------------------------
 
     [RelayCommand]
     private async Task ConnectGoogleAsync()
@@ -343,7 +343,7 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
         }
     }
 
-    // ── Private helpers ─────────────────────────────────────────────────────────
+    // -- Private helpers ---------------------------------------------------------
 
     private async Task PersistConnectorSettingsAsync(bool refreshLifecycle)
     {
@@ -406,7 +406,7 @@ public sealed partial class CalendarSettingsViewModel : ObservableObject
             _ => (true, localization.GetString("CalSet_StatusConnected")),
         };
 
-    // ── Reactive property changes ──────────────────────────────────────────────
+    // -- Reactive property changes ----------------------------------------------
 
     partial void OnSyncIntervalMinutesChanged(int value)
     {

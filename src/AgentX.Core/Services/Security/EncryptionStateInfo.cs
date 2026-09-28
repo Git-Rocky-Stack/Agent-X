@@ -8,7 +8,7 @@ namespace AgentX.Core.Services.Security;
 /// the unlock path without first opening the DB.
 /// </summary>
 /// <remarks>
-/// This record carries ALL encryption key state — the wrapped DPAPI key (for
+/// This record carries ALL encryption key state - the wrapped DPAPI key (for
 /// <see cref="KeyStorageMode.DpapiWrapped"/>) or the PBKDF2 salt (for
 /// <see cref="KeyStorageMode.UserPassphrase"/>). Storing this material inside the
 /// encrypted DB creates a chicken-and-egg deadlock: you can't read the DB without

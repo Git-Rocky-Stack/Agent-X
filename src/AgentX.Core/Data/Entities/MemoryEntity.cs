@@ -44,9 +44,9 @@ public class MemoryEntity
     /// <summary>Soft delete - user can dismiss memories</summary>
     public bool IsActive { get; set; } = true;
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Semantic Memory 2.0 additions
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>
     /// Embedding vector for semantic similarity search.
@@ -57,7 +57,7 @@ public class MemoryEntity
 
     /// <summary>
     /// Links this memory to a related memory for associative retrieval.
-    /// Enables transitive memory access (memory → linked memory → its links).
+    /// Enables transitive memory access (memory -> linked memory -> its links).
     /// Created when two memories have semantic similarity > 0.85.
     /// </summary>
     public long? LinkedMemoryId { get; set; }
@@ -78,9 +78,9 @@ public class MemoryEntity
     /// </summary>
     public string? Tags { get; set; }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Embedding Model Versioning (Added: Phase 1)
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>
     /// The embedding model version used to generate the embedding.

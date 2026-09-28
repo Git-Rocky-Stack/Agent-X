@@ -13,12 +13,12 @@ public partial class AnnotationsViewModel : ObservableObject
     private readonly IAnnotationService _annotationService;
     private readonly ILocalizationService _localization;
 
-    // ── Page State ───────────────────────────────────────────
+    // -- Page State -------------------------------------------
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private string _statusMessage = string.Empty;
     [ObservableProperty] private string _searchQuery = string.Empty;
 
-    // ── Filters ──────────────────────────────────────────────
+    // -- Filters ----------------------------------------------
     [ObservableProperty] private string _selectedColorFilter = "All";
 
     /// <summary>
@@ -34,16 +34,16 @@ public partial class AnnotationsViewModel : ObservableObject
     /// </summary>
     public IReadOnlyList<AnnotationColorOption> EditColorOptions { get; }
 
-    // ── Annotation List ──────────────────────────────────────
+    // -- Annotation List --------------------------------------
     public ObservableCollection<AnnotationDisplayItem> Annotations { get; } = new();
     [ObservableProperty] private AnnotationDisplayItem? _selectedAnnotation;
     [ObservableProperty] private bool _hasAnnotations;
     [ObservableProperty] private int _totalCount;
 
-    // ── Stats ────────────────────────────────────────────────
+    // -- Stats ------------------------------------------------
     public ObservableCollection<ColorStatItem> ColorStats { get; } = new();
 
-    // ── Editor State ─────────────────────────────────────────
+    // -- Editor State -----------------------------------------
     [ObservableProperty] private bool _isEditing;
     [ObservableProperty] private string _editNoteText = string.Empty;
     [ObservableProperty] private string _editColor = "yellow";

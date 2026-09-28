@@ -20,7 +20,7 @@ jobs:
     # coverage report on the PR. Default GITHUB_TOKEN is read-only on PRs;
     # without this elevation the post-coverage comment step fails with
     # 403 "Resource not accessible by integration" even when the actual
-    # `dotnet run … --fail-below 98` step succeeds.
+    # `dotnet run ... --fail-below 98` step succeeds.
     # A pull request from a fork always gets a read-only token whatever this
     # block says, so the comment step is skipped for forks (see its `if:`).
     permissions:
@@ -69,7 +69,7 @@ jobs:
           script: |
             const fs = require('fs');
             if (!fs.existsSync('locale-audit-report.json')) {
-              core.info('No locale-audit-report.json — skipping PR comment.');
+              core.info('No locale-audit-report.json - skipping PR comment.');
               return;
             }
             const report = JSON.parse(fs.readFileSync('locale-audit-report.json', 'utf8'));
@@ -78,20 +78,20 @@ jobs:
               .sort(([a], [b]) => a.localeCompare(b))
               .map(([locale, data]) => {
                 const pct = data.coveragePercent.toFixed(2);
-                const status = data.coveragePercent >= 98 ? '✅' : '❌';
+                const status = data.coveragePercent >= 98 ? 'OK' : 'X';
                 return `| ${status} ${locale} | ${pct}% | ${data.covered}/${total} | ${data.missingKeys.length} | ${data.orphanKeys.length} |`;
               })
               .join('\n');
             const body = [
-              '### 🌐 LocaleAudit Report',
+              '### LocaleAudit Report',
               '',
-              `**${total} unique localization keys** (XAML \`x:Uid\` ∪ C# \`GetString\` union)`,
+              `**${total} unique localization keys** (union of XAML \`x:Uid\` and C# \`GetString\`)`,
               '',
               '| Locale | Coverage | Covered | Missing | Orphan |',
               '|---|---:|---:|---:|---:|',
               rows,
               '',
-              '_Gate: coverage must be ≥ 98% per locale. Missing = referenced key with no resw entry. Orphan = resw entry with no code/XAML reference._'
+              '_Gate: coverage must be >= 98% per locale. Missing = referenced key with no resw entry. Orphan = resw entry with no code/XAML reference._'
             ].join('\n');
             const existing = await github.rest.issues.listComments({
               owner: context.repo.owner,
@@ -99,7 +99,7 @@ jobs:
               issue_number: context.issue.number,
             });
             const prior = existing.data.find(c =>
-              c.user?.type === 'Bot' && c.body?.startsWith('### 🌐 LocaleAudit Report'));
+              c.user?.type === 'Bot' && /^### (\u{1F310} )?LocaleAudit Report/u.test(c.body ?? ''));
             if (prior) {
               await github.rest.issues.updateComment({
                 owner: context.repo.owner,

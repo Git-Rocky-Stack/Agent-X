@@ -10,9 +10,9 @@
 
     <Page.Resources>
 
-        <!-- ═══════════════════════════════════════════════════════════
+        <!-- ===========================================================
              CONVERTERS
-             ═══════════════════════════════════════════════════════════ -->
+             =========================================================== -->
 
         <converters:BoolToVisibilityConverter x:Key="BoolToVis" />
         <converters:BoolToVisibilityConverter x:Key="InverseBoolToVis" IsInverted="True" />
@@ -30,9 +30,9 @@
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
 
-        <!-- ═══════════════════════════════════════════════════════════
+        <!-- ===========================================================
              COLUMN 0: MAIN CONTENT (existing ScrollViewer)
-             ═══════════════════════════════════════════════════════════ -->
+             =========================================================== -->
         <ScrollViewer x:Name="PageScroller"
                       Grid.Column="0"
                       VerticalScrollBarVisibility="Auto"
@@ -54,9 +54,9 @@
                 <RowDefinition Height="Auto" /> <!-- Row 8: Indexing status -->
             </Grid.RowDefinitions>
 
-            <!-- ═══════════════════════════════════════════════════════
+            <!-- =======================================================
                  ROW 0: PAGE HEADER
-                 ═══════════════════════════════════════════════════════ -->
+                 ======================================================= -->
             <Grid Grid.Row="0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -119,10 +119,10 @@
                 </StackPanel>
             </Grid>
 
-            <!-- ═══════════════════════════════════════════════════════
+            <!-- =======================================================
                  ROW 1: DUPLICATE WARNING BANNER (Feature 14)
                  Visible when duplicate documents are detected during import.
-                 ═══════════════════════════════════════════════════════ -->
+                 ======================================================= -->
             <Border Grid.Row="1"
                     Visibility="{x:Bind ViewModel.ShowDuplicateWarning, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                     Background="{ThemeResource WarningSubtleBrush}" CornerRadius="8" Padding="16,12"
@@ -156,10 +156,10 @@
                 </Grid>
             </Border>
 
-            <!-- ═══════════════════════════════════════════════════════
+            <!-- =======================================================
                  ROW 2: STATS BAR
                  3 inline stat badges + import progress bar
-                 ═══════════════════════════════════════════════════════ -->
+                 ======================================================= -->
             <StackPanel Grid.Row="2" Spacing="12">
                 <StackPanel Orientation="Horizontal" Spacing="12">
 
@@ -251,9 +251,9 @@
                 </Border>
             </StackPanel>
 
-            <!-- ═══════════════════════════════════════════════════════
+            <!-- =======================================================
                  ROW 3: TOOLBAR / FILTER BAR
-                 ═══════════════════════════════════════════════════════ -->
+                 ======================================================= -->
             <Border Grid.Row="3" Style="{StaticResource CardInsetStyle}">
                 <StackPanel Spacing="12">
 
@@ -483,10 +483,10 @@
                 </StackPanel>
             </Border>
 
-            <!-- ═══════════════════════════════════════════════════════
+            <!-- =======================================================
                  ROW 4: BATCH ACTION BAR (Feature 8)
                  Visible only in multi-select mode.
-                 ═══════════════════════════════════════════════════════ -->
+                 ======================================================= -->
             <Border Grid.Row="4"
                     Visibility="{x:Bind ViewModel.IsMultiSelectMode, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                     Background="{ThemeResource ErrorSubtleBrush}"
@@ -530,9 +530,9 @@
                 </Grid>
             </Border>
 
-            <!-- ═══════════════════════════════════════════════════════
+            <!-- =======================================================
                  ROW 5: ERROR MESSAGE (conditional)
-                 ═══════════════════════════════════════════════════════ -->
+                 ======================================================= -->
             <Border Grid.Row="5"
                     Visibility="{x:Bind ViewModel.HasError, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                     Background="{ThemeResource ErrorSubtleBrush}"
@@ -551,11 +551,11 @@
                 </StackPanel>
             </Border>
 
-            <!-- ═══════════════════════════════════════════════════════
+            <!-- =======================================================
                  ROW 5: DROP ZONE
                  Visible when no documents exist or always as
                  an inviting import area.
-                 ═══════════════════════════════════════════════════════ -->
+                 ======================================================= -->
             <Border Grid.Row="6"
                     x:Name="DropZoneBorder"
                     Style="{StaticResource DropZoneStyle}"
@@ -615,9 +615,9 @@
                 </StackPanel>
             </Border>
 
-            <!-- ═══════════════════════════════════════════════════════
+            <!-- =======================================================
                  ROW 7: DOCUMENTS GRID
-                 ═══════════════════════════════════════════════════════ -->
+                 ======================================================= -->
             <StackPanel Grid.Row="7" Spacing="16">
 
                 <!-- Loading indicator -->
@@ -702,7 +702,7 @@
                                                                CharacterSpacing="40" />
                                                 </Border>
 
-                                                <!-- Status badge — color bound to real indexing status
+                                                <!-- Status badge - color bound to real indexing status
                                                      (completed/processing/pending/failed) via the shared
                                                      status->color converter instead of hardcoded green. -->
                                                 <Grid>
@@ -950,10 +950,10 @@
                 </Border>
             </StackPanel>
 
-            <!-- ═══════════════════════════════════════════════════════
+            <!-- =======================================================
                  ROW 8: INDEXING STATUS BAR
                  Visible when indexing is active.
-                 ═══════════════════════════════════════════════════════ -->
+                 ======================================================= -->
             <Border Grid.Row="8"
                     Style="{StaticResource IndexingStatusBarStyle}"
                     Visibility="{x:Bind ViewModel.IsIndexing, Mode=OneWay, Converter={StaticResource BoolToVis}}">
@@ -994,11 +994,11 @@
         </Grid>
         </ScrollViewer>
 
-        <!-- ═══════════════════════════════════════════════════════════
+        <!-- ===========================================================
              COLUMN 1: DOCUMENT PREVIEW PANEL
              Slides in from the right when a document is selected.
              Width: 360px, visible only when IsPreviewOpen is true.
-             ═══════════════════════════════════════════════════════════ -->
+             =========================================================== -->
         <Border Grid.Column="1"
                 Width="360"
                 Background="{ThemeResource SidebarGradientBrush}"
@@ -1010,7 +1010,7 @@
                           HorizontalScrollBarVisibility="Disabled">
                 <StackPanel Spacing="0" Padding="24,20,24,24">
 
-                    <!-- ── HEADER: Title + Close Button ── -->
+                    <!-- == HEADER: Title + Close Button == -->
                     <Grid Margin="0,0,0,20">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -1068,7 +1068,7 @@
                         </Grid>
                     </Border>
 
-                    <!-- ── FILE IDENTITY: Icon + Filename ── -->
+                    <!-- == FILE IDENTITY: Icon + Filename == -->
                     <Grid Margin="0,0,0,16" ColumnSpacing="12"
                           Visibility="{x:Bind ViewModel.SelectedDocument, Mode=OneWay, Converter={StaticResource NullToVis}}">
                         <Grid.ColumnDefinitions>
@@ -1135,7 +1135,7 @@
                                    IsTextSelectionEnabled="True" />
                     </StackPanel>
 
-                    <!-- ── EXTRACTED TITLE (if available) ── -->
+                    <!-- == EXTRACTED TITLE (if available) == -->
                     <StackPanel Spacing="4" Margin="0,0,0,16"
                                 Visibility="{x:Bind ViewModel.SelectedDocument.ExtractedTitle, Mode=OneWay, Converter={StaticResource StringToVis}}">
                         <TextBlock x:Uid="Vault_ExtractedTitle" Text="EXTRACTED TITLE"
@@ -1147,7 +1147,7 @@
                                    TextTrimming="CharacterEllipsis" />
                     </StackPanel>
 
-                    <!-- ── AI SUMMARY (if available) ── -->
+                    <!-- == AI SUMMARY (if available) == -->
                     <StackPanel Spacing="4" Margin="0,0,0,16"
                                 Visibility="{x:Bind ViewModel.SelectedDocument.Summary, Mode=OneWay, Converter={StaticResource StringToVis}}">
                         <TextBlock x:Uid="Vault_AiSummary" Text="AI SUMMARY"
@@ -1160,7 +1160,7 @@
                         </Border>
                     </StackPanel>
 
-                    <!-- ── STATS GRID ── -->
+                    <!-- == STATS GRID == -->
                     <StackPanel Spacing="4" Margin="0,0,0,16">
                         <TextBlock x:Uid="Vault_Details" Text="DETAILS"
                                    Style="{StaticResource OverlineStyle}"
@@ -1248,7 +1248,7 @@
                         </Grid>
                     </StackPanel>
 
-                    <!-- ── TAGS ── -->
+                    <!-- == TAGS == -->
                     <StackPanel Spacing="4" Margin="0,0,0,20"
                                 Visibility="{x:Bind ViewModel.SelectedDocument, Mode=OneWay, Converter={StaticResource NullToVis}}">
                         <TextBlock x:Uid="Vault_Tags2" Text="TAGS"
@@ -1276,7 +1276,7 @@
 
                     <Border Style="{StaticResource SeparatorStyle}" Margin="0,0,0,20" />
 
-                    <!-- ── ACTION BUTTONS ── -->
+                    <!-- == ACTION BUTTONS == -->
                     <StackPanel Spacing="8"
                                 Visibility="{x:Bind ViewModel.SelectedDocument, Mode=OneWay, Converter={StaticResource NullToVis}}">
 

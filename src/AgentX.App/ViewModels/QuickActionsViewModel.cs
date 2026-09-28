@@ -13,7 +13,7 @@ namespace AgentX.App.ViewModels;
 
 public partial class QuickActionsViewModel : ObservableObject, IDisposable
 {
-    // ── Services ─────────────────────────────────────────────
+    // -- Services ---------------------------------------------
     private readonly ISummaryService _summaryService;
     private readonly IDuplicateDetectionService _duplicateDetectionService;
     private readonly IOrganizationSuggestionService _organizationSuggestionService;
@@ -24,18 +24,18 @@ public partial class QuickActionsViewModel : ObservableObject, IDisposable
     private readonly ILocalizationService _localization;
     private OperationsOverviewSnapshot _operationsSnapshot = new();
 
-    // ── Document Selection ───────────────────────────────────
+    // -- Document Selection -----------------------------------
     [ObservableProperty] private ObservableCollection<QuickActionDocumentItem> _availableDocuments = new();
     [ObservableProperty] private QuickActionDocumentItem? _selectedDocument;
     [ObservableProperty] private ObservableCollection<QuickActionRecommendedItem> _recommendedActions = new();
 
-    // ── Summarize Tab ────────────────────────────────────────
+    // -- Summarize Tab ----------------------------------------
     [ObservableProperty] private string _summaryResult = string.Empty;
 
-    // ── Key Points Tab ───────────────────────────────────────
+    // -- Key Points Tab ---------------------------------------
     [ObservableProperty] private ObservableCollection<string> _keyPoints = new();
 
-    // ── Translate Tab ────────────────────────────────────────
+    // -- Translate Tab ----------------------------------------
     [ObservableProperty] private string _translationInput = string.Empty;
     [ObservableProperty] private string _translationOutput = string.Empty;
     [ObservableProperty] private QuickActionLanguageOption? _selectedLanguage;
@@ -46,18 +46,18 @@ public partial class QuickActionsViewModel : ObservableObject, IDisposable
     /// </summary>
     public ObservableCollection<QuickActionLanguageOption> AvailableLanguages { get; }
 
-    // ── Duplicates Tab ───────────────────────────────────────
+    // -- Duplicates Tab ---------------------------------------
     [ObservableProperty] private ObservableCollection<QuickActionDuplicateGroupItem> _duplicateGroups = new();
 
-    // ── Organize Tab ─────────────────────────────────────────
+    // -- Organize Tab -----------------------------------------
     [ObservableProperty] private ObservableCollection<QuickActionOrganizationItem> _suggestions = new();
 
-    // ── UI State ─────────────────────────────────────────────
+    // -- UI State ---------------------------------------------
     [ObservableProperty] private bool _isProcessing;
     [ObservableProperty] private string _statusMessage = string.Empty;
     [ObservableProperty] private int _selectedTabIndex;
 
-    // ── Result Visibility ────────────────────────────────────
+    // -- Result Visibility ------------------------------------
     [ObservableProperty] private bool _hasSummaryResult;
     [ObservableProperty] private bool _hasKeyPoints;
     [ObservableProperty] private bool _hasTranslationOutput;
@@ -192,7 +192,7 @@ public partial class QuickActionsViewModel : ObservableObject, IDisposable
             AddAction(new QuickActionRecommendedItem
             {
                 CategoryLabel = _localization.GetString("QuickAct_CategorySetup"),
-                IconGlyph = "",
+                IconGlyph = "\uE8B5",
                 Title = _localization.GetString("QuickAct_ActionImportTitle"),
                 Detail = _localization.GetString("QuickAct_ActionImportDetail"),
                 StatusLabel = _localization.GetString("QuickAct_StatusNoDocument"),
@@ -206,7 +206,7 @@ public partial class QuickActionsViewModel : ObservableObject, IDisposable
             AddAction(new QuickActionRecommendedItem
             {
                 CategoryLabel = _localization.GetString("QuickAct_CategoryReadiness"),
-                IconGlyph = "",
+                IconGlyph = "\uE8B1",
                 Title = _localization.GetString("QuickAct_ActionFinishIndexingTitle", selected.FileName),
                 Detail = _localization.GetString("QuickAct_ActionFinishIndexingDetail"),
                 StatusLabel = NormalizeStatusLabel(selected.IndexingStatus),
@@ -221,7 +221,7 @@ public partial class QuickActionsViewModel : ObservableObject, IDisposable
             AddAction(new QuickActionRecommendedItem
             {
                 CategoryLabel = _localization.GetString("QuickAct_CategoryDocument"),
-                IconGlyph = "",
+                IconGlyph = "\uE8C8",
                 Title = _localization.GetString("QuickAct_ActionSummarizeTitle", selected.FileName),
                 Detail = _localization.GetString("QuickAct_ActionSummarizeDetail"),
                 StatusLabel = _localization.GetString("QuickAct_StatusSearchable"),
@@ -236,7 +236,7 @@ public partial class QuickActionsViewModel : ObservableObject, IDisposable
             AddAction(new QuickActionRecommendedItem
             {
                 CategoryLabel = _localization.GetString("QuickAct_CategoryInbox"),
-                IconGlyph = "",
+                IconGlyph = "\uE8B7",
                 Title = _localization.GetString("QuickAct_ActionTriageTitle"),
                 Detail = _localization.GetString("QuickAct_ActionTriageDetail"),
                 StatusLabel = _operationsSnapshot.IngestionBacklog.Status,
@@ -254,7 +254,7 @@ public partial class QuickActionsViewModel : ObservableObject, IDisposable
             AddAction(new QuickActionRecommendedItem
             {
                 CategoryLabel = _localization.GetString("QuickAct_CategoryDocument"),
-                IconGlyph = "",
+                IconGlyph = "\uE8FD",
                 Title = _localization.GetString("QuickAct_ActionExtractTitle", selected!.FileName),
                 Detail = _localization.GetString("QuickAct_ActionExtractDetail"),
                 StatusLabel = _localization.GetString("QuickAct_StatusSearchable"),
@@ -269,7 +269,7 @@ public partial class QuickActionsViewModel : ObservableObject, IDisposable
             AddAction(new QuickActionRecommendedItem
             {
                 CategoryLabel = _localization.GetString("QuickAct_CategoryExpansion"),
-                IconGlyph = "",
+                IconGlyph = "\uE943",
                 Title = _localization.GetString("QuickAct_ActionConnectTitle"),
                 Detail = _localization.GetString("QuickAct_ActionConnectDetail"),
                 StatusLabel = string.IsNullOrWhiteSpace(_operationsSnapshot.Connectors.Status)
@@ -289,7 +289,7 @@ public partial class QuickActionsViewModel : ObservableObject, IDisposable
             AddAction(new QuickActionRecommendedItem
             {
                 CategoryLabel = _localization.GetString("QuickAct_CategoryReview"),
-                IconGlyph = "",
+                IconGlyph = "\uE8C6",
                 Title = _localization.GetString("QuickAct_ActionScanTitle"),
                 Detail = _localization.GetString("QuickAct_ActionScanDetail"),
                 StatusLabel = DocumentsAvailableText(AvailableDocuments.Count),
@@ -303,7 +303,7 @@ public partial class QuickActionsViewModel : ObservableObject, IDisposable
             AddAction(new QuickActionRecommendedItem
             {
                 CategoryLabel = _localization.GetString("QuickAct_CategoryOrganize"),
-                IconGlyph = "",
+                IconGlyph = "\uE8B7",
                 Title = _localization.GetString("QuickAct_ActionOrganizeTitle"),
                 Detail = _localization.GetString("QuickAct_ActionOrganizeDetail"),
                 StatusLabel = DocumentsAvailableText(AvailableDocuments.Count),
@@ -317,7 +317,7 @@ public partial class QuickActionsViewModel : ObservableObject, IDisposable
             AddAction(new QuickActionRecommendedItem
             {
                 CategoryLabel = _localization.GetString("QuickAct_CategoryExplore"),
-                IconGlyph = "",
+                IconGlyph = "\uE8C1",
                 Title = _localization.GetString("QuickAct_ActionTranslateTitle"),
                 Detail = _localization.GetString("QuickAct_ActionTranslateDetail"),
                 StatusLabel = _localization.GetString("QuickAct_StatusReady"),
@@ -330,7 +330,7 @@ public partial class QuickActionsViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(HasRecommendedActions));
     }
 
-    // ── Commands ─────────────────────────────────────────────
+    // -- Commands ---------------------------------------------
 
     [RelayCommand]
     private async Task ExecuteRecommendedActionAsync(QuickActionRecommendedItem? action)
@@ -797,9 +797,9 @@ public partial class QuickActionsViewModel : ObservableObject, IDisposable
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════
+// ===================================================================
 //  DISPLAY ITEM CLASSES
-// ═══════════════════════════════════════════════════════════════════
+// ===================================================================
 
 /// <summary>
 /// Represents a document available for selection in the Quick Actions document picker.

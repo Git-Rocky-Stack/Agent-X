@@ -113,7 +113,7 @@ public sealed class NoBannedPaletteHuesTests
             "instead. Offenders:\n  " + string.Join("\n  ", offenders));
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
+    // -- Helpers --------------------------------------------------------------
 
     /// <summary>
     /// Yields every color literal in the file, skipping commented lines. A hex inside

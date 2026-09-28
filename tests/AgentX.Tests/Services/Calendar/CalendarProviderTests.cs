@@ -11,7 +11,7 @@ namespace AgentX.Tests.Services.Calendar;
 
 /// <summary>
 /// Unit tests for <see cref="GoogleCalendarProvider"/> and
-/// <see cref="OutlookCalendarProvider"/> — validates construction,
+/// <see cref="OutlookCalendarProvider"/> - validates construction,
 /// property defaults, and provider ID values.
 /// Full API integration tests require live OAuth credentials and are
 /// covered by the manual test scenarios in the spec.
@@ -33,9 +33,9 @@ public sealed class CalendarProviderTests : IDisposable
         (_logger as IDisposable)?.Dispose();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  GoogleCalendarProvider
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void GoogleCalendarProvider_ProviderId_ReturnsGoogle()
@@ -58,9 +58,9 @@ public sealed class CalendarProviderTests : IDisposable
         act.Should().Throw<ArgumentNullException>();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  OutlookCalendarProvider
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void OutlookCalendarProvider_ProviderId_ReturnsMicrosoft()
@@ -83,9 +83,9 @@ public sealed class CalendarProviderTests : IDisposable
         act.Should().Throw<ArgumentNullException>();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  CalendarPlugin:RegisterProvidersAsync integration
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task CalendarPlugin_RegisterProvidersAsync_WithGoogleCredentials_RegistersGoogleProvider()

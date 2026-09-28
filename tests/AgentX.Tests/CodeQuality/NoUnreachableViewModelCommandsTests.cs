@@ -86,7 +86,7 @@ public sealed class NoUnreachableViewModelCommandsTests
             "but unreachable from any view or code path:\n  " + string.Join("\n  ", unreachable));
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
+    // -- Helpers --------------------------------------------------------------
 
     private static bool IsViewModel(string path) =>
         path.Contains($"{Path.DirectorySeparatorChar}ViewModels{Path.DirectorySeparatorChar}", StringComparison.Ordinal) &&

@@ -9,7 +9,7 @@ namespace AgentX.Core.Services.Inbox;
 /// </summary>
 public interface IInboxService
 {
-    // ── Ingestion ────────────────────────────────────────────────────────────
+    // -- Ingestion ------------------------------------------------------------
 
     /// <summary>
     /// Adds a file to the inbox with <c>Status = "pending"</c>.
@@ -27,7 +27,7 @@ public interface IInboxService
         string? sourceType = null,
         string? sourceUrl = null);
 
-    // ── Queries ──────────────────────────────────────────────────────────────
+    // -- Queries --------------------------------------------------------------
 
     /// <summary>
     /// Returns all items whose <c>Status</c> is "pending", ordered by
@@ -56,7 +56,7 @@ public interface IInboxService
     /// </summary>
     Task<int> GetPendingCountAsync();
 
-    // ── Single-item triage ───────────────────────────────────────────────────
+    // -- Single-item triage ---------------------------------------------------
 
     /// <summary>
     /// Accepts a single item into the knowledge vault. The file is copied into app storage
@@ -101,7 +101,7 @@ public interface IInboxService
     /// <param name="itemId">Primary key of the inbox item to defer.</param>
     Task DeferItemAsync(long itemId);
 
-    // ── Batch triage ─────────────────────────────────────────────────────────
+    // -- Batch triage ---------------------------------------------------------
 
     /// <summary>
     /// Accepts a set of items by their primary keys, each exactly as
@@ -122,11 +122,11 @@ public interface IInboxService
     /// <param name="itemIds">IDs of the items to reject.</param>
     Task RejectSelectedAsync(IEnumerable<long> itemIds);
 
-    // ── AI preview generation ────────────────────────────────────────────────
+    // -- AI preview generation ------------------------------------------------
 
     /// <summary>
     /// Reads the first 2 000 characters of the file at <c>InboxItemEntity.FilePath</c>,
-    /// sends them to the AI for a 2–3 sentence preview, and also requests a collection
+    /// sends them to the AI for a 2-3 sentence preview, and also requests a collection
     /// suggestion and comma-separated tags. Updates the entity in the database.
     /// </summary>
     /// <param name="itemId">Primary key of the inbox item to preview.</param>
@@ -141,7 +141,7 @@ public interface IInboxService
     /// <param name="ct">Cancellation token.</param>
     Task GenerateAllPreviewsAsync(CancellationToken ct = default);
 
-    // ── Maintenance ──────────────────────────────────────────────────────────
+    // -- Maintenance ----------------------------------------------------------
 
     /// <summary>
     /// Permanently deletes all inbox rows whose status is "accepted" or "rejected".
@@ -149,7 +149,7 @@ public interface IInboxService
     /// </summary>
     Task DeleteProcessedItemsAsync();
 
-    // ── External (plugin-sourced) items ────────────────────────────────────────
+    // -- External (plugin-sourced) items ----------------------------------------
 
     /// <summary>
     /// Adds or refreshes an external item from a DataConnector plugin (calendar, email, etc.)

@@ -18,7 +18,7 @@ namespace AgentX.Tests.Services.Workflows;
 /// <summary>
 /// End-to-end coverage for <see cref="WorkflowEngine"/>. Each test drives the real
 /// engine against an in-memory SQLite <see cref="AgentXDbContext"/> (so run-history
-/// persistence and the WorkflowRun → Workflow foreign key are exercised for real),
+/// persistence and the WorkflowRun -> Workflow foreign key are exercised for real),
 /// while the AI service, RAG pipeline, and workflow store are mocked with Moq.
 ///
 /// The engine reads steps from the mocked <see cref="IWorkflowService"/>; the database
@@ -28,9 +28,9 @@ public sealed class WorkflowEngineTests
 {
     private const string DefaultModel = "active-model";
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     // Test harness
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     private sealed class WorkflowEngineHarness : IDisposable
     {
@@ -48,7 +48,7 @@ public sealed class WorkflowEngineTests
         {
             Db = DbFactory.CreateContext();
 
-            // Silent Serilog logger — no sinks configured, so log calls are no-ops.
+            // Silent Serilog logger - no sinks configured, so log calls are no-ops.
             ILogger logger = new LoggerConfiguration().CreateLogger();
 
             AiService.SetupGet(s => s.ActiveModelId).Returns(DefaultModel);
@@ -163,9 +163,9 @@ public sealed class WorkflowEngineTests
         public void Report(WorkflowStepResult value) => Reports.Add(value);
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     // Constructor guards
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     [Fact]
     public void Constructor_rejects_null_dependencies()
@@ -189,9 +189,9 @@ public sealed class WorkflowEngineTests
             .Should().Throw<ArgumentNullException>().WithParameterName("logger");
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     // Pre-execution guards
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     [Theory]
     [InlineData("")]
@@ -267,9 +267,9 @@ public sealed class WorkflowEngineTests
         harness.Engine.IsRunning.Should().BeFalse();
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     // Happy path + persistence
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     [Fact]
     public async Task ExecuteWorkflowAsync_completes_single_step_and_persists_run()
@@ -358,9 +358,9 @@ public sealed class WorkflowEngineTests
             .Should().ContainInOrder("First", "Second", "Third");
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     // AiPrompt step
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     [Fact]
     public async Task AiPrompt_applies_model_temperature_and_token_overrides()
@@ -437,9 +437,9 @@ public sealed class WorkflowEngineTests
             It.IsAny<ChatOptions?>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     // DocumentLookup step
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     [Fact]
     public async Task DocumentLookup_queries_rag_with_collection_from_config()
@@ -550,9 +550,9 @@ public sealed class WorkflowEngineTests
             It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     // TextTransform step
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     [Theory]
     [InlineData("uppercase", "abc", "ABC")]
@@ -660,9 +660,9 @@ public sealed class WorkflowEngineTests
         result.Steps[0].Output.Should().Be("ABC");
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     // ConditionalBranch step
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     [Theory]
     [InlineData("contains", "world", "hello world", true)]
@@ -737,7 +737,7 @@ public sealed class WorkflowEngineTests
     public async Task ConditionalBranch_defaults_branches_to_previous_output()
     {
         using var harness = new WorkflowEngineHarness();
-        // No trueBranch/falseBranch → both default to previous output.
+        // No trueBranch/falseBranch -> both default to previous output.
         var config = JsonSerializer.Serialize(new { condition = "contains", value = "x" });
         var id = harness.ConfigureWorkflow("wf",
             Step("AiPrompt", order: 0, name: "Seed", template: "{{input}}"),
@@ -783,9 +783,9 @@ public sealed class WorkflowEngineTests
         result.Steps[0].ErrorMessage.Should().Contain("Failed to parse ConditionalBranch ConfigJson");
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     // OutputFormat step
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     [Fact]
     public async Task OutputFormat_wraps_as_json()
@@ -923,9 +923,9 @@ public sealed class WorkflowEngineTests
         result.Steps[0].Output.Should().Be("raw");
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     // Unknown step type + error handling
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     [Fact]
     public async Task UnknownStepType_fails_step_and_run()
@@ -989,9 +989,9 @@ public sealed class WorkflowEngineTests
         run.ErrorMessage.Should().Be("update-boom");
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     // Cancellation
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     [Fact]
     public async Task ExecuteWorkflowAsync_with_precancelled_token_cancels_before_first_step()

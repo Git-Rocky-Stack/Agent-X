@@ -585,7 +585,7 @@ public class AnnotationService : IAnnotationService
                         ? char.ToUpperInvariant(annotation.Color[0]) + annotation.Color[1..]
                         : annotation.Color;
 
-                    sb.AppendLine($"### [{colorLabel}] Highlight (offset {annotation.StartOffset}–{annotation.EndOffset})");
+                    sb.AppendLine($"### [{colorLabel}] Highlight (offset {annotation.StartOffset}-{annotation.EndOffset})");
                     sb.AppendLine();
 
                     // The highlighted text in a blockquote.
@@ -604,7 +604,7 @@ public class AnnotationService : IAnnotationService
                     sb.AppendLine(
                         $"_Created: {IsoMinutes(annotation.CreatedAt)} UTC" +
                         (annotation.UpdatedAt != annotation.CreatedAt
-                            ? $" · Updated: {IsoMinutes(annotation.UpdatedAt)} UTC"
+                            ? $" | Updated: {IsoMinutes(annotation.UpdatedAt)} UTC"
                             : string.Empty) +
                         "_");
 

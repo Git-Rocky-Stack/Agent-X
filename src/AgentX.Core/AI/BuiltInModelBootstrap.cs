@@ -8,7 +8,7 @@ namespace AgentX.Core.AI;
 /// <inheritdoc cref="IBuiltInModelBootstrap" />
 public sealed class BuiltInModelBootstrap : IBuiltInModelBootstrap
 {
-    /// <summary>Default built-in model file name — kept in sync with the OFFLINE installer and LocalLlmProvider.</summary>
+    /// <summary>Default built-in model file name - kept in sync with the OFFLINE installer and LocalLlmProvider.</summary>
     public const string DefaultModelFileName = "llama-3.2-3b-instruct-q4_k_m.gguf";
 
     /// <summary>Default human-friendly model name.</summary>

@@ -238,7 +238,7 @@
   <data name="Ana_NoCompletedOutcomes" xml:space="preserve"><value>No completed outcomes yet</value></data>
   <data name="Ana_SuccessfulRunsOne" xml:space="preserve"><value>1 successful run</value></data>
   <data name="Ana_SuccessfulRunsMany" xml:space="preserve"><value>{0} successful runs</value></data>
-  <data name="Ana_RunsSucceededAndFailed" xml:space="preserve"><value>{0} succeeded · {1} failed/cancelled</value></data>
+  <data name="Ana_RunsSucceededAndFailed" xml:space="preserve"><value>{0} succeeded | {1} failed/cancelled</value></data>
   <data name="Ana_RunStatusCompleted" xml:space="preserve"><value>Completed</value></data>
   <data name="Ana_RunStatusFailed" xml:space="preserve"><value>Failed</value></data>
   <data name="Ana_RunStatusCancelled" xml:space="preserve"><value>Cancelled</value></data>
@@ -257,8 +257,8 @@
   <data name="Ana_TimeHoursAgo" xml:space="preserve"><value>{0} hr ago</value></data>
   <data name="Ana_TimeOneDayAgo" xml:space="preserve"><value>1 day ago</value></data>
   <data name="Ana_TimeDaysAgo" xml:space="preserve"><value>{0} days ago</value></data>
-  <data name="Ana_ThemeClusterActivity" xml:space="preserve"><value>{0} conversations · {1} active / 7d · {2} active / 30d</value></data>
-  <data name="Ana_ThemeTrendActivity" xml:space="preserve"><value>{0} active / 7d · {1} active / 30d</value></data>
+  <data name="Ana_ThemeClusterActivity" xml:space="preserve"><value>{0} conversations | {1} active / 7d | {2} active / 30d</value></data>
+  <data name="Ana_ThemeTrendActivity" xml:space="preserve"><value>{0} active / 7d | {1} active / 30d</value></data>
   <data name="Ana_ThemeTrendBarTooltip" xml:space="preserve"><value>{0}: {1} active, {2} new, {3} snapshots</value></data>
   <data name="Palette_OpenHint.Text" xml:space="preserve"><value>Open</value></data>
   <data name="Palette_CloseHint.Text" xml:space="preserve"><value>Close</value></data>
@@ -646,9 +646,9 @@
   <data name="UserGuide_InsightHarvesting_Managing2.Text" xml:space="preserve"><value>An insight does not link back to its conversation, and it cannot be copied with attribution, saved as an annotation or turned into a vault note.</value></data>
   <data name="UserGuide_InsightHarvesting_Managing3.Text" xml:space="preserve"><value>Insights cannot be starred, dismissed, edited or deleted in the app, and no feedback tunes the detector; the word lists are fixed.</value></data>
 
-  <!-- ═════════════════════════════════════════════════════════════════════
+  <!-- =====================================================================
        USER GUIDE: GETTING STARTED TUTORIALS (NEW)
-       ═════════════════════════════════════════════════════════════════════ -->
+       ===================================================================== -->
 
   <!-- UserGuide: First Chat Tutorial (Row 4) -->
   <data name="UserGuide_FirstChat_Title.Text" xml:space="preserve"><value>Your First Chat</value></data>
@@ -676,9 +676,9 @@
   <data name="UserGuide_FirstDocument_Supported_Title.Text" xml:space="preserve"><value>Supported File Types</value></data>
   <data name="UserGuide_FirstDocument_Supported.Text" xml:space="preserve"><value>Documents: PDF (text layer only, no OCR), Word (.docx), plain text and Markdown; .csv, .log, .json and .xml files are read as plain text. Code and configuration files, such as .cs, .py, .js, .ts, .java, .go, .sql, .yaml and .ini, are read as text. Images (.png, .jpg, .jpeg, .bmp, .tiff) are read with the OCR built into Windows. Audio (.mp3, .wav, .m4a, .flac, .ogg, .webm) is transcribed once the speech-to-text model is installed. Web pages and YouTube captions come in through Web Import. Excel, PowerPoint, EPUB, RTF and legacy .doc files are not supported; see Supported File Formats for the full list.</value></data>
 
-  <!-- ═════════════════════════════════════════════════════════════════════
+  <!-- =====================================================================
        USER GUIDE: RESEARCH & WEB (NEW SECTIONS)
-       ═════════════════════════════════════════════════════════════════════ -->
+       ===================================================================== -->
 
   <!-- UserGuide: Web Search (Row 13) -->
   <data name="UserGuide_WebSearch_Title.Text" xml:space="preserve"><value>Web Search &amp; Research</value></data>
@@ -764,9 +764,9 @@
   <data name="UserGuide_MobileCompanion_Sync_Title.Text" xml:space="preserve"><value>Connection &amp; Security</value></data>
   <data name="UserGuide_MobileCompanion_Sync_Description.Text" xml:space="preserve"><value>The phone reads everything from the desktop's local API on demand and stores only its own connection settings. The desktop listens on localhost only, and the app refuses plain HTTP to any other host, so traffic stays on the emulator bridge or the USB link. Every request carries the API token; regenerate it in Settings &gt; Connections to cut off every connected client at once.</value></data>
 
-  <!-- ═════════════════════════════════════════════════════════════════════
+  <!-- =====================================================================
        USER GUIDE: AUTOMATION (NEW SECTIONS)
-       ═════════════════════════════════════════════════════════════════════ -->
+       ===================================================================== -->
 
   <!-- UserGuide: Workflows (Row 23) -->
   <data name="UserGuide_Workflows_Title.Text" xml:space="preserve"><value>Workflows &amp; Automation</value></data>
@@ -792,9 +792,9 @@
 
   <!-- UserGuide: Automation Rules (Row 25) -->
 
-  <!-- ═════════════════════════════════════════════════════════════════════
+  <!-- =====================================================================
        USER GUIDE: POWER USER (NEW SECTIONS)
-       ═════════════════════════════════════════════════════════════════════ -->
+       ===================================================================== -->
 
   <!-- UserGuide: Advanced Queries (Row 31) -->
   <data name="UserGuide_AdvancedQueries_Title.Text" xml:space="preserve"><value>Advanced Queries</value></data>
@@ -815,9 +815,9 @@
   <data name="UserGuide_PerformanceTuning_Local_Title.Text" xml:space="preserve"><value>Local Model Tuning</value></data>
   <data name="UserGuide_PerformanceTuning_Local.Text" xml:space="preserve"><value>For Ollama models, a Q4_K_M quantization needs far less memory than Q8_0 or FP16 at a small cost in quality. Context Window under Inference in Settings (8,192 by default) is sent to Ollama and limits how much conversation context is assembled; lower it for short questions, raise it for long documents if memory allows. Ollama decides GPU offload on its own. The built-in model offloads layers to an NVIDIA GPU when the CUDA 12 Toolkit is installed: Automatic GPU layers picks 16, 28 or 33 layers for 2 to 4, 4 to 6, or 6 GB and more of video memory (none below 2 GB), or set GPU Layers yourself, where 0 keeps it on the CPU. For embeddings, all-minilm is much smaller and faster than mxbai-embed-large. Each reply in AI Chat shows its token count and speed, so you can compare models on your machine.</value></data>
 
-  <!-- ═════════════════════════════════════════════════════════════════════
+  <!-- =====================================================================
        USER GUIDE: EXTENDED FEATURES (NEW SECTIONS)
-       ═════════════════════════════════════════════════════════════════════ -->
+       ===================================================================== -->
 
   <!-- UserGuide: Annotations & Highlights -->
   <data name="UserGuide_Annotations_Title.Text" xml:space="preserve"><value>Annotations &amp; Highlights</value></data>
@@ -1346,7 +1346,7 @@
   <data name="Ana_TokensOverline.Text" xml:space="preserve"><value>TOKENS USED</value></data>
   <data name="Ana_AvgPerMsgLabel.Text" xml:space="preserve"><value>avg / message</value></data>
   <data name="Ana_DocsOverline.Text" xml:space="preserve"><value>DOCUMENTS</value></data>
-  <data name="Ana_IndexedDotLabel.Text" xml:space="preserve"><value>indexed ·</value></data>
+  <data name="Ana_IndexedDotLabel.Text" xml:space="preserve"><value>indexed |</value></data>
   <data name="Ana_PendingLabel.Text" xml:space="preserve"><value>pending</value></data>
   <data name="Ana_SearchesOverline.Text" xml:space="preserve"><value>SEARCHES</value></data>
   <data name="Ana_SearchesCaption.Text" xml:space="preserve"><value>Semantic and keyword queries</value></data>
@@ -1933,9 +1933,9 @@
   <data name="Chat_AssemblyOverviewTitle.Text" xml:space="preserve"><value>Assembly Overview</value></data>
   <data name="Chat_ModeRun.Text" xml:space="preserve"><value>Mode: </value></data>
   <data name="Chat_SelectedRun.Text" xml:space="preserve"><value>Selected: </value></data>
-  <data name="Chat_AnchorsRun.Text" xml:space="preserve"><value> · Anchors: </value></data>
+  <data name="Chat_AnchorsRun.Text" xml:space="preserve"><value> | Anchors: </value></data>
   <data name="Chat_OverflowRun.Text" xml:space="preserve"><value>Overflow: </value></data>
-  <data name="Chat_PromptEstRun.Text" xml:space="preserve"><value> · Prompt est: </value></data>
+  <data name="Chat_PromptEstRun.Text" xml:space="preserve"><value> | Prompt est: </value></data>
   <data name="Chat_DurableSummaryTitle.Text" xml:space="preserve"><value>Durable Summary</value></data>
   <data name="Chat_RefreshSummaryTip2.ToolTipService.ToolTip" xml:space="preserve"><value>Refresh the durable summary for this conversation</value></data>
   <data name="Chat_DurableRecallTitle.Text" xml:space="preserve"><value>Durable Recall</value></data>
@@ -1943,7 +1943,7 @@
   <data name="Chat_CapturedRun.Text" xml:space="preserve"><value>Captured </value></data>
   <data name="Chat_PromptRun.Text" xml:space="preserve"><value>Prompt:</value></data>
   <data name="Chat_MessageBox.PlaceholderText" xml:space="preserve"><value>Message Agent-X...</value></data>
-  <data name="Chat_VoiceInputTip.ToolTipService.ToolTip" xml:space="preserve"><value>Voice input — click to record</value></data>
+  <data name="Chat_VoiceInputTip.ToolTipService.ToolTip" xml:space="preserve"><value>Voice input - click to record</value></data>
   <data name="Chat_StopRecordingTip.ToolTipService.ToolTip" xml:space="preserve"><value>Stop recording and transcribe</value></data>
   <data name="Chat_InspectAssembledTip.ToolTipService.ToolTip" xml:space="preserve"><value>Inspect the latest assembled chat context</value></data>
   <data name="Chat_ModeSolo.Text" xml:space="preserve"><value>Solo</value></data>
@@ -2419,7 +2419,7 @@
   <data name="QuickAct_ScanExactDuplicates.Content" xml:space="preserve"><value>Scan Exact Duplicates</value></data>
   <data name="QuickAct_ScanSemanticNearDuplicates.Content" xml:space="preserve"><value>Scan Semantic Near-Duplicates</value></data>
   <data name="QuickAct_Wasted.Text" xml:space="preserve"><value> wasted</value></data>
-  <data name="QuickAct_Imported.Text" xml:space="preserve"><value> · Imported </value></data>
+  <data name="QuickAct_Imported.Text" xml:space="preserve"><value> | Imported </value></data>
   <data name="QuickAct_AiOrganizationAssistant.Text" xml:space="preserve"><value>AI Organization Assistant</value></data>
   <data name="QuickAct_AnalyzesUncategorizedDocuments.Text" xml:space="preserve"><value>Analyzes uncategorized documents and suggests collections and tags based on content.</value></data>
   <data name="QuickAct_AnalyzeSuggest.Content" xml:space="preserve"><value>Analyze &amp; Suggest</value></data>
@@ -2484,7 +2484,7 @@
   <data name="HwAdvisor_Installed3.Text" xml:space="preserve"><value>Installed</value></data>
   <data name="HwAdvisor_Install3.Text" xml:space="preserve"><value>Install</value></data>
   <data name="HwAdvisor_LocalAiOnly.Text" xml:space="preserve"><value>Local AI Only</value></data>
-  <data name="HwAdvisor_AllModelsRunEntirely.Text" xml:space="preserve"><value> — All models run entirely on your hardware. No data is sent to external servers. Your hardware information never leaves this machine.</value></data>
+  <data name="HwAdvisor_AllModelsRunEntirely.Text" xml:space="preserve"><value> - All models run entirely on your hardware. No data is sent to external servers. Your hardware information never leaves this machine.</value></data>
   <data name="WfBuilder_Workflows.Text" xml:space="preserve"><value>Workflows</value></data>
   <data name="WfBuilder_MultiStepAiPipelines.Text" xml:space="preserve"><value>Multi-step AI pipelines</value></data>
   <data name="WfBuilder_NewWorkflow.Content" xml:space="preserve"><value>New Workflow</value></data>
@@ -2686,7 +2686,7 @@
   <data name="WfBuilder_ShowingCancelledResult" xml:space="preserve"><value>Showing the cancelled execution result</value></data>
   <data name="WfBuilder_WorkflowCancelled" xml:space="preserve"><value>Workflow cancelled</value></data>
   <data name="WfBuilder_ImportedWorkflow" xml:space="preserve"><value>Imported workflow "{0}"</value></data>
-  <data name="WfBuilder_ImportInvalidJson" xml:space="preserve"><value>Import failed — invalid workflow JSON</value></data>
+  <data name="WfBuilder_ImportInvalidJson" xml:space="preserve"><value>Import failed - invalid workflow JSON</value></data>
   <data name="WfBuilder_LoadRecentRunsFailed" xml:space="preserve"><value>Failed to load recent workflow runs</value></data>
   <data name="WfBuilder_RequestedRunUnavailable" xml:space="preserve"><value>The requested workflow run is no longer available.</value></data>
   <data name="WfBuilder_RequestedRunNotInHistory" xml:space="preserve"><value>The requested workflow run is no longer in recent history.</value></data>
@@ -3057,21 +3057,21 @@
   <data name="Chat_ConnectionDisconnected" xml:space="preserve"><value>Disconnected</value></data>
   <data name="Chat_ResearchModeOnTooltip" xml:space="preserve"><value>Research Mode ON: answers add cited web search results (needs Research Mode and a web search provider in Settings)</value></data>
   <data name="Chat_ResearchModeOffTooltip" xml:space="preserve"><value>Research Mode OFF: answers come from the AI model and the conversation, without web search results</value></data>
-  <data name="Chat_OrchestrationParallelTooltip" xml:space="preserve"><value>Multi-agent parallel mode — researcher, critic, and synthesizer respond together</value></data>
-  <data name="Chat_OrchestrationDebateTooltip" xml:space="preserve"><value>Multi-agent debate mode — agents challenge positions before the final synthesis</value></data>
-  <data name="Chat_OrchestrationSoloTooltip" xml:space="preserve"><value>Solo mode — standard Agent-X chat response</value></data>
+  <data name="Chat_OrchestrationParallelTooltip" xml:space="preserve"><value>Multi-agent parallel mode - researcher, critic, and synthesizer respond together</value></data>
+  <data name="Chat_OrchestrationDebateTooltip" xml:space="preserve"><value>Multi-agent debate mode - agents challenge positions before the final synthesis</value></data>
+  <data name="Chat_OrchestrationSoloTooltip" xml:space="preserve"><value>Solo mode - standard Agent-X chat response</value></data>
   <data name="Chat_ContextStoryUnavailable" xml:space="preserve"><value>No context story is available until Agent-X assembles a response for this conversation.</value></data>
   <data name="Chat_IntelBadgeCurrent" xml:space="preserve"><value>Current</value></data>
   <data name="Chat_IntelBadgeStale" xml:space="preserve"><value>Stale</value></data>
   <data name="Chat_IntelBadgePending" xml:space="preserve"><value>Pending</value></data>
   <data name="Chat_IntelBadgeUnavailable" xml:space="preserve"><value>Unavailable</value></data>
   <data name="Chat_SummaryRefreshing" xml:space="preserve"><value>Refreshing durable summary...</value></data>
-  <data name="Chat_SummaryCurrentKeyPointsOne" xml:space="preserve"><value>Summary current • 1 key point available</value></data>
-  <data name="Chat_SummaryCurrentKeyPointsMany" xml:space="preserve"><value>Summary current • {0} key points available</value></data>
-  <data name="Chat_SummaryCurrentReady" xml:space="preserve"><value>Summary current • Ready for deeper inspection</value></data>
-  <data name="Chat_SummaryStaleMessagesOne" xml:space="preserve"><value>Summary stale • 1 newer message not folded in</value></data>
-  <data name="Chat_SummaryStaleMessagesMany" xml:space="preserve"><value>Summary stale • {0} newer messages not folded in</value></data>
-  <data name="Chat_SummaryStaleWaiting" xml:space="preserve"><value>Summary stale • Waiting for the next refresh</value></data>
+  <data name="Chat_SummaryCurrentKeyPointsOne" xml:space="preserve"><value>Summary current | 1 key point available</value></data>
+  <data name="Chat_SummaryCurrentKeyPointsMany" xml:space="preserve"><value>Summary current | {0} key points available</value></data>
+  <data name="Chat_SummaryCurrentReady" xml:space="preserve"><value>Summary current | Ready for deeper inspection</value></data>
+  <data name="Chat_SummaryStaleMessagesOne" xml:space="preserve"><value>Summary stale | 1 newer message not folded in</value></data>
+  <data name="Chat_SummaryStaleMessagesMany" xml:space="preserve"><value>Summary stale | {0} newer messages not folded in</value></data>
+  <data name="Chat_SummaryStaleWaiting" xml:space="preserve"><value>Summary stale | Waiting for the next refresh</value></data>
   <data name="Chat_SummaryRefreshPending" xml:space="preserve"><value>Summary refresh pending</value></data>
   <data name="Chat_SummaryUnavailablePath" xml:space="preserve"><value>Summary unavailable for this response path</value></data>
   <data name="Chat_ConversationContextNone" xml:space="preserve"><value>No conversation context captured yet</value></data>
@@ -3165,8 +3165,8 @@
   <data name="BranchCompare_BranchLabel" xml:space="preserve"><value>Branch: {0}</value></data>
   <data name="BranchCompare_Untitled" xml:space="preserve"><value>Untitled</value></data>
   <data name="BranchCompare_UntitledConversation" xml:space="preserve"><value>Untitled Conversation</value></data>
-  <data name="BranchCompare_HeaderSummaryOne" xml:space="preserve"><value>{0} — {1} sub-branch</value></data>
-  <data name="BranchCompare_HeaderSummaryMany" xml:space="preserve"><value>{0} — {1} sub-branches</value></data>
+  <data name="BranchCompare_HeaderSummaryOne" xml:space="preserve"><value>{0} - {1} sub-branch</value></data>
+  <data name="BranchCompare_HeaderSummaryMany" xml:space="preserve"><value>{0} - {1} sub-branches</value></data>
   <data name="BranchCompare_Label" xml:space="preserve"><value>Label: {0}</value></data>
   <data name="BranchCompare_BranchedFrom" xml:space="preserve"><value>Branched from message #{0}</value></data>
   <data name="BranchCompare_SubBranchesOne" xml:space="preserve"><value>{0} sub-branch</value></data>
@@ -3232,9 +3232,9 @@
   <data name="Settings_AutomaticallyRoutePromptsTo.Text" xml:space="preserve"><value>Automatically route prompts to the best AI model based on task type. Extraction and chat prefer fast local models; analysis and code prefer quality cloud models.</value></data>
   <data name="Settings_EnableAutoRouting.Header" xml:space="preserve"><value>Enable Auto-Routing</value></data>
   <data name="Settings_RoutingProfile.Text" xml:space="preserve"><value>Routing Profile</value></data>
-  <data name="Settings_CostOptimizedLocalModels.Text" xml:space="preserve"><value>Cost Optimized — Local models for all tasks, cloud only as fallback</value></data>
-  <data name="Settings_QualityOptimizedCloudModels.Text" xml:space="preserve"><value>Quality Optimized — Cloud models for analysis, code, creative</value></data>
-  <data name="Settings_BalancedLocalForSimple.Text" xml:space="preserve"><value>Balanced — Local for simple tasks, cloud for quality-critical tasks</value></data>
+  <data name="Settings_CostOptimizedLocalModels.Text" xml:space="preserve"><value>Cost Optimized - Local models for all tasks, cloud only as fallback</value></data>
+  <data name="Settings_QualityOptimizedCloudModels.Text" xml:space="preserve"><value>Quality Optimized - Cloud models for analysis, code, creative</value></data>
+  <data name="Settings_BalancedLocalForSimple.Text" xml:space="preserve"><value>Balanced - Local for simple tasks, cloud for quality-critical tasks</value></data>
   <data name="Settings_CostTracking.Text" xml:space="preserve"><value>Cost Tracking</value></data>
   <data name="Settings_EstimatedApiCostsFor.Text" xml:space="preserve"><value>Estimated API costs for cloud providers. Local Ollama models are free.</value></data>
   <data name="Settings_TotalSpend.Text" xml:space="preserve"><value>TOTAL SPEND</value></data>
@@ -3396,7 +3396,7 @@
   <data name="PastSelf_ViewSince" xml:space="preserve"><value>Your view since {0}</value></data>
   <data name="PastSelf_TopicRecorded" xml:space="preserve"><value>Recorded {0}</value></data>
   <data name="PastSelf_TopicRecordedSpan" xml:space="preserve"><value>First recorded {0}; last recorded {1}</value></data>
-  <data name="Privacy_AgentXIsDesigned.Text" xml:space="preserve"><value>Agent-X is designed with privacy as a core principle. All your data — documents, conversations, embeddings, and settings — is stored locally on your device. We do not operate cloud servers that process or store your personal data.</value></data>
+  <data name="Privacy_AgentXIsDesigned.Text" xml:space="preserve"><value>Agent-X is designed with privacy as a core principle. All your data - documents, conversations, embeddings, and settings - is stored locally on your device. We do not operate cloud servers that process or store your personal data.</value></data>
   <data name="Privacy_OurLocalFirstArchitecture.Text" xml:space="preserve"><value>Our local-first architecture means you retain full ownership and control of every piece of information you create or import into Agent-X. There are no accounts to create, no data syncing, and no telemetry being transmitted.</value></data>
   <data name="Privacy_InformationWeCollect.Text" xml:space="preserve"><value>Information We Collect</value></data>
   <data name="Privacy_InformationYouProvide.Text" xml:space="preserve"><value>Information You Provide</value></data>
@@ -3420,7 +3420,7 @@
   <data name="Privacy_AllDataStoredIn.Text" xml:space="preserve"><value>All data stored in local SQLite databases on your device</value></data>
   <data name="Privacy_DocumentEmbeddingsStoredIn.Text" xml:space="preserve"><value>Document embeddings stored in local vector database (sqlite-vec)</value></data>
   <data name="Privacy_ApplicationLogsStoredIn.Text" xml:space="preserve"><value>Application logs stored in </value></data>
-  <data name="Privacy_SettingsStoredLocallyNever.Text" xml:space="preserve"><value>Settings stored locally — never synced to cloud</value></data>
+  <data name="Privacy_SettingsStoredLocallyNever.Text" xml:space="preserve"><value>Settings stored locally - never synced to cloud</value></data>
   <data name="Privacy_YouHaveFullControl.Text" xml:space="preserve"><value>You have full control: all data can be deleted by removing the application data folder</value></data>
   <data name="Privacy_ThirdPartyServices.Text" xml:space="preserve"><value>Third-Party Services</value></data>
   <data name="Privacy_OllamaLocalAiRuntime.Text" xml:space="preserve"><value>Ollama (Local AI Runtime)</value></data>
@@ -3441,14 +3441,14 @@
   <data name="Privacy_RightToDataPortability.Text" xml:space="preserve"><value>Right to Data Portability</value></data>
   <data name="Privacy_YourDataIsStored.Text" xml:space="preserve"><value>Your data is stored in standard SQLite format and can be exported or moved freely.</value></data>
   <data name="Privacy_RightToRestrictProcessing.Text" xml:space="preserve"><value>Right to Restrict Processing</value></data>
-  <data name="Privacy_YouControlAllProcessing.Text" xml:space="preserve"><value>You control all processing — simply close the application to stop all data processing.</value></data>
+  <data name="Privacy_YouControlAllProcessing.Text" xml:space="preserve"><value>You control all processing - simply close the application to stop all data processing.</value></data>
   <data name="Privacy_RightToObject.Text" xml:space="preserve"><value>Right to Object</value></data>
   <data name="Privacy_YouCanStopUsing.Text" xml:space="preserve"><value>You can stop using the application at any time. Uninstalling removes all processing.</value></data>
   <data name="Privacy_SinceAllDataIs.Text" xml:space="preserve"><value>Since all data is stored locally on your device, you exercise these rights directly without needing to contact us. You are the sole controller of your data.</value></data>
   <data name="Privacy_YourRightsUnderCcpa.Text" xml:space="preserve"><value>Your Rights Under CCPA</value></data>
   <data name="Privacy_IfYouAreA.Text" xml:space="preserve"><value>If you are a California resident, you have specific rights under the California Consumer Privacy Act (CCPA).</value></data>
   <data name="Privacy_RightToKnow.Text" xml:space="preserve"><value>Right to Know</value></data>
-  <data name="Privacy_WhatPersonalInformationIs.Text" xml:space="preserve"><value>What personal information is collected — see 'Information We Collect' above for a complete enumeration.</value></data>
+  <data name="Privacy_WhatPersonalInformationIs.Text" xml:space="preserve"><value>What personal information is collected - see 'Information We Collect' above for a complete enumeration.</value></data>
   <data name="Privacy_RightToDelete.Text" xml:space="preserve"><value>Right to Delete</value></data>
   <data name="Privacy_RemoveAllDataBy.Text" xml:space="preserve"><value>Remove all data by uninstalling the app or deleting the application data directory.</value></data>
   <data name="Privacy_RightToOptOut.Text" xml:space="preserve"><value>Right to Opt-Out of Sale</value></data>
@@ -3482,8 +3482,8 @@
   <data name="Privacy_ForGdprInquiriesOur.Text" xml:space="preserve"><value>For GDPR inquiries, our Data Protection contact can be reached at support@strategia-x.com</value></data>
   <data name="Privacy_CcpaRequestsCaliforniaResident.Text" xml:space="preserve"><value>CCPA Requests (California Residents)</value></data>
   <data name="Privacy_CaliforniaResidentsMayContact.Text" xml:space="preserve"><value>California residents may contact us at support@strategia-x.com for any CCPA-related requests.</value></data>
-  <data name="Privacy_2026RockyElsalaymehFree.Text" xml:space="preserve"><value>© 2026 Rocky Elsalaymeh. Free and open-source under the MIT License.</value></data>
-  <data name="Privacy_AgentXLocalFirst.Text" xml:space="preserve"><value>Agent-X — Local-First AI Personal Intelligence Hub</value></data>
+  <data name="Privacy_2026RockyElsalaymehFree.Text" xml:space="preserve"><value>(c) 2026 Rocky Elsalaymeh. Free and open-source under the MIT License.</value></data>
+  <data name="Privacy_AgentXLocalFirst.Text" xml:space="preserve"><value>Agent-X - Local-First AI Personal Intelligence Hub</value></data>
   <data name="Terms_Legal.Text" xml:space="preserve"><value>LEGAL</value></data>
   <data name="Terms_TermsOfService.Text" xml:space="preserve"><value>TERMS OF SERVICE</value></data>
   <data name="Terms_EffectiveDateFebruary26.Text" xml:space="preserve"><value>Effective Date: February 26, 2026</value></data>
@@ -3501,7 +3501,7 @@
   <data name="Terms_AllProcessingOccursLocally.Text" xml:space="preserve"><value>All processing occurs locally on your device. Agent-X does not transmit your data to external servers for AI inference.</value></data>
   <data name="Terms_3LicenseGrant.Text" xml:space="preserve"><value>3. License Grant</value></data>
   <data name="Terms_UnderTheMitLicense.Text" xml:space="preserve"><value>Under the MIT License you may freely:</value></data>
-  <data name="Terms_UseAgentXFor.Text" xml:space="preserve"><value>Use Agent-X for any purpose — personal, commercial, or otherwise</value></data>
+  <data name="Terms_UseAgentXFor.Text" xml:space="preserve"><value>Use Agent-X for any purpose - personal, commercial, or otherwise</value></data>
   <data name="Terms_StudyModifyAndBuild.Text" xml:space="preserve"><value>Study, modify, and build upon the source code</value></data>
   <data name="Terms_DistributeAndSublicenseCopies.Text" xml:space="preserve"><value>Distribute and sublicense copies, with or without modification</value></data>
   <data name="Terms_IncludeAgentXIn.Text" xml:space="preserve"><value>Include Agent-X in your own projects, free of charge</value></data>
@@ -3552,7 +3552,7 @@
   <data name="Backup_RestoreButton" xml:space="preserve"><value>Restore</value></data>
   <data name="Backup_CancelButton" xml:space="preserve"><value>Cancel</value></data>
   <data name="Backup_RestoreConfirmTitle" xml:space="preserve"><value>Restore from Backup?</value></data>
-  <data name="Backup_RestoreConfirmMessage" xml:space="preserve"><value>Restoring will overwrite your current knowledge base — documents, conversations, and workflows will be replaced with the backup's contents. This cannot be undone, and Agent-X must be restarted afterwards. Continue?</value></data>
+  <data name="Backup_RestoreConfirmMessage" xml:space="preserve"><value>Restoring will overwrite your current knowledge base - documents, conversations, and workflows will be replaced with the backup's contents. This cannot be undone, and Agent-X must be restarted afterwards. Continue?</value></data>
   <data name="Backup_DeleteConfirmTitle" xml:space="preserve"><value>Delete Backup?</value></data>
   <data name="Backup_DeleteConfirmMessage" xml:space="preserve"><value>This permanently deletes the selected backup file. This cannot be undone. Continue?</value></data>
   <data name="Backup_DeleteButton" xml:space="preserve"><value>Delete</value></data>
@@ -3716,7 +3716,7 @@
   <data name="Chat_CopyAiMsgTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Copy to clipboard</value></data>
   <data name="Chat_RegenerateTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Regenerate response</value></data>
   <data name="Chat_DeleteAiMsgTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Delete message</value></data>
-  <data name="Chat_VoiceInputTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Voice input — click to record</value></data>
+  <data name="Chat_VoiceInputTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Voice input - click to record</value></data>
   <data name="Chat_StopRecordingTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Stop recording and transcribe</value></data>
   <data name="Chat_InspectAssembledTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Inspect the latest assembled chat context</value></data>
   <data name="Graph_ZoomOutTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Zoom Out</value></data>

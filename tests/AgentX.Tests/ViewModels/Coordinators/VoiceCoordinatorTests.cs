@@ -33,7 +33,7 @@ public class VoiceCoordinatorTests : IDisposable
         _coordinator.Dispose();
     }
 
-    // ── Initial State ─────────────────────────────────────────────
+    // -- Initial State ---------------------------------------------
 
     [Fact]
     public void IsRecording_IsFalse_Initially()
@@ -60,7 +60,7 @@ public class VoiceCoordinatorTests : IDisposable
         _coordinator.SupportedFormats.Should().Contain(".mp3");
     }
 
-    // ── TranscribeFileAsync ───────────────────────────────────────
+    // -- TranscribeFileAsync ---------------------------------------
 
     [Fact]
     public async Task TranscribeFileAsync_ReturnsText_OnSuccess()
@@ -148,7 +148,7 @@ public class VoiceCoordinatorTests : IDisposable
         text.Should().BeNull();
     }
 
-    // ── Transcribing state ────────────────────────────────────────
+    // -- Transcribing state ----------------------------------------
 
     [Fact]
     public async Task TranscribeFileAsync_SetsTranscribingState()
@@ -166,10 +166,10 @@ public class VoiceCoordinatorTests : IDisposable
                 It.IsAny<CancellationToken>()))
             .Returns(tcs.Task);
 
-        // Act — start transcription
+        // Act - start transcription
         var task = _coordinator.TranscribeFileAsync("/test/audio.wav");
 
-        // Assert — should be transcribing
+        // Assert - should be transcribing
         _coordinator.IsTranscribing.Should().BeTrue();
         transcribingStates.Should().Contain(true);
 
@@ -182,12 +182,12 @@ public class VoiceCoordinatorTests : IDisposable
 
         await task;
 
-        // Assert — should have reset
+        // Assert - should have reset
         _coordinator.IsTranscribing.Should().BeFalse();
         transcribingStates.Should().Contain(false);
     }
 
-    // ── StatusChanged event ───────────────────────────────────────
+    // -- StatusChanged event ---------------------------------------
 
     [Fact]
     public async Task TranscribeFileAsync_RaisesStatusChanged()
@@ -258,7 +258,7 @@ public class VoiceCoordinatorTests : IDisposable
             .ToList();
     }
 
-    // ── NotificationRequested event ───────────────────────────────
+    // -- NotificationRequested event -------------------------------
 
     [Fact]
     public async Task TranscribeFileAsync_RaisesNotification_OnModelNotAvailable()
@@ -335,7 +335,7 @@ public class VoiceCoordinatorTests : IDisposable
         notification.Message.Should().Be("Voice_FileTranscriptionFailed: Network error");
     }
 
-    // ── ToggleRecordingAsync (start path only — stop requires NAudio hardware) ──
+    // -- ToggleRecordingAsync (start path only - stop requires NAudio hardware) --
 
     [Fact]
     public async Task ToggleRecordingAsync_WhenNotRecording_StartsRecording()
@@ -343,7 +343,7 @@ public class VoiceCoordinatorTests : IDisposable
         // Note: This will try to use NAudio which may fail in CI without a microphone.
         // The test verifies the coordinator attempts to start and handles the result.
 
-        // Act — if no microphone is available, it should handle gracefully
+        // Act - if no microphone is available, it should handle gracefully
         var result = await _coordinator.ToggleRecordingAsync();
 
         // If recording started, result is null (starting mode)
@@ -356,12 +356,12 @@ public class VoiceCoordinatorTests : IDisposable
         // If no mic available, the coordinator handles the error and IsRecording stays false
     }
 
-    // ── Dispose ───────────────────────────────────────────────────
+    // -- Dispose ---------------------------------------------------
 
     [Fact]
     public void Dispose_DoesNotThrow_WhenNotRecording()
     {
-        // Act — should be safe to dispose when not recording
+        // Act - should be safe to dispose when not recording
         _coordinator.Dispose();
     }
 }

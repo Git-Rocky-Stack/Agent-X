@@ -261,7 +261,7 @@ public sealed class KnowledgeVaultViewModelTests
         viewModel.IsPreviewOpen.Should().BeTrue();
     }
 
-    // ── Navigation payload ───────────────────────────────────────────────────
+    // -- Navigation payload ---------------------------------------------------
     // Jump-To lists individual documents. Selecting one used to open the vault on an
     // unfiltered list, so the document the user picked was never surfaced.
 

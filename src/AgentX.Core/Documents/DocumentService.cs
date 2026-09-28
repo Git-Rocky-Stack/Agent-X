@@ -878,7 +878,7 @@ public sealed class DocumentService : IDocumentService
         return extensions;
     }
 
-    // ─── Duplicate Detection ────────────────────────────────────────────
+    // --- Duplicate Detection --------------------------------------------
 
     /// <inheritdoc />
     public async Task<DuplicateCheckResult> CheckForDuplicateAsync(string filePath, CancellationToken ct = default)
@@ -887,7 +887,7 @@ public sealed class DocumentService : IDocumentService
         {
             if (!File.Exists(filePath))
             {
-                _logger.Warning("Duplicate check skipped — file does not exist: {FilePath}", filePath);
+                _logger.Warning("Duplicate check skipped - file does not exist: {FilePath}", filePath);
                 return new DuplicateCheckResult { IsDuplicate = false };
             }
 
@@ -923,7 +923,7 @@ public sealed class DocumentService : IDocumentService
         }
     }
 
-    // ─── Bulk Operations ──────────────────────────────────────────────
+    // --- Bulk Operations ----------------------------------------------
 
     /// <inheritdoc />
     public async Task BulkDeleteAsync(IReadOnlyList<long> documentIds, CancellationToken ct = default)
@@ -1067,7 +1067,7 @@ public sealed class DocumentService : IDocumentService
             documentIds.Count, collectionId);
     }
 
-    // ─── Private Helpers ─────────────────────────────────────────────
+    // --- Private Helpers ---------------------------------------------
 
     /// <summary>
     /// Finds the first registered processor that can handle the given file path. Built-in

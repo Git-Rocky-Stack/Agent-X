@@ -78,7 +78,7 @@ public sealed class SemanticSearchService : ISemanticSearchService
 
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
-        // ── Step 1: Generate embedding for the query text ───────────────
+        // -- Step 1: Generate embedding for the query text ---------------
         float[] queryEmbedding;
         try
         {
@@ -97,7 +97,7 @@ public sealed class SemanticSearchService : ISemanticSearchService
         _logger.Debug("Embedding generated in {ElapsedMs}ms (dimensions={Dimensions})",
             stopwatch.ElapsedMilliseconds, queryEmbedding.Length);
 
-        // ── Step 2: Vector similarity search ────────────────────────────
+        // -- Step 2: Vector similarity search ----------------------------
         // Request extra results to compensate for metadata-based filtering downstream.
         // We fetch up to RetrievalMultiplier x TopK (clamped by RetrievalCap) so that
         // after collection/type/date filters we still have a reasonable result pool.
@@ -228,7 +228,7 @@ public sealed class SemanticSearchService : ISemanticSearchService
 
         _logger.Debug("Vector search returned {Count} candidates", vectorResults.Count);
 
-        // ── Step 3: Load chunk and document metadata from EF Core ───────
+        // -- Step 3: Load chunk and document metadata from EF Core -------
         var chunkIds = vectorResults.Select(v => v.ChunkId).ToList();
 
         // Build a lookup from ChunkId -> similarity score for fast access.
@@ -261,9 +261,9 @@ public sealed class SemanticSearchService : ISemanticSearchService
             return (new List<SearchResult>(), vectorResults.Count);
         }
 
-        // ── Step 3b: Embedding model version validation (P1-4) ──────────
+        // -- Step 3b: Embedding model version validation (P1-4) ----------
         // The query was embedded with the CURRENT model. Chunks embedded with a
-        // different model version live in incompatible vector space — their similarity
+        // different model version live in incompatible vector space - their similarity
         // scores are noise. Filter them out and warn the operator (once per process)
         // so they can re-embed.
         var currentVersion = _embeddingService.ModelVersion;
@@ -273,7 +273,7 @@ public sealed class SemanticSearchService : ISemanticSearchService
         foreach (var chunk in chunks)
         {
             // Legacy chunks (null version) predate versioning. Treat them as compatible
-            // for backwards compat — operators can opt-in to strict mode in a follow-up.
+            // for backwards compat - operators can opt-in to strict mode in a follow-up.
             if (string.IsNullOrEmpty(chunk.EmbeddingModelVersion))
             {
                 legacyCount++;
@@ -514,9 +514,9 @@ public sealed class SemanticSearchService : ISemanticSearchService
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Private helpers
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>
     /// Builds a concise excerpt from the chunk content, attempting to center

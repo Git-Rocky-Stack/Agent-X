@@ -9,10 +9,10 @@ using Xunit;
 namespace AgentX.Tests.Services.Localization;
 
 /// <summary>
-/// A1 Task 9 — Integration coverage for <see cref="LocalizationService.FormatPlural"/>.
+/// A1 Task 9 - Integration coverage for <see cref="LocalizationService.FormatPlural"/>.
 /// Uses the <see cref="IResourceLoaderAdapter"/> seam (introduced alongside these
 /// tests) to inject an in-memory resource set, so the fallback ladder
-/// (<c>&lt;key&gt;_&lt;category&gt;</c> → <c>&lt;key&gt;_other</c> → throw) is exercised
+/// (<c>&lt;key&gt;_&lt;category&gt;</c> -> <c>&lt;key&gt;_other</c> -> throw) is exercised
 /// without requiring a WinUI 3 runtime.
 /// </summary>
 public class LocalizationServicePluralTests
@@ -47,7 +47,7 @@ public class LocalizationServicePluralTests
     public void FormatPlural_falls_back_to_other_when_specific_category_absent_ja()
     {
         using var _ = new CultureScope("ja");
-        // Japanese has only the "other" category in CLDR — no "_one" entry needed.
+        // Japanese has only the "other" category in CLDR - no "_one" entry needed.
         var sut = BuildServiceWithResources(
             ("DocumentsImported_other", "{0}\u4ef6\u306e\u30c9\u30ad\u30e5\u30e1\u30f3\u30c8\u3092\u30a4\u30f3\u30dd\u30fc\u30c8\u3057\u307e\u3057\u305f"));
 
@@ -73,7 +73,7 @@ public class LocalizationServicePluralTests
     public void FormatPlural_falls_back_from_zero_to_one_to_other_in_french()
     {
         using var _ = new CultureScope("fr");
-        // French plural rule: n in {0, 1} → "one", else → "other".
+        // French plural rule: n in {0, 1} -> "one", else -> "other".
         // Only _other is defined here, so both 0 and 1 (which normally resolve
         // to "one") must gracefully fall back to "_other" without throwing.
         var sut = BuildServiceWithResources(
@@ -87,7 +87,7 @@ public class LocalizationServicePluralTests
     [Fact]
     public void FormatPlural_uses_current_culture_for_number_formatting()
     {
-        // German uses comma as decimal separator — verify FormatPlural honors
+        // German uses comma as decimal separator - verify FormatPlural honors
         // CultureInfo.CurrentUICulture for the final string.Format call, not
         // InvariantCulture, so fractional counts render naturally per locale.
         using var _ = new CultureScope("de");

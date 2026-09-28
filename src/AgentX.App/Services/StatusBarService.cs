@@ -173,7 +173,7 @@ public sealed class StatusBarService : IStatusBarService
         _disposed = true;
     }
 
-    // ── Private ──────────────────────────────────────────────────
+    // -- Private --------------------------------------------------
 
     private async Task RunPollingLoopAsync(int intervalMs, int initialDelayMs, CancellationToken ct)
     {

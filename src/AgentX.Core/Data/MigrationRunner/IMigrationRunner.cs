@@ -8,7 +8,7 @@ public interface IMigrationRunner
 {
     /// <summary>
     /// Applies all pending migrations to the database. Creates the database if it does not exist.
-    /// Idempotent — if no migrations are pending, returns a MigrationResult with empty AppliedMigrations.
+    /// Idempotent - if no migrations are pending, returns a MigrationResult with empty AppliedMigrations.
     /// </summary>
     Task<MigrationResult> RunAsync(CancellationToken cancellationToken = default);
 

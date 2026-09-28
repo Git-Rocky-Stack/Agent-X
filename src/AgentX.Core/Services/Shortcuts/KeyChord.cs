@@ -20,7 +20,7 @@ public enum KeyModifiers
 /// <summary>
 /// Platform-neutral key codes for the chord vocabulary Agent-X supports.
 /// <see cref="AgentX.App.Services.ShortcutInputRouter"/> maps
-/// <c>Windows.System.VirtualKey</c> → <c>VirtualKeyCode</c> at the boundary.
+/// <c>Windows.System.VirtualKey</c> -> <c>VirtualKeyCode</c> at the boundary.
 /// </summary>
 public enum VirtualKeyCode
 {
@@ -46,7 +46,7 @@ public sealed record KeyChord(
     KeyModifiers Modifiers,
     VirtualKeyCode Key)
 {
-    /// <summary>Human-readable display — e.g., <c>"Ctrl+Shift+P"</c>.</summary>
+    /// <summary>Human-readable display - e.g., <c>"Ctrl+Shift+P"</c>.</summary>
     public string Display => KeyChordFormatter.Format(this);
 }
 

@@ -282,7 +282,7 @@ public class StatusBarServiceTests
 
         var service = CreateService();
 
-        // Poll without subscribing — should not throw
+        // Poll without subscribing - should not throw
         var act = async () => await service.PollAsync();
         act.Should().NotThrowAsync();
     }

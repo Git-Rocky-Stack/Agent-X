@@ -28,7 +28,7 @@ namespace AgentX.Core.Services.Audio;
 /// </summary>
 public sealed class TranscriptionService : ITranscriptionService
 {
-    // ── Constants ────────────────────────────────────────────────────────────
+    // -- Constants ------------------------------------------------------------
 
     /// <summary>
     /// The first four bytes of every whisper.cpp GGML model file: the magic 0x67676d6c ("ggml")
@@ -79,7 +79,7 @@ public sealed class TranscriptionService : ITranscriptionService
             ["large"] = 3_094_000_000L,
         };
 
-    // ── Supported formats ────────────────────────────────────────────────────
+    // -- Supported formats ----------------------------------------------------
 
     private static readonly IReadOnlyList<string> AudioFormats =
     [
@@ -89,7 +89,7 @@ public sealed class TranscriptionService : ITranscriptionService
     private static readonly IReadOnlySet<string> AudioFormatsSet =
         new HashSet<string>(AudioFormats, StringComparer.OrdinalIgnoreCase);
 
-    // ── Fields ───────────────────────────────────────────────────────────────
+    // -- Fields ---------------------------------------------------------------
 
     private readonly ILogger _log;
 
@@ -105,7 +105,7 @@ public sealed class TranscriptionService : ITranscriptionService
     /// </summary>
     private readonly SemaphoreSlim _modelFileGate = new(1, 1);
 
-    // ── Constructor ──────────────────────────────────────────────────────────
+    // -- Constructor ----------------------------------------------------------
 
     /// <summary>
     /// Initialises a new <see cref="TranscriptionService"/> instance.
@@ -138,7 +138,7 @@ public sealed class TranscriptionService : ITranscriptionService
         _httpHandler = httpHandler;
     }
 
-    // ── ITranscriptionService ────────────────────────────────────────────────
+    // -- ITranscriptionService ------------------------------------------------
 
     /// <inheritdoc />
     public IReadOnlyList<string> SupportedFormats => AudioFormats;
@@ -150,7 +150,7 @@ public sealed class TranscriptionService : ITranscriptionService
         var exists = File.Exists(modelPath);
 
         _log.Debug(
-            "Model availability check — size: {ModelSize}, path: {ModelPath}, exists: {Exists}",
+            "Model availability check - size: {ModelSize}, path: {ModelPath}, exists: {Exists}",
             modelSize, modelPath, exists);
 
         return Task.FromResult(exists);
@@ -375,7 +375,7 @@ public sealed class TranscriptionService : ITranscriptionService
     {
         options ??= new TranscriptionOptions();
 
-        // ── Phase 0: Validate inputs (0%) ────────────────────────────────────
+        // -- Phase 0: Validate inputs (0%) ------------------------------------
 
         ReportProgress(progress, 0.0, "Validating file...");
 
@@ -395,10 +395,10 @@ public sealed class TranscriptionService : ITranscriptionService
         }
 
         _log.Information(
-            "Transcription requested — file: {FileName}, size: {FileSizeBytes} bytes, model: {ModelSize}, language: {Language}",
+            "Transcription requested - file: {FileName}, size: {FileSizeBytes} bytes, model: {ModelSize}, language: {Language}",
             fileInfo.Name, fileInfo.Length, options.ModelSize, options.Language ?? "auto");
 
-        // ── Phase 1: Check model availability (5%) ────────────────────────────
+        // -- Phase 1: Check model availability (5%) ----------------------------
 
         ReportProgress(progress, 5.0, "Checking model...");
 
@@ -456,7 +456,7 @@ public sealed class TranscriptionService : ITranscriptionService
         }
     }
 
-    // ── Private pipeline ─────────────────────────────────────────────────────
+    // -- Private pipeline -----------------------------------------------------
 
     /// <summary>
     /// The core Whisper execution boundary. Runs the Whisper model on a Whisper-ready WAV file
@@ -620,7 +620,7 @@ public sealed class TranscriptionService : ITranscriptionService
         }
     }
 
-    // ── Private helpers ───────────────────────────────────────────────────────
+    // -- Private helpers -------------------------------------------------------
 
     /// <summary>
     /// Builds the canonical file system path for a Whisper GGML model binary.

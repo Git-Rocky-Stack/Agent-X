@@ -34,7 +34,7 @@ public class ChatService : IChatService
     private CancellationTokenSource? _generationCts;
     // Wave 4b: migrated from `lock (object)` to SemaphoreSlim so cancellation of the
     // previous CTS can be awaited (CancellationTokenSource.CancelAsync awaits any
-    // registered cancellation callbacks). The semaphore is *not* reentrant — every
+    // registered cancellation callbacks). The semaphore is *not* reentrant - every
     // critical section in this class is straight-line and does not reacquire the lock.
     private readonly SemaphoreSlim _generationLock = new(1, 1);
     private readonly ConcurrentDictionary<long, ChatContextInspectionSnapshot> _latestContextInspections = new();

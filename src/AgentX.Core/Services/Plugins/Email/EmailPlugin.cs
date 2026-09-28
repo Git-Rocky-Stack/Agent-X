@@ -31,7 +31,7 @@ public sealed class EmailPlugin : IPlugin
     /// </summary>
     internal TimeSpan DeactivationWaitTimeout { get; set; } = TimeSpan.FromSeconds(10);
 
-    // ── IPlugin ─────────────────────────────────────────────────────────────────
+    // -- IPlugin -----------------------------------------------------------------
 
     public string Id => "com.agentx.email";
     public string Name => "Email Connector";
@@ -40,7 +40,7 @@ public sealed class EmailPlugin : IPlugin
     public PluginType Type => PluginType.DataConnector;
     public string Version => "1.0.0";
 
-    // ── Internal state ─────────────────────────────────────────────────────────
+    // -- Internal state ---------------------------------------------------------
 
     private readonly List<IEmailProvider> _providers = [];
     private EmailSyncSettings _settings = new();
@@ -49,13 +49,13 @@ public sealed class EmailPlugin : IPlugin
     private bool _isInitialized;
     private bool _isDisposed;
 
-    // ── Public surface ──────────────────────────────────────────────────────────
+    // -- Public surface ----------------------------------------------------------
 
     public IReadOnlyList<IEmailProvider> Providers => _providers.AsReadOnly();
     public event EventHandler<SyncResult>? SyncCompleted;
     public SyncResult? LastSyncResult { get; private set; }
 
-    // ── IPlugin lifecycle ───────────────────────────────────────────────────────
+    // -- IPlugin lifecycle -------------------------------------------------------
 
     public Task InitializeAsync(IPluginContext context)
     {
@@ -96,7 +96,7 @@ public sealed class EmailPlugin : IPlugin
         }
 
         // Start periodic sync timer.
-        // FU-2: fire-and-forget through a wrapper that catches exceptions —
+        // FU-2: fire-and-forget through a wrapper that catches exceptions -
         // async-void in a Timer callback crashes the process on faults.
         _syncTimer = new Timer(
             callback: _ => _ = SafeOnSyncTimerTickAsync(),
@@ -127,7 +127,7 @@ public sealed class EmailPlugin : IPlugin
         _isActivated = false;
 
         // Wave 4a: DisposeAsync awaits any in-flight Timer callback before tearing
-        // down the timer — prevents a race with the SafeOnSyncTimerTickAsync wrapper.
+        // down the timer - prevents a race with the SafeOnSyncTimerTickAsync wrapper.
         if (_syncTimer is not null)
             await _syncTimer.DisposeAsync().ConfigureAwait(false);
         _syncTimer = null;
@@ -152,7 +152,7 @@ public sealed class EmailPlugin : IPlugin
         _log.Information("EmailPlugin deactivated");
     }
 
-    // ── Public: settings access ────────────────────────────────────────────────
+    // -- Public: settings access ------------------------------------------------
 
     /// <summary>
     /// Returns the current email sync settings (thread-safe snapshot).
@@ -211,7 +211,7 @@ public sealed class EmailPlugin : IPlugin
         return await CreateProvidersAsync().ConfigureAwait(false);
     }
 
-    // ── Internal: provider registration ────────────────────────────────────────
+    // -- Internal: provider registration ----------------------------------------
 
     private async Task RegisterProvidersAsync()
     {
@@ -229,7 +229,7 @@ public sealed class EmailPlugin : IPlugin
 
         if (_oauthService is null)
         {
-            _log.Warning("IOAuthService not available — no email providers can be registered");
+            _log.Warning("IOAuthService not available - no email providers can be registered");
             return providers;
         }
 
@@ -252,7 +252,7 @@ public sealed class EmailPlugin : IPlugin
         return providers;
     }
 
-    // ── Internal: sync cycle ───────────────────────────────────────────────────
+    // -- Internal: sync cycle ---------------------------------------------------
 
     private async Task SafeOnSyncTimerTickAsync()
     {
@@ -270,7 +270,7 @@ public sealed class EmailPlugin : IPlugin
     {
         if (!await _syncLock.WaitAsync(0).ConfigureAwait(false))
         {
-            _log.Debug("Email sync timer tick skipped — sync already in progress");
+            _log.Debug("Email sync timer tick skipped - sync already in progress");
             return;
         }
 
@@ -307,7 +307,7 @@ public sealed class EmailPlugin : IPlugin
     {
         if (!await _syncLock.WaitAsync(0, cancellationToken).ConfigureAwait(false))
         {
-            _log.Debug("Email sync already in progress — TriggerSyncAsync is a no-op");
+            _log.Debug("Email sync already in progress - TriggerSyncAsync is a no-op");
             return LastSyncResult ?? CreateEmptyResult();
         }
 

@@ -31,7 +31,7 @@ public partial class SearchViewModel : ObservableObject
     private readonly ILocalizationService _localization;
     private readonly IWorkflowLaunchService? _workflowLaunchService;
 
-    // ── Search Input & State ─────────────────────────────────────
+    // -- Search Input & State -------------------------------------
     [ObservableProperty] private string _queryText = string.Empty;
     [ObservableProperty] private bool _isSearching;
     [ObservableProperty] private bool _hasResults;
@@ -43,7 +43,7 @@ public partial class SearchViewModel : ObservableObject
     [ObservableProperty] private string _statusMessage = string.Empty;
     [ObservableProperty] private SearchMode _searchMode = SearchMode.Semantic;
 
-    // ── Advanced Filters ─────────────────────────────────────────
+    // -- Advanced Filters -----------------------------------------
     [ObservableProperty] private bool _isAdvancedFiltersOpen;
     [ObservableProperty] private double _minScoreFilter = 30;
     [ObservableProperty] private int _topKFilter = 20;
@@ -51,19 +51,19 @@ public partial class SearchViewModel : ObservableObject
     [ObservableProperty] private DateTimeOffset? _createdBeforeDate;
     [ObservableProperty] private long _selectedCollectionFilterId;
 
-    // ── Sort ─────────────────────────────────────────────────────
+    // -- Sort -----------------------------------------------------
     [ObservableProperty] private int _selectedSortIndex;
 
-    // ── Saved Filters ────────────────────────────────────────────
+    // -- Saved Filters --------------------------------------------
     [ObservableProperty] private bool _hasSavedFilters;
 
-    // ── Observable Collections ────────────────────────────────────
+    // -- Observable Collections ------------------------------------
     public ObservableCollection<SearchResultItem> Results { get; } = new();
     public ObservableCollection<SearchHistoryItem> SearchHistory { get; } = new();
     public ObservableCollection<SavedFilterItem> SavedFilters { get; } = new();
     public ObservableCollection<CollectionFilterItem> CollectionFilters { get; } = new();
 
-    // ── Internal history storage ─────────────────────────────────
+    // -- Internal history storage ---------------------------------
     private readonly List<SearchHistoryItem> _historyStore = new();
     private long _historyIdCounter;
 
@@ -852,7 +852,7 @@ public partial class SearchViewModel : ObservableObject
 }
 
 // =============================================================================
-// SEARCH RESULT ITEM — Display model for a single search result
+// SEARCH RESULT ITEM - Display model for a single search result
 // =============================================================================
 
 public partial class SearchResultItem : ObservableObject
@@ -885,7 +885,7 @@ public partial class SearchResultItem : ObservableObject
 }
 
 // =============================================================================
-// SEARCH HISTORY ITEM — Display model for a recent search entry
+// SEARCH HISTORY ITEM - Display model for a recent search entry
 // =============================================================================
 
 public class SearchHistoryItem
@@ -897,7 +897,7 @@ public class SearchHistoryItem
 }
 
 // =============================================================================
-// SAVED FILTER ITEM — Display model for a bookmarked search filter
+// SAVED FILTER ITEM - Display model for a bookmarked search filter
 // =============================================================================
 
 public class SavedFilterItem
@@ -913,7 +913,7 @@ public class SavedFilterItem
 
     public string SavedAt { get; init; } = string.Empty;
 
-    // ── Advanced filter settings ─────────────────────────────────
+    // -- Advanced filter settings ---------------------------------
     public double? MinScore { get; init; }
     public int? MaxResults { get; init; }
     public DateTime? DateAfter { get; init; }

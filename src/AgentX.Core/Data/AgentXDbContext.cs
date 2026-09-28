@@ -43,7 +43,7 @@ public class AgentXDbContext : DbContext
     public DbSet<FeedbackEntity> Feedbacks => Set<FeedbackEntity>();
     public DbSet<OAuthCredentialEntity> OAuthCredentials => Set<OAuthCredentialEntity>();
 
-    // Temporal Identity — tracks belief evolution, insights, and voice
+    // Temporal Identity - tracks belief evolution, insights, and voice
     public DbSet<TemporalBeliefEntity> TemporalBeliefs => Set<TemporalBeliefEntity>();
     public DbSet<InsightMomentEntity> InsightMoments => Set<InsightMomentEntity>();
     public DbSet<EngagementMetricsEntity> EngagementMetrics => Set<EngagementMetricsEntity>();
@@ -975,7 +975,7 @@ public class AgentXDbContext : DbContext
             entity.Property(e => e.Status).IsRequired().HasDefaultValue("pending");
             entity.Property(e => e.AddedAt).IsRequired();
 
-            // Nullable columns — no IsRequired() call needed; EF infers nullable from the CLR type.
+            // Nullable columns - no IsRequired() call needed; EF infers nullable from the CLR type.
             entity.Property(e => e.Preview);
             entity.Property(e => e.SuggestedCollectionId);
             entity.Property(e => e.SuggestedCollectionName);
@@ -1044,7 +1044,7 @@ public class AgentXDbContext : DbContext
             entity.Property(e => e.SettingsJson);
             entity.Property(e => e.ReadmeContent);
 
-            // PluginId must be unique — one row per installed plugin identity.
+            // PluginId must be unique - one row per installed plugin identity.
             entity.HasIndex(e => e.PluginId).IsUnique();
 
             // Common query patterns: list by name, filter by type, filter by enabled state.
@@ -1123,7 +1123,7 @@ public class AgentXDbContext : DbContext
             entity.Property(e => e.CreatedAt).IsRequired();
             entity.Property(e => e.UpdatedAt).IsRequired();
 
-            // ProviderId must be unique — one credential row per OAuth provider.
+            // ProviderId must be unique - one credential row per OAuth provider.
             entity.HasIndex(e => e.ProviderId).IsUnique();
         });
     }

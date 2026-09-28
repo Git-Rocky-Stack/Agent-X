@@ -11,7 +11,7 @@ using Xunit;
 namespace AgentX.Tests.Services.Chat;
 
 /// <summary>
-/// Behavioural coverage for <see cref="ConversationService"/> — the EF-Core CRUD surface for chat
+/// Behavioural coverage for <see cref="ConversationService"/> - the EF-Core CRUD surface for chat
 /// conversations and their messages: create / query / search / rename / pin / archive / delete,
 /// message add / delete / edit / truncate (with conversation-metadata bookkeeping), token + count
 /// stats, and folder / tag organization.
@@ -20,7 +20,7 @@ namespace AgentX.Tests.Services.Chat;
 /// <see cref="AgentXDbContext"/> (in-memory SQLite via <see cref="TestDbContextFactory"/>). Two
 /// collaborators are optional best-effort hooks invoked after message mutations:
 /// <see cref="IConversationRecallService"/> (embedding refresh) and
-/// <see cref="IConversationSummaryService"/> (summary-staleness) — both mocked so the post-write
+/// <see cref="IConversationSummaryService"/> (summary-staleness) - both mocked so the post-write
 /// hooks, their null-skip paths, and their swallowed-failure paths are all exercised. The logger is
 /// consumed through <c>ILogger.ForContext&lt;T&gt;()</c>, so the harness supplies a real silent Serilog
 /// logger (a loose mock's <c>ForContext</c> returns null, which the constructor treats as a missing
@@ -45,7 +45,7 @@ public sealed class ConversationServiceTests : IDisposable
         }
     }
 
-    // ─── Harness ──────────────────────────────────────────────────────────────
+    // --- Harness --------------------------------------------------------------
 
     private sealed class ConvHarness : IDisposable
     {
@@ -83,7 +83,7 @@ public sealed class ConversationServiceTests : IDisposable
         }
     }
 
-    // ─── Seed helpers ─────────────────────────────────────────────────────────
+    // --- Seed helpers ---------------------------------------------------------
 
     private static ConversationEntity NewConv(
         string title = "Conversation",
@@ -134,9 +134,9 @@ public sealed class ConversationServiceTests : IDisposable
         return conv.Id;
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  Constructor guards
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public void Ctor_NullDb_Throws()
@@ -155,9 +155,9 @@ public sealed class ConversationServiceTests : IDisposable
         act.Should().Throw<ArgumentNullException>().WithParameterName("logger");
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  CreateConversationAsync
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task CreateConversationAsync_Defaults_AutoTitlesAndPersists()
@@ -190,9 +190,9 @@ public sealed class ConversationServiceTests : IDisposable
         conv.ModelId.Should().Be("llama3");
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  GetConversationAsync
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task GetConversationAsync_Existing_ReturnsWithOrderedMessages()
@@ -223,9 +223,9 @@ public sealed class ConversationServiceTests : IDisposable
         (await h.Service.GetConversationAsync(404)).Should().BeNull();
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  GetAllConversationsAsync / GetRecentConversationsAsync
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task GetAllConversationsAsync_ExcludesArchived_PinnedFirst()
@@ -307,9 +307,9 @@ public sealed class ConversationServiceTests : IDisposable
         result.Should().ContainSingle();
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  SearchConversationsAsync
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task SearchConversationsAsync_EmptyQuery_ReturnsAll()
@@ -377,9 +377,9 @@ public sealed class ConversationServiceTests : IDisposable
         result.Should().BeEmpty(); // the only title match is archived
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  Title / pin / archive / delete
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task UpdateConversationTitleAsync_Existing_Updates()
@@ -627,9 +627,9 @@ public sealed class ConversationServiceTests : IDisposable
         await h.Service.Invoking(s => s.DeleteConversationAsync(404)).Should().NotThrowAsync();
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  Messages: get / add
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task GetMessagesAsync_ReturnsOrderedBySortOrder()
@@ -774,9 +774,9 @@ public sealed class ConversationServiceTests : IDisposable
         (await fresh.Messages.CountAsync()).Should().Be(1);
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  Messages: delete / edit / truncate
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task DeleteMessageAndFollowingAsync_DeletesTheMessageAndEverythingAfterIt()
@@ -909,9 +909,9 @@ public sealed class ConversationServiceTests : IDisposable
         await h.Service.Invoking(s => s.UpdateMessageContentAsync(404, "x")).Should().NotThrowAsync();
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  Stats
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task GetConversationCountAsync_CountsNonArchived()
@@ -947,9 +947,9 @@ public sealed class ConversationServiceTests : IDisposable
         (await h.Service.GetTotalTokensUsedAsync()).Should().Be(0);
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  Folders
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task SetConversationFolderAsync_SetsTrimmedFolder()
@@ -1020,9 +1020,9 @@ public sealed class ConversationServiceTests : IDisposable
         result[1].Title.Should().Be("recent");
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  Tags
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task AddTagToConversationAsync_NewAssignment_Creates()
@@ -1103,15 +1103,15 @@ public sealed class ConversationServiceTests : IDisposable
         await h.Service.Invoking(s => s.RemoveTagFromConversationAsync(1, 2)).Should().NotThrowAsync();
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    //  Catch arms — every method rethrows on a disposed context
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
+    //  Catch arms - every method rethrows on a disposed context
+    // ===========================================================================
 
     [Fact]
     public async Task AllMethods_DbDisposed_RethrowFromCatch()
     {
         var h = NewHarness();
-        h.Db.Dispose(); // every query/command now faults inside its try → logged + rethrown
+        h.Db.Dispose(); // every query/command now faults inside its try -> logged + rethrown
 
         var calls = new List<Func<Task>>
         {

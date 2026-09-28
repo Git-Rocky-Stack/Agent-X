@@ -40,29 +40,29 @@ public sealed class DigestService : IDigestService
 
         _logger.Information("Generating digest report for {Start:yyyy-MM-dd} to {End:yyyy-MM-dd}", start, end);
 
-        // ── Count new documents in period ───────────────────────
+        // -- Count new documents in period -----------------------
         var newDocs = await _db.Documents
             .CountAsync(d => d.ImportedAt >= start && d.ImportedAt <= end, ct);
 
-        // ── Count new conversations ─────────────────────────────
+        // -- Count new conversations -----------------------------
         var newConvos = await _db.Conversations
             .CountAsync(c => c.CreatedAt >= start && c.CreatedAt <= end, ct);
 
-        // ── Total searches in period ────────────────────────────
+        // -- Total searches in period ----------------------------
         var totalSearches = await _db.SearchHistory
             .CountAsync(s => s.SearchedAt >= start && s.SearchedAt <= end, ct);
 
-        // ── Tokens used in period (from messages) ───────────────
+        // -- Tokens used in period (from messages) ---------------
         var tokensUsed = await _db.Messages
             .Where(m => m.Timestamp >= start && m.Timestamp <= end && m.TokenCount > 0)
             .SumAsync(m => m.TokenCount, ct);
 
-        // ── Period-over-period trend details ────────────────────
+        // -- Period-over-period trend details --------------------
         var topSearches = await _digestInsightService.BuildSearchTrendsAsync(start, end, ct);
         var topCollections = await _digestInsightService.BuildCollectionTrendsAsync(start, end, ct);
         var fileTypes = await _digestInsightService.BuildFileTypeTrendsAsync(start, end, ct);
 
-        // ── Storage delta ───────────────────────────────────────
+        // -- Storage delta ---------------------------------------
         long storageDelta = 0;
         try
         {
@@ -77,7 +77,7 @@ public sealed class DigestService : IDigestService
             _logger.Warning(ex, "Failed to compute storage delta for digest");
         }
 
-        // ── Conversation highlights (most active) ───────────────
+        // -- Conversation highlights (most active) ---------------
         var highlights = await _db.Conversations
             .Where(c => c.UpdatedAt >= start && c.UpdatedAt <= end)
             .OrderByDescending(c => c.MessageCount)
@@ -85,7 +85,7 @@ public sealed class DigestService : IDigestService
             .Select(c => new { c.Title, c.MessageCount, TokensUsed = (int)c.TokensUsed })
             .ToListAsync(ct);
 
-        // ── Build and persist the report ────────────────────────
+        // -- Build and persist the report ------------------------
         var jsonOptions = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,

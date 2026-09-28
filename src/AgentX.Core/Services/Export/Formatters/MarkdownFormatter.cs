@@ -60,9 +60,9 @@ public sealed class MarkdownFormatter : IExportFormatter
         return Task.FromResult(sb.ToString());
     }
 
-    // ────────────────────────────────────────────────────────────────
+    // ----------------------------------------------------------------
     //  Core formatting (extracted from ExportService.BuildMarkdown)
-    // ────────────────────────────────────────────────────────────────
+    // ----------------------------------------------------------------
 
     private static string BuildMarkdown(
         ConversationEntity conversation,
@@ -159,9 +159,9 @@ public sealed class MarkdownFormatter : IExportFormatter
         return sb.ToString();
     }
 
-    // ────────────────────────────────────────────────────────────────
+    // ----------------------------------------------------------------
     //  Helpers
-    // ────────────────────────────────────────────────────────────────
+    // ----------------------------------------------------------------
 
     private static string GetRoleLabel(string role) =>
         role.ToLowerInvariant() switch

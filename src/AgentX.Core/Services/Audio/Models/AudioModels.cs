@@ -7,7 +7,7 @@ public sealed class TranscriptionResult
 {
     /// <summary>
     /// The full transcript text assembled from all segments in order.
-    /// Segments are joined with a single space; timestamps are not embedded here —
+    /// Segments are joined with a single space; timestamps are not embedded here -
     /// see <see cref="Segments"/> for time-aligned detail.
     /// </summary>
     public string FullText { get; init; } = string.Empty;

@@ -22,7 +22,7 @@ namespace AgentX.Core.Services.Api;
 /// <summary>
 /// Embedded local REST API host built on <see cref="HttpListener"/>.
 /// Exposes AgentX core data over HTTP for the mobile companion app and
-/// external tool integrations. No ASP.NET Core dependency — the listener
+/// external tool integrations. No ASP.NET Core dependency - the listener
 /// runs entirely within the desktop process.
 ///
 /// Endpoints:
@@ -39,7 +39,7 @@ namespace AgentX.Core.Services.Api;
 /// </summary>
 public sealed class ApiHostService : IApiHostService, IAsyncDisposable
 {
-    // ── Dependencies ─────────────────────────────────────────────────────────
+    // -- Dependencies ---------------------------------------------------------
 
     private readonly IConversationService _conversations;
     private readonly IDocumentService _documents;
@@ -50,7 +50,7 @@ public sealed class ApiHostService : IApiHostService, IAsyncDisposable
     private readonly IAppPathService _appPaths;
     private readonly ILogger _log = Log.ForContext<ApiHostService>();
 
-    // ── State ─────────────────────────────────────────────────────────────────
+    // -- State -----------------------------------------------------------------
 
     private HttpListener? _listener;
     private CancellationTokenSource? _listenerCts;
@@ -67,7 +67,7 @@ public sealed class ApiHostService : IApiHostService, IAsyncDisposable
     /// <summary>Maximum number of requests processed concurrently.</summary>
     private readonly SemaphoreSlim _concurrencyGate = new(16, 16);
 
-    // ── JSON options ──────────────────────────────────────────────────────────
+    // -- JSON options ----------------------------------------------------------
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -76,7 +76,7 @@ public sealed class ApiHostService : IApiHostService, IAsyncDisposable
         WriteIndented = false
     };
 
-    // ── IApiHostService ───────────────────────────────────────────────────────
+    // -- IApiHostService -------------------------------------------------------
 
     /// <inheritdoc/>
     public bool IsRunning { get; private set; }
@@ -87,7 +87,7 @@ public sealed class ApiHostService : IApiHostService, IAsyncDisposable
     /// <inheritdoc/>
     public string BaseUrl { get; private set; } = string.Empty;
 
-    // ── Constructor ───────────────────────────────────────────────────────────
+    // -- Constructor -----------------------------------------------------------
 
     public ApiHostService(
         IConversationService conversations,
@@ -107,7 +107,7 @@ public sealed class ApiHostService : IApiHostService, IAsyncDisposable
         _appPaths = appPaths;
     }
 
-    // ── Lifecycle ─────────────────────────────────────────────────────────────
+    // -- Lifecycle -------------------------------------------------------------
 
     /// <inheritdoc/>
     public async Task StartAsync(int port = 9846, string? authToken = null, CancellationToken ct = default)
@@ -123,7 +123,7 @@ public sealed class ApiHostService : IApiHostService, IAsyncDisposable
         {
             // Defensive: starting without a token means every data route returns 401. Log loudly
             // so a misconfiguration is visible rather than silently exposing or locking out the API.
-            _log.Warning("ApiHostService starting WITHOUT an auth token — all non-public routes will return 401.");
+            _log.Warning("ApiHostService starting WITHOUT an auth token - all non-public routes will return 401.");
         }
 
         var baseUrl = $"http://localhost:{port}/";
@@ -164,18 +164,18 @@ public sealed class ApiHostService : IApiHostService, IAsyncDisposable
             return;
         }
 
-        _log.Information("Stopping AgentX REST API…");
+        _log.Information("Stopping AgentX REST API...");
 
         IsRunning = false;
 
         // Signal the accept loop to exit. FU-2: switched from sync Cancel() to
-        // CancelAsync() — the latter properly awaits any registered callbacks
+        // CancelAsync() - the latter properly awaits any registered callbacks
         // before returning, which matters when the accept loop has cleanup
         // hooks subscribed to the token's Register().
         if (_listenerCts is not null)
             await _listenerCts.CancelAsync().ConfigureAwait(false);
 
-        // Stop the listener — this unblocks any pending GetContextAsync call
+        // Stop the listener - this unblocks any pending GetContextAsync call
         try { _listener?.Stop(); } catch { /* intentional */ }
 
         // Wait for the loop to finish draining in-flight requests
@@ -185,8 +185,8 @@ public sealed class ApiHostService : IApiHostService, IAsyncDisposable
             {
                 await _requestLoopTask.WaitAsync(TimeSpan.FromSeconds(5), ct).ConfigureAwait(false);
             }
-            catch (OperationCanceledException) { /* shutdown timeout — acceptable */ }
-            catch (TimeoutException) { /* shutdown timeout — acceptable */ }
+            catch (OperationCanceledException) { /* shutdown timeout - acceptable */ }
+            catch (TimeoutException) { /* shutdown timeout - acceptable */ }
         }
 
         _listener?.Close();
@@ -208,7 +208,7 @@ public sealed class ApiHostService : IApiHostService, IAsyncDisposable
             _log.Information("Local REST API token replaced; the previous token is no longer accepted.");
     }
 
-    // ── Request Loop ──────────────────────────────────────────────────────────
+    // -- Request Loop ----------------------------------------------------------
 
     private async Task RunRequestLoopAsync(CancellationToken ct)
     {
@@ -221,7 +221,7 @@ public sealed class ApiHostService : IApiHostService, IAsyncDisposable
             }
             catch (HttpListenerException) when (ct.IsCancellationRequested || !IsRunning)
             {
-                // Listener was stopped — clean exit
+                // Listener was stopped - clean exit
                 break;
             }
             catch (ObjectDisposedException) when (ct.IsCancellationRequested || !IsRunning)
@@ -253,7 +253,7 @@ public sealed class ApiHostService : IApiHostService, IAsyncDisposable
         {
             var origin = req.Headers["Origin"];
 
-            // CORS pre-flight — OPTIONS on any route
+            // CORS pre-flight - OPTIONS on any route
             if (req.HttpMethod.Equals("OPTIONS", StringComparison.OrdinalIgnoreCase))
             {
                 WriteCorsHeaders(resp, origin);
@@ -267,7 +267,7 @@ public sealed class ApiHostService : IApiHostService, IAsyncDisposable
 
             var path = req.Url?.AbsolutePath.TrimEnd('/').ToLowerInvariant() ?? string.Empty;
 
-            // Authentication — every route except the public health probe requires the bearer token.
+            // Authentication - every route except the public health probe requires the bearer token.
             if (!LocalApiSecurity.IsPublicPath(path)
                 && !LocalApiSecurity.IsAuthorized(req.Headers["Authorization"], Volatile.Read(ref _authToken)))
             {
@@ -310,7 +310,7 @@ public sealed class ApiHostService : IApiHostService, IAsyncDisposable
         }
     }
 
-    // ── Router ────────────────────────────────────────────────────────────────
+    // -- Router ----------------------------------------------------------------
 
     /// <summary>
     /// Dispatches the request to the appropriate handler and returns the HTTP status code.
@@ -376,7 +376,7 @@ public sealed class ApiHostService : IApiHostService, IAsyncDisposable
         return 404;
     }
 
-    // ── Handlers ──────────────────────────────────────────────────────────────
+    // -- Handlers --------------------------------------------------------------
 
     private async Task<int> HandleGetHealthAsync(HttpListenerResponse resp, CancellationToken ct)
     {
@@ -669,7 +669,7 @@ public sealed class ApiHostService : IApiHostService, IAsyncDisposable
         return 200;
     }
 
-    // ── Request Body ──────────────────────────────────────────────────────────
+    // -- Request Body ----------------------------------------------------------
 
     /// <summary>
     /// Largest request body the API accepts (10 MB). A clipped page is far smaller; the cap keeps
@@ -709,7 +709,7 @@ public sealed class ApiHostService : IApiHostService, IAsyncDisposable
         return await reader.ReadToEndAsync(ct).ConfigureAwait(false);
     }
 
-    // ── Clip Helpers ──────────────────────────────────────────────────────────
+    // -- Clip Helpers ----------------------------------------------------------
 
     /// <summary>Folder under the app data root that holds clipped pages awaiting triage.</summary>
     internal const string ClipsFolderName = "Clips";
@@ -932,7 +932,7 @@ public sealed class ApiHostService : IApiHostService, IAsyncDisposable
         return string.IsNullOrWhiteSpace(result) ? "untitled" : result;
     }
 
-    // ── Response Helpers ──────────────────────────────────────────────────────
+    // -- Response Helpers ------------------------------------------------------
 
     private static async Task WriteJsonResponseAsync<T>(
         HttpListenerResponse resp,
@@ -984,7 +984,7 @@ public sealed class ApiHostService : IApiHostService, IAsyncDisposable
         resp.AddHeader("Access-Control-Max-Age", "86400");
     }
 
-    // ── IAsyncDisposable ──────────────────────────────────────────────────────
+    // -- IAsyncDisposable ------------------------------------------------------
 
     public async ValueTask DisposeAsync()
     {

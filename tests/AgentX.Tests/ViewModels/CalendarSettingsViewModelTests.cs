@@ -117,7 +117,7 @@ public sealed class CalendarSettingsViewModelTests
         calendar.Verify(c => c.UpdateSyncSettingsAsync(It.Is<CalendarSyncSettings>(sync =>
             sync.EnabledCalendars["primary"])), Times.Once);
         calendar.Verify(c => c.SyncEventsAsync(It.IsAny<CancellationToken>()), Times.Once);
-        vm.LastSyncTime.Should().NotBe("—");
+        vm.LastSyncTime.Should().NotBe("-");
         vm.SyncStatusText.Should().Contain("Added 2");
         vm.SyncStatusText.Should().Contain("updated 1");
     }

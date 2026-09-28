@@ -103,7 +103,7 @@ public sealed class RagPromptCatalogIntegrationTests : IDisposable
     [Fact]
     public void MissingRagPromptsSection_AllResolveToDefaults()
     {
-        // Operator deploys a config file but forgets the wrapper section —
+        // Operator deploys a config file but forgets the wrapper section -
         // the catalog must still produce working prompts.
         const string json = """{ "Other": { "Setting": "value" } }""";
 
@@ -116,7 +116,7 @@ public sealed class RagPromptCatalogIntegrationTests : IDisposable
     [Fact]
     public void MultiLineRagPrefix_PreservesLineBreaks()
     {
-        // Verifies the array → \n-joined-string transformation produces the
+        // Verifies the array -> \n-joined-string transformation produces the
         // exact bytes Anthropic prompt caching keys on. Any drift here
         // invalidates the cache silently.
         const string json = """

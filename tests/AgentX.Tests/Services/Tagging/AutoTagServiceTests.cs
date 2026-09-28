@@ -14,7 +14,7 @@ using Xunit;
 namespace AgentX.Tests.Services.Tagging;
 
 /// <summary>
-/// Coverage for <see cref="AutoTagService"/> — AI-powered tag generation plus manual
+/// Coverage for <see cref="AutoTagService"/> - AI-powered tag generation plus manual
 /// tag CRUD over an in-memory SQLite <see cref="AgentXDbContext"/>. The AI service and
 /// feature-flag service are mocked; a real silent Serilog logger is supplied because the
 /// constructor consumes <c>logger.ForContext&lt;T&gt;()</c>. Real temp files exercise the
@@ -111,9 +111,9 @@ public sealed class AutoTagServiceTests : IDisposable
         return doc;
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     //  GenerateTagsAsync
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     [Fact]
     public async Task GenerateTags_returns_empty_when_feature_flag_disabled()
@@ -138,7 +138,7 @@ public sealed class AutoTagServiceTests : IDisposable
     {
         // Take(maxTags) is applied BEFORE the empty-after-normalize filter: the first three
         // entries ["Machine Learning", "###", "Deep-Learning"] are taken, then "###" normalises
-        // to empty and is dropped — leaving two normalised tags.
+        // to empty and is dropped - leaving two normalised tags.
         SetupAiTags("Machine Learning", "###", "Deep-Learning", "NLP", "Vision");
 
         var tags = await CreateSut().GenerateTagsAsync("content", maxTags: 3);
@@ -161,7 +161,7 @@ public sealed class AutoTagServiceTests : IDisposable
     [Fact]
     public async Task GenerateTags_falls_back_to_chat_json_when_dedicated_method_empty()
     {
-        SetupAiTags(); // empty → trigger ChatAsync fallback
+        SetupAiTags(); // empty -> trigger ChatAsync fallback
         SetupAiChat("""Sure! [{"tag":"Alpha","confidence":0.95},{"name":"beta"},{"tag":"!!!"}] done""");
 
         var tags = await CreateSut().GenerateTagsAsync("content", maxTags: 5);
@@ -238,9 +238,9 @@ public sealed class AutoTagServiceTests : IDisposable
         tags.Should().BeEmpty();
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     //  ApplyAutoTagsAsync
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     [Fact]
     public async Task ApplyAutoTags_returns_early_when_feature_flag_disabled()
@@ -263,7 +263,7 @@ public sealed class AutoTagServiceTests : IDisposable
     [Fact]
     public async Task ApplyAutoTags_returns_when_no_extractable_content()
     {
-        // No chunks, no file, no summary, no title → empty content → no tags applied.
+        // No chunks, no file, no summary, no title -> empty content -> no tags applied.
         var doc = await SeedDocumentAsync(fileType: "pdf");
 
         await CreateSut().ApplyAutoTagsAsync(doc.Id);
@@ -414,9 +414,9 @@ public sealed class AutoTagServiceTests : IDisposable
         await act.Should().ThrowAsync<OperationCanceledException>();
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     //  Tag CRUD
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     [Fact]
     public async Task GetAllTags_returns_tags_ordered_by_name()
@@ -492,9 +492,9 @@ public sealed class AutoTagServiceTests : IDisposable
         await act.Should().NotThrowAsync();
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     //  Manual assignment
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     [Fact]
     public async Task AssignTag_creates_association_with_full_confidence()
@@ -568,7 +568,7 @@ public sealed class AutoTagServiceTests : IDisposable
         await CreateSut().RemoveTagAsync(doc.Id, tag.Id);
 
         (await _factory.CreateContext().DocumentTags.CountAsync()).Should().Be(0);
-        // The tag itself survives — only the association is removed.
+        // The tag itself survives - only the association is removed.
         (await _factory.CreateContext().Tags.CountAsync()).Should().Be(1);
     }
 
@@ -580,9 +580,9 @@ public sealed class AutoTagServiceTests : IDisposable
         await act.Should().NotThrowAsync();
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     //  Tag lookups
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     [Fact]
     public async Task GetTagsForDocument_returns_assigned_tags_ordered_by_name()

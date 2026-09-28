@@ -50,7 +50,7 @@ public sealed class CalendarIntegrationTests : IDisposable
         catch { /* best effort */ }
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────────
+    // -- Helpers ------------------------------------------------------------------
 
     private static CalEvent CreateEvent(
         string id = "evt-1",
@@ -133,7 +133,7 @@ public sealed class CalendarIntegrationTests : IDisposable
             .ReturnsAsync((events.ToList() as IReadOnlyList<CalEvent>, (string?)"ms-delta-1"));
     }
 
-    // ── CalendarSyncService integration tests ────────────────────────────────────
+    // -- CalendarSyncService integration tests ------------------------------------
 
     [Fact]
     public async Task SyncAsync_SingleProvider_ProcessesAllEventsThroughInbox()
@@ -342,7 +342,7 @@ public sealed class CalendarIntegrationTests : IDisposable
             Times.Exactly(2));
     }
 
-    // ── CalendarEventProcessor + InboxService pipeline tests ─────────────────────
+    // -- CalendarEventProcessor + InboxService pipeline tests ---------------------
 
     [Fact]
     public void Processor_ProducesCorrectExternalId_ForGoogleEvent()
@@ -378,7 +378,7 @@ public sealed class CalendarIntegrationTests : IDisposable
         contentText.Should().Contain("[-]");
     }
 
-    // ── CalendarPlugin integration tests ─────────────────────────────────────────
+    // -- CalendarPlugin integration tests -----------------------------------------
 
     [Fact]
     public async Task CalendarPlugin_SyncCycle_WithInboxService_ProcessesEvents()
@@ -455,7 +455,7 @@ public sealed class CalendarIntegrationTests : IDisposable
         plugin.Dispose();
     }
 
-    // ── SyncSettings integration ──────────────────────────────────────────────────
+    // -- SyncSettings integration --------------------------------------------------
 
     [Fact]
     public async Task SyncAsync_SettingsDaysRange_ArePassedToProvider()

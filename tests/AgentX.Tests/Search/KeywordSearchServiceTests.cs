@@ -13,7 +13,7 @@ using Xunit;
 namespace AgentX.Tests.Search;
 
 /// <summary>
-/// Behavioural coverage for <see cref="KeywordSearchService"/> — the SQLite FTS5 full-text
+/// Behavioural coverage for <see cref="KeywordSearchService"/> - the SQLite FTS5 full-text
 /// pipeline (porter/unicode61 virtual table init -> chunk indexing in a transaction -> MATCH
 /// query with BM25-rank normalisation -> post-query metadata filters -> excerpt building ->
 /// TopK) plus removal and full-index rebuild.
@@ -45,7 +45,7 @@ public sealed class KeywordSearchServiceTests : IDisposable
         _logger.Dispose();
     }
 
-    // ─── Seed / raw-SQL helpers ─────────────────────────────────────────────────
+    // --- Seed / raw-SQL helpers -------------------------------------------------
 
     private DocumentEntity SeedDocument(
         string fileName,
@@ -123,7 +123,7 @@ public sealed class KeywordSearchServiceTests : IDisposable
             CreatedBefore = createdBefore,
         };
 
-    // ─── Construction ────────────────────────────────────────────────────────────
+    // --- Construction ------------------------------------------------------------
 
     [Fact]
     public void Ctor_guards_null_dependencies()
@@ -134,7 +134,7 @@ public sealed class KeywordSearchServiceTests : IDisposable
             .Should().Throw<ArgumentNullException>().WithParameterName("logger");
     }
 
-    // ─── InitializeFtsAsync ──────────────────────────────────────────────────────
+    // --- InitializeFtsAsync ------------------------------------------------------
 
     [Fact]
     public async Task InitializeFts_creates_fts5_table_and_is_idempotent()
@@ -142,7 +142,7 @@ public sealed class KeywordSearchServiceTests : IDisposable
         // This test doubles as the FTS5-availability probe for the SQLCipher bundle.
         // If it fails with "no such module: fts5" STOP THE TASK and report.
         await _service.InitializeFtsAsync();
-        await _service.InitializeFtsAsync(); // IF NOT EXISTS — second call must not throw
+        await _service.InitializeFtsAsync(); // IF NOT EXISTS - second call must not throw
 
         var conn = _db.Database.GetDbConnection();
         using var cmd = conn.CreateCommand();
@@ -150,7 +150,7 @@ public sealed class KeywordSearchServiceTests : IDisposable
         ((long)(await cmd.ExecuteScalarAsync())!).Should().Be(1);
     }
 
-    // ─── IndexDocumentChunksAsync ────────────────────────────────────────────────
+    // --- IndexDocumentChunksAsync ------------------------------------------------
 
     [Fact]
     public async Task Index_missing_document_is_a_noop()
@@ -274,7 +274,7 @@ public sealed class KeywordSearchServiceTests : IDisposable
             .Should().ThrowAsync<SqliteException>();
     }
 
-    // ─── RemoveDocumentFromFtsAsync ──────────────────────────────────────────────
+    // --- RemoveDocumentFromFtsAsync ----------------------------------------------
 
     [Fact]
     public async Task Remove_deletes_only_that_documents_rows()
@@ -291,7 +291,7 @@ public sealed class KeywordSearchServiceTests : IDisposable
         (await CountFtsRowsAsync(keep.Id)).Should().Be(1);
     }
 
-    // ─── SearchAsync: guards ─────────────────────────────────────────────────────
+    // --- SearchAsync: guards -----------------------------------------------------
 
     [Fact]
     public async Task Search_null_query_throws()
@@ -317,11 +317,11 @@ public sealed class KeywordSearchServiceTests : IDisposable
     [Fact]
     public async Task Search_without_initialized_fts_table_returns_empty_not_throw()
     {
-        // Deliberately no InitializeFtsAsync — hits the "no such table" catch arm.
+        // Deliberately no InitializeFtsAsync - hits the "no such table" catch arm.
         (await _service.SearchAsync(Q("anything"))).Should().BeEmpty();
     }
 
-    // ─── SearchAsync: pipeline ───────────────────────────────────────────────────
+    // --- SearchAsync: pipeline ---------------------------------------------------
 
     [Fact]
     public async Task Search_returns_stemmed_matches_with_normalized_scores_and_mapped_metadata()
@@ -568,7 +568,7 @@ public sealed class KeywordSearchServiceTests : IDisposable
         results[0].DocumentId.Should().Be(strong.Id);
     }
 
-    // ─── Excerpt building ────────────────────────────────────────────────────────
+    // --- Excerpt building --------------------------------------------------------
 
     [Fact]
     public async Task Search_short_content_excerpt_is_full_text_with_whitespace_normalized()

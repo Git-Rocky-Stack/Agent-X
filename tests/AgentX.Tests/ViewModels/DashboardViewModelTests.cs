@@ -89,7 +89,7 @@ public sealed class DashboardViewModelTests
                 {
                     Headline = "5",
                     Status = "Durable recall current",
-                    Detail = "6 stored snapshots · latest 10 minutes ago"
+                    Detail = "6 stored snapshots | latest 10 minutes ago"
                 },
                 SyncHealth = new OperationsCardSnapshot
                 {
@@ -107,7 +107,7 @@ public sealed class DashboardViewModelTests
                 {
                     Headline = "2",
                     Status = "2 connectors enabled",
-                    Detail = "Email Connector · Calendar Connector"
+                    Detail = "Email Connector | Calendar Connector"
                 },
                 WorkflowActivity = new OperationsCardSnapshot
                 {
@@ -115,7 +115,7 @@ public sealed class DashboardViewModelTests
                     Status = "86% success rate",
                     SupportingPrimary = "2 active / 30d",
                     SupportingSecondary = "42s avg run",
-                    Detail = "Top workflow: Research Briefing · 4 runs"
+                    Detail = "Top workflow: Research Briefing | 4 runs"
                 }
             });
     }
@@ -578,7 +578,7 @@ public sealed class DashboardViewModelTests
                 {
                     Headline = "5",
                     Status = "Durable recall current",
-                    Detail = "6 stored snapshots · latest 10 minutes ago"
+                    Detail = "6 stored snapshots | latest 10 minutes ago"
                 },
                 SyncHealth = new OperationsCardSnapshot
                 {
@@ -714,9 +714,9 @@ public sealed class DashboardViewModelTests
         navigations.Should().Equal("Analytics", "Operations", "Inbox", "SyncSettings", "Workflows", "PluginManager");
     }
 
-    // ── Indexing status ──────────────────────────────────────────────────────
+    // -- Indexing status ------------------------------------------------------
     // When the indexing query fails the dashboard used to report 100% indexed and
-    // "Idle" — a green light for a state it had not observed.
+    // "Idle" - a green light for a state it had not observed.
 
     [Fact]
     public async Task InitializeAsync_WhenTheIndexingQueryFails_ReportsUnknownRatherThanAllIndexed()
@@ -732,7 +732,7 @@ public sealed class DashboardViewModelTests
         viewModel.IndexedPercent.Should().Be(0);
     }
 
-    // ── Quick search ─────────────────────────────────────────────────────────
+    // -- Quick search ---------------------------------------------------------
     // The dashboard search box navigated to Search but dropped what the user typed,
     // landing them on an empty search page. The query has to travel with the route.
 
@@ -807,7 +807,7 @@ public sealed class DashboardViewModelTests
     {
         // AX-QA-003 follow-up (dashboard race): MainWindow shows the dashboard shell before the
         // awaited migration completes, so InitializeAsync must block on the data-ready gate before
-        // fanning out its DB reads — otherwise it queries a not-yet-migrated schema.
+        // fanning out its DB reads - otherwise it queries a not-yet-migrated schema.
         var gate = new StartupGate(); // closed
         var viewModel = CreateViewModel(gate);
 
@@ -822,7 +822,7 @@ public sealed class DashboardViewModelTests
         _conversationService.Verify(service => service.GetConversationCountAsync(), Times.Never,
             "no database read may occur before the migration gate opens");
 
-        // Open the gate — initialization must now complete and the reads must run.
+        // Open the gate - initialization must now complete and the reads must run.
         gate.SignalDataReady();
         await init.WaitAsync(TimeSpan.FromSeconds(5));
 
@@ -847,7 +847,7 @@ public sealed class DashboardViewModelTests
         _documentService.Verify(service => service.GetTotalDocumentCountAsync(), Times.Never);
     }
 
-    // ── Texts in the user's language ──────────────────────────────────────────
+    // -- Texts in the user's language ------------------------------------------
     // The system card, the recommendations, the placeholders and the operations fallback were
     // English literals, and Core formats hardware sizes but words nothing.
 
@@ -994,7 +994,7 @@ public sealed class DashboardViewModelTests
         _operationsDrillInService.Verify(service => service.StagePluginRequest(
             It.Is<OperationsPluginDrillInRequest>(request =>
                 request.PluginId == 7 &&
-                request.SourceLabel == "Dashboard-Empfehlung „Connector verbinden“ geöffnet")), Times.Once);
+                request.SourceLabel == "Dashboard-Empfehlung \u201EConnector verbinden\u201C geöffnet")), Times.Once);
     }
 
     /// <summary>

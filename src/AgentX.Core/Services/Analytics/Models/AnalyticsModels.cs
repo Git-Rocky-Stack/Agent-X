@@ -66,7 +66,7 @@ public sealed record ModelUsageMetric
     /// <summary>Total tokens consumed by messages generated with this model.</summary>
     public long TotalTokens { get; init; }
 
-    /// <summary>Percentage of total conversations that used this model (0–100).</summary>
+    /// <summary>Percentage of total conversations that used this model (0-100).</summary>
     public double Percentage { get; init; }
 }
 
@@ -84,7 +84,7 @@ public sealed record FileTypeMetric
     /// <summary>Combined file size of all documents of this type in bytes.</summary>
     public long TotalSizeBytes { get; init; }
 
-    /// <summary>Percentage of total document count (0–100).</summary>
+    /// <summary>Percentage of total document count (0-100).</summary>
     public double Percentage { get; init; }
 }
 

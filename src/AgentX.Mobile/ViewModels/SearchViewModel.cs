@@ -20,7 +20,7 @@ public sealed partial class SearchViewModel : ObservableObject
         _api = api;
     }
 
-    // ── Observable state ──────────────────────────────────────────────────────
+    // -- Observable state ------------------------------------------------------
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(SearchCommand))]
@@ -44,7 +44,7 @@ public sealed partial class SearchViewModel : ObservableObject
     [ObservableProperty]
     private bool _hasSearched;
 
-    // ── Commands ──────────────────────────────────────────────────────────────
+    // -- Commands --------------------------------------------------------------
 
     private bool CanSearch => !string.IsNullOrWhiteSpace(Query) && !IsSearching;
 
@@ -86,7 +86,7 @@ public sealed partial class SearchViewModel : ObservableObject
         }
         catch (OperationCanceledException)
         {
-            // User navigated away or started a new search — ignore
+            // User navigated away or started a new search - ignore
         }
         catch (Exception ex)
         {

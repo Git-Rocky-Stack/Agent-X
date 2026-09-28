@@ -14,7 +14,7 @@ public class OAuthCredentialEntity
 
     /// <summary>
     /// Stable identifier of the OAuth provider (e.g. <c>"google"</c>, <c>"microsoft"</c>).
-    /// Indexed with a unique constraint — only one credential row per provider.
+    /// Indexed with a unique constraint - only one credential row per provider.
     /// </summary>
     public string ProviderId { get; set; } = string.Empty;
 

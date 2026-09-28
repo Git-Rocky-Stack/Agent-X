@@ -5,9 +5,9 @@ namespace AgentX.Core.Services.Shortcuts;
 
 public enum ChordResultKind
 {
-    None,            // key not part of any chord/prefix — handle normally (or ignore)
-    PrefixArmed,     // first chord of multi-step just pressed — swallow key, wait for second
-    ChordCompleted,  // second-step key pressed within window — fire the chord
+    None,            // key not part of any chord/prefix - handle normally (or ignore)
+    PrefixArmed,     // first chord of multi-step just pressed - swallow key, wait for second
+    ChordCompleted,  // second-step key pressed within window - fire the chord
 }
 
 public sealed record ChordResult(
@@ -18,7 +18,7 @@ public sealed record ChordResult(
 /// Tracks multi-step chord state ("Ctrl+K, D"). Registered prefixes are known upfront;
 /// the first keypress arms a prefix and starts a timer window; a subsequent key within
 /// the window completes the chord. Per Conflict 3 decision, v2.1.0 ships zero multi-step
-/// chords in the seed catalog — this class is the infrastructure for future chords.
+/// chords in the seed catalog - this class is the infrastructure for future chords.
 /// </summary>
 public sealed class ChordStateMachine
 {
@@ -52,7 +52,7 @@ public sealed class ChordStateMachine
                 _armedPrefix = null;
                 return new ChordResult(ChordResultKind.ChordCompleted, completed);
             }
-            // Window expired — discard armed state and fall through to normal handling.
+            // Window expired - discard armed state and fall through to normal handling.
             _armedPrefix = null;
         }
 

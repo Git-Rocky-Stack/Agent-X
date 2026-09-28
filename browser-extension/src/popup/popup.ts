@@ -1,11 +1,11 @@
 /**
- * Popup Script — UI logic for the AgentX Web Clipper popup.
+ * Popup Script - UI logic for the AgentX Web Clipper popup.
  *
  * Security: ALL dynamic content uses textContent or DOM APIs.
  * NEVER uses innerHTML, eval(), or Function() constructor.
  */
 
-// ── DOM References ──────────────────────────────────────────────────────────
+// -- DOM References ----------------------------------------------------------
 
 const statusDot = document.getElementById('statusDot');
 const statusText = document.getElementById('statusText');
@@ -20,7 +20,7 @@ const saveTokenBtn = getButton('saveToken');
 
 const API_TOKEN_KEY = 'apiToken';
 
-// ── Types ──────────────────────────────────────────────────────────────────
+// -- Types ------------------------------------------------------------------
 
 interface RecentClip {
   title: string;
@@ -30,7 +30,7 @@ interface RecentClip {
   inboxItemId?: number;
 }
 
-// ── Initialization ──────────────────────────────────────────────────────────
+// -- Initialization ----------------------------------------------------------
 
 document.addEventListener('DOMContentLoaded', () => {
   void checkConnection();
@@ -47,7 +47,7 @@ function bindEvents(): void {
   if (saveTokenBtn) saveTokenBtn.addEventListener('click', saveApiToken);
 }
 
-// ── Pairing (API token) ──────────────────────────────────────────────────────
+// -- Pairing (API token) ------------------------------------------------------
 
 function getTokenInput(): HTMLInputElement | null {
   const element = document.getElementById('apiToken');
@@ -62,7 +62,7 @@ async function loadApiToken(): Promise<void> {
     const stored = await chrome.storage.local.get<{ apiToken?: string }>(API_TOKEN_KEY);
     if (stored.apiToken) input.value = stored.apiToken;
   } catch {
-    // Non-critical — leave the field empty.
+    // Non-critical - leave the field empty.
   }
 }
 
@@ -95,7 +95,7 @@ async function saveApiToken(): Promise<void> {
   }
 }
 
-// ── Connection Check ───────────────────────────────────────────────────────
+// -- Connection Check -------------------------------------------------------
 
 async function checkConnection(): Promise<void> {
   if (!statusDot || !statusText) return;
@@ -124,7 +124,7 @@ function setDisconnected(label: string): void {
   statusText.textContent = label;
 }
 
-// ── Clip Page ──────────────────────────────────────────────────────────────
+// -- Clip Page --------------------------------------------------------------
 
 async function clipPage(mode: string): Promise<void> {
   setButtonsEnabled(false);
@@ -147,7 +147,7 @@ async function clipPage(mode: string): Promise<void> {
   }
 }
 
-// ── Clip All Tabs ─────────────────────────────────────────────────────────
+// -- Clip All Tabs ---------------------------------------------------------
 
 /** Hosts "Clip All Tabs" needs to read tabs other than the one the toolbar button was clicked on. */
 const ALL_SITES = { origins: ['http://*/*', 'https://*/*'] };
@@ -202,7 +202,7 @@ async function clipAllTabs(): Promise<void> {
   }
 }
 
-// ── Feedback Display ───────────────────────────────────────────────────────
+// -- Feedback Display -------------------------------------------------------
 
 function showFeedback(message: string, type: 'success' | 'error' | 'info'): void {
   if (!feedbackArea) return;
@@ -212,7 +212,7 @@ function showFeedback(message: string, type: 'success' | 'error' | 'info'): void
   feedbackArea.setAttribute('role', type === 'error' ? 'alert' : 'status');
   feedbackArea.setAttribute('aria-live', type === 'error' ? 'assertive' : 'polite');
 
-  // Remove existing feedback — using DOM APIs, never innerHTML
+  // Remove existing feedback - using DOM APIs, never innerHTML
   while (feedbackArea.firstChild) {
     feedbackArea.removeChild(feedbackArea.firstChild);
   }
@@ -233,7 +233,7 @@ function showFeedback(message: string, type: 'success' | 'error' | 'info'): void
   }, 5000);
 }
 
-// ── Recent Clips List ──────────────────────────────────────────────────────
+// -- Recent Clips List ------------------------------------------------------
 
 async function loadRecentClips(): Promise<void> {
   if (!clipList) return;
@@ -242,7 +242,7 @@ async function loadRecentClips(): Promise<void> {
     const stored = await chrome.storage.local.get<{ recentClips?: RecentClip[] }>('recentClips');
     const clips: RecentClip[] = stored.recentClips ?? [];
 
-    // Clear existing items — using DOM APIs, never innerHTML
+    // Clear existing items - using DOM APIs, never innerHTML
     while (clipList.firstChild) {
       clipList.removeChild(clipList.firstChild);
     }
@@ -260,7 +260,7 @@ async function loadRecentClips(): Promise<void> {
       clipList.appendChild(item);
     }
   } catch {
-    // Silently fail — non-critical UI
+    // Silently fail - non-critical UI
   }
 }
 
@@ -312,7 +312,7 @@ function formatTimeAgo(timestamp: number): string {
   return `${days}d ago`;
 }
 
-// ── Helpers ────────────────────────────────────────────────────────────────
+// -- Helpers ----------------------------------------------------------------
 
 function setButtonsEnabled(enabled: boolean): void {
   const buttons = [clipFullBtn, clipSelectionBtn, clipReaderBtn, clipAllTabsBtn];

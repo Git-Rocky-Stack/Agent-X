@@ -6,7 +6,7 @@ using Xunit;
 namespace AgentX.Tests.Configuration;
 
 /// <summary>
-/// P2-4: tests covering <see cref="RagPromptCatalog"/> resolution semantics —
+/// P2-4: tests covering <see cref="RagPromptCatalog"/> resolution semantics -
 /// fallback to <see cref="RagPromptDefaults"/> when no override is supplied,
 /// override behavior when an array is set, and protection against silently
 /// shipping all-blank arrays.
@@ -19,9 +19,9 @@ public sealed class RagPromptCatalogTests
         return new RagPromptCatalog(monitor);
     }
 
-    // ════════════════════════════════════════════════════════════════════
+    // ====================================================================
     //  Fallback semantics
-    // ════════════════════════════════════════════════════════════════════
+    // ====================================================================
 
     [Fact]
     public void EmptyOptions_ResolvesToCompileTimeDefaults()
@@ -80,9 +80,9 @@ public sealed class RagPromptCatalogTests
         catalog.CompressorSystem.Should().Be(RagPromptDefaults.CompressorSystem);
     }
 
-    // ════════════════════════════════════════════════════════════════════
+    // ====================================================================
     //  Override semantics
-    // ════════════════════════════════════════════════════════════════════
+    // ====================================================================
 
     [Fact]
     public void NonEmptyArray_OverridesDefault()
@@ -124,9 +124,9 @@ public sealed class RagPromptCatalogTests
         catalog.RagSystemPrefix.Should().Be(RagPromptDefaults.RagSystemPrefix);
     }
 
-    // ════════════════════════════════════════════════════════════════════
+    // ====================================================================
     //  Hot-reload semantics
-    // ════════════════════════════════════════════════════════════════════
+    // ====================================================================
 
     [Fact]
     public void OptionsMonitorChange_ReflectsOnNextRead()
@@ -136,7 +136,7 @@ public sealed class RagPromptCatalogTests
 
         catalog.EvalSystem.Should().Be(RagPromptDefaults.EvalSystem);
 
-        // Simulate an operator editing RagPrompts.json — IOptionsMonitor swaps
+        // Simulate an operator editing RagPrompts.json - IOptionsMonitor swaps
         // CurrentValue. The catalog reads CurrentValue on every getter, so the
         // change should be visible immediately on the next access.
         monitor.UpdateValue(new RagPromptOptions
@@ -154,9 +154,9 @@ public sealed class RagPromptCatalogTests
         act.Should().Throw<ArgumentNullException>();
     }
 
-    // ════════════════════════════════════════════════════════════════════
+    // ====================================================================
     //  Test infrastructure
-    // ════════════════════════════════════════════════════════════════════
+    // ====================================================================
 
     /// <summary>
     /// Minimal IOptionsMonitor stub that lets tests swap the current value

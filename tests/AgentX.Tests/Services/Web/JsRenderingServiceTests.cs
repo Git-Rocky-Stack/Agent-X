@@ -28,7 +28,7 @@ public class JsRenderingServiceTests
     // and hit the live https://example.com, making them both manual and network-dependent. They
     // are now hermetic (served from a local loopback HTTP server) and SkippableFacts: they run
     // wherever a Playwright browser is installed (CI runs `playwright install chromium`) and skip
-    // gracefully — rather than fail — on a machine without the browser.
+    // gracefully - rather than fail - on a machine without the browser.
 
     [SkippableFact]
     public async Task RenderPageAsync_executes_javascript_and_returns_the_rendered_dom()
@@ -74,7 +74,7 @@ public class JsRenderingServiceTests
             ex.Message.Contains("install", StringComparison.OrdinalIgnoreCase) ||
             ex.Message.Contains("Executable doesn't exist", StringComparison.OrdinalIgnoreCase))
         {
-            Skip.If(true, "Playwright browser not installed — run `pwsh bin/.../playwright.ps1 install chromium`.");
+            Skip.If(true, "Playwright browser not installed - run `pwsh bin/.../playwright.ps1 install chromium`.");
             throw; // unreachable; Skip.If throws.
         }
     }

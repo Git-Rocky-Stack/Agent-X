@@ -63,9 +63,9 @@ public sealed class CsvFormatterTests
         };
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Properties
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Format_ShouldBeCsv()
@@ -85,9 +85,9 @@ public sealed class CsvFormatterTests
         _sut.MimeType.Should().Be("text/csv");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
-    //  ExportConversationAsync (single — no ConversationTitle column)
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
+    //  ExportConversationAsync (single - no ConversationTitle column)
+    // ======================================================================
 
     [Fact]
     public async Task ExportConversationAsync_StartsWithHeaderRow()
@@ -131,7 +131,7 @@ public sealed class CsvFormatterTests
         // Act
         var result = await _sut.ExportConversationAsync(conversation, options);
 
-        // Assert — system message content should not appear in CSV body
+        // Assert - system message content should not appear in CSV body
         result.Should().NotContain("You are a helpful assistant.");
     }
 
@@ -145,7 +145,7 @@ public sealed class CsvFormatterTests
         // Act
         var result = await _sut.ExportConversationAsync(conversation, options);
 
-        // Assert — single conversation CSV has no ConversationTitle column
+        // Assert - single conversation CSV has no ConversationTitle column
         var firstLine = result.Split('\n').First().TrimEnd('\r');
         firstLine.Should().NotContain("ConversationTitle");
         result.Should().NotContain("My Special Chat");
@@ -182,7 +182,7 @@ public sealed class CsvFormatterTests
         // Act
         var result = await _sut.ExportConversationAsync(conversation, options);
 
-        // Assert — content with commas should be double-quoted
+        // Assert - content with commas should be double-quoted
         result.Should().Contain("\"Hello, world, with commas\"");
     }
 
@@ -217,7 +217,7 @@ public sealed class CsvFormatterTests
         // Act
         var result = await _sut.ExportConversationAsync(conversation, options);
 
-        // Assert — embedded quotes should be doubled
+        // Assert - embedded quotes should be doubled
         result.Should().Contain("\"He said \"\"hello\"\"\"");
     }
 
@@ -253,7 +253,7 @@ public sealed class CsvFormatterTests
         // Act
         var result = await _sut.ExportConversationAsync(conversation, options);
 
-        // Assert — null modelId should result in empty quoted field
+        // Assert - null modelId should result in empty quoted field
         var lines = result.Split('\n').Where(l => !string.IsNullOrWhiteSpace(l.TrimEnd('\r'))).ToList();
         lines.Should().HaveCount(2); // header + 1 data row
         // The data row should have the model column as "" and end with token count
@@ -261,9 +261,9 @@ public sealed class CsvFormatterTests
         lines[1].TrimEnd('\r').Should().EndWith("5");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
-    //  ExportConversationsAsync (batch — includes ConversationTitle column)
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
+    //  ExportConversationsAsync (batch - includes ConversationTitle column)
+    // ======================================================================
 
     [Fact]
     public async Task ExportConversationsAsync_StartsWithHeaderRowIncludingConversationTitle()
@@ -333,7 +333,7 @@ public sealed class CsvFormatterTests
         // Act
         var result = await _sut.ExportConversationsAsync(conversations, options);
 
-        // Assert — header + 2 messages per conversation = 4 data rows
+        // Assert - header + 2 messages per conversation = 4 data rows
         var nonEmptyLines = result.Split('\n')
             .Where(l => !string.IsNullOrWhiteSpace(l.TrimEnd('\r')))
             .ToList();

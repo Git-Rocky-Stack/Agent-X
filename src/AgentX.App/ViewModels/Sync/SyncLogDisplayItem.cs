@@ -47,7 +47,7 @@ public partial class SyncLogDisplayItem : ObservableObject
     /// <summary>Status text for a pass that failed, in the user's language.</summary>
     public string FailedLabel { get; init; } = string.Empty;
 
-    // ── Existing Computed Properties ──────────────────────────────────────────
+    // -- Existing Computed Properties ------------------------------------------
 
     /// <summary>
     /// Segoe Fluent Icons glyph representing the sync direction.
@@ -63,15 +63,15 @@ public partial class SyncLogDisplayItem : ObservableObject
     /// </summary>
     public string StatusLabel => StatusText.ToUpperInvariant();
 
-    // ── Properties Required by SyncSettingsPage.xaml DataTemplate ─────────────
+    // -- Properties Required by SyncSettingsPage.xaml DataTemplate -------------
 
     /// <summary>
     /// Status color: green (#41E25E) for success, red (#C8453E) for failure.
     /// Bound by the XAML DataTemplate via SolidColorBrush Color="{x:Bind StatusColor}".
     /// </summary>
     public Windows.UI.Color StatusColor => IsSuccess
-        ? Windows.UI.Color.FromArgb(0xFF, 0x22, 0xC5, 0x5E)   // Green — success
-        : Windows.UI.Color.FromArgb(0xFF, 0xEF, 0x44, 0x44);  // Red   — failure
+        ? Windows.UI.Color.FromArgb(0xFF, 0x22, 0xC5, 0x5E)   // Green - success
+        : Windows.UI.Color.FromArgb(0xFF, 0xEF, 0x44, 0x44);  // Red - failure
 
     /// <summary>
     /// Segoe Fluent Icons glyph for the status indicator.
@@ -82,7 +82,7 @@ public partial class SyncLogDisplayItem : ObservableObject
         : "\uE711";  // X mark
 
     /// <summary>
-    /// Segoe Fluent Icons glyph for sync direction — alias for DirectionGlyph.
+    /// Segoe Fluent Icons glyph for sync direction - alias for DirectionGlyph.
     /// Upload (U+E898) for export, Download (U+E896) for import.
     /// </summary>
     public string DirectionIcon => DirectionGlyph;

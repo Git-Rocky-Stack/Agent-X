@@ -34,14 +34,14 @@ namespace AgentX.App.ViewModels;
 
 public partial class SyncSettingsViewModel : ObservableObject, IDisposable
 {
-    // ── Services ──────────────────────────────────────────────────────────────
+    // -- Services --------------------------------------------------------------
 
     private readonly ISyncService _syncService;
     private readonly ICollectionService _collectionService;
     private readonly ILocalizationService _localization;
     private readonly IOperationsDrillInService? _operationsDrillInService;
 
-    // ── Page State ────────────────────────────────────────────────────────────
+    // -- Page State ------------------------------------------------------------
 
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private bool _isSyncing;
@@ -53,7 +53,7 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
     [ObservableProperty] private long _focusedSyncLogId;
     [ObservableProperty] private string _focusedSyncSourceLabel = string.Empty;
 
-    // ── Configuration Fields ─────────────────────────────────────────────────
+    // -- Configuration Fields -------------------------------------------------
 
     /// <summary>
     /// Absolute path to the shared sync folder (OneDrive, Google Drive, NAS, USB, etc.).
@@ -79,8 +79,8 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
 
     /// <summary>
     /// Which entities are included in a sync export.
-    /// "All" — every supported entity type.
-    /// "SelectedCollections" — only the collections listed in SelectedCollectionIds.
+    /// "All" - every supported entity type.
+    /// "SelectedCollections" - only the collections listed in SelectedCollectionIds.
     /// </summary>
     [ObservableProperty] private string _syncScope = "All";
 
@@ -90,7 +90,7 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
     /// </summary>
     [ObservableProperty] private string? _selectedCollectionIds;
 
-    // ── Sync Status Fields ────────────────────────────────────────────────────
+    // -- Sync Status Fields ----------------------------------------------------
 
     /// <summary>The current sync state in the user's language, e.g. "Idle".</summary>
     [ObservableProperty] private string _syncState;
@@ -113,7 +113,7 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
     /// <summary>Formatted wall-clock duration of the most recent sync pass, e.g. "1.4s".</summary>
     [ObservableProperty] private string _lastSyncDurationMs = "--";
 
-    // ── Interval Options ────────────────────────────────────────────────────
+    // -- Interval Options ----------------------------------------------------
 
     /// <summary>
     /// Display strings for the sync interval dropdown. Indexes map to
@@ -152,7 +152,7 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
 
     public ObservableCollection<SyncCollectionSelectionItem> AvailableCollections { get; } = new();
 
-    // ── Sync History ──────────────────────────────────────────────────────────
+    // -- Sync History ----------------------------------------------------------
 
     /// <summary>
     /// Ordered newest-first; populated by LoadHistoryAsync.
@@ -160,7 +160,7 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
     /// </summary>
     public ObservableCollection<SyncHistoryItem> SyncHistory { get; } = new();
 
-    // ── Computed Properties ───────────────────────────────────────────────────
+    // -- Computed Properties ---------------------------------------------------
 
     /// <summary>
     /// True when both a sync folder path and an encryption key have been supplied.
@@ -224,7 +224,7 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
         }
     }
 
-    // ── Constructor ───────────────────────────────────────────────────────────
+    // -- Constructor -----------------------------------------------------------
 
     public SyncSettingsViewModel(
         ISyncService syncService,
@@ -328,7 +328,7 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
             }
             else
             {
-                Log.Debug("No sync configuration found — first-time setup");
+                Log.Debug("No sync configuration found - first-time setup");
             }
         }
         catch (Exception ex)
@@ -584,8 +584,8 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
-    /// Set while the view model itself writes <see cref="AutoSyncEnabled"/> — loading a
-    /// saved configuration, or the start/stop commands recording their own outcome — so
+    /// Set while the view model itself writes <see cref="AutoSyncEnabled"/> - loading a
+    /// saved configuration, or the start/stop commands recording their own outcome - so
     /// those writes are not mistaken for the user flipping the switch.
     /// </summary>
     private bool _applyingAutoSyncState;
@@ -1119,7 +1119,7 @@ public partial class SyncSettingsViewModel : ObservableObject, IDisposable
         SaveConfigurationCommand.NotifyCanExecuteChanged();
     }
 
-    // ── Error / Status Management ─────────────────────────────────────────────
+    // -- Error / Status Management ---------------------------------------------
 
     private void SetError(string message)
     {

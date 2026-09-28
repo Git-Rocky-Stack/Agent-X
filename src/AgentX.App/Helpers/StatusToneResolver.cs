@@ -126,7 +126,7 @@ public static class StatusToneResolver
             // Word-boundary match: "inactive" must NOT match the "active" success
             // token, and "Collaborative sync is off" must NOT match the "offline"
             // danger token. Substring matching here inverted status colors
-            // (negative states rendered green) — see design audit B2.
+            // (negative states rendered green) - see design audit B2.
             if (Regex.IsMatch(status, $@"\b{Regex.Escape(token)}\b"))
             {
                 return true;

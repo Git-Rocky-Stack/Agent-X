@@ -26,7 +26,7 @@ public static class MauiProgram
         builder.Logging.AddDebug();
 #endif
 
-        // ── Services ──────────────────────────────────────────────────────────
+        // -- Services ----------------------------------------------------------
 
         // SettingsService reads/writes Preferences; construct before ApiClient
         // so the persisted URL can be passed in.
@@ -41,21 +41,21 @@ public static class MauiProgram
             return new AgentXApiClient(settings.ApiUrl, persistedTokenLoader: settings.GetApiTokenAsync);
         });
 
-        // ── View-Models ───────────────────────────────────────────────────────
+        // -- View-Models -------------------------------------------------------
 
         builder.Services.AddTransient<DocumentsViewModel>();
         builder.Services.AddTransient<SearchViewModel>();
         builder.Services.AddTransient<ConversationsViewModel>();
         builder.Services.AddTransient<SettingsViewModel>();
 
-        // ── Pages ─────────────────────────────────────────────────────────────
+        // -- Pages -------------------------------------------------------------
 
         builder.Services.AddTransient<DocumentsPage>();
         builder.Services.AddTransient<SearchPage>();
         builder.Services.AddTransient<ConversationsPage>();
         builder.Services.AddTransient<SettingsPage>();
 
-        // ── Shell ─────────────────────────────────────────────────────────────
+        // -- Shell -------------------------------------------------------------
 
         builder.Services.AddSingleton<AppShell>();
         builder.Services.AddSingleton<App>();

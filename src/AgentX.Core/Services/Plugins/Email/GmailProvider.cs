@@ -178,8 +178,8 @@ public sealed class GmailProvider : IEmailProvider
 
             if (response.StatusCode == HttpStatusCode.NotFound)
             {
-                // History expired — fall back to full sync.
-                _log.Warning("Gmail historyId {HistoryId} expired — performing full sync", startHistoryId);
+                // History expired - fall back to full sync.
+                _log.Warning("Gmail historyId {HistoryId} expired - performing full sync", startHistoryId);
                 return await GetMessagesAsync(folderId, maxResults, deltaToken: null, receivedAfterUtc, cancellationToken)
                     .ConfigureAwait(false);
             }
@@ -499,7 +499,7 @@ public sealed class GmailProvider : IEmailProvider
     private Task<string> GetAccessTokenAsync()
         => _oauthService.GetAccessTokenAsync(ProviderId);
 
-    // ── Internal JSON models ───────────────────────────────────────────────────
+    // -- Internal JSON models ---------------------------------------------------
 
     private sealed class GmailLabelListResponse
     {

@@ -176,7 +176,7 @@ public sealed partial class KnowledgeGraphPage : Page
         if (canvasWidth < MinCanvasDimension || canvasHeight < MinCanvasDimension)
             return;
 
-        // ── Filter nodes by toggle state ─────────────────────────────
+        // -- Filter nodes by toggle state -----------------------------
         var visibleNodes = graphData.Nodes.Where(IsNodeVisible).ToList();
         var visibleNodesById = visibleNodes.ToDictionary(n => n.Id);
 
@@ -186,19 +186,19 @@ public sealed partial class KnowledgeGraphPage : Page
         // HighContrast stays flat and system-colored: no glow tints
         var highContrast = IsHighContrast();
 
-        // ── Calculate bounding box and normalization ─────────────────
+        // -- Calculate bounding box and normalization -----------------
         var (offsetX, offsetY, scale) = CalculateTransform(visibleNodes, canvasWidth, canvasHeight);
 
-        // ── Zoom ─────────────────────────────────────────────────────
+        // -- Zoom -----------------------------------------------------
         var zoomScale = ViewModel.ZoomLevel;
         var centerX = canvasWidth / 2.0;
         var centerY = canvasHeight / 2.0;
 
-        // ── Highlight state ──────────────────────────────────────────
+        // -- Highlight state ------------------------------------------
         var isHighlighting = ViewModel.IsClusterHighlighted || ViewModel.HasSearchResults;
         var highlightedIds = ViewModel.HighlightedNodeIds;
 
-        // ── Draw edges first (behind nodes) ──────────────────────────
+        // -- Draw edges first (behind nodes) --------------------------
         foreach (var edge in graphData.Edges)
         {
             // Only draw edges where both endpoints are visible
@@ -237,7 +237,7 @@ public sealed partial class KnowledgeGraphPage : Page
             GraphCanvas.Children.Add(line);
         }
 
-        // ── Draw nodes ───────────────────────────────────────────────
+        // -- Draw nodes -----------------------------------------------
         var textBrush = ThemeResources.Brush("TextSecondaryBrush");
 
         foreach (var node in visibleNodes)

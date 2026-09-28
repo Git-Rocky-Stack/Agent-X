@@ -19,7 +19,7 @@
 
     <Grid>
 
-        <!-- ═══════ ADAPTIVE LAYOUT (Tier 3) — see Colors.xaml breakpoints ═══════
+        <!-- ======= ADAPTIVE LAYOUT (Tier 3) - see Colors.xaml breakpoints =======
              Narrow (<960):  sidebar 220   |  Medium (>=960): sidebar 240
              Wide (>=1280):  sidebar 260 (markup default) -->
         <VisualStateManager.VisualStateGroups>
@@ -53,9 +53,9 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <!-- ══════════════════════════════════════════════════════════
+        <!-- ==========================================================
              LEFT PANEL: Filters & Actions
-             ══════════════════════════════════════════════════════════ -->
+             ========================================================== -->
         <Border Grid.Column="0"
                 Background="{ThemeResource CardGradientSubtleBrush}"
                 BorderBrush="{ThemeResource BorderSubtleBrush}"
@@ -141,9 +141,9 @@
             </StackPanel>
         </Border>
 
-        <!-- ══════════════════════════════════════════════════════════
+        <!-- ==========================================================
              RIGHT PANEL: Inbox Items
-             ══════════════════════════════════════════════════════════ -->
+             ========================================================== -->
         <Grid Grid.Column="1">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <Grid Padding="{StaticResource PaddingPage}" RowSpacing="16" MaxWidth="900" HorizontalAlignment="Center">
@@ -253,7 +253,7 @@
                                                                Style="{StaticResource CaptionStyle}" />
                                                     <TextBlock Style="{StaticResource CaptionStyle}"
                                                                Text="{x:Bind StatusLabel}" />
-                                                    <!-- Web Clip badge — visible only for browser-extension items -->
+                                                    <!-- Web Clip badge - visible only for browser-extension items -->
                                                     <Border Visibility="{x:Bind IsBrowserClip, Converter={StaticResource BoolToVis}}"
                                                             CornerRadius="4"
                                                             Background="{ThemeResource InfoSubtleBrush}"

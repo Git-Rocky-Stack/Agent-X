@@ -52,7 +52,7 @@ public sealed class WebSearchCache
                     return entry.Response with { FromCache = true };
                 }
 
-                // Entry has expired — remove it
+                // Entry has expired - remove it
                 _cache.Remove((query, provider));
                 _logger.Debug("WebSearchCache EXPIRED for query '{Query}' (provider={Provider})", query, provider);
             }

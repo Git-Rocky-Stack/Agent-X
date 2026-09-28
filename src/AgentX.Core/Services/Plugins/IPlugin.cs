@@ -45,7 +45,7 @@ public interface IPlugin : IDisposable
     /// Called once immediately after the plugin assembly is loaded into its
     /// <see cref="System.Runtime.Loader.AssemblyLoadContext"/>. Use this method to
     /// perform one-time setup: read persisted configuration, register services, validate
-    /// dependencies. Do NOT start background work here — use <see cref="ActivateAsync"/>.
+    /// dependencies. Do NOT start background work here - use <see cref="ActivateAsync"/>.
     /// </summary>
     /// <param name="context">
     /// Safe-access context provided by the host. Grants a scoped service provider,

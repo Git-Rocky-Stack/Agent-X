@@ -4,7 +4,7 @@ namespace AgentX.Mobile.Views;
 
 /// <summary>
 /// Displays all non-archived conversations from the AgentX desktop app.
-/// Read-only — conversation creation happens exclusively in the desktop app.
+/// Read-only - conversation creation happens exclusively in the desktop app.
 /// </summary>
 public sealed partial class ConversationsPage : ContentPage
 {

@@ -13,7 +13,7 @@ namespace AgentX.Tests.Services.Email;
 /// </summary>
 public sealed class EmailModelsTests
 {
-    // ── EmailMessage ─────────────────────────────────────────────────────────
+    // -- EmailMessage ---------------------------------------------------------
 
     [Fact]
     public void EmailMessage_Defaults_AreSet()
@@ -61,7 +61,7 @@ public sealed class EmailModelsTests
         msg.To.Should().HaveCount(1);
     }
 
-    // ── EmailContact ────────────────────────────────────────────────────────
+    // -- EmailContact --------------------------------------------------------
 
     [Fact]
     public void EmailContact_Defaults_AreSet()
@@ -72,7 +72,7 @@ public sealed class EmailModelsTests
         contact.IsMe.Should().BeFalse();
     }
 
-    // ── EmailFolderInfo ──────────────────────────────────────────────────────
+    // -- EmailFolderInfo ------------------------------------------------------
 
     [Fact]
     public void EmailFolderInfo_Defaults_AreSet()
@@ -85,7 +85,7 @@ public sealed class EmailModelsTests
         folder.SourceProvider.Should().BeEmpty();
     }
 
-    // ── EmailSyncSettings ────────────────────────────────────────────────────
+    // -- EmailSyncSettings ----------------------------------------------------
 
     [Fact]
     public void EmailSyncSettings_Defaults_AreSet()
@@ -478,7 +478,7 @@ public sealed class EmailTriageProcessorTests
         Assert.Throws<ArgumentNullException>(() => _processor.ExtractSearchableContent(null!));
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
+    // -- Helpers --------------------------------------------------------------
 
     private static EmailMessage CreateSampleMessage(
         string id = "msg-1",

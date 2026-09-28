@@ -20,7 +20,7 @@ public sealed class HydeService : IHydeService
     private readonly ILogger _logger;
 
     /// <summary>
-    /// P2-4: returns the active HyDE system prompt — catalog when registered,
+    /// P2-4: returns the active HyDE system prompt - catalog when registered,
     /// compile-time default otherwise.
     /// </summary>
     private string SystemPrompt

@@ -23,7 +23,7 @@ using Xunit;
 namespace AgentX.Tests.Services.Api;
 
 /// <summary>
-/// In-process integration tests for <see cref="ApiHostService"/> — the embedded local REST API
+/// In-process integration tests for <see cref="ApiHostService"/> - the embedded local REST API
 /// (AX-QA-009: this service sat at 0% coverage). Each test starts a real <see cref="HttpListener"/>
 /// on its own free <c>localhost</c> port and drives it with a real <see cref="HttpClient"/>, so the
 /// full request pipeline (auth gate, CORS, routing, JSON serialization, error handling) is exercised
@@ -36,9 +36,9 @@ public sealed class ApiHostServiceTests
 
     private static readonly JsonSerializerOptions ReadOptions = new() { PropertyNameCaseInsensitive = true };
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Lifecycle
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task StartAsync_SetsRunningStatePortAndBaseUrl()
@@ -114,9 +114,9 @@ public sealed class ApiHostServiceTests
         second.Service.Port.Should().Be(freePort);
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Authentication
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task ProtectedRoute_WithoutAuthorizationHeader_Returns401WithBearerChallenge()
@@ -244,9 +244,9 @@ public sealed class ApiHostServiceTests
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  CORS
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task OptionsPreflight_FromExtensionOrigin_Returns204WithCorsGrant()
@@ -307,9 +307,9 @@ public sealed class ApiHostServiceTests
             .Should().BeFalse("a non-extension web origin must never receive a CORS grant");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  GET /api/health
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task GetHealth_ReturnsOkStatusAndCountsFromServices()
@@ -382,9 +382,9 @@ public sealed class ApiHostServiceTests
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  GET /api/documents
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task GetDocuments_MapsEntitiesToDtos()
@@ -469,9 +469,9 @@ public sealed class ApiHostServiceTests
         body.Error.Should().Contain("internal server error");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  GET /api/conversations
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task GetConversations_MapsEntitiesToDtos()
@@ -535,9 +535,9 @@ public sealed class ApiHostServiceTests
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  GET /api/collections
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task GetCollections_MapsEntitiesToDtos()
@@ -560,9 +560,9 @@ public sealed class ApiHostServiceTests
         body.Data[0].DocumentCount.Should().Be(4);
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  POST /api/search
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task PostSearch_WithValidQuery_ReturnsMappedResults()
@@ -638,7 +638,7 @@ public sealed class ApiHostServiceTests
     {
         await using var harness = await ApiHostHarness.StartAsync();
 
-        // A literal "null" body deserializes to a null request object — the handler must reject it.
+        // A literal "null" body deserializes to a null request object - the handler must reject it.
         using var content = new StringContent("null", Encoding.UTF8, "application/json");
         var response = await harness.Client.PostAsync("api/search", content);
 
@@ -646,9 +646,9 @@ public sealed class ApiHostServiceTests
         harness.Search.Verify(s => s.SearchAsync(It.IsAny<SearchQuery>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  POST /api/inbox/clip
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task PostClip_WithValidPayload_Returns201AndWritesFrontmatterFileToInbox()
@@ -1076,9 +1076,9 @@ public sealed class ApiHostServiceTests
     public void ParsePublishedDate_ReturnsNullForValuesThatAreNotDates(string? raw)
         => ApiHostService.ParsePublishedDate(raw).Should().BeNull();
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  GET /api/extension/health
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task GetExtensionHealth_ReturnsConnectedPayload()
@@ -1111,9 +1111,9 @@ public sealed class ApiHostServiceTests
         body.Data.Provider.Should().Be("ollama");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Routing fallbacks
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task UnknownRoute_Returns404()
@@ -1139,9 +1139,9 @@ public sealed class ApiHostServiceTests
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Helpers
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     private static async Task<ApiResponse<T>?> ReadAsync<T>(HttpResponseMessage response)
     {

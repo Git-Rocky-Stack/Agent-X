@@ -169,7 +169,7 @@ public sealed class EmbeddingService : IEmbeddingService
         return allEmbeddings.AsReadOnly();
     }
 
-    // ── Private Helpers ─────────────────────────────────────────────────
+    // -- Private Helpers -------------------------------------------------
 
     /// <summary>
     /// Returns the provider for the embedding target, or throws a clear, actionable exception

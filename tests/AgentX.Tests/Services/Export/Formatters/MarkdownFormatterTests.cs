@@ -72,9 +72,9 @@ public sealed class MarkdownFormatterTests
         };
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Properties
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Format_ShouldBeMarkdown()
@@ -94,9 +94,9 @@ public sealed class MarkdownFormatterTests
         _sut.MimeType.Should().Be("text/markdown");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  ExportConversationAsync
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task ExportConversationAsync_WithMetadata_IncludesHeaderAndMeta()
@@ -184,7 +184,7 @@ public sealed class MarkdownFormatterTests
         // Act
         var result = await _sut.ExportConversationAsync(conversation, options);
 
-        // Assert — system messages should be shown in the System Prompt section,
+        // Assert - system messages should be shown in the System Prompt section,
         // but "### System" should NOT appear in the conversation body
         var lines = result.Split('\n');
         var systemHeaders = lines.Count(l => l.Trim().StartsWith("### System"));
@@ -205,7 +205,7 @@ public sealed class MarkdownFormatterTests
         // Act
         var result = await _sut.ExportConversationAsync(conversation, options);
 
-        // Assert — assistant message should include model info
+        // Assert - assistant message should include model info
         result.Should().Contain("*Model: gpt-4o*");
     }
 
@@ -330,9 +330,9 @@ public sealed class MarkdownFormatterTests
         await act.Should().ThrowAsync<OperationCanceledException>();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  ExportConversationsAsync (batch)
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task ExportConversationsAsync_WithMultipleConversations_IncludesBatchHeader()
@@ -386,7 +386,7 @@ public sealed class MarkdownFormatterTests
         // Act
         var result = await _sut.ExportConversationsAsync(conversations, options);
 
-        // Assert — should have at least one "---" separator between conversations
+        // Assert - should have at least one "---" separator between conversations
         result.Should().Contain("---");
     }
 }

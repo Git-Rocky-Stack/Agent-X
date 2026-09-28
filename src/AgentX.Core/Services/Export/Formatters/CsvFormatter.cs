@@ -36,7 +36,7 @@ public sealed class CsvFormatter : IExportFormatter
 
         var sb = new StringBuilder();
 
-        // CSV header row — includes ConversationTitle for batch exports
+        // CSV header row - includes ConversationTitle for batch exports
         sb.AppendLine("ConversationTitle,Role,Content,Timestamp,Model,Tokens");
 
         foreach (var conv in conversations)
@@ -63,15 +63,15 @@ public sealed class CsvFormatter : IExportFormatter
         return Task.FromResult(sb.ToString());
     }
 
-    // ────────────────────────────────────────────────────────────────
+    // ----------------------------------------------------------------
     //  Core formatting (extracted from ExportService.BuildConversationCsv)
-    // ────────────────────────────────────────────────────────────────
+    // ----------------------------------------------------------------
 
     private static string BuildConversationCsv(ConversationEntity conversation)
     {
         var sb = new StringBuilder();
 
-        // CSV header row — single conversation has no ConversationTitle column
+        // CSV header row - single conversation has no ConversationTitle column
         // to match the original ExportService.BuildConversationCsv output
         sb.AppendLine("Role,Content,Timestamp,Model,Tokens");
 
@@ -81,7 +81,7 @@ public sealed class CsvFormatter : IExportFormatter
 
         foreach (var message in messages)
         {
-            // Skip system messages — they are internal directives, not user-facing content
+            // Skip system messages - they are internal directives, not user-facing content
             if (message.Role.Equals("system", StringComparison.OrdinalIgnoreCase))
                 continue;
 
@@ -95,9 +95,9 @@ public sealed class CsvFormatter : IExportFormatter
         return sb.ToString();
     }
 
-    // ────────────────────────────────────────────────────────────────
+    // ----------------------------------------------------------------
     //  Helpers
-    // ────────────────────────────────────────────────────────────────
+    // ----------------------------------------------------------------
 
     /// <summary>
     /// The shared CSV cell escaping, which also neutralizes spreadsheet formulas in message

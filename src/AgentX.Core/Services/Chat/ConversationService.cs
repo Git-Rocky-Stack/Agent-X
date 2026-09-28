@@ -571,7 +571,7 @@ public class ConversationService : IConversationService
         }
     }
 
-    // ── Folder / Tag Organization ────────────────────────────────
+    // -- Folder / Tag Organization --------------------------------
 
     /// <inheritdoc />
     public async Task SetConversationFolderAsync(long conversationId, string? folderName)

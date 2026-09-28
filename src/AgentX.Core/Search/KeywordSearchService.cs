@@ -361,9 +361,9 @@ public sealed class KeywordSearchService : IKeywordSearchService
         return finalResults;
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Private helpers
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>
     /// Holds the shared context's database gate for a raw ADO.NET section. Commands created

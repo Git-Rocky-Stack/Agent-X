@@ -85,7 +85,7 @@ public sealed class OllamaProvider : IAiProvider
         }
         catch (OperationCanceledException) when (!ct.IsCancellationRequested)
         {
-            // Timeout expired (not caller cancellation) — Ollama is not responding
+            // Timeout expired (not caller cancellation) - Ollama is not responding
             _isAvailable = false;
             _logger.Warning("Ollama connection check timed out (3s)");
             return false;
@@ -449,7 +449,7 @@ public sealed class OllamaProvider : IAiProvider
         _logger.Debug("OllamaProvider disposed");
     }
 
-    // ── Private Helpers ─────────────────────────────────────────────
+    // -- Private Helpers ---------------------------------------------
 
     /// <summary>
     /// A finished Ollama response always ends with a "done" chunk. When the server reports an

@@ -104,7 +104,7 @@ public sealed class EmailSettingsViewModelTests
         await vm.SyncNowCommand.ExecuteAsync(null);
 
         email.Verify(e => e.SyncMessagesAsync(It.IsAny<CancellationToken>()), Times.Once);
-        vm.LastSyncTime.Should().NotBe("—");
+        vm.LastSyncTime.Should().NotBe("-");
         vm.SyncStatusText.Should().Contain("Added 4");
         vm.SyncStatusText.Should().Contain("skipped 2");
     }

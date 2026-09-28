@@ -23,7 +23,7 @@ public sealed class AskFilesViewModelTests
         _logger.Setup(log => log.ForContext<It.IsAnyType>()).Returns(_logger.Object);
     }
 
-    // ── Citation file paths ──────────────────────────────────────────────────
+    // -- Citation file paths --------------------------------------------------
     // A citation that arrives without a file path is backfilled from the document store.
     // That lookup used to block on the async call with Task.Wait()/Task.Result inside the
     // answer pipeline, which can deadlock on the UI thread; it must stay asynchronous.

@@ -21,7 +21,7 @@ on:
       - 'global.json'
       - '.github/workflows/dependency-audit.yml'
   schedule:
-    # Weekly Monday 07:00 UTC — catch advisories published against already-pinned versions.
+    # Weekly Monday 07:00 UTC - catch advisories published against already-pinned versions.
     - cron: '0 7 * * 1'
 
 jobs:
@@ -56,7 +56,7 @@ jobs:
           # AX-QA-010 RESOLVED: the dormant, vulnerable SQLitePCLRaw.lib.e_sqlite3
           # (GHSA-2m69-gcr7-jv3q / CVE-2025-6965) was removed by switching AgentX.Core and
           # AgentX.Tests to the .Core SQLite packages, so only the SQLCipher provider
-          # (e_sqlcipher.dll) remains in the graph. The allowlist is intentionally empty —
+          # (e_sqlcipher.dll) remains in the graph. The allowlist is intentionally empty -
           # any High/Critical advisory now fails the build with no exceptions.
           $accepted = @()
 

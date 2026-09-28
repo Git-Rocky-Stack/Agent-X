@@ -184,7 +184,7 @@ public sealed class AnnotationsViewModelTests
         asked.CancelText.Should().Be("Abbrechen");
     }
 
-    // ── Editing ──────────────────────────────────────────────────────────────
+    // -- Editing --------------------------------------------------------------
     // The edit flow existed in the view model with no control anywhere in the page.
     // The colour picker for editing must not offer the "All" filter sentinel as a colour.
 

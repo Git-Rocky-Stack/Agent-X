@@ -41,7 +41,7 @@ public sealed class ApiHostLifecycleService : IApiHostLifecycleService
 
             if (!settings.LocalApiEnabled)
             {
-                _log.Information("Local REST API is disabled in settings — listener not started");
+                _log.Information("Local REST API is disabled in settings - listener not started");
                 return;
             }
 

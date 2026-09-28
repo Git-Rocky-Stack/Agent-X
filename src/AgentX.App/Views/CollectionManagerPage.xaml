@@ -10,9 +10,9 @@
 
     <Page.Resources>
 
-        <!-- ═══════════════════════════════════════════════════════════
+        <!-- ===========================================================
              CONVERTERS
-             ═══════════════════════════════════════════════════════════ -->
+             =========================================================== -->
 
         <converters:BoolToVisibilityConverter x:Key="BoolToVis" />
         <converters:BoolToVisibilityConverter x:Key="InverseBoolToVis" IsInverted="True" />
@@ -24,7 +24,7 @@
 
     <Grid Background="{ThemeResource PageBackgroundBrush}">
 
-        <!-- ═══════ ADAPTIVE LAYOUT (Tier 3) — see Colors.xaml breakpoints ═══════
+        <!-- ======= ADAPTIVE LAYOUT (Tier 3) - see Colors.xaml breakpoints =======
              Narrow (<960):  sidebar 260   |  Medium (>=960): sidebar 300
              Wide (>=1280):  sidebar 320 (markup default) -->
         <VisualStateManager.VisualStateGroups>
@@ -54,15 +54,15 @@
         </VisualStateManager.VisualStateGroups>
 
         <Grid.ColumnDefinitions>
-            <!-- Left panel: Collection tree (adaptive width — 260/300/320) -->
+            <!-- Left panel: Collection tree (adaptive width - 260/300/320) -->
             <ColumnDefinition x:Name="SidebarColumn" Width="320" />
             <!-- Right panel: Selected collection detail -->
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <!-- ═══════════════════════════════════════════════════════════
+        <!-- ===========================================================
              LEFT PANEL: COLLECTION TREE
-             ═══════════════════════════════════════════════════════════ -->
+             =========================================================== -->
         <Grid Grid.Column="0"
               Background="{ThemeResource SidebarGradientBrush}"
               BorderBrush="{ThemeResource BorderSubtleBrush}"
@@ -399,9 +399,9 @@
             </Border>
         </Grid>
 
-        <!-- ═══════════════════════════════════════════════════════════
+        <!-- ===========================================================
              RIGHT PANEL: SELECTED COLLECTION DETAIL
-             ═══════════════════════════════════════════════════════════ -->
+             =========================================================== -->
         <Grid Grid.Column="1">
 
             <!-- Empty state: No collection selected -->
@@ -662,10 +662,10 @@
             </ScrollViewer>
         </Grid>
 
-        <!-- ═══════════════════════════════════════════════════════════
+        <!-- ===========================================================
              RENAME COLLECTION PANEL
              Spans both panels so it reads as a modal layer over the page.
-             ═══════════════════════════════════════════════════════════ -->
+             =========================================================== -->
         <Grid Grid.Column="0" Grid.ColumnSpan="2"
               Background="{ThemeResource OverlayBrush}"
               Visibility="{x:Bind ViewModel.IsRenaming, Mode=OneWay, Converter={StaticResource BoolToVis}}">

@@ -20,9 +20,9 @@ public sealed class AppSettingsValidatorTests
     /// </summary>
     private static AppSettings CreateValidSettings() => new();
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Valid settings
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Validate_WithDefaultSettings_Passes()
@@ -62,9 +62,9 @@ public sealed class AppSettingsValidatorTests
         result.IsValid.Should().BeTrue();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Temperature
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Theory]
     [InlineData(-0.1)]
@@ -104,9 +104,9 @@ public sealed class AppSettingsValidatorTests
         result.Errors.Should().NotContain(e => e.FieldName == nameof(AppSettings.Temperature));
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  MaxTokens
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Theory]
     [InlineData(0)]
@@ -144,9 +144,9 @@ public sealed class AppSettingsValidatorTests
         result.Errors.Should().NotContain(e => e.FieldName == nameof(AppSettings.MaxTokens));
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  ChunkOverlap exceeding ChunkSize
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Validate_ChunkOverlapExceedingChunkSize_Fails()
@@ -245,9 +245,9 @@ public sealed class AppSettingsValidatorTests
         result.Errors.Should().Contain(e => e.FieldName == nameof(AppSettings.ChunkOverlap));
     }
 
-    // ══════════════════════════════════════════════════════════════════════
-    //  ActiveProviderId — invalid provider
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
+    //  ActiveProviderId - invalid provider
+    // ======================================================================
 
     [Theory]
     [InlineData("invalid")]
@@ -316,9 +316,9 @@ public sealed class AppSettingsValidatorTests
         result.Errors.Should().Contain(e => e.FieldName == nameof(AppSettings.ActiveProviderId));
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Missing API keys
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Validate_MissingOpenAiApiKeyWhenProviderIsOpenai_Fails()
@@ -401,9 +401,9 @@ public sealed class AppSettingsValidatorTests
         result.Errors.Should().NotContain(e => e.FieldName == nameof(AppSettings.AnthropicApiKey));
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Invalid URI format
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Validate_InvalidOllamaEndpointUri_Fails()
@@ -455,9 +455,9 @@ public sealed class AppSettingsValidatorTests
         result.Errors.Should().Contain(e => e.FieldName == nameof(AppSettings.AnthropicEndpoint));
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Empty StoragePath
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Theory]
     [InlineData("")]
@@ -491,9 +491,9 @@ public sealed class AppSettingsValidatorTests
         result.Errors.Should().Contain(e => e.FieldName == nameof(AppSettings.StoragePath));
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Multiple errors
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Validate_MultipleInvalidFields_ReportsAllErrors()
@@ -517,9 +517,9 @@ public sealed class AppSettingsValidatorTests
             "multiple fields are invalid and all should be reported");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  ContextWindow boundaries
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Theory]
     [InlineData(511)]
@@ -539,9 +539,9 @@ public sealed class AppSettingsValidatorTests
         result.Errors.Should().Contain(e => e.FieldName == nameof(AppSettings.ContextWindow));
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  TopKResults boundaries
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Theory]
     [InlineData(0)]
@@ -560,9 +560,9 @@ public sealed class AppSettingsValidatorTests
         result.Errors.Should().Contain(e => e.FieldName == nameof(AppSettings.TopKResults));
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  ChunkSize boundaries
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Theory]
     [InlineData(63)]
@@ -628,9 +628,9 @@ public sealed class AppSettingsValidatorTests
         _sut.Validate(settings).IsValid.Should().BeTrue();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Null instance
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Validate_NullInstance_ThrowsArgumentNullException()

@@ -150,7 +150,7 @@ public sealed class AppNavigationService : IAppNavigationService
         }
     }
 
-    // ── Private ──────────────────────────────────────────────────
+    // -- Private --------------------------------------------------
 
     private void OnSelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
     {

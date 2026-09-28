@@ -83,7 +83,7 @@ public class WebContentFetcher : IWebContentFetcher, IDisposable
         _ownsHttpClient = false;
     }
 
-    // ─── IWebContentFetcher Implementation ───────────────────────────────────
+    // --- IWebContentFetcher Implementation -----------------------------------
 
     /// <inheritdoc />
     public async Task<FetchResult> FetchAsync(string url, CancellationToken ct = default)
@@ -150,7 +150,7 @@ public class WebContentFetcher : IWebContentFetcher, IDisposable
         return new FetchResult(html, finalUrl, stopwatch.Elapsed, usedJsRendering);
     }
 
-    // ─── Internal Fetch Logic ────────────────────────────────────────────────
+    // --- Internal Fetch Logic ------------------------------------------------
 
     /// <summary>
     /// Performs the HTTP GET (following redirects one hop at a time) with content size
@@ -231,7 +231,7 @@ public class WebContentFetcher : IWebContentFetcher, IDisposable
         return visibleChars < MinimalContentChars;
     }
 
-    // ─── URL Validation ──────────────────────────────────────────────────────
+    // --- URL Validation ------------------------------------------------------
 
     /// <summary>
     /// Validates that a URL is a non-empty, well-formed absolute HTTP or HTTPS URL.
@@ -257,7 +257,7 @@ public class WebContentFetcher : IWebContentFetcher, IDisposable
         }
     }
 
-    // ─── HttpClient Factory ──────────────────────────────────────────────────
+    // --- HttpClient Factory --------------------------------------------------
 
     /// <summary>
     /// Creates the default <see cref="HttpClient"/> with appropriate configuration
@@ -280,7 +280,7 @@ public class WebContentFetcher : IWebContentFetcher, IDisposable
         return client;
     }
 
-    // ─── IDisposable ─────────────────────────────────────────────────────────
+    // --- IDisposable ---------------------------------------------------------
 
     /// <summary>
     /// Disposes the internally managed <see cref="HttpClient"/> if this instance owns it.

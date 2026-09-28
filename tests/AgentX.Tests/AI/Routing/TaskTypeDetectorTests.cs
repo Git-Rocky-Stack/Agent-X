@@ -8,7 +8,7 @@ public class TaskTypeDetectorTests
 {
     private readonly TaskTypeDetector _detector = new();
 
-    // ── Explicit Tag Override Tests ─────────────────────────────────
+    // -- Explicit Tag Override Tests ---------------------------------
 
     [Theory]
     [InlineData("[extraction] get the names from this", "extraction")]
@@ -43,7 +43,7 @@ public class TaskTypeDetectorTests
         result.Should().BeSameAs(TaskType.Analysis);
     }
 
-    // ── Keyword Matching Tests ──────────────────────────────────────
+    // -- Keyword Matching Tests --------------------------------------
 
     [Theory]
     [InlineData("Extract the key entities from this document", "extraction")]
@@ -115,7 +115,7 @@ public class TaskTypeDetectorTests
         _detector.Detect(prompt).Name.Should().Be(expected);
     }
 
-    // ── Default Fallback Tests ──────────────────────────────────────
+    // -- Default Fallback Tests --------------------------------------
 
     [Theory]
     [InlineData("")]
@@ -130,7 +130,7 @@ public class TaskTypeDetectorTests
         result.Should().BeSameAs(TaskType.Chat);
     }
 
-    // ── Case Insensitivity ─────────────────────────────────────────
+    // -- Case Insensitivity -----------------------------------------
 
     [Theory]
     [InlineData("ANALYZE the data", "analysis")]
@@ -142,7 +142,7 @@ public class TaskTypeDetectorTests
         _detector.Detect(prompt).Name.Should().Be(expected);
     }
 
-    // ── First Match Wins ───────────────────────────────────────────
+    // -- First Match Wins -------------------------------------------
 
     [Fact]
     public void Detect_MultipleKeywords_ReturnsFirstMatch()

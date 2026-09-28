@@ -67,7 +67,7 @@ public sealed class NoUnwiredInteractiveControlsTests
             "pressable but silently do nothing:\n  " + string.Join("\n  ", offenders));
     }
 
-    // ── Scanning ─────────────────────────────────────────────────────────────
+    // -- Scanning -------------------------------------------------------------
 
     private static IEnumerable<string> EnumerateXamlFiles(string root) =>
         Directory
@@ -148,7 +148,7 @@ public sealed class NoUnwiredInteractiveControlsTests
 
     private readonly record struct UnwiredControl(string File, int Line, string Tag, string Hint);
 
-    // ── Shared helper ────────────────────────────────────────────────────────
+    // -- Shared helper --------------------------------------------------------
 
     private static string ResolveSourceRoot()
     {

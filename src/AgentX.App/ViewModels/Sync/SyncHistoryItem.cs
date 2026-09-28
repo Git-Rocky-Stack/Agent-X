@@ -1,7 +1,7 @@
 namespace AgentX.App.ViewModels.Sync;
 
 // =============================================================================
-// TYPE ALIAS — SyncHistoryItem
+// TYPE ALIAS - SyncHistoryItem
 //
 // The SyncSettingsPage.xaml DataTemplate declares x:DataType="vm:SyncHistoryItem".
 // This subclass provides the expected type name without duplicating any logic.

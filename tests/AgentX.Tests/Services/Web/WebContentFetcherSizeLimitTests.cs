@@ -102,7 +102,7 @@ public sealed class WebContentFetcherSizeLimitTests
         result.Html.Should().Be(html);
     }
 
-    // ─── Test doubles ────────────────────────────────────────────────────────
+    // --- Test doubles --------------------------------------------------------
 
     private sealed class StubHandler : HttpMessageHandler
     {
@@ -117,7 +117,7 @@ public sealed class WebContentFetcherSizeLimitTests
 
     /// <summary>
     /// HttpContent that writes a fixed payload but can independently control whether a
-    /// <c>Content-Length</c> header is advertised and what value it reports — letting us
+    /// <c>Content-Length</c> header is advertised and what value it reports - letting us
     /// simulate honest, missing, and dishonest length headers.
     /// </summary>
     private sealed class SizedContent : HttpContent

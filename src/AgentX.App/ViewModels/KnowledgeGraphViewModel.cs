@@ -18,7 +18,7 @@ public partial class KnowledgeGraphViewModel : ObservableObject
     private readonly IKnowledgeGraphService _graphService;
     private readonly ILocalizationService _localization;
 
-    // ── Observable Properties ─────────────────────────────────────────
+    // -- Observable Properties -----------------------------------------
 
     [ObservableProperty]
     private bool _isLoading;
@@ -53,7 +53,7 @@ public partial class KnowledgeGraphViewModel : ObservableObject
     [ObservableProperty]
     private bool _showTags = true;
 
-    // ── Search / Highlight ─────────────────────────────────────────
+    // -- Search / Highlight -----------------------------------------
 
     [ObservableProperty]
     private string _searchText = string.Empty;
@@ -64,12 +64,12 @@ public partial class KnowledgeGraphViewModel : ObservableObject
     [ObservableProperty]
     private bool _hasSearchResults;
 
-    // ── Zoom ───────────────────────────────────────────────────────
+    // -- Zoom -------------------------------------------------------
 
     [ObservableProperty]
     private double _zoomLevel = 1.0;
 
-    // ── Cluster Highlight ──────────────────────────────────────────
+    // -- Cluster Highlight ------------------------------------------
 
     [ObservableProperty]
     private string? _highlightedClusterId;

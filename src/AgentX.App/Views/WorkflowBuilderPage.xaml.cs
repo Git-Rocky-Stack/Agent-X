@@ -250,7 +250,7 @@ public sealed partial class WorkflowBuilderPage : Page
     }
 
     /// <summary>
-    /// Helper for DataTemplate visibility binding — shows element when int > 0.
+    /// Helper for DataTemplate visibility binding - shows element when int > 0.
     /// </summary>
     public static Visibility IntToVisibility(int value) =>
         value > 0 ? Visibility.Visible : Visibility.Collapsed;

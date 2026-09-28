@@ -16,42 +16,42 @@ namespace AgentX.App.ViewModels;
 /// </summary>
 public partial class HardwareAdvisorViewModel : ObservableObject, IDisposable
 {
-    // ── Services ──────────────────────────────────────────────
+    // -- Services ----------------------------------------------
     private readonly IHardwareDetector _hardwareDetector;
     private readonly IModelManager _modelManager;
     private readonly ILocalizationService _localization;
 
-    // ── Page Properties ────────────────────────────────────────
+    // -- Page Properties ----------------------------------------
     [ObservableProperty] private bool _isDetecting = true;
 
-    // ── GPU ────────────────────────────────────────────────────
+    // -- GPU ----------------------------------------------------
     [ObservableProperty] private string _gpuName = string.Empty;
     [ObservableProperty] private string _gpuVram = string.Empty;
     [ObservableProperty] private string _gpuTier = string.Empty;
 
-    // ── CPU ────────────────────────────────────────────────────
+    // -- CPU ----------------------------------------------------
     [ObservableProperty] private string _cpuName = string.Empty;
     [ObservableProperty] private int _cpuCores;
     [ObservableProperty] private string _cpuArchitecture = "x64";
 
-    // ── Memory ─────────────────────────────────────────────────
+    // -- Memory -------------------------------------------------
     [ObservableProperty] private string _totalRam = string.Empty;
     [ObservableProperty] private string _availableRam = string.Empty;
     [ObservableProperty] private double _ramUsagePercent;
 
-    // ── NPU ────────────────────────────────────────────────────
+    // -- NPU ----------------------------------------------------
     // The name is shown only while HasNpu is true.
     [ObservableProperty] private bool _hasNpu;
     [ObservableProperty] private string _npuName = string.Empty;
 
-    // ── Recommendations ────────────────────────────────────────
+    // -- Recommendations ----------------------------------------
     [ObservableProperty] private string _recommendedModelSize = string.Empty;
     [ObservableProperty] private string _advisoryMessage = string.Empty;
     [ObservableProperty] private string _performanceTier = string.Empty;
     [ObservableProperty] private string _errorMessage = string.Empty;
     [ObservableProperty] private bool _hasError;
 
-    // ── Elevation / detection completeness ─────────────────────
+    // -- Elevation / detection completeness ---------------------
     // LibreHardwareMonitor / WMI sensor reads need admin privileges; unelevated
     // they silently return blanks (no VRAM, placeholder GPU name). When that
     // happens we surface an informational elevation hint rather than show empty
@@ -65,7 +65,7 @@ public partial class HardwareAdvisorViewModel : ObservableObject, IDisposable
     public ObservableCollection<RecommendedModel> CodeModels { get; } = new();
     public ObservableCollection<RecommendedModel> EmbeddingModels { get; } = new();
 
-    // ── Constructor ────────────────────────────────────────────
+    // -- Constructor --------------------------------------------
     public HardwareAdvisorViewModel(
         IHardwareDetector hardwareDetector,
         IModelManager modelManager,
@@ -77,7 +77,7 @@ public partial class HardwareAdvisorViewModel : ObservableObject, IDisposable
         Log.Debug("HardwareAdvisorViewModel created with services");
     }
 
-    // ── Initialization ─────────────────────────────────────────
+    // -- Initialization -----------------------------------------
     public async Task InitializeAsync()
     {
         Log.Information("HardwareAdvisor initializing...");
@@ -106,7 +106,7 @@ public partial class HardwareAdvisorViewModel : ObservableObject, IDisposable
         }
     }
 
-    // ── Populate from HardwareCapability ───────────────────────
+    // -- Populate from HardwareCapability -----------------------
     private void PopulateFromCapability(HardwareCapability capability)
     {
         // Coalesce placeholder/empty sensor values to friendly fallbacks so the
@@ -135,7 +135,7 @@ public partial class HardwareAdvisorViewModel : ObservableObject, IDisposable
             "HwAdvisor_UpToModelSize", capability.RecommendedMaxModelParameters);
 
         // Detection is incomplete when core sensor reads came back empty or as a
-        // placeholder — the typical signature of running without elevation.
+        // placeholder - the typical signature of running without elevation.
         IsDetectionIncomplete =
             IsPlaceholder(capability.GpuName) ||
             IsPlaceholder(capability.CpuName) ||
@@ -162,7 +162,7 @@ public partial class HardwareAdvisorViewModel : ObservableObject, IDisposable
             || v.Contains("Microsoft Basic", StringComparison.OrdinalIgnoreCase);
     }
 
-    // ── Build Recommendations ──────────────────────────────────
+    // -- Build Recommendations ----------------------------------
     private async Task BuildRecommendationsAsync(HardwareCapability capability)
     {
         RecommendedModels.Clear();
@@ -217,7 +217,7 @@ public partial class HardwareAdvisorViewModel : ObservableObject, IDisposable
         PerformanceTier = DeterminePerformanceTier(effectiveMemoryGb);
     }
 
-    // ── Model Recommendations by Memory Tier ───────────────────
+    // -- Model Recommendations by Memory Tier -------------------
     private List<RecommendedModel> BuildModelList(double effectiveMemoryGb)
     {
         var models = new List<RecommendedModel>();
@@ -403,7 +403,7 @@ public partial class HardwareAdvisorViewModel : ObservableObject, IDisposable
         return models;
     }
 
-    // ── Advisory Message Builder ───────────────────────────────
+    // -- Advisory Message Builder -------------------------------
     private string BuildAdvisoryMessage(HardwareCapability capability, double effectiveMemoryGb)
     {
         var lines = new List<string>();
@@ -442,7 +442,7 @@ public partial class HardwareAdvisorViewModel : ObservableObject, IDisposable
         return string.Join(" ", lines);
     }
 
-    // ── Tier Determination ─────────────────────────────────────
+    // -- Tier Determination -------------------------------------
     private string DetermineGpuTier(long gpuVramBytes)
     {
         return gpuVramBytes switch
@@ -468,7 +468,7 @@ public partial class HardwareAdvisorViewModel : ObservableObject, IDisposable
         };
     }
 
-    // ── Refresh Command ────────────────────────────────────────
+    // -- Refresh Command ----------------------------------------
     [RelayCommand]
     private async Task RefreshHardwareAsync()
     {
@@ -476,7 +476,7 @@ public partial class HardwareAdvisorViewModel : ObservableObject, IDisposable
         await InitializeAsync();
     }
 
-    // ── Pull Recommended Model Command ─────────────────────────
+    // -- Pull Recommended Model Command -------------------------
     [RelayCommand]
     private async Task PullRecommendedModelAsync(string? modelName)
     {
@@ -505,7 +505,7 @@ public partial class HardwareAdvisorViewModel : ObservableObject, IDisposable
         }
     }
 
-    // ── Helpers ────────────────────────────────────────────────
+    // -- Helpers ------------------------------------------------
 
     private void RefreshModelInCollections(RecommendedModel model)
     {
@@ -560,7 +560,7 @@ public partial class HardwareAdvisorViewModel : ObservableObject, IDisposable
     }
 }
 
-// ── Recommended Model Item ─────────────────────────────────────
+// -- Recommended Model Item -------------------------------------
 public partial class RecommendedModel : ObservableObject
 {
     [ObservableProperty] private string _name = string.Empty;

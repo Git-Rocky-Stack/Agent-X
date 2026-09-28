@@ -20,7 +20,7 @@ using Serilog;
 
 namespace AgentX.App.ViewModels;
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // KNOWLEDGE VAULT VIEW MODEL
 //
 // Comprehensive ViewModel for the document management experience.
@@ -28,11 +28,11 @@ namespace AgentX.App.ViewModels;
 //
 // Accepts IDocumentService and IIndexingService via DI and calls real
 // services with graceful error handling.
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
 {
-    // ── Services ──────────────────────────────────────────────
+    // -- Services ----------------------------------------------
     private readonly IDocumentService _documentService;
     private readonly IIndexingService _indexingService;
     private readonly IAiService _aiService;
@@ -66,7 +66,7 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     // can neither tear the collection nor overwrite newer, correct state.
     private int _documentLoadGeneration;
 
-    // ── Page State ─────────────────────────────────────────────
+    // -- Page State ---------------------------------------------
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private bool _isImporting;
     [ObservableProperty] private int _importProgress;
@@ -79,45 +79,45 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _hasError;
     [ObservableProperty] private string _focusedDocumentVisibilityHint = string.Empty;
 
-    // ── Filters ──────────────────────────────────────────────
+    // -- Filters ----------------------------------------------
     [ObservableProperty] private string? _fileTypeFilter;
     [ObservableProperty] private string? _statusFilter;
     [ObservableProperty] private string? _tagFilter;
     [ObservableProperty] private string _searchQuery = string.Empty;
     [ObservableProperty] private bool _showDropZone = true;
 
-    // ── Advanced Filters (Feature 9) ─────────────────────────
+    // -- Advanced Filters (Feature 9) -------------------------
     [ObservableProperty] private long? _collectionFilter;
     [ObservableProperty] private DateTime? _dateAfterFilter;
     [ObservableProperty] private DateTime? _dateBeforeFilter;
     [ObservableProperty] private string _sortBy = "date";
 
-    // ── Multi-Select (Feature 8) ─────────────────────────────
+    // -- Multi-Select (Feature 8) -----------------------------
     [ObservableProperty] private bool _isMultiSelectMode;
     [ObservableProperty] private int _selectedCount;
 
-    // ── Duplicate Detection (Feature 14) ────────────────────────
+    // -- Duplicate Detection (Feature 14) ------------------------
     [ObservableProperty] private bool _showDuplicateWarning;
     [ObservableProperty] private string _duplicateWarningMessage = string.Empty;
     [ObservableProperty] private string? _duplicateFileName;
     private List<string>? _pendingImportPaths;
     private List<string>? _duplicateFilePaths;
 
-    // ── Selected Document Preview ─────────────────────────────
+    // -- Selected Document Preview -----------------------------
     [ObservableProperty] private DocumentDisplayItem? _selectedDocument;
     [ObservableProperty] private bool _isPreviewOpen;
 
-    // ── Collections ──────────────────────────────────────────
+    // -- Collections ------------------------------------------
     public ObservableCollection<DocumentDisplayItem> Documents { get; } = new();
     public ObservableCollection<long> SelectedDocumentIds { get; } = new();
 
-    // ── Tags (Feature 7) ────────────────────────────────────
+    // -- Tags (Feature 7) ------------------------------------
     public ObservableCollection<TagDisplayItem> AllTags { get; } = new();
 
-    // ── Available Collections for Filtering (Feature 9) ──────
+    // -- Available Collections for Filtering (Feature 9) ------
     public ObservableCollection<CollectionFilterItem> AvailableCollections { get; } = new();
 
-    // ── Computed Properties ──────────────────────────────────
+    // -- Computed Properties ----------------------------------
     public bool HasDocuments => Documents.Count > 0;
     public bool HasSelection => SelectedCount > 0;
     public bool HasActiveFilters =>
@@ -176,9 +176,9 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         Log.Debug("KnowledgeVaultViewModel created with services");
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // INITIALIZATION
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     public async Task InitializeAsync()
     {
@@ -272,7 +272,7 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
             Log.Warning(ex, "Failed to load documents from service");
         }
 
-        // A newer reload started while we were fetching — discard these results instead of
+        // A newer reload started while we were fetching - discard these results instead of
         // overwriting the newer (correct) collection state. This is what prevents the
         // filter-triggered reload from clobbering an in-flight initialization/drill-in.
         if (generation != Volatile.Read(ref _documentLoadGeneration))
@@ -528,9 +528,9 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         item.ExtractedTitle = entity.ExtractedTitle;
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // PROPERTY CHANGE HOOKS
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     partial void OnFileTypeFilterChanged(string? value)
     {
@@ -649,9 +649,9 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // COMMANDS
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     /// <summary>
     /// Imports a batch of files and reports what actually happened. The file picker lives in
@@ -1177,9 +1177,9 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         Log.Debug("Filter by tag: {Tag}", tagName ?? "all");
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // MULTI-SELECT & BULK OPERATIONS (Feature 8)
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     [RelayCommand]
     private void ToggleMultiSelect()
@@ -1282,9 +1282,9 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // DRAG AND DROP SUPPORT
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     /// <summary>
     /// Called by the code-behind when items are dropped onto the drop zone. Dropped folders
@@ -1330,9 +1330,9 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // DUPLICATE DETECTION (Feature 14)
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     /// <summary>
     /// Checks each file for duplicates before importing. If any duplicates are
@@ -1456,9 +1456,9 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         Log.Debug("Duplicate warning dismissed");
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // PRIVATE HELPERS
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     /// <summary>
     /// The file name the deletion confirmation names: from the row or the preview when the
@@ -1528,7 +1528,7 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     private void ApplyFilters()
     {
         // Reload on the current (UI) thread context. The Documents collection is bound to the
-        // view, so it must be mutated on the UI thread — NOT on a thread-pool thread via
+        // view, so it must be mutated on the UI thread - NOT on a thread-pool thread via
         // Task.Run, which races initialization and throws RPC_E_WRONG_THREAD against a live
         // ItemsRepeater. The generation guard in LoadDocumentsAsync coalesces overlapping
         // reloads so the newest filter state always wins.
@@ -1774,9 +1774,9 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         HasError = false;
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // DISPOSAL
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     /// <summary>
     /// The vault page left the screen: the previewed document stops counting as read, and the
@@ -1825,9 +1825,9 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
 /// <param name="DocumentName">The file name when exactly one document would be deleted.</param>
 public sealed record DocumentDeletionRequest(int Count, string? DocumentName);
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // DOCUMENT DISPLAY ITEM
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 /// <summary>
 /// Represents a document displayed in the Knowledge Vault UI.
@@ -2002,9 +2002,9 @@ public class DocumentDisplayItem : ObservableObject
     public string FileTypeLabel => FileType.ToUpperInvariant();
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // TAG DISPLAY ITEM (Feature 7)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 /// <summary>
 /// Represents a tag displayed in the Knowledge Vault filter UI.
@@ -2020,9 +2020,9 @@ public class TagDisplayItem
     public string DocumentCountFormatted => DocumentCount > 0 ? $"({DocumentCount})" : string.Empty;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // COLLECTION FILTER ITEM (Feature 9)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 /// <summary>
 /// Represents a collection option in the advanced filter dropdown.

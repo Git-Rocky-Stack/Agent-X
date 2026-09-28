@@ -79,7 +79,7 @@ public sealed class BuiltInModelBootstrapTests : IDisposable
     [Fact]
     public async Task DownloadAsync_rejects_incomplete_transfer_and_leaves_no_files()
     {
-        // Server advertises more than it delivers — the transfer is incomplete and must be rejected.
+        // Server advertises more than it delivers - the transfer is incomplete and must be rejected.
         var body = RandomBytes(200);
         using var client = new HttpClient(new StubHandler(body) { AdvertisedLength = 1000 });
         var bootstrap = CreateBootstrap(client, minValid: 8);

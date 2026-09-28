@@ -65,7 +65,7 @@ public sealed class SearchViewModelTests
         navigatedPage.Should().Be("Workflows");
     }
 
-    // ── Status wording ───────────────────────────────────────────────────────
+    // -- Status wording -------------------------------------------------------
     // The status line reads from the resources, with separate wording for one result.
 
     [Theory]
@@ -115,7 +115,7 @@ public sealed class SearchViewModelTests
         viewModel.CollectionFilters.First().Name.Should().Be("All Collections");
     }
 
-    // ── Navigation payload ───────────────────────────────────────────────────
+    // -- Navigation payload ---------------------------------------------------
     // Search is reachable from the dashboard search box and the command palette, both of
     // which know what the user typed. Arriving without that query means an empty page.
 

@@ -19,7 +19,7 @@ public sealed partial class DocumentsViewModel : ObservableObject
         _api = api;
     }
 
-    // ── Observable state ──────────────────────────────────────────────────────
+    // -- Observable state ------------------------------------------------------
 
     [ObservableProperty]
     private ObservableCollection<DocumentDto> _documents = [];
@@ -36,7 +36,7 @@ public sealed partial class DocumentsViewModel : ObservableObject
     [ObservableProperty]
     private bool _isEmpty;
 
-    // ── Commands ──────────────────────────────────────────────────────────────
+    // -- Commands --------------------------------------------------------------
 
     /// <summary>Loads (or refreshes) the document list from the API.</summary>
     [RelayCommand]
@@ -67,7 +67,7 @@ public sealed partial class DocumentsViewModel : ObservableObject
         }
         catch (OperationCanceledException)
         {
-            // Navigation away — ignore
+            // Navigation away - ignore
         }
         catch (Exception ex)
         {

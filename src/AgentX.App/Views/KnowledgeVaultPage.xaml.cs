@@ -90,9 +90,9 @@ public sealed partial class KnowledgeVaultPage : Page
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // FILE IMPORT HANDLERS
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     /// <summary>
     /// Opens a file picker for selecting individual files to import.
@@ -158,9 +158,9 @@ public sealed partial class KnowledgeVaultPage : Page
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // DRAG AND DROP HANDLERS
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     private void DropZone_DragOver(object sender, DragEventArgs e)
     {
@@ -225,9 +225,9 @@ public sealed partial class KnowledgeVaultPage : Page
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // FILTER CHIP HANDLERS
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     private void OnFilterTypeClick(object sender, RoutedEventArgs e)
     {
@@ -249,9 +249,9 @@ public sealed partial class KnowledgeVaultPage : Page
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // TAG FILTER HANDLER (Feature 7)
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     private void OnFilterTagClick(object sender, RoutedEventArgs e)
     {
@@ -262,9 +262,9 @@ public sealed partial class KnowledgeVaultPage : Page
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // MULTI-SELECT HANDLER (Feature 8)
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     private void OnDocumentCheckToggle(object sender, RoutedEventArgs e)
     {
@@ -274,9 +274,9 @@ public sealed partial class KnowledgeVaultPage : Page
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // ADVANCED FILTER HANDLERS (Feature 9)
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     private void OnCollectionFilterChanged(object sender, SelectionChangedEventArgs e)
     {
@@ -326,12 +326,12 @@ public sealed partial class KnowledgeVaultPage : Page
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // DOCUMENT ACTION BUTTON HANDLERS
     // These bridge the DataTemplate button clicks to ViewModel commands,
     // since x:Bind with CommandParameter inside ItemsRepeater DataTemplates
     // does not support binding to ViewModel commands directly.
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     private void OnViewDetailClick(object sender, RoutedEventArgs e)
     {
@@ -430,9 +430,9 @@ public sealed partial class KnowledgeVaultPage : Page
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // VISIBILITY HELPERS
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     /// <summary>
     /// Returns Visible when there are no documents and the drop zone is not

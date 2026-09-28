@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-migrate-themeresource.py — Tier 5a / Tier 5b migration tool.
+migrate-themeresource.py - Tier 5a / Tier 5b migration tool.
 
-Rewrites {StaticResource <Key>} → {ThemeResource <Key>} for theme-sensitive
+Rewrites {StaticResource <Key>} -> {ThemeResource <Key>} for theme-sensitive
 brush keys only. Spacing, radius, padding, breakpoints, shadow geometry,
 and the raw Color tokens stay as StaticResource (they are theme-invariant
 and StaticResource is faster).
 
 Why the surgical approach:
-  • {ThemeResource} re-resolves when the active theme changes; {StaticResource}
+ | {ThemeResource} re-resolves when the active theme changes; {StaticResource}
     resolves once at load time and never updates. To make the Light and
     HighContrast palettes actually take effect at runtime, every consumer of
     a brush key must use ThemeResource.
-  • But the Color tokens (Black, Red500, Surface1, etc.) are SHARED across
-    themes and don't change — switching their consumers to ThemeResource
+ | But the Color tokens (Black, Red500, Surface1, etc.) are SHARED across
+    themes and don't change - switching their consumers to ThemeResource
     would do nothing useful and would cost a runtime lookup per resolve.
-  • Same for spacing/radius/padding — pure layout, no theme variance.
+ | Same for spacing/radius/padding - pure layout, no theme variance.
 
 Usage:
   python scripts/migrate-themeresource.py --files <file1.xaml> <file2.xaml> ...
@@ -35,7 +35,7 @@ import sys
 from pathlib import Path
 from typing import Iterable
 
-# Theme-sensitive brush keys — these MUST use ThemeResource so they
+# Theme-sensitive brush keys - these MUST use ThemeResource so they
 # re-resolve when the user toggles Dark/Light/HighContrast. Sourced from
 # the ThemeDictionaries blocks in src/AgentX.App/Styles/Colors.xaml.
 THEMED_BRUSH_KEYS = frozenset({
@@ -111,7 +111,7 @@ THEMED_BRUSH_KEYS = frozenset({
     "OverlayLightBrush",
 })
 
-# Tier 5a PoC slice — the highest-leverage files that, once migrated, prove
+# Tier 5a PoC slice - the highest-leverage files that, once migrated, prove
 # theme switching works end-to-end across the most-viewed screens. Shared
 # style dictionaries cover ~80% of pages by transitive reference; the named
 # pages cover the remaining anchor surfaces.
@@ -162,9 +162,9 @@ def migrate_text(text: str, themed_keys: frozenset[str]) -> tuple[str, int]:
 
 
 def migrate_file(path: Path, themed_keys: frozenset[str], dry_run: bool) -> int:
-    """Migrate one file in place. Returns count of {StaticResource} → {ThemeResource} swaps."""
+    """Migrate one file in place. Returns count of {StaticResource} -> {ThemeResource} swaps."""
     if not path.exists():
-        print(f"[SKIP] {path} — not found")
+        print(f"[SKIP] {path} - not found")
         return 0
 
     # Detect newline style so we preserve it. Most XAML in this repo is CRLF
@@ -179,11 +179,11 @@ def migrate_file(path: Path, themed_keys: frozenset[str], dry_run: bool) -> int:
     new_text, changes = migrate_text(text, themed_keys)
 
     if changes == 0:
-        print(f"[OK  ] {path} — no themed-brush StaticResource references")
+        print(f"[OK  ] {path} - no themed-brush StaticResource references")
         return 0
 
     if dry_run:
-        print(f"[DRY ] {path} — would migrate {changes} reference(s)")
+        print(f"[DRY ] {path} - would migrate {changes} reference(s)")
         return changes
 
     # Re-normalize newlines to the file's existing convention. We round-trip
@@ -193,7 +193,7 @@ def migrate_file(path: Path, themed_keys: frozenset[str], dry_run: bool) -> int:
         # Reconvert any LF that escaped from the regex back to CRLF.
         out_bytes = out_bytes.replace(b"\r\n", b"\n").replace(b"\n", b"\r\n")
     path.write_bytes(out_bytes)
-    print(f"[MIG ] {path} — migrated {changes} reference(s)")
+    print(f"[MIG ] {path} - migrated {changes} reference(s)")
     return changes
 
 
@@ -205,7 +205,7 @@ def gather_files(args: argparse.Namespace, repo_root: Path) -> Iterable[Path]:
         root = Path(args.dir) if Path(args.dir).is_absolute() else (repo_root / args.dir)
         yield from root.rglob("*.xaml")
     elif args.tier5b:
-        # Full sweep — every XAML under src/AgentX.App, excluding build
+        # Full sweep - every XAML under src/AgentX.App, excluding build
         # artifacts (obj/, bin/) which can contain copies of WinUI SDK
         # XAML payloads after a debug build.
         app_root = repo_root / "src" / "AgentX.App"
@@ -233,7 +233,7 @@ def main() -> int:
     args = parser.parse_args()
 
     # Repo root resolves relative paths against the directory containing
-    # scripts/, not the user's PWD — so the script works from anywhere.
+    # scripts/, not the user's PWD - so the script works from anywhere.
     repo_root = Path(__file__).resolve().parent.parent
 
     files = list(gather_files(args, repo_root))

@@ -9,7 +9,7 @@ namespace AgentX.Core.Data.Entities;
 /// </summary>
 public class InboxItemEntity
 {
-    /// <summary>Primary key — auto-incremented by SQLite.</summary>
+    /// <summary>Primary key - auto-incremented by SQLite.</summary>
     public long Id { get; set; }
 
     /// <summary>Absolute path to the file on disk.</summary>
@@ -34,7 +34,7 @@ public class InboxItemEntity
     public string Status { get; set; } = "pending";
 
     /// <summary>
-    /// AI-generated 2–3 sentence preview of the file's content.
+    /// AI-generated 2-3 sentence preview of the file's content.
     /// Null until <c>IInboxService.GeneratePreviewAsync</c> has been called for this item.
     /// </summary>
     public string? Preview { get; set; }
@@ -100,7 +100,7 @@ public class InboxItemEntity
 
     /// <summary>
     /// External ID from the provider (e.g. Google event ID, Gmail message ID).
-    /// Used for deduplication — if an item with the same ExternalId and SourcePluginId
+    /// Used for deduplication - if an item with the same ExternalId and SourcePluginId
     /// already exists in the inbox, the duplicate is skipped.
     /// Null for file-watcher or manually-added items.
     /// </summary>

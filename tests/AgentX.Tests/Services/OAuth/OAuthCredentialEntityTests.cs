@@ -10,9 +10,9 @@ namespace AgentX.Tests.Services.OAuth;
 /// </summary>
 public sealed class OAuthCredentialEntityTests
 {
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Default values
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Default_ProviderId_IsEmptyString()
@@ -104,9 +104,9 @@ public sealed class OAuthCredentialEntityTests
         entity.UpdatedAt.Should().Be(default(DateTime));
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Full construction
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void CanCreate_WithAllFieldsPopulated()
@@ -141,14 +141,14 @@ public sealed class OAuthCredentialEntityTests
         entity.UpdatedAt.Should().Be(now);
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Table name (validated via EF Core configuration, not data annotation)
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void TableAttribute_IsConfiguredAs_oauth_credentials()
     {
-        // The entity itself has no [Table] attribute — the table name is configured
+        // The entity itself has no [Table] attribute - the table name is configured
         // in AgentXDbContext.ConfigureOAuthCredential via .ToTable("oauth_credentials").
         // We verify this by checking the entity type directly rather than reflection,
         // because EF Core fluent API takes precedence over data annotations.
@@ -159,9 +159,9 @@ public sealed class OAuthCredentialEntityTests
         entity.ProviderId.Should().Be("test", "entity should store the ProviderId correctly");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Property assignment / mutation
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Properties_AreMutable_AfterConstruction()
@@ -170,7 +170,7 @@ public sealed class OAuthCredentialEntityTests
         var entity = new OAuthCredentialEntity();
         var now = DateTime.UtcNow;
 
-        // Act — mutate after default construction
+        // Act - mutate after default construction
         entity.ProviderId = "microsoft";
         entity.AccessToken = "DPAPI:ms-access";
         entity.RefreshToken = "DPAPI:ms-refresh";

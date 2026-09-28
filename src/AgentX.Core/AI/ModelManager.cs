@@ -171,7 +171,7 @@ public sealed class ModelManager : IModelManager
         return model is not null;
     }
 
-    // ── Private Helpers ─────────────────────────────────────────────
+    // -- Private Helpers ---------------------------------------------
 
     private void InvalidateCache()
     {

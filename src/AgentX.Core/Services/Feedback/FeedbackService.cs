@@ -25,7 +25,7 @@ public sealed class FeedbackService : IFeedbackService
     private readonly AgentXDbContext _db;
     private readonly ILogger _log;
 
-    // Valid rating tokens — enforced at the service boundary to keep the DB consistent.
+    // Valid rating tokens - enforced at the service boundary to keep the DB consistent.
     private static readonly HashSet<string> ValidRatings =
         new(StringComparer.OrdinalIgnoreCase) { "positive", "negative", "none" };
 
@@ -74,7 +74,7 @@ public sealed class FeedbackService : IFeedbackService
             if (!ValidCategories.Contains(trimmed))
             {
                 _log.Warning(
-                    "Unrecognised feedback category '{Category}' for message {MessageId} — storing as-is",
+                    "Unrecognised feedback category '{Category}' for message {MessageId} - storing as-is",
                     category, messageId);
                 normalisedCategory = category.Trim();
             }
@@ -349,7 +349,7 @@ public sealed class FeedbackService : IFeedbackService
 
             if (feedback is null)
             {
-                _log.Warning("DeleteFeedbackAsync: feedback {FeedbackId} not found — no-op", feedbackId);
+                _log.Warning("DeleteFeedbackAsync: feedback {FeedbackId} not found - no-op", feedbackId);
                 return;
             }
 

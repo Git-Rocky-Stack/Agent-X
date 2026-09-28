@@ -185,7 +185,7 @@ public sealed class ContextWindowManager : IContextWindowManager
         return reportedContextLength;
     }
 
-    // ── Private Helpers ─────────────────────────────────────────────────
+    // -- Private Helpers -------------------------------------------------
 
     /// <summary>
     /// Estimates the token count for a single message, including content

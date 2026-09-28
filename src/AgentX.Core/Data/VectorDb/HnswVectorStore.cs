@@ -7,7 +7,7 @@ using Hsnw;
 using Microsoft.Data.Sqlite;
 using Serilog;
 
-// Task 8b: IEncryptedConnectionFactory integration — connection opens go through the factory
+// Task 8b: IEncryptedConnectionFactory integration - connection opens go through the factory
 // so PRAGMA key is applied whenever encryption is enabled.
 
 namespace AgentX.Core.Data.VectorDb;
@@ -35,7 +35,7 @@ namespace AgentX.Core.Data.VectorDb;
 /// </summary>
 public sealed class HnswVectorStore : IVectorStore
 {
-    // ── Constants ────────────────────────────────────────────────────────
+    // -- Constants --------------------------------------------------------
 
     private const int DefaultM = 16;
     private const int DefaultEfConstruction = 200;
@@ -54,7 +54,7 @@ public sealed class HnswVectorStore : IVectorStore
     // Largest search breadth (ef) HnswLite accepts.
     private const int MaxHnswEf = 10_000;
 
-    // ── Fields ──────────────────────────────────────────────────────────
+    // -- Fields ----------------------------------------------------------
 
     private readonly ISettingsService _settingsService;
     private readonly IEncryptedConnectionFactory _connectionFactory;
@@ -106,13 +106,13 @@ public sealed class HnswVectorStore : IVectorStore
     /// </summary>
     private readonly SemaphoreSlim _mutationLock = new(1, 1);
 
-    // ── Constructors ────────────────────────────────────────────────────
+    // -- Constructors ----------------------------------------------------
 
     /// <summary>
     /// Creates a new HnswVectorStore with default HNSW parameters.
     /// </summary>
     /// <param name="settingsService">Settings service providing the database storage path.</param>
-    /// <param name="connectionFactory">Encrypted connection factory — required so PRAGMA key is applied when opening SQLite.</param>
+    /// <param name="connectionFactory">Encrypted connection factory - required so PRAGMA key is applied when opening SQLite.</param>
     public HnswVectorStore(ISettingsService settingsService, IEncryptedConnectionFactory connectionFactory)
         : this(settingsService, logger: null, DefaultM, DefaultEfConstruction, DefaultDimensions, FallbackThreshold, connectionFactory)
     {
@@ -123,14 +123,14 @@ public sealed class HnswVectorStore : IVectorStore
     /// </summary>
     /// <param name="settingsService">Settings service providing the database storage path.</param>
     /// <param name="logger">Serilog logger instance.</param>
-    /// <param name="connectionFactory">Encrypted connection factory — required so PRAGMA key is applied when opening SQLite.</param>
+    /// <param name="connectionFactory">Encrypted connection factory - required so PRAGMA key is applied when opening SQLite.</param>
     public HnswVectorStore(ISettingsService settingsService, ILogger logger, IEncryptedConnectionFactory connectionFactory)
         : this(settingsService, logger, DefaultM, DefaultEfConstruction, DefaultDimensions, FallbackThreshold, connectionFactory)
     {
     }
 
     /// <summary>
-    /// Full-featured constructor — all HNSW parameters configurable.
+    /// Full-featured constructor - all HNSW parameters configurable.
     /// </summary>
     /// <param name="settingsService">Settings service providing the database storage path.</param>
     /// <param name="logger">Serilog logger instance (may be null to use the default context logger).</param>
@@ -138,7 +138,7 @@ public sealed class HnswVectorStore : IVectorStore
     /// <param name="efConstruction">HNSW EfConstruction: candidate list size during build.</param>
     /// <param name="dimensions">Embedding vector dimensionality.</param>
     /// <param name="fallbackThreshold">Embedding count below which linear scan is used.</param>
-    /// <param name="connectionFactory">Encrypted connection factory — required so PRAGMA key is applied when opening SQLite.</param>
+    /// <param name="connectionFactory">Encrypted connection factory - required so PRAGMA key is applied when opening SQLite.</param>
     public HnswVectorStore(
         ISettingsService settingsService,
         ILogger? logger,
@@ -191,7 +191,7 @@ public sealed class HnswVectorStore : IVectorStore
     /// </summary>
     public int EfSearch { get; init; }
 
-    // ── IVectorStore implementation ─────────────────────────────────────
+    // -- IVectorStore implementation -------------------------------------
 
     /// <inheritdoc />
     public async Task InitializeAsync(CancellationToken ct = default)
@@ -242,7 +242,7 @@ public sealed class HnswVectorStore : IVectorStore
             }
             else
             {
-                // Empty store — create a fresh index ready for inserts.
+                // Empty store - create a fresh index ready for inserts.
                 CreateEmptyIndex(dimensions);
                 _logger.Information("HnswVectorStore initialized with empty index");
             }
@@ -363,7 +363,7 @@ public sealed class HnswVectorStore : IVectorStore
 
         var embeddingCount = await CountEmbeddingsAsync(ct).ConfigureAwait(false);
 
-        // Check if stale entries exceed threshold — trigger rebuild if so.
+        // Check if stale entries exceed threshold - trigger rebuild if so.
         await CheckStaleRebuildAsync(embeddingCount, ct).ConfigureAwait(false);
 
         // Hybrid search: use HNSW for large collections, linear scan fallback for small.
@@ -673,7 +673,7 @@ public sealed class HnswVectorStore : IVectorStore
         _logger.Information("HnswVectorStore disposed");
     }
 
-    // ── HNSW search ─────────────────────────────────────────────────────
+    // -- HNSW search -----------------------------------------------------
 
     /// <summary>
     /// The search breadth to pass to HnswLite: null (its default, max(EfConstruction,
@@ -755,7 +755,7 @@ public sealed class HnswVectorStore : IVectorStore
 
     /// <summary>
     /// Performs linear scan search by loading all embeddings from SQLite.
-    /// Identical algorithm to SqliteVecStore — used as fallback for small collections.
+    /// Identical algorithm to SqliteVecStore - used as fallback for small collections.
     /// </summary>
     private async Task<IReadOnlyList<VectorSearchResult>> SearchLinearAsync(
         float[] queryEmbedding,
@@ -833,7 +833,7 @@ public sealed class HnswVectorStore : IVectorStore
         return results;
     }
 
-    // ── Index lifecycle ─────────────────────────────────────────────────
+    // -- Index lifecycle -------------------------------------------------
 
     /// <summary>
     /// Creates an empty HNSW index for vectors of <paramref name="dimensions"/> and makes that the
@@ -1283,7 +1283,7 @@ public sealed class HnswVectorStore : IVectorStore
         }
     }
 
-    // ── ID mapping ──────────────────────────────────────────────────────
+    // -- ID mapping ------------------------------------------------------
 
     /// <summary>
     /// Creates a deterministic Guid from a chunk ID (long) by padding to 16 bytes.
@@ -1300,7 +1300,7 @@ public sealed class HnswVectorStore : IVectorStore
         return new Guid(bytes);
     }
 
-    // ── Private helpers ─────────────────────────────────────────────────
+    // -- Private helpers -------------------------------------------------
 
     /// <summary>
     /// Executes a non-query SQL command on the current connection.

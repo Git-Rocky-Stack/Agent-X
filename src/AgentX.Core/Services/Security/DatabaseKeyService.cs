@@ -8,7 +8,7 @@ namespace AgentX.Core.Services.Security;
 /// <summary>
 /// Provisions, wraps/derives, and unwraps/re-derives the 32-byte SQLCipher database key.
 /// All persistent state (mode, DPAPI-wrapped key, PBKDF2 salt, enabledAt) lives in the
-/// sibling <see cref="IEncryptionStateFile"/> marker — OUTSIDE the encrypted database —
+/// sibling <see cref="IEncryptionStateFile"/> marker - OUTSIDE the encrypted database -
 /// because the encrypted DB cannot be opened until we already have the key.
 /// </summary>
 /// <remarks>
@@ -53,7 +53,7 @@ public sealed class DatabaseKeyService : IDatabaseKeyService
             };
         }
 
-        // First-time provisioning — marker does not yet exist.
+        // First-time provisioning - marker does not yet exist.
         return mode switch
         {
             KeyStorageMode.DpapiWrapped => await ProvisionDpapiWrappedAsync(),

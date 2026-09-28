@@ -35,7 +35,7 @@ public sealed class OAuthServiceTests : IDisposable
 
     /// <summary>
     /// Creates an OAuthService with a fresh database context and the mocked encryption service.
-    /// Provider configs are NOT registered by default — tests that need them must call
+    /// Provider configs are NOT registered by default - tests that need them must call
     /// <see cref="OAuthService.RegisterProvider"/> explicitly.
     /// </summary>
     private OAuthService CreateService(AgentXDbContext? db = null)
@@ -64,9 +64,9 @@ public sealed class OAuthServiceTests : IDisposable
         });
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Constructor argument guards
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Constructor_Throws_WhenDbIsNull()
@@ -96,9 +96,9 @@ public sealed class OAuthServiceTests : IDisposable
         act.Should().Throw<ArgumentNullException>().WithParameterName("logger");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  GetCredentialAsync
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task GetCredentialAsync_ReturnsNull_WhenNoCredentialExists()
@@ -183,9 +183,9 @@ public sealed class OAuthServiceTests : IDisposable
         await act.Should().ThrowAsync<ArgumentException>();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  GetAccessTokenAsync
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task GetAccessTokenAsync_ThrowsInvalidOperationException_WhenNoCredentialExists()
@@ -234,7 +234,7 @@ public sealed class OAuthServiceTests : IDisposable
     [Fact]
     public async Task GetAccessTokenAsync_AutoRefreshes_WhenTokenIsWithinFiveMinuteBuffer()
     {
-        // Arrange — token expires in 3 minutes, which is within the 5-minute refresh buffer.
+        // Arrange - token expires in 3 minutes, which is within the 5-minute refresh buffer.
         // Auto-refresh will attempt to call the token endpoint, which will fail (no HTTP server).
         // However, GetAccessTokenAsync should at least attempt the refresh before throwing.
         var db = _factory.CreateContext();
@@ -259,16 +259,16 @@ public sealed class OAuthServiceTests : IDisposable
         using var service = CreateService(db);
         RegisterGoogleProvider(service);
 
-        // Act & Assert — The refresh will fail (no HTTP server), so GetAccessTokenAsync
+        // Act & Assert - The refresh will fail (no HTTP server), so GetAccessTokenAsync
         // should throw an InvalidOperationException indicating refresh failure.
         var act = () => service.GetAccessTokenAsync("google");
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("*Failed to refresh*");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  RefreshTokenAsync
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task RefreshTokenAsync_ReturnsFalse_WhenNoCredentialExists()
@@ -287,7 +287,7 @@ public sealed class OAuthServiceTests : IDisposable
     [Fact]
     public async Task RefreshTokenAsync_ReturnsFalse_WhenNoProviderConfigRegistered()
     {
-        // Arrange — insert a credential but don't register a provider config
+        // Arrange - insert a credential but don't register a provider config
         var db = _factory.CreateContext();
         db.OAuthCredentials.Add(new OAuthCredentialEntity
         {
@@ -306,7 +306,7 @@ public sealed class OAuthServiceTests : IDisposable
         _mockEncryption.Setup(e => e.Decrypt("DPAPI:refresh")).Returns("refresh-token");
 
         using var service = CreateService(db);
-        // NOT registering provider — this should make refresh fail gracefully
+        // NOT registering provider - this should make refresh fail gracefully
 
         // Act
         var result = await service.RefreshTokenAsync("google");
@@ -329,14 +329,14 @@ public sealed class OAuthServiceTests : IDisposable
             .WithParameterName("provider");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  RevokeAsync
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task RevokeAsync_RemovesCredentialFromDatabase_EvenIfServerRevocationFails()
     {
-        // Arrange — insert a credential
+        // Arrange - insert a credential
         var db = _factory.CreateContext();
         db.OAuthCredentials.Add(new OAuthCredentialEntity
         {
@@ -361,11 +361,11 @@ public sealed class OAuthServiceTests : IDisposable
         using var service = CreateService(_factory.CreateContext());
         RegisterGoogleProvider(service);
 
-        // Act — RevokeAsync will try server-side revocation (which will fail because
+        // Act - RevokeAsync will try server-side revocation (which will fail because
         // there's no HTTP server), but it should still remove the local credential.
         await service.RevokeAsync("google");
 
-        // Assert — credential should be removed from the database
+        // Assert - credential should be removed from the database
         var verificationDb = _factory.CreateContext();
         var after = await verificationDb.OAuthCredentials.FirstOrDefaultAsync(c => c.ProviderId == "google");
         after.Should().BeNull("the local credential should be deleted even if server-side revocation fails");
@@ -380,7 +380,7 @@ public sealed class OAuthServiceTests : IDisposable
         // Act
         var act = () => service.RevokeAsync("google");
 
-        // Assert — should not throw even with no credential in the database
+        // Assert - should not throw even with no credential in the database
         await act.Should().NotThrowAsync();
     }
 
@@ -398,9 +398,9 @@ public sealed class OAuthServiceTests : IDisposable
             .WithParameterName("provider");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  RegisterProvider / GetRegisteredProviders
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void RegisterProvider_AddsProviderToRegistry()
@@ -478,7 +478,7 @@ public sealed class OAuthServiceTests : IDisposable
         service.RegisterProvider(config1);
         service.RegisterProvider(config2);
 
-        // Assert — second registration should overwrite the first
+        // Assert - second registration should overwrite the first
         var providers = service.GetRegisteredProviders();
         providers["google"].DisplayName.Should().Be("Google New");
         providers["google"].ClientId.Should().Be("new-client-id");

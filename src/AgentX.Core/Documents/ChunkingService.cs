@@ -82,7 +82,7 @@ public sealed class ChunkingService : IChunkingService
 
         ValidateParameters(chunkSize, chunkOverlap);
 
-        // ── Adaptive chunking (P0-5) ─────────────────────────────────────
+        // -- Adaptive chunking (P0-5) -------------------------------------
         // When the adaptive analyzer is registered, consult it. For content types
         // where prose-sized chunks demonstrably hurt retrieval (Code, Table), honor
         // the analyzer's recommendation. For Prose / Mixed / List, respect the
@@ -97,8 +97,8 @@ public sealed class ChunkingService : IChunkingService
                 if (shouldOverride && info.RecommendedChunkSize != chunkSize)
                 {
                     _logger.Information(
-                        "Adaptive chunking override: {ContentType} content detected for '{FileName}' — " +
-                        "size {Original} → {Adaptive}",
+                        "Adaptive chunking override: {ContentType} content detected for '{FileName}' - " +
+                        "size {Original} -> {Adaptive}",
                         info.ContentType, document.FileName, chunkSize, info.RecommendedChunkSize);
                     chunkSize = info.RecommendedChunkSize;
 
@@ -194,7 +194,7 @@ public sealed class ChunkingService : IChunkingService
         return chunks;
     }
 
-    // ── Private: Page-level chunking ────────────────────────────────────
+    // -- Private: Page-level chunking ------------------------------------
 
     /// <summary>
     /// Splits a multi-page document by form-feed characters, then chunks each page
@@ -250,7 +250,7 @@ public sealed class ChunkingService : IChunkingService
         return allChunks.AsReadOnly();
     }
 
-    // ── Private: Text splitting ─────────────────────────────────────────
+    // -- Private: Text splitting -----------------------------------------
 
     /// <summary>
     /// Splits text into paragraph-level segments delimited by double newlines.
@@ -406,7 +406,7 @@ public sealed class ChunkingService : IChunkingService
         return segments;
     }
 
-    // ── Private: Chunk grouping with overlap ────────────────────────────
+    // -- Private: Chunk grouping with overlap ----------------------------
 
     /// <summary>
     /// Groups small segments into chunks up to chunkSize tokens, applying overlap
@@ -567,7 +567,7 @@ public sealed class ChunkingService : IChunkingService
             : new TextSegment(text[start..end], segment.CharOffset + start);
     }
 
-    // ── Private: Token counting ─────────────────────────────────────────
+    // -- Private: Token counting -----------------------------------------
 
     /// <summary>
     /// Counts tokens in text using the token counter service if available,
@@ -588,7 +588,7 @@ public sealed class ChunkingService : IChunkingService
         return text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length;
     }
 
-    // ── Private: Validation ─────────────────────────────────────────────
+    // -- Private: Validation ---------------------------------------------
 
     private static void ValidateParameters(int chunkSize, int chunkOverlap)
     {
@@ -605,7 +605,7 @@ public sealed class ChunkingService : IChunkingService
                 "Chunk overlap must be less than chunk size to ensure forward progress.");
     }
 
-    // ── Private: Internal types ─────────────────────────────────────────
+    // -- Private: Internal types -----------------------------------------
 
     /// <summary>
     /// Represents a segment of text with its character offset within the original source text.

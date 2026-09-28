@@ -55,7 +55,7 @@ public class WebScraperServiceIntegrationTests
             _loggerMock.Object);
     }
 
-    // ─── ExtractContentAsync Pipeline Tests ──────────────────────────────────
+    // --- ExtractContentAsync Pipeline Tests ----------------------------------
 
     [Fact]
     public async Task ExtractContentAsync_ReturnsFailure_WhenUrlIsEmpty()
@@ -247,7 +247,7 @@ public class WebScraperServiceIntegrationTests
         await act.Should().ThrowAsync<OperationCanceledException>();
     }
 
-    // ─── ExtractYouTubeTranscriptAsync Tests ─────────────────────────────────
+    // --- ExtractYouTubeTranscriptAsync Tests ---------------------------------
 
     [Fact]
     public async Task ExtractYouTubeTranscriptAsync_ReturnsFailure_WhenUrlIsEmpty()
@@ -267,7 +267,7 @@ public class WebScraperServiceIntegrationTests
         result.ErrorMessage.Should().Contain("video ID");
     }
 
-    // ─── ExtractBatchAsync Tests ─────────────────────────────────────────────
+    // --- ExtractBatchAsync Tests ---------------------------------------------
 
     [Fact]
     public async Task ExtractBatchAsync_ReturnsEmpty_WhenUrlListIsEmpty()
@@ -337,7 +337,7 @@ public class WebScraperServiceIntegrationTests
         result[1].Success.Should().BeTrue();
     }
 
-    // ─── IsYouTubeUrl Tests ──────────────────────────────────────────────────
+    // --- IsYouTubeUrl Tests --------------------------------------------------
 
     [Theory]
     [InlineData("https://www.youtube.com/watch?v=dQw4w9WgXcQ", true)]
@@ -383,7 +383,7 @@ public class WebScraperServiceIntegrationTests
         result.Content.Should().Be("Article text only");
     }
 
-    // ─── IsValidUrl Tests ────────────────────────────────────────────────────
+    // --- IsValidUrl Tests ----------------------------------------------------
 
     [Theory]
     [InlineData("https://example.com", true)]
@@ -397,7 +397,7 @@ public class WebScraperServiceIntegrationTests
         _sut.IsValidUrl(url!).Should().Be(expected);
     }
 
-    // ─── Constructor Validation Tests ────────────────────────────────────────
+    // --- Constructor Validation Tests ----------------------------------------
 
     [Fact]
     public void Constructor_ThrowsWhenFetcherIsNull()

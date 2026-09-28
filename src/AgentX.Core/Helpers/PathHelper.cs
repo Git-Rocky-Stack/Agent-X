@@ -145,7 +145,7 @@ public static class PathHelper
         }
     }
 
-    // ── Path containment (security boundary) ───────────────────────────────
+    // -- Path containment (security boundary) -------------------------------
 
     /// <summary>
     /// Synthetic, disk-agnostic base used purely for normalization when checking that an
@@ -158,7 +158,7 @@ public static class PathHelper
     /// <summary>
     /// Resolves <paramref name="relativePath"/> against <paramref name="baseDirectory"/> and
     /// guarantees the result stays strictly inside the base directory. Throws
-    /// <see cref="UnauthorizedAccessException"/> when the entry would escape — via <c>..</c>
+    /// <see cref="UnauthorizedAccessException"/> when the entry would escape - via <c>..</c>
     /// segments, an absolute/rooted path, or alternate separators. This is the canonical guard
     /// for writing untrusted archive entries or loading plugin assemblies; unlike
     /// <see cref="GetRelativePath"/>, it fails closed rather than returning the original path.
@@ -173,7 +173,7 @@ public static class PathHelper
         if (string.IsNullOrWhiteSpace(relativePath))
             throw new ArgumentException("Relative path must not be empty.", nameof(relativePath));
 
-        // Rooted/absolute entries ignore the base directory entirely — reject outright.
+        // Rooted/absolute entries ignore the base directory entirely - reject outright.
         if (Path.IsPathRooted(relativePath))
             throw new UnauthorizedAccessException(
                 $"Refusing rooted path '{relativePath}' under base '{baseDirectory}'.");
@@ -221,8 +221,8 @@ public static class PathHelper
 
     /// <summary>
     /// Returns <c>true</c> when an untrusted, base-relative entry path (e.g. a ZIP entry name)
-    /// is non-rooted and does not escape its directory. Disk-agnostic — uses a synthetic base
-    /// for normalization — so it can validate archive entries without knowing the final target root.
+    /// is non-rooted and does not escape its directory. Disk-agnostic - uses a synthetic base
+    /// for normalization - so it can validate archive entries without knowing the final target root.
     /// </summary>
     public static bool IsSafeRelativeEntry(string relativePath)
         => !string.IsNullOrWhiteSpace(relativePath)

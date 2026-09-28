@@ -29,7 +29,7 @@ namespace AgentX.Tests.Services.Plugins;
 /// <see cref="ServiceProvider"/>.
 ///
 /// The assembly-isolation path is exercised against genuinely-loadable plugin DLLs compiled
-/// in-process with Roslyn (<see cref="TestPluginAssemblies"/>): install → enable loads each DLL
+/// in-process with Roslyn (<see cref="TestPluginAssemblies"/>): install -> enable loads each DLL
 /// into a collectible <see cref="System.Runtime.Loader.AssemblyLoadContext"/>, discovers the
 /// <see cref="IPlugin"/> type, instantiates it, and runs its Initialize/Activate/Deactivate
 /// lifecycle. Failure variants (no plugin type, multiple types, throwing ctor/Initialize/Activate,
@@ -41,9 +41,9 @@ namespace AgentX.Tests.Services.Plugins;
 /// </summary>
 public sealed class PluginServiceTests
 {
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     // Harness
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     private sealed class PluginHarness : IDisposable
     {
@@ -55,7 +55,7 @@ public sealed class PluginServiceTests
         public ServiceProvider RootProvider { get; }
         public PluginService Service { get; }
 
-        /// <summary>%LocalAppData%\AgentX\Plugins — computed exactly as the service does.</summary>
+        /// <summary>%LocalAppData%\AgentX\Plugins - computed exactly as the service does.</summary>
         public string PluginBaseDir { get; } = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "AgentX", "Plugins");
@@ -171,7 +171,7 @@ public sealed class PluginServiceTests
         }
 
         /// <summary>
-        /// Seeds an on-disk install directory and a matching DB row WITHOUT going through install —
+        /// Seeds an on-disk install directory and a matching DB row WITHOUT going through install -
         /// used to drive enable/uninstall branches directly. Returns the surrogate entity id.
         /// </summary>
         public long SeedInstalled(
@@ -248,9 +248,9 @@ public sealed class PluginServiceTests
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     // Helpers
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     /// <summary>A reference type satisfying <c>where T : class, IPlugin</c> that no test plugin implements.</summary>
     private interface ITestMarkerPlugin : IPlugin { }
@@ -273,9 +273,9 @@ public sealed class PluginServiceTests
     private static string ManifestJson(string id, string entryAssembly = "plugin.dll")
         => JsonSerializer.Serialize(ValidManifest(id, entryAssembly));
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     // Constructor guards
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     [Fact]
     public void Constructor_NullDbContext_ThrowsArgumentNullException()
@@ -315,9 +315,9 @@ public sealed class PluginServiceTests
         act.Should().Throw<ArgumentNullException>().WithParameterName("logger");
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     // GetInstalledPluginsAsync
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     [Fact]
     public async Task GetInstalledPluginsAsync_NoPlugins_ReturnsEmpty()
@@ -359,9 +359,9 @@ public sealed class PluginServiceTests
         };
     }
 
-    // ─────────────────────────────────────────────────────────────────────
-    // InstallPluginAsync — validation and guard branches
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
+    // InstallPluginAsync - validation and guard branches
+    // ---------------------------------------------------------------------
 
     [Theory]
     [InlineData(null)]
@@ -463,9 +463,9 @@ public sealed class PluginServiceTests
         await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*Failed to extract*");
     }
 
-    // ─────────────────────────────────────────────────────────────────────
-    // InstallPluginAsync — happy path and README handling
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
+    // InstallPluginAsync - happy path and README handling
+    // ---------------------------------------------------------------------
 
     [Fact]
     public async Task InstallPluginAsync_Valid_CreatesDisabledRecordWithReadmeFile()
@@ -549,9 +549,9 @@ public sealed class PluginServiceTests
         entity.ReadmeContent.Should().BeNull();
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     // UninstallPluginAsync
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     [Fact]
     public async Task UninstallPluginAsync_NotFound_DoesNotThrow()
@@ -610,9 +610,9 @@ public sealed class PluginServiceTests
         verify.Plugins.Any(p => p.Id == entityId).Should().BeFalse();
     }
 
-    // ─────────────────────────────────────────────────────────────────────
-    // EnablePluginAsync — guard / load-failure branches
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
+    // EnablePluginAsync - guard / load-failure branches
+    // ---------------------------------------------------------------------
 
     [Fact]
     public async Task EnablePluginAsync_NotFound_Throws()
@@ -630,7 +630,7 @@ public sealed class PluginServiceTests
         using var h = new PluginHarness();
         var id = PluginHarness.NewPluginId();
         var installDir = h.InstallDirFor(id);
-        // No manifest, no DLL → derived entry name, file absent.
+        // No manifest, no DLL -> derived entry name, file absent.
         var entityId = h.SeedInstalled(id, installDir);
 
         var act = () => h.Service.EnablePluginAsync(entityId);
@@ -759,9 +759,9 @@ public sealed class PluginServiceTests
         await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*ActivateAsync*");
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     // DisablePluginAsync
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     [Fact]
     public async Task DisablePluginAsync_NotFound_DoesNotThrow()
@@ -787,9 +787,9 @@ public sealed class PluginServiceTests
         verify.Plugins.Single(p => p.Id == entityId).IsEnabled.Should().BeFalse();
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     // Active-plugin queries with nothing loaded
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     [Fact]
     public async Task GetActivePluginsAsync_NoneLoaded_ReturnsEmpty()
@@ -824,9 +824,9 @@ public sealed class PluginServiceTests
         instance.Should().BeNull();
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     // Full lifecycle against real, loadable plugin assemblies
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     [Fact]
     public async Task Lifecycle_InstallEnableQueryDisable_GoodPlugin()
@@ -858,7 +858,7 @@ public sealed class PluginServiceTests
 
         (await h.Service.GetActivePluginsAsync()).Should().HaveCount(1);
         (await h.Service.GetPluginInstanceAsync<IPlugin>(id)).Should().NotBeNull();
-        // Active, but does not implement the marker interface → null.
+        // Active, but does not implement the marker interface -> null.
         (await h.Service.GetPluginInstanceAsync<ITestMarkerPlugin>(id)).Should().BeNull();
 
         await h.Service.DisablePluginAsync(installed.Id);
@@ -871,7 +871,7 @@ public sealed class PluginServiceTests
     [Fact]
     public async Task Lifecycle_EnableThenUninstall_RemovesRowAndDeactivates()
     {
-        using var h = new PluginHarness(); // IInboxService absent → exercises the optional-service branch
+        using var h = new PluginHarness(); // IInboxService absent -> exercises the optional-service branch
         var id = PluginHarness.NewPluginId();
         h.InstallDirFor(id);
         var pkg = h.CreatePackage(ValidManifest(id),

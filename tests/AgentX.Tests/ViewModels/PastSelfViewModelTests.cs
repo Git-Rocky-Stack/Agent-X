@@ -44,7 +44,7 @@ public sealed class PastSelfViewModelTests
         new VoiceDraftService(_temporalIdentity.Object, _ai.Object, Logger.None),
         localization ?? _localization.Object);
 
-    // ── Voice profile ────────────────────────────────────────────────────────
+    // -- Voice profile --------------------------------------------------------
     // With no captured samples the panel used to show an invented 15-word average and a
     // "Balanced" style, which reads as a measurement of the user's writing rather than
     // the absence of one.

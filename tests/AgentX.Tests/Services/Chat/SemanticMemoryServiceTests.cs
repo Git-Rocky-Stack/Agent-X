@@ -13,7 +13,7 @@ using Xunit;
 namespace AgentX.Tests.Services.Chat;
 
 /// <summary>
-/// Coverage for <see cref="SemanticMemoryService"/> — the embedding-based semantic memory
+/// Coverage for <see cref="SemanticMemoryService"/> - the embedding-based semantic memory
 /// store with associative links and temporal decay. Backed by an in-memory SQLite
 /// <see cref="AgentXDbContext"/>; the embedding/AI collaborators are mocked so cosine
 /// similarities are deterministic (length-4 unit-ish vectors), and a real silent Serilog
@@ -77,9 +77,9 @@ public sealed class SemanticMemoryServiceTests : IDisposable
             CreatedAt = new DateTime(2026, 6, 1, 0, 0, 0, DateTimeKind.Utc),
         };
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     //  RetrieveRelevantMemoriesAsync
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     [Theory]
     [InlineData("")]
@@ -94,7 +94,7 @@ public sealed class SemanticMemoryServiceTests : IDisposable
     [Fact]
     public async Task RetrieveRelevant_no_embedded_memories_returns_empty()
     {
-        // Active memory but no embedding → excluded by the Embedding != null filter.
+        // Active memory but no embedding -> excluded by the Embedding != null filter.
         _db.Memories.Add(Memory("no embedding here", embedding: null, importance: 0.9));
         await _db.SaveChangesAsync();
         SetupEmbedding(1, 0, 0, 0);
@@ -109,12 +109,12 @@ public sealed class SemanticMemoryServiceTests : IDisposable
     {
         // Query vector is [1,0,0,0]; cosine similarity is fully controlled by each embedding.
         _db.Memories.AddRange(
-            Memory("exact match high importance", "1,0,0,0", importance: 0.9),     // sim 1.0   → 0.90
-            Memory("near match high importance", "1,0.5,0,0", importance: 0.9),    // sim 0.894 → 0.805
-            Memory("near match low importance", "1,0.2,0,0", importance: 0.5),     // sim 0.981 → 0.49
-            Memory("orthogonal below threshold", "0,1,0,0", importance: 0.9),      // sim 0.0   → excluded
-            Memory("unparseable embedding", "not,a,number,x", importance: 0.9),    // parse fail → skipped
-            Memory("inactive ignored", "1,0,0,0", importance: 1.0, active: false)); // inactive → excluded
+            Memory("exact match high importance", "1,0,0,0", importance: 0.9),     // sim 1.0   -> 0.90
+            Memory("near match high importance", "1,0.5,0,0", importance: 0.9),    // sim 0.894 -> 0.805
+            Memory("near match low importance", "1,0.2,0,0", importance: 0.5),     // sim 0.981 -> 0.49
+            Memory("orthogonal below threshold", "0,1,0,0", importance: 0.9),      // sim 0.0   -> excluded
+            Memory("unparseable embedding", "not,a,number,x", importance: 0.9),    // parse fail -> skipped
+            Memory("inactive ignored", "1,0,0,0", importance: 1.0, active: false)); // inactive -> excluded
         await _db.SaveChangesAsync();
         SetupEmbedding(1, 0, 0, 0);
 
@@ -186,9 +186,9 @@ public sealed class SemanticMemoryServiceTests : IDisposable
         await act.Should().ThrowAsync<OperationCanceledException>();
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     //  RetrieveAssociativeMemoriesAsync
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     [Fact]
     public async Task RetrieveAssociative_traverses_forward_and_reverse_links()
@@ -199,8 +199,8 @@ public sealed class SemanticMemoryServiceTests : IDisposable
         _db.Memories.AddRange(a, b, c);
         await _db.SaveChangesAsync();
 
-        a.LinkedMemoryId = b.Id;   // forward edge A → B
-        c.LinkedMemoryId = a.Id;   // reverse edge C → A
+        a.LinkedMemoryId = b.Id;   // forward edge A -> B
+        c.LinkedMemoryId = a.Id;   // reverse edge C -> A
         await _db.SaveChangesAsync();
 
         var result = await CreateSut().RetrieveAssociativeMemoriesAsync(a.Id, maxDepth: 2);
@@ -230,9 +230,9 @@ public sealed class SemanticMemoryServiceTests : IDisposable
         result.Should().BeEmpty();
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     //  ExtractMemoriesAsync
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     private async Task<long> SeedConversationWithMessagesAsync(params string[] contents)
     {
@@ -312,15 +312,15 @@ public sealed class SemanticMemoryServiceTests : IDisposable
             .ToList();
         lines.Add("totally-unknown|content that normalises category to fact|0.9");
         lines.Add("|content with an empty leading category field|0.9");
-        lines.Add("fact|abc|0.9");          // content < 5 chars → skipped
-        lines.Add("nopipehere just words"); // no delimiter → skipped
+        lines.Add("fact|abc|0.9");          // content < 5 chars -> skipped
+        lines.Add("nopipehere just words"); // no delimiter -> skipped
 
         SetupChat(string.Join("\n", lines));
 
         await CreateSut().ExtractMemoriesAsync(convId);
 
         await using var verify = _factory.CreateContext();
-        // 22 valid categories + unknown→fact + empty→fact = 24 created; two bad lines skipped.
+        // 22 valid categories + unknown->fact + empty->fact = 24 created; two bad lines skipped.
         (await verify.Memories.CountAsync()).Should().Be(24);
         (await verify.Memories.AnyAsync(m => m.Category == "user_preference")).Should().BeTrue();
         (await verify.Memories.AnyAsync(m => m.Category == "relationship")).Should().BeTrue();
@@ -348,7 +348,7 @@ public sealed class SemanticMemoryServiceTests : IDisposable
     public async Task ExtractMemories_skips_semantically_duplicate_content()
     {
         // Pre-existing active memory whose embedding equals what the embedder returns
-        // for the new content → cosine similarity 1.0 > 0.92 duplicate threshold.
+        // for the new content -> cosine similarity 1.0 > 0.92 duplicate threshold.
         _db.Memories.Add(Memory("existing fact", "1,0,0,0", importance: 0.5));
         await _db.SaveChangesAsync();
         var convId = await SeedConversationWithMessagesAsync("q", "a");
@@ -357,7 +357,7 @@ public sealed class SemanticMemoryServiceTests : IDisposable
 
         await CreateSut().ExtractMemoriesAsync(convId);
 
-        // No second memory was added — the duplicate was folded into the existing one.
+        // No second memory was added - the duplicate was folded into the existing one.
         (await _factory.CreateContext().Memories.CountAsync()).Should().Be(1);
     }
 
@@ -503,9 +503,9 @@ public sealed class SemanticMemoryServiceTests : IDisposable
         SemanticMemoryService.TakeNewestExcerpt(transcript, maxLength).Should().Be(expected);
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     //  LinkMemoriesAsync
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     [Fact]
     public async Task LinkMemories_sets_link_when_both_exist()
@@ -534,9 +534,9 @@ public sealed class SemanticMemoryServiceTests : IDisposable
         reloaded.LinkedMemoryId.Should().BeNull();
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     //  ApplyFeedbackAsync
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     [Fact]
     public async Task ApplyFeedback_positive_reinforces_importance_and_slows_decay()
@@ -589,9 +589,9 @@ public sealed class SemanticMemoryServiceTests : IDisposable
         await act.Should().NotThrowAsync();
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     //  GetEffectiveImportance
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     [Fact]
     public void GetEffectiveImportance_null_returns_zero()
@@ -620,10 +620,10 @@ public sealed class SemanticMemoryServiceTests : IDisposable
         CreateSut().GetEffectiveImportance(m).Should().BeApproximately(expected, 0.01);
     }
 
-    // ─────────────────────────────────────────────────────────────────────
-    //  GetAllMemoriesAsync — see note: the OrderBy uses the un-translatable
+    // ---------------------------------------------------------------------
+    //  GetAllMemoriesAsync - see note: the OrderBy uses the un-translatable
     //  instance method GetEffectiveImportance, so EF cannot build SQL for it.
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     [Fact]
     public async Task GetAllMemoriesAsync_orders_active_memories_by_effective_importance()
@@ -642,9 +642,9 @@ public sealed class SemanticMemoryServiceTests : IDisposable
         all.Should().NotContain(m => m.Content == "dismissed");
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     //  DismissMemoryAsync / GetMemoryCountAsync
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     [Fact]
     public async Task DismissMemory_soft_deletes_existing_memory()
@@ -678,9 +678,9 @@ public sealed class SemanticMemoryServiceTests : IDisposable
         (await CreateSut().GetMemoryCountAsync()).Should().Be(2);
     }
 
-    // ─────────────────────────────────────────────────────────────────────
-    //  Resilience — the warn-and-continue catch arms in the swallowing methods.
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
+    //  Resilience - the warn-and-continue catch arms in the swallowing methods.
+    // ---------------------------------------------------------------------
 
     [Fact]
     public async Task Swallowing_methods_do_not_throw_when_context_is_disposed()

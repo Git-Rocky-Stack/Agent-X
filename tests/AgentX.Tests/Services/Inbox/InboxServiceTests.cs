@@ -17,7 +17,7 @@ using Xunit;
 namespace AgentX.Tests.Services.Inbox;
 
 /// <summary>
-/// Behavioural coverage for <see cref="InboxService"/> — the Smart-Inbox triage queue:
+/// Behavioural coverage for <see cref="InboxService"/> - the Smart-Inbox triage queue:
 /// ingestion + dedup, pending/paged queries, single + batch accept/reject/defer, AI preview
 /// generation (with collection/tag suggestion parsing), processed-item purge, and the
 /// plugin-sourced <c>TriageExternal</c> bridge into the document library.
@@ -28,7 +28,7 @@ namespace AgentX.Tests.Services.Inbox;
 /// <see cref="IAiService"/> (token-streamed triage completion), and an optional
 /// <see cref="IDocumentService"/> (external-content bridge). <see cref="ISummaryService"/> is
 /// constructor-injected but unused, so a bare mock satisfies it. Logging is Serilog's <b>static</b>
-/// <c>Log</c> (silent by default — no logger seam). Ingestion + preview read real files, so fixtures
+/// <c>Log</c> (silent by default - no logger seam). Ingestion + preview read real files, so fixtures
 /// write real temp files into a per-test temp directory torn down on dispose; the
 /// <c>TriageExternal</c> temp-file tree (<c>%TEMP%/AgentX/ExternalItems/{pluginId}</c>) is likewise
 /// tracked and cleaned.</para>
@@ -52,7 +52,7 @@ public sealed class InboxServiceTests : IDisposable
         }
     }
 
-    // ─── Harness ──────────────────────────────────────────────────────────────
+    // --- Harness --------------------------------------------------------------
 
     private sealed class InboxHarness : IDisposable
     {
@@ -152,7 +152,7 @@ public sealed class InboxServiceTests : IDisposable
         }
     }
 
-    // ─── Async-stream + seed helpers ──────────────────────────────────────────
+    // --- Async-stream + seed helpers ------------------------------------------
 
     /// <summary>Async enumerable that yields the given tokens (simulates AI streaming).</summary>
     private static async IAsyncEnumerable<string> TokenStream(params string[] tokens)
@@ -234,9 +234,9 @@ public sealed class InboxServiceTests : IDisposable
         return item.Id;
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  Constructor guards
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public void Ctor_NullDb_Throws()
@@ -276,9 +276,9 @@ public sealed class InboxServiceTests : IDisposable
         act.Should().Throw<ArgumentNullException>().WithParameterName("aiService");
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  AddToInboxAsync
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Theory]
     [InlineData("")]
@@ -334,9 +334,9 @@ public sealed class InboxServiceTests : IDisposable
         (await fresh.InboxItems.CountAsync()).Should().Be(1);
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  Queries
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task GetPendingItemsAsync_ReturnsPendingOldestFirst()
@@ -411,7 +411,7 @@ public sealed class InboxServiceTests : IDisposable
             }
         });
 
-        // Newest first: f4, f3, f2, f1, f0. Skip 1 → start at f3; take 2 → f3, f2.
+        // Newest first: f4, f3, f2, f1, f0. Skip 1 -> start at f3; take 2 -> f3, f2.
         var page = await h.Service.GetAllItemsAsync(statusFilter: null, skip: 1, take: 2);
 
         page.Should().HaveCount(2);
@@ -451,9 +451,9 @@ public sealed class InboxServiceTests : IDisposable
         await act.Should().ThrowAsync<ObjectDisposedException>();
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  Single-item triage
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task AcceptItemAsync_NoCollection_ImportsCopyIntoVaultAndLinksDocument()
@@ -770,9 +770,9 @@ public sealed class InboxServiceTests : IDisposable
         await act.Should().ThrowAsync<InvalidOperationException>();
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  Batch triage
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task AcceptSelectedAsync_NullIds_Throws()
@@ -908,9 +908,9 @@ public sealed class InboxServiceTests : IDisposable
         await act.Should().ThrowAsync<ObjectDisposedException>();
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  AI preview generation
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task GeneratePreviewAsync_Missing_Throws()
@@ -924,7 +924,7 @@ public sealed class InboxServiceTests : IDisposable
     public async Task GeneratePreviewAsync_FileUnreadable_SkipsWithoutAiCall()
     {
         var h = NewHarness();
-        // FilePath points at a non-existent file → snippet empty → early return.
+        // FilePath points at a non-existent file -> snippet empty -> early return.
         var id = SeedItem(h, NewItem(status: "pending", filePath: Path.Combine(h.TempDir, "gone.txt")));
 
         await h.Service.GeneratePreviewAsync(id);
@@ -978,7 +978,7 @@ public sealed class InboxServiceTests : IDisposable
         var h = NewHarness();
         var path = h.WriteFile("doc.txt");
         var id = SeedItem(h, NewItem(status: "pending", filePath: path));
-        SetupCollections(h); // empty → "none available" prompt branch
+        SetupCollections(h); // empty -> "none available" prompt branch
         SetupAi(h, TriageResponse("Just a preview.", "none", "none"));
 
         await h.Service.GeneratePreviewAsync(id);
@@ -986,8 +986,8 @@ public sealed class InboxServiceTests : IDisposable
         using var fresh = h.Fresh();
         var item = await fresh.InboxItems.FindAsync(id);
         item!.Preview.Should().Be("Just a preview.");
-        item.SuggestedCollectionName.Should().BeNull(); // "none" → not stored
-        item.SuggestedTags.Should().BeNull();           // "none" → not stored
+        item.SuggestedCollectionName.Should().BeNull(); // "none" -> not stored
+        item.SuggestedTags.Should().BeNull();           // "none" -> not stored
     }
 
     [Fact]
@@ -997,7 +997,7 @@ public sealed class InboxServiceTests : IDisposable
         var path = h.WriteFile("doc.txt");
         var id = SeedItem(h, NewItem(status: "pending", filePath: path));
         SetupCollections(h);
-        // Mixed case, blanks, and more than five tags → lowercased, trimmed, empties removed, first 5.
+        // Mixed case, blanks, and more than five tags -> lowercased, trimmed, empties removed, first 5.
         SetupAi(h, TriageResponse("P.", null, "Finance, , Quarterly,REPORT,Audit,Tax,Extra"));
 
         await h.Service.GeneratePreviewAsync(id);
@@ -1014,7 +1014,7 @@ public sealed class InboxServiceTests : IDisposable
         var path = h.WriteFile("doc.txt");
         var id = SeedItem(h, NewItem(status: "pending", filePath: path));
         SetupCollections(h);
-        SetupAi(h, "   ", "\n"); // trims to empty → ParseTriageResponse early-return
+        SetupAi(h, "   ", "\n"); // trims to empty -> ParseTriageResponse early-return
 
         await h.Service.GeneratePreviewAsync(id);
 
@@ -1056,7 +1056,7 @@ public sealed class InboxServiceTests : IDisposable
     public async Task GenerateAllPreviewsAsync_NoEligibleItems_Completes()
     {
         var h = NewHarness();
-        // One pending item that ALREADY has a preview → excluded by the Preview == null filter.
+        // One pending item that ALREADY has a preview -> excluded by the Preview == null filter.
         SeedItem(h, NewItem(status: "pending", preview: "already done"));
 
         await h.Service.GenerateAllPreviewsAsync();
@@ -1093,7 +1093,7 @@ public sealed class InboxServiceTests : IDisposable
         var p1 = h.WriteFile("a.txt");
         h.Seed(ctx => ctx.InboxItems.Add(NewItem(status: "pending", fileName: "a.txt", filePath: p1)));
         SetupCollections(h);
-        // AI throws (non-cancellation) → GeneratePreview rethrows → batch catches, logs, continues.
+        // AI throws (non-cancellation) -> GeneratePreview rethrows -> batch catches, logs, continues.
         SetupAiFault(h, new InvalidOperationException("ai down"));
 
         var act = () => h.Service.GenerateAllPreviewsAsync();
@@ -1132,9 +1132,9 @@ public sealed class InboxServiceTests : IDisposable
         return (await fresh.InboxItems.OrderBy(i => i.Id).FirstAsync()).Id;
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  Maintenance
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task DeleteProcessedItemsAsync_RemovesAcceptedAndRejected_KeepsPendingAndDeferred()
@@ -1177,9 +1177,9 @@ public sealed class InboxServiceTests : IDisposable
         await act.Should().ThrowAsync<ObjectDisposedException>();
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  TriageExternalAsync
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task TriageExternalAsync_BlankFileName_Throws()

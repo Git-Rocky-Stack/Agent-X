@@ -18,7 +18,7 @@ public sealed class CollectionManagerViewModelTests
     private readonly Mock<IDocumentService> _documentService = new();
     private readonly Mock<ILocalizationService> _localization = KeyEchoingLocalization();
 
-    // ── Rename ───────────────────────────────────────────────────────────────
+    // -- Rename ---------------------------------------------------------------
     // Rename logged "rename requested" and returned without calling the service, so a
     // collection could never actually be renamed.
 
@@ -83,7 +83,7 @@ public sealed class CollectionManagerViewModelTests
         viewModel.RenameTarget.Should().BeNull();
     }
 
-    // ── Multi-select ─────────────────────────────────────────────────────────
+    // -- Multi-select ---------------------------------------------------------
     // Selection state has to live on the item so a checkbox can bind to it; the id list
     // alone cannot drive a per-row control.
 

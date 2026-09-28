@@ -49,7 +49,7 @@ public sealed class EmailPluginTests : IDisposable
         catch { /* best effort */ }
     }
 
-    // ── Plugin properties ────────────────────────────────────────────────────
+    // -- Plugin properties ----------------------------------------------------
 
     [Fact]
     public void Id_ReturnsCorrectValue()
@@ -81,7 +81,7 @@ public sealed class EmailPluginTests : IDisposable
         _plugin.Author.Should().NotBeNullOrEmpty();
     }
 
-    // ── Lifecycle ────────────────────────────────────────────────────────────
+    // -- Lifecycle ------------------------------------------------------------
 
     [Fact]
     public async Task InitializeAsync_SetsUpContext()
@@ -198,7 +198,7 @@ public sealed class EmailPluginTests : IDisposable
         _plugin.Dispose(); // second call should not throw
     }
 
-    // ── Settings ──────────────────────────────────────────────────────────────
+    // -- Settings --------------------------------------------------------------
 
     [Fact]
     public void GetSettings_ReturnsDefaultWhenNotInitialized()
@@ -233,7 +233,7 @@ public sealed class EmailPluginTests : IDisposable
         Assert.Throws<ArgumentNullException>(() => _plugin.UpdateSettings(null!));
     }
 
-    // ── Provider construction ──────────────────────────────────────────────────
+    // -- Provider construction --------------------------------------------------
 
     [Fact]
     public void GmailProvider_Constructs_WithValidArgs()

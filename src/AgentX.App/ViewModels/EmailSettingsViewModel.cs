@@ -53,7 +53,7 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
         };
     }
 
-    // ── Observable properties ──────────────────────────────────────────────────
+    // -- Observable properties --------------------------------------------------
 
     [ObservableProperty]
     private bool _isGoogleConnected;
@@ -74,10 +74,10 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
     private string _syncStatusText;
 
     [ObservableProperty]
-    private string _lastSyncTime = "—";
+    private string _lastSyncTime = "-";
 
     [ObservableProperty]
-    private string _nextSyncTime = "—";
+    private string _nextSyncTime = "-";
 
     [ObservableProperty]
     private bool _enableEmailSync;
@@ -137,7 +137,7 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
     /// <summary>True when folders are listed but none is selected, so a sync would read no mail.</summary>
     public bool IsFolderSelectionEmpty => Folders.Count > 0 && !Folders.Any(folder => folder.IsSelected);
 
-    // ── Initialization ─────────────────────────────────────────────────────────
+    // -- Initialization ---------------------------------------------------------
 
     public async Task InitializeAsync()
     {
@@ -172,7 +172,7 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
         }
     }
 
-    // ── Commands ───────────────────────────────────────────────────────────────
+    // -- Commands ---------------------------------------------------------------
 
     [RelayCommand]
     private async Task ConnectGoogleAsync()
@@ -395,7 +395,7 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
         }
     }
 
-    // ── Private helpers ─────────────────────────────────────────────────────────
+    // -- Private helpers ---------------------------------------------------------
 
     /// <summary>
     /// Replaces the folder list with <paramref name="folders"/>: one entry per folder id, the
@@ -511,7 +511,7 @@ public sealed partial class EmailSettingsViewModel : ObservableObject
             _ => (true, localization.GetString("EmailSet_StatusConnected")),
         };
 
-    // ── Reactive property changes ──────────────────────────────────────────────
+    // -- Reactive property changes ----------------------------------------------
 
     partial void OnSyncIntervalMinutesChanged(int value)
     {

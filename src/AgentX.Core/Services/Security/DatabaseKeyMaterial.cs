@@ -4,7 +4,7 @@ namespace AgentX.Core.Services.Security;
 
 /// <summary>
 /// Derived database key material. Holds 32 raw bytes as a 64-character uppercase hex string.
-/// Keys are delivered to SQLCipher via PRAGMA key = "x'<hex>'" — NOT via the Microsoft.Data.Sqlite
+/// Keys are delivered to SQLCipher via PRAGMA key = "x'<hex>'" - NOT via the Microsoft.Data.Sqlite
 /// Password connection-string property (which runs values through PBKDF2 and would produce a
 /// different derived key).
 /// </summary>

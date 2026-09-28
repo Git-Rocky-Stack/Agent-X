@@ -7,7 +7,7 @@
 
 const API_BASE = 'http://localhost:9846';
 
-// ── Types (mirrors ApiClipModels.cs) ────────────────────────────────────────
+// -- Types (mirrors ApiClipModels.cs) ----------------------------------------
 
 export interface ClipRequest {
   title: string;
@@ -86,7 +86,7 @@ function parseApiResponse<T>(
   };
 }
 
-// ── Client ──────────────────────────────────────────────────────────────────
+// -- Client ------------------------------------------------------------------
 
 export class AgentXApi {
   private readonly baseUrl: string;
@@ -167,7 +167,7 @@ export class AgentXApi {
 
     if (!response.ok) {
       const errorBody = await response.text().catch(() => '');
-      throw new Error(`Clip failed: ${response.status} ${response.statusText}${errorBody ? ` — ${errorBody}` : ''}`);
+      throw new Error(`Clip failed: ${response.status} ${response.statusText}${errorBody ? ` - ${errorBody}` : ''}`);
     }
 
     const envelope = parseApiResponse(

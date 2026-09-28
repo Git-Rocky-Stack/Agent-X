@@ -97,8 +97,8 @@ public sealed partial class BackupRestorePage : Page
     }
 
     /// <summary>
-    /// Confirms before restoring — restore overwrites the entire knowledge base
-    /// and is not reversible — then gates the existing restore command on the
+    /// Confirms before restoring - restore overwrites the entire knowledge base
+    /// and is not reversible - then gates the existing restore command on the
     /// dialog's primary result.
     /// </summary>
     private async void OnRestoreClick(object sender, RoutedEventArgs e)

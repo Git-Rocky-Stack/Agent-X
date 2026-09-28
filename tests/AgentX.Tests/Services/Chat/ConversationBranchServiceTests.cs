@@ -11,7 +11,7 @@ using Xunit;
 namespace AgentX.Tests.Services.Chat;
 
 /// <summary>
-/// Behavioural coverage for <see cref="ConversationBranchService"/> — the EF-Core-backed engine for
+/// Behavioural coverage for <see cref="ConversationBranchService"/> - the EF-Core-backed engine for
 /// conversation branching: forking a conversation at a message, querying direct branches / branch
 /// trees / roots, merging selected messages between conversations, branch counting / existence
 /// checks, and recursive branch deletion.
@@ -20,11 +20,11 @@ namespace AgentX.Tests.Services.Chat;
 /// <see cref="AgentXDbContext"/> (in-memory SQLite via <see cref="TestDbContextFactory"/>, which
 /// enforces foreign keys). Two structural facts from the model shape these tests:
 /// <list type="bullet">
-/// <item>The self-referencing <c>ParentConversation → Branches</c> relationship uses
-/// <see cref="DeleteBehavior.Restrict"/> — so a non-recursive delete of a branch that still has
+/// <item>The self-referencing <c>ParentConversation -> Branches</c> relationship uses
+/// <see cref="DeleteBehavior.Restrict"/> - so a non-recursive delete of a branch that still has
 /// children is rejected by the database (<see cref="DbUpdateException"/>), and recursive deletes
 /// must remove the deepest descendants first.</item>
-/// <item><c>Messages → Conversation</c> uses <see cref="DeleteBehavior.Cascade"/> — so deleting a
+/// <item><c>Messages -> Conversation</c> uses <see cref="DeleteBehavior.Cascade"/> - so deleting a
 /// branch also removes its messages.</item>
 /// </list>
 /// The injected <see cref="IConversationService"/> is null-guarded by the constructor but not
@@ -52,7 +52,7 @@ public sealed class ConversationBranchServiceTests : IDisposable
         }
     }
 
-    // ─── Harness ────────────────────────────────────────────────────────────────
+    // --- Harness ----------------------------------------------------------------
 
     private sealed class BranchHarness : IDisposable
     {
@@ -68,7 +68,7 @@ public sealed class ConversationBranchServiceTests : IDisposable
             Service = new ConversationBranchService(Db, ConversationService.Object, Logger);
         }
 
-        /// <summary>A fresh context over the same in-memory DB — use to read DB truth.</summary>
+        /// <summary>A fresh context over the same in-memory DB - use to read DB truth.</summary>
         public AgentXDbContext Fresh() => Factory.CreateContext();
 
         public void Seed(Action<AgentXDbContext> seed)
@@ -86,7 +86,7 @@ public sealed class ConversationBranchServiceTests : IDisposable
         }
     }
 
-    // ─── Seed helpers ─────────────────────────────────────────────────────────────
+    // --- Seed helpers -------------------------------------------------------------
 
     private static long SeedConv(
         BranchHarness h,
@@ -168,9 +168,9 @@ public sealed class ConversationBranchServiceTests : IDisposable
         return cts.Token;
     }
 
-    // ══════════════════════════════════════════════════════════════════════════════
+    // ==============================================================================
     //  Constructor guards
-    // ══════════════════════════════════════════════════════════════════════════════
+    // ==============================================================================
 
     [Fact]
     public void Ctor_NullDb_Throws()
@@ -207,9 +207,9 @@ public sealed class ConversationBranchServiceTests : IDisposable
         h.Service.Should().NotBeNull();
     }
 
-    // ══════════════════════════════════════════════════════════════════════════════
+    // ==============================================================================
     //  BranchAtMessageAsync
-    // ══════════════════════════════════════════════════════════════════════════════
+    // ==============================================================================
 
     [Fact]
     public async Task BranchAtMessage_SourceConversationNotFound_Throws()
@@ -413,9 +413,9 @@ public sealed class ConversationBranchServiceTests : IDisposable
         await act.Should().ThrowAsync<OperationCanceledException>();
     }
 
-    // ══════════════════════════════════════════════════════════════════════════════
+    // ==============================================================================
     //  GetBranchesAsync
-    // ══════════════════════════════════════════════════════════════════════════════
+    // ==============================================================================
 
     [Fact]
     public async Task GetBranches_ReturnsDirectChildren_OrderedByCreatedAtDescending()
@@ -467,9 +467,9 @@ public sealed class ConversationBranchServiceTests : IDisposable
         await act.Should().ThrowAsync<OperationCanceledException>();
     }
 
-    // ══════════════════════════════════════════════════════════════════════════════
+    // ==============================================================================
     //  GetBranchTreeAsync
-    // ══════════════════════════════════════════════════════════════════════════════
+    // ==============================================================================
 
     [Fact]
     public async Task GetBranchTree_ConversationNotFound_Throws()
@@ -567,9 +567,9 @@ public sealed class ConversationBranchServiceTests : IDisposable
         await act.Should().ThrowAsync<OperationCanceledException>();
     }
 
-    // ══════════════════════════════════════════════════════════════════════════════
+    // ==============================================================================
     //  GetRootConversationAsync
-    // ══════════════════════════════════════════════════════════════════════════════
+    // ==============================================================================
 
     [Fact]
     public async Task GetRootConversation_NotFound_Throws()
@@ -611,7 +611,7 @@ public sealed class ConversationBranchServiceTests : IDisposable
     {
         var h = NewHarness();
         var selfId = SeedConv(h, "Loop");
-        // Point the conversation's parent at itself — a circular reference.
+        // Point the conversation's parent at itself - a circular reference.
         h.Seed(ctx =>
         {
             var self = ctx.Conversations.Find(selfId);
@@ -642,7 +642,7 @@ public sealed class ConversationBranchServiceTests : IDisposable
 
         var root = await h.Service.GetRootConversationAsync(childId);
 
-        // Parent lookup returns null → the walk stops and treats the child as the root.
+        // Parent lookup returns null -> the walk stops and treats the child as the root.
         root.Id.Should().Be(childId);
     }
 
@@ -657,9 +657,9 @@ public sealed class ConversationBranchServiceTests : IDisposable
         await act.Should().ThrowAsync<OperationCanceledException>();
     }
 
-    // ══════════════════════════════════════════════════════════════════════════════
+    // ==============================================================================
     //  MergeMessagesAsync
-    // ══════════════════════════════════════════════════════════════════════════════
+    // ==============================================================================
 
     [Fact]
     public async Task MergeMessages_NullIds_NoOp()
@@ -786,7 +786,7 @@ public sealed class ConversationBranchServiceTests : IDisposable
             .Where(m => m.ConversationId == targetId)
             .OrderBy(m => m.SortOrder)
             .ToListAsync();
-        // New message appended after the current max SortOrder (5) → 6.
+        // New message appended after the current max SortOrder (5) -> 6.
         merged.Last().Content.Should().Be("src");
         merged.Last().SortOrder.Should().Be(6);
 
@@ -836,7 +836,7 @@ public sealed class ConversationBranchServiceTests : IDisposable
             .Where(m => m.ConversationId == targetId)
             .OrderBy(m => m.SortOrder)
             .ToListAsync();
-        // Copied in source SortOrder order → "early" first, then "late".
+        // Copied in source SortOrder order -> "early" first, then "late".
         merged.Select(m => m.Content).Should().Equal("early", "late");
     }
 
@@ -852,9 +852,9 @@ public sealed class ConversationBranchServiceTests : IDisposable
         await act.Should().ThrowAsync<OperationCanceledException>();
     }
 
-    // ══════════════════════════════════════════════════════════════════════════════
+    // ==============================================================================
     //  GetBranchCountAsync
-    // ══════════════════════════════════════════════════════════════════════════════
+    // ==============================================================================
 
     [Fact]
     public async Task GetBranchCount_CountsDirectChildrenOnly()
@@ -890,9 +890,9 @@ public sealed class ConversationBranchServiceTests : IDisposable
         await act.Should().ThrowAsync<OperationCanceledException>();
     }
 
-    // ══════════════════════════════════════════════════════════════════════════════
+    // ==============================================================================
     //  HasBranchesAtMessageAsync
-    // ══════════════════════════════════════════════════════════════════════════════
+    // ==============================================================================
 
     [Fact]
     public async Task HasBranchesAtMessage_True_WhenABranchForksFromThatMessage()
@@ -924,9 +924,9 @@ public sealed class ConversationBranchServiceTests : IDisposable
         await act.Should().ThrowAsync<OperationCanceledException>();
     }
 
-    // ══════════════════════════════════════════════════════════════════════════════
+    // ==============================================================================
     //  DeleteBranchAsync
-    // ══════════════════════════════════════════════════════════════════════════════
+    // ==============================================================================
 
     [Fact]
     public async Task DeleteBranch_NotFound_NoOp()
@@ -941,7 +941,7 @@ public sealed class ConversationBranchServiceTests : IDisposable
     public async Task DeleteBranch_RootConversation_Throws()
     {
         var h = NewHarness();
-        var rootId = SeedConv(h, "Root"); // no parent → a root, not a branch
+        var rootId = SeedConv(h, "Root"); // no parent -> a root, not a branch
 
         var act = () => h.Service.DeleteBranchAsync(rootId);
 

@@ -8,15 +8,15 @@ namespace AgentX.Core.Services.FeatureFlags;
 /// </summary>
 public static class FeatureFlags
 {
-    // ── AI Features ─────────────────────────────────────────────────
+    // -- AI Features -------------------------------------------------
     /// <summary>Checked by <c>AutoTagService</c>.</summary>
     public static readonly FeatureFlag AutoTagging = new("ai.auto_tagging", true, "Automatically tag documents during indexing");
 
-    // ── Search ──────────────────────────────────────────────────────
+    // -- Search ------------------------------------------------------
     /// <summary>Checked by <c>SearchCacheService</c>.</summary>
     public static readonly FeatureFlag SearchCaching = new("search.caching", true, "Cache search results for faster repeated queries");
 
-    // ── Intelligence ────────────────────────────────────────────────
+    // -- Intelligence ------------------------------------------------
     /// <summary>Checked by <c>DuplicateDetectionService</c>.</summary>
     public static readonly FeatureFlag DuplicateDetection = new("intelligence.duplicate_detection", true, "Detect duplicate/near-duplicate documents");
 

@@ -18,7 +18,7 @@ public class FeedServiceTests
         loggerMock.Setup(l => l.ForContext<FeedService>()).Returns(loggerMock.Object);
         _logger = loggerMock.Object;
     }
-    // ─── Sample RSS 2.0 XML ────────────────────────────────────────────────
+    // --- Sample RSS 2.0 XML ------------------------------------------------
 
     private const string SampleRssXml = @"<?xml version=""1.0"" encoding=""UTF-8""?>
 <rss version=""2.0"" xmlns:content=""http://purl.org/rss/1.0/modules/content/""
@@ -54,7 +54,7 @@ public class FeedServiceTests
   </channel>
 </rss>";
 
-    // ─── Sample Atom 1.0 XML ────────────────────────────────────────────────
+    // --- Sample Atom 1.0 XML ------------------------------------------------
 
     private const string SampleAtomXml = @"<?xml version=""1.0"" encoding=""UTF-8""?>
 <feed xmlns=""http://www.w3.org/2005/Atom"">
@@ -94,7 +94,7 @@ public class FeedServiceTests
   </entry>
 </feed>";
 
-    // ─── Sample RSS 1.0 (RDF) XML ──────────────────────────────────────────
+    // --- Sample RSS 1.0 (RDF) XML ------------------------------------------
 
     private const string SampleRdfXml = @"<?xml version=""1.0"" encoding=""UTF-8""?>
 <rdf:RDF xmlns:rdf=""http://www.w3.org/1999/02/22-rdf-syntax-ns#""
@@ -116,7 +116,7 @@ public class FeedServiceTests
   </item>
 </rdf:RDF>";
 
-    // ─── Constructor / Interface Tests ───────────────────────────────────────
+    // --- Constructor / Interface Tests ---------------------------------------
 
     [Fact]
     public void FeedService_Implements_IFeedService()
@@ -132,7 +132,7 @@ public class FeedServiceTests
         service.Should().NotBeNull();
     }
 
-    // ─── RSS 2.0 Parsing Tests ──────────────────────────────────────────────
+    // --- RSS 2.0 Parsing Tests ----------------------------------------------
 
     [Fact]
     public void ParseRssFeed_ValidXml_ReturnsFeedInfo()
@@ -242,7 +242,7 @@ public class FeedServiceTests
         thirdItem.Content.Should().Be("An old post from 2023.");
     }
 
-    // ─── Atom 1.0 Parsing Tests ──────────────────────────────────────────────
+    // --- Atom 1.0 Parsing Tests ----------------------------------------------
 
     [Fact]
     public void ParseAtomFeed_ValidXml_ReturnsFeedInfo()
@@ -336,7 +336,7 @@ public class FeedServiceTests
         result.Items[1].Url.Should().Be("https://example.com/atom/second-entry");
     }
 
-    // ─── RDF Feed Parsing Tests ──────────────────────────────────────────────
+    // --- RDF Feed Parsing Tests ----------------------------------------------
 
     [Fact]
     public void ParseRdfFeed_ValidXml_ReturnsFeedInfo()
@@ -366,7 +366,7 @@ public class FeedServiceTests
         item.Author.Should().Be("RDF Author");
     }
 
-    // ─── Edge Case Tests ────────────────────────────────────────────────────
+    // --- Edge Case Tests ----------------------------------------------------
 
     [Fact]
     public void ParseFeed_UnrecognizedFormat_ThrowsInvalidOperationException()
@@ -444,7 +444,7 @@ public class FeedServiceTests
         result.LastUpdated!.Value.Year.Should().Be(2024);
     }
 
-    // ─── Date Filtering (GetNewItemsAsync logic) ────────────────────────────
+    // --- Date Filtering (GetNewItemsAsync logic) ----------------------------
 
     [Fact]
     public void ParseRssFeed_DateFiltering_ReturnsOnlyNewItems()
@@ -516,7 +516,7 @@ public class FeedServiceTests
         newItems.Should().BeEmpty();
     }
 
-    // ─── URL Fallback Tests ─────────────────────────────────────────────────
+    // --- URL Fallback Tests -------------------------------------------------
 
     [Fact]
     public void ParseAtomFeed_FeedWithoutAlternateLink_UsesSourceUrl()
@@ -542,7 +542,7 @@ public class FeedServiceTests
         result.Url.Should().Be("https://example.com/fallback-url");
     }
 
-    // ─── Helper ─────────────────────────────────────────────────────────────
+    // --- Helper -------------------------------------------------------------
 
     private FeedService CreateService()
     {

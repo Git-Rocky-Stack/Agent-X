@@ -255,7 +255,7 @@ public sealed class AnthropicProvider : IAiProvider
         IProgress<ModelDownloadProgress>? progress = null,
         CancellationToken ct = default)
     {
-        _logger.Debug("PullModelAsync called for Anthropic — cloud models do not require pulling");
+        _logger.Debug("PullModelAsync called for Anthropic - cloud models do not require pulling");
         return Task.CompletedTask;
     }
 
@@ -265,7 +265,7 @@ public sealed class AnthropicProvider : IAiProvider
     /// </remarks>
     public Task DeleteModelAsync(string modelName, CancellationToken ct = default)
     {
-        _logger.Debug("DeleteModelAsync called for Anthropic — cloud models cannot be deleted locally");
+        _logger.Debug("DeleteModelAsync called for Anthropic - cloud models cannot be deleted locally");
         return Task.CompletedTask;
     }
 
@@ -781,7 +781,7 @@ public sealed class AnthropicProvider : IAiProvider
         _logger.Debug("AnthropicProvider disposed");
     }
 
-    // ── Private Helpers ─────────────────────────────────────────────
+    // -- Private Helpers ---------------------------------------------
 
     /// <summary>
     /// Extracts system-role messages from the conversation and combines them into a

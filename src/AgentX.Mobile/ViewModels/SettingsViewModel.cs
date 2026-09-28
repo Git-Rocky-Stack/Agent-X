@@ -33,7 +33,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         ApiToken = await _settings.GetApiTokenAsync().ConfigureAwait(true) ?? string.Empty;
     }
 
-    // ── Observable state ──────────────────────────────────────────────────────
+    // -- Observable state ------------------------------------------------------
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
@@ -59,13 +59,13 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     /// <summary>
     /// The mobile app's own version, read from platform package metadata
-    /// (ApplicationDisplayVersion → AppInfo) so it tracks the single product version
+    /// (ApplicationDisplayVersion -> AppInfo) so it tracks the single product version
     /// rather than a hardcoded label (AX-QA-014). Distinct from <see cref="HealthDto.Version"/>,
     /// which is the connected desktop's version.
     /// </summary>
     public string AppVersion => Microsoft.Maui.ApplicationModel.AppInfo.Current.VersionString;
 
-    // ── Commands ──────────────────────────────────────────────────────────────
+    // -- Commands --------------------------------------------------------------
 
     private bool CanSave => !string.IsNullOrWhiteSpace(ApiUrl);
 
@@ -78,7 +78,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         var trimmed = ApiUrl.Trim().TrimEnd('/');
 
         // Apply (and validate) the URL before persisting so an insecure/invalid URL is never
-        // saved or used — the client rejects plaintext HTTP to non-loopback hosts (AX-QA-005).
+        // saved or used - the client rejects plaintext HTTP to non-loopback hosts (AX-QA-005).
         try
         {
             _api.SetBaseUrl(trimmed);

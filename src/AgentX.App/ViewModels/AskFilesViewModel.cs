@@ -29,21 +29,21 @@ public partial class AskFilesViewModel : ObservableObject
 
     private CancellationTokenSource? _generationCts;
 
-    // ── Question Input & State ───────────────────────────────────
+    // -- Question Input & State -----------------------------------
     [ObservableProperty] private string _questionText = string.Empty;
     [ObservableProperty] private bool _isGenerating;
     [ObservableProperty] private bool _hasCitations;
     [ObservableProperty] private bool _showEmptyState = true;
 
-    // ── Collection Scope ─────────────────────────────────────────
+    // -- Collection Scope -----------------------------------------
     [ObservableProperty] private long? _selectedCollectionId;
     [ObservableProperty] private string? _selectedCollectionName;
 
-    // ── Index Status ─────────────────────────────────────────────
+    // -- Index Status ---------------------------------------------
     [ObservableProperty] private long _indexedChunkCount;
     [ObservableProperty] private string _indexStatusMessage = string.Empty;
 
-    // ── Collections ──────────────────────────────────────────────
+    // -- Collections ----------------------------------------------
     public ObservableCollection<AskFilesMessage> Messages { get; } = new();
     public ObservableCollection<CitationItem> ActiveCitations { get; } = new();
     public ObservableCollection<CollectionOption> AvailableCollections { get; } = new();
@@ -404,7 +404,7 @@ public partial class AskFilesViewModel : ObservableObject
 }
 
 // =============================================================================
-// ASK FILES MESSAGE — Display model for a chat message in the RAG conversation
+// ASK FILES MESSAGE - Display model for a chat message in the RAG conversation
 // =============================================================================
 
 public partial class AskFilesMessage : ObservableObject
@@ -432,7 +432,7 @@ public partial class AskFilesMessage : ObservableObject
 }
 
 // =============================================================================
-// CITATION ITEM — Display model for a source citation
+// CITATION ITEM - Display model for a source citation
 // =============================================================================
 
 public class CitationItem
@@ -453,7 +453,7 @@ public class CitationItem
 }
 
 // =============================================================================
-// COLLECTION OPTION — Dropdown item for collection scope selector
+// COLLECTION OPTION - Dropdown item for collection scope selector
 // =============================================================================
 
 public class CollectionOption

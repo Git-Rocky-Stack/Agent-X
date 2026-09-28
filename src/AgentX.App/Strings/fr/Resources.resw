@@ -1010,7 +1010,7 @@
   <data name="Ana_TokensOverline.Text" xml:space="preserve"><value>TOKENS UTILISÉS</value></data>
   <data name="Ana_AvgPerMsgLabel.Text" xml:space="preserve"><value>moy. / message</value></data>
   <data name="Ana_DocsOverline.Text" xml:space="preserve"><value>DOCUMENTS</value></data>
-  <data name="Ana_IndexedDotLabel.Text" xml:space="preserve"><value>indexés ·</value></data>
+  <data name="Ana_IndexedDotLabel.Text" xml:space="preserve"><value>indexés |</value></data>
   <data name="Ana_PendingLabel.Text" xml:space="preserve"><value>en attente</value></data>
   <data name="Ana_SearchesOverline.Text" xml:space="preserve"><value>RECHERCHES</value></data>
   <data name="Ana_SearchesCaption.Text" xml:space="preserve"><value>Requêtes sémantiques et par mots-clés</value></data>
@@ -1597,9 +1597,9 @@
   <data name="Chat_AssemblyOverviewTitle.Text" xml:space="preserve"><value>Aperçu de l'assemblage</value></data>
   <data name="Chat_ModeRun.Text" xml:space="preserve"><value>Mode : </value></data>
   <data name="Chat_SelectedRun.Text" xml:space="preserve"><value>Sélection : </value></data>
-  <data name="Chat_AnchorsRun.Text" xml:space="preserve"><value> · Ancres : </value></data>
+  <data name="Chat_AnchorsRun.Text" xml:space="preserve"><value> | Ancres : </value></data>
   <data name="Chat_OverflowRun.Text" xml:space="preserve"><value>Dépassement : </value></data>
-  <data name="Chat_PromptEstRun.Text" xml:space="preserve"><value> · Est. prompt : </value></data>
+  <data name="Chat_PromptEstRun.Text" xml:space="preserve"><value> | Est. prompt : </value></data>
   <data name="Chat_DurableSummaryTitle.Text" xml:space="preserve"><value>Résumé durable</value></data>
   <data name="Chat_RefreshSummaryTip2.ToolTipService.ToolTip" xml:space="preserve"><value>Actualiser le résumé durable de cette conversation</value></data>
   <data name="Chat_DurableRecallTitle.Text" xml:space="preserve"><value>Rappel durable</value></data>
@@ -1607,7 +1607,7 @@
   <data name="Chat_CapturedRun.Text" xml:space="preserve"><value>Capturé </value></data>
   <data name="Chat_PromptRun.Text" xml:space="preserve"><value>Prompt :</value></data>
   <data name="Chat_MessageBox.PlaceholderText" xml:space="preserve"><value>Message à Agent-X...</value></data>
-  <data name="Chat_VoiceInputTip.ToolTipService.ToolTip" xml:space="preserve"><value>Saisie vocale — cliquez pour enregistrer</value></data>
+  <data name="Chat_VoiceInputTip.ToolTipService.ToolTip" xml:space="preserve"><value>Saisie vocale - cliquez pour enregistrer</value></data>
   <data name="Chat_StopRecordingTip.ToolTipService.ToolTip" xml:space="preserve"><value>Arrêter l'enregistrement et transcrire</value></data>
   <data name="Chat_InspectAssembledTip.ToolTipService.ToolTip" xml:space="preserve"><value>Inspecter le dernier contexte de discussion assemblé</value></data>
   <data name="Chat_ModeSolo.Text" xml:space="preserve"><value>Solo</value></data>
@@ -2083,7 +2083,7 @@
   <data name="QuickAct_ScanExactDuplicates.Content" xml:space="preserve"><value>Rechercher les doublons exacts</value></data>
   <data name="QuickAct_ScanSemanticNearDuplicates.Content" xml:space="preserve"><value>Rechercher les quasi-doublons sémantiques</value></data>
   <data name="QuickAct_Wasted.Text" xml:space="preserve"><value> gaspillés</value></data>
-  <data name="QuickAct_Imported.Text" xml:space="preserve"><value> · Importé </value></data>
+  <data name="QuickAct_Imported.Text" xml:space="preserve"><value> | Importé </value></data>
   <data name="QuickAct_AiOrganizationAssistant.Text" xml:space="preserve"><value>Assistant d'organisation IA</value></data>
   <data name="QuickAct_AnalyzesUncategorizedDocuments.Text" xml:space="preserve"><value>Analyse les documents non classés et suggère des collections et des tags selon le contenu.</value></data>
   <data name="QuickAct_AnalyzeSuggest.Content" xml:space="preserve"><value>Analyser et suggérer</value></data>
@@ -2148,7 +2148,7 @@
   <data name="HwAdvisor_Installed3.Text" xml:space="preserve"><value>Installé</value></data>
   <data name="HwAdvisor_Install3.Text" xml:space="preserve"><value>Installer</value></data>
   <data name="HwAdvisor_LocalAiOnly.Text" xml:space="preserve"><value>IA locale uniquement</value></data>
-  <data name="HwAdvisor_AllModelsRunEntirely.Text" xml:space="preserve"><value> — Tous les modèles s'exécutent entièrement sur votre matériel. Aucune donnée n'est envoyée à des serveurs externes. Les informations sur votre matériel ne quittent jamais cette machine.</value></data>
+  <data name="HwAdvisor_AllModelsRunEntirely.Text" xml:space="preserve"><value> - Tous les modèles s'exécutent entièrement sur votre matériel. Aucune donnée n'est envoyée à des serveurs externes. Les informations sur votre matériel ne quittent jamais cette machine.</value></data>
   <data name="WfBuilder_Workflows.Text" xml:space="preserve"><value>Workflows</value></data>
   <data name="WfBuilder_MultiStepAiPipelines.Text" xml:space="preserve"><value>Pipelines d'IA en plusieurs étapes</value></data>
   <data name="WfBuilder_NewWorkflow.Content" xml:space="preserve"><value>Nouveau flux de travail</value></data>
@@ -2350,7 +2350,7 @@
   <data name="WfBuilder_ShowingCancelledResult" xml:space="preserve"><value>Affichage du résultat de l'exécution annulée</value></data>
   <data name="WfBuilder_WorkflowCancelled" xml:space="preserve"><value>Flux de travail annulé</value></data>
   <data name="WfBuilder_ImportedWorkflow" xml:space="preserve"><value>Flux de travail « {0} » importé</value></data>
-  <data name="WfBuilder_ImportInvalidJson" xml:space="preserve"><value>Échec de l'importation — JSON de flux de travail non valide</value></data>
+  <data name="WfBuilder_ImportInvalidJson" xml:space="preserve"><value>Échec de l'importation - JSON de flux de travail non valide</value></data>
   <data name="WfBuilder_LoadRecentRunsFailed" xml:space="preserve"><value>Impossible de charger les exécutions récentes du flux de travail</value></data>
   <data name="WfBuilder_RequestedRunUnavailable" xml:space="preserve"><value>L'exécution de flux de travail demandée n'est plus disponible.</value></data>
   <data name="WfBuilder_RequestedRunNotInHistory" xml:space="preserve"><value>L'exécution de flux de travail demandée ne figure plus dans l'historique récent.</value></data>
@@ -2730,12 +2730,12 @@
   <data name="Chat_IntelBadgePending" xml:space="preserve"><value>En attente</value></data>
   <data name="Chat_IntelBadgeUnavailable" xml:space="preserve"><value>Indisponible</value></data>
   <data name="Chat_SummaryRefreshing" xml:space="preserve"><value>Actualisation du résumé durable...</value></data>
-  <data name="Chat_SummaryCurrentKeyPointsOne" xml:space="preserve"><value>Résumé à jour • 1 point clé disponible</value></data>
-  <data name="Chat_SummaryCurrentKeyPointsMany" xml:space="preserve"><value>Résumé à jour • {0} points clés disponibles</value></data>
-  <data name="Chat_SummaryCurrentReady" xml:space="preserve"><value>Résumé à jour • Prêt pour un examen approfondi</value></data>
-  <data name="Chat_SummaryStaleMessagesOne" xml:space="preserve"><value>Résumé obsolète • 1 message plus récent non intégré</value></data>
-  <data name="Chat_SummaryStaleMessagesMany" xml:space="preserve"><value>Résumé obsolète • {0} messages plus récents non intégrés</value></data>
-  <data name="Chat_SummaryStaleWaiting" xml:space="preserve"><value>Résumé obsolète • En attente de la prochaine actualisation</value></data>
+  <data name="Chat_SummaryCurrentKeyPointsOne" xml:space="preserve"><value>Résumé à jour | 1 point clé disponible</value></data>
+  <data name="Chat_SummaryCurrentKeyPointsMany" xml:space="preserve"><value>Résumé à jour | {0} points clés disponibles</value></data>
+  <data name="Chat_SummaryCurrentReady" xml:space="preserve"><value>Résumé à jour | Prêt pour un examen approfondi</value></data>
+  <data name="Chat_SummaryStaleMessagesOne" xml:space="preserve"><value>Résumé obsolète | 1 message plus récent non intégré</value></data>
+  <data name="Chat_SummaryStaleMessagesMany" xml:space="preserve"><value>Résumé obsolète | {0} messages plus récents non intégrés</value></data>
+  <data name="Chat_SummaryStaleWaiting" xml:space="preserve"><value>Résumé obsolète | En attente de la prochaine actualisation</value></data>
   <data name="Chat_SummaryRefreshPending" xml:space="preserve"><value>Actualisation du résumé en attente</value></data>
   <data name="Chat_SummaryUnavailablePath" xml:space="preserve"><value>Résumé indisponible pour ce mode de réponse</value></data>
   <data name="Chat_ConversationContextNone" xml:space="preserve"><value>Aucun contexte de conversation capturé pour le moment</value></data>
@@ -2829,8 +2829,8 @@
   <data name="BranchCompare_BranchLabel" xml:space="preserve"><value>Branche : {0}</value></data>
   <data name="BranchCompare_Untitled" xml:space="preserve"><value>Sans titre</value></data>
   <data name="BranchCompare_UntitledConversation" xml:space="preserve"><value>Conversation sans titre</value></data>
-  <data name="BranchCompare_HeaderSummaryOne" xml:space="preserve"><value>{0} — {1} sous-branche</value></data>
-  <data name="BranchCompare_HeaderSummaryMany" xml:space="preserve"><value>{0} — {1} sous-branches</value></data>
+  <data name="BranchCompare_HeaderSummaryOne" xml:space="preserve"><value>{0} - {1} sous-branche</value></data>
+  <data name="BranchCompare_HeaderSummaryMany" xml:space="preserve"><value>{0} - {1} sous-branches</value></data>
   <data name="BranchCompare_Label" xml:space="preserve"><value>Libellé : {0}</value></data>
   <data name="BranchCompare_BranchedFrom" xml:space="preserve"><value>Branche créée à partir du message n° {0}</value></data>
   <data name="BranchCompare_SubBranchesOne" xml:space="preserve"><value>{0} sous-branche</value></data>
@@ -2896,9 +2896,9 @@
   <data name="Settings_AutomaticallyRoutePromptsTo.Text" xml:space="preserve"><value>Achemine automatiquement les prompts vers le meilleur modèle d'IA selon le type de tâche. L'extraction et le chat privilégient les modèles locaux rapides ; l'analyse et le code privilégient les modèles cloud de qualité.</value></data>
   <data name="Settings_EnableAutoRouting.Header" xml:space="preserve"><value>Activer le routage automatique</value></data>
   <data name="Settings_RoutingProfile.Text" xml:space="preserve"><value>Profil de routage</value></data>
-  <data name="Settings_CostOptimizedLocalModels.Text" xml:space="preserve"><value>Optimisé coût — Modèles locaux pour toutes les tâches, cloud seulement en secours</value></data>
-  <data name="Settings_QualityOptimizedCloudModels.Text" xml:space="preserve"><value>Optimisé qualité — Modèles cloud pour l'analyse, le code et la création</value></data>
-  <data name="Settings_BalancedLocalForSimple.Text" xml:space="preserve"><value>Équilibré — Local pour les tâches simples, cloud pour les tâches critiques en qualité</value></data>
+  <data name="Settings_CostOptimizedLocalModels.Text" xml:space="preserve"><value>Optimisé coût - Modèles locaux pour toutes les tâches, cloud seulement en secours</value></data>
+  <data name="Settings_QualityOptimizedCloudModels.Text" xml:space="preserve"><value>Optimisé qualité - Modèles cloud pour l'analyse, le code et la création</value></data>
+  <data name="Settings_BalancedLocalForSimple.Text" xml:space="preserve"><value>Équilibré - Local pour les tâches simples, cloud pour les tâches critiques en qualité</value></data>
   <data name="Settings_CostTracking.Text" xml:space="preserve"><value>Suivi des coûts</value></data>
   <data name="Settings_EstimatedApiCostsFor.Text" xml:space="preserve"><value>Coûts d'API estimés pour les fournisseurs cloud. Les modèles Ollama locaux sont gratuits.</value></data>
   <data name="Settings_TotalSpend.Text" xml:space="preserve"><value>DÉPENSE TOTALE</value></data>
@@ -3060,7 +3060,7 @@
   <data name="PastSelf_ViewSince" xml:space="preserve"><value>Votre point de vue depuis le {0}</value></data>
   <data name="PastSelf_TopicRecorded" xml:space="preserve"><value>Enregistré : {0}</value></data>
   <data name="PastSelf_TopicRecordedSpan" xml:space="preserve"><value>Enregistré pour la première fois : {0} ; dernière fois : {1}</value></data>
-  <data name="Privacy_AgentXIsDesigned.Text" xml:space="preserve"><value>Agent-X est conçu avec la confidentialité comme principe fondamental. Toutes vos données — documents, conversations, embeddings et paramètres — sont stockées localement sur votre appareil. Nous n'exploitons aucun serveur cloud qui traite ou stocke vos données personnelles.</value></data>
+  <data name="Privacy_AgentXIsDesigned.Text" xml:space="preserve"><value>Agent-X est conçu avec la confidentialité comme principe fondamental. Toutes vos données - documents, conversations, embeddings et paramètres - sont stockées localement sur votre appareil. Nous n'exploitons aucun serveur cloud qui traite ou stocke vos données personnelles.</value></data>
   <data name="Privacy_OurLocalFirstArchitecture.Text" xml:space="preserve"><value>Notre architecture locale d'abord signifie que vous conservez la pleine propriété et le contrôle de chaque information que vous créez ou importez dans Agent-X. Aucun compte à créer, aucune synchronisation de données, aucune télémétrie transmise.</value></data>
   <data name="Privacy_InformationWeCollect.Text" xml:space="preserve"><value>Informations que nous collectons</value></data>
   <data name="Privacy_InformationYouProvide.Text" xml:space="preserve"><value>Informations que vous fournissez</value></data>
@@ -3084,7 +3084,7 @@
   <data name="Privacy_AllDataStoredIn.Text" xml:space="preserve"><value>Toutes les données dans des bases SQLite locales sur votre appareil</value></data>
   <data name="Privacy_DocumentEmbeddingsStoredIn.Text" xml:space="preserve"><value>Embeddings de documents dans une base vectorielle locale (sqlite-vec)</value></data>
   <data name="Privacy_ApplicationLogsStoredIn.Text" xml:space="preserve"><value>Journaux de l'application stockés dans </value></data>
-  <data name="Privacy_SettingsStoredLocallyNever.Text" xml:space="preserve"><value>Paramètres stockés localement — jamais synchronisés vers le cloud</value></data>
+  <data name="Privacy_SettingsStoredLocallyNever.Text" xml:space="preserve"><value>Paramètres stockés localement - jamais synchronisés vers le cloud</value></data>
   <data name="Privacy_YouHaveFullControl.Text" xml:space="preserve"><value>Vous avez le contrôle total : toutes les données peuvent être supprimées en effaçant le dossier de données de l'application</value></data>
   <data name="Privacy_ThirdPartyServices.Text" xml:space="preserve"><value>Services tiers</value></data>
   <data name="Privacy_OllamaLocalAiRuntime.Text" xml:space="preserve"><value>Ollama (environnement d'IA local)</value></data>
@@ -3105,14 +3105,14 @@
   <data name="Privacy_RightToDataPortability.Text" xml:space="preserve"><value>Droit à la portabilité des données</value></data>
   <data name="Privacy_YourDataIsStored.Text" xml:space="preserve"><value>Vos données sont stockées au format SQLite standard et peuvent être exportées ou déplacées librement.</value></data>
   <data name="Privacy_RightToRestrictProcessing.Text" xml:space="preserve"><value>Droit à la limitation du traitement</value></data>
-  <data name="Privacy_YouControlAllProcessing.Text" xml:space="preserve"><value>Vous contrôlez tout le traitement — fermez simplement l'application pour arrêter tout traitement des données.</value></data>
+  <data name="Privacy_YouControlAllProcessing.Text" xml:space="preserve"><value>Vous contrôlez tout le traitement - fermez simplement l'application pour arrêter tout traitement des données.</value></data>
   <data name="Privacy_RightToObject.Text" xml:space="preserve"><value>Droit d'opposition</value></data>
   <data name="Privacy_YouCanStopUsing.Text" xml:space="preserve"><value>Vous pouvez cesser d'utiliser l'application à tout moment. La désinstallation met fin à tout traitement.</value></data>
   <data name="Privacy_SinceAllDataIs.Text" xml:space="preserve"><value>Comme toutes les données sont stockées localement sur votre appareil, vous exercez ces droits directement sans avoir à nous contacter. Vous êtes le seul responsable du contrôle de vos données.</value></data>
   <data name="Privacy_YourRightsUnderCcpa.Text" xml:space="preserve"><value>Vos droits en vertu du CCPA</value></data>
   <data name="Privacy_IfYouAreA.Text" xml:space="preserve"><value>Si vous résidez en Californie, vous disposez de droits spécifiques en vertu du California Consumer Privacy Act (CCPA).</value></data>
   <data name="Privacy_RightToKnow.Text" xml:space="preserve"><value>Droit de savoir</value></data>
-  <data name="Privacy_WhatPersonalInformationIs.Text" xml:space="preserve"><value>Quelles informations personnelles sont collectées — voir « Informations que nous collectons » ci-dessus pour une énumération complète.</value></data>
+  <data name="Privacy_WhatPersonalInformationIs.Text" xml:space="preserve"><value>Quelles informations personnelles sont collectées - voir « Informations que nous collectons » ci-dessus pour une énumération complète.</value></data>
   <data name="Privacy_RightToDelete.Text" xml:space="preserve"><value>Droit de suppression</value></data>
   <data name="Privacy_RemoveAllDataBy.Text" xml:space="preserve"><value>Supprimez toutes les données en désinstallant l'application ou en effaçant le répertoire de données de l'application.</value></data>
   <data name="Privacy_RightToOptOut.Text" xml:space="preserve"><value>Droit de refuser la vente</value></data>
@@ -3146,8 +3146,8 @@
   <data name="Privacy_ForGdprInquiriesOur.Text" xml:space="preserve"><value>Pour les demandes RGPD, notre contact protection des données est joignable à support@strategia-x.com</value></data>
   <data name="Privacy_CcpaRequestsCaliforniaResident.Text" xml:space="preserve"><value>Demandes CCPA (résidents de Californie)</value></data>
   <data name="Privacy_CaliforniaResidentsMayContact.Text" xml:space="preserve"><value>Les résidents de Californie peuvent nous contacter à support@strategia-x.com pour toute demande liée au CCPA.</value></data>
-  <data name="Privacy_2026RockyElsalaymehFree.Text" xml:space="preserve"><value>© 2026 Rocky Elsalaymeh. Gratuit et open source sous licence MIT.</value></data>
-  <data name="Privacy_AgentXLocalFirst.Text" xml:space="preserve"><value>Agent-X — Hub d'intelligence personnelle IA local d'abord</value></data>
+  <data name="Privacy_2026RockyElsalaymehFree.Text" xml:space="preserve"><value>(c) 2026 Rocky Elsalaymeh. Gratuit et open source sous licence MIT.</value></data>
+  <data name="Privacy_AgentXLocalFirst.Text" xml:space="preserve"><value>Agent-X - Hub d'intelligence personnelle IA local d'abord</value></data>
   <data name="Terms_Legal.Text" xml:space="preserve"><value>MENTIONS LÉGALES</value></data>
   <data name="Terms_TermsOfService.Text" xml:space="preserve"><value>CONDITIONS D'UTILISATION</value></data>
   <data name="Terms_EffectiveDateFebruary26.Text" xml:space="preserve"><value>Date d'entrée en vigueur : 26 février 2026</value></data>
@@ -3165,7 +3165,7 @@
   <data name="Terms_AllProcessingOccursLocally.Text" xml:space="preserve"><value>Tout le traitement s'effectue localement sur votre appareil. Agent-X ne transmet pas vos données à des serveurs externes pour l'inférence IA.</value></data>
   <data name="Terms_3LicenseGrant.Text" xml:space="preserve"><value>3. Octroi de licence</value></data>
   <data name="Terms_UnderTheMitLicense.Text" xml:space="preserve"><value>Sous licence MIT, vous pouvez librement :</value></data>
-  <data name="Terms_UseAgentXFor.Text" xml:space="preserve"><value>Utiliser Agent-X à toute fin — personnelle, commerciale ou autre</value></data>
+  <data name="Terms_UseAgentXFor.Text" xml:space="preserve"><value>Utiliser Agent-X à toute fin - personnelle, commerciale ou autre</value></data>
   <data name="Terms_StudyModifyAndBuild.Text" xml:space="preserve"><value>Étudier, modifier et développer à partir du code source</value></data>
   <data name="Terms_DistributeAndSublicenseCopies.Text" xml:space="preserve"><value>Distribuer et sous-licencier des copies, avec ou sans modification</value></data>
   <data name="Terms_IncludeAgentXIn.Text" xml:space="preserve"><value>Inclure Agent-X dans vos propres projets, gratuitement</value></data>
@@ -3380,7 +3380,7 @@
   <data name="Chat_CopyAiMsgTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Copier dans le presse-papiers</value></data>
   <data name="Chat_RegenerateTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Régénérer la réponse</value></data>
   <data name="Chat_DeleteAiMsgTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Supprimer le message</value></data>
-  <data name="Chat_VoiceInputTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Saisie vocale — cliquez pour enregistrer</value></data>
+  <data name="Chat_VoiceInputTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Saisie vocale - cliquez pour enregistrer</value></data>
   <data name="Chat_StopRecordingTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Arrêter l'enregistrement et transcrire</value></data>
   <data name="Chat_InspectAssembledTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Inspecter le dernier contexte de discussion assemblé</value></data>
   <data name="Graph_ZoomOutTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Zoom arrière</value></data>
@@ -3590,7 +3590,7 @@
   <data name="Ana_NoCompletedOutcomes" xml:space="preserve"><value>Pas encore de résultats terminés</value></data>
   <data name="Ana_SuccessfulRunsOne" xml:space="preserve"><value>1 exécution réussie</value></data>
   <data name="Ana_SuccessfulRunsMany" xml:space="preserve"><value>{0} exécutions réussies</value></data>
-  <data name="Ana_RunsSucceededAndFailed" xml:space="preserve"><value>{0} réussies · {1} en échec/annulées</value></data>
+  <data name="Ana_RunsSucceededAndFailed" xml:space="preserve"><value>{0} réussies | {1} en échec/annulées</value></data>
   <data name="Ana_RunStatusCompleted" xml:space="preserve"><value>Terminé</value></data>
   <data name="Ana_RunStatusFailed" xml:space="preserve"><value>Échec</value></data>
   <data name="Ana_RunStatusCancelled" xml:space="preserve"><value>Annulé</value></data>
@@ -3609,8 +3609,8 @@
   <data name="Ana_TimeHoursAgo" xml:space="preserve"><value>il y a {0} h</value></data>
   <data name="Ana_TimeOneDayAgo" xml:space="preserve"><value>il y a 1 jour</value></data>
   <data name="Ana_TimeDaysAgo" xml:space="preserve"><value>il y a {0} jours</value></data>
-  <data name="Ana_ThemeClusterActivity" xml:space="preserve"><value>{0} conversations · {1} actives / 7 j · {2} actives / 30 j</value></data>
-  <data name="Ana_ThemeTrendActivity" xml:space="preserve"><value>{0} actives / 7 j · {1} actives / 30 j</value></data>
+  <data name="Ana_ThemeClusterActivity" xml:space="preserve"><value>{0} conversations | {1} actives / 7 j | {2} actives / 30 j</value></data>
+  <data name="Ana_ThemeTrendActivity" xml:space="preserve"><value>{0} actives / 7 j | {1} actives / 30 j</value></data>
   <data name="Ana_ThemeTrendBarTooltip" xml:space="preserve"><value>{0} : {1} actives, {2} nouvelles, {3} instantanés</value></data>
   <data name="Palette_OpenHint.Text" xml:space="preserve"><value>Ouvrir</value></data>
   <data name="Palette_CloseHint.Text" xml:space="preserve"><value>Fermer</value></data>

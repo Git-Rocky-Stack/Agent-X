@@ -11,7 +11,7 @@ using Serilog;
 namespace AgentX.App.ViewModels;
 
 /// <summary>
-/// ViewModel for "Past Self" mode — query what you believed, thought, and discovered at previous points in time.
+/// ViewModel for "Past Self" mode - query what you believed, thought, and discovered at previous points in time.
 /// </summary>
 public partial class PastSelfViewModel : ObservableObject
 {
@@ -234,7 +234,7 @@ public partial class PastSelfViewModel : ObservableObject
         }
     }
 
-    // ─── Helpers ───────────────────────────────────────────────────────────────────
+    // --- Helpers -------------------------------------------------------------------
 
     private DateTime? GetTargetDate()
     {
@@ -332,7 +332,7 @@ public partial class PastSelfViewModel : ObservableObject
         };
     }
 
-    // ─── Generative Identity: "Draft as Me" ─────────────────────────────────────────────
+    // --- Generative Identity: "Draft as Me" ---------------------------------------------
 
     [ObservableProperty]
     private string _draftContext = string.Empty;
@@ -538,7 +538,7 @@ public partial class PastSelfViewModel : ObservableObject
         };
 }
 
-// ─── Result Models ───────────────────────────────────────────────────────────────
+// --- Result Models ---------------------------------------------------------------
 
 public class PastSelfResult
 {

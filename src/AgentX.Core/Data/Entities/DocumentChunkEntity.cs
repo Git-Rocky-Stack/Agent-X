@@ -18,9 +18,9 @@ public class DocumentChunkEntity
     public bool IsEmbedded { get; set; }
     public long? VectorRowId { get; set; } // Foreign key to sqlite-vec virtual table
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Embedding Model Versioning (Added: Phase 1)
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>
     /// The embedding model version used to generate the embedding for this chunk.

@@ -9,26 +9,26 @@ using Serilog;
 
 namespace AgentX.App.ViewModels;
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // DIGEST VIEW MODEL
 //
 // Manages the weekly digest report page. Loads existing reports, generates
 // new ones on demand, and presents parsed report data for display.
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 public partial class DigestViewModel : ObservableObject
 {
     private readonly IDigestService _digestService;
     private readonly ILocalizationService _localization;
 
-    // ── Page State ─────────────────────────────────────────────
+    // -- Page State ---------------------------------------------
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private bool _isGenerating;
     [ObservableProperty] private DigestReportDisplay? _currentReport;
     [ObservableProperty] private bool _hasReport;
     [ObservableProperty] private string _statusMessage = string.Empty;
 
-    // ── Report History ────────────────────────────────────────
+    // -- Report History ----------------------------------------
     public ObservableCollection<DigestReportDisplay> ReportHistory { get; } = new();
 
     public DigestViewModel(IDigestService digestService, ILocalizationService localization)
@@ -38,9 +38,9 @@ public partial class DigestViewModel : ObservableObject
         StatusMessage = _localization.GetString("Digest_NoReportsYet");
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // INITIALIZATION
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     public async Task InitializeAsync()
     {
@@ -84,9 +84,9 @@ public partial class DigestViewModel : ObservableObject
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // COMMANDS
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     /// <summary>
     /// Generates a new weekly digest report covering the past 7 days.
@@ -134,9 +134,9 @@ public partial class DigestViewModel : ObservableObject
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // MAPPING
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     private static readonly JsonSerializerOptions _jsonOptions = new()
     {
@@ -231,12 +231,12 @@ public partial class DigestViewModel : ObservableObject
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // DISPLAY MODELS
 //
 // Presentation-layer models for binding digest report data to the UI.
 // Separate from the entity to provide formatted strings and parsed JSON data.
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 public class DigestReportDisplay
 {
@@ -257,7 +257,7 @@ public class DigestReportDisplay
     public List<FileTypeItem> FileTypeBreakdown { get; set; } = new();
     public List<HighlightItem> Highlights { get; set; } = new();
 
-    // ── Formatted Properties for Display ────────────────────────
+    // -- Formatted Properties for Display ------------------------
 
     // The date texts are set by the view model, in local time and the UI language.
 
@@ -274,7 +274,7 @@ public class DigestReportDisplay
     public string ShortPeriodFormatted { get; set; } = string.Empty;
 }
 
-// ── JSON Deserialization Models ──────────────────────────────────
+// -- JSON Deserialization Models ----------------------------------
 
 public class TopSearchItem
 {

@@ -338,7 +338,7 @@ public sealed class FileWatcherService : IFileWatcherService
         ClearDebounceTimers();
     }
 
-    // ─── Private Watcher Management ─────────────────────────────────
+    // --- Private Watcher Management ---------------------------------
 
     /// <summary>
     /// Creates and starts a <see cref="FileSystemWatcher"/> for the given watch folder entity.
@@ -424,7 +424,7 @@ public sealed class FileWatcherService : IFileWatcherService
         _debounceTimers.Clear();
     }
 
-    // ─── Event Handlers ─────────────────────────────────────────────
+    // --- Event Handlers ---------------------------------------------
 
     /// <summary>
     /// Handles Created/Changed/Renamed events with debouncing.
@@ -445,7 +445,7 @@ public sealed class FileWatcherService : IFileWatcherService
         var timer = _debounceTimers.AddOrUpdate(
             normalizedPath,
             // Factory: create a new timer.
-            // Wave 4a: fire-and-forget through SafeOnDebounceElapsedAsync — async-void in a
+            // Wave 4a: fire-and-forget through SafeOnDebounceElapsedAsync - async-void in a
             // Timer callback would crash the process on unhandled exceptions; the safe wrapper
             // catches faults from BOTH the body and the dictionary/path-handling prelude.
             key => new Timer(
@@ -485,7 +485,7 @@ public sealed class FileWatcherService : IFileWatcherService
         var normalizedPath = Path.GetFullPath(filePath).ToLowerInvariant();
 
         // Remove the debounce timer. Wave 4a: DisposeAsync awaits any in-flight
-        // callback before returning — safer than blocking the thread-pool thread.
+        // callback before returning - safer than blocking the thread-pool thread.
         if (_debounceTimers.TryRemove(normalizedPath, out var timer))
         {
             await timer.DisposeAsync().ConfigureAwait(false);
@@ -624,7 +624,7 @@ public sealed class FileWatcherService : IFileWatcherService
         });
     }
 
-    // ─── Private Helpers ─────────────────────────────────────────────
+    // --- Private Helpers ---------------------------------------------
 
     /// <summary>
     /// Increments the FilesIndexed counter for a watch folder.
@@ -711,7 +711,7 @@ public sealed class FileWatcherService : IFileWatcherService
         return set.Count > 0 ? set : null;
     }
 
-    // ─── Internal Types ─────────────────────────────────────────────
+    // --- Internal Types ---------------------------------------------
 
     /// <summary>
     /// Holds runtime context for a watch folder, used by event handlers

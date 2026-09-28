@@ -115,7 +115,7 @@ public interface IConversationService
     /// </summary>
     Task<long> GetTotalTokensUsedAsync();
 
-    // ── Folder / Tag Organization ───────────────────────────────
+    // -- Folder / Tag Organization -------------------------------
 
     /// <summary>
     /// Sets or clears the folder name for a conversation.

@@ -17,7 +17,7 @@ public sealed record ConversationDto
     // Pre-computed display values
     public string UpdatedAgo => FormatHelper.TimeAgo(UpdatedAtUtc);
 
-    // ── Conversation Branching ───────────────────────────────
+    // -- Conversation Branching -------------------------------
     /// <summary>ID of the parent conversation this was branched from, or null for a root conversation.</summary>
     public long? ParentConversationId { get; init; }
 

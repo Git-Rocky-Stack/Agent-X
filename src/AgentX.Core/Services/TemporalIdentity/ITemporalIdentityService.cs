@@ -3,7 +3,7 @@ using AgentX.Core.Services.TemporalIdentity.Models;
 namespace AgentX.Core.Services.TemporalIdentity;
 
 /// <summary>
-/// Temporal Identity Service — mines user's past to enable "Past Self" mode.
+/// Temporal Identity Service - mines user's past to enable "Past Self" mode.
 ///
 /// Core capabilities:
 /// - Track belief/opinion evolution over time
@@ -14,7 +14,7 @@ namespace AgentX.Core.Services.TemporalIdentity;
 /// </summary>
 public interface ITemporalIdentityService
 {
-    // ─── Belief Tracking ────────────────────────────────────────────────────────
+    // --- Belief Tracking --------------------------------------------------------
 
     /// <summary>
     /// Analyze a new message for beliefs and update temporal tracking.
@@ -73,7 +73,7 @@ public interface ITemporalIdentityService
     /// <returns><c>true</c> if the conflict existed and is now acknowledged; <c>false</c> if no such conflict was found.</returns>
     Task<bool> AcknowledgeConflictAsync(long conflictId, CancellationToken ct = default);
 
-    // ─── Insight Harvesting ─────────────────────────────────────────────────────
+    // --- Insight Harvesting -----------------------------------------------------
 
     /// <summary>
     /// Manually capture an insight moment.
@@ -112,7 +112,7 @@ public interface ITemporalIdentityService
         int count = 10,
         CancellationToken ct = default);
 
-    // ─── Engagement Tracking ───────────────────────────────────────────────────
+    // --- Engagement Tracking ---------------------------------------------------
 
     /// <summary>
     /// Record engagement with a piece of content.
@@ -142,7 +142,7 @@ public interface ITemporalIdentityService
         string topic,
         CancellationToken ct = default);
 
-    // ─── Voice Learning ─────────────────────────────────────────────────────────
+    // --- Voice Learning ---------------------------------------------------------
 
     /// <summary>
     /// Analyze a message to learn the user's communication patterns.
@@ -157,7 +157,7 @@ public interface ITemporalIdentityService
     /// </summary>
     Task<VoiceProfileEntity?> GetVoiceProfileAsync(CancellationToken ct = default);
 
-    // ─── Pattern Recognition ─────────────────────────────────────────────────────
+    // --- Pattern Recognition -----------------------------------------------------
 
     /// <summary>
     /// Find similar problems the user has solved before.

@@ -40,7 +40,7 @@ public sealed class SqliteVecStore : IVectorStore
     /// Creates a new SqliteVecStore.
     /// </summary>
     /// <param name="settingsService">Settings service providing the database storage path.</param>
-    /// <param name="connectionFactory">Encrypted connection factory — required so PRAGMA key is applied when opening SQLite.</param>
+    /// <param name="connectionFactory">Encrypted connection factory - required so PRAGMA key is applied when opening SQLite.</param>
     public SqliteVecStore(ISettingsService settingsService, IEncryptedConnectionFactory connectionFactory)
         : this(settingsService, logger: null, connectionFactory)
     {
@@ -51,7 +51,7 @@ public sealed class SqliteVecStore : IVectorStore
     /// </summary>
     /// <param name="settingsService">Settings service providing the database storage path.</param>
     /// <param name="logger">Serilog logger instance (may be null to use the default context logger).</param>
-    /// <param name="connectionFactory">Encrypted connection factory — required so PRAGMA key is applied when opening SQLite.</param>
+    /// <param name="connectionFactory">Encrypted connection factory - required so PRAGMA key is applied when opening SQLite.</param>
     public SqliteVecStore(ISettingsService settingsService, ILogger? logger, IEncryptedConnectionFactory connectionFactory)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
@@ -374,7 +374,7 @@ public sealed class SqliteVecStore : IVectorStore
         _logger.Information("SqliteVecStore disposed");
     }
 
-    // ── Embedding serialization ─────────────────────────────────────────
+    // -- Embedding serialization -----------------------------------------
 
     /// <summary>
     /// Serializes a float array to a byte array using direct memory copy.
@@ -403,7 +403,7 @@ public sealed class SqliteVecStore : IVectorStore
         return floats;
     }
 
-    // ── Vector math ─────────────────────────────────────────────────────
+    // -- Vector math -----------------------------------------------------
 
     /// <summary>
     /// Computes the L2 (Euclidean) magnitude of a vector: sqrt(sum of squares).
@@ -451,7 +451,7 @@ public sealed class SqliteVecStore : IVectorStore
         return dotProduct / (magnitudeA * magnitudeB);
     }
 
-    // ── Private helpers ─────────────────────────────────────────────────
+    // -- Private helpers -------------------------------------------------
 
     /// <summary>
     /// Executes a non-query SQL command on the current connection.

@@ -14,16 +14,16 @@ namespace AgentX.Core.Services.Plugins.Calendar;
 /// <remarks>
 /// Lifecycle:
 /// <list type="number">
-///   <item><see cref="InitializeAsync"/> — resolves <see cref="IOAuthService"/> from the
+///   <item><see cref="InitializeAsync"/> - resolves <see cref="IOAuthService"/> from the
 ///     plugin context, loads persisted sync settings, and registers provider implementations.</item>
-///   <item><see cref="ActivateAsync"/> — starts the periodic sync timer.</item>
+///   <item><see cref="ActivateAsync"/> - starts the periodic sync timer.</item>
 ///   <item><see cref="DeactivateAsync"/>: stops the sync timer and cancels an in-flight sync,
 ///     waiting a bounded time for it to stop.</item>
 /// </list>
 /// </remarks>
 public sealed class CalendarPlugin : IPlugin
 {
-    // ── IPlugin metadata ────────────────────────────────────────────────────────
+    // -- IPlugin metadata --------------------------------------------------------
 
     /// <inheritdoc />
     public string Id => "com.agentx.calendar";
@@ -43,7 +43,7 @@ public sealed class CalendarPlugin : IPlugin
     /// <inheritdoc />
     public PluginType Type => PluginType.DataConnector;
 
-    // ── Private state ───────────────────────────────────────────────────────────
+    // -- Private state -----------------------------------------------------------
 
     private IPluginContext? _context;
     private IOAuthService? _oauthService;
@@ -78,7 +78,7 @@ public sealed class CalendarPlugin : IPlugin
     /// </summary>
     public SyncResult? LastSyncResult { get; private set; }
 
-    // ── IPlugin: InitializeAsync ────────────────────────────────────────────────
+    // -- IPlugin: InitializeAsync ------------------------------------------------
 
     /// <inheritdoc />
     /// <remarks>
@@ -86,7 +86,7 @@ public sealed class CalendarPlugin : IPlugin
     /// sync settings from the plugin data directory, and checks which providers
     /// have valid OAuth credentials to initialize <see cref="ICalendarProvider"/>
     /// implementations.
-    /// Does NOT start background sync — that happens in <see cref="ActivateAsync"/>.
+    /// Does NOT start background sync - that happens in <see cref="ActivateAsync"/>.
     /// </remarks>
     public async Task InitializeAsync(IPluginContext context)
     {
@@ -135,7 +135,7 @@ public sealed class CalendarPlugin : IPlugin
             _syncSettings.EnabledCalendars.Count(kv => kv.Value));
     }
 
-    // ── IPlugin: ActivateAsync ──────────────────────────────────────────────────
+    // -- IPlugin: ActivateAsync --------------------------------------------------
 
     /// <inheritdoc />
     /// <remarks>
@@ -148,7 +148,7 @@ public sealed class CalendarPlugin : IPlugin
 
         if (_isActivated)
         {
-            _log?.Debug("CalendarPlugin is already activated — ActivateAsync is a no-op");
+            _log?.Debug("CalendarPlugin is already activated - ActivateAsync is a no-op");
             return Task.CompletedTask;
         }
 
@@ -162,7 +162,7 @@ public sealed class CalendarPlugin : IPlugin
         return Task.CompletedTask;
     }
 
-    // ── IPlugin: DeactivateAsync ────────────────────────────────────────────────
+    // -- IPlugin: DeactivateAsync ------------------------------------------------
 
     /// <inheritdoc />
     /// <remarks>
@@ -175,11 +175,11 @@ public sealed class CalendarPlugin : IPlugin
 
         if (!_isActivated)
         {
-            _log?.Debug("CalendarPlugin is not activated — DeactivateAsync is a no-op");
+            _log?.Debug("CalendarPlugin is not activated - DeactivateAsync is a no-op");
             return;
         }
 
-        _log?.Information("Deactivating CalendarPlugin — stopping sync timer");
+        _log?.Information("Deactivating CalendarPlugin - stopping sync timer");
 
         StopSyncTimer();
         _isActivated = false;
@@ -208,7 +208,7 @@ public sealed class CalendarPlugin : IPlugin
         _log?.Information("CalendarPlugin deactivated");
     }
 
-    // ── IDisposable ─────────────────────────────────────────────────────────────
+    // -- IDisposable -------------------------------------------------------------
 
     public void Dispose()
     {
@@ -225,7 +225,7 @@ public sealed class CalendarPlugin : IPlugin
         _isDisposed = true;
     }
 
-    // ── Internal: provider management ───────────────────────────────────────────
+    // -- Internal: provider management -------------------------------------------
 
     /// <summary>
     /// Returns the currently registered calendar providers.
@@ -266,7 +266,7 @@ public sealed class CalendarPlugin : IPlugin
 
         if (_providers.Any(p => p.ProviderId == provider.ProviderId))
         {
-            _log?.Debug("Provider {ProviderId} already registered — replacing", provider.ProviderId);
+            _log?.Debug("Provider {ProviderId} already registered - replacing", provider.ProviderId);
             _providers.RemoveAll(p => p.ProviderId == provider.ProviderId);
         }
 
@@ -289,7 +289,7 @@ public sealed class CalendarPlugin : IPlugin
     /// </summary>
     internal IOAuthService? GetOAuthService() => _oauthService;
 
-    // ── Internal: sync orchestration ─────────────────────────────────────────────
+    // -- Internal: sync orchestration ---------------------------------------------
 
     /// <summary>
     /// Triggers a manual sync cycle, regardless of the timer schedule.
@@ -301,7 +301,7 @@ public sealed class CalendarPlugin : IPlugin
         // try-acquire) but is the analyzer-approved form in an async method.
         if (!await _syncLock.WaitAsync(0).ConfigureAwait(false))
         {
-            _log?.Debug("Sync already in progress — TriggerSyncAsync is a no-op");
+            _log?.Debug("Sync already in progress - TriggerSyncAsync is a no-op");
             return LastSyncResult;
         }
 
@@ -320,7 +320,7 @@ public sealed class CalendarPlugin : IPlugin
         }
     }
 
-    // ── Private: sync timer ─────────────────────────────────────────────────────
+    // -- Private: sync timer -----------------------------------------------------
 
     private void StartSyncTimer()
     {
@@ -365,7 +365,7 @@ public sealed class CalendarPlugin : IPlugin
     {
         if (!await _syncLock.WaitAsync(0).ConfigureAwait(false))
         {
-            _log?.Debug("Sync timer tick skipped — sync already in progress");
+            _log?.Debug("Sync timer tick skipped - sync already in progress");
             return;
         }
 
@@ -398,7 +398,7 @@ public sealed class CalendarPlugin : IPlugin
         }
     }
 
-    // ── Private: sync execution ─────────────────────────────────────────────────
+    // -- Private: sync execution -------------------------------------------------
 
     /// <summary>
     /// Executes one sync cycle across all enabled calendars and all registered providers.
@@ -453,7 +453,7 @@ public sealed class CalendarPlugin : IPlugin
 
                 if (enabledCalendarIds.Count == 0)
                 {
-                    _log?.Debug("No enabled calendars for provider {ProviderId} — skipping", provider.ProviderId);
+                    _log?.Debug("No enabled calendars for provider {ProviderId} - skipping", provider.ProviderId);
                     continue;
                 }
 
@@ -476,8 +476,8 @@ public sealed class CalendarPlugin : IPlugin
                     lastDeltaToken = deltaToken;
 
                     // Fetch-only fallback: with no IInboxService available we count
-                    // events without indexing them. The full event → inbox pipeline
-                    // (CalendarEventProcessor → InboxService) runs in ExecuteSyncCycleAsync
+                    // events without indexing them. The full event -> inbox pipeline
+                    // (CalendarEventProcessor -> InboxService) runs in ExecuteSyncCycleAsync
                     // via CalendarSyncService whenever the inbox service is present.
                     totalSkipped += events.Count;
 
@@ -509,7 +509,7 @@ public sealed class CalendarPlugin : IPlugin
         };
     }
 
-    // ── Private: provider registration ──────────────────────────────────────────
+    // -- Private: provider registration ------------------------------------------
 
     /// <summary>
     /// Checks which providers have valid OAuth credentials and registers
@@ -523,24 +523,24 @@ public sealed class CalendarPlugin : IPlugin
         if (_oauthService is null)
             return;
 
-        // Check Google credentials — register GoogleCalendarProvider if connected.
+        // Check Google credentials - register GoogleCalendarProvider if connected.
         var googleCred = await _oauthService.GetCredentialAsync("google").ConfigureAwait(false);
         if (googleCred is not null)
         {
-            _log?.Information("Google OAuth credential found — registering GoogleCalendarProvider");
+            _log?.Information("Google OAuth credential found - registering GoogleCalendarProvider");
             AddProvider(new GoogleCalendarProvider(_oauthService, _log!));
         }
 
-        // Check Microsoft credentials — register OutlookCalendarProvider if connected.
+        // Check Microsoft credentials - register OutlookCalendarProvider if connected.
         var msCred = await _oauthService.GetCredentialAsync("microsoft").ConfigureAwait(false);
         if (msCred is not null)
         {
-            _log?.Information("Microsoft OAuth credential found — registering OutlookCalendarProvider");
+            _log?.Information("Microsoft OAuth credential found - registering OutlookCalendarProvider");
             AddProvider(new OutlookCalendarProvider(_oauthService, _log!));
         }
     }
 
-    // ── Private: settings persistence ───────────────────────────────────────────
+    // -- Private: settings persistence -------------------------------------------
 
     private static readonly JsonSerializerOptions SettingsJsonOptions = new()
     {
@@ -559,7 +559,7 @@ public sealed class CalendarPlugin : IPlugin
 
         if (!File.Exists(settingsPath))
         {
-            _log?.Debug("No persisted calendar sync settings found — using defaults");
+            _log?.Debug("No persisted calendar sync settings found - using defaults");
             _syncSettings = new CalendarSyncSettings();
             return;
         }
@@ -577,7 +577,7 @@ public sealed class CalendarPlugin : IPlugin
         }
         catch (Exception ex)
         {
-            _log?.Warning(ex, "Failed to load calendar sync settings from {Path} — using defaults", settingsPath);
+            _log?.Warning(ex, "Failed to load calendar sync settings from {Path} - using defaults", settingsPath);
             _syncSettings = new CalendarSyncSettings();
         }
     }

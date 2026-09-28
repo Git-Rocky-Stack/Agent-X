@@ -16,7 +16,7 @@ using Xunit;
 namespace AgentX.Tests.AI.Providers;
 
 /// <summary>
-/// Behavioural coverage for <see cref="LocalLlmProvider"/> — the LLamaSharp-backed offline
+/// Behavioural coverage for <see cref="LocalLlmProvider"/> - the LLamaSharp-backed offline
 /// provider. Real native model loading is impossible in unit tests (needs a multi-GB GGUF), so
 /// coverage splits three ways: (1) file-system paths (listing, delete, availability) run for
 /// real against a temp models directory; (2) the streaming-chat pipeline runs through the
@@ -82,7 +82,7 @@ public sealed class LocalLlmProviderTests : IDisposable
         public void Emit(LogEvent logEvent) => Events.Enqueue(logEvent);
     }
 
-    // ─── Construction & identity ─────────────────────────────────────────────────
+    // --- Construction & identity -------------------------------------------------
 
     [Fact]
     public void Ctor_guards_null_arguments()
@@ -104,7 +104,7 @@ public sealed class LocalLlmProviderTests : IDisposable
         p.IsAvailable.Should().BeFalse();
     }
 
-    // ─── CheckConnectionAsync ────────────────────────────────────────────────────
+    // --- CheckConnectionAsync ----------------------------------------------------
 
     [Fact]
     public async Task CheckConnection_missing_model_returns_false_without_loading()
@@ -114,7 +114,7 @@ public sealed class LocalLlmProviderTests : IDisposable
         p.IsAvailable.Should().BeFalse();
     }
 
-    // ─── ListModelsAsync ─────────────────────────────────────────────────────────
+    // --- ListModelsAsync ---------------------------------------------------------
 
     [Fact]
     public async Task ListModels_missing_directory_returns_empty()
@@ -157,7 +157,7 @@ public sealed class LocalLlmProviderTests : IDisposable
         models.Single(m => m.Id == "other-model.gguf").Name.Should().Be("other-model");
     }
 
-    // ─── DeleteModelAsync ────────────────────────────────────────────────────────
+    // --- DeleteModelAsync --------------------------------------------------------
 
     [Fact]
     public async Task Delete_removes_inactive_model_file()
@@ -185,7 +185,7 @@ public sealed class LocalLlmProviderTests : IDisposable
         await NewProvider().DeleteModelAsync("never-existed.gguf"); // must not throw
     }
 
-    // ─── PullModelAsync / download pipeline ──────────────────────────────────────
+    // --- PullModelAsync / download pipeline --------------------------------------
 
     [Fact]
     public async Task Pull_unknown_model_throws_instead_of_reporting_success()
@@ -369,7 +369,7 @@ public sealed class LocalLlmProviderTests : IDisposable
         await served.WaitAsync(TimeSpan.FromSeconds(5));
     }
 
-    /// <summary>Inline IProgress — Progress&lt;T&gt; posts asynchronously and loses reports.</summary>
+    /// <summary>Inline IProgress - Progress&lt;T&gt; posts asynchronously and loses reports.</summary>
     private sealed class SynchronousProgress<T> : IProgress<T>
     {
         private readonly Action<T> _handler;
@@ -377,7 +377,7 @@ public sealed class LocalLlmProviderTests : IDisposable
         public void Report(T value) => _handler(value);
     }
 
-    // ─── StreamChatAsync / ChatAsync via InferenceOverride ───────────────────────
+    // --- StreamChatAsync / ChatAsync via InferenceOverride -----------------------
 
     private static List<ChatMessage> Msgs(params (string Role, string Content)[] items)
         => items.Select(i => new ChatMessage { Role = i.Role, Content = i.Content }).ToList();
@@ -590,7 +590,7 @@ public sealed class LocalLlmProviderTests : IDisposable
 
         received.Should().Equal("a"); // "b" arrives after cancel and must not surface
 
-        // Lock must have been released by the finally — a second call proceeds.
+        // Lock must have been released by the finally - a second call proceeds.
         p.InferenceOverride = (_, _, ct) => Tokens(ct, "again");
         (await p.ChatAsync(Msgs(("user", "hi")))).Should().Be("again");
 
@@ -611,7 +611,7 @@ public sealed class LocalLlmProviderTests : IDisposable
         (await p.ChatAsync(Msgs(("user", "hi")))).Should().Be("foobar!");
     }
 
-    // ─── Embeddings & model-load failure paths ───────────────────────────────────
+    // --- Embeddings & model-load failure paths -----------------------------------
 
     [Fact]
     public async Task Embeddings_without_model_file_throw_FileNotFound_and_mark_unavailable()
@@ -749,7 +749,7 @@ public sealed class LocalLlmProviderTests : IDisposable
         }).Should().ThrowAsync<FileNotFoundException>();
     }
 
-    // ─── Dispose semantics ───────────────────────────────────────────────────────
+    // --- Dispose semantics -------------------------------------------------------
 
     [Fact]
     public async Task Dispose_is_idempotent_and_guards_every_entry_point()
@@ -774,7 +774,7 @@ public sealed class LocalLlmProviderTests : IDisposable
         }).Should().ThrowAsync<ObjectDisposedException>();
     }
 
-    // ─── GPU detection (environment-tolerant) ────────────────────────────────────
+    // --- GPU detection (environment-tolerant) ------------------------------------
 
     [Fact]
     public void DetectRecommendedGpuLayers_returns_a_supported_tier()

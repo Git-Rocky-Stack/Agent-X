@@ -93,7 +93,7 @@ public sealed class PageTextsAreLocalizedTests
         foreach (var locale in Locales)
         {
             ReswLocalization.For(locale).GetString("Settings_NoTokenYetClickPh.PlaceholderText")
-                .Should().NotContain("—", "{0} must not use an em dash", locale);
+                .Should().NotContain("-", "{0} must not use an em dash", locale);
         }
     }
 

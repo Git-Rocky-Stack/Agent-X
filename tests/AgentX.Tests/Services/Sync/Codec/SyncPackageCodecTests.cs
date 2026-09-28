@@ -20,9 +20,9 @@ public sealed class SyncPackageCodecTests
         _sut = new SyncPackageCodec(Log.Logger);
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
     //  Constructor
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
 
     [Fact]
     public void Constructor_NullLogger_Throws()
@@ -30,9 +30,9 @@ public sealed class SyncPackageCodecTests
         Assert.Throws<ArgumentNullException>(() => new SyncPackageCodec(null!));
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
     //  Serialise / Deserialise round-trip
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
 
     [Fact]
     public void Serialise_Deserialise_RoundTrips()
@@ -69,9 +69,9 @@ public sealed class SyncPackageCodecTests
         Assert.Throws<System.Text.Json.JsonException>(() => _sut.Deserialise(invalidJson));
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
     //  Encrypt / Decrypt round-trip
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
 
     [Fact]
     public void Encrypt_Decrypt_RoundTrips()
@@ -167,9 +167,9 @@ public sealed class SyncPackageCodecTests
         Assert.Throws<ArgumentNullException>(() => _sut.Decrypt(null!, "password"));
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
     //  IsValidHeader
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
 
     [Fact]
     public void IsValidHeader_ValidEncryptedData_ReturnsTrue()
@@ -203,9 +203,9 @@ public sealed class SyncPackageCodecTests
         Assert.Throws<ArgumentNullException>(() => _sut.IsValidHeader(null!));
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  Full pipeline: Serialise → Encrypt → Decrypt → Deserialise
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
+    //  Full pipeline: Serialise -> Encrypt -> Decrypt -> Deserialise
+    // ==========================================================================
 
     [Fact]
     public void FullPipeline_RoundTripsCorrectly()
@@ -229,7 +229,7 @@ public sealed class SyncPackageCodecTests
         result.Changes[0].ChangeType.Should().Be(original.Changes[0].ChangeType);
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
+    // -- Helpers --------------------------------------------------------------
 
     private static SyncChangeSet CreateChangeSet()
     {

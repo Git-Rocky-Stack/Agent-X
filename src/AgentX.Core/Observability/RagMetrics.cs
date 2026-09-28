@@ -7,7 +7,7 @@ namespace AgentX.Core.Observability;
 /// <summary>
 /// Embedding-cache statistics surfaced via <see cref="IRagMetrics"/>.
 /// Reported at snapshot time by a registered provider (pull-based) instead of
-/// per-call recording — the embedding cache hits in hot-loop indexing paths,
+/// per-call recording - the embedding cache hits in hot-loop indexing paths,
 /// and per-hit metric writes would dominate the recording cost.
 /// </summary>
 public sealed class EmbeddingCacheStats
@@ -125,7 +125,7 @@ public sealed class RagMetrics : IRagMetrics
     /// <inheritdoc />
     public RagMetricsSnapshot GetSnapshot()
     {
-        // Invoke provider OUTSIDE the lock — the provider takes its own lock and
+        // Invoke provider OUTSIDE the lock - the provider takes its own lock and
         // we don't want to hold _lock across a callback.
         EmbeddingCacheStats? embeddingStats = null;
         try
@@ -166,7 +166,7 @@ public sealed class RagMetrics : IRagMetrics
                 // Resource metrics
                 TotalTokensProcessed = _totalTokensProcessed,
 
-                // FU-4: embedding cache (pull-based — null when no provider registered)
+                // FU-4: embedding cache (pull-based - null when no provider registered)
                 EmbeddingCache = embeddingStats,
 
                 // Timestamp

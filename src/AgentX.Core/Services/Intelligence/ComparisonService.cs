@@ -34,7 +34,7 @@ namespace AgentX.Core.Services.Intelligence;
 /// </summary>
 public sealed class ComparisonService : IComparisonService
 {
-    // ── Dependencies ────────────────────────────────────────────────────────
+    // -- Dependencies --------------------------------------------------------
 
     private readonly IAiService _aiService;
     private readonly IDocumentService _documentService;
@@ -43,11 +43,11 @@ public sealed class ComparisonService : IComparisonService
     private readonly AgentXDbContext? _db;
     private readonly ILogger _log;
 
-    // ── Constants ────────────────────────────────────────────────────────────
+    // -- Constants ------------------------------------------------------------
 
     /// <summary>
     /// Chars-per-token approximation used when the provider does not return an
-    /// exact token count (4 chars ≈ 1 token for typical English prose).
+    /// exact token count (4 chars ~ 1 token for typical English prose).
     /// </summary>
     private const int CharsPerToken = 4;
 
@@ -85,7 +85,7 @@ public sealed class ComparisonService : IComparisonService
         ReadCommentHandling = JsonCommentHandling.Skip,
     };
 
-    // ── Constructor ──────────────────────────────────────────────────────────
+    // -- Constructor ----------------------------------------------------------
 
     /// <param name="aiService">AI service used by the default synthesis service.</param>
     /// <param name="documentService">Resolves document metadata.</param>
@@ -113,7 +113,7 @@ public sealed class ComparisonService : IComparisonService
                ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    // ── IComparisonService ───────────────────────────────────────────────────
+    // -- IComparisonService ---------------------------------------------------
 
     /// <inheritdoc />
     public async Task<ComparisonReport> CompareDocumentsAsync(
@@ -122,7 +122,7 @@ public sealed class ComparisonService : IComparisonService
         IProgress<string>? progress = null,
         CancellationToken ct = default)
     {
-        // ── Validate ────────────────────────────────────────────────────────
+        // -- Validate --------------------------------------------------------
 
         if (documentIds is null || documentIds.Count < 2)
         {
@@ -150,9 +150,9 @@ public sealed class ComparisonService : IComparisonService
             documentIds.Count, options.DetailLevel, options.MaxChunksPerDoc,
             options.FocusQuery ?? "<none>");
 
-        // ── Step 1: Resolve documents ────────────────────────────────────────
+        // -- Step 1: Resolve documents ----------------------------------------
 
-        Report(progress, "Loading document metadata…");
+        Report(progress, "Loading document metadata...");
 
         var resolvedDocs = await ResolveDocumentsAsync(distinctIds, ct).ConfigureAwait(false);
 
@@ -176,9 +176,9 @@ public sealed class ComparisonService : IComparisonService
             "Resolved {Count} document(s): {Names}",
             resolvedDocs.Count, string.Join(", ", resolvedDocs.Select(d => labels[d.Id])));
 
-        // ── Step 2: Retrieve chunks for each document ────────────────────────
+        // -- Step 2: Retrieve chunks for each document ------------------------
 
-        Report(progress, "Retrieving document content via semantic search…");
+        Report(progress, "Retrieving document content via semantic search...");
 
         var searchQuery = string.IsNullOrWhiteSpace(options.FocusQuery)
             ? FallbackQuery
@@ -249,9 +249,9 @@ public sealed class ComparisonService : IComparisonService
             }
         }
 
-        // ── Step 3: Build the AI prompt ──────────────────────────────────────
+        // -- Step 3: Build the AI prompt --------------------------------------
 
-        Report(progress, "Building analysis prompt…");
+        Report(progress, "Building analysis prompt...");
 
         var synthesisRequest = new ComparisonSynthesisRequest
         {
@@ -263,9 +263,9 @@ public sealed class ComparisonService : IComparisonService
             "Sending comparison prompt to AI for {DocCount} document(s)",
             contentByDoc.Count);
 
-        // ── Step 4: Call AI and stream response ──────────────────────────────
+        // -- Step 4: Call AI and stream response ------------------------------
 
-        Report(progress, "Running AI analysis — this may take a moment…");
+        Report(progress, "Running AI analysis - this may take a moment...");
 
         ComparisonSynthesisResult synthesisResult;
 
@@ -295,9 +295,9 @@ public sealed class ComparisonService : IComparisonService
 
         long totalTokens = synthesisResult.EstimatedPromptTokens + EstimateTokens(rawResponse);
 
-        // ── Step 5: Parse the AI response into a ComparisonReport ────────────
+        // -- Step 5: Parse the AI response into a ComparisonReport ------------
 
-        Report(progress, "Parsing analysis results…");
+        Report(progress, "Parsing analysis results...");
 
         var docNames = resolvedDocs.Select(d => labels[d.Id]).ToList();
 
@@ -340,7 +340,7 @@ public sealed class ComparisonService : IComparisonService
 
         var md = new StringBuilder(2048);
 
-        // ── Header ───────────────────────────────────────────────────────────
+        // -- Header -----------------------------------------------------------
 
         md.AppendLine("# Comparative Analysis Report");
         md.AppendLine();
@@ -359,7 +359,7 @@ public sealed class ComparisonService : IComparisonService
         md.AppendLine("---");
         md.AppendLine();
 
-        // ── Executive Summary ────────────────────────────────────────────────
+        // -- Executive Summary ------------------------------------------------
 
         md.AppendLine("## Summary");
         md.AppendLine();
@@ -368,7 +368,7 @@ public sealed class ComparisonService : IComparisonService
             : report.Summary);
         md.AppendLine();
 
-        // ── Similarities ─────────────────────────────────────────────────────
+        // -- Similarities -----------------------------------------------------
 
         md.AppendLine("## Similarities");
         md.AppendLine();
@@ -387,7 +387,7 @@ public sealed class ComparisonService : IComparisonService
 
         md.AppendLine();
 
-        // ── Differences ──────────────────────────────────────────────────────
+        // -- Differences ------------------------------------------------------
 
         md.AppendLine("## Differences");
         md.AppendLine();
@@ -406,7 +406,7 @@ public sealed class ComparisonService : IComparisonService
 
         md.AppendLine();
 
-        // ── Contradictions ───────────────────────────────────────────────────
+        // -- Contradictions ---------------------------------------------------
 
         md.AppendLine("## Contradictions");
         md.AppendLine();
@@ -425,7 +425,7 @@ public sealed class ComparisonService : IComparisonService
 
         md.AppendLine();
 
-        // ── Unique Points per Document ───────────────────────────────────────
+        // -- Unique Points per Document ---------------------------------------
 
         md.AppendLine("## Unique Points by Document");
         md.AppendLine();
@@ -460,7 +460,7 @@ public sealed class ComparisonService : IComparisonService
         return Task.FromResult(md.ToString());
     }
 
-    // ── Private helpers — document retrieval ─────────────────────────────────
+    // -- Private helpers - document retrieval ---------------------------------
 
     /// <summary>
     /// Resolves each document ID to its <see cref="Data.Entities.DocumentEntity"/>,
@@ -564,7 +564,7 @@ public sealed class ComparisonService : IComparisonService
         return chunks.Select(c => (c.ChunkIndex, c.Content)).ToList();
     }
 
-    // ── Private helpers — response parsing ───────────────────────────────────
+    // -- Private helpers - response parsing -----------------------------------
 
     /// <summary>
     /// Attempts to extract a JSON object from the raw AI response and deserialise
@@ -652,7 +652,7 @@ public sealed class ComparisonService : IComparisonService
 
         // Use the full response as the summary so no content is lost.
         var summary = rawResponse.Length > 600
-            ? rawResponse[..600].TrimEnd() + "…"
+            ? rawResponse[..600].TrimEnd() + "..."
             : rawResponse;
 
         return new ComparisonReport
@@ -700,9 +700,9 @@ public sealed class ComparisonService : IComparisonService
             }
 
             // Extract bullet content.
-            if (line.StartsWith('-') || line.StartsWith('*') || line.StartsWith('•'))
+            if (line.StartsWith('-') || line.StartsWith('*') || line.StartsWith('\u2022'))
             {
-                var content = line.TrimStart('-', '*', '•').Trim();
+                var content = line.TrimStart('-', '*', '\u2022').Trim();
                 if (!string.IsNullOrWhiteSpace(content))
                 {
                     results.Add(content);
@@ -713,7 +713,7 @@ public sealed class ComparisonService : IComparisonService
         return results;
     }
 
-    // ── Private helpers — utility ─────────────────────────────────────────────
+    // -- Private helpers - utility ---------------------------------------------
 
     /// <summary>
     /// Concatenates chunk texts with a visual separator so the AI receives clearly
@@ -780,7 +780,7 @@ public sealed class ComparisonService : IComparisonService
         _log.Debug("ComparisonService progress: {Message}", message);
     }
 
-    // ── Wire DTO for JSON deserialization ─────────────────────────────────────
+    // -- Wire DTO for JSON deserialization -------------------------------------
 
     /// <summary>
     /// Internal DTO that mirrors the JSON schema specified in the system prompt.

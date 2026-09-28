@@ -31,7 +31,7 @@ param(
 
     # --- Code signing (AX-QA-001 / AX-QA-007) ---
     # Authenticode-sign the app binaries and installers. Supply EITHER a cert-store thumbprint
-    # (preferred — no secret on the command line) OR a PFX path + password. With neither, the
+    # (preferred - no secret on the command line) OR a PFX path + password. With neither, the
     # build is UNSIGNED and prints a loud warning; pass -RequireSign to make that a hard error
     # (use this in the real release pipeline so an unsigned asset can never be produced).
     [string]$CertificateThumbprint,
@@ -61,7 +61,7 @@ function Find-Iscc {
     throw "ISCC.exe (Inno Setup 6) not found. Install Inno Setup 6 or add ISCC.exe to PATH."
 }
 
-# ── Code signing (AX-QA-001 / AX-QA-007) ───────────────────────────────────────────────────
+# -- Code signing (AX-QA-001 / AX-QA-007) ---------------------------------------------------
 $signingConfigured = -not [string]::IsNullOrWhiteSpace($CertificateThumbprint) -or
                      -not [string]::IsNullOrWhiteSpace($CertificatePath)
 
@@ -117,11 +117,11 @@ if (-not $SkipPublish) {
 # remediation. The public v2.1.1 asset was built from stale source and shipped without it; this
 # check fails the build if the security types are absent from the freshly published Core DLL.
 $coreDll = Join-Path $publishDir "AgentX.Core.dll"
-if (-not (Test-Path $coreDll)) { throw "Provenance check: $coreDll not found — publish incomplete." }
+if (-not (Test-Path $coreDll)) { throw "Provenance check: $coreDll not found - publish incomplete." }
 $dllText = [IO.File]::ReadAllText($coreDll, [Text.Encoding]::Latin1)
 foreach ($type in @('LocalApiSecurity', 'ResolveContainedPath')) {
     if (-not $dllText.Contains($type)) {
-        throw "Provenance check FAILED: '$type' absent from published AgentX.Core.dll. This build does not contain the security remediation (AX-QA-001) — do not ship it."
+        throw "Provenance check FAILED: '$type' absent from published AgentX.Core.dll. This build does not contain the security remediation (AX-QA-001) - do not ship it."
     }
 }
 $headCommit = (& git -C $projectRoot rev-parse HEAD 2>$null)

@@ -28,38 +28,38 @@ public partial class SettingsViewModel : ObservableObject
     private readonly IDatabaseEncryptionManager? _databaseEncryptionManager;
     private bool _encryptionChangeInFlight;
 
-    // ── Active Provider ──────────────────────────────────────
+    // -- Active Provider --------------------------------------
     [ObservableProperty] private int _activeProviderIndex;
     [ObservableProperty] private string _activeProviderId = "local";
 
     /// <summary>The Built-in LLM block: GPU layers of the built-in model.</summary>
     public BuiltInModelSettingsViewModel BuiltInModel { get; } = new();
 
-    // ── Ollama ────────────────────────────────────────────────
+    // -- Ollama ------------------------------------------------
     [ObservableProperty] private string _ollamaEndpoint = "http://localhost:11434";
     [ObservableProperty] private string _defaultModel = "llama3.2";
     [ObservableProperty] private string _embeddingModel = "all-minilm";
     [ObservableProperty] private string _storagePath = string.Empty;
     [ObservableProperty] private string _ollamaConnectionStatus = string.Empty;
 
-    // ── OpenAI ────────────────────────────────────────────────
+    // -- OpenAI ------------------------------------------------
     [ObservableProperty] private string _openAiApiKey = string.Empty;
     [ObservableProperty] private string _openAiEndpoint = "https://api.openai.com/v1/";
     [ObservableProperty] private string _openAiDefaultModel = "gpt-4o-mini";
     [ObservableProperty] private string _openAiConnectionStatus = string.Empty;
 
-    // ── Anthropic ─────────────────────────────────────────────
+    // -- Anthropic ---------------------------------------------
     [ObservableProperty] private string _anthropicApiKey = string.Empty;
     [ObservableProperty] private string _anthropicEndpoint = "https://api.anthropic.com/v1/";
     [ObservableProperty] private string _anthropicDefaultModel = AgentX.Core.AI.Providers.AnthropicProvider.DefaultModelId;
     [ObservableProperty] private string _anthropicConnectionStatus = string.Empty;
 
-    // ── Inference ───────────────────────────────────────────
+    // -- Inference -------------------------------------------
     [ObservableProperty] private double _temperature = 0.7;
     [ObservableProperty] private int _maxTokens = 4096;
     [ObservableProperty] private int _contextWindow = 8192;
 
-    // ── Indexing ────────────────────────────────────────────
+    // -- Indexing --------------------------------------------
     [ObservableProperty] private int _chunkSize = 512;
     [ObservableProperty] private int _chunkOverlap = 50;
     [ObservableProperty] private int _topKResults = 5;
@@ -68,7 +68,7 @@ public partial class SettingsViewModel : ObservableObject
     /// <summary>The Watch Folders section next to the Auto-index watch folders switch.</summary>
     public WatchFolderSettingsViewModel WatchFolders { get; }
 
-    // ── Appearance ──────────────────────────────────────────
+    // -- Appearance ------------------------------------------
     [ObservableProperty] private bool _compactMode;
     [ObservableProperty] private int _themeIndex;
 
@@ -76,25 +76,25 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private int _languageIndex;
     private bool _loadingLanguage;
 
-    // ── Cost Tracking ────────────────────────────────────────
+    // -- Cost Tracking ----------------------------------------
     [ObservableProperty] private string _totalCostDisplay = "$0.00";
     [ObservableProperty] private string _todayCostDisplay = "$0.00";
     [ObservableProperty] private string _totalTokensDisplay = "0";
 
-    // ── Security Status ────────────────────────────────────
+    // -- Security Status ------------------------------------
     [ObservableProperty] private bool _areKeysEncrypted;
     [ObservableProperty] private string _encryptionStatusDescription = string.Empty;
 
-    // ── Database Encryption ───────────────────────────────────
+    // -- Database Encryption -----------------------------------
     [ObservableProperty] private bool _encryptionEnabled;
     [ObservableProperty] private string _encryptionStatus = string.Empty;
 
-    // ── Multi-Model Routing ──────────────────────────────
+    // -- Multi-Model Routing ------------------------------
     [ObservableProperty] private bool _enableModelRouting;
     [ObservableProperty] private string _activeRoutingProfileId = "balanced";
     [ObservableProperty] private int _routingProfileIndex;
 
-    // ── Deep Research Mode ──────────────────────────────
+    // -- Deep Research Mode ------------------------------
     [ObservableProperty] private bool _enableResearchMode;
 
     /// <summary>
@@ -117,7 +117,7 @@ public partial class SettingsViewModel : ObservableObject
     // Windows OCR by ScreenCaptureService, only while this is on. Off by default.
     [ObservableProperty] private bool _enableScreenAwareness;
 
-    // ── Local REST API (browser extension) ───────────────
+    // -- Local REST API (browser extension) ---------------
     [ObservableProperty] private bool _localApiEnabled = true;
 
     [ObservableProperty]
@@ -139,7 +139,7 @@ public partial class SettingsViewModel : ObservableObject
     /// <summary>Mask glyph matches the PasswordBox default (U+25CF BLACK CIRCLE).</summary>
     private static readonly string ApiTokenMask = new((char)0x25CF, 24);
 
-    // ── App Info ────────────────────────────────────────────
+    // -- App Info --------------------------------------------
     // Single source (assembly version) instead of a hardcoded string (AX-QA-014).
     [ObservableProperty] private string _appVersion = AgentX.Core.AppVersionInfo.Display;
 
@@ -487,12 +487,12 @@ public partial class SettingsViewModel : ObservableObject
         DefaultModel = "llama3.2";
         EmbeddingModel = "all-minilm";
 
-        // OpenAI — clear key, keep default endpoint/model
+        // OpenAI - clear key, keep default endpoint/model
         OpenAiApiKey = string.Empty;
         OpenAiEndpoint = "https://api.openai.com/v1/";
         OpenAiDefaultModel = "gpt-4o-mini";
 
-        // Anthropic — clear key, keep default endpoint/model
+        // Anthropic - clear key, keep default endpoint/model
         AnthropicApiKey = string.Empty;
         AnthropicEndpoint = "https://api.anthropic.com/v1/";
         AnthropicDefaultModel = AgentX.Core.AI.Providers.AnthropicProvider.DefaultModelId;
@@ -528,7 +528,7 @@ public partial class SettingsViewModel : ObservableObject
         OpenAiConnectionStatus = string.Empty;
         AnthropicConnectionStatus = string.Empty;
 
-        // Local REST API — re-enable by default but keep the existing token so a paired
+        // Local REST API - re-enable by default but keep the existing token so a paired
         // extension is not silently unpaired by a settings reset.
         LocalApiEnabled = true;
 
@@ -593,7 +593,7 @@ public partial class SettingsViewModel : ObservableObject
         Log.Debug("Local API token copied to clipboard");
     }
 
-    // ── Private Helpers ─────────────────────────────────────
+    // -- Private Helpers -------------------------------------
 
     /// <summary>
     /// Refreshes the cost display properties from the cost tracker.
@@ -715,7 +715,7 @@ public partial class SettingsViewModel : ObservableObject
         _ => 2
     };
 
-    // ── Database Encryption Toggle Flow ───────────────────────
+    // -- Database Encryption Toggle Flow -----------------------
 
     /// <summary>
     /// Invoked by the Settings page with the state the user asked for on the encryption

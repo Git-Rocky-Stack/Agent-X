@@ -167,7 +167,7 @@ public class DatabaseEncryptionMigratorTests
                 tableCmd.CommandText = "CREATE TABLE t(id INTEGER PRIMARY KEY, v TEXT); INSERT INTO t VALUES(1,'wal-data')";
                 await tableCmd.ExecuteNonQueryAsync();
 
-                // Do NOT checkpoint — data sits in WAL.
+                // Do NOT checkpoint - data sits in WAL.
             }
 
             SqliteConnection.ClearAllPools();

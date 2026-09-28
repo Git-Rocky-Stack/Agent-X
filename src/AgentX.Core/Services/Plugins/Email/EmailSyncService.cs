@@ -74,7 +74,7 @@ public sealed class EmailSyncService
 
                 if (enabledFolderIds.Count == 0)
                 {
-                    _log.Debug("No enabled folders for provider {ProviderId} — skipping", provider.ProviderId);
+                    _log.Debug("No enabled folders for provider {ProviderId} - skipping", provider.ProviderId);
                     continue;
                 }
 
@@ -182,7 +182,7 @@ public sealed class EmailSyncService
         return result;
     }
 
-    // ── Private: delta token persistence ────────────────────────────────────────
+    // -- Private: delta token persistence ----------------------------------------
 
     private async Task<Dictionary<string, string>> LoadDeltaTokensAsync()
     {
@@ -199,7 +199,7 @@ public sealed class EmailSyncService
         }
         catch (Exception ex)
         {
-            _log.Warning(ex, "Failed to load email delta tokens from {Path} — starting fresh", path);
+            _log.Warning(ex, "Failed to load email delta tokens from {Path} - starting fresh", path);
             return new Dictionary<string, string>();
         }
     }

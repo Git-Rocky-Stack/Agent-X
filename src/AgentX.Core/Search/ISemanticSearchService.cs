@@ -72,7 +72,7 @@ public class SearchHistoryEntry
     public string SearchType { get; init; } = "semantic";
     public string? CollectionFilter { get; init; }
 
-    // ── Advanced filter settings ─────────────────────────────────
+    // -- Advanced filter settings ---------------------------------
     public double? MinScore { get; init; }
     public int? MaxResults { get; init; }
     public DateTime? DateAfter { get; init; }

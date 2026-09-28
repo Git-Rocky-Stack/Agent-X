@@ -10,7 +10,7 @@ namespace AgentX.App.ViewModels;
 /// <summary>
 /// Shared ViewModel for export operations. Can be used from any page
 /// that needs to export conversations, search results, or collections.
-/// Not a standalone page — used as a helper in ChatViewModel, SearchViewModel, etc.
+/// Not a standalone page - used as a helper in ChatViewModel, SearchViewModel, etc.
 /// </summary>
 public partial class ExportViewModel : ObservableObject
 {
@@ -209,7 +209,7 @@ public partial class ExportViewModel : ObservableObject
     };
 }
 
-// ── Request Models ──────────────────────────────────────────────
+// -- Request Models ----------------------------------------------
 
 public record ExportConversationRequest(long ConversationId, ExportOptions? Options = null, string? OutputPath = null, string? Title = null);
 public record ExportBatchRequest(IReadOnlyList<long> ConversationIds, string? OutputPath = null, string? Title = null);

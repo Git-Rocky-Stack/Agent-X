@@ -23,7 +23,7 @@ public sealed partial class QuickActionsPage : Page
         };
     }
 
-    // ── Tab switching via RadioButton Checked events ─────────
+    // -- Tab switching via RadioButton Checked events ---------
 
     private void Tab_Summarize_Checked(object sender, RoutedEventArgs e)
     {

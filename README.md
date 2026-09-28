@@ -1,6 +1,6 @@
 # Agent-X
 
-**Local-first AI document intelligence for Windows.** Agent-X turns your personal document collection into a queryable, AI-augmented knowledge base — a native .NET 8 / WinUI 3 desktop app that runs entirely on your machine. Local by default: your documents, embeddings, conversations, and database never leave your device unless you explicitly opt in to a cloud model provider or web search.
+**Local-first AI document intelligence for Windows.** Agent-X turns your personal document collection into a queryable, AI-augmented knowledge base - a native .NET 8 / WinUI 3 desktop app that runs entirely on your machine. Local by default: your documents, embeddings, conversations, and database never leave your device unless you explicitly opt in to a cloud model provider or web search.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Windows-10%2019041%2B%20(x64)-0078d4)](docs/README.md)
@@ -8,8 +8,8 @@
 [![UI](https://img.shields.io/badge/WinUI-3-blue)](https://learn.microsoft.com/windows/apps/winui/)
 [![Tests](https://img.shields.io/badge/tests-3%2C029-brightgreen)](docs/CI.md)
 
-> **Latest release:** [v2.2.0](https://github.com/Git-Rocky-Stack/Agent-X/releases/tag/v2.2.0) — "Command Console" (source and release notes) · **Latest signed installers:** [v2.1.1](https://github.com/Git-Rocky-Stack/Agent-X/releases/tag/v2.1.1). Installers for v2.1.2 and v2.2.0 are pending code-signing certificate issuance; see [`docs/RELEASE-SIGNING.md`](docs/RELEASE-SIGNING.md).
-> **License:** MIT — see [LICENSE](LICENSE). Copyright (c) 2026 Rocky Elsalaymeh.
+> **Latest release:** [v2.2.0](https://github.com/Git-Rocky-Stack/Agent-X/releases/tag/v2.2.0) - "Command Console" (source and release notes) - **Latest signed installers:** [v2.1.1](https://github.com/Git-Rocky-Stack/Agent-X/releases/tag/v2.1.1). Installers for v2.1.2 and v2.2.0 are pending code-signing certificate issuance; see [`docs/RELEASE-SIGNING.md`](docs/RELEASE-SIGNING.md).
+> **License:** MIT - see [LICENSE](LICENSE). Copyright (c) 2026 Rocky Elsalaymeh.
 
 ---
 
@@ -18,14 +18,14 @@
 | Installer | Size | Local model | Best for |
 |---|---|---|---|
 | [`AgentX-Setup-x64.exe` (SLIM)](https://github.com/Git-Rocky-Stack/Agent-X/releases/tag/v2.1.1) | ~230 MB | Downloaded on first run | Most users |
-| `AgentX-Setup-x64-offline.exe` (OFFLINE) — linked from the [v2.1.1 release notes](https://github.com/Git-Rocky-Stack/Agent-X/releases/tag/v2.1.1) | ~2.1 GB | Llama 3.2 3B pre-bundled | Air-gapped / offline installs |
+| `AgentX-Setup-x64-offline.exe` (OFFLINE) - linked from the [v2.1.1 release notes](https://github.com/Git-Rocky-Stack/Agent-X/releases/tag/v2.1.1) | ~2.1 GB | Llama 3.2 3B pre-bundled | Air-gapped / offline installs |
 
 Requirements: Windows 10 build 19041+ or Windows 11, x64. No account, no subscription, no telemetry.
 
 ## What Agent-X Does
 
 **Knowledge Vault & ingestion**
-- Import PDFs, Word documents, Markdown, text, code files, and web pages — single files, URLs, or entire folders
+- Import PDFs, Word documents, Markdown, text, code files, and web pages - single files, URLs, or entire folders
 - Automatic chunking, embedding, auto-tagging, and duplicate detection on import; collections (rename, export, multi-select bulk delete), editable annotations, and full document management
 - **Smart Inbox** triage queue: clips from the browser extension and items from plugins arrive with AI-drafted previews (suggested summary, collection, tags) for one-click accept / defer / reject
 - Audio transcription turns recordings into searchable documents
@@ -38,14 +38,14 @@ Requirements: Windows 10 build 19041+ or Windows 11, x64. No account, no subscri
 
 **AI chat & models**
 - Streaming Markdown chat with conversation branching, pinning, folders, and full-text history search; export a conversation to any of 8 formats, copy it as Markdown, or export your whole history in one pass
-- **Built-in local model** (Llama 3.2 3B, GGUF via LLamaSharp with optional GPU offload) — works fully offline, out of the box
+- **Built-in local model** (Llama 3.2 3B, GGUF via LLamaSharp with optional GPU offload) - works fully offline, out of the box
 - Ollama for any local model; opt-in cloud providers: OpenAI (GPT-4o, GPT-4o-mini, o1, o3) and Anthropic (Claude Sonnet 4, Opus, Haiku)
 - Model Manager to list, download, remove and activate the active provider's models; Hardware Advisor suggests Ollama models that fit your GPU memory or RAM
 
 **Document intelligence**
-- **Document Comparison**: structured AI comparison of 2+ documents — shared themes, key differences, unique points, Markdown export
+- **Document Comparison**: structured AI comparison of 2+ documents - shared themes, key differences, unique points, Markdown export
 - Temporal Identity: rule-based belief tracking from your chat messages, insight capture from AI replies, Past Self topic lookups, and Draft As Me, where your AI provider writes a draft in the writing style measured from your messages and follows the views you had recorded by a chosen time
-- Weekly Digest and an Analytics dashboard (usage, trends, indexing health) — computed locally from your own data
+- Weekly Digest and an Analytics dashboard (usage, trends, indexing health) - computed locally from your own data
 
 **Automation & power use**
 - **Workflows**: on-demand multi-step AI pipelines built from five step types (AI Prompt, Document Lookup, Text Transform, Conditional Branch, Output Format) in a visual builder, with full run history
@@ -55,7 +55,7 @@ Requirements: Windows 10 build 19041+ or Windows 11, x64. No account, no subscri
 **Data safety & sync**
 - SQLCipher AES-256 encryption at rest; EF Core migrations; DPAPI-protected secrets
 - **Backup & Restore** with AES-256-GCM encrypted archives
-- **Collaborative Sync** between installations through an encrypted, file-based transport (any shared folder: OneDrive, Google Drive, NAS, USB) — no server, no cloud account
+- **Collaborative Sync** between installations through an encrypted, file-based transport (any shared folder: OneDrive, Google Drive, NAS, USB) - no server, no cloud account
 - Calendar & email connectors for Outlook and Google (Gmail, Google Calendar) - read-only, OAuth tokens stored encrypted; no CalDAV, IMAP, or EWS
 
 **Platform**
@@ -70,7 +70,7 @@ Full product, architecture, and developer documentation lives under [`docs/`](do
 
 | Document | Description |
 |---|---|
-| [`docs/README.md`](docs/README.md) | Complete product documentation — features, install, build, configuration, architecture, data storage |
+| [`docs/README.md`](docs/README.md) | Complete product documentation - features, install, build, configuration, architecture, data storage |
 | [`docs/user-guide/getting-started/quick-start.md`](docs/user-guide/getting-started/quick-start.md) | 10-minute setup walkthrough |
 | [`docs/user-guide/faq.md`](docs/user-guide/faq.md) | 100+ frequently asked questions |
 | [`docs/user-guide/troubleshooting.md`](docs/user-guide/troubleshooting.md) | Solutions to common issues |
@@ -86,9 +86,9 @@ Full product, architecture, and developer documentation lives under [`docs/`](do
 | [`docs/RELEASE-SIGNING.md`](docs/RELEASE-SIGNING.md) | Release provenance: keyless cosign/Rekor attestation over SHA256SUMS |
 | [`CHANGELOG.md`](CHANGELOG.md) | Keep-a-Changelog history across all releases |
 
-AI-crawler indexes: [`docs/llms.txt`](docs/llms.txt) · [`docs/long-llms.txt`](docs/long-llms.txt)
+AI-crawler indexes: [`docs/llms.txt`](docs/llms.txt) - [`docs/long-llms.txt`](docs/long-llms.txt)
 
-**Release notes:** [v2.2.0 "Command Console"](CHANGELOG.md) · [v2.1.2](CHANGELOG.md) · [v2.1.0 "Bedrock"](docs/v2.1.0-RELEASE-NOTES.md) · [v2.1.0-preview.1](docs/v2.1.0-preview.1-RELEASE-NOTES.md) · [v1.5.0](docs/v1.5.0-RELEASE-NOTES.md) · [v1.4.0](docs/v1.4.0-RELEASE-NOTES.md) · [v1.3.0](docs/v1.3.0-RELEASE-NOTES.md)
+**Release notes:** [v2.2.0 "Command Console"](CHANGELOG.md) - [v2.1.2](CHANGELOG.md) - [v2.1.0 "Bedrock"](docs/v2.1.0-RELEASE-NOTES.md) - [v2.1.0-preview.1](docs/v2.1.0-preview.1-RELEASE-NOTES.md) - [v1.5.0](docs/v1.5.0-RELEASE-NOTES.md) - [v1.4.0](docs/v1.4.0-RELEASE-NOTES.md) - [v1.3.0](docs/v1.3.0-RELEASE-NOTES.md)
 
 ## Build from Source
 
@@ -96,7 +96,7 @@ AI-crawler indexes: [`docs/llms.txt`](docs/llms.txt) · [`docs/long-llms.txt`](d
 git clone https://github.com/Git-Rocky-Stack/Agent-X.git
 cd Agent-X
 
-# The solution targets x64 explicitly — a bare `dotnet build` fails with a
+# The solution targets x64 explicitly - a bare `dotnet build` fails with a
 # win-anycpu restore error. Always pass the platform:
 dotnet build -c Release -p:Platform=x64
 
@@ -118,10 +118,10 @@ guide, [SECURITY.md](SECURITY.md) for reporting a vulnerability privately, and o
 
 Before submitting a PR:
 
-1. `dotnet build -c Release -p:Platform=x64` — zero warnings expected
-2. `dotnet test tests/AgentX.Tests/AgentX.Tests.csproj -c Release -p:Platform=x64` — the full suite must stay green
-3. `pwsh scripts/check-coverage.ps1` — coverage floors are a ratchet: they only go up
-4. `dotnet format AgentX.sln` — CI verifies formatting
+1. `dotnet build -c Release -p:Platform=x64` - zero warnings expected
+2. `dotnet test tests/AgentX.Tests/AgentX.Tests.csproj -c Release -p:Platform=x64` - the full suite must stay green
+3. `pwsh scripts/check-coverage.ps1` - coverage floors are a ratchet: they only go up
+4. `dotnet format AgentX.sln` - CI verifies formatting
 5. String changes must keep all six locales in key parity (CI's LocaleAudit enforces this)
 
 UI changes additionally have to clear three structural tests in `tests/AgentX.Tests/CodeQuality/`.
@@ -129,11 +129,11 @@ They exist because WinUI fails silently in ways the compiler cannot see: a butto
 absorbs the press, a `[RelayCommand]` nothing binds is dead weight that still reports as covered,
 and a misspelled resource key builds clean and throws when the page is first opened.
 
-- `NoUnwiredInteractiveControlsTests` — every interactive control invokes something
-- `NoUnreachableViewModelCommandsTests` — every command is reachable from a view or code path
-- `NoUndefinedXamlResourceKeysTests` — every resource key referenced in XAML is defined
-- `InteractiveControlsHaveAccessibleNamesTests` — every control has a name for assistive technology
+- `NoUnwiredInteractiveControlsTests` - every interactive control invokes something
+- `NoUnreachableViewModelCommandsTests` - every command is reachable from a view or code path
+- `NoUndefinedXamlResourceKeysTests` - every resource key referenced in XAML is defined
+- `InteractiveControlsHaveAccessibleNamesTests` - every control has a name for assistive technology
 
 ## License
 
-[MIT](LICENSE) © 2026 Rocky Elsalaymeh. Built by [Strategia-X](https://strategia-x.com).
+[MIT](LICENSE) (c) 2026 Rocky Elsalaymeh. Built by [Strategia-X](https://strategia-x.com).

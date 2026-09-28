@@ -203,7 +203,7 @@ public class ExportService : IExportService
             var outputPath = await ExportPathUtility.ResolveOutputPathAsync(options, title, options.Format, _settingsService);
             ExportPathUtility.EnsureDirectoryExists(outputPath);
 
-            // Search results use ExportContentBuilder — formatters only handle ConversationEntity
+            // Search results use ExportContentBuilder - formatters only handle ConversationEntity
             var content = ExportContentBuilder.BuildSearchResultsContent(query, results, options, title);
             if (content is null)
                 return ExportResult.Fail($"Unsupported export format: {options.Format}");
@@ -494,7 +494,7 @@ public class ExportService : IExportService
             await File.WriteAllTextAsync(outputPath, content, Encoding.UTF8, ct);
         }
 
-        return null; // success — no error
+        return null; // success - no error
     }
 
     // Conversation fetching

@@ -230,7 +230,7 @@ public sealed class OutlookCalendarProvider : ICalendarProvider
             .ConfigureAwait(false);
     }
 
-    // ── Private: response mapping ───────────────────────────────────────────────
+    // -- Private: response mapping -----------------------------------------------
 
     private static CalEvent MapToCalEvent(GraphCalendarEvent item, string calendarId)
     {
@@ -385,7 +385,7 @@ public sealed class OutlookCalendarProvider : ICalendarProvider
         return text.Trim();
     }
 
-    // ── Private: Microsoft Graph API JSON response models ───────────────────────
+    // -- Private: Microsoft Graph API JSON response models -----------------------
     // Internal deserialization-only models matching the Microsoft Graph API v1.0
     // JSON response format. Property names use C# conventions; JsonPropertyName
     // is used for non-standard names like @odata.nextLink.
@@ -496,7 +496,7 @@ public sealed class OutlookCalendarProvider : ICalendarProvider
 
     private sealed class GraphRecurrence
     {
-        // Minimal — we only need to detect if recurrence is present.
+        // Minimal - we only need to detect if recurrence is present.
         public object? Pattern { get; set; }
     }
 }

@@ -19,7 +19,7 @@
 
     <Grid>
 
-        <!-- ═══════ ADAPTIVE LAYOUT (Tier 3) — see Colors.xaml breakpoints ═══════
+        <!-- ======= ADAPTIVE LAYOUT (Tier 3) - see Colors.xaml breakpoints =======
              Narrow (<960):  sidebar 260   |  Medium (>=960): sidebar 300
              Wide (>=1280):  sidebar 320 (markup default) -->
         <VisualStateManager.VisualStateGroups>
@@ -53,9 +53,9 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <!-- ══════════════════════════════════════════════════════════
+        <!-- ==========================================================
              LEFT PANEL: Workflow List
-             ══════════════════════════════════════════════════════════ -->
+             ========================================================== -->
         <Border Grid.Column="0"
                 Background="{ThemeResource CardGradientSubtleBrush}"
                 BorderBrush="{ThemeResource BorderSubtleBrush}"
@@ -189,9 +189,9 @@
             </Grid>
         </Border>
 
-        <!-- ══════════════════════════════════════════════════════════
+        <!-- ==========================================================
              RIGHT PANEL: Editor / Runner
-             ══════════════════════════════════════════════════════════ -->
+             ========================================================== -->
         <Grid Grid.Column="1">
             <ScrollViewer VerticalScrollBarVisibility="Auto"
                           HorizontalScrollBarVisibility="Disabled">
@@ -206,7 +206,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <!-- ═══ PAGE HEADER ═══ -->
+                    <!-- === PAGE HEADER === -->
                     <StackPanel Grid.Row="0" Spacing="4">
                         <TextBlock x:Uid="WfBuilder_PageTitle" Text="Prompt Workflows"
                                    Style="{StaticResource DisplaySmallStyle}" />
@@ -214,7 +214,7 @@
                                    Style="{StaticResource BodySecondaryStyle}" />
                     </StackPanel>
 
-                    <!-- ═══ EDITOR SECTION ═══ -->
+                    <!-- === EDITOR SECTION === -->
                     <controls:Faceplate Grid.Row="1" Padding="24" Visibility="{x:Bind ViewModel.IsEditing, Mode=OneWay, Converter={StaticResource BoolToVis}}" Kicker="MOD - WFLW - 01">
                         <StackPanel Spacing="20">
                             <TextBlock x:Uid="WfBuilder_WorkflowEditor" Text="Workflow Editor"
@@ -398,7 +398,7 @@
                         </StackPanel>
                     </controls:Faceplate>
 
-                    <!-- ═══ RUNNER SECTION ═══ -->
+                    <!-- === RUNNER SECTION === -->
                     <controls:Faceplate Grid.Row="2" Padding="24" Visibility="{x:Bind ViewModel.ShowWorkflowRunnerSection, Mode=OneWay, Converter={StaticResource BoolToVis}}" Kicker="MOD - WFLW - 02">
                         <StackPanel Spacing="20">
                             <Border Background="{ThemeResource AccentSubtleBrush}"
@@ -571,7 +571,7 @@
                         </StackPanel>
                     </controls:Faceplate>
 
-                    <!-- ═══ RECENT RUNS ═══ -->
+                    <!-- === RECENT RUNS === -->
                     <controls:Faceplate Grid.Row="3" Padding="24" Visibility="{x:Bind ViewModel.HasSelectedWorkflow, Mode=OneWay, Converter={StaticResource BoolToVis}}" Kicker="MOD - WFLW - 03">
                         <StackPanel Spacing="16">
                             <Grid>
@@ -671,7 +671,7 @@
                         </StackPanel>
                     </controls:Faceplate>
 
-                    <!-- ═══ STEP OUTPUTS ═══ -->
+                    <!-- === STEP OUTPUTS === -->
                     <controls:Faceplate Grid.Row="4" Padding="24" Visibility="{x:Bind ViewModel.HasStepOutputs, Mode=OneWay, Converter={StaticResource BoolToVis}}" Kicker="MOD - WFLW - 04">
                         <StackPanel Spacing="16">
                             <Grid>
@@ -752,7 +752,7 @@
                         </StackPanel>
                     </controls:Faceplate>
 
-                    <!-- ═══ FINAL OUTPUT ═══ -->
+                    <!-- === FINAL OUTPUT === -->
                     <controls:Faceplate Grid.Row="5" Padding="24" Visibility="{x:Bind ViewModel.HasRunOutputOrError, Mode=OneWay, Converter={StaticResource BoolToVis}}" Kicker="MOD - WFLW - 05">
                         <StackPanel Spacing="12">
                             <TextBlock x:Uid="WfBuilder_FinalOutput" Text="Final Output"
@@ -787,14 +787,14 @@
                         </StackPanel>
                     </controls:Faceplate>
 
-                    <!-- ═══ STATUS MESSAGE ═══ -->
+                    <!-- === STATUS MESSAGE === -->
                     <TextBlock Grid.Row="6"
                                Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
                                Style="{StaticResource CaptionStyle}"
                                Margin="0,8,0,0"
                                Visibility="{x:Bind ViewModel.StatusMessage, Mode=OneWay, Converter={StaticResource StringToVis}}" />
 
-                    <!-- ═══ EMPTY STATE ═══ -->
+                    <!-- === EMPTY STATE === -->
                     <controls:Faceplate Grid.Row="2" Padding="28" Visibility="{x:Bind ViewModel.ShowWorkflowStarterEmptyState, Mode=OneWay, Converter={StaticResource BoolToVis}}" Kicker="MOD - WFLW - 06">
                         <StackPanel Spacing="20">
                             <StackPanel Spacing="8">

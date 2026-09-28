@@ -2,7 +2,7 @@
   "name": "agentx-web-clipper",
   "version": "1.4.0",
   "private": true,
-  "description": "AgentX browser extension — clip web content into Smart Inbox",
+  "description": "AgentX browser extension - clip web content into Smart Inbox",
   "scripts": {
     "lint": "eslint \"src/**/*.ts\" webpack.config.js",
     "typecheck": "tsc --noEmit",

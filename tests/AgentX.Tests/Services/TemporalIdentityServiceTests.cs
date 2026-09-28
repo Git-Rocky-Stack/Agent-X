@@ -84,7 +84,7 @@ public sealed class TemporalIdentityServiceTests : IDisposable
         acknowledged.Should().BeFalse();
     }
 
-    // ─── Seed helpers (append) ───────────────────────────────────────────────────
+    // --- Seed helpers (append) ---------------------------------------------------
 
     private async Task<MessageEntity> SeedMessageAsync(
         AgentXDbContext db, string role, string content, string convTitle = "chat")
@@ -104,7 +104,7 @@ public sealed class TemporalIdentityServiceTests : IDisposable
         return msg;
     }
 
-    // ─── ProcessMessageAsync ─────────────────────────────────────────────────────
+    // --- ProcessMessageAsync -----------------------------------------------------
 
     [Fact]
     public async Task ProcessMessage_ignores_missing_and_non_user_messages()
@@ -183,7 +183,7 @@ public sealed class TemporalIdentityServiceTests : IDisposable
         belief.PreviousStance.Should().BeNull();
     }
 
-    // ─── GetPastSelfAsync ────────────────────────────────────────────────────────
+    // --- GetPastSelfAsync --------------------------------------------------------
 
     [Fact]
     public async Task GetPastSelf_unknown_topic_returns_null()
@@ -207,7 +207,7 @@ public sealed class TemporalIdentityServiceTests : IDisposable
         });
         db.Conversations.AddRange(
             new ConversationEntity { Title = "remote work rituals", CreatedAt = anchor.AddDays(5) },
-            new ConversationEntity { Title = "remote work fatigue", CreatedAt = anchor.AddDays(200) }, // outside ±30d
+            new ConversationEntity { Title = "remote work fatigue", CreatedAt = anchor.AddDays(200) }, // outside +/-30d
             new ConversationEntity { Title = "unrelated", CreatedAt = anchor });
         db.Documents.AddRange(
             new DocumentEntity { FileName = "remote work handbook.pdf", ImportedAt = anchor.AddDays(-3) },
@@ -278,7 +278,7 @@ public sealed class TemporalIdentityServiceTests : IDisposable
         past.StanceChangedAt.Should().BeNull();
     }
 
-    // ─── Insights ────────────────────────────────────────────────────────────────
+    // --- Insights ----------------------------------------------------------------
 
     [Fact]
     public async Task CaptureInsight_persists_a_high_significance_row()
@@ -375,7 +375,7 @@ public sealed class TemporalIdentityServiceTests : IDisposable
             "nothing shows it, so no English sentence (\"From ... on ...\") is built for it");
     }
 
-    // ─── Engagement ──────────────────────────────────────────────────────────────
+    // --- Engagement --------------------------------------------------------------
 
     [Fact]
     public async Task RecordEngagement_creates_then_accumulates_and_upgrades_depth()
@@ -456,7 +456,7 @@ public sealed class TemporalIdentityServiceTests : IDisposable
         rows.Select(r => r.TargetId).Should().Equal(1, 2); // ordered by time desc, php excluded
     }
 
-    // ─── Voice learning ──────────────────────────────────────────────────────────
+    // --- Voice learning ----------------------------------------------------------
 
     [Fact]
     public async Task LearnFromMessage_skips_missing_and_non_user_messages()
@@ -521,7 +521,7 @@ public sealed class TemporalIdentityServiceTests : IDisposable
         profile.FormalityScore.Should().BeApproximately(0.5 * 0.95 + 0.8 * 0.05, 0.001); // 0.515
     }
 
-    // ─── Pattern recognition ─────────────────────────────────────────────────────
+    // --- Pattern recognition -----------------------------------------------------
 
     [Fact]
     public async Task FindSimilarProblems_maps_matching_titles_to_typed_patterns()
@@ -534,7 +534,7 @@ public sealed class TemporalIdentityServiceTests : IDisposable
             new ConversationEntity { Title = "random chatter", CreatedAt = DateTime.UtcNow, TokensUsed = 9000 });
         await db.SaveChangesAsync();
 
-        // keywords (>4 chars, lowered): "error", "deploy", "retries" — titles are lowercase on purpose
+        // keywords (>4 chars, lowered): "error", "deploy", "retries" - titles are lowercase on purpose
         // because string.Contains translates case-sensitively.
         var patterns = await new TemporalIdentityService(db)
             .FindSimilarProblemsAsync("error deploy retries");
@@ -612,7 +612,7 @@ public sealed class TemporalIdentityServiceTests : IDisposable
         details.Select(topic => topic.Topic).Should().Equal(await svc.GetActiveTopicsAsync(days: 30));
     }
 
-    // ─── Annotations & auto-detected insights ───────────────────────────────────
+    // --- Annotations & auto-detected insights -----------------------------------
 
     private async Task<AnnotationEntity> SeedAnnotationAsync(
         AgentXDbContext db, string highlighted, string? note, string docName = "guide.pdf")

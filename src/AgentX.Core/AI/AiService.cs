@@ -598,7 +598,7 @@ public sealed class AiService : IAiService
         _logger.Information("AiService disposed");
     }
 
-    // ── Private Helpers ─────────────────────────────────────────────
+    // -- Private Helpers ---------------------------------------------
 
     /// <summary>
     /// Parses an Ollama endpoint. Only absolute http/https URLs are accepted; values such as

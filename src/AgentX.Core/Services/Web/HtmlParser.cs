@@ -124,7 +124,7 @@ public class HtmlParser : IHtmlParser
                ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    // ─── IHtmlParser Implementation ──────────────────────────────────────────
+    // --- IHtmlParser Implementation ------------------------------------------
 
     /// <inheritdoc />
     public ParsedContent Parse(string html, string url)
@@ -256,7 +256,7 @@ public class HtmlParser : IHtmlParser
         return metadata;
     }
 
-    // ─── Document Loading ────────────────────────────────────────────────────
+    // --- Document Loading ----------------------------------------------------
 
     /// <summary>
     /// Loads raw HTML into an <see cref="HtmlDocument"/>, handling malformed HTML gracefully.
@@ -268,7 +268,7 @@ public class HtmlParser : IHtmlParser
         return doc;
     }
 
-    // ─── Metadata Extraction ────────────────────────────────────────────────
+    // --- Metadata Extraction ------------------------------------------------
 
     /// <summary>
     /// Extracts page metadata (title, author, publish date, site name, description,
@@ -463,7 +463,7 @@ public class HtmlParser : IHtmlParser
         return null;
     }
 
-    // ─── Readability / Content Extraction ───────────────────────────────────
+    // --- Readability / Content Extraction -----------------------------------
 
     /// <summary>
     /// Extracts the main article content from an HTML document using a multi-step
@@ -710,7 +710,7 @@ public class HtmlParser : IHtmlParser
         return Math.Max(score, 0);
     }
 
-    // ─── Text Extraction ────────────────────────────────────────────────────
+    // --- Text Extraction ----------------------------------------------------
 
     /// <summary>
     /// Recursively extracts and joins plain text from an HTML node tree.
@@ -847,7 +847,7 @@ public class HtmlParser : IHtmlParser
         };
     }
 
-    // ─── Text Cleaning ──────────────────────────────────────────────────────
+    // --- Text Cleaning ------------------------------------------------------
 
     /// <summary>
     /// Normalizes whitespace and removes excessive blank lines from extracted text.
@@ -873,7 +873,7 @@ public class HtmlParser : IHtmlParser
         return text.Trim();
     }
 
-    // ─── Utility Methods ────────────────────────────────────────────────────
+    // --- Utility Methods ----------------------------------------------------
 
     /// <summary>
     /// Counts words by splitting on whitespace, filtering out empty entries.

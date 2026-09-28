@@ -33,7 +33,7 @@ public sealed class AdaptiveChunkingServiceTests
         return new AdaptiveChunkingService(config.Object, Silent);
     }
 
-    // ── Constructor guards ───────────────────────────────────────────────────
+    // -- Constructor guards ---------------------------------------------------
 
     [Fact]
     public void Constructor_NullConfiguration_Throws()
@@ -51,7 +51,7 @@ public sealed class AdaptiveChunkingServiceTests
         act.Should().Throw<ArgumentNullException>();
     }
 
-    // ── AnalyzeContent: empty input ──────────────────────────────────────────
+    // -- AnalyzeContent: empty input ------------------------------------------
 
     [Theory]
     [InlineData("")]
@@ -67,7 +67,7 @@ public sealed class AdaptiveChunkingServiceTests
         info.RecommendedChunkSize.Should().Be(0, "an empty analysis recommends nothing");
     }
 
-    // ── AnalyzeContent: classification by file extension ─────────────────────
+    // -- AnalyzeContent: classification by file extension ---------------------
 
     [Theory]
     [InlineData("Program.cs")]
@@ -103,7 +103,7 @@ public sealed class AdaptiveChunkingServiceTests
         info.ContentType.Should().Be(ContentType.Code);
     }
 
-    // ── AnalyzeContent: classification by body ───────────────────────────────
+    // -- AnalyzeContent: classification by body -------------------------------
 
     [Fact]
     public void AnalyzeContent_CodeKeywords_ClassifyAsCode()
@@ -160,7 +160,7 @@ public sealed class AdaptiveChunkingServiceTests
         Service().AnalyzeContent(text).ContentType.Should().Be(ContentType.Table);
     }
 
-    // ── AnalyzeContent: measured fields ──────────────────────────────────────
+    // -- AnalyzeContent: measured fields --------------------------------------
 
     [Fact]
     public void AnalyzeContent_CountsNonEmptyLinesOnly()
@@ -198,7 +198,7 @@ public sealed class AdaptiveChunkingServiceTests
         Service().AnalyzeContent(text).HasStructure.Should().BeFalse();
     }
 
-    // ── RecommendedChunkSize (CalculateOptimalChunkSize) ─────────────────────
+    // -- RecommendedChunkSize (CalculateOptimalChunkSize) ---------------------
 
     [Fact]
     public void RecommendedChunkSize_Code_IsThreeQuartersOfTheDefault()

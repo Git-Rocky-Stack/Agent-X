@@ -1010,7 +1010,7 @@
   <data name="Ana_TokensOverline.Text" xml:space="preserve"><value>使用トークン</value></data>
   <data name="Ana_AvgPerMsgLabel.Text" xml:space="preserve"><value>平均 / メッセージ</value></data>
   <data name="Ana_DocsOverline.Text" xml:space="preserve"><value>ドキュメント</value></data>
-  <data name="Ana_IndexedDotLabel.Text" xml:space="preserve"><value>件インデックス済み ·</value></data>
+  <data name="Ana_IndexedDotLabel.Text" xml:space="preserve"><value>件インデックス済み |</value></data>
   <data name="Ana_PendingLabel.Text" xml:space="preserve"><value>件待機中</value></data>
   <data name="Ana_SearchesOverline.Text" xml:space="preserve"><value>検索</value></data>
   <data name="Ana_SearchesCaption.Text" xml:space="preserve"><value>セマンティック検索とキーワード検索</value></data>
@@ -1597,9 +1597,9 @@
   <data name="Chat_AssemblyOverviewTitle.Text" xml:space="preserve"><value>アセンブリの概要</value></data>
   <data name="Chat_ModeRun.Text" xml:space="preserve"><value>モード: </value></data>
   <data name="Chat_SelectedRun.Text" xml:space="preserve"><value>選択: </value></data>
-  <data name="Chat_AnchorsRun.Text" xml:space="preserve"><value> · アンカー: </value></data>
+  <data name="Chat_AnchorsRun.Text" xml:space="preserve"><value> | アンカー: </value></data>
   <data name="Chat_OverflowRun.Text" xml:space="preserve"><value>オーバーフロー: </value></data>
-  <data name="Chat_PromptEstRun.Text" xml:space="preserve"><value> · プロンプト推定: </value></data>
+  <data name="Chat_PromptEstRun.Text" xml:space="preserve"><value> | プロンプト推定: </value></data>
   <data name="Chat_DurableSummaryTitle.Text" xml:space="preserve"><value>永続的な要約</value></data>
   <data name="Chat_RefreshSummaryTip2.ToolTipService.ToolTip" xml:space="preserve"><value>この会話の永続的な要約を更新</value></data>
   <data name="Chat_DurableRecallTitle.Text" xml:space="preserve"><value>永続リコール</value></data>
@@ -1607,7 +1607,7 @@
   <data name="Chat_CapturedRun.Text" xml:space="preserve"><value>取得: </value></data>
   <data name="Chat_PromptRun.Text" xml:space="preserve"><value>プロンプト:</value></data>
   <data name="Chat_MessageBox.PlaceholderText" xml:space="preserve"><value>Agent-X にメッセージ...</value></data>
-  <data name="Chat_VoiceInputTip.ToolTipService.ToolTip" xml:space="preserve"><value>音声入力 — クリックで録音</value></data>
+  <data name="Chat_VoiceInputTip.ToolTipService.ToolTip" xml:space="preserve"><value>音声入力 - クリックで録音</value></data>
   <data name="Chat_StopRecordingTip.ToolTipService.ToolTip" xml:space="preserve"><value>録音を停止して文字起こし</value></data>
   <data name="Chat_InspectAssembledTip.ToolTipService.ToolTip" xml:space="preserve"><value>最新のチャット コンテキストを確認</value></data>
   <data name="Chat_ModeSolo.Text" xml:space="preserve"><value>ソロ</value></data>
@@ -2083,7 +2083,7 @@
   <data name="QuickAct_ScanExactDuplicates.Content" xml:space="preserve"><value>完全一致の重複をスキャン</value></data>
   <data name="QuickAct_ScanSemanticNearDuplicates.Content" xml:space="preserve"><value>セマンティックな類似重複をスキャン</value></data>
   <data name="QuickAct_Wasted.Text" xml:space="preserve"><value> の無駄</value></data>
-  <data name="QuickAct_Imported.Text" xml:space="preserve"><value> · インポート: </value></data>
+  <data name="QuickAct_Imported.Text" xml:space="preserve"><value> | インポート: </value></data>
   <data name="QuickAct_AiOrganizationAssistant.Text" xml:space="preserve"><value>AI 整理アシスタント</value></data>
   <data name="QuickAct_AnalyzesUncategorizedDocuments.Text" xml:space="preserve"><value>未分類のドキュメントを分析し、内容に基づいてコレクションとタグを提案します。</value></data>
   <data name="QuickAct_AnalyzeSuggest.Content" xml:space="preserve"><value>分析して提案</value></data>
@@ -2148,7 +2148,7 @@
   <data name="HwAdvisor_Installed3.Text" xml:space="preserve"><value>インストール済み</value></data>
   <data name="HwAdvisor_Install3.Text" xml:space="preserve"><value>インストール</value></data>
   <data name="HwAdvisor_LocalAiOnly.Text" xml:space="preserve"><value>ローカル AI のみ</value></data>
-  <data name="HwAdvisor_AllModelsRunEntirely.Text" xml:space="preserve"><value> — すべてのモデルはお使いのハードウェア上でのみ動作します。外部サーバーにデータが送信されることはなく、ハードウェア情報がこのマシンの外に出ることもありません。</value></data>
+  <data name="HwAdvisor_AllModelsRunEntirely.Text" xml:space="preserve"><value> - すべてのモデルはお使いのハードウェア上でのみ動作します。外部サーバーにデータが送信されることはなく、ハードウェア情報がこのマシンの外に出ることもありません。</value></data>
   <data name="WfBuilder_Workflows.Text" xml:space="preserve"><value>ワークフロー</value></data>
   <data name="WfBuilder_MultiStepAiPipelines.Text" xml:space="preserve"><value>マルチステップ AI パイプライン</value></data>
   <data name="WfBuilder_NewWorkflow.Content" xml:space="preserve"><value>新しいワークフロー</value></data>
@@ -2350,7 +2350,7 @@
   <data name="WfBuilder_ShowingCancelledResult" xml:space="preserve"><value>キャンセルされた実行の結果を表示しています</value></data>
   <data name="WfBuilder_WorkflowCancelled" xml:space="preserve"><value>ワークフローをキャンセルしました</value></data>
   <data name="WfBuilder_ImportedWorkflow" xml:space="preserve"><value>ワークフロー「{0}」をインポートしました</value></data>
-  <data name="WfBuilder_ImportInvalidJson" xml:space="preserve"><value>インポートに失敗しました — ワークフローの JSON が無効です</value></data>
+  <data name="WfBuilder_ImportInvalidJson" xml:space="preserve"><value>インポートに失敗しました - ワークフローの JSON が無効です</value></data>
   <data name="WfBuilder_LoadRecentRunsFailed" xml:space="preserve"><value>最近のワークフロー実行を読み込めませんでした</value></data>
   <data name="WfBuilder_RequestedRunUnavailable" xml:space="preserve"><value>要求されたワークフロー実行は利用できなくなりました。</value></data>
   <data name="WfBuilder_RequestedRunNotInHistory" xml:space="preserve"><value>要求されたワークフロー実行は最近の履歴に含まれなくなりました。</value></data>
@@ -2730,12 +2730,12 @@
   <data name="Chat_IntelBadgePending" xml:space="preserve"><value>保留中</value></data>
   <data name="Chat_IntelBadgeUnavailable" xml:space="preserve"><value>利用不可</value></data>
   <data name="Chat_SummaryRefreshing" xml:space="preserve"><value>永続的な要約を更新しています...</value></data>
-  <data name="Chat_SummaryCurrentKeyPointsOne" xml:space="preserve"><value>要約は最新 • 要点 1 件</value></data>
-  <data name="Chat_SummaryCurrentKeyPointsMany" xml:space="preserve"><value>要約は最新 • 要点 {0} 件</value></data>
-  <data name="Chat_SummaryCurrentReady" xml:space="preserve"><value>要約は最新 • 詳しく確認できます</value></data>
-  <data name="Chat_SummaryStaleMessagesOne" xml:space="preserve"><value>要約が古い • 新しいメッセージ 1 件が未反映</value></data>
-  <data name="Chat_SummaryStaleMessagesMany" xml:space="preserve"><value>要約が古い • 新しいメッセージ {0} 件が未反映</value></data>
-  <data name="Chat_SummaryStaleWaiting" xml:space="preserve"><value>要約が古い • 次の更新を待っています</value></data>
+  <data name="Chat_SummaryCurrentKeyPointsOne" xml:space="preserve"><value>要約は最新 | 要点 1 件</value></data>
+  <data name="Chat_SummaryCurrentKeyPointsMany" xml:space="preserve"><value>要約は最新 | 要点 {0} 件</value></data>
+  <data name="Chat_SummaryCurrentReady" xml:space="preserve"><value>要約は最新 | 詳しく確認できます</value></data>
+  <data name="Chat_SummaryStaleMessagesOne" xml:space="preserve"><value>要約が古い | 新しいメッセージ 1 件が未反映</value></data>
+  <data name="Chat_SummaryStaleMessagesMany" xml:space="preserve"><value>要約が古い | 新しいメッセージ {0} 件が未反映</value></data>
+  <data name="Chat_SummaryStaleWaiting" xml:space="preserve"><value>要約が古い | 次の更新を待っています</value></data>
   <data name="Chat_SummaryRefreshPending" xml:space="preserve"><value>要約の更新を待っています</value></data>
   <data name="Chat_SummaryUnavailablePath" xml:space="preserve"><value>この応答経路では要約を利用できません</value></data>
   <data name="Chat_ConversationContextNone" xml:space="preserve"><value>会話のコンテキストはまだ記録されていません</value></data>
@@ -2829,8 +2829,8 @@
   <data name="BranchCompare_BranchLabel" xml:space="preserve"><value>ブランチ: {0}</value></data>
   <data name="BranchCompare_Untitled" xml:space="preserve"><value>無題</value></data>
   <data name="BranchCompare_UntitledConversation" xml:space="preserve"><value>無題の会話</value></data>
-  <data name="BranchCompare_HeaderSummaryOne" xml:space="preserve"><value>{0} — サブブランチ {1} 件</value></data>
-  <data name="BranchCompare_HeaderSummaryMany" xml:space="preserve"><value>{0} — サブブランチ {1} 件</value></data>
+  <data name="BranchCompare_HeaderSummaryOne" xml:space="preserve"><value>{0} - サブブランチ {1} 件</value></data>
+  <data name="BranchCompare_HeaderSummaryMany" xml:space="preserve"><value>{0} - サブブランチ {1} 件</value></data>
   <data name="BranchCompare_Label" xml:space="preserve"><value>ラベル: {0}</value></data>
   <data name="BranchCompare_BranchedFrom" xml:space="preserve"><value>メッセージ #{0} から分岐</value></data>
   <data name="BranchCompare_SubBranchesOne" xml:space="preserve"><value>サブブランチ {0} 件</value></data>
@@ -2896,9 +2896,9 @@
   <data name="Settings_AutomaticallyRoutePromptsTo.Text" xml:space="preserve"><value>タスクの種類に応じて、プロンプトを最適な AI モデルに自動でルーティングします。抽出とチャットは高速なローカル モデル、分析とコードは高品質なクラウド モデルを優先します。</value></data>
   <data name="Settings_EnableAutoRouting.Header" xml:space="preserve"><value>自動ルーティングを有効化</value></data>
   <data name="Settings_RoutingProfile.Text" xml:space="preserve"><value>ルーティング プロファイル</value></data>
-  <data name="Settings_CostOptimizedLocalModels.Text" xml:space="preserve"><value>コスト最適化 — すべてのタスクをローカル モデルで処理し、クラウドはフォールバックのみ</value></data>
-  <data name="Settings_QualityOptimizedCloudModels.Text" xml:space="preserve"><value>品質最適化 — 分析、コード、クリエイティブにクラウド モデルを使用</value></data>
-  <data name="Settings_BalancedLocalForSimple.Text" xml:space="preserve"><value>バランス — 単純なタスクはローカル、品質重視のタスクはクラウド</value></data>
+  <data name="Settings_CostOptimizedLocalModels.Text" xml:space="preserve"><value>コスト最適化 - すべてのタスクをローカル モデルで処理し、クラウドはフォールバックのみ</value></data>
+  <data name="Settings_QualityOptimizedCloudModels.Text" xml:space="preserve"><value>品質最適化 - 分析、コード、クリエイティブにクラウド モデルを使用</value></data>
+  <data name="Settings_BalancedLocalForSimple.Text" xml:space="preserve"><value>バランス - 単純なタスクはローカル、品質重視のタスクはクラウド</value></data>
   <data name="Settings_CostTracking.Text" xml:space="preserve"><value>コスト追跡</value></data>
   <data name="Settings_EstimatedApiCostsFor.Text" xml:space="preserve"><value>クラウド プロバイダーの API コストの概算です。ローカルの Ollama モデルは無料です。</value></data>
   <data name="Settings_TotalSpend.Text" xml:space="preserve"><value>合計支出</value></data>
@@ -3084,7 +3084,7 @@
   <data name="Privacy_AllDataStoredIn.Text" xml:space="preserve"><value>すべてのデータはデバイス上のローカル SQLite データベースに保存</value></data>
   <data name="Privacy_DocumentEmbeddingsStoredIn.Text" xml:space="preserve"><value>ドキュメントの埋め込みはローカル ベクトル データベース (sqlite-vec) に保存</value></data>
   <data name="Privacy_ApplicationLogsStoredIn.Text" xml:space="preserve"><value>アプリケーション ログの保存先: </value></data>
-  <data name="Privacy_SettingsStoredLocallyNever.Text" xml:space="preserve"><value>設定はローカル保存 — クラウドに同期されません</value></data>
+  <data name="Privacy_SettingsStoredLocallyNever.Text" xml:space="preserve"><value>設定はローカル保存 - クラウドに同期されません</value></data>
   <data name="Privacy_YouHaveFullControl.Text" xml:space="preserve"><value>完全な管理が可能: アプリケーション データ フォルダーを削除すれば、すべてのデータを消去できます</value></data>
   <data name="Privacy_ThirdPartyServices.Text" xml:space="preserve"><value>サードパーティ サービス</value></data>
   <data name="Privacy_OllamaLocalAiRuntime.Text" xml:space="preserve"><value>Ollama (ローカル AI ランタイム)</value></data>
@@ -3105,14 +3105,14 @@
   <data name="Privacy_RightToDataPortability.Text" xml:space="preserve"><value>データ ポータビリティの権利</value></data>
   <data name="Privacy_YourDataIsStored.Text" xml:space="preserve"><value>データは標準の SQLite 形式で保存されており、自由にエクスポートや移動ができます。</value></data>
   <data name="Privacy_RightToRestrictProcessing.Text" xml:space="preserve"><value>処理制限の権利</value></data>
-  <data name="Privacy_YouControlAllProcessing.Text" xml:space="preserve"><value>すべての処理はお客様の管理下にあります — アプリケーションを終了するだけで、あらゆるデータ処理が停止します。</value></data>
+  <data name="Privacy_YouControlAllProcessing.Text" xml:space="preserve"><value>すべての処理はお客様の管理下にあります - アプリケーションを終了するだけで、あらゆるデータ処理が停止します。</value></data>
   <data name="Privacy_RightToObject.Text" xml:space="preserve"><value>異議申し立ての権利</value></data>
   <data name="Privacy_YouCanStopUsing.Text" xml:space="preserve"><value>アプリケーションの利用はいつでも中止できます。アンインストールすればすべての処理がなくなります。</value></data>
   <data name="Privacy_SinceAllDataIs.Text" xml:space="preserve"><value>すべてのデータはデバイスにローカル保存されているため、当社に連絡することなく、これらの権利を直接行使できます。データの管理者はお客様ご自身です。</value></data>
   <data name="Privacy_YourRightsUnderCcpa.Text" xml:space="preserve"><value>CCPA に基づく権利</value></data>
   <data name="Privacy_IfYouAreA.Text" xml:space="preserve"><value>カリフォルニア州にお住まいの場合、カリフォルニア州消費者プライバシー法 (CCPA) に基づく特定の権利を有します。</value></data>
   <data name="Privacy_RightToKnow.Text" xml:space="preserve"><value>知る権利</value></data>
-  <data name="Privacy_WhatPersonalInformationIs.Text" xml:space="preserve"><value>収集される個人情報について — 完全な一覧は上記の「収集する情報」をご覧ください。</value></data>
+  <data name="Privacy_WhatPersonalInformationIs.Text" xml:space="preserve"><value>収集される個人情報について - 完全な一覧は上記の「収集する情報」をご覧ください。</value></data>
   <data name="Privacy_RightToDelete.Text" xml:space="preserve"><value>削除権</value></data>
   <data name="Privacy_RemoveAllDataBy.Text" xml:space="preserve"><value>アプリのアンインストールまたはアプリケーション データ ディレクトリの削除により、すべてのデータを消去できます。</value></data>
   <data name="Privacy_RightToOptOut.Text" xml:space="preserve"><value>販売のオプトアウト権</value></data>
@@ -3146,8 +3146,8 @@
   <data name="Privacy_ForGdprInquiriesOur.Text" xml:space="preserve"><value>GDPR に関するお問い合わせは、データ保護窓口 support@strategia-x.com までご連絡ください</value></data>
   <data name="Privacy_CcpaRequestsCaliforniaResident.Text" xml:space="preserve"><value>CCPA 関連のご請求 (カリフォルニア州民)</value></data>
   <data name="Privacy_CaliforniaResidentsMayContact.Text" xml:space="preserve"><value>カリフォルニア州民の方は、CCPA 関連のご請求について support@strategia-x.com までご連絡ください。</value></data>
-  <data name="Privacy_2026RockyElsalaymehFree.Text" xml:space="preserve"><value>© 2026 Rocky Elsalaymeh. MIT ライセンスの下で無料かつオープンソース。</value></data>
-  <data name="Privacy_AgentXLocalFirst.Text" xml:space="preserve"><value>Agent-X — ローカルファーストの AI パーソナル インテリジェンス ハブ</value></data>
+  <data name="Privacy_2026RockyElsalaymehFree.Text" xml:space="preserve"><value>(c) 2026 Rocky Elsalaymeh. MIT ライセンスの下で無料かつオープンソース。</value></data>
+  <data name="Privacy_AgentXLocalFirst.Text" xml:space="preserve"><value>Agent-X - ローカルファーストの AI パーソナル インテリジェンス ハブ</value></data>
   <data name="Terms_Legal.Text" xml:space="preserve"><value>法的情報</value></data>
   <data name="Terms_TermsOfService.Text" xml:space="preserve"><value>利用規約</value></data>
   <data name="Terms_EffectiveDateFebruary26.Text" xml:space="preserve"><value>発効日: 2026 年 2 月 26 日</value></data>
@@ -3380,7 +3380,7 @@
   <data name="Chat_CopyAiMsgTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>クリップボードにコピー</value></data>
   <data name="Chat_RegenerateTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>応答を再生成</value></data>
   <data name="Chat_DeleteAiMsgTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>メッセージを削除</value></data>
-  <data name="Chat_VoiceInputTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>音声入力 — クリックで録音</value></data>
+  <data name="Chat_VoiceInputTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>音声入力 - クリックで録音</value></data>
   <data name="Chat_StopRecordingTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>録音を停止して文字起こし</value></data>
   <data name="Chat_InspectAssembledTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>最新のチャット コンテキストを確認</value></data>
   <data name="Graph_ZoomOutTip.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>縮小</value></data>
@@ -3590,7 +3590,7 @@
   <data name="Ana_NoCompletedOutcomes" xml:space="preserve"><value>完了した結果はまだありません</value></data>
   <data name="Ana_SuccessfulRunsOne" xml:space="preserve"><value>成功した実行 1 回</value></data>
   <data name="Ana_SuccessfulRunsMany" xml:space="preserve"><value>成功した実行 {0} 回</value></data>
-  <data name="Ana_RunsSucceededAndFailed" xml:space="preserve"><value>成功 {0} 回 · 失敗/キャンセル {1} 回</value></data>
+  <data name="Ana_RunsSucceededAndFailed" xml:space="preserve"><value>成功 {0} 回 | 失敗/キャンセル {1} 回</value></data>
   <data name="Ana_RunStatusCompleted" xml:space="preserve"><value>完了</value></data>
   <data name="Ana_RunStatusFailed" xml:space="preserve"><value>失敗</value></data>
   <data name="Ana_RunStatusCancelled" xml:space="preserve"><value>キャンセル</value></data>
@@ -3609,8 +3609,8 @@
   <data name="Ana_TimeHoursAgo" xml:space="preserve"><value>{0} 時間前</value></data>
   <data name="Ana_TimeOneDayAgo" xml:space="preserve"><value>1 日前</value></data>
   <data name="Ana_TimeDaysAgo" xml:space="preserve"><value>{0} 日前</value></data>
-  <data name="Ana_ThemeClusterActivity" xml:space="preserve"><value>会話 {0} 件 · 7 日間でアクティブ {1} 件 · 30 日間でアクティブ {2} 件</value></data>
-  <data name="Ana_ThemeTrendActivity" xml:space="preserve"><value>7 日間でアクティブ {0} 件 · 30 日間でアクティブ {1} 件</value></data>
+  <data name="Ana_ThemeClusterActivity" xml:space="preserve"><value>会話 {0} 件 | 7 日間でアクティブ {1} 件 | 30 日間でアクティブ {2} 件</value></data>
+  <data name="Ana_ThemeTrendActivity" xml:space="preserve"><value>7 日間でアクティブ {0} 件 | 30 日間でアクティブ {1} 件</value></data>
   <data name="Ana_ThemeTrendBarTooltip" xml:space="preserve"><value>{0}: アクティブ {1}、新規 {2}、スナップショット {3}</value></data>
   <data name="Palette_OpenHint.Text" xml:space="preserve"><value>開く</value></data>
   <data name="Palette_CloseHint.Text" xml:space="preserve"><value>閉じる</value></data>

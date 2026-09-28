@@ -271,7 +271,7 @@ public class PdfProcessor : IDocumentProcessor
                 AppendOperands(op.Operands, sb);
                 break;
 
-            // Td/TD/T*: Text positioning — insert a space to separate words
+            // Td/TD/T*: Text positioning - insert a space to separate words
             case OpCodeName.Td:
             case OpCodeName.TD:
             case OpCodeName.Tx:
@@ -430,7 +430,7 @@ public class PdfProcessor : IDocumentProcessor
                     }
                     else
                     {
-                        // End of string — emit if it contains printable text
+                        // End of string - emit if it contains printable text
                         var extracted = current.ToString();
                         if (extracted.Any(ch => char.IsLetterOrDigit(ch)))
                         {

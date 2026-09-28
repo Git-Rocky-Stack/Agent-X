@@ -16,7 +16,7 @@ namespace AgentX.Core.Services.Sync;
 /// </summary>
 public interface ISyncService
 {
-    // ── Observable state ──────────────────────────────────────────────────────
+    // -- Observable state ------------------------------------------------------
 
     /// <summary>
     /// Current state snapshot of the sync engine.
@@ -31,7 +31,7 @@ public interface ISyncService
     /// </summary>
     event Action<SyncStatus>? StatusChanged;
 
-    // ── Configuration ─────────────────────────────────────────────────────────
+    // -- Configuration ---------------------------------------------------------
 
     /// <summary>
     /// Persists <paramref name="config"/> to the local database so that it survives
@@ -49,7 +49,7 @@ public interface ISyncService
     /// </returns>
     Task<SyncConfiguration?> GetConfigurationAsync();
 
-    // ── Core sync operations ──────────────────────────────────────────────────
+    // -- Core sync operations --------------------------------------------------
 
     /// <summary>
     /// Collects all local entity changes made after <paramref name="since"/> and
@@ -102,7 +102,7 @@ public interface ISyncService
     /// <returns>What was imported, retried and rejected.</returns>
     Task<SyncRunResult> ImportNowAsync(CancellationToken ct = default);
 
-    // ── Conflict handling ─────────────────────────────────────────────────────
+    // -- Conflict handling -----------------------------------------------------
 
     /// <summary>
     /// Compares the changes in <paramref name="incoming"/> against the local
@@ -130,7 +130,7 @@ public interface ISyncService
     /// </param>
     Task ResolveConflictAsync(SyncConflict conflict, SyncResolution resolution);
 
-    // ── History ───────────────────────────────────────────────────────────────
+    // -- History ---------------------------------------------------------------
 
     /// <summary>
     /// Returns the most recent sync log entries, ordered from newest to oldest.
@@ -138,7 +138,7 @@ public interface ISyncService
     /// <param name="limit">Maximum number of records to return.  Defaults to <c>20</c>.</param>
     Task<IReadOnlyList<SyncLogEntity>> GetSyncHistoryAsync(int limit = 20);
 
-    // ── Auto-sync loop ────────────────────────────────────────────────────────
+    // -- Auto-sync loop --------------------------------------------------------
 
     /// <summary>
     /// Starts a background polling loop that performs a full export/import cycle

@@ -56,9 +56,9 @@ public sealed partial class PluginManagerPage : Page
         };
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // FILE PICKER
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     /// <summary>
     /// Shows a file picker for .agentx-plugin / .zip files and returns the
@@ -96,9 +96,9 @@ public sealed partial class PluginManagerPage : Page
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // SELECTION — MASTER/DETAIL BINDING
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
+    // SELECTION - MASTER/DETAIL BINDING
+    // ===============================================================
 
     /// <summary>
     /// Uninstalls the selected plugins. Uninstall removes files from disk and cannot be undone,
@@ -165,7 +165,7 @@ public sealed partial class PluginManagerPage : Page
         // Status badge styling
         UpdateStatusBadge(plugin.IsEnabled);
 
-        // Toggle switch — temporarily unhook the event to avoid re-triggering
+        // Toggle switch - temporarily unhook the event to avoid re-triggering
         DetailToggle.Toggled -= OnPluginToggled;
         DetailToggle.IsOn = plugin.IsEnabled;
         DetailToggle.Tag = plugin.Id;
@@ -284,9 +284,9 @@ public sealed partial class PluginManagerPage : Page
         UpdateOperationsBadge(currentPlugin);
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // PLUGIN ACTIONS — EVENT HANDLERS FOR DATA-TEMPLATE ITEMS
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
+    // PLUGIN ACTIONS - EVENT HANDLERS FOR DATA-TEMPLATE ITEMS
+    // ===============================================================
 
     /// <summary>
     /// Handles the ToggleSwitch Toggled event. The plugin ID is stored in the Tag property so
@@ -367,9 +367,9 @@ public sealed partial class PluginManagerPage : Page
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // HELPER — EMPTY STATE VISIBILITY
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
+    // HELPER - EMPTY STATE VISIBILITY
+    // ===============================================================
 
     /// <summary>
     /// Returns <see cref="Visibility.Visible"/> when the plugin count is 0

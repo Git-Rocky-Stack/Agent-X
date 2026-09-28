@@ -60,7 +60,7 @@ public sealed class EveryCollectionServiceIsRegisteredTests
             "written or tested. Unregistered:\n  " + string.Join("\n  ", unregistered));
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
+    // -- Helpers --------------------------------------------------------------
 
     /// <summary>
     /// Returns the file's text with single-line comments stripped.

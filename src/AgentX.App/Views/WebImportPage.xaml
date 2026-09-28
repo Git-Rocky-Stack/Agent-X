@@ -29,7 +29,7 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <!-- ═══ PAGE HEADER ═══ -->
+            <!-- === PAGE HEADER === -->
             <StackPanel Grid.Row="0" Spacing="4">
                 <TextBlock x:Uid="WebImport_WebImport" Text="Web Import"
                            Style="{StaticResource DisplaySmallStyle}" />
@@ -37,7 +37,7 @@
                            Style="{StaticResource BodySecondaryStyle}" />
             </StackPanel>
 
-            <!-- ═══ URL INPUT CARD ═══ -->
+            <!-- === URL INPUT CARD === -->
             <controls:Faceplate Grid.Row="1" Padding="24" Kicker="MOD - WEB - 01">
                 <StackPanel Spacing="16">
                     <TextBlock x:Uid="WebImport_EnterUrls" Text="Enter URLs"
@@ -103,7 +103,7 @@
                 </StackPanel>
             </controls:Faceplate>
 
-            <!-- ═══ PREVIEW CARD ═══ -->
+            <!-- === PREVIEW CARD === -->
             <controls:Faceplate Grid.Row="2" Padding="24" Visibility="{x:Bind ViewModel.HasPreview, Mode=OneWay, Converter={StaticResource BoolToVis}}" Kicker="MOD - WEB - 02">
                 <StackPanel Spacing="12">
                     <TextBlock x:Uid="WebImport_Preview" Text="Preview"
@@ -161,7 +161,7 @@
                 </StackPanel>
             </controls:Faceplate>
 
-            <!-- ═══ IMPORT RESULTS ═══ -->
+            <!-- === IMPORT RESULTS === -->
             <controls:Faceplate Grid.Row="3" Padding="24" Visibility="{x:Bind ViewModel.HasResults, Mode=OneWay, Converter={StaticResource BoolToVis}}" Kicker="MOD - WEB - 03">
                 <StackPanel Spacing="16">
                     <Grid>
@@ -242,7 +242,7 @@
                 </StackPanel>
             </controls:Faceplate>
 
-            <!-- ═══ FEED SUBSCRIPTION CARD ═══ -->
+            <!-- === FEED SUBSCRIPTION CARD === -->
             <controls:Faceplate Grid.Row="4" Padding="24" Kicker="MOD - WEB - 04">
                 <StackPanel Spacing="16">
                     <TextBlock x:Uid="WebImport_RssAtomFeed" Text="RSS / Atom Feed"
@@ -270,7 +270,7 @@
                 </StackPanel>
             </controls:Faceplate>
 
-            <!-- ═══ SITEMAP IMPORT CARD ═══ -->
+            <!-- === SITEMAP IMPORT CARD === -->
             <controls:Faceplate Grid.Row="5" Padding="24" Kicker="MOD - WEB - 05">
                 <StackPanel Spacing="16">
                     <TextBlock x:Uid="WebImport_SitemapImport" Text="Sitemap Import"
@@ -298,7 +298,7 @@
                 </StackPanel>
             </controls:Faceplate>
 
-            <!-- ═══ STATUS ═══ -->
+            <!-- === STATUS === -->
             <TextBlock Grid.Row="6"
                        Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
                        Style="{StaticResource CaptionStyle}" />

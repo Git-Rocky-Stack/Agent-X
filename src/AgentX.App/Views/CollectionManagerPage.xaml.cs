@@ -26,9 +26,9 @@ public sealed partial class CollectionManagerPage : Page
         Loaded += async (_, _) => await ViewModel.InitializeAsync();
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // COLLECTION TREE EVENT HANDLERS
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     /// <summary>
     /// Handles click on a collection item in the tree.
@@ -99,9 +99,9 @@ public sealed partial class CollectionManagerPage : Page
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // DOCUMENT MANAGEMENT HANDLERS
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     /// <summary>
     /// Opens a file picker and hands the picked files to the view model, which imports them,

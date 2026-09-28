@@ -27,7 +27,7 @@ public sealed class ScreenCaptureServiceTests
         _logger = Log.ForContext<ScreenCaptureServiceTests>();
     }
 
-    // ── Constructor ────────────────────────────────────────────────────────────
+    // -- Constructor ------------------------------------------------------------
 
     [Fact]
     public void Constructor_NullSettingsService_ThrowsArgumentNullException()
@@ -40,7 +40,7 @@ public sealed class ScreenCaptureServiceTests
             .WithParameterName("settingsService");
     }
 
-    // ── CaptureAndOcrAsync — Disabled ──────────────────────────────────────────
+    // -- CaptureAndOcrAsync - Disabled ------------------------------------------
 
     [Fact]
     public async Task CaptureAndOcrAsync_WhenScreenAwarenessDisabled_ReturnsEmptyResult()
@@ -73,11 +73,11 @@ public sealed class ScreenCaptureServiceTests
         // Act
         var act = async () => await sut.CaptureAndOcrAsync();
 
-        // Assert — should complete without exception
+        // Assert - should complete without exception
         await act.Should().NotThrowAsync();
     }
 
-    // ── CaptureActiveWindowAndOcrAsync — Disabled ──────────────────────────────
+    // -- CaptureActiveWindowAndOcrAsync - Disabled ------------------------------
 
     [Fact]
     public async Task CaptureActiveWindowAndOcrAsync_WhenScreenAwarenessDisabled_ReturnsEmptyResult()
@@ -135,7 +135,7 @@ public sealed class ScreenCaptureServiceTests
         await act.Should().ThrowAsync<OperationCanceledException>();
     }
 
-    // ── Cancellation ────────────────────────────────────────────────────────────
+    // -- Cancellation ------------------------------------------------------------
 
     [Fact]
     public async Task CaptureAndOcrAsync_WhenPreCancelled_ThrowsOperationCanceledException()
@@ -175,7 +175,7 @@ public sealed class ScreenCaptureServiceTests
         await act.Should().ThrowAsync<OperationCanceledException>();
     }
 
-    // ── Settings read failure ───────────────────────────────────────────────────
+    // -- Settings read failure ---------------------------------------------------
 
     [Fact]
     public async Task CaptureAndOcrAsync_WhenSettingsReadFails_DefaultsToDisabled()
@@ -190,7 +190,7 @@ public sealed class ScreenCaptureServiceTests
         // Act
         var result = await sut.CaptureAndOcrAsync();
 
-        // Assert — should gracefully fall back to disabled (no capture)
+        // Assert - should gracefully fall back to disabled (no capture)
         result.IsEmpty.Should().BeTrue();
     }
 
@@ -211,7 +211,7 @@ public sealed class ScreenCaptureServiceTests
         result.IsEmpty.Should().BeTrue();
     }
 
-    // ── CaptureAndOcrAsync — Enabled (live desktop) ────────────────────────────
+    // -- CaptureAndOcrAsync - Enabled (live desktop) ----------------------------
     // These tests verify the service attempts capture when enabled.
     // On a headless CI environment, native P/Invoke calls will likely fail
     // gracefully (returning empty results), which is the expected fallback.
@@ -226,7 +226,7 @@ public sealed class ScreenCaptureServiceTests
 
         var sut = new ScreenCaptureService(_mockSettings.Object, _logger);
 
-        // Act & Assert — in headless environments, this will either succeed
+        // Act & Assert - in headless environments, this will either succeed
         // with screen data or gracefully return an empty result. It must NOT throw.
         var result = await sut.CaptureAndOcrAsync();
         result.Should().NotBeNull();
@@ -242,12 +242,12 @@ public sealed class ScreenCaptureServiceTests
 
         var sut = new ScreenCaptureService(_mockSettings.Object, _logger);
 
-        // Act & Assert — same graceful fallback expectation as above
+        // Act & Assert - same graceful fallback expectation as above
         var result = await sut.CaptureActiveWindowAndOcrAsync();
         result.Should().NotBeNull();
     }
 
-    // ── CapturedAtUtc is recent ─────────────────────────────────────────────────
+    // -- CapturedAtUtc is recent -------------------------------------------------
 
     [Fact]
     public async Task CaptureAndOcrAsync_WhenDisabled_CapturedAtUtc_IsRecent()
@@ -263,7 +263,7 @@ public sealed class ScreenCaptureServiceTests
         // Act
         var result = await sut.CaptureAndOcrAsync();
 
-        // Assert — even for disabled results, the timestamp should be recent
+        // Assert - even for disabled results, the timestamp should be recent
         result.CapturedAtUtc.Should().BeOnOrAfter(before);
     }
 }

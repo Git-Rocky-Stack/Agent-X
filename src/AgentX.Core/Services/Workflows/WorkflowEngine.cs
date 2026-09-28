@@ -364,7 +364,7 @@ public class WorkflowEngine : IWorkflowEngine
     {
         // FU-2: changed from sync Cancel() returning Task.CompletedTask to async
         // Task awaiting CancelAsync(). Method signature unchanged from caller's
-        // perspective — they were already awaiting it.
+        // perspective - they were already awaiting it.
         var source = Volatile.Read(ref _cancellationSource);
         if (source is not null && !source.IsCancellationRequested)
         {
@@ -384,9 +384,9 @@ public class WorkflowEngine : IWorkflowEngine
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     // Step execution dispatching
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     /// <summary>
     /// Executes a single workflow step based on its <see cref="WorkflowStepEntity.StepType"/>.
@@ -463,9 +463,9 @@ public class WorkflowEngine : IWorkflowEngine
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     // AiPrompt step
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     /// <summary>
     /// Executes an AI prompt step by resolving the template placeholders
@@ -536,9 +536,9 @@ public class WorkflowEngine : IWorkflowEngine
         };
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     // DocumentLookup step
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     /// <summary>
     /// Executes a document lookup step by querying the RAG pipeline
@@ -609,9 +609,9 @@ public class WorkflowEngine : IWorkflowEngine
         };
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     // TextTransform step
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     /// <summary>
     /// Executes a text transform step by applying a deterministic text
@@ -749,9 +749,9 @@ public class WorkflowEngine : IWorkflowEngine
         return string.Join(Environment.NewLine, lines);
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     // ConditionalBranch step
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     /// <summary>
     /// Executes a conditional branch step that checks the previous output
@@ -870,9 +870,9 @@ public class WorkflowEngine : IWorkflowEngine
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     // OutputFormat step
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     /// <summary>
     /// Executes an output formatting step that wraps the previous output
@@ -995,9 +995,9 @@ public class WorkflowEngine : IWorkflowEngine
         return string.Join(Environment.NewLine, lines);
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     // Template resolution
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     /// <summary>
     /// Replaces <c>{{input}}</c> and <c>{{previous_output}}</c> placeholders
@@ -1018,9 +1018,9 @@ public class WorkflowEngine : IWorkflowEngine
             match => match.Groups[1].Value == "input" ? input : previousOutput);
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     // Serialization
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     /// <summary>
     /// Serializes a list of step results to a JSON string for persistence

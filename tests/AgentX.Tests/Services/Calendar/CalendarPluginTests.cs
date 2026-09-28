@@ -64,9 +64,9 @@ public sealed class CalendarPluginTests : IDisposable
         }
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  IPlugin metadata
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Id_ReturnsComAgentXCalendar()
@@ -104,9 +104,9 @@ public sealed class CalendarPluginTests : IDisposable
         _plugin.Type.Should().Be(PluginType.DataConnector);
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  InitializeAsync
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task InitializeAsync_WithValidContext_ResolvesOAuthService()
@@ -114,21 +114,21 @@ public sealed class CalendarPluginTests : IDisposable
         // Act
         await _plugin.InitializeAsync(_mockContext.Object);
 
-        // Assert — OAuth service should be resolved (accessible through internal method)
+        // Assert - OAuth service should be resolved (accessible through internal method)
         _plugin.GetOAuthService().Should().NotBeNull();
     }
 
     [Fact]
     public async Task InitializeAsync_WithNoOAuthService_StillSucceeds()
     {
-        // Arrange — context with no IOAuthService
+        // Arrange - context with no IOAuthService
         var emptyServices = new ServiceCollection().BuildServiceProvider();
         _mockContext.Setup(c => c.Services).Returns(emptyServices);
 
         // Act
         await _plugin.InitializeAsync(_mockContext.Object);
 
-        // Assert — OAuth service is null but plugin still initializes
+        // Assert - OAuth service is null but plugin still initializes
         _plugin.GetOAuthService().Should().BeNull();
     }
 
@@ -174,7 +174,7 @@ public sealed class CalendarPluginTests : IDisposable
         // Act
         await _plugin.InitializeAsync(_mockContext.Object);
 
-        // Assert — OAuth service was queried for Google credentials
+        // Assert - OAuth service was queried for Google credentials
         _mockOAuth.Verify(o => o.GetCredentialAsync("google"), Times.Once);
     }
 
@@ -188,13 +188,13 @@ public sealed class CalendarPluginTests : IDisposable
         // Act
         await _plugin.InitializeAsync(_mockContext.Object);
 
-        // Assert — OAuth service was queried for Microsoft credentials
+        // Assert - OAuth service was queried for Microsoft credentials
         _mockOAuth.Verify(o => o.GetCredentialAsync("microsoft"), Times.Once);
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  ActivateAsync / DeactivateAsync
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task ActivateAsync_AfterInitialize_Succeeds()
@@ -205,7 +205,7 @@ public sealed class CalendarPluginTests : IDisposable
         // Act
         await _plugin.ActivateAsync();
 
-        // Assert — no exception means success
+        // Assert - no exception means success
     }
 
     [Fact]
@@ -214,11 +214,11 @@ public sealed class CalendarPluginTests : IDisposable
         // Arrange
         await _plugin.InitializeAsync(_mockContext.Object);
 
-        // Act — activate twice
+        // Act - activate twice
         await _plugin.ActivateAsync();
         await _plugin.ActivateAsync();
 
-        // Assert — no exception means success
+        // Assert - no exception means success
     }
 
     [Fact]
@@ -231,7 +231,7 @@ public sealed class CalendarPluginTests : IDisposable
         // Act
         await _plugin.DeactivateAsync();
 
-        // Assert — no exception means success
+        // Assert - no exception means success
     }
 
     [Fact]
@@ -240,10 +240,10 @@ public sealed class CalendarPluginTests : IDisposable
         // Arrange
         await _plugin.InitializeAsync(_mockContext.Object);
 
-        // Act — deactivate without activating first
+        // Act - deactivate without activating first
         await _plugin.DeactivateAsync();
 
-        // Assert — no exception means success
+        // Assert - no exception means success
     }
 
     [Fact]
@@ -254,21 +254,21 @@ public sealed class CalendarPluginTests : IDisposable
         await _plugin.ActivateAsync();
         await _plugin.DeactivateAsync();
 
-        // Assert — no exception means full lifecycle works
+        // Assert - no exception means full lifecycle works
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Dispose
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Dispose_IsIdempotent()
     {
-        // Act — dispose twice
+        // Act - dispose twice
         _plugin.Dispose();
         _plugin.Dispose();
 
-        // Assert — no exception means success
+        // Assert - no exception means success
     }
 
     [Fact]
@@ -282,12 +282,12 @@ public sealed class CalendarPluginTests : IDisposable
         // Act
         _plugin.Dispose();
 
-        // Assert — no exception means success
+        // Assert - no exception means success
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Provider management
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task AddProvider_AddsToProviderList()
@@ -319,7 +319,7 @@ public sealed class CalendarPluginTests : IDisposable
         _plugin.AddProvider(provider1.Object);
         _plugin.AddProvider(provider2.Object);
 
-        // Assert — should replace, not duplicate
+        // Assert - should replace, not duplicate
         _plugin.GetProviders().Should().HaveCount(1);
     }
 
@@ -358,16 +358,16 @@ public sealed class CalendarPluginTests : IDisposable
         // Arrange
         await _plugin.InitializeAsync(_mockContext.Object);
 
-        // Act — remove provider that doesn't exist
+        // Act - remove provider that doesn't exist
         _plugin.RemoveProvider("nonexistent");
 
-        // Assert — no exception, empty provider list
+        // Assert - no exception, empty provider list
         _plugin.GetProviders().Should().BeEmpty();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Settings management
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task UpdateSettingsAsync_UpdatesSettingsAndPersists()
@@ -417,7 +417,7 @@ public sealed class CalendarPluginTests : IDisposable
         };
         await _plugin.UpdateSettingsAsync(customSettings);
 
-        // Act — create a new plugin and initialize (should load from file)
+        // Act - create a new plugin and initialize (should load from file)
         var plugin2 = new CalendarPlugin();
         await plugin2.InitializeAsync(_mockContext.Object);
 
@@ -431,9 +431,9 @@ public sealed class CalendarPluginTests : IDisposable
         plugin2.Dispose();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  SyncCompleted event
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task TriggerSyncAsync_WithNoProviders_ReturnsZeroResult()
@@ -536,9 +536,9 @@ public sealed class CalendarPluginTests : IDisposable
         again!.ItemsFailed.Should().Be(0);
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  CalendarService (ICalendarService implementation)
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
 
     [Fact]

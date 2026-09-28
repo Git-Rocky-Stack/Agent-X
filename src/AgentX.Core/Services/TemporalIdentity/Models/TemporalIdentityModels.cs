@@ -1,11 +1,11 @@
 namespace AgentX.Core.Services.TemporalIdentity.Models;
 
 /// <summary>
-/// Temporal Identity — tracks how the user's beliefs, expertise, and communication patterns evolve over time.
+/// Temporal Identity - tracks how the user's beliefs, expertise, and communication patterns evolve over time.
 /// This is the foundation for "Past Self" mode and generative identity features.
 /// </summary>
 
-// ─── Core Entities ─────────────────────────────────────────────────────────────
+// --- Core Entities -------------------------------------------------------------
 
 /// <summary>
 /// A belief, opinion, or stance held by the user at a point in time.
@@ -73,7 +73,7 @@ public class TemporalBeliefEntity
 }
 
 /// <summary>
-/// A moment of insight — when the user had a "click," breakthrough, or meaningful realization.
+/// A moment of insight - when the user had a "click," breakthrough, or meaningful realization.
 /// Harvested from message sentiment spikes, annotation intensity, and re-visit patterns.
 /// </summary>
 public class InsightMomentEntity
@@ -195,7 +195,7 @@ public class EngagementMetricsEntity
 
     /// <summary>
     /// Has the user's sentiment toward this content changed?
-    /// From positive → negative or vice versa.
+    /// From positive -> negative or vice versa.
     /// </summary>
     public bool SentimentShifted { get; set; }
 
@@ -226,11 +226,11 @@ public enum EngagementDepth
     Read,         // Full consumption, minimal engagement
     Engaged,      // Annotations, questions, follow-up actions
     Deep,         // Multiple re-visits, extensive notes, referenced in other work
-    Core,         // Seminal material that shaped thinking—referenced frequently
+    Core,         // Seminal material that shaped thinking - referenced frequently
 }
 
 /// <summary>
-/// Detected belief conflicts — when current stance contradicts past self.
+/// Detected belief conflicts - when current stance contradicts past self.
 /// These are the "You said X then, Y now" moments that trigger self-reflection.
 /// </summary>
 public class BeliefConflictEntity
@@ -304,7 +304,7 @@ public class BeliefConflictEntity
 }
 
 /// <summary>
-/// Communication style profile — learns how the user writes and speaks.
+/// Communication style profile - learns how the user writes and speaks.
 /// Enables "draft as me" generative identity.
 /// </summary>
 public class VoiceProfileEntity
@@ -370,7 +370,7 @@ public class VoiceProfileEntity
     public string StylisticTraitsJson { get; set; } = "{}";
 }
 
-// ─── DTOs for Queries ─────────────────────────────────────────────────────────────
+// --- DTOs for Queries -------------------------------------------------------------
 
 /// <summary>
 /// Response for "Past Self" queries.

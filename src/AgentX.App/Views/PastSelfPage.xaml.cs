@@ -33,7 +33,7 @@ public sealed partial class PastSelfPage : Page, INotifyPropertyChanged
         };
     }
 
-    // ─── Search Handlers ───────────────────────────────────────────────────────
+    // --- Search Handlers -------------------------------------------------------
 
     private void SearchBox_KeyDown(object sender, KeyRoutedEventArgs e)
     {
@@ -51,7 +51,7 @@ public sealed partial class PastSelfPage : Page, INotifyPropertyChanged
         await ViewModel.SearchPastSelfAsync();
     }
 
-    // ─── Time Range Handlers ────────────────────────────────────────────────────
+    // --- Time Range Handlers ----------------------------------------------------
 
     private void TimeRange_Checked(object sender, RoutedEventArgs e)
     {
@@ -77,7 +77,7 @@ public sealed partial class PastSelfPage : Page, INotifyPropertyChanged
         }
     }
 
-    // ─── Quick Action Handlers ──────────────────────────────────────────────────
+    // --- Quick Action Handlers --------------------------------------------------
 
     private async void InsightsButton_Click(object sender, RoutedEventArgs e)
     {
@@ -100,7 +100,7 @@ public sealed partial class PastSelfPage : Page, INotifyPropertyChanged
         await ViewModel.GetActiveTopicsAsync();
     }
 
-    // ─── Helper Properties for XAML Binding ──────────────────────────────────────
+    // --- Helper Properties for XAML Binding --------------------------------------
 
     /// <summary>
     /// Visibility of custom date picker (only when "Custom date" is selected).
@@ -119,7 +119,7 @@ public sealed partial class PastSelfPage : Page, INotifyPropertyChanged
     public bool HasInsights => ViewModel.CurrentResult?.RelevantInsights != null
         && ViewModel.CurrentResult.RelevantInsights.Count > 0;
 
-    // ─── Generative Identity: "Draft as Me" Panel ────────────────────────────────────
+    // --- Generative Identity: "Draft as Me" Panel ------------------------------------
 
     private async void LoadProfileButton_Click(object sender, RoutedEventArgs e)
     {

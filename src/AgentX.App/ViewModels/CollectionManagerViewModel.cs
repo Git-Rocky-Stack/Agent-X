@@ -11,7 +11,7 @@ using Serilog;
 
 namespace AgentX.App.ViewModels;
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // COLLECTION MANAGER VIEW MODEL
 //
 // Comprehensive ViewModel for the Collection Manager experience.
@@ -19,30 +19,30 @@ namespace AgentX.App.ViewModels;
 //
 // Accepts ICollectionService and IDocumentService via DI and calls real
 // services with graceful error handling.
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 public partial class CollectionManagerViewModel : ObservableObject, IDisposable
 {
-    // ── Services ──────────────────────────────────────────────
+    // -- Services ----------------------------------------------
     private readonly ICollectionService _collectionService;
     private readonly IDocumentService _documentService;
     private readonly ILocalizationService _localization;
     private readonly INotificationService? _notifications;
 
-    // ── Page State ─────────────────────────────────────────────
+    // -- Page State ---------------------------------------------
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private string _errorMessage = string.Empty;
     [ObservableProperty] private bool _hasError;
 
-    // ── Selected Collection ──────────────────────────────────
+    // -- Selected Collection ----------------------------------
     [ObservableProperty] private CollectionDisplayItem? _selectedCollection;
 
-    // ── New Collection Input ─────────────────────────────────
+    // -- New Collection Input ---------------------------------
     [ObservableProperty] private string _newCollectionName = string.Empty;
     [ObservableProperty] private string _newCollectionDescription = string.Empty;
 
-    // ── Multi-Select State ───────────────────────────────────
-    // ── Rename Editor ────────────────────────────────────────────
+    // -- Multi-Select State -----------------------------------
+    // -- Rename Editor --------------------------------------------
     [ObservableProperty] private bool _isRenaming;
     [ObservableProperty] private CollectionDisplayItem? _renameTarget;
     [ObservableProperty] private string _renameName = string.Empty;
@@ -68,14 +68,14 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
     /// <summary>Where the collection in the move editor can go.</summary>
     public ObservableCollection<CollectionMoveDestination> MoveDestinations { get; } = new();
 
-    // ── Stats ────────────────────────────────────────────────
+    // -- Stats ------------------------------------------------
     [ObservableProperty] private int _totalCollections;
 
-    // ── Collections ──────────────────────────────────────────
+    // -- Collections ------------------------------------------
     public ObservableCollection<CollectionDisplayItem> Collections { get; } = new();
     public ObservableCollection<DocumentDisplayItem> SelectedCollectionDocuments { get; } = new();
 
-    // ── Computed Properties ──────────────────────────────────
+    // -- Computed Properties ----------------------------------
     public bool HasCollections => Collections.Count > 0;
     public bool HasSelectedCollection => SelectedCollection is not null;
     public bool HasSelectedCollectionDocuments => SelectedCollectionDocuments.Count > 0;
@@ -109,9 +109,9 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
         Log.Debug("CollectionManagerViewModel created with services");
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // INITIALIZATION
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     public async Task InitializeAsync()
     {
@@ -193,9 +193,9 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
         return item;
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // PROPERTY CHANGE HOOKS
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     partial void OnSelectedCollectionChanged(CollectionDisplayItem? value)
     {
@@ -209,9 +209,9 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(CanCreateCollection));
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // COMMANDS
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     [RelayCommand(CanExecute = nameof(CanCreateCollection))]
     private async Task CreateCollectionAsync()
@@ -649,9 +649,9 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
         await InitializeAsync();
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // MULTI-SELECT / BATCH COMMANDS
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     /// <summary>
     /// Toggles multi-select mode on or off. When toggled off, all selections are cleared.
@@ -789,9 +789,9 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // PRIVATE HELPERS
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     private async Task LoadCollectionDocumentsAsync(long collectionId)
     {
@@ -962,9 +962,9 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
         HasError = false;
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // DISPOSAL
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     public void Dispose()
     {
@@ -987,9 +987,9 @@ public sealed record CollectionAddFailure(string FilePath, string Reason);
 /// </summary>
 public sealed record CollectionMoveDestination(long? ParentId, string Name);
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // COLLECTION DISPLAY ITEM
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 /// <summary>
 /// Represents a collection displayed in the Collection Manager UI.

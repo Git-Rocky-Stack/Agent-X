@@ -8,7 +8,7 @@ Restores key-set parity for non-English locales after commit 8d68083 added
 
 For each locale in {de, es, fr, ja, zh-CN}:
   1. Read existing Resources.resw (308 keys)
-  2. Read scripts/translations/<locale>.json (263 key → value pairs)
+  2. Read scripts/translations/<locale>.json (263 key -> value pairs)
   3. Append the new <data> entries to the locale's <root> before </root>
   4. Write the file back with UTF-8 + LF preserved
 

@@ -30,7 +30,7 @@ public sealed class SettingsService
         }
         catch (Exception)
         {
-            // SecureStorage can throw on some platforms/emulators without a keystore — treat as unpaired.
+            // SecureStorage can throw on some platforms/emulators without a keystore - treat as unpaired.
             return null;
         }
     }

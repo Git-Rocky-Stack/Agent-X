@@ -40,7 +40,7 @@ public class FeedService : IFeedService
     /// </summary>
     internal const int MaxFeedBytes = 10 * 1024 * 1024;
 
-    // ─── XML Namespace Constants ─────────────────────────────────────────────
+    // --- XML Namespace Constants ---------------------------------------------
 
     private static readonly XNamespace ContentNamespace = "http://purl.org/rss/1.0/modules/content/";
     private static readonly XNamespace DublinCoreNamespace = "http://purl.org/dc/elements/1.1/";
@@ -87,7 +87,7 @@ public class FeedService : IFeedService
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
     }
 
-    // ─── IFeedService Implementation ────────────────────────────────────────
+    // --- IFeedService Implementation ----------------------------------------
 
     /// <inheritdoc />
     public async Task<FeedInfo> ParseFeedAsync(string feedUrl, CancellationToken ct = default)
@@ -130,7 +130,7 @@ public class FeedService : IFeedService
         return newItems;
     }
 
-    // ─── Internal Parsing Methods (testable without network) ───────────────
+    // --- Internal Parsing Methods (testable without network) ---------------
 
     /// <summary>
     /// Parses a feed from an <see cref="XDocument"/>, detecting the format from the root element.
@@ -372,7 +372,7 @@ public class FeedService : IFeedService
         };
     }
 
-    // ─── HTTP Fetching ──────────────────────────────────────────────────────
+    // --- HTTP Fetching ------------------------------------------------------
 
     /// <summary>
     /// Fetches the raw XML content from the specified feed URL, reading at most
@@ -406,7 +406,7 @@ public class FeedService : IFeedService
         // Strip any BOM or leading whitespace that might break XML parsing
         content = content.TrimStart('\uFEFF', '\u200B', ' ', '\r', '\n');
 
-        // Some feeds are wrapped in HTML — try to extract the XML portion
+        // Some feeds are wrapped in HTML - try to extract the XML portion
         if (content.StartsWith("<!", StringComparison.OrdinalIgnoreCase) || content.StartsWith("<?xml", StringComparison.OrdinalIgnoreCase) || content.StartsWith("<rss", StringComparison.OrdinalIgnoreCase) || content.StartsWith("<feed", StringComparison.OrdinalIgnoreCase) || content.StartsWith("<RDF", StringComparison.OrdinalIgnoreCase))
         {
             return content;
@@ -441,7 +441,7 @@ public class FeedService : IFeedService
         return content;
     }
 
-    // ─── XML Helper Methods ─────────────────────────────────────────────────
+    // --- XML Helper Methods -------------------------------------------------
 
     /// <summary>
     /// Gets the text value of a direct child element by local name, ignoring namespace.
@@ -519,11 +519,11 @@ public class FeedService : IFeedService
         if (alternate is not null)
             return alternate.Attribute("href")?.Value?.Trim();
 
-        // No suitable alternate link found — return null so caller can use fallback
+        // No suitable alternate link found - return null so caller can use fallback
         return null;
     }
 
-    // ─── Date Parsing ───────────────────────────────────────────────────────
+    // --- Date Parsing -------------------------------------------------------
 
     /// <summary>
     /// Parses an RFC 822 date string commonly used in RSS feeds.

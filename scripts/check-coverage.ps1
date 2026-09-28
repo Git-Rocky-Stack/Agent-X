@@ -12,14 +12,14 @@
     The audit (AX-QA-009) observed that a passing test count is not release confidence: large,
     high-risk Core services sit at 0% coverage. This gate locks in the current authored-code
     coverage so it can only ratchet up, and holds security/migration code to a higher bar than
-    the repository-wide minimum — exactly as the finding asks.
+    the repository-wide minimum - exactly as the finding asks.
 
     Coverage basis (see coverlet.runsettings): generated scaffolding ([GeneratedCode], EF
     migration files, *.Designer.cs) is excluded so the denominator is code the team authored.
     [CompilerGenerated] is intentionally kept so async/lambda bodies remain measured.
 
     THRESHOLDS ARE A RATCHET. When coverage rises, raise these floors in the same change so the
-    gain is protected. Never lower a floor to make a red build pass — add tests instead.
+    gain is protected. Never lower a floor to make a red build pass - add tests instead.
 
 .PARAMETER CoverageFile
     Path to a coverage.cobertura.xml file, or a directory to search recursively for the most
@@ -37,12 +37,12 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Coverage policy (the ratchet). Percentages are integers (0-100).
-#   global            — repository-wide minimum for authored AgentX.Core code.
-#   criticalNamespaces — elevated floors for high-risk areas; each MUST be >= the
+#   global - repository-wide minimum for authored AgentX.Core code.
+#   criticalNamespaces - elevated floors for high-risk areas; each MUST be >= the
 #                        global floor (the gate asserts this so the policy stays honest).
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Floors are set just below the measured baseline (shown in comments) so the gate locks in current
 # coverage with a small headroom for CI variance, and every critical floor sits at or above the
 # global minimum as AX-QA-009 requires.
@@ -69,44 +69,44 @@ $ErrorActionPreference = 'Stop'
 # Backup measured 79.21 / 70.00 this round, the top of its known 75.9-79.2 band, so its floor is
 # unchanged at 75/65; see the note on its residual below. Earlier, on 2026-07-03 the campaign's
 # three tracked next-gaps were
-# closed in one round. KeywordSearchService (previously 0%) — the FTS5 (porter unicode61) BM25
+# closed in one round. KeywordSearchService (previously 0%) - the FTS5 (porter unicode61) BM25
 # keyword-search pipeline (virtual-table init/rebuild, per-document chunk indexing + delta re-index,
-# MATCH sanitisation, file-type/collection/date filters, excerpt building) — was lifted to 89.87 line /
+# MATCH sanitisation, file-type/collection/date filters, excerpt building) - was lifted to 89.87 line /
 # 81.48 branch by running REAL FTS5 end-to-end over the shared in-memory SQLite connection (the bundled
 # SQLite ships fts5); the per-document rebuild catch-arm is reached by DROP-TABLE sabotage from inside
 # the progress callback. The tests exposed and fixed a latent relevance-inversion bug: SearchAsync
 # normalised BM25 as 1/(1+|rank|), which orders WORST-first (FTS5 rank is more negative = better), so
 # direct keyword search returned the least-relevant chunks whenever TopK truncated and hybrid RRF
 # fusion inherited the inverted list order; the fix (|rank|/(1+|rank|)) keeps the 0-1 range with
-# higher = better. TemporalIdentityService (previously only 4 regression tests) — belief tracking with
+# higher = better. TemporalIdentityService (previously only 4 regression tests) - belief tracking with
 # EMA sentiment + evolution flags, insight capture/resurfacing, engagement depth, voice-profile
-# learning / generate-as-user, and problem-pattern typing — was lifted to 95.60 line / 75.00 branch
+# learning / generate-as-user, and problem-pattern typing - was lifted to 95.60 line / 75.00 branch
 # over the EF-SQLite harness, exposing TWO more latent bugs, both fixed: (1)
 # GetRelatedConversationsAsync/GetRelatedDocumentsAsync used DateTime subtraction (.TotalDays) in
-# Where/OrderBy — untranslatable on the SQLite provider, so EVERY GetPastSelfAsync call threw
+# Where/OrderBy - untranslatable on the SQLite provider, so EVERY GetPastSelfAsync call threw
 # (GetAllMemoriesAsync precedent; fixed by materialising the title matches, then windowing/ordering in
-# memory — the Ticks-weighting and keyword-Any probes translated fine and stay server-side); (2)
+# memory - the Ticks-weighting and keyword-Any probes translated fine and stay server-side); (2)
 # DetectInsightsAsync computed marker-based significance (0.6, +0.2 breakthrough, +0.1 excitement) but
-# never passed it — CaptureInsightAsync hardcoded 0.7 for every insight, flattening GetTopInsights
+# never passed it - CaptureInsightAsync hardcoded 0.7 for every insight, flattening GetTopInsights
 # ranking; an optional significance parameter (default 0.7 preserves the user-explicit and annotation
-# contracts) now persists the computed score. LocalLlmProvider (previously 0%) — the LLamaSharp-backed
-# offline provider — was lifted to 85.77 line / 75.00 branch via two internal seams (ComparisonService
+# contracts) now persists the computed score. LocalLlmProvider (previously 0%) - the LLamaSharp-backed
+# offline provider - was lifted to 85.77 line / 75.00 branch via two internal seams (ComparisonService
 # optional-seam precedent): InferenceOverride substitutes the StatelessExecutor token stream so the
 # chat pipeline (llama3 prompt formatting, JSON priming, options mapping, inference lock, truncation
 # warning, cancellation) runs for real without a native GGUF, and DownloadUrlResolver redirects
 # PullModelAsync to a localhost HttpListener stub (streaming copy, progress reports, atomic .part
 # move, failure cleanup); the deliberate residual is LoadModelAsync's success body plus the real
-# executor/embedder calls (they need a multi-GB native GGUF — the download test's trailing load
+# executor/embedder calls (they need a multi-GB native GGUF - the download test's trailing load
 # intentionally fails on the garbage magic, covering the load catch-arm). None of the three is a trust
 # boundary, so none becomes a critical namespace; the combined gain raised the GLOBAL floor LINE
-# 58 -> 62 (measured 62.58) and BRANCH 48 -> 51 (measured 52.43 — a 52 floor would leave only 0.43pt
+# 58 -> 62 (measured 62.58) and BRANCH 48 -> 51 (measured 52.43 - a 52 floor would leave only 0.43pt
 # of headroom, inside the run-to-run async-branch variance band this file repeatedly observes).
-# Earlier: on 2026-06-30 ComparisonService (previously a 5% stub —
-# only its guard clauses were tested) — the AI cross-document comparison pipeline (resolve document
+# Earlier: on 2026-06-30 ComparisonService (previously a 5% stub -
+# only its guard clauses were tested) - the AI cross-document comparison pipeline (resolve document
 # metadata -> retrieve each document's most-relevant chunks via ISemanticSearchService, scoping /
 # ordering by ChunkIndex -> assemble a ComparisonSynthesisRequest -> synthesize a JSON analysis via
 # an injected IDocumentSynthesisService -> parse into a ComparisonReport, with a plain-text section
-# scanner as the fallback when the response isn't valid JSON) plus the Markdown export renderer — was
+# scanner as the fallback when the response isn't valid JSON) plus the Markdown export renderer - was
 # lifted to 100.00 line / 99.02 branch (367/367, 101/102). The key seam is the optional
 # IDocumentSynthesisService ctor parameter: injecting a mock lets each test drive the parser
 # deterministically (valid JSON with case-insensitive uniquePoints keys + list sanitisation, prose /
@@ -115,17 +115,17 @@ $ErrorActionPreference = 'Stop'
 # DocumentSynthesisService from IAiService and the default path runs end to end. This round also removed
 # genuinely dead code that had been capping coverage: ComparisonService's private BuildSystemPrompt /
 # BuildUserPrompt methods and its AnalysisChatOptions field were leftovers from before the AI call was
-# extracted into DocumentSynthesisService (which holds the live copies) — provably unreferenced
+# extracted into DocumentSynthesisService (which holds the live copies) - provably unreferenced
 # (private, non-partial class), so their removal is a pure maintainability win, not a behaviour change.
 # The single remaining uncovered branch is the defensive `?? throw JsonException("Deserialisation
 # returned null")` guard, unreachable because a brace-delimited substring never deserializes to JSON
 # null. Not a trust boundary, so NOT a critical namespace; its gain raised the GLOBAL floor LINE 57 -> 58
-# (measured 58.59) and BRANCH 47 -> 48 (measured 48.68). (Backup line recovered to 77.41 this round —
+# (measured 58.59) and BRANCH 47 -> 48 (measured 48.68). (Backup line recovered to 77.41 this round -
 # the prior round's 75.9 dip was the expected async-timing wobble, not a regression.) Earlier the same
 # day, SemanticSearchService (412 measurable lines, previously
-# 0%) — the semantic-search pipeline (embed query -> vector ANN search -> EF-Core metadata enrichment ->
+# 0%) - the semantic-search pipeline (embed query -> vector ANN search -> EF-Core metadata enrichment ->
 # embedding-model-version + collection/file-type/date filtering -> excerpt building -> TopK sort) plus the
-# search-history / saved-filter CRUD — was lifted to 97.33 line / 93.00 branch (401/412, 93/100). It composes
+# search-history / saved-filter CRUD - was lifted to 97.33 line / 93.00 branch (401/412, 93/100). It composes
 # three mockable collaborators over a real AgentXDbContext: IEmbeddingService (query embedding + ModelVersion
 # for the compatibility gate), IVectorStore (the ANN search), and an optional IRagConfiguration (retrieval
 # multiplier/cap; absent -> built-in fallbacks 3/500). Vector hits are seeded by Distance because
@@ -134,14 +134,14 @@ $ErrorActionPreference = 'Stop'
 # OCE-rethrow-vs-generic-swallow arms (embed / vector / chunk-load) are covered by a throwing mock for the OCE
 # path and a generic-exception mock (or a disposed context) for the swallow path; a pre-canceled token drives
 # the chunk-load OCE rethrow. Not a trust boundary, so NOT a critical namespace; its gain raised the GLOBAL
-# floor LINE 56 -> 57 (measured 57.40) and BRANCH 46 -> 47 (measured 47.85) — the branch headroom the prior
+# floor LINE 56 -> 57 (measured 57.40) and BRANCH 46 -> 47 (measured 47.85) - the branch headroom the prior
 # ConversationBranchService round could not safely lock is now comfortably locked. (Sidebar: Backup line
-# wobbled to 75.9 again under the larger suite — still >= its 75 floor but a recurring thin margin; its
-# residual is the deliberately-uncovered restore-swap body, so more Backup tests can't safely raise it —
+# wobbled to 75.9 again under the larger suite - still >= its 75 floor but a recurring thin margin; its
+# residual is the deliberately-uncovered restore-swap body, so more Backup tests can't safely raise it -
 # watch, don't lower.) Earlier the same day, ConversationBranchService (421 measurable lines,
-# previously 0%) — the EF-backed engine for conversation forking (branch-at-message with message copy +
+# previously 0%) - the EF-backed engine for conversation forking (branch-at-message with message copy +
 # token/count aggregation), branch-tree / root queries, cross-conversation message merge, and recursive
-# branch deletion — was lifted to 98.34 line / 96.97 branch via the EF-SQLite harness (real AgentXDbContext;
+# branch deletion - was lifted to 98.34 line / 96.97 branch via the EF-SQLite harness (real AgentXDbContext;
 # the injected IConversationService is null-guarded by the ctor but consumed by no method, so supplied as a
 # bare mock; a real silent Serilog logger for the ForContext<T>() ctor). Two model facts shaped the tests:
 # the self-referencing ParentConversation->Branches FK is DeleteBehavior.Restrict (so a NON-recursive delete
@@ -151,21 +151,21 @@ $ErrorActionPreference = 'Stop'
 # catch(InvalidOperationException) arms), the circular-reference maxDepth guard via a self-parent row, and the
 # orphaned-parent walk-stop via a raw FK-off DELETE of the parent. Not a trust boundary, so NOT a critical
 # namespace; its gain raised the GLOBAL floor LINE 55 -> 56 (measured 56.36) while the BRANCH floor is HELD at
-# 46 (measured 47.03 — a 47 floor would leave only 0.03pt of headroom, inside the run-to-run async-branch
+# 46 (measured 47.03 - a 47 floor would leave only 0.03pt of headroom, inside the run-to-run async-branch
 # variance band this file repeatedly observes, e.g. OAuth and Backup). Earlier, on 2026-06-28
 # CollaborationService (431 measurable lines,
-# previously 0%) — a real-time collaboration hub on HttpListener + HttpClient (no EF) — was lifted to
+# previously 0%) - a real-time collaboration hub on HttpListener + HttpClient (no EF) - was lifted to
 # 84.22 line / 81.03 branch. Its public StartHostingAsync binds the strong-wildcard prefix
 # http://+:{port}/ (needs an elevated URL-ACL reservation, unrunnable unprivileged in CI), so the harness
 # injects a non-privileged http://localhost:{port}/ listener into the service's own fields and runs its
-# real RunListenerLoopAsync via reflection — exercising the production request handlers over real HTTP —
+# real RunListenerLoopAsync via reflection - exercising the production request handlers over real HTTP -
 # while the session/presence/event/query surface is tested directly and the timer callbacks
 # (PruneExpiredSessions/SendHeartbeat) are invoked by reflection. Not a trust boundary, so NOT a critical
 # namespace; its gain raised the GLOBAL floor LINE 54 -> 55 and BRANCH 45 -> 46, bounded by the GLOBAL
 # measured value (55.26 / 46.47). Earlier on 2026-06-28 three of the largest remaining authored gaps were
 # closed together: SemanticMemoryService (468 measurable lines, previously 0%) -> 97.86 line / 94.48
 # branch, WorkflowService (601 lines, previously 22.7%) -> 90.35 / 88.68, and AutoTagService (473 lines,
-# 0%) -> 86.26 / 85.19 — all via the EF-SQLite harness (real AgentXDbContext; mocked IAiService /
+# 0%) -> 86.26 / 85.19 - all via the EF-SQLite harness (real AgentXDbContext; mocked IAiService /
 # IEmbeddingService / IRagConfiguration / IFeatureFlagService; deterministic length-4 embedding vectors
 # for exact cosine similarity; a real silent Serilog logger because each ctor consumes
 # logger.ForContext<T>(); real temp files for the AutoTag file-read fallback). None is a trust boundary,
@@ -195,7 +195,7 @@ $Policy = [ordered]@{
         # security status. A regression here is a trust/compliance regression. Its branch floor (62)
         # is the lowest critical branch floor; Backup's line floor (75) is the lowest critical line floor.
         'AgentX.Core.Services.Security' = @{ Line = 80.0; Branch = 62.0 }   # measured 82.41 / 66.22
-        # Privacy disclosure (AX-QA-008) — the dashboard "no cloud" claim depends on it; keep tight.
+        # Privacy disclosure (AX-QA-008) - the dashboard "no cloud" claim depends on it; keep tight.
         'AgentX.Core.Services.Privacy'  = @{ Line = 95.0; Branch = 85.0 }   # measured 100   / 90.62
         # OAuth token handling for the calendar/email connectors. Lifted 2026-06-27 from 45.18/34.55;
         # the residual gap is AuthorizeAsync's browser-launch + local-callback body, which cannot run
@@ -205,7 +205,7 @@ $Policy = [ordered]@{
         # Backup-critical: AES-256-GCM authenticated encryption of the WHOLE user database + documents
         # (V2), with legacy AES-256-CBC restore. A regression here risks unrecoverable or tampered
         # backups. Lifted 2026-06-28 from 15.10%; the residual gap is RestoreFromBackupAsync's
-        # database-swap body (writes the hardcoded real user-profile DB path — no seam to redirect it)
+        # database-swap body (writes the hardcoded real user-profile DB path - no seam to redirect it)
         # and the PeriodicTimer-gated scheduled-loop body.
         'AgentX.Core.Services.Backup'   = @{ Line = 75.0; Branch = 65.0 }   # measured 79.21 / 70.00
         # Migration-critical: the runner that applies EF migrations and guards against partial
@@ -289,11 +289,11 @@ function Measure-Namespace {
 
 function Get-Rate {
     param([int]$Covered, [int]$Valid)
-    if ($Valid -le 0) { return $null }   # no measurable lines/branches → not gated
+    if ($Valid -le 0) { return $null }   # no measurable lines/branches -> not gated
     return [math]::Round(100.0 * $Covered / $Valid, 2)
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 $path = Resolve-CoverageFile -Hint $CoverageFile
 Write-Host "Coverage report: $path"
 [xml]$doc = Get-Content -LiteralPath $path -Raw
@@ -343,7 +343,7 @@ foreach ($ns in $Policy.CriticalNamespaces.Keys) {
     Add-Row $ns $line $branch $floor.Line $floor.Branch
 }
 
-# ── Report ──
+# -- Report --
 $table = $rows | Format-Table -AutoSize | Out-String
 Write-Host ''
 Write-Host $table
@@ -353,7 +353,7 @@ if ($env:GITHUB_STEP_SUMMARY) {
     $md += "| Scope | Line | Floor | Branch | Floor | Status |`n"
     $md += "|---|---|---|---|---|---|`n"
     foreach ($r in $rows) {
-        $icon = if ($r.Status -eq 'PASS') { '✅' } else { '❌' }
+        $icon = if ($r.Status -eq 'PASS') { 'OK' } else { 'X' }
         $md += "| $($r.Scope) | $($r.Line) | $($r.LineFloor) | $($r.Branch) | $($r.BranchFloor) | $icon |`n"
     }
     Add-Content -LiteralPath $env:GITHUB_STEP_SUMMARY -Value $md

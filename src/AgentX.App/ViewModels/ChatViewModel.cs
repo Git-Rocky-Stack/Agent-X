@@ -26,21 +26,21 @@ using Serilog;
 
 namespace AgentX.App.ViewModels;
 
-// ═══════════════════════════════════════════════════════════════════════════
-// CHAT VIEW MODEL — Thin orchestrator that delegates to 4 coordinators.
+// ===========================================================================
+// CHAT VIEW MODEL - Thin orchestrator that delegates to 4 coordinators.
 //
-// ConversationCoordinator — CRUD, pinning, folders, search
-// MessagingCoordinator   — send, stream, stop, feedback, delete messages
-// VoiceCoordinator       — recording, transcription
-// BranchingCoordinator   — branch, merge, delete branches
+// ConversationCoordinator - CRUD, pinning, folders, search
+// MessagingCoordinator - send, stream, stop, feedback, delete messages
+// VoiceCoordinator - recording, transcription
+// BranchingCoordinator - branch, merge, delete branches
 //
 // The ViewModel retains UI state (ObservableProperties, Collections) and
 // subscribes to coordinator events for synchronization.
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 public partial class ChatViewModel : ObservableObject, IDisposable
 {
-    // ── Page State ─────────────────────────────────────────────
+    // -- Page State ---------------------------------------------
     [ObservableProperty] private bool _isConnected;
     [ObservableProperty] private bool _isGenerating;
     [ObservableProperty] private string _activeModelName = string.Empty;
@@ -57,7 +57,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _userInput = string.Empty;
     [ObservableProperty] private string _currentStreamingResponse = string.Empty;
 
-    // ── Active Conversation ────────────────────────────────────
+    // -- Active Conversation ------------------------------------
     [ObservableProperty] private long? _activeConversationId;
     [ObservableProperty] private string _activeConversationTitle = string.Empty;
     [ObservableProperty] private string? _activeSystemPrompt;
@@ -65,12 +65,12 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     [ObservableProperty] private int _tokenCount;
     [ObservableProperty] private double _generationTimeMs;
 
-    // ── Panel State ────────────────────────────────────────────
+    // -- Panel State --------------------------------------------
     [ObservableProperty] private bool _isConversationPaneOpen = true;
     [ObservableProperty] private bool _showSystemPromptPicker;
     [ObservableProperty] private bool _isContextInspectorOpen;
 
-    // ── Research Mode ──────────────────────────────────────────
+    // -- Research Mode ------------------------------------------
     private bool _isResearchMode;
     public bool IsResearchMode
     {
@@ -91,7 +91,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         ? _localization.GetString("Chat_ResearchModeOnTooltip")
         : _localization.GetString("Chat_ResearchModeOffTooltip");
 
-    // ── Orchestration Mode ───────────────────────────────────────
+    // -- Orchestration Mode ---------------------------------------
     [ObservableProperty] private ChatOrchestrationMode _orchestrationMode = ChatOrchestrationMode.Standard;
 
     public int OrchestrationModeIndex
@@ -120,10 +120,10 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         _ => _localization.GetString("Chat_OrchestrationSoloTooltip")
     };
 
-    // ── Search ─────────────────────────────────────────────────
+    // -- Search -------------------------------------------------
     [ObservableProperty] private string _conversationSearchQuery = string.Empty;
 
-    // ── Memory ────────────────────────────────────────────────
+    // -- Memory ------------------------------------------------
     // Facts noted from chats (IConversationMemoryService). They are not tied to one conversation:
     // chat adds the ones closest to each new message whichever conversation they came from, so
     // the context inspector lists all of them, with delete and clear all.
@@ -148,12 +148,12 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _privacyHint = string.Empty;
     private int _privacyClaimVersion;
 
-    // ── Voice Input ───────────────────────────────────────────
+    // -- Voice Input -------------------------------------------
     [ObservableProperty] private bool _isRecording;
     [ObservableProperty] private bool _isTranscribing;
     [ObservableProperty] private string _voiceStatusMessage = string.Empty;
 
-    // ── Context Inspector ─────────────────────────────────────
+    // -- Context Inspector -------------------------------------
     // The texts start empty; the constructor fills them in the user's language (ResetContextInspection).
     [ObservableProperty] private bool _hasContextInspection;
     [ObservableProperty] private bool _hasLimitedContextInspection;
@@ -182,10 +182,10 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     [ObservableProperty] private ObservableCollection<ChatContextRecallDisplayItem> _contextRecallItems = new();
     [ObservableProperty] private bool _hasContextRecallItems;
 
-    // ── Branching ─────────────────────────────────────────────────
+    // -- Branching -------------------------------------------------
     [ObservableProperty] private string? _pendingBranchLabel;
 
-    // ── Collections ────────────────────────────────────────────
+    // -- Collections --------------------------------------------
     public ObservableCollection<ChatMessageItem> Messages { get; } = new();
     public ObservableCollection<ConversationListItem> Conversations { get; } = new();
     public ObservableCollection<AiModel> AvailableModels { get; } = new();
@@ -200,10 +200,10 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     public ObservableCollection<string> SuggestedQuestions { get; } = new();
     public ObservableCollection<string> FolderNames { get; } = new();
 
-    // ── Folder Filter ──────────────────────────────────────────
+    // -- Folder Filter ------------------------------------------
     [ObservableProperty] private string? _activeFolderFilter;
 
-    // ── Branching ───────────────────────────────────────────────
+    // -- Branching -----------------------------------------------
     private ConversationBranchTree? _branchTree;
     public ConversationBranchTree? BranchTree
     {
@@ -214,7 +214,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     public bool HasBranches => _branchTree?.TotalBranchCount > 0;
     public ObservableCollection<ConversationBranchTree> ActiveBranches { get; } = new();
 
-    // ── Computed Properties ────────────────────────────────────
+    // -- Computed Properties ------------------------------------
     public bool HasNoConversations => Conversations.Count == 0;
     public bool HasNoMessages => Messages.Count == 0;
     public bool HasActiveSystemPrompt => !string.IsNullOrEmpty(ActiveSystemPromptName);
@@ -355,13 +355,13 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     public bool CanRefreshConversationSummary =>
         ActiveConversationId.HasValue && !IsRefreshingConversationSummary;
 
-    // ── Coordinators ──────────────────────────────────────────
+    // -- Coordinators ------------------------------------------
     private readonly IConversationCoordinator _conversationCoordinator;
     private readonly IMessagingCoordinator _messagingCoordinator;
     private readonly IVoiceCoordinator _voiceCoordinator;
     private readonly IBranchingCoordinator _branchingCoordinator;
 
-    // ── Services (retained for model/prompt/connection operations) ──
+    // -- Services (retained for model/prompt/connection operations) --
     private readonly IAiService _aiService;
     private readonly IChatService _chatService;
     private readonly IModelManager _modelManager;
@@ -372,7 +372,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     private readonly IPrivacyStatusService _privacyStatusService;
     private readonly ILocalizationService _localization;
 
-    // ── Streaming assistant message (for token-by-token updates) ──
+    // -- Streaming assistant message (for token-by-token updates) --
     // The generation streaming into the screen. Null when nothing this view model started is
     // running on the thread on screen. Moving off a thread clears it, so tokens and completions
     // that still arrive for the thread left behind are ignored instead of landing on the one
@@ -387,7 +387,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     private Task? _lastGenerationTask;
     private static readonly TimeSpan PreviousGenerationGrace = TimeSpan.FromSeconds(5);
 
-    // ── Which conversation the screen is on, as a generation sees it ──
+    // -- Which conversation the screen is on, as a generation sees it --
     // Every move off a thread advances this counter, and a generation carries the value it
     // started under, so work that finishes under a newer value is known to belong to a thread
     // already left (a completion, or messages loaded for a thread the operator moved past).
@@ -447,25 +447,25 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         Log.Debug("ChatViewModel created with coordinators");
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // COORDINATOR EVENT SUBSCRIPTIONS
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     private void SubscribeToCoordinatorEvents()
     {
-        // ── MessagingCoordinator ─────────────────────────────────
+        // -- MessagingCoordinator ---------------------------------
         _messagingCoordinator.TokenReceived += OnTokenReceived;
         _messagingCoordinator.StreamingCompleted += OnStreamingCompleted;
         _messagingCoordinator.GenerationError += OnGenerationError;
         _messagingCoordinator.NotificationRequested += OnMessagingNotification;
 
-        // ── VoiceCoordinator ─────────────────────────────────────
+        // -- VoiceCoordinator -------------------------------------
         _voiceCoordinator.RecordingStateChanged += OnRecordingStateChanged;
         _voiceCoordinator.TranscribingStateChanged += OnTranscribingStateChanged;
         _voiceCoordinator.StatusChanged += OnVoiceStatusChanged;
         _voiceCoordinator.NotificationRequested += OnVoiceNotification;
 
-        // ── BranchingCoordinator ─────────────────────────────────
+        // -- BranchingCoordinator ---------------------------------
         _branchingCoordinator.BranchTreeChanged += OnBranchTreeChanged;
         _branchingCoordinator.NotificationRequested += OnBranchingNotification;
     }
@@ -564,9 +564,9 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // INITIALIZATION
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     public async Task InitializeAsync()
     {
@@ -848,9 +848,9 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         catch (Exception ex) { Log.Warning(ex, "Failed to load suggested questions"); }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // PROPERTY CHANGE HOOKS
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     partial void OnUserInputChanged(string value)
     {
@@ -942,9 +942,9 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     partial void OnConversationSearchQueryChanged(string value)
         => _ = FilterConversationsAsync(value);
 
-    // ═══════════════════════════════════════════════════════════════
-    // COMMANDS — Messaging
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
+    // COMMANDS - Messaging
+    // ===============================================================
 
     [RelayCommand(CanExecute = nameof(CanSend))]
     private async Task SendMessageAsync()
@@ -1342,9 +1342,9 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     private async Task StopGenerationAsync()
         => await _messagingCoordinator.StopGenerationAsync();
 
-    // ═══════════════════════════════════════════════════════════════
-    // COMMANDS — Conversation
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
+    // COMMANDS - Conversation
+    // ===============================================================
 
     [RelayCommand]
     private async Task NewConversationAsync()
@@ -1514,9 +1514,9 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(HasNoConversations));
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // COMMANDS — Model & Prompt Selection
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
+    // COMMANDS - Model & Prompt Selection
+    // ===============================================================
 
     /// <summary>
     /// Opens the conversation handed over by whatever navigated here (Jump-To, the
@@ -1584,9 +1584,9 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         catch (Exception ex) { Log.Warning(ex, "Failed to increment system prompt usage"); }
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // COMMANDS — Per-Message Actions
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
+    // COMMANDS - Per-Message Actions
+    // ===============================================================
 
     [RelayCommand]
     private async Task DeleteMessageAsync(ChatMessageItem? message)
@@ -1774,9 +1774,9 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         await SendContentAsync(newContent);
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // COMMANDS — Voice
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
+    // COMMANDS - Voice
+    // ===============================================================
 
     [RelayCommand]
     private async Task ToggleVoiceRecordingAsync()
@@ -1804,9 +1804,9 @@ public partial class ChatViewModel : ObservableObject, IDisposable
             UserInput = transcription;
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // COMMANDS — Branching
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
+    // COMMANDS - Branching
+    // ===============================================================
 
     [RelayCommand]
     private async Task BranchFromMessageAsync(long messageId)
@@ -1952,9 +1952,9 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         MarkFromNode(BranchTree);
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // COMMANDS — UI Helpers
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
+    // COMMANDS - UI Helpers
+    // ===============================================================
 
     [RelayCommand]
     private void ToggleConversationPane()
@@ -2099,9 +2099,9 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         if (!string.IsNullOrWhiteSpace(question)) { UserInput = question; SuggestedQuestions.Clear(); }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // MAPPING HELPERS
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     private static ConversationListItem MapToConversationListItem(ConversationSummary s) => new()
     {
@@ -2270,7 +2270,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         ContextRecallItems = new ObservableCollection<ChatContextRecallDisplayItem>(
             snapshot.RecallMatches.Select(match => new ChatContextRecallDisplayItem
             {
-                ConversationLabel = $"{match.ConversationTitle} · {(match.Role == "assistant" ? assistantRole : userRole)}",
+                ConversationLabel = $"{match.ConversationTitle} | {(match.Role == "assistant" ? assistantRole : userRole)}",
                 PreviewText = match.ContentPreview,
                 SimilarityLabel = _localization.GetString("Chat_RecallSimilarity", Math.Round(match.Similarity * 100)),
                 TimestampLabel = BuildRelativeTimeLabel(match.Timestamp)
@@ -2396,9 +2396,9 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         RefreshConversationSummaryCommand.NotifyCanExecuteChanged();
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // DISPOSAL
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     /// <summary>
     /// Detaches this view model from the singleton coordinators. The coordinators themselves

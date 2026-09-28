@@ -129,7 +129,7 @@ public sealed class IndexingService : IIndexingService
     /// Default batch size for embedding generation when no IRagConfiguration is
     /// supplied. Keeps memory usage bounded while still benefiting from batch
     /// inference when supported by the model. P2-9: prefer the config value
-    /// (<c>IRagConfiguration.EmbeddingBatchSize</c>) — that way the outer batch
+    /// (<c>IRagConfiguration.EmbeddingBatchSize</c>) - that way the outer batch
     /// here matches the inner batch in <c>EmbeddingService.EmbedBatchAsync</c>
     /// instead of the two fighting at different sizes.
     /// </summary>
@@ -377,7 +377,7 @@ public sealed class IndexingService : IIndexingService
         _shutdownCts.Dispose();
     }
 
-    // ─── Background Processing Loop ─────────────────────────────────
+    // --- Background Processing Loop ---------------------------------
 
     /// <summary>
     /// Continuously reads document IDs from the channel and processes them one at a time.
@@ -737,7 +737,7 @@ public sealed class IndexingService : IIndexingService
         }
     }
 
-    // ─── Private Helpers ─────────────────────────────────────────────
+    // --- Private Helpers ---------------------------------------------
 
     /// <summary>
     /// Documents waiting in the channel plus the one currently being processed.

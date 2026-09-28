@@ -35,7 +35,7 @@ public sealed class TaskType
         PreferQuality = preferQuality;
     }
 
-    // ── Predefined Task Types ──────────────────────────────────────
+    // -- Predefined Task Types --------------------------------------
 
     /// <summary>Extraction tasks: structured data extraction, entity recognition. Local + fast.</summary>
     public static TaskType Extraction { get; } = new("extraction", true, true, false);
@@ -61,7 +61,7 @@ public sealed class TaskType
     /// <summary>Embedding tasks: vector embedding generation. Local + fast.</summary>
     public static TaskType Embedding { get; } = new("embedding", true, true, false);
 
-    // ── Factory Method ─────────────────────────────────────────────
+    // -- Factory Method ---------------------------------------------
 
     private static readonly Dictionary<string, TaskType> _predefined = new(StringComparer.OrdinalIgnoreCase)
     {

@@ -888,7 +888,7 @@ Security and hardening release. Closes the full **Codex security audit** and the
 - **Android build CI (AX-QA-004).** New `.github/workflows/android-build.yml` compiles `src/AgentX.Mobile` (`net8.0-android`) on every change under it; iOS is conditioned out on Linux and deferred (needs a macOS runner).
 - **Test isolation (AX-QA-011).** Workflow tests no longer write into the real user profile; removed 61 leaked `WorkflowResults` profile stub files.
 - **GitHub Actions runtime** bumped off the deprecated Node 20 runtime.
-- `Directory.Build.props` `<Version>` bumped `2.1.1` → `2.1.2` (single source; `AppVersionInfo` flows it to every surface).
+- `Directory.Build.props` `<Version>` bumped `2.1.1` -> `2.1.2` (single source; `AppVersionInfo` flows it to every surface).
 
 ---
 
@@ -898,14 +898,14 @@ Patch release. Fixes a **critical fresh-install defect** found during full insta
 
 ### Fixed
 
-- **Fresh installs now build the full database schema.** At startup `EnsureKeyApplied()` opens the SQLite connection (to apply the SQLCipher PRAGMA) before the migration runner, which creates an empty `agentx.db` file. The runner then saw `CanConnectAsync() == true`, mistook the empty file for a pre-migration install, ran baseline adoption - which *stamps* the baseline as applied **without creating tables** - and `MigrateAsync` skipped schema creation. Baseline adoption is now gated on the database actually containing application tables, so an empty database flows through `MigrateAsync` and receives the full schema. Verified end-to-end via a clean install → launch → uninstall: all 11 migrations apply, 40 tables created, zero `no such table` errors.
+- **Fresh installs now build the full database schema.** At startup `EnsureKeyApplied()` opens the SQLite connection (to apply the SQLCipher PRAGMA) before the migration runner, which creates an empty `agentx.db` file. The runner then saw `CanConnectAsync() == true`, mistook the empty file for a pre-migration install, ran baseline adoption - which *stamps* the baseline as applied **without creating tables** - and `MigrateAsync` skipped schema creation. Baseline adoption is now gated on the database actually containing application tables, so an empty database flows through `MigrateAsync` and receives the full schema. Verified end-to-end via a clean install -> launch -> uninstall: all 11 migrations apply, 40 tables created, zero `no such table` errors.
 - Added a `MigrationRunner` regression test that opens the connection before running the runner, reproducing the real startup sequence (the prior fresh-DB test never did, which is why the defect slipped through).
 - Zeroed out all 13 Release build analyzer warnings at the root (nullable annotations, an unused `async`, and test-only Moq/null-handling) - the build is now warning-free.
 
 ### Changed
 
-- `Directory.Build.props` `<Version>` bumped `2.1.0` → `2.1.1`.
-- Installer `AgentX-Setup.iss` `MinVersion` raised `10.0.18362` → `10.0.19041` to match the app's `TargetPlatformMinVersion` (older builds would install but fail to launch).
+- `Directory.Build.props` `<Version>` bumped `2.1.0` -> `2.1.1`.
+- Installer `AgentX-Setup.iss` `MinVersion` raised `10.0.18362` -> `10.0.19041` to match the app's `TargetPlatformMinVersion` (older builds would install but fail to launch).
 
 ---
 
@@ -915,14 +915,14 @@ Final v2.1.0 release. Promotes the `2.1.0-preview.1` data-layer slice to a stabl
 
 ### Added
 
-- **A1 Multi-Language UI** - six shipping locales (de / en-US / es / fr / ja / zh-CN) with CLDR pluralization, RTL-ready `FlowDirection`, a `LocaleAudit.Tool` CI gate (≥98% coverage), and per-page snapshot tests
+- **A1 Multi-Language UI** - six shipping locales (de / en-US / es / fr / ja / zh-CN) with CLDR pluralization, RTL-ready `FlowDirection`, a `LocaleAudit.Tool` CI gate (>=98% coverage), and per-page snapshot tests
 - **A2 Keyboard-First Power Mode** - fuzzy Command Palette, Jump-To navigation, and a page-scoped shortcut Cheatsheet
 - **B9 EF Core migrations** and **C13 SQLCipher at-rest encryption** promoted from preview to stable
 
 ### Changed
 
 - **In-app User Guide localization completed** - every `UserGuide_*` string is now natively translated across all five non-English locales (de / es / fr / ja / zh-CN), replacing the prior English placeholders; stale placeholder headers removed
-- `Directory.Build.props` `<Version>` bumped `2.1.0-preview.1` → `2.1.0`
+- `Directory.Build.props` `<Version>` bumped `2.1.0-preview.1` -> `2.1.0`
 
 ### Fixed
 
@@ -981,9 +981,9 @@ Pre-release shipping the data-layer slice of the v2.1 Bedrock hardening stream. 
 ### Added
 
 - **B9 EF Core migration runner** - `IMigrationRunner` + `MigrationRunner` with pending-migration API, `MigrationResult`, `PendingMigrationsException`, `AgentXDbContextFactory` for design-time tooling, `InitialBaseline` migration capturing current schema, and baseline-adoption for pre-migration installs
-- **C13 SQLCipher at-rest encryption** - `SQLitePCLRaw.bundle_e_sqlcipher` provider, `IDatabaseKeyService` with DPAPI-wrap and UserPassphrase (PBKDF2-HMAC-SHA256, 600k iterations) modes, `IEncryptedConnectionFactory` applying `PRAGMA key` on every `SqliteConnection`, `IDatabaseEncryptionMigrator` using `sqlcipher_export` for atomic plaintext→encrypted conversion with rollback
+- **C13 SQLCipher at-rest encryption** - `SQLitePCLRaw.bundle_e_sqlcipher` provider, `IDatabaseKeyService` with DPAPI-wrap and UserPassphrase (PBKDF2-HMAC-SHA256, 600k iterations) modes, `IEncryptedConnectionFactory` applying `PRAGMA key` on every `SqliteConnection`, `IDatabaseEncryptionMigrator` using `sqlcipher_export` for atomic plaintext->encrypted conversion with rollback
 - **C13 Settings UI** for the database encryption enable flow (`src/AgentX.App/Views/SettingsPage.xaml:525`). *Corrected 2026-09-06: this line originally read "tier-aware: Ultimate passphrase dialog, others transparent enable". There is no product-tier concept in this codebase - `grep -rn "Ultimate" src/` returns nothing, and there is no license or tier service. The real choice is a `KeyStorageMode` on the key service, `DpapiWrapped` or `UserPassphrase` (`src/AgentX.Core/Services/Security/DatabaseKeyService.cs:36`), which is a storage mode, not a paid tier.*
-- **C13 Startup unlock flow** using `IEncryptionStateFile` marker to break the unlock ↔ migration chicken-and-egg
+- **C13 Startup unlock flow** using `IEncryptionStateFile` marker to break the unlock <-> migration chicken-and-egg
 - **`InvalidDatabaseKeyException`** with SQLite ErrorCode-26 / "file is not a database" detection for wrong-passphrase recovery loops
 - **Out-of-DB key storage** at `%LocalAppData%\AgentX\encryption.info.json` - separates encryption state from the encrypted vault so startup unlock has no DB dependency (C13 hotfix, merged 2026-04-17)
 
@@ -992,7 +992,7 @@ Pre-release shipping the data-layer slice of the v2.1 Bedrock hardening stream. 
 - `EnsureCreatedAsync` and the manual `ALTER TABLE inbox_items` block are **removed** from app startup and replaced by `IMigrationRunner.RunAsync()` - all schema changes now flow through EF migrations
 - All 5 production `SqliteConnection` creation sites route through `IEncryptedConnectionFactory` for uniform key application
 - DI registrations for `DatabaseKeyProvider`, `EncryptedConnectionFactory`, and `DatabaseKeyService` are singletons (data-plane crypto lifetime invariant)
-- `Directory.Build.props` `<Version>` bumped `2.0.0` → `2.1.0-preview.1`; added `AssemblyVersion`, `FileVersion`, and `InformationalVersion`
+- `Directory.Build.props` `<Version>` bumped `2.0.0` -> `2.1.0-preview.1`; added `AssemblyVersion`, `FileVersion`, and `InformationalVersion`
 
 ### Rescoped
 

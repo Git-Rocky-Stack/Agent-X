@@ -127,7 +127,7 @@ public sealed class SemanticMemoryService : ISemanticMemoryService
                 }
             }
 
-            // Step 4: Rank by combined score (similarity × effective importance)
+            // Step 4: Rank by combined score (similarity x effective importance)
             var ranked = scoredMemories
                 .OrderByDescending(x => x.Similarity * x.EffectiveImportance)
                 .Take(maxMemories)
@@ -463,7 +463,7 @@ public sealed class SemanticMemoryService : ISemanticMemoryService
     {
         // Effective importance is a temporal-decay computation (DateTime.UtcNow + Math.Exp via
         // GetEffectiveImportance) that EF cannot translate to SQL. Materialize the active set
-        // first, then rank it in memory — the active-memory set is bounded (user facts), so the
+        // first, then rank it in memory - the active-memory set is bounded (user facts), so the
         // client-side sort is cheap and, unlike an in-query OrderBy, actually executes.
         var active = await _db.Memories
             .AsNoTracking()
@@ -494,9 +494,9 @@ public sealed class SemanticMemoryService : ISemanticMemoryService
         return await _db.Memories.CountAsync(m => m.IsActive, ct);
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Private helpers
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>
     /// Keeps the newest <paramref name="maxLength"/> characters of a transcript. Extraction runs

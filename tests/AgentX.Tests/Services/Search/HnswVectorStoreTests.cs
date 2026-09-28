@@ -14,13 +14,13 @@ namespace AgentX.Tests.Services.Search;
 
 /// <summary>
 /// Integration-style unit tests for HnswVectorStore.
-/// Uses real SQLite (temp file) and real HNSW index — not pure unit mocks —
+/// Uses real SQLite (temp file) and real HNSW index - not pure unit mocks -
 /// because the vector store depends on actual database and index operations.
 /// Each test creates its own temp directory to avoid interference.
 /// </summary>
 public sealed class HnswVectorStoreTests : IAsyncLifetime
 {
-    // ── Deterministic test embeddings (3-dimensional for speed) ──────────
+    // -- Deterministic test embeddings (3-dimensional for speed) ----------
 
     // Orthogonal-ish vectors for reproducible similarity results.
     private static readonly float[] Vector1 = { 1.0f, 0.0f, 0.0f };
@@ -29,7 +29,7 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
     private static readonly float[] Vector4 = { 0.9f, 0.1f, 0.0f }; // Close to Vector1
     private static readonly float[] Vector5 = { 0.5f, 0.5f, 0.0f }; // Between Vector1 and Vector2
 
-    // ── Per-test state ──────────────────────────────────────────────────
+    // -- Per-test state --------------------------------------------------
 
     private readonly string _tempPath;
     private readonly Mock<ISettingsService> _mockSettings;
@@ -52,7 +52,7 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
         _logger = Log.ForContext<HnswVectorStoreTests>();
     }
 
-    // ── IAsyncLifetime ──────────────────────────────────────────────────
+    // -- IAsyncLifetime --------------------------------------------------
 
     public Task InitializeAsync() => Task.CompletedTask;
 
@@ -73,10 +73,10 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
         return Task.CompletedTask;
     }
 
-    // ── Helper: Create store with small dimensions and fallbackThreshold=0 ─
+    // -- Helper: Create store with small dimensions and fallbackThreshold=0 -
 
     /// <summary>
-    /// Tests run without encryption — the factory resolves to a plaintext open when
+    /// Tests run without encryption - the factory resolves to a plaintext open when
     /// no key is loaded on the provider, matching pre-C13 behaviour.
     /// </summary>
     private static IEncryptedConnectionFactory CreatePlainFactory()
@@ -109,7 +109,7 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
         HnswVectorStore.ResolveSearchEf(efSearch, efConstruction, candidates).Should().Be(expected);
     }
 
-    // ── 1. InitializeAsync_EmptyStore_CreatesIndex ───────────────────────
+    // -- 1. InitializeAsync_EmptyStore_CreatesIndex -----------------------
 
     [Fact]
     public async Task InitializeAsync_EmptyStore_CreatesIndex()
@@ -120,7 +120,7 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
         // Act
         await store.InitializeAsync();
 
-        // Assert — store should report 0 embeddings and be operational.
+        // Assert - store should report 0 embeddings and be operational.
         var count = await store.GetEmbeddingCountAsync();
         count.Should().Be(0);
 
@@ -128,7 +128,7 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
         File.Exists(Path.Combine(_tempPath, "agentx.db")).Should().BeTrue();
     }
 
-    // ── 2. InsertEmbeddingAsync_AddsToBothStores ─────────────────────────
+    // -- 2. InsertEmbeddingAsync_AddsToBothStores -------------------------
 
     [Fact]
     public async Task InsertEmbeddingAsync_AddsToBothStores()
@@ -151,7 +151,7 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
         results[0].ChunkId.Should().Be(100);
     }
 
-    // ── 3. SearchAsync_ReturnsTopKResults ────────────────────────────────
+    // -- 3. SearchAsync_ReturnsTopKResults --------------------------------
 
     [Fact]
     public async Task SearchAsync_ReturnsTopKResults()
@@ -166,7 +166,7 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
         await store.InsertEmbeddingAsync(4, Vector4);
         await store.InsertEmbeddingAsync(5, Vector5);
 
-        // Act — search for Vector1; top 2 should be Vector1 (self) and Vector4 (closest).
+        // Act - search for Vector1; top 2 should be Vector1 (self) and Vector4 (closest).
         var results = await store.SearchAsync(Vector1, topK: 2, minSimilarity: 0.0);
 
         // Assert
@@ -175,7 +175,7 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
         results.Select(r => r.ChunkId).Should().Contain(4, "Vector4 is close to Vector1");
     }
 
-    // ── 4. SearchAsync_RespectsMinSimilarity ─────────────────────────────
+    // -- 4. SearchAsync_RespectsMinSimilarity -----------------------------
 
     [Fact]
     public async Task SearchAsync_RespectsMinSimilarity()
@@ -188,21 +188,21 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
         await store.InsertEmbeddingAsync(2, Vector2);
         await store.InsertEmbeddingAsync(3, Vector3);
 
-        // Act — search for Vector1 with a high similarity threshold.
+        // Act - search for Vector1 with a high similarity threshold.
         // Only the query vector itself has similarity 1.0; orthogonal vectors have ~0.0 similarity.
         var results = await store.SearchAsync(Vector1, topK: 5, minSimilarity: 0.99);
 
-        // Assert — only the exact match should pass the threshold.
+        // Assert - only the exact match should pass the threshold.
         results.Should().HaveCount(1);
         results[0].ChunkId.Should().Be(1);
     }
 
-    // ── 5. SearchAsync_UsesLinearScan_UnderThreshold ────────────────────
+    // -- 5. SearchAsync_UsesLinearScan_UnderThreshold --------------------
 
     [Fact]
     public async Task SearchAsync_UsesLinearScan_UnderThreshold()
     {
-        // Arrange — fallbackThreshold set high (10000) so 3 embeddings use linear scan.
+        // Arrange - fallbackThreshold set high (10000) so 3 embeddings use linear scan.
         await using var store = CreateStore(fallbackThreshold: 10000);
         await store.InitializeAsync();
 
@@ -210,16 +210,16 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
         await store.InsertEmbeddingAsync(2, Vector2);
         await store.InsertEmbeddingAsync(3, Vector3);
 
-        // Act — search with very low similarity to get all results.
+        // Act - search with very low similarity to get all results.
         var results = await store.SearchAsync(Vector1, topK: 5, minSimilarity: 0.0);
 
-        // Assert — linear scan should still return correct results.
+        // Assert - linear scan should still return correct results.
         results.Should().NotBeEmpty();
         results[0].ChunkId.Should().Be(1, "the exact match should rank first");
         results.Should().HaveCount(3, "all 3 vectors should be returned when minSimilarity is 0");
     }
 
-    // ── 6. DeleteEmbeddingAsync_RemovesFromSearch ────────────────────────
+    // -- 6. DeleteEmbeddingAsync_RemovesFromSearch ------------------------
 
     [Fact]
     public async Task DeleteEmbeddingAsync_RemovesFromSearch()
@@ -238,7 +238,7 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
         // Act
         await store.DeleteEmbeddingAsync(2);
 
-        // Assert — count should be 1 and chunk 2 should not appear in results.
+        // Assert - count should be 1 and chunk 2 should not appear in results.
         var count = await store.GetEmbeddingCountAsync();
         count.Should().Be(1);
 
@@ -246,7 +246,7 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
         afterDelete.Should().NotContain(r => r.ChunkId == 2);
     }
 
-    // ── 7. GetEmbeddingCountAsync_ReturnsCorrectCount ───────────────────
+    // -- 7. GetEmbeddingCountAsync_ReturnsCorrectCount -------------------
 
     [Fact]
     public async Task GetEmbeddingCountAsync_ReturnsCorrectCount()
@@ -255,7 +255,7 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
         await using var store = CreateStore();
         await store.InitializeAsync();
 
-        // Act & Assert — count after each insert.
+        // Act & Assert - count after each insert.
         (await store.GetEmbeddingCountAsync()).Should().Be(0);
 
         await store.InsertEmbeddingAsync(1, Vector1);
@@ -268,7 +268,7 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
         (await store.GetEmbeddingCountAsync()).Should().Be(3);
     }
 
-    // ── 8. OptimizeAsync_PersistsIndexToDisk ─────────────────────────────
+    // -- 8. OptimizeAsync_PersistsIndexToDisk -----------------------------
 
     [Fact]
     public async Task OptimizeAsync_PersistsIndexToDisk()
@@ -283,7 +283,7 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
         // Act
         await store.OptimizeAsync();
 
-        // Assert — index files should exist on disk after optimize.
+        // Assert - index files should exist on disk after optimize.
         var metadataPath = Path.Combine(_tempPath, "hnsw-index.json");
         var indexPath = Path.Combine(_tempPath, "hnsw-index.bin");
 
@@ -298,7 +298,7 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
         metadata.Version.Should().Be(HnswIndexMetadata.CurrentVersion);
     }
 
-    // ── 9. InitializeAsync_LoadsExistingIndex ────────────────────────────
+    // -- 9. InitializeAsync_LoadsExistingIndex ----------------------------
 
     [Fact]
     public async Task InitializeAsync_LoadsExistingIndex()
@@ -317,7 +317,7 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
             await using var store = CreateStore();
             await store.InitializeAsync();
 
-            // Assert — the index should load from disk and be searchable.
+            // Assert - the index should load from disk and be searchable.
             var count = await store.GetEmbeddingCountAsync();
             count.Should().Be(2);
 
@@ -327,7 +327,7 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
         }
     }
 
-    // ── 10. InitializeAsync_RebuildsOnCountMismatch ──────────────────────
+    // -- 10. InitializeAsync_RebuildsOnCountMismatch ----------------------
 
     [Fact]
     public async Task InitializeAsync_RebuildsOnCountMismatch()
@@ -365,7 +365,7 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
             await cmd.ExecuteNonQueryAsync();
         }
 
-        // Phase 3: Re-initialize — the metadata says count=2, but SQLite has 3.
+        // Phase 3: Re-initialize - the metadata says count=2, but SQLite has 3.
         // The store should detect the mismatch and rebuild the index.
         {
             await using var store = CreateStore();
@@ -381,7 +381,7 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
         }
     }
 
-    // ── 11. VectorStoreFactory_CreatesHnsw_WhenEnabled ───────────────────
+    // -- 11. VectorStoreFactory_CreatesHnsw_WhenEnabled -------------------
 
     [Fact]
     public async Task VectorStoreFactory_CreatesHnsw_WhenEnabled()
@@ -410,7 +410,7 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
         }
     }
 
-    // ── 12. VectorStoreFactory_CreatesSqlite_WhenDisabled ────────────────
+    // -- 12. VectorStoreFactory_CreatesSqlite_WhenDisabled ----------------
 
     [Fact]
     public async Task VectorStoreFactory_CreatesSqlite_WhenDisabled()
@@ -439,7 +439,7 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
         }
     }
 
-    // ── 13. HnswIndexMetadata_SerializesRoundtrip ────────────────────────
+    // -- 13. HnswIndexMetadata_SerializesRoundtrip ------------------------
 
     [Fact]
     public void HnswIndexMetadata_SerializesRoundtrip()
@@ -460,7 +460,7 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
         var json = JsonSerializer.Serialize(original);
         var deserialized = JsonSerializer.Deserialize<HnswIndexMetadata>(json);
 
-        // Assert — all fields should survive JSON roundtrip.
+        // Assert - all fields should survive JSON roundtrip.
         deserialized.Should().NotBeNull();
         deserialized!.Version.Should().Be(original.Version);
         deserialized.Count.Should().Be(original.Count);
@@ -472,7 +472,7 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
         deserialized.CreatedAtUtc.Should().BeCloseTo(original.CreatedAtUtc, TimeSpan.FromSeconds(1));
     }
 
-    // ── Additional edge-case tests ──────────────────────────────────────
+    // -- Additional edge-case tests --------------------------------------
 
     [Fact]
     public async Task InsertEmbeddingAsync_InsertOrReplace_UpdatesExisting()
@@ -483,10 +483,10 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
 
         await store.InsertEmbeddingAsync(1, Vector1);
 
-        // Act — re-insert the same chunk ID with a different embedding.
+        // Act - re-insert the same chunk ID with a different embedding.
         await store.InsertEmbeddingAsync(1, Vector2);
 
-        // Assert — count should still be 1 (OR REPLACE), not 2.
+        // Assert - count should still be 1 (OR REPLACE), not 2.
         var count = await store.GetEmbeddingCountAsync();
         count.Should().Be(1);
 
@@ -507,7 +507,7 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
         await store.InsertEmbeddingAsync(2, Vector2);
         await store.InsertEmbeddingAsync(3, Vector3);
 
-        // Act — delete chunks 1 and 2 for document 999.
+        // Act - delete chunks 1 and 2 for document 999.
         await store.DeleteEmbeddingsForDocumentAsync(999, new List<long> { 1, 2 });
 
         // Assert
@@ -537,18 +537,18 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
     [Fact]
     public async Task DisposeAsync_PersistsDirtyIndex()
     {
-        // Arrange — do NOT use `await using` here because it auto-disposes at scope end,
+        // Arrange - do NOT use `await using` here because it auto-disposes at scope end,
         // which would make the explicit DisposeAsync call below a no-op (already disposed).
         var store = CreateStore();
         await store.InitializeAsync();
         await store.InsertEmbeddingAsync(1, Vector1);
 
-        // Act — call OptimizeAsync first to ensure the index is persisted,
+        // Act - call OptimizeAsync first to ensure the index is persisted,
         // then dispose (DisposeAsync also persists if dirty, but after Optimize it's clean).
         await store.OptimizeAsync();
         await store.DisposeAsync();
 
-        // Assert — index files should exist on disk.
+        // Assert - index files should exist on disk.
         var metadataPath = Path.Combine(_tempPath, "hnsw-index.json");
         var indexPath = Path.Combine(_tempPath, "hnsw-index.bin");
 
@@ -583,10 +583,10 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
     [Fact]
     public async Task OperationsBeforeInitialize_ThrowInvalidOperationException()
     {
-        // Arrange — create store but do NOT call InitializeAsync.
+        // Arrange - create store but do NOT call InitializeAsync.
         await using var store = CreateStore();
 
-        // Act & Assert — all operations should throw.
+        // Act & Assert - all operations should throw.
         var insertAct = () => store.InsertEmbeddingAsync(1, Vector1);
         await insertAct.Should().ThrowAsync<InvalidOperationException>();
 
@@ -611,7 +611,7 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
         await store.InitializeAsync();
         await store.InsertEmbeddingAsync(1, Vector1);
 
-        // Act — delete with empty list should not throw or remove anything.
+        // Act - delete with empty list should not throw or remove anything.
         await store.DeleteEmbeddingsForDocumentAsync(999, new List<long>());
 
         // Assert
@@ -627,10 +627,10 @@ public sealed class HnswVectorStoreTests : IAsyncLifetime
         await store.InitializeAsync();
         await store.InsertEmbeddingAsync(1, Vector1);
 
-        // Act — initialize again.
+        // Act - initialize again.
         await store.InitializeAsync();
 
-        // Assert — data should still be there.
+        // Assert - data should still be there.
         var count = await store.GetEmbeddingCountAsync();
         count.Should().Be(1);
     }

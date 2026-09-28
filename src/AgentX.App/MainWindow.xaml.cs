@@ -66,11 +66,11 @@ public sealed partial class MainWindow : Window
     {
         InitializeComponent();
 
-        // Footer version label — single source (assembly version via AppVersionInfo) so it
+        // Footer version label - single source (assembly version via AppVersionInfo) so it
         // never drifts from the shipped build (AX-QA-014).
         AppVersionText.Text = $"Agent-X v{AgentX.Core.AppVersionInfo.Display}";
 
-        // A1 — Bind root FlowDirection to the current UI culture
+        // A1 - Bind root FlowDirection to the current UI culture
         RootGrid.FlowDirection = FlowDirectionHelper.Current();
 
         // Resolve services from DI
@@ -131,9 +131,9 @@ public sealed partial class MainWindow : Window
         QueueInitialNavigation();
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  KEYBOARD SHORTCUTS
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>
     /// Clips the content host to its own bounds. WinUI panels do not clip

@@ -17,14 +17,14 @@ public sealed class VoiceCoordinator : IVoiceCoordinator, IDisposable
     private readonly ITranscriptionService _transcriptionService;
     private readonly ILocalizationService _localization;
 
-    // ── NAudio recording resources ──────────────────────────────
+    // -- NAudio recording resources ------------------------------
     private WaveInEvent? _waveIn;
     private WaveFileWriter? _waveWriter;
     private string? _currentRecordingPath;
     private TaskCompletionSource? _recordingStopTcs;
     private bool _disposed;
 
-    // ── State ────────────────────────────────────────────────────
+    // -- State ----------------------------------------------------
     private bool _isRecording;
     private bool _isTranscribing;
     private string _statusMessage = string.Empty;
@@ -105,7 +105,7 @@ public sealed class VoiceCoordinator : IVoiceCoordinator, IDisposable
         }
     }
 
-    // ── Recording ────────────────────────────────────────────────
+    // -- Recording ------------------------------------------------
 
     private void StartRecording()
     {
@@ -228,7 +228,7 @@ public sealed class VoiceCoordinator : IVoiceCoordinator, IDisposable
         }
     }
 
-    // ── NAudio event handlers ────────────────────────────────────
+    // -- NAudio event handlers ------------------------------------
 
     private void OnRecordingDataAvailable(object? sender, WaveInEventArgs e)
     {
@@ -253,7 +253,7 @@ public sealed class VoiceCoordinator : IVoiceCoordinator, IDisposable
         }
     }
 
-    // ── State helpers ────────────────────────────────────────────
+    // -- State helpers --------------------------------------------
 
     /// <summary>
     /// The speech-to-text model is not installed: say where to install it (the Model Manager page).
@@ -302,7 +302,7 @@ public sealed class VoiceCoordinator : IVoiceCoordinator, IDisposable
         _ => phase
     };
 
-    // ── Cleanup ──────────────────────────────────────────────────
+    // -- Cleanup --------------------------------------------------
 
     private void CleanupRecording()
     {

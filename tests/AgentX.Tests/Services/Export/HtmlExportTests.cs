@@ -21,9 +21,9 @@ public sealed class HtmlExportTests
         _export = new HtmlExport();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Basic Properties
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Format_ShouldReturnHtml()
@@ -45,9 +45,9 @@ public sealed class HtmlExportTests
         extension.Should().Be(".html");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Supports<T> Method
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Supports_WithConversationEntity_ShouldReturnTrue()
@@ -89,9 +89,9 @@ public sealed class HtmlExportTests
         result.Should().BeFalse();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  RenderAsync - Single Conversation
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task RenderAsync_WithSingleConversation_ReturnsValidHtml()
@@ -361,9 +361,9 @@ public sealed class HtmlExportTests
         html.Should().Contain("&lt;script&gt;");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  RenderAsync - Multiple Conversations
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task RenderAsync_WithMultipleConversations_ReturnsValidHtml()
@@ -406,9 +406,9 @@ public sealed class HtmlExportTests
         html.Should().Contain("class=\"section-divider\"");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  RenderAsync - Search Results
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task RenderAsync_WithSearchResults_ReturnsValidHtml()
@@ -440,9 +440,9 @@ public sealed class HtmlExportTests
         html.Should().Contain("Page 1");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Cancellation Support
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task RenderAsync_WithCancelledToken_ThrowsOperationCanceledException()

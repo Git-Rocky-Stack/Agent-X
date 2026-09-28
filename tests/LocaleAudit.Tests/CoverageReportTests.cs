@@ -57,7 +57,7 @@ public class CoverageReportTests
             new("Nav_Dashboard", "N.cs", 10),
             new("Nav_Chat", "N.cs", 11),
         };
-        // en-US has ALL three — total unique keys should be 3 (union).
+        // en-US has ALL three - total unique keys should be 3 (union).
         var locales = new Dictionary<string, IReadOnlyDictionary<string, string>>
         {
             ["en-US"] = new Dictionary<string, string>

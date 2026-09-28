@@ -9,8 +9,8 @@ namespace AgentX.Core.Data.MigrationRunner;
 /// could not be created (or the schema could not be re-validated) before stamping the baseline.
 ///
 /// This is the fail-closed backstop for AX-QA-002: rather than stamp <c>_InitialBaseline</c> as
-/// applied against an incomplete schema — which leaves later migrations to crash with
-/// "no such table: …" — the runner aborts so startup can enter a recovery state instead of
+/// applied against an incomplete schema - which leaves later migrations to crash with
+/// "no such table: ..." - the runner aborts so startup can enter a recovery state instead of
 /// silently corrupting the database. <see cref="MissingTables"/> names the baseline tables that
 /// were still absent.
 /// </summary>

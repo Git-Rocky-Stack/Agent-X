@@ -19,7 +19,7 @@ namespace AgentX.App.Views;
 /// <summary>
 /// Lightweight always-on-top overlay window for quick Q&A against the knowledge vault.
 /// Activated by the Win+Shift+A global hotkey or the "Quick Chat" tray context menu.
-/// Singleton — only one instance exists at a time; subsequent activations focus the existing window.
+/// Singleton - only one instance exists at a time; subsequent activations focus the existing window.
 ///
 /// UI is built programmatically (no XAML) to avoid a WinUI 3 XAML compiler crash
 /// that occurs when a secondary Window class has its own XAML file.
@@ -28,7 +28,7 @@ public sealed class QuickChatWindow : Window
 {
     private AppWindow _appWindow = null!;
 
-    // ── UI Element References ──────────────────────────────────
+    // -- UI Element References ----------------------------------
     private ProgressRing _processingRing = null!;
     private TextBlock _statusTextBlock = null!;
     private ScrollViewer _responseScrollViewer = null!;
@@ -62,9 +62,9 @@ public sealed class QuickChatWindow : Window
         Closed += OnWindowClosed;
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  UI CONSTRUCTION
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     private void BuildUI()
     {
@@ -73,7 +73,7 @@ public sealed class QuickChatWindow : Window
         rootGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
         rootGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
-        // ── Header Row ──────────────────────────────────────
+        // -- Header Row --------------------------------------
         var headerPanel = new StackPanel
         {
             Orientation = Orientation.Horizontal,
@@ -104,7 +104,7 @@ public sealed class QuickChatWindow : Window
         Grid.SetRow(headerPanel, 0);
         rootGrid.Children.Add(headerPanel);
 
-        // ── Separator ───────────────────────────────────────
+        // -- Separator ---------------------------------------
         var separator = new Border
         {
             Height = 1,
@@ -124,7 +124,7 @@ public sealed class QuickChatWindow : Window
         Grid.SetRow(headerGrid, 0);
         rootGrid.Children.Add(headerGrid);
 
-        // ── Response Area ───────────────────────────────────
+        // -- Response Area -----------------------------------
         _responseBlock = new TextBlock
         {
             IsTextSelectionEnabled = true,
@@ -143,7 +143,7 @@ public sealed class QuickChatWindow : Window
         Grid.SetRow(_responseScrollViewer, 1);
         rootGrid.Children.Add(_responseScrollViewer);
 
-        // ── Input Area ──────────────────────────────────────
+        // -- Input Area --------------------------------------
         var inputSeparator = new Border
         {
             Height = 1,
@@ -201,9 +201,9 @@ public sealed class QuickChatWindow : Window
         Content = rootGrid;
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  WINDOW CONFIGURATION
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     private void ConfigureOverlayWindow()
     {
@@ -233,9 +233,9 @@ public sealed class QuickChatWindow : Window
         Log.Debug("Quick Chat overlay window configured (480x400, top-center, always-on-top)");
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  VIEWMODEL BINDINGS
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     private void WireViewModelBindings()
     {
@@ -320,9 +320,9 @@ public sealed class QuickChatWindow : Window
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  EVENT HANDLERS
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     private void QueryInput_KeyDown(object sender, KeyRoutedEventArgs e)
     {

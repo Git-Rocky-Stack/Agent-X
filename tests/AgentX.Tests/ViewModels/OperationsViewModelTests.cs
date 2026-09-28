@@ -26,7 +26,7 @@ public sealed class OperationsViewModelTests
                     Headline = "5",
                     Status = "Durable recall current",
                     StatusKind = OperationsStatusKind.RecallCurrent,
-                    Detail = "6 stored snapshots · latest 10 minutes ago"
+                    Detail = "6 stored snapshots | latest 10 minutes ago"
                 },
                 RecentConversationSummaries =
                 [
@@ -53,7 +53,7 @@ public sealed class OperationsViewModelTests
                         Title = "Import sync",
                         Status = "Success",
                         StatusKind = OperationsStatusKind.SyncPassSucceeded,
-                        Detail = "12 changes · 3s · 9 minutes ago"
+                        Detail = "12 changes | 3s | 9 minutes ago"
                     }
                 ],
                 IngestionBacklog = new OperationsCardSnapshot
@@ -69,7 +69,7 @@ public sealed class OperationsViewModelTests
                     {
                         Title = "Board update.docx",
                         Status = "Email Connector",
-                        Detail = "Document · suggest Leadership · 12 minutes ago"
+                        Detail = "Document | suggest Leadership | 12 minutes ago"
                     }
                 ],
                 RecentImportedDocuments =
@@ -81,7 +81,7 @@ public sealed class OperationsViewModelTests
                         Status = "Email Connector",
                         HealthStatus = "Searchable",
                         Health = OperationsDocumentHealth.Searchable,
-                        Detail = "Email Message · vaulted 28 minutes ago"
+                        Detail = "Email Message | vaulted 28 minutes ago"
                     }
                 ],
                 WorkflowActivity = new OperationsCardSnapshot
@@ -91,7 +91,7 @@ public sealed class OperationsViewModelTests
                     StatusKind = OperationsStatusKind.WorkflowSuccessRate,
                     SupportingPrimary = "2 active / 30d",
                     SupportingSecondary = "42s avg run",
-                    Detail = "Top workflow: Research Briefing · 4 runs"
+                    Detail = "Top workflow: Research Briefing | 4 runs"
                 },
                 RecentWorkflowRuns =
                 [
@@ -108,7 +108,7 @@ public sealed class OperationsViewModelTests
                     Headline = "2",
                     Status = "2 connectors enabled",
                     StatusKind = OperationsStatusKind.ConnectorsEnabled,
-                    Detail = "Email Connector · Calendar Connector"
+                    Detail = "Email Connector | Calendar Connector"
                 },
                 ConnectorPreviews =
                 [
@@ -120,7 +120,7 @@ public sealed class OperationsViewModelTests
                         Title = "Email Connector",
                         Status = "Enabled",
                         StatusKind = OperationsStatusKind.ConnectorEnabled,
-                        Detail = "Connector · Brings inbox mail into Agent-X for triage and search."
+                        Detail = "Connector | Brings inbox mail into Agent-X for triage and search."
                     }
                 ]
             });
@@ -371,7 +371,7 @@ public sealed class OperationsViewModelTests
                         Status = "Email Connector",
                         HealthStatus = "Needs Attention",
                         Health = OperationsDocumentHealth.NeedsAttention,
-                        Detail = "Email Message · Embedding request failed."
+                        Detail = "Email Message | Embedding request failed."
                     }
                 ],
                 WorkflowActivity = new OperationsCardSnapshot
@@ -400,7 +400,7 @@ public sealed class OperationsViewModelTests
                         Title = "Email Connector",
                         Status = "Disabled",
                         StatusKind = OperationsStatusKind.ConnectorDisabled,
-                        Detail = "Connector · Brings inbox mail into Agent-X."
+                        Detail = "Connector | Brings inbox mail into Agent-X."
                     }
                 ]
             });
@@ -471,7 +471,7 @@ public sealed class OperationsViewModelTests
                         Status = "Email Connector",
                         HealthStatus = "Needs Attention",
                         Health = OperationsDocumentHealth.NeedsAttention,
-                        Detail = "Email Message · Embedding request failed."
+                        Detail = "Email Message | Embedding request failed."
                     }
                 ],
                 ConnectorPreviews =
@@ -484,7 +484,7 @@ public sealed class OperationsViewModelTests
                         Title = "Email Connector",
                         Status = "Disabled",
                         StatusKind = OperationsStatusKind.ConnectorDisabled,
-                        Detail = "Connector · Brings inbox mail into Agent-X."
+                        Detail = "Connector | Brings inbox mail into Agent-X."
                     }
                 ]
             });
@@ -551,7 +551,7 @@ public sealed class OperationsViewModelTests
                     Headline = "2",
                     Status = "2 connectors enabled",
                     StatusKind = OperationsStatusKind.ConnectorsEnabled,
-                    Detail = "Email Connector · Calendar Connector"
+                    Detail = "Email Connector | Calendar Connector"
                 }
             });
 
@@ -599,7 +599,7 @@ public sealed class OperationsViewModelTests
                         Status = "Email Connector",
                         HealthStatus = "Needs Attention",
                         Health = OperationsDocumentHealth.NeedsAttention,
-                        Detail = "Email Message · Embedding request failed."
+                        Detail = "Email Message | Embedding request failed."
                     }
                 ],
                 ConnectorPreviews =
@@ -612,7 +612,7 @@ public sealed class OperationsViewModelTests
                         Title = "Email Connector",
                         Status = "Disabled",
                         StatusKind = OperationsStatusKind.ConnectorDisabled,
-                        Detail = "Connector · Brings inbox mail into Agent-X."
+                        Detail = "Connector | Brings inbox mail into Agent-X."
                     }
                 ],
                 WorkflowActivity = new OperationsCardSnapshot
@@ -967,7 +967,7 @@ public sealed class OperationsViewModelTests
                         Title = "Email Connector",
                         Status = "Disabled",
                         StatusKind = OperationsStatusKind.ConnectorDisabled,
-                        Detail = "Connector · Brings inbox mail into Agent-X for triage and search."
+                        Detail = "Connector | Brings inbox mail into Agent-X for triage and search."
                     }
                 ]
             })
@@ -1000,7 +1000,7 @@ public sealed class OperationsViewModelTests
                         Title = "Email Connector",
                         Status = "Enabled",
                         StatusKind = OperationsStatusKind.ConnectorEnabled,
-                        Detail = "Connector · Brings inbox mail into Agent-X for triage and search."
+                        Detail = "Connector | Brings inbox mail into Agent-X for triage and search."
                     }
                 ]
             });
@@ -1048,7 +1048,7 @@ public sealed class OperationsViewModelTests
                         Title = "Email Connector",
                         Status = "Disabled",
                         StatusKind = OperationsStatusKind.ConnectorDisabled,
-                        Detail = "Connector · Brings inbox mail into Agent-X."
+                        Detail = "Connector | Brings inbox mail into Agent-X."
                     }
                 ]
             })
@@ -1075,7 +1075,7 @@ public sealed class OperationsViewModelTests
                         Title = "Email Connector",
                         Status = "Enabled",
                         StatusKind = OperationsStatusKind.ConnectorEnabled,
-                        Detail = "Connector · Brings inbox mail into Agent-X."
+                        Detail = "Connector | Brings inbox mail into Agent-X."
                     }
                 ]
             });
@@ -1112,7 +1112,7 @@ public sealed class OperationsViewModelTests
                         Status = "Email Connector",
                         HealthStatus = "Needs Attention",
                         Health = OperationsDocumentHealth.NeedsAttention,
-                        Detail = "Email Message · Embedding request failed."
+                        Detail = "Email Message | Embedding request failed."
                     }
                 ]
             })
@@ -1132,7 +1132,7 @@ public sealed class OperationsViewModelTests
                         Status = "Email Connector",
                         HealthStatus = "Processing",
                         Health = OperationsDocumentHealth.Processing,
-                        Detail = "Email Message · queued for indexing"
+                        Detail = "Email Message | queued for indexing"
                     }
                 ]
             });
@@ -1173,7 +1173,7 @@ public sealed class OperationsViewModelTests
                         Status = "Email Connector",
                         HealthStatus = "Searchable",
                         Health = OperationsDocumentHealth.Searchable,
-                        Detail = "Email Message · searchable now"
+                        Detail = "Email Message | searchable now"
                     }
                 ]
             });
@@ -1217,7 +1217,7 @@ public sealed class OperationsViewModelTests
                         Title = "Email Connector",
                         Status = "Enabled",
                         StatusKind = OperationsStatusKind.ConnectorEnabled,
-                        Detail = "Connector · Brings inbox mail into Agent-X for triage and search."
+                        Detail = "Connector | Brings inbox mail into Agent-X for triage and search."
                     }
                 ]
             });

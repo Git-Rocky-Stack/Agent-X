@@ -8,14 +8,14 @@ name: Release Provenance (cosign + Rekor)
 #             installers with the maintainer's certificate. The cert never enters CI, so this
 #             stays a manual release step.
 #   Layer 2 - Keyless provenance (HERE, in CI). cosign signs the release's SHA256SUMS.txt using
-#             GitHub's ambient OIDC identity — NO secret, NO long-lived key. Fulcio issues an
+#             GitHub's ambient OIDC identity - NO secret, NO long-lived key. Fulcio issues an
 #             ephemeral certificate bound to this workflow's identity, and the signature is
 #             recorded in the public Rekor transparency log. Anyone can later prove the artifact
 #             came from this repository's release pipeline, unmodified.
 #
 # Why sign SHA256SUMS.txt rather than each installer: that one small manifest lists the SHA-256 of
 # BOTH the SLIM installer (GitHub asset) and the OFFLINE installer (~2 GB, hosted on Cloudflare R2).
-# Signing the manifest transitively covers every artifact — including the one CI never downloads —
+# Signing the manifest transitively covers every artifact - including the one CI never downloads -
 # and the signing job stays fast and cheap. Users verify the manifest signature, then check their
 # downloaded file's hash against the manifest.
 #
@@ -127,10 +127,10 @@ jobs:
         if: steps.preflight.outputs.proceed == 'true'
         # Plain-text only (no backticks / no line-continuations) so there is no shell-escaping
         # hazard in CI. The authoritative, formatted copy-paste verification command lives in
-        # docs/RELEASE-SIGNING.md — single source of truth, no duplication.
+        # docs/RELEASE-SIGNING.md - single source of truth, no duplication.
         run: |
           {
-            echo "## Release provenance signed — $TAG"
+            echo "## Release provenance signed - $TAG"
             echo ""
             echo "Signed SHA256SUMS.txt keylessly (GitHub OIDC -> Fulcio) and recorded it in the"
             echo "public Rekor transparency log. The detached signature (SHA256SUMS.txt.sig) and"

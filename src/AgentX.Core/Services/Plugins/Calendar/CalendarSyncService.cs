@@ -55,7 +55,7 @@ public sealed class CalendarSyncService
     /// Creates a new <see cref="CalendarSyncService"/>.
     /// </summary>
     /// <param name="inboxService">The Smart Inbox service for triaging external items.</param>
-    /// <param name="processor">The event processor for converting CalEvent → InboxItem.</param>
+    /// <param name="processor">The event processor for converting CalEvent -> InboxItem.</param>
     /// <param name="logger">Serilog logger.</param>
     /// <param name="pluginDataPath">Path to the plugin's data directory for persisting delta tokens.</param>
     public CalendarSyncService(
@@ -111,7 +111,7 @@ public sealed class CalendarSyncService
 
                 if (enabledCalendarIds.Count == 0)
                 {
-                    _log.Debug("No enabled calendars for provider {ProviderId} — skipping", provider.ProviderId);
+                    _log.Debug("No enabled calendars for provider {ProviderId} - skipping", provider.ProviderId);
                     continue;
                 }
 
@@ -381,7 +381,7 @@ public sealed class CalendarSyncService
         return (removed, failed);
     }
 
-    // ── Private: delta token persistence ────────────────────────────────────────
+    // -- Private: delta token persistence ----------------------------------------
 
     private async Task<Dictionary<string, string>> LoadDeltaTokensAsync()
     {
@@ -398,7 +398,7 @@ public sealed class CalendarSyncService
         }
         catch (Exception ex)
         {
-            _log.Warning(ex, "Failed to load calendar delta tokens from {Path} — starting fresh", path);
+            _log.Warning(ex, "Failed to load calendar delta tokens from {Path} - starting fresh", path);
             return new Dictionary<string, string>();
         }
     }

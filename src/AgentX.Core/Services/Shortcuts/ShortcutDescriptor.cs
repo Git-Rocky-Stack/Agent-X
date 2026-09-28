@@ -12,8 +12,8 @@ namespace AgentX.Core.Services.Shortcuts;
 /// key-input pipeline.
 /// </summary>
 public sealed record ShortcutDescriptor(
-    string Id,                              // stable, e.g. "doc.import" — telemetry + future config
-    string Label,                           // localized UI label, e.g. "Import Document…"
+    string Id,                              // stable, e.g. "doc.import" - telemetry + future config
+    string Label,                           // localized UI label, e.g. "Import Document..."
     ShortcutScope Scope,                    // Global or a page name
     IReadOnlyList<KeyChord> Chord,          // 1 element for simple, N for multi-step
     Func<CancellationToken, Task> Handler,

@@ -51,7 +51,7 @@ public sealed class EmailIntegrationTests : IDisposable
         catch { /* best effort */ }
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────────
+    // -- Helpers ------------------------------------------------------------------
 
     private static EmailMessage CreateMessage(
         string id = "msg-1",
@@ -139,7 +139,7 @@ public sealed class EmailIntegrationTests : IDisposable
             .ReturnsAsync((messages.ToList() as IReadOnlyList<EmailMessage>, (string?)"ms-delta-1"));
     }
 
-    // ── EmailSyncService integration tests ────────────────────────────────────
+    // -- EmailSyncService integration tests ------------------------------------
 
     [Fact]
     public async Task SyncAsync_SingleProvider_ProcessesAllEmailsThroughInbox()
@@ -321,7 +321,7 @@ public sealed class EmailIntegrationTests : IDisposable
             Times.Exactly(2));
     }
 
-    // ── EmailTriageProcessor pipeline tests ────────────────────────────────────
+    // -- EmailTriageProcessor pipeline tests ------------------------------------
 
     [Fact]
     public void Processor_ProducesCorrectExternalId_ForGmail()
@@ -367,7 +367,7 @@ public sealed class EmailIntegrationTests : IDisposable
         content.Should().Contain("HasAttachments");
     }
 
-    // ── EmailPlugin integration tests ──────────────────────────────────────────
+    // -- EmailPlugin integration tests ------------------------------------------
 
     [Fact]
     public async Task EmailPlugin_WithInboxService_ActivatesWithoutError()

@@ -562,7 +562,7 @@
                                                            TextTrimming="CharacterEllipsis" />
                                                 <TextBlock Style="{StaticResource CaptionStyle}">
                                                     <Run Text="{x:Bind FileType}" />
-                                                    <Run Text=" · " />
+                                                    <Run Text=" | " />
                                                     <Run Text="{x:Bind FileSize}" />
                                                 </TextBlock>
                                             </StackPanel>

@@ -11,7 +11,7 @@ using Serilog;
 namespace AgentX.Core.AI.Providers;
 
 /// <summary>
-/// AI provider implementation backed by LLamaSharp — .NET bindings for llama.cpp.
+/// AI provider implementation backed by LLamaSharp - .NET bindings for llama.cpp.
 /// Loads a GGUF model directly from disk for fully offline, zero-internet inference.
 /// Supports chat completion (streaming + non-streaming) and embedding generation.
 /// <para>
@@ -105,7 +105,7 @@ public sealed class LocalLlmProvider : IAiProvider
         _logger = logger?.ForContext<LocalLlmProvider>() ?? throw new ArgumentNullException(nameof(logger));
 
         _logger.Information(
-            "LocalLlmProvider created — model: {Model}, context: {ContextSize}, GPU layers: {GpuLayers}",
+            "LocalLlmProvider created - model: {Model}, context: {ContextSize}, GPU layers: {GpuLayers}",
             _modelFileName, _contextSize, _gpuLayers);
     }
 
@@ -462,9 +462,9 @@ public sealed class LocalLlmProvider : IAiProvider
         _logger.Information("LocalLlmProvider disposed");
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Model Lifecycle
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>Loaded weights for one GGUF file plus the chat parameters built for it.</summary>
     private sealed class LoadedModel : IDisposable
@@ -824,9 +824,9 @@ public sealed class LocalLlmProvider : IAiProvider
         _embeddingLock.Dispose();
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Prompt Formatting (Llama 3 Instruct Template)
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>
     /// Formats the messages and, when the prompt would not leave room for the answer inside the

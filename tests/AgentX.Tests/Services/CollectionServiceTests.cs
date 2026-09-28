@@ -41,9 +41,9 @@ public sealed class CollectionServiceTests : IDisposable
         return new CollectionService(db, _loggerMock.Object);
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  CreateCollectionAsync
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task CreateCollectionAsync_WithValidName_CreatesCollectionWithCorrectName()
@@ -140,9 +140,9 @@ public sealed class CollectionServiceTests : IDisposable
         third.SortOrder.Should().Be(2);
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  GetAllCollectionsAsync
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task GetAllCollectionsAsync_WhenEmpty_ReturnsEmptyList()
@@ -175,9 +175,9 @@ public sealed class CollectionServiceTests : IDisposable
         collections.Select(c => c.Name).Should().Contain(new[] { "Alpha", "Beta", "Gamma" });
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  GetRootCollectionsAsync
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task GetRootCollectionsAsync_OnlyReturnsRootLevelCollections()
@@ -200,9 +200,9 @@ public sealed class CollectionServiceTests : IDisposable
         rootCollections.Should().OnlyContain(c => c.ParentCollectionId == null);
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  UpdateCollectionAsync
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task UpdateCollectionAsync_UpdatesNameAndDescription()
@@ -254,9 +254,9 @@ public sealed class CollectionServiceTests : IDisposable
             .WithMessage("*not found*");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  DeleteCollectionAsync
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task DeleteCollectionAsync_RemovesCollection()
@@ -307,9 +307,9 @@ public sealed class CollectionServiceTests : IDisposable
         await act.Should().NotThrowAsync();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
-    //  MoveCollectionAsync — circular reference and self-parenting guards
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
+    //  MoveCollectionAsync - circular reference and self-parenting guards
+    // ======================================================================
 
     [Fact]
     public async Task MoveCollectionAsync_PreventsCircularReference()
@@ -379,9 +379,9 @@ public sealed class CollectionServiceTests : IDisposable
         moved!.ParentCollectionId.Should().BeNull();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  AddDocumentToCollectionAsync
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task AddDocumentToCollectionAsync_CreatesAssociation()
@@ -497,9 +497,9 @@ public sealed class CollectionServiceTests : IDisposable
             .WithMessage("*Collection*not found*");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  GetCollectionCountAsync
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task GetCollectionCountAsync_WhenEmpty_ReturnsZero()

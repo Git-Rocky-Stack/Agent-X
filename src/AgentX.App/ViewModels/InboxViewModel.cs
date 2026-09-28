@@ -17,13 +17,13 @@ public partial class InboxViewModel : ObservableObject
     private readonly ICollectionService _collectionService;
     private readonly ILocalizationService _localization;
 
-    // ── Page State ───────────────────────────────────────────
+    // -- Page State -------------------------------------------
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private bool _isProcessing;
     [ObservableProperty] private string _statusMessage = string.Empty;
     [ObservableProperty] private string _statusFilter = "pending";
 
-    // ── Inbox Items ──────────────────────────────────────────
+    // -- Inbox Items ------------------------------------------
     public ObservableCollection<InboxDisplayItem> InboxItems { get; } = new();
     [ObservableProperty] private bool _hasItems;
     [ObservableProperty] private int _pendingCount;
@@ -32,11 +32,11 @@ public partial class InboxViewModel : ObservableObject
     [ObservableProperty] private string _focusedInboxVisibilityHint = string.Empty;
     public bool HasFocusedInboxLanding => !string.IsNullOrWhiteSpace(FocusedInboxSourceLabel);
 
-    // ── Collection Selection ─────────────────────────────────
+    // -- Collection Selection ---------------------------------
     public ObservableCollection<CollectionEntity> Collections { get; } = new();
     [ObservableProperty] private CollectionEntity? _selectedCollection;
 
-    // ── Filter Options ───────────────────────────────────────
+    // -- Filter Options ---------------------------------------
     /// <summary>
     /// The STATUS list: each filter's value (what <see cref="StatusFilter"/> and the inbox
     /// service use) and the name shown for it in the user's language.

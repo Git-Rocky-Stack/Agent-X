@@ -57,9 +57,9 @@ public sealed class PlainTextFormatter : IExportFormatter
         return Task.FromResult(sb.ToString());
     }
 
-    // ────────────────────────────────────────────────────────────────
+    // ----------------------------------------------------------------
     //  Core formatting (extracted from ExportService.BuildPlainText)
-    // ────────────────────────────────────────────────────────────────
+    // ----------------------------------------------------------------
 
     private static string BuildPlainText(
         ConversationEntity conversation,
@@ -152,9 +152,9 @@ public sealed class PlainTextFormatter : IExportFormatter
         return sb.ToString();
     }
 
-    // ────────────────────────────────────────────────────────────────
+    // ----------------------------------------------------------------
     //  Helpers
-    // ────────────────────────────────────────────────────────────────
+    // ----------------------------------------------------------------
 
     private static string GetRoleLabel(string role) =>
         role.ToLowerInvariant() switch

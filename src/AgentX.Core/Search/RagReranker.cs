@@ -60,20 +60,20 @@ public sealed class RagReranker : IRagReranker
         _logger.Debug("Reranking {InputCount} chunks for query, target {MaxChunks}",
             chunks.Count, maxChunks);
 
-        // ── Step 1: Deduplicate (remove near-duplicates) ──────────────────
+        // -- Step 1: Deduplicate (remove near-duplicates) ------------------
         var deduplicated = RemoveNearDuplicates(chunks);
 
-        // ── Step 2: Apply query relevance boost ───────────────────────────
+        // -- Step 2: Apply query relevance boost ---------------------------
         var queryTokens = ExtractQueryTokens(query);
         var scored = ApplyQueryRelevanceBoost(deduplicated, queryTokens);
 
-        // ── Step 3: Apply document diversity adjustment ────────────────────
+        // -- Step 3: Apply document diversity adjustment --------------------
         scored = ApplyDocumentDiversityAdjustment(scored);
 
-        // ── Step 4: Sort by effective score descending ────────────────────
+        // -- Step 4: Sort by effective score descending --------------------
         scored.Sort((a, b) => b.EffectiveScore.CompareTo(a.EffectiveScore));
 
-        // ── Step 5: Take top maxChunks and return ─────────────────────────
+        // -- Step 5: Take top maxChunks and return -------------------------
         var result = scored
             .Take(maxChunks)
             .Select(s => new RagContextChunk
@@ -95,7 +95,7 @@ public sealed class RagReranker : IRagReranker
         return result;
     }
 
-    // ── Near-Duplicate Removal ────────────────────────────────────────────
+    // -- Near-Duplicate Removal --------------------------------------------
 
     /// <summary>
     /// Removes near-duplicate chunks using Jaccard similarity on word sets.
@@ -205,7 +205,7 @@ public sealed class RagReranker : IRagReranker
         return unionCount == 0 ? 0.0 : (double)intersectionCount / unionCount;
     }
 
-    // ── Query Relevance Boost ─────────────────────────────────────────────
+    // -- Query Relevance Boost ---------------------------------------------
 
     /// <summary>
     /// Extracts significant lowercase words from the user query.
@@ -263,7 +263,7 @@ public sealed class RagReranker : IRagReranker
         return scored;
     }
 
-    // ── Document Diversity Adjustment ─────────────────────────────────────
+    // -- Document Diversity Adjustment -------------------------------------
 
     /// <summary>
     /// Ensures no single document dominates the context window. If more than 60%
@@ -322,7 +322,7 @@ public sealed class RagReranker : IRagReranker
         return scored;
     }
 
-    // ── Internal Types ────────────────────────────────────────────────────
+    // -- Internal Types ----------------------------------------------------
 
     /// <summary>
     /// Pairs a <see cref="RagContextChunk"/> with a mutable effective score

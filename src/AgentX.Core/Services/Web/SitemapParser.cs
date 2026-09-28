@@ -109,7 +109,7 @@ public sealed class SitemapParser : ISitemapParser
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
     }
 
-    // ─── ISitemapParser Implementation ──────────────────────────────────────
+    // --- ISitemapParser Implementation --------------------------------------
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<string>> ParseSitemapAsync(string sitemapUrl, CancellationToken ct = default)
@@ -156,14 +156,14 @@ public sealed class SitemapParser : ISitemapParser
         return ParseSitemapIndex(doc);
     }
 
-    // ─── Internal Parsing Methods (testable without network) ────────────────
+    // --- Internal Parsing Methods (testable without network) ----------------
 
     /// <summary>
     /// Parses a sitemap from an <see cref="XDocument"/>, detecting whether it is a
     /// regular sitemap (<c>&lt;urlset&gt;</c>) or a sitemap index (<c>&lt;sitemapindex&gt;</c>).
     /// <para>
     /// For sitemap indexes, this method recursively fetches and parses each child sitemap.
-    /// Network calls are required for sitemap indexes — use <see cref="ParseFromXml"/>
+    /// Network calls are required for sitemap indexes - use <see cref="ParseFromXml"/>
     /// for unit testing the local parsing logic without network calls.
     /// </para>
     /// </summary>
@@ -286,7 +286,7 @@ public sealed class SitemapParser : ISitemapParser
         if (rootLocalName == "urlset")
             return ParseUrlset(doc);
 
-        // Sitemap index — return the child sitemap URLs themselves
+        // Sitemap index - return the child sitemap URLs themselves
         if (rootLocalName == "sitemapindex")
             return ParseSitemapIndex(doc);
 
@@ -335,7 +335,7 @@ public sealed class SitemapParser : ISitemapParser
         return sitemapUrls;
     }
 
-    // ─── HTTP Fetching ──────────────────────────────────────────────────────
+    // --- HTTP Fetching ------------------------------------------------------
 
     /// <summary>
     /// Parses an absolute HTTP or HTTPS URL, or throws <see cref="ArgumentException"/>.

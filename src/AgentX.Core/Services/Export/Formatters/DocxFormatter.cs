@@ -13,7 +13,7 @@ namespace AgentX.Core.Services.Export.Formatters;
 /// <see cref="IExportFormatter"/> binary convention.
 /// <para>
 /// The DOCX structure includes a styled title, optional metadata, conversation
-/// messages with role labels and timestamps, citations, and a footer — matching
+/// messages with role labels and timestamps, citations, and a footer - matching
 /// the visual structure of Markdown/HTML/PDF exports.
 /// </para>
 /// </summary>
@@ -109,9 +109,9 @@ public sealed class DocxFormatter : IExportFormatter
         return Convert.ToBase64String(bytes);
     }
 
-    // ════════════════════════════════════════════════════════════════
+    // ================================================================
     //  Private helpers
-    // ════════════════════════════════════════════════════════════════
+    // ================================================================
 
     /// <summary>
     /// Appends a single conversation's content to a Word document body.

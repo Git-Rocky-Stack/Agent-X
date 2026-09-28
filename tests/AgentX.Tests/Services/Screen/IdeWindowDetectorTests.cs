@@ -11,7 +11,7 @@ namespace AgentX.Tests.Services.Screen;
 /// </summary>
 public sealed class IdeWindowDetectorTests
 {
-    // ── VS Code detection ─────────────────────────────────────────────────────
+    // -- VS Code detection -----------------------------------------------------
 
     [Fact]
     public void Detect_VsCodeTitle_ReturnsDetection()
@@ -65,7 +65,7 @@ public sealed class IdeWindowDetectorTests
         result.Language.Should().Be("Markdown");
     }
 
-    // ── Visual Studio detection ───────────────────────────────────────────────
+    // -- Visual Studio detection -----------------------------------------------
 
     [Fact]
     public void Detect_VisualStudio2022_ReturnsDetection()
@@ -100,12 +100,12 @@ public sealed class IdeWindowDetectorTests
         result.ProjectName.Should().Be("Solution");
     }
 
-    // ── JetBrains detection ────────────────────────────────────────────────────
+    // -- JetBrains detection ----------------------------------------------------
 
     [Fact]
     public void Detect_RiderTitle_ReturnsDetection()
     {
-        // Arrange — JetBrains Rider uses en-dash (U+2013) as separator
+        // Arrange - JetBrains Rider uses en-dash (U+2013) as separator
         var title = "Program.cs \u2013 Agent-X \u2013 JetBrains Rider";
 
         // Act
@@ -121,7 +121,7 @@ public sealed class IdeWindowDetectorTests
     [Fact]
     public void Detect_IntelliJTitle_ReturnsDetection()
     {
-        // Arrange — IntelliJ IDEA uses en-dash (U+2013) as separator
+        // Arrange - IntelliJ IDEA uses en-dash (U+2013) as separator
         var title = "Main.java \u2013 my-app \u2013 IntelliJ IDEA";
 
         // Act
@@ -135,7 +135,7 @@ public sealed class IdeWindowDetectorTests
         result.Language.Should().Be("Java");
     }
 
-    // ── Cursor and Zed detection ───────────────────────────────────────────────
+    // -- Cursor and Zed detection -----------------------------------------------
 
     [Fact]
     public void Detect_CursorTitle_ReturnsDetection()
@@ -157,7 +157,7 @@ public sealed class IdeWindowDetectorTests
     [Fact]
     public void Detect_ZedTitle_ReturnsDetection()
     {
-        // Arrange — Zed uses em-dash (U+2014) as separator
+        // Arrange - Zed uses em-dash (U+2014) as separator
         var title = "main.rs \u2014 Zed";
 
         // Act
@@ -171,7 +171,7 @@ public sealed class IdeWindowDetectorTests
         result.Language.Should().Be("Rust");
     }
 
-    // ── Edge cases ─────────────────────────────────────────────────────────────
+    // -- Edge cases -------------------------------------------------------------
 
     [Fact]
     public void Detect_NullTitle_ReturnsNull()
@@ -206,7 +206,7 @@ public sealed class IdeWindowDetectorTests
     [Fact]
     public void Detect_UnknownIde_ReturnsNull()
     {
-        // Arrange — a title that doesn't match any known IDE suffix
+        // Arrange - a title that doesn't match any known IDE suffix
         var title = "Some random window title";
 
         // Act
@@ -232,7 +232,7 @@ public sealed class IdeWindowDetectorTests
     [Fact]
     public void Detect_TitleWithNoFileExtension_LanguageEmpty()
     {
-        // Arrange — "Dockerfile" has no dot-extension but is handled as a special case
+        // Arrange - "Dockerfile" has no dot-extension but is handled as a special case
         // This test covers a file name that is NOT Dockerfile and has no extension
         var title = "Makefile - my-project - Visual Studio Code";
 
@@ -263,7 +263,7 @@ public sealed class IdeWindowDetectorTests
     [Fact]
     public void Detect_DockerfileWithSuffix_LanguageDocker()
     {
-        // Arrange — Dockerfile.dev is also recognized
+        // Arrange - Dockerfile.dev is also recognized
         var title = "Dockerfile.dev - my-app - Visual Studio Code";
 
         // Act
@@ -289,7 +289,7 @@ public sealed class IdeWindowDetectorTests
         result!.Language.Should().BeEmpty();
     }
 
-    // ── Language inference ─────────────────────────────────────────────────────
+    // -- Language inference -----------------------------------------------------
 
     [Fact]
     public void InferLanguage_CsFile_ReturnsCSharp()
@@ -347,7 +347,7 @@ public sealed class IdeWindowDetectorTests
         result!.Language.Should().Be("Docker");
     }
 
-    // ── Additional language mappings ───────────────────────────────────────────
+    // -- Additional language mappings -------------------------------------------
 
     [Theory]
     [InlineData("app.jsx - frontend - Visual Studio Code", "React JSX")]
@@ -385,7 +385,7 @@ public sealed class IdeWindowDetectorTests
         result!.Language.Should().Be(expectedLanguage);
     }
 
-    // ── RawTitle preservation ──────────────────────────────────────────────────
+    // -- RawTitle preservation --------------------------------------------------
 
     [Fact]
     public void Detect_PreservesRawTitle()
@@ -403,7 +403,7 @@ public sealed class IdeWindowDetectorTests
         result!.RawTitle.Should().Be(title);
     }
 
-    // ── VS Code remote suffix variations ───────────────────────────────────────
+    // -- VS Code remote suffix variations ---------------------------------------
 
     [Theory]
     [InlineData("file.ts - workspace [SSH: user@host] - Visual Studio Code", "workspace")]

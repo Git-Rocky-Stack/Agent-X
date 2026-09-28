@@ -46,7 +46,7 @@ public class FeedbackEntity
     /// <summary>UTC timestamp of the most recent update (upsert re-uses the same row).</summary>
     public DateTime UpdatedAt { get; set; }
 
-    // ── Navigation ───────────────────────────────────────────────────────────
+    // -- Navigation -----------------------------------------------------------
 
     /// <summary>The message this feedback is attached to.</summary>
     public MessageEntity Message { get; set; } = null!;

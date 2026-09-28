@@ -49,7 +49,7 @@ public sealed class LocalizationService : ILocalizationService
         // Awaited by InitializeCoreServicesAsync during app startup so no caller can
         // observe a half-initialized service. Replaces the old fire-and-forget ctor
         // race (the ctor used to kick off an `async void` that set _resourceLoader
-        // and _currentLanguage on a thread-pool thread — UI thread reads could
+        // and _currentLanguage on a thread-pool thread - UI thread reads could
         // therefore see a null loader and the wrong language on cold start).
         try
         {
@@ -158,7 +158,7 @@ public sealed class LocalizationService : ILocalizationService
         }
         catch (FormatException ex)
         {
-            // Malformed format string in the .resw template — surface the issue so
+            // Malformed format string in the .resw template - surface the issue so
             // mis-authored placeholders don't silently render garbled to the user.
             Log.Warning(ex,
                 "FormatPlural template for '{BaseKey}' (category '{Category}', culture '{Culture}') had an invalid format string; returning raw template.",

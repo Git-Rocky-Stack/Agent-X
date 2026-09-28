@@ -17,7 +17,7 @@ public class HtmlParserTests
         _parser = new HtmlParser(loggerMock.Object);
     }
 
-    // ─── Parse ──────────────────────────────────────────────────────────────
+    // --- Parse --------------------------------------------------------------
 
     [Fact]
     public void Parse_ExtractsTitleAndText_FromArticleHtml()
@@ -122,7 +122,7 @@ public class HtmlParserTests
         result.Text.Should().BeEmpty();
     }
 
-    // ─── ExtractReadabilityText ─────────────────────────────────────────────
+    // --- ExtractReadabilityText ---------------------------------------------
 
     [Fact]
     public void ExtractReadabilityText_RemovesNavFooterScriptStyleTags()
@@ -208,7 +208,7 @@ public class HtmlParserTests
         result.Should().NotBeNull();
     }
 
-    // ─── ExtractMetadata ────────────────────────────────────────────────────
+    // --- ExtractMetadata ----------------------------------------------------
 
     [Fact]
     public void ExtractMetadata_PullsOpenGraphTags()
@@ -393,16 +393,20 @@ public class HtmlParserTests
         result.Description.Should().NotBeNullOrEmpty();
     }
 
-    // ─── Unicode Support ────────────────────────────────────────────────────
+    // --- Unicode Support ----------------------------------------------------
 
     [Fact]
     public void ExtractReadabilityText_HandlesUnicodeContent()
     {
-        var html = """
+        // Emoji and symbols come from escapes so the source stays plain ASCII.
+        const string Emoji = "\U0001F389\U0001F680";
+        const string MathSymbols = "\u2211 \u220F \u222B \u221A \u221E";
+        const string SpecialSymbols = "\u00A9 \u00AE \u2122 \u20AC \u00A3 \u00A5";
+        var html = $$"""
                    <html><body><article>
                    <h1>Unicode Article Title</h1>
-                   <p>This article contains Unicode characters: Arabic مرحبا, Chinese 你好, Japanese こんにちは, Korean 안녕하세요, Russian Привет, Greek Γειά σου, and emoji 🎉🚀.</p>
-                   <p>Another paragraph with mathematical symbols: ∑ ∏ ∫ √ ∞ and special characters: © ® ™ € £ ¥.</p>
+                   <p>This article contains Unicode characters: Arabic مرحبا, Chinese 你好, Japanese こんにちは, Korean 안녕하세요, Russian Привет, Greek Γειά σου, and emoji {{Emoji}}.</p>
+                   <p>Another paragraph with mathematical symbols: {{MathSymbols}} and special characters: {{SpecialSymbols}}.</p>
                    </article></body></html>
                    """;
 
@@ -430,7 +434,7 @@ public class HtmlParserTests
         result.Title.Should().Contain("日本語");
     }
 
-    // ─── Edge Cases ─────────────────────────────────────────────────────────
+    // --- Edge Cases ---------------------------------------------------------
 
     [Fact]
     public void ExtractReadabilityText_SkipsHiddenElements()

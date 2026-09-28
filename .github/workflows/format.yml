@@ -6,7 +6,7 @@ name: Format
 # whole solution and fails the build if anything is out of shape.
 #
 # Runs on Windows with Platform=x64 because the WinUI 3 AgentX.App project only loads its full
-# project graph when Platform is set (it has no AnyCPU configuration) — the same constraint the
+# project graph when Platform is set (it has no AnyCPU configuration) - the same constraint the
 # dependency-audit workflow handles this way.
 #
 # Default severity is intentional: it gates formatting + imports (the AX-QA-012 scope) without

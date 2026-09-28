@@ -59,7 +59,7 @@ namespace AgentX.Core.Data.Migrations
             // AddForeignKey throws NotSupportedException under the SQLite provider. The
             // relationship is preserved at the model level (AgentXDbContext: HasOne
             // LinkedMemory) for navigation/Include, and the link-traversal code in
-            // SemanticMemoryService already tolerates dangling links — so no DB constraint
+            // SemanticMemoryService already tolerates dangling links - so no DB constraint
             // is required, and one would conflict with auto-linking (RESTRICT would block
             // deleting any memory another links to).
         }
@@ -67,7 +67,7 @@ namespace AgentX.Core.Data.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            // Drop index (no DB-level FK was created — see Up()).
+            // Drop index (no DB-level FK was created - see Up()).
             migrationBuilder.DropIndex(
                 name: "IX_memories_LinkedMemoryId",
                 table: "memories");

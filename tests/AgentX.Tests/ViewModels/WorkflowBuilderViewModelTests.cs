@@ -49,7 +49,7 @@ public sealed class WorkflowBuilderViewModelTests : IDisposable
         }
         catch
         {
-            // Best-effort cleanup — never fail a test because temp deletion raced a file handle.
+            // Best-effort cleanup - never fail a test because temp deletion raced a file handle.
         }
     }
 
@@ -1506,9 +1506,9 @@ public sealed class WorkflowBuilderViewModelTests : IDisposable
             new WorkflowRunHistoryItem { RunId = 2, Status = "completed", StepsCompleted = 2, TotalSteps = 3, TotalTokensUsed = 180, DurationMs = 42 });
 
         single.StatusText.Should().Be("Cancelled");
-        single.DetailText.Should().Be("0/1 step • 1 token");
+        single.DetailText.Should().Be("0/1 step | 1 token");
         several.StatusText.Should().Be("Completed");
-        several.DetailText.Should().Be("2/3 steps • 180 tokens • 42 ms");
+        several.DetailText.Should().Be("2/3 steps | 180 tokens | 42 ms");
     }
 
     [Fact]

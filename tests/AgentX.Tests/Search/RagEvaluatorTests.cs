@@ -446,7 +446,7 @@ public sealed class RagEvaluatorTests
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(new OperationCanceledException());
 
-        // Act + Assert — cancellation must propagate so callers can abort.
+        // Act + Assert - cancellation must propagate so callers can abort.
         // Returning a placeholder 0.5 score on cancel hides caller intent and
         // pollutes downstream metrics.
         await Assert.ThrowsAsync<OperationCanceledException>(() =>
@@ -475,7 +475,7 @@ public sealed class RagEvaluatorTests
         // Act
         var result = await _evaluator.EvaluateAsync(question, answer, contextChunks);
 
-        // Assert — defaults are returned but flagged so aggregators can exclude them
+        // Assert - defaults are returned but flagged so aggregators can exclude them
         result.ContextRelevance.Should().Be(0.5);
         result.IsDefault.Should().BeTrue();
         result.DefaultReason.Should().Be("LlmCallFailure");

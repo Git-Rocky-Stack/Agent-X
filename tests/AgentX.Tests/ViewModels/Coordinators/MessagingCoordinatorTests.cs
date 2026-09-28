@@ -51,7 +51,7 @@ public class MessagingCoordinatorTests
             _multiAgentOrchestrator.Object);
     }
 
-    // ── StopGenerationAsync ────────────────────────────────────────
+    // -- StopGenerationAsync ----------------------------------------
 
     [Fact]
     public async Task StopGenerationAsync_WhenNotGenerating_DoesNotThrow()
@@ -59,10 +59,10 @@ public class MessagingCoordinatorTests
         // Act
         await _coordinator.StopGenerationAsync();
 
-        // Assert — no exception means success
+        // Assert - no exception means success
     }
 
-    // ── SubmitFeedbackAsync ────────────────────────────────────────
+    // -- SubmitFeedbackAsync ----------------------------------------
 
     [Fact]
     public async Task SubmitFeedbackAsync_CallsService()
@@ -84,11 +84,11 @@ public class MessagingCoordinatorTests
             .Setup(s => s.SubmitFeedbackAsync(It.IsAny<long>(), It.IsAny<long>(), It.IsAny<string>(), null, null, null, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("DB error"));
 
-        // Act — should not throw
+        // Act - should not throw
         await _coordinator.SubmitFeedbackAsync(1, 10, "negative");
     }
 
-    // ── DeleteMessageAsync ─────────────────────────────────────────
+    // -- DeleteMessageAsync -----------------------------------------
 
     [Fact]
     public async Task DeleteMessageAsync_CallsService_WhenMessageIdPositive()
@@ -119,11 +119,11 @@ public class MessagingCoordinatorTests
             .Setup(s => s.DeleteMessageAsync(It.IsAny<long>()))
             .ThrowsAsync(new Exception("DB error"));
 
-        // Act — should not throw
+        // Act - should not throw
         await _coordinator.DeleteMessageAsync(42);
     }
 
-    // ── SendMessageAsync (with conversation creation) ──────────────
+    // -- SendMessageAsync (with conversation creation) --------------
 
     [Fact]
     public async Task SendMessageAsync_CreatesConversation_WhenNull()
@@ -159,7 +159,7 @@ public class MessagingCoordinatorTests
         result.HadError.Should().BeFalse();
     }
 
-    // ── SendMessageAsync (cancellation) ────────────────────────────
+    // -- SendMessageAsync (cancellation) ----------------------------
 
     [Fact]
     public async Task SendMessageAsync_ReturnsCancelled_WhenCtsCancelled()
@@ -176,7 +176,7 @@ public class MessagingCoordinatorTests
         result.WasCancelled.Should().BeTrue();
     }
 
-    // ── SendMessageAsync (error) ───────────────────────────────────
+    // -- SendMessageAsync (error) -----------------------------------
 
     [Fact]
     public async Task SendMessageAsync_ReturnsError_OnException()
@@ -325,7 +325,7 @@ public class MessagingCoordinatorTests
             _multiAgentOrchestrator.Object,
             localization: ReswLocalization.For(locale));
 
-    // ── Events ─────────────────────────────────────────────────────
+    // -- Events -----------------------------------------------------
 
     [Fact]
     public async Task SendMessageAsync_RaisesTokenReceived_ForEachToken()
@@ -481,7 +481,7 @@ public class MessagingCoordinatorTests
         result.UserMessageSortOrder.Should().Be(0);
     }
 
-    // ── NotificationRequested event ────────────────────────────────
+    // -- NotificationRequested event --------------------------------
 
     [Fact]
     public async Task SendMessageAsync_RaisesNotificationRequest_OnError()
@@ -503,12 +503,12 @@ public class MessagingCoordinatorTests
         notification.Title.Should().Be("Generation Failed");
     }
 
-    // ── Direct streaming fallback (disconnected provider) ──────────
+    // -- Direct streaming fallback (disconnected provider) ----------
 
     [Fact]
     public async Task SendMessageAsync_UsesDirectStreaming_WhenProviderDisconnected()
     {
-        // Arrange — provider returns false for connection check
+        // Arrange - provider returns false for connection check
         _provider.Setup(p => p.CheckConnectionAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 
@@ -530,7 +530,7 @@ public class MessagingCoordinatorTests
     [Fact]
     public async Task SendMessageAsync_UsesDirectStreaming_WhenNoActiveProvider()
     {
-        // Arrange — no active provider
+        // Arrange - no active provider
         _aiService.SetupGet(s => s.ActiveProvider).Returns((IAiProvider)null!);
 
         _aiService
@@ -548,7 +548,7 @@ public class MessagingCoordinatorTests
         result.ContextInspection.LimitedVisibilityReason.Should().Be("no_active_provider");
     }
 
-    // ── IsGenerating ───────────────────────────────────────────────
+    // -- IsGenerating -----------------------------------------------
 
     [Fact]
     public void IsGenerating_IsFalse_Initially()
@@ -1285,7 +1285,7 @@ public class MessagingCoordinatorTests
         yield break;
     }
 
-    // ── Helper: Create async token stream ──────────────────────────
+    // -- Helper: Create async token stream --------------------------
 
     private static async IAsyncEnumerable<string> CreateTokenStream(params string[] tokens)
     {

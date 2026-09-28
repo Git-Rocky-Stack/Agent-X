@@ -218,7 +218,7 @@ public sealed class PluginManagerViewModelTests
         viewModel.Plugins.Should().OnlyContain(plugin => !plugin.IsFocused && plugin.IsEnabled);
     }
 
-    // ── Selection state ──────────────────────────────────────────────────────
+    // -- Selection state ------------------------------------------------------
     // The bulk commands tracked selection in an id list only, which no per-row control
     // can bind to. The flag has to live on the item for a checkbox to reflect it.
 

@@ -16,13 +16,13 @@ namespace AgentX.App.ViewModels;
 
 public partial class ModelManagerViewModel : ObservableObject, IDisposable
 {
-    // ── Services ──────────────────────────────────────────────
+    // -- Services ----------------------------------------------
     private readonly IModelManager _modelManager;
     private readonly IAiService _aiService;
     private readonly ILocalizationService _localization;
     private CancellationTokenSource? _downloadCts;
 
-    // ── Page Properties ────────────────────────────────────────
+    // -- Page Properties ----------------------------------------
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private bool _isDownloading;
     [ObservableProperty] private string _downloadModelName = string.Empty;
@@ -45,7 +45,7 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
     /// </summary>
     public SpeechModelViewModel SpeechModel { get; }
 
-    // ── Constructor ────────────────────────────────────────────
+    // -- Constructor --------------------------------------------
     public ModelManagerViewModel(
         IModelManager modelManager,
         IAiService aiService,
@@ -62,7 +62,7 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
         Log.Debug("ModelManagerViewModel created with services");
     }
 
-    // ── Initialization ─────────────────────────────────────────
+    // -- Initialization -----------------------------------------
     public async Task InitializeAsync()
     {
         Log.Information("ModelManager initializing...");
@@ -100,7 +100,7 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
         }
     }
 
-    // ── Connection Check ───────────────────────────────────────
+    // -- Connection Check ---------------------------------------
     // Worded like the status strip and the dashboard, through ProviderStatusText.
     private async Task CheckConnectionAsync()
     {
@@ -120,7 +120,7 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
         }
     }
 
-    // ── Load Models ────────────────────────────────────────────
+    // -- Load Models --------------------------------------------
     private async Task LoadModelsAsync()
     {
         IsLoading = true;
@@ -166,7 +166,7 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
         }
     }
 
-    // ── Refresh Command ────────────────────────────────────────
+    // -- Refresh Command ----------------------------------------
     [RelayCommand]
     private async Task RefreshModelsAsync()
     {
@@ -174,7 +174,7 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
         await InitializeAsync();
     }
 
-    // ── Pull Model Command ─────────────────────────────────────
+    // -- Pull Model Command -------------------------------------
     [RelayCommand(CanExecute = nameof(CanPullModel))]
     private async Task PullModelAsync()
     {
@@ -231,7 +231,7 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
         PullModelCommand.NotifyCanExecuteChanged();
     }
 
-    // ── Cancel Download Command ────────────────────────────────
+    // -- Cancel Download Command --------------------------------
     [RelayCommand]
     private void CancelDownload()
     {
@@ -239,7 +239,7 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
         Log.Information("Download cancellation requested");
     }
 
-    // ── Delete Model Command ───────────────────────────────────
+    // -- Delete Model Command -----------------------------------
     [RelayCommand]
     private async Task DeleteModelAsync(string? modelId)
     {
@@ -263,7 +263,7 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
         }
     }
 
-    // ── Set Active Model Command ───────────────────────────────
+    // -- Set Active Model Command -------------------------------
     [RelayCommand]
     private async Task SetActiveModelAsync(string? modelId)
     {
@@ -297,7 +297,7 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
         }
     }
 
-    // ── Copy Model Name Command ────────────────────────────────
+    // -- Copy Model Name Command --------------------------------
     [RelayCommand]
     private void CopyModelName(string? name)
     {
@@ -316,7 +316,7 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
         }
     }
 
-    // ── Set Download Model Name (for suggestion chips) ─────────
+    // -- Set Download Model Name (for suggestion chips) ---------
     [RelayCommand]
     private void SetModelSuggestion(string? modelName)
     {
@@ -326,7 +326,7 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
         }
     }
 
-    // ── Open Ollama Library ────────────────────────────────────
+    // -- Open Ollama Library ------------------------------------
     [RelayCommand]
     private void OpenOllamaLibrary()
     {
@@ -344,7 +344,7 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
         }
     }
 
-    // ── Helpers ────────────────────────────────────────────────
+    // -- Helpers ------------------------------------------------
 
     private static string FormatDownloadStatus(ModelDownloadProgress progress)
     {
@@ -377,7 +377,7 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
     }
 }
 
-// ── Display Item ───────────────────────────────────────────────
+// -- Display Item -----------------------------------------------
 public partial class ModelDisplayItem : ObservableObject
 {
     [ObservableProperty] private string _id = string.Empty;

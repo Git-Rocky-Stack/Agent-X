@@ -85,7 +85,7 @@ public sealed class CalendarService : ICalendarService
 
         if (result is null)
         {
-            _log.Warning("Sync returned no result — sync may already be in progress");
+            _log.Warning("Sync returned no result - sync may already be in progress");
             return new SyncResult
             {
                 ItemsAdded = 0,

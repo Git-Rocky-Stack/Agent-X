@@ -23,7 +23,7 @@ public static class VectorStoreFactory
     /// <param name="settingsService">Settings service providing app configuration.</param>
     /// <param name="embeddingService">Embedding service providing dimension information.</param>
     /// <param name="logger">Serilog logger instance.</param>
-    /// <param name="connectionFactory">Encrypted connection factory — required so PRAGMA key is applied when opening SQLite.</param>
+    /// <param name="connectionFactory">Encrypted connection factory - required so PRAGMA key is applied when opening SQLite.</param>
     /// <returns>A fully constructed (but not yet initialized) <see cref="IVectorStore"/>.</returns>
     public static IVectorStore Create(
         ISettingsService settingsService,
@@ -40,7 +40,7 @@ public static class VectorStoreFactory
         // DI factory lambda (Microsoft.Extensions.DependencyInjection does not support
         // async construction). SettingsService caches its result on first access and
         // performs no I/O after that, so the GetResult call is non-blocking in practice.
-        // A proper fix would require pre-resolving settings before container build —
+        // A proper fix would require pre-resolving settings before container build -
         // architectural change tracked separately.
 #pragma warning disable VSTHRD002
         var settings = settingsService.GetSettingsAsync().GetAwaiter().GetResult();

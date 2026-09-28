@@ -23,9 +23,9 @@ internal static class ExportContentBuilder
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     };
 
-    // ════════════════════════════════════════════════════════════════
-    //  Text artifact export — format dispatcher
-    // ════════════════════════════════════════════════════════════════
+    // ================================================================
+    //  Text artifact export - format dispatcher
+    // ================================================================
 
     internal static string? BuildTextArtifactContent(
         TextArtifactExportItem artifact,
@@ -155,9 +155,9 @@ internal static class ExportContentBuilder
         return JsonSerializer.Serialize(export, JsonOptions);
     }
 
-    // ════════════════════════════════════════════════════════════════
-    //  Search results — format dispatcher
-    // ════════════════════════════════════════════════════════════════
+    // ================================================================
+    //  Search results - format dispatcher
+    // ================================================================
 
     /// <summary>
     /// Dispatches search-result rendering to the correct format builder.
@@ -179,9 +179,9 @@ internal static class ExportContentBuilder
         };
     }
 
-    // ════════════════════════════════════════════════════════════════
-    //  Search results — format builders
-    // ════════════════════════════════════════════════════════════════
+    // ================================================================
+    //  Search results - format builders
+    // ================================================================
 
     internal static string BuildSearchResultsMarkdown(
         string query, IReadOnlyList<SearchResultExportItem> results,
@@ -314,9 +314,9 @@ internal static class ExportContentBuilder
         return sb.ToString();
     }
 
-    // ════════════════════════════════════════════════════════════════
-    //  Collection export — ZIP generation
-    // ════════════════════════════════════════════════════════════════
+    // ================================================================
+    //  Collection export - ZIP generation
+    // ================================================================
 
     internal static async Task WriteCollectionZipAsync(
         CollectionEntity collection,
@@ -377,9 +377,9 @@ internal static class ExportContentBuilder
             await writer.WriteAsync(readmeContent.AsMemory(), ct);
     }
 
-    // ════════════════════════════════════════════════════════════════
-    //  Collection export — README and CSV builders
-    // ════════════════════════════════════════════════════════════════
+    // ================================================================
+    //  Collection export - README and CSV builders
+    // ================================================================
 
     internal static string BuildCollectionReadme(
         CollectionEntity collection, IReadOnlyList<DocumentEntity> documents)
@@ -464,9 +464,9 @@ internal static class ExportContentBuilder
         return sb.ToString();
     }
 
-    // ════════════════════════════════════════════════════════════════
+    // ================================================================
     //  Shared utility methods
-    // ════════════════════════════════════════════════════════════════
+    // ================================================================
 
     internal static string FormatFileSize(long bytes)
     {

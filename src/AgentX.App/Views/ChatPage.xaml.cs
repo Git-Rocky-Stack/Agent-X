@@ -92,9 +92,9 @@ public sealed partial class ChatPage : Page
         _ = ViewModel.PauseConversationEngagementAsync();
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // LIFECYCLE
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     private async void OnPageLoaded(object sender, RoutedEventArgs e)
     {
@@ -149,9 +149,9 @@ public sealed partial class ChatPage : Page
     private void UpdateGenLamp()
         => GenLamp.State = ViewModel.IsGenerating ? Controls.LampState.Armed : Controls.LampState.Off;
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // KEYBOARD INPUT HANDLING
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     /// <summary>
     /// Handles keyboard shortcuts in the chat input box.
@@ -180,9 +180,9 @@ public sealed partial class ChatPage : Page
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // AUTO-SCROLL
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     /// <summary>
     /// Scrolls to the bottom of the messages list when new messages are added
@@ -208,9 +208,9 @@ public sealed partial class ChatPage : Page
         });
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // STREAMING CURSOR BLINK EFFECT
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     /// <summary>
     /// Starts a DispatcherTimer that toggles the visibility of streaming cursor
@@ -265,14 +265,14 @@ public sealed partial class ChatPage : Page
             }
             catch
             {
-                // Silently ignore — cursor blink is non-critical visual effect
+                // Silently ignore - cursor blink is non-critical visual effect
             }
         });
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // SUGGESTED QUESTIONS
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     /// <summary>
     /// Handles click events on suggested follow-up question buttons,
@@ -286,9 +286,9 @@ public sealed partial class ChatPage : Page
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // PER-MESSAGE ACTION HANDLERS (#18, #19)
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     private void OnCopyMessageClick(object sender, RoutedEventArgs e)
     {
@@ -397,9 +397,9 @@ public sealed partial class ChatPage : Page
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // VOICE INPUT
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     /// <summary>
     /// Right-click on mic button opens the audio file picker for transcribing
@@ -411,9 +411,9 @@ public sealed partial class ChatPage : Page
         ViewModel.PickAudioFileCommand.Execute(null);
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // FOLDER ORGANIZATION
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     private void OnFolderFilterClick(object sender, RoutedEventArgs e)
     {
@@ -447,9 +447,9 @@ public sealed partial class ChatPage : Page
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // CONVERSATION BRANCHING
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     private async void BranchFromMessage_Click(object sender, RoutedEventArgs e)
     {
@@ -539,9 +539,9 @@ public sealed partial class ChatPage : Page
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // EXPORT
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     /// <summary>
     /// Opens the ExportDialog for the active conversation.
@@ -629,9 +629,9 @@ public sealed partial class ChatPage : Page
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // CONVERSATION LIST SELECTION
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     /// <summary>
     /// Opens the conversation clicked (or invoked with Enter) in the sidebar.

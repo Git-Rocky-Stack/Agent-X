@@ -20,7 +20,7 @@ public sealed class ChunkingServiceTests
 
     private static ChunkingService Service() => new(Silent);
 
-    // ── Parameter validation ─────────────────────────────────────────────────
+    // -- Parameter validation -------------------------------------------------
 
     [Theory]
     [InlineData(0)]
@@ -52,7 +52,7 @@ public sealed class ChunkingServiceTests
         act.Should().Throw<ArgumentOutOfRangeException>().WithParameterName("chunkOverlap");
     }
 
-    // ── Empty and trivial input ──────────────────────────────────────────────
+    // -- Empty and trivial input ----------------------------------------------
 
     [Theory]
     [InlineData("")]
@@ -93,7 +93,7 @@ public sealed class ChunkingServiceTests
         chunks.Select(c => c.Index).Should().Equal(Enumerable.Range(0, chunks.Count));
     }
 
-    // ── Paragraph / sentence / word splitting ────────────────────────────────
+    // -- Paragraph / sentence / word splitting --------------------------------
 
     [Fact]
     public void ChunkText_SplitsOnParagraphBoundariesBeforeAnythingElse()
@@ -169,7 +169,7 @@ public sealed class ChunkingServiceTests
             .Should().Equal(source.Split(' ', StringSplitOptions.RemoveEmptyEntries));
     }
 
-    // ── Offsets ──────────────────────────────────────────────────────────────
+    // -- Offsets --------------------------------------------------------------
 
     [Fact]
     public void ChunkText_FirstChunkStartsAtTheStartOfTheSource()
@@ -191,7 +191,7 @@ public sealed class ChunkingServiceTests
         chunks.Should().OnlyContain(c => c.StartCharOffset < c.EndCharOffset);
     }
 
-    // ── Overlap ──────────────────────────────────────────────────────────────
+    // -- Overlap --------------------------------------------------------------
 
     [Fact]
     public void ChunkText_WithOverlap_RepeatsTheTailOfThePreviousChunk()
@@ -259,7 +259,7 @@ public sealed class ChunkingServiceTests
         chunks[1].Content.Should().NotContain("bravo");
     }
 
-    // ── Token counting ───────────────────────────────────────────────────────
+    // -- Token counting -------------------------------------------------------
 
     [Fact]
     public void ChunkText_WithoutATokenCounter_ApproximatesTokensAsWords()
@@ -282,7 +282,7 @@ public sealed class ChunkingServiceTests
         counter.Verify(c => c.CountTokens(It.IsAny<string>(), It.IsAny<string?>()), Times.AtLeastOnce);
     }
 
-    // ── ChunkDocument ────────────────────────────────────────────────────────
+    // -- ChunkDocument --------------------------------------------------------
 
     [Fact]
     public void ChunkDocument_NullDocument_Throws()
@@ -351,7 +351,7 @@ public sealed class ChunkingServiceTests
         Service().ChunkDocument(doc, 512, 50).Should().OnlyContain(c => c.PageNumber == null);
     }
 
-    // ── Adaptive override ────────────────────────────────────────────────────
+    // -- Adaptive override ----------------------------------------------------
 
     [Theory]
     [InlineData(ContentType.Code)]
@@ -420,7 +420,7 @@ public sealed class ChunkingServiceTests
         chunks.Should().ContainSingle("a broken analyzer must not lose the document");
     }
 
-    // ── Constructors ─────────────────────────────────────────────────────────
+    // -- Constructors ---------------------------------------------------------
 
     [Fact]
     public void ParameterlessConstructor_Works()
@@ -434,7 +434,7 @@ public sealed class ChunkingServiceTests
         new ChunkingService(null!).ChunkText("alpha bravo").Should().ContainSingle();
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
+    // -- Helpers --------------------------------------------------------------
 
     private static Mock<IAdaptiveChunkingService> Analyzer(ContentType type, int recommended)
     {

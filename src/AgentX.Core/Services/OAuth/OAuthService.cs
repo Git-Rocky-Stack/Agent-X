@@ -40,7 +40,7 @@ namespace AgentX.Core.Services.OAuth;
 /// </remarks>
 public sealed class OAuthService : IOAuthService, IDisposable
 {
-    // ── Constants ──────────────────────────────────────────────────────────────
+    // -- Constants --------------------------------------------------------------
 
     private const string ProviderIdGoogle = "google";
     private const string ProviderIdMicrosoft = "microsoft";
@@ -61,7 +61,7 @@ public sealed class OAuthService : IOAuthService, IDisposable
         PropertyNameCaseInsensitive = true,
     };
 
-    // ── Fields ─────────────────────────────────────────────────────────────────
+    // -- Fields -----------------------------------------------------------------
 
     private readonly AgentXDbContext _db;
     private readonly IDpapiEncryptionService _encryption;
@@ -112,7 +112,7 @@ public sealed class OAuthService : IOAuthService, IDisposable
     /// </summary>
     private TimeSpan _authTimeout = DefaultAuthTimeout;
 
-    // ── Constructor ────────────────────────────────────────────────────────────
+    // -- Constructor ------------------------------------------------------------
 
     /// <summary>
     /// Initializes <see cref="OAuthService"/> with the required dependencies.
@@ -159,7 +159,7 @@ public sealed class OAuthService : IOAuthService, IDisposable
     /// <summary>The current browser consent timeout (see <see cref="ApplySettings"/>).</summary>
     internal TimeSpan AuthTimeout => _authTimeout;
 
-    // ── Public: Provider Configuration ─────────────────────────────────────────
+    // -- Public: Provider Configuration -----------------------------------------
 
     /// <summary>
     /// Registers an OAuth provider configuration, replacing any configuration registered for
@@ -249,7 +249,7 @@ public sealed class OAuthService : IOAuthService, IDisposable
     public IReadOnlyDictionary<string, OAuthProviderConfig> GetRegisteredProviders() =>
         _providerConfigs;
 
-    // ── IOAuthService Implementation ────────────────────────────────────────────
+    // -- IOAuthService Implementation --------------------------------------------
 
     /// <inheritdoc />
     public async Task<OAuthCredential> AuthorizeAsync(string provider, string? scopes = null, string? redirectUri = null, CancellationToken cancellationToken = default)
@@ -420,7 +420,7 @@ public sealed class OAuthService : IOAuthService, IDisposable
                     "Call AuthorizeAsync first to establish a credential.");
             }
 
-            // Re-check expiry inside the lock — another caller may have already refreshed
+            // Re-check expiry inside the lock - another caller may have already refreshed
             if (credential.TokenExpiry <= DateTime.UtcNow.Add(_refreshBuffer))
             {
                 if (credential.RequiresReauthorization)
@@ -493,7 +493,7 @@ public sealed class OAuthService : IOAuthService, IDisposable
 
         if (entity is null)
         {
-            _log.Debug("No credential found for {Provider} — nothing to revoke", provider);
+            _log.Debug("No credential found for {Provider} - nothing to revoke", provider);
             return;
         }
 
@@ -516,7 +516,7 @@ public sealed class OAuthService : IOAuthService, IDisposable
             catch (Exception ex)
             {
                 // Server-side revocation is best-effort; log but don't block local deletion
-                _log.Warning(ex, "Server-side token revocation failed for {Provider} — proceeding with local deletion",
+                _log.Warning(ex, "Server-side token revocation failed for {Provider} - proceeding with local deletion",
                     provider);
             }
         }
@@ -546,7 +546,7 @@ public sealed class OAuthService : IOAuthService, IDisposable
         return DecryptEntity(entity);
     }
 
-    // ── Private: Authorization Flow ─────────────────────────────────────────────
+    // -- Private: Authorization Flow ---------------------------------------------
 
     /// <summary>
     /// Builds the full authorization URL with query parameters for the OAuth2 consent screen,
@@ -686,7 +686,7 @@ public sealed class OAuthService : IOAuthService, IDisposable
         var config = GetProviderConfigOrNull(provider);
         if (config is null)
         {
-            _log.Error("No provider config registered for {Provider} — cannot refresh token", provider);
+            _log.Error("No provider config registered for {Provider} - cannot refresh token", provider);
             return false;
         }
 
@@ -703,7 +703,7 @@ public sealed class OAuthService : IOAuthService, IDisposable
 
         if (string.IsNullOrEmpty(refreshToken))
         {
-            _log.Warning("Refresh token is empty for {Provider} — cannot refresh", provider);
+            _log.Warning("Refresh token is empty for {Provider} - cannot refresh", provider);
             return false;
         }
 
@@ -873,7 +873,7 @@ public sealed class OAuthService : IOAuthService, IDisposable
         }
     }
 
-    // ── Private: Helpers ────────────────────────────────────────────────────────
+    // -- Private: Helpers --------------------------------------------------------
 
     /// <summary>
     /// Decrypts an <see cref="OAuthCredentialEntity"/> into a plain <see cref="OAuthCredential"/>.
@@ -972,7 +972,7 @@ public sealed class OAuthService : IOAuthService, IDisposable
             throw new ArgumentException("Provider identifier cannot be null or whitespace.", nameof(provider));
     }
 
-    // ── Private: CSRF & PKCE Helpers ────────────────────────────────────────────
+    // -- Private: CSRF & PKCE Helpers --------------------------------------------
 
     /// <summary>
     /// Generates a cryptographically random <c>state</c> parameter for CSRF protection
@@ -1015,7 +1015,7 @@ public sealed class OAuthService : IOAuthService, IDisposable
             .Replace('/', '_');
     }
 
-    // ── IDisposable ──────────────────────────────────────────────────────────────
+    // -- IDisposable --------------------------------------------------------------
 
     /// <summary>
     /// Disposes owned resources: the <see cref="HttpClient"/> and all
@@ -1036,7 +1036,7 @@ public sealed class OAuthService : IOAuthService, IDisposable
         _log.Debug("OAuthService disposed");
     }
 
-    // ── Inner: Token Response DTO ───────────────────────────────────────────────
+    // -- Inner: Token Response DTO -----------------------------------------------
 
     /// <summary>
     /// DTO for deserializing the OAuth2 token endpoint response.

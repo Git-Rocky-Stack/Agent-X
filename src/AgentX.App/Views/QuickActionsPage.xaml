@@ -578,7 +578,7 @@
                                                                                    TextTrimming="CharacterEllipsis" />
                                                                         <TextBlock Style="{StaticResource CaptionStyle}">
                                                                             <Run Text="{x:Bind FileSize}" />
-                                                                            <Run x:Uid="QuickAct_Imported" Text=" · Imported " />
+                                                                            <Run x:Uid="QuickAct_Imported" Text=" | Imported " />
                                                                             <Run Text="{x:Bind ImportedAt}" />
                                                                         </TextBlock>
                                                                         <TextBlock Text="{x:Bind EvidenceLabel}"

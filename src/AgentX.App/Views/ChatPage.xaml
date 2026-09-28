@@ -1,4 +1,4 @@
-﻿<Page
+<Page
     x:Class="AgentX.App.Views.ChatPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -10,9 +10,9 @@
 
     <Page.Resources>
 
-        <!-- ═══════════════════════════════════════════════════════════
+        <!-- ===========================================================
              CONVERTERS
-             ═══════════════════════════════════════════════════════════ -->
+             =========================================================== -->
 
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibility" />
         <converters:BoolToVisibilityConverter x:Key="InverseBoolToVisibility" IsInverted="True" />
@@ -21,9 +21,9 @@
         <converters:CountToVisibilityConverter x:Key="CountToVisibility" />
         <converters:BoolToOpacityConverter x:Key="BoolToOpacityConverter" />
 
-        <!-- ═══════════════════════════════════════════════════════════
+        <!-- ===========================================================
              CONVERSATION LIST ITEM TEMPLATE
-             ═══════════════════════════════════════════════════════════ -->
+             =========================================================== -->
 
         <DataTemplate x:Key="ConversationItemTemplate" x:DataType="vm:ConversationListItem">
             <Border Style="{StaticResource ConversationItemStyle}">
@@ -118,9 +118,9 @@
             </MenuFlyoutItem>
         </MenuFlyout>
 
-        <!-- ═══════════════════════════════════════════════════════════
+        <!-- ===========================================================
              SYSTEM PROMPT PICKER ITEM TEMPLATE
-             ═══════════════════════════════════════════════════════════ -->
+             =========================================================== -->
 
         <DataTemplate x:Key="SystemPromptItemTemplate" x:DataType="vm:SystemPromptItem">
             <Border Style="{StaticResource PromptPickerItemStyle}">
@@ -181,21 +181,21 @@
 
     </Page.Resources>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          ROOT LAYOUT: 2-column grid (sidebar + chat area)
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
 
     <Grid Background="{ThemeResource PageBackgroundBrush}">
 
-        <!-- ═══════════════════════════════════════════════════════════
+        <!-- ===========================================================
              ADAPTIVE LAYOUT (Tier 3)
              Breakpoints follow Tokens.xaml: Medium=960, Wide=1280.
              - Narrow  (<960):  sidebar shrinks to 240; top-bar text
                                 labels (connection, system prompt,
                                 folder, token badge) collapse to icons.
              - Medium (>=960):  sidebar at 260; full top-bar labels.
-             - Wide   (>=1280): full design — sidebar 280, all labels.
-             ═══════════════════════════════════════════════════════════ -->
+             - Wide   (>=1280): full design - sidebar 280, all labels.
+             =========================================================== -->
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup x:Name="LayoutStates">
                 <VisualState x:Name="NarrowState">
@@ -237,9 +237,9 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <!-- ═══════════════════════════════════════════════════════════
+        <!-- ===========================================================
              COLUMN 0: CONVERSATION SIDEBAR
-             ═══════════════════════════════════════════════════════════ -->
+             =========================================================== -->
 
         <Grid Grid.Column="0"
               Background="{ThemeResource SidebarGradientBrush}"
@@ -431,9 +431,9 @@
             </Border>
         </Grid>
 
-        <!-- ═══════════════════════════════════════════════════════════
+        <!-- ===========================================================
              COLUMN 1: CHAT AREA
-             ═══════════════════════════════════════════════════════════ -->
+             =========================================================== -->
 
         <Grid Grid.Column="1">
             <Grid.RowDefinitions>
@@ -447,9 +447,9 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <!-- ═══════════════════════════════════════════════════
+            <!-- ===================================================
                  TOP BAR: Model selector, status, controls
-                 ═══════════════════════════════════════════════════ -->
+                 =================================================== -->
 
             <Border Grid.Row="0" Style="{StaticResource ChatTopBarStyle}">
                 <Grid>
@@ -813,9 +813,9 @@
                 </Grid>
             </Border>
 
-            <!-- ═══════════════════════════════════════════════════
+            <!-- ===================================================
                  CENTER: Messages ScrollViewer
-                 ═══════════════════════════════════════════════════ -->
+                 =================================================== -->
 
             <Grid Grid.Row="2">
 
@@ -898,9 +898,9 @@
                         <ItemsRepeater.ItemTemplate>
                             <DataTemplate x:DataType="vm:ChatMessageItem">
                                 <Grid>
-                                    <!-- ═══════════════════════════════════════════
+                                    <!-- ===========================================
                                          USER MESSAGE LAYOUT
-                                         ═══════════════════════════════════════════ -->
+                                         =========================================== -->
                                     <StackPanel Visibility="{x:Bind IsUser, Converter={StaticResource BoolToVisibility}}"
                                                 HorizontalAlignment="Right"
                                                 Margin="64,4,0,4"
@@ -1003,9 +1003,9 @@
                                         </StackPanel>
                                     </StackPanel>
 
-                                    <!-- ═══════════════════════════════════════════
+                                    <!-- ===========================================
                                          ASSISTANT MESSAGE LAYOUT
-                                         ═══════════════════════════════════════════ -->
+                                         =========================================== -->
                                     <StackPanel Visibility="{x:Bind IsAssistant, Converter={StaticResource BoolToVisibility}}"
                                                 HorizontalAlignment="Left"
                                                 Margin="0,4,64,4"
@@ -1189,9 +1189,9 @@
                 </ScrollViewer>
             </Grid>
 
-            <!-- ═══════════════════════════════════════════════════
+            <!-- ===================================================
                  BOTTOM: Input bar
-                 ═══════════════════════════════════════════════════ -->
+                 =================================================== -->
 
             <Border Grid.Row="3" Style="{StaticResource ChatInputBarStyle}">
                 <Grid MaxWidth="900" HorizontalAlignment="Stretch">
@@ -1266,13 +1266,13 @@
                                         <TextBlock Style="{StaticResource CaptionStyle}">
                                             <Run x:Uid="Chat_SelectedRun" Text="Selected: " />
                                             <Run Text="{x:Bind ViewModel.ContextSelectedMessages, Mode=OneWay}" />
-                                            <Run x:Uid="Chat_AnchorsRun" Text=" · Anchors: " />
+                                            <Run x:Uid="Chat_AnchorsRun" Text=" | Anchors: " />
                                             <Run Text="{x:Bind ViewModel.ContextAnchorMessages, Mode=OneWay}" />
                                         </TextBlock>
                                         <TextBlock Style="{StaticResource CaptionStyle}">
                                             <Run x:Uid="Chat_OverflowRun" Text="Overflow: " />
                                             <Run Text="{x:Bind ViewModel.ContextOverflowMessages, Mode=OneWay}" />
-                                            <Run x:Uid="Chat_PromptEstRun" Text=" · Prompt est: " />
+                                            <Run x:Uid="Chat_PromptEstRun" Text=" | Prompt est: " />
                                             <Run Text="{x:Bind ViewModel.ContextEstimatedPromptTokens, Mode=OneWay}" />
                                         </TextBlock>
                                         <TextBlock Text="{x:Bind ViewModel.ContextAssemblyExplanation, Mode=OneWay}"
@@ -1343,7 +1343,7 @@
                                                 <DataTemplate x:DataType="x:String">
                                                     <TextBlock Style="{StaticResource CaptionStyle}"
                                                                TextWrapping="WrapWholeWords">
-                                                        <Run Text="• " />
+                                                        <Run Text="- " />
                                                         <Run Text="{x:Bind}" />
                                                     </TextBlock>
                                                 </DataTemplate>
@@ -1387,7 +1387,7 @@
                                                                        TextWrapping="WrapWholeWords" />
                                                             <TextBlock Style="{StaticResource CaptionStyle}">
                                                                 <Run Text="{x:Bind SimilarityLabel}" />
-                                                                <Run Text=" · " />
+                                                                <Run Text=" | " />
                                                                 <Run Text="{x:Bind TimestampLabel}" />
                                                             </TextBlock>
                                                         </StackPanel>
@@ -1592,7 +1592,7 @@
                                     MinWidth="44"
                                     Command="{x:Bind ViewModel.ToggleVoiceRecordingCommand}"
                                     Visibility="{x:Bind ViewModel.IsVoiceActive, Mode=OneWay, Converter={StaticResource InverseBoolToVisibility}}"
-                                    x:Uid="Chat_VoiceInputTip" ToolTipService.ToolTip="Voice input — click to record"
+                                    x:Uid="Chat_VoiceInputTip" ToolTipService.ToolTip="Voice input - click to record"
                                     RightTapped="OnMicRightTapped">
                                 <FontIcon Glyph="&#xE720;" FontSize="16"
                                           Foreground="{ThemeResource TextSecondaryBrush}" />

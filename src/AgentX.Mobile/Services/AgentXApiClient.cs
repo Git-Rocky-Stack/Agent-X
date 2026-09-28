@@ -24,7 +24,7 @@ namespace AgentX.Mobile.Services;
 /// </summary>
 public sealed class AgentXApiClient : IDisposable
 {
-    // ── Constants ─────────────────────────────────────────────────────────────
+    // -- Constants -------------------------------------------------------------
 
     private const string DefaultBaseUrl = "http://localhost:9846";
     private const int DefaultTimeoutSeconds = 15;
@@ -32,7 +32,7 @@ public sealed class AgentXApiClient : IDisposable
     /// <summary>The Android emulator's alias for the host machine's loopback interface.</summary>
     private const string EmulatorHostAlias = "10.0.2.2";
 
-    // ── JSON options ──────────────────────────────────────────────────────────
+    // -- JSON options ----------------------------------------------------------
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -40,7 +40,7 @@ public sealed class AgentXApiClient : IDisposable
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
 
-    // ── State ─────────────────────────────────────────────────────────────────
+    // -- State -----------------------------------------------------------------
 
     private HttpClient _http;
     private string _baseUrl;
@@ -60,7 +60,7 @@ public sealed class AgentXApiClient : IDisposable
     // certificates (AX-QA-005).
     private string? _pinnedSpkiSha256;
 
-    // ── Constructor ───────────────────────────────────────────────────────────
+    // -- Constructor -----------------------------------------------------------
 
     /// <param name="baseUrl">
     /// Optional base URL override. Plaintext HTTP is accepted only for loopback
@@ -96,7 +96,7 @@ public sealed class AgentXApiClient : IDisposable
         _http = BuildHttpClient(_baseUrl, _pinnedSpkiSha256);
     }
 
-    // ── Configuration ──────────────────────────────────────────────────────────
+    // -- Configuration ----------------------------------------------------------
 
     /// <summary>
     /// Updates the base URL at runtime (e.g., after the user saves Settings).
@@ -156,7 +156,7 @@ public sealed class AgentXApiClient : IDisposable
         }
     }
 
-    // ── API Methods ───────────────────────────────────────────────────────────
+    // -- API Methods -----------------------------------------------------------
 
     /// <summary>
     /// GET /api/health: checks whether the desktop app is reachable, accepts the token, and
@@ -360,7 +360,7 @@ public sealed class AgentXApiClient : IDisposable
             request.Headers.Host = $"localhost:{uri.Port}";
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
+    // -- Helpers ---------------------------------------------------------------
 
     private static HttpClient BuildHttpClient(string baseUrl, string? pinnedSpkiSha256)
     {
@@ -430,7 +430,7 @@ public sealed class AgentXApiClient : IDisposable
     private static string? NormalizeToken(string? token) =>
         string.IsNullOrWhiteSpace(token) ? null : token.Trim();
 
-    // ── IDisposable ───────────────────────────────────────────────────────────
+    // -- IDisposable -----------------------------------------------------------
 
     public void Dispose() => _http.Dispose();
 }

@@ -216,9 +216,9 @@ public sealed class CachedEmbeddingService : IEmbeddingService
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Private helpers
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>
     /// Returns the current model version and, when it differs from the last one seen, drops the

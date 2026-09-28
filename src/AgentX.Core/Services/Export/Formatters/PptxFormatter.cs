@@ -65,9 +65,9 @@ public sealed class PptxFormatter : IExportFormatter
         return Convert.ToBase64String(bytes);
     }
 
-    // ════════════════════════════════════════════════════════════════
+    // ================================================================
     //  PPTX generation
-    // ════════════════════════════════════════════════════════════════
+    // ================================================================
 
     /// <summary>
     /// Builds a PPTX presentation for a single conversation into the provided stream.
@@ -229,9 +229,9 @@ public sealed class PptxFormatter : IExportFormatter
         presentation.Save();
     }
 
-    // ════════════════════════════════════════════════════════════════
+    // ================================================================
     //  Presentation infrastructure
-    // ════════════════════════════════════════════════════════════════
+    // ================================================================
 
     /// <summary>
     /// Initializes the presentation with slide master, theme, and slide layout.
@@ -278,9 +278,9 @@ public sealed class PptxFormatter : IExportFormatter
         return (presentationPart, presentation, slideMasterPart, slideLayoutPart, themePart);
     }
 
-    // ════════════════════════════════════════════════════════════════
+    // ================================================================
     //  Slide creation
-    // ════════════════════════════════════════════════════════════════
+    // ================================================================
 
     /// <summary>
     /// Creates a PPTX title slide with the conversation title and metadata.
@@ -491,9 +491,9 @@ public sealed class PptxFormatter : IExportFormatter
         return shape;
     }
 
-    // ════════════════════════════════════════════════════════════════
+    // ================================================================
     //  Minimal presentation infrastructure
-    // ════════════════════════════════════════════════════════════════
+    // ================================================================
 
     /// <summary>
     /// Creates a minimal but valid SlideMaster for a PPTX presentation.
@@ -697,9 +697,9 @@ public sealed class PptxFormatter : IExportFormatter
         return theme;
     }
 
-    // ════════════════════════════════════════════════════════════════
+    // ================================================================
     //  Utility
-    // ════════════════════════════════════════════════════════════════
+    // ================================================================
 
     /// <summary>
     /// Truncates text to the specified maximum length, appending an ellipsis

@@ -1,4 +1,4 @@
-﻿<Page
+<Page
     x:Class="AgentX.App.Views.AnalyticsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -72,7 +72,7 @@
             </controls:Faceplate>
 
             <!-- ================================================================
-                 ROW 2: SUMMARY STAT CARDS (3 × 2 grid)
+                 ROW 2: SUMMARY STAT CARDS (3 x 2 grid)
                  ================================================================ -->
             <Grid Grid.Row="2"
                   ColumnSpacing="16" RowSpacing="16"
@@ -157,7 +157,7 @@
                                 <TextBlock Text="{x:Bind ViewModel.DocumentsIndexed, Mode=OneWay}"
                                            Style="{StaticResource CaptionStyle}"
                                            Foreground="{ThemeResource SuccessBrush}" />
-                                <TextBlock x:Uid="Ana_IndexedDotLabel" Text="indexed ·" Style="{StaticResource CaptionStyle}" />
+                                <TextBlock x:Uid="Ana_IndexedDotLabel" Text="indexed |" Style="{StaticResource CaptionStyle}" />
                                 <TextBlock Text="{x:Bind ViewModel.DocumentsPending, Mode=OneWay}"
                                            Style="{StaticResource CaptionStyle}"
                                            Foreground="{ThemeResource WarningBrush}" />
@@ -1360,7 +1360,7 @@
                                     <Grid Grid.Column="1" Height="8" VerticalAlignment="Center">
                                         <Rectangle Fill="{ThemeResource CardPressedBrush}"
                                                    RadiusX="4" RadiusY="4" />
-                                        <!-- BarWidthFraction is 0.0–1.0; converter multiplies by
+                                        <!-- BarWidthFraction is 0.0-1.0; converter multiplies by
                                              ConverterParameter (400 px) to produce a pixel width. -->
                                         <Rectangle HorizontalAlignment="Left"
                                                    RadiusX="4" RadiusY="4"
@@ -1500,7 +1500,7 @@
                                Style="{StaticResource BodySecondaryStyle}"
                                Visibility="{x:Bind ViewModel.HasPerformanceData, Converter={StaticResource InverseBoolToVis}, Mode=OneWay}" />
 
-                    <!-- Row 1: Average · Median · P95 · Throughput -->
+                    <!-- Row 1: Average | Median | P95 | Throughput -->
                     <Grid ColumnSpacing="16" RowSpacing="16"
                           Visibility="{x:Bind ViewModel.HasPerformanceData, Converter={StaticResource BoolToVis}, Mode=OneWay}">
                         <Grid.ColumnDefinitions>
@@ -1615,7 +1615,7 @@
                             </StackPanel>
                         </Border>
 
-                        <!-- Total Inference Time — spans 2 columns -->
+                        <!-- Total Inference Time - spans 2 columns -->
                         <Border Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2"
                                 Background="{ThemeResource CardBrush}"
                                 BorderBrush="{ThemeResource BorderSubtleBrush}"

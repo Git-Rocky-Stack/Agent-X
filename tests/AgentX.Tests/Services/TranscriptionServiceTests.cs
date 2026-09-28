@@ -27,9 +27,9 @@ public sealed class TranscriptionServiceTests : IDisposable
         // TranscriptionService has no disposable resources
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Constructor
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Constructor_CreatesInstanceSuccessfully()
@@ -41,9 +41,9 @@ public sealed class TranscriptionServiceTests : IDisposable
         service.Should().NotBeNull();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  SupportedFormats
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void SupportedFormats_ContainsExpectedAudioFormats()
@@ -58,33 +58,33 @@ public sealed class TranscriptionServiceTests : IDisposable
         _sut.SupportedFormats.Should().HaveCount(6);
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  IsModelAvailableAsync
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task IsModelAvailableAsync_ExecutesWithoutThrowing()
     {
-        // Act — model may or may not exist depending on environment
+        // Act - model may or may not exist depending on environment
         var result = await _sut.IsModelAvailableAsync("tiny");
 
-        // Assert — just verify it returns without throwing
+        // Assert - just verify it returns without throwing
         Assert.True(result || !result); // Always true for bool, proves no exception
     }
 
     [Fact]
     public async Task IsModelAvailableAsync_DefaultModelSize_ExecutesWithoutThrowing()
     {
-        // Act — default model size is "base"
+        // Act - default model size is "base"
         var result = await _sut.IsModelAvailableAsync();
 
-        // Assert — just verify it returns without throwing
+        // Assert - just verify it returns without throwing
         Assert.True(result || !result);
     }
 
-    // ══════════════════════════════════════════════════════════════════════
-    //  DownloadModelAsync — Validation
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
+    //  DownloadModelAsync - Validation
+    // ======================================================================
 
     [Theory]
     [InlineData("invalid")]
@@ -108,7 +108,7 @@ public sealed class TranscriptionServiceTests : IDisposable
     [InlineData("large")]
     public async Task DownloadModelAsync_WithValidSize_AcceptsSize(string modelSize)
     {
-        // Act — we don't actually download, but we verify the size is accepted
+        // Act - we don't actually download, but we verify the size is accepted
         // by checking that it doesn't throw ArgumentException.
         // We cancel immediately to avoid actual network calls.
         var cts = new CancellationTokenSource();
@@ -120,7 +120,7 @@ public sealed class TranscriptionServiceTests : IDisposable
         }
         catch (OperationCanceledException)
         {
-            // Expected — we cancelled to avoid downloading
+            // Expected - we cancelled to avoid downloading
         }
         catch (ArgumentException)
         {
@@ -133,9 +133,9 @@ public sealed class TranscriptionServiceTests : IDisposable
         }
     }
 
-    // ══════════════════════════════════════════════════════════════════════
-    //  TranscribeFileAsync — Input Validation
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
+    //  TranscribeFileAsync - Input Validation
+    // ======================================================================
 
     [Fact]
     public async Task TranscribeFileAsync_WithNullPath_ThrowsArgumentException()
@@ -180,7 +180,7 @@ public sealed class TranscriptionServiceTests : IDisposable
     [Fact]
     public async Task TranscribeFileAsync_WithUnsupportedFormat_ThrowsNotSupportedException()
     {
-        // Arrange — create a temp file with unsupported extension
+        // Arrange - create a temp file with unsupported extension
         var tempFile = Path.GetTempFileName();
         var unsupportedFile = Path.ChangeExtension(tempFile, ".avi");
         File.Move(tempFile, unsupportedFile);
@@ -204,7 +204,7 @@ public sealed class TranscriptionServiceTests : IDisposable
     [Fact]
     public async Task TranscribeFileAsync_WithMissingModel_ThrowsInvalidOperationException()
     {
-        // Arrange — create a temp WAV file with minimal content
+        // Arrange - create a temp WAV file with minimal content
         var tempFile = Path.GetTempFileName();
         var wavFile = Path.ChangeExtension(tempFile, ".wav");
         File.Move(tempFile, wavFile);
@@ -227,9 +227,9 @@ public sealed class TranscriptionServiceTests : IDisposable
         }
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  TranscriptionOptions defaults
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void TranscriptionOptions_DefaultModelSize_IsBase()
@@ -259,9 +259,9 @@ public sealed class TranscriptionServiceTests : IDisposable
         options.EnableSpeakerDiarization.Should().BeFalse();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  TranscriptionResult / TranscriptionSegment / TranscriptionProgress
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void TranscriptionResult_DefaultProperties_AreInitialized()
