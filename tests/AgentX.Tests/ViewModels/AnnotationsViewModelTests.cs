@@ -96,7 +96,7 @@ public sealed class AnnotationsViewModelTests
         vm.StatusMessage.Should().Be("Annotation gelöscht");
     }
 
-    // ── Deleting ─────────────────────────────────────────────────────────────
+    // --- Deleting ---
     // Delete removed the annotation on the first click, where every other delete in the app
     // asks first.
 
@@ -197,7 +197,7 @@ public sealed class AnnotationsViewModelTests
         vm.EditColorOptions.Select(option => option.Value).Should().NotContain("All");
     }
 
-    // ── Colour names ─────────────────────────────────────────────────────────
+    // --- Colour names ---
     // The pickers and the distribution showed the stored English colour words in every
     // language. The stored words stay: existing rows and the Markdown export use them.
 
