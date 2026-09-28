@@ -1160,24 +1160,26 @@ public sealed class InboxService : IInboxService
             var duplicate = await _documentService.CheckForDuplicateAsync(item.FilePath).ConfigureAwait(false);
             if (duplicate.IsDuplicate && duplicate.ExistingDocumentId is { } duplicateId)
             {
-                documentId = duplicateId;
+                documentId = await LinkToExistingDocumentAsync(
+                    item, duplicateId, duplicate.ExistingFileName, effectiveCollectionId).ConfigureAwait(false);
                 outcome = InboxAcceptOutcome.AlreadyInVault;
-
-                if (effectiveCollectionId.HasValue)
-                {
-                    await _documentService
-                        .BulkAssignToCollectionAsync(new[] { duplicateId }, effectiveCollectionId.Value)
-                        .ConfigureAwait(false);
-                }
-
-                Log.Information(
-                    "InboxService: '{FileName}' is already in the vault as document {DocumentId} ({ExistingName}); linking instead of importing",
-                    item.FileName, duplicateId, duplicate.ExistingFileName);
             }
             else
             {
-                documentId = await ImportIntoVaultAsync(item, effectiveCollectionId).ConfigureAwait(false);
-                outcome = InboxAcceptOutcome.Imported;
+                try
+                {
+                    documentId = await ImportIntoVaultAsync(item, effectiveCollectionId).ConfigureAwait(false);
+                    outcome = InboxAcceptOutcome.Imported;
+                }
+                catch (DuplicateDocumentException ex)
+                {
+                    // The check above can miss: it failed, or the same content arrived since. The
+                    // import names the document that has the content, so the item is linked to it
+                    // like any other duplicate instead of failing with the import's message.
+                    documentId = await LinkToExistingDocumentAsync(
+                        item, ex.ExistingDocumentId, ex.ExistingFileName, effectiveCollectionId).ConfigureAwait(false);
+                    outcome = InboxAcceptOutcome.AlreadyInVault;
+                }
             }
         }
 
@@ -1221,6 +1223,29 @@ public sealed class InboxService : IInboxService
             TryDeleteDirectory(itemFolder);
             throw;
         }
+    }
+
+    /// <summary>
+    /// Links an item to the vault document that already has its content instead of importing a
+    /// second copy, and files that document in <paramref name="collectionId"/> when one applies.
+    /// </summary>
+    private async Task<long> LinkToExistingDocumentAsync(
+        InboxItemEntity item,
+        long documentId,
+        string? existingFileName,
+        long? collectionId)
+    {
+        if (collectionId.HasValue)
+        {
+            await _documentService!
+                .BulkAssignToCollectionAsync(new[] { documentId }, collectionId.Value)
+                .ConfigureAwait(false);
+        }
+
+        Log.Information(
+            "InboxService: '{FileName}' is already in the vault as document {DocumentId} ({ExistingName}); linking instead of importing",
+            item.FileName, documentId, existingFileName);
+        return documentId;
     }
 
     private static void ApplyCollectionOverride(InboxItemEntity item, long? collectionId, string? overrideName)

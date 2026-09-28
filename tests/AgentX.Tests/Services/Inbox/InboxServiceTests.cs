@@ -572,6 +572,58 @@ public sealed class InboxServiceTests : IDisposable
         item.DocumentId.Should().Be(77);
     }
 
+    // The duplicate check can miss (it failed, or the same content arrived since), and the import
+    // then refused the file with its English duplicate message, which the Inbox showed as the
+    // reason the accept failed.
+
+    [Fact]
+    public async Task AcceptItemAsync_WhenTheImportFindsTheContentInTheVault_LinksThatDocument()
+    {
+        var h = NewHarness();
+        var id = SeedItem(h, NewItem(status: "pending", fileName: "clip.md", filePath: h.WriteFile("clip.md")));
+        h.Collections.Setup(c => c.GetCollectionAsync(42)).ReturnsAsync(Coll(42, "Taxes"));
+        h.Documents.Setup(d => d.CheckForDuplicateAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new DuplicateCheckResult { IsDuplicate = false });
+        h.Documents.Setup(d => d.ImportFileAsync(It.IsAny<string>(), It.IsAny<long?>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new DuplicateDocumentException(77, "clip.md"));
+
+        var result = await h.Service.AcceptItemAsync(id, collectionId: 42);
+
+        result.Outcome.Should().Be(InboxAcceptOutcome.AlreadyInVault);
+        result.DocumentId.Should().Be(77);
+        h.Documents.Verify(
+            d => d.BulkAssignToCollectionAsync(It.Is<IReadOnlyList<long>>(ids => ids.Single() == 77), 42, It.IsAny<CancellationToken>()),
+            Times.Once);
+        using var fresh = h.Fresh();
+        var item = await fresh.InboxItems.FindAsync(id);
+        item!.Status.Should().Be("accepted");
+        item.DocumentId.Should().Be(77);
+        Directory.Exists(Path.Combine(h.InboxStoreDir, "Accepted", id.ToString())).Should().BeFalse(
+            "the copy made for the import is not needed");
+    }
+
+    [Fact]
+    public async Task AcceptAllPendingAsync_CountsAContentAlreadyInTheVaultAsLinkedNotFailed()
+    {
+        var h = NewHarness();
+        h.Seed(ctx =>
+        {
+            ctx.InboxItems.Add(NewItem(status: "pending", fileName: "new.md", filePath: h.WriteFile("new.md", "new text")));
+            ctx.InboxItems.Add(NewItem(status: "pending", fileName: "again.md", filePath: h.WriteFile("again.md", "known text")));
+        });
+        h.Documents.Setup(d => d.CheckForDuplicateAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new DuplicateCheckResult { IsDuplicate = false });
+        h.Documents.Setup(d => d.ImportFileAsync(It.Is<string>(path => path.EndsWith("new.md", StringComparison.Ordinal)), It.IsAny<long?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new DocumentEntity { Id = 501 });
+        h.Documents.Setup(d => d.ImportFileAsync(It.Is<string>(path => path.EndsWith("again.md", StringComparison.Ordinal)), It.IsAny<long?>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new DuplicateDocumentException(77, "known.md"));
+
+        var result = await h.Service.AcceptAllPendingAsync();
+
+        result.Should().BeEquivalentTo(new { Imported = 1, AlreadyInVault = 1, Failed = 0 });
+        result.Errors.Should().BeEmpty();
+    }
+
     [Fact]
     public async Task AcceptItemAsync_ImportFails_LeavesItemPendingAndRemovesTheCopy()
     {
