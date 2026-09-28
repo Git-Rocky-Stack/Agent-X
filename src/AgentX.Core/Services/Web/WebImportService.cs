@@ -332,6 +332,18 @@ public class WebImportService : IWebImportService
             {
                 throw;
             }
+            catch (DuplicateDocumentException ex)
+            {
+                // Already in the vault. The result names that document, so the page can say so
+                // in the user's language rather than show the exception's English message.
+                results.Add(new WebImportResult
+                {
+                    Url = url,
+                    ErrorMessage = ex.Message,
+                    ExistingDocumentId = ex.ExistingDocumentId,
+                    ExistingFileName = ex.ExistingFileName,
+                });
+            }
             catch (Exception ex)
             {
                 // The failure is reported in this URL's own result; the batch continues.

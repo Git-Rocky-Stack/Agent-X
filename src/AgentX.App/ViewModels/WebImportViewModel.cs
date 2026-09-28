@@ -362,8 +362,7 @@ public partial class WebImportViewModel : ObservableObject
             ImportResults.Add(new WebImportResultItem
             {
                 Url = result.Url,
-                DocumentName = result.Document?.FileName
-                    ?? _localization.GetString("WebImport_RowFailed", result.ErrorMessage ?? string.Empty),
+                DocumentName = result.Document?.FileName ?? DescribeFailure(result),
                 Success = result.Success,
                 WordCount = result.Document?.WordCount ?? 0,
                 ErrorMessage = result.ErrorMessage
@@ -375,6 +374,14 @@ public partial class WebImportViewModel : ObservableObject
 
         HasResults = true;
     }
+
+    /// <summary>
+    /// Why a URL was not imported. A page whose content is already in the vault names that
+    /// document in the user's language; any other failure shows its reason.
+    /// </summary>
+    private string DescribeFailure(WebImportResult result) => result.ExistingFileName is { } existing
+        ? _localization.GetString("WebImport_RowAlreadyInVault", existing)
+        : _localization.GetString("WebImport_RowFailed", result.ErrorMessage ?? string.Empty);
 }
 
 public partial class WebImportResultItem : ObservableObject

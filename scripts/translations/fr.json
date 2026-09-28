@@ -3450,5 +3450,6 @@
   "Annot_ColorGreen": "Vert",
   "Annot_ColorBlue": "Bleu",
   "Annot_ColorRed": "Rouge",
-  "Annot_ColorPurple": "Violet"
+  "Annot_ColorPurple": "Violet",
+  "WebImport_RowAlreadyInVault": "Déjà dans le coffre-fort de connaissances sous le nom « {0} »"
 }

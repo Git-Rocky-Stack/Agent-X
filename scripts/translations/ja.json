@@ -3450,5 +3450,6 @@
   "Annot_ColorGreen": "緑",
   "Annot_ColorBlue": "青",
   "Annot_ColorRed": "赤",
-  "Annot_ColorPurple": "紫"
+  "Annot_ColorPurple": "紫",
+  "WebImport_RowAlreadyInVault": "既に Knowledge Vault に「{0}」としてあります"
 }

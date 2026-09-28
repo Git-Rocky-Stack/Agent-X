@@ -3717,4 +3717,5 @@
   <data name="Annot_ColorBlue" xml:space="preserve"><value>Blau</value></data>
   <data name="Annot_ColorRed" xml:space="preserve"><value>Rot</value></data>
   <data name="Annot_ColorPurple" xml:space="preserve"><value>Lila</value></data>
+  <data name="WebImport_RowAlreadyInVault" xml:space="preserve"><value>Bereits im Wissens-Tresor als "{0}"</value></data>
 </root>

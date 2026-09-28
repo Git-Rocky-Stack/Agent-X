@@ -3450,5 +3450,6 @@
   "Annot_ColorGreen": "绿色",
   "Annot_ColorBlue": "蓝色",
   "Annot_ColorRed": "红色",
-  "Annot_ColorPurple": "紫色"
+  "Annot_ColorPurple": "紫色",
+  "WebImport_RowAlreadyInVault": "已作为“{0}”存在于 Knowledge Vault 中"
 }

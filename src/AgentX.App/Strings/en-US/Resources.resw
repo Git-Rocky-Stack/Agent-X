@@ -3827,4 +3827,5 @@
   <data name="Annot_ColorBlue" xml:space="preserve"><value>Blue</value></data>
   <data name="Annot_ColorRed" xml:space="preserve"><value>Red</value></data>
   <data name="Annot_ColorPurple" xml:space="preserve"><value>Purple</value></data>
+  <data name="WebImport_RowAlreadyInVault" xml:space="preserve"><value>Already in the Knowledge Vault as "{0}"</value></data>
 </root>

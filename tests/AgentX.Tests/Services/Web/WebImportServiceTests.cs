@@ -199,6 +199,26 @@ public sealed class WebImportServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task ImportFromUrlsAsync_names_the_document_a_page_already_in_the_vault_matched()
+    {
+        // The Web Import page showed the duplicate error's English message as the row's reason.
+        // The result names the matched document, so the page can say it in the user's language.
+        using var factory = new TestDbContextFactory();
+        using var db = factory.CreateContext();
+        var service = CreateService(db);
+        var first = await service.ImportFromUrlAsync("https://example.com/article");
+
+        var results = await service.ImportFromUrlsAsync(["https://example.com/article", "https://example.com/other"]);
+
+        results[0].Success.Should().BeFalse();
+        results[0].ExistingDocumentId.Should().Be(first.Id);
+        results[0].ExistingFileName.Should().Be(first.FileName);
+        results[1].Success.Should().BeTrue();
+        results[1].ExistingDocumentId.Should().BeNull();
+        results[1].ExistingFileName.Should().BeNull();
+    }
+
+    [Fact]
     public async Task ImportDiscoveredUrlsAsync_skips_local_addresses_listed_by_a_public_feed()
     {
         using var factory = new TestDbContextFactory();

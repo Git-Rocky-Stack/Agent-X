@@ -3450,5 +3450,6 @@
   "Annot_ColorGreen": "Verde",
   "Annot_ColorBlue": "Azul",
   "Annot_ColorRed": "Rojo",
-  "Annot_ColorPurple": "Morado"
+  "Annot_ColorPurple": "Morado",
+  "WebImport_RowAlreadyInVault": "Ya está en la bóveda de conocimiento como \"{0}\""
 }

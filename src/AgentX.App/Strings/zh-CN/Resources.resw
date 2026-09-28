@@ -3717,4 +3717,5 @@
   <data name="Annot_ColorBlue" xml:space="preserve"><value>蓝色</value></data>
   <data name="Annot_ColorRed" xml:space="preserve"><value>红色</value></data>
   <data name="Annot_ColorPurple" xml:space="preserve"><value>紫色</value></data>
+  <data name="WebImport_RowAlreadyInVault" xml:space="preserve"><value>已作为“{0}”存在于 Knowledge Vault 中</value></data>
 </root>

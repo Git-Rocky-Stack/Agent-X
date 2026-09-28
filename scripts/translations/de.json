@@ -3450,5 +3450,6 @@
   "Annot_ColorGreen": "Grün",
   "Annot_ColorBlue": "Blau",
   "Annot_ColorRed": "Rot",
-  "Annot_ColorPurple": "Lila"
+  "Annot_ColorPurple": "Lila",
+  "WebImport_RowAlreadyInVault": "Bereits im Wissens-Tresor als \"{0}\""
 }

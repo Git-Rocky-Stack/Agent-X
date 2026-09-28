@@ -17,6 +17,15 @@ public sealed record WebImportResult
     /// <summary>Why the import failed; null when it succeeded.</summary>
     public string? ErrorMessage { get; init; }
 
+    /// <summary>
+    /// The document that already has this page's content, when that is why the page was not
+    /// imported; null otherwise.
+    /// </summary>
+    public long? ExistingDocumentId { get; init; }
+
+    /// <summary>File name of the document in <see cref="ExistingDocumentId"/>.</summary>
+    public string? ExistingFileName { get; init; }
+
     /// <summary>True when a document was created for <see cref="Url"/>.</summary>
     public bool Success => Document is not null;
 }
