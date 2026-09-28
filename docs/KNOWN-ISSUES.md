@@ -190,6 +190,8 @@ texts are still English whatever the language:
 - the labels inside exported files (for example "Exported from Agent-X on", "Sources:" and the
   headings of search result and collection exports), and the "All Conversations" title of a batch
   chat export;
+- the Web Import row that skips a feed or sitemap entry pointing to this computer or the local
+  network;
 - the Android companion app, which has no translations.
 
 ---

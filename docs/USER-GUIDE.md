@@ -667,7 +667,7 @@ Smart Inbox is where pages you clip with the browser extension wait until you de
 
 ### Inbox item details
 
-Each item can show its file name, source (a **Web Clip** badge for browser clips), the **AI Preview** when generated, the suggested collection and tags, and its status. The **STATUS** list (pending, accepted, rejected, deferred, or all) chooses which items are shown; these values appear in English.
+Each item can show its file name, source (a **Web Clip** badge for browser clips), the **AI Preview** when generated, the suggested collection and tags, and its status. The **STATUS** list (pending, accepted, rejected, deferred, or all) chooses which items are shown.
 
 ### Actions
 
@@ -961,7 +961,7 @@ Open a document's preview in the Knowledge Vault with **Detail**. Under **DOCUME
 - Search annotations by their highlighted text or note.
 - Filter by color; DISTRIBUTION shows how many annotations each color has.
 - Edit note text and color.
-- Delete annotations (at once, without a confirmation).
+- Delete annotations (after a confirmation that names the document; the document itself is not changed).
 - **Export as Markdown** saves every annotation to a Markdown file you name.
 
 The passage text is not highlighted where annotations are. Annotations do not affect Ask Your Files or search ranking, and they are not part of the Weekly Digest or the Knowledge Graph. Each new annotation also becomes an insight (see [Past Self and Draft as Me](#20-past-self-and-draft-as-me)). Deleting a document deletes its annotations.
