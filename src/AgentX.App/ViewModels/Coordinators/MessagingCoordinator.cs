@@ -24,6 +24,11 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
 {
     private static readonly TimeSpan ResearchSearchTimeout = TimeSpan.FromSeconds(15);
 
+    // How much of the conversation a multi-agent answer is given: at most the last few messages,
+    // and of those only the newest that fit in the character budget.
+    private const int OrchestrationHistoryMessageLimit = 8;
+    private const int OrchestrationHistoryCharacterBudget = 6_000;
+
     private readonly IChatService _chatService;
     private readonly IConversationService _conversationService;
     private readonly IAiService _aiService;
@@ -140,12 +145,15 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
 
             if (orchestrated)
             {
+                // The new message is saved after its answer, so every saved message is earlier.
+                var earlierMessages = await ReadEarlierMessagesAsync(exchange.ConversationId, promptMessageId: null);
                 exchange.TokenCount = await RunOrchestratedAsync(
                     exchange,
                     userContent,
                     systemPrompt,
                     orchestrationMode,
                     research?.PromptContext,
+                    earlierMessages,
                     isRegeneration: false,
                     replacedMessageId: null,
                     generation);
@@ -228,12 +236,14 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
             if (orchestrationMode != ChatOrchestrationMode.Standard)
             {
                 var replacedMessageId = await FindReplaceableResponseAsync(conversationId, userMessageId);
+                var earlierMessages = await ReadEarlierMessagesAsync(conversationId, userMessageId);
                 exchange.TokenCount = await RunOrchestratedAsync(
                     exchange,
                     userContent,
                     systemPrompt,
                     orchestrationMode,
                     researchContext: null,
+                    earlierMessages,
                     isRegeneration: true,
                     replacedMessageId,
                     generation);
@@ -515,6 +525,7 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
         string? systemPrompt,
         ChatOrchestrationMode orchestrationMode,
         string? researchContext,
+        IReadOnlyList<MessageEntity> earlierMessages,
         bool isRegeneration,
         long? replacedMessageId,
         CancellationTokenSource generation)
@@ -527,9 +538,18 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
         var strategy = orchestrationMode == ChatOrchestrationMode.MultiAgentDebate
             ? OrchestratorStrategy.Debate
             : OrchestratorStrategy.Parallel;
-        var task = string.IsNullOrWhiteSpace(systemPrompt)
+
+        // Each agent gets this text and its role, nothing else from the chat, so the text carries
+        // the recent conversation too: without it a follow-up question had nothing to refer to.
+        var conversation = FormatRecentConversation(earlierMessages);
+        var task = conversation is null
             ? userContent
-            : $"{userContent}\n\nActive system prompt:\n{systemPrompt}";
+            : $"{conversation}\n\nNew message:\n{userContent}";
+        if (!string.IsNullOrWhiteSpace(systemPrompt))
+        {
+            task = $"{task}\n\nActive system prompt:\n{systemPrompt}";
+        }
+
         if (!string.IsNullOrWhiteSpace(researchContext))
         {
             task = $"{task}\n\n{researchContext}";
@@ -548,8 +568,11 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
             throw new InvalidOperationException(BuildOrchestrationFailureMessage(orchestration));
         }
 
+        // The orchestrator repeats its task at the top of the answer ("Task: ..." or "Topic: ...").
+        // Besides the message, the task holds what the agents were given to work with (the recent
+        // conversation, the system prompt, web results), so the answer names only the message.
         var finalContent = succeeded
-            ? orchestration.FinalAnswer
+            ? orchestration.FinalAnswer.Replace(task, userContent, StringComparison.Ordinal)
             : BuildOrchestrationFailureMessage(orchestration);
 
         exchange.Response.Append(finalContent);
@@ -613,6 +636,80 @@ public sealed class MessagingCoordinator : IMessagingCoordinator
         }
 
         return following.FirstOrDefault()?.Id;
+    }
+
+    /// <summary>
+    /// The saved messages that come before the one being answered: all of them, or those before
+    /// <paramref name="promptMessageId"/> when a saved prompt is answered again. None when there
+    /// is no conversation or it cannot be read, so the answer still runs, only without it.
+    /// </summary>
+    private async Task<IReadOnlyList<MessageEntity>> ReadEarlierMessagesAsync(long? conversationId, long? promptMessageId)
+    {
+        if (conversationId is not long id)
+        {
+            return [];
+        }
+
+        try
+        {
+            var messages = await _conversationService.GetMessagesAsync(id);
+            return messages.TakeWhile(message => message.Id != promptMessageId).ToList();
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to read conversation {ConversationId}; the agents answer without it", id);
+            return [];
+        }
+    }
+
+    /// <summary>
+    /// The conversation so far as the agents read it, oldest first, each message after the name
+    /// of who wrote it: the last <see cref="OrchestrationHistoryMessageLimit"/> messages at most,
+    /// and when those do not all fit in <see cref="OrchestrationHistoryCharacterBudget"/>
+    /// characters, the newest that do. A newest message longer than the budget on its own is cut
+    /// to it. Null when there is nothing to add.
+    /// </summary>
+    internal static string? FormatRecentConversation(IReadOnlyList<MessageEntity> messages)
+    {
+        var recent = messages
+            .Where(message => (HasRole(message, "user") || HasRole(message, "assistant"))
+                && !string.IsNullOrWhiteSpace(message.Content))
+            .TakeLast(OrchestrationHistoryMessageLimit)
+            .ToList();
+
+        var kept = new List<string>();
+        var length = 0;
+        for (var i = recent.Count - 1; i >= 0; i--)
+        {
+            var speaker = HasRole(recent[i], "user") ? "User" : "Assistant";
+            var entry = $"{speaker}: {recent[i].Content.Trim()}";
+            if (length + entry.Length > OrchestrationHistoryCharacterBudget)
+            {
+                if (kept.Count == 0)
+                {
+                    var cut = OrchestrationHistoryCharacterBudget - 3;
+                    if (char.IsHighSurrogate(entry[cut - 1]))
+                    {
+                        cut--;
+                    }
+
+                    kept.Add(entry[..cut] + "...");
+                }
+
+                break;
+            }
+
+            kept.Add(entry);
+            length += entry.Length;
+        }
+
+        if (kept.Count == 0)
+        {
+            return null;
+        }
+
+        kept.Reverse();
+        return "Conversation so far (oldest first):\n\n" + string.Join("\n\n", kept);
     }
 
     private static IReadOnlyList<AgentRole> BuildDefaultAgentRoles(ChatOrchestrationMode orchestrationMode)

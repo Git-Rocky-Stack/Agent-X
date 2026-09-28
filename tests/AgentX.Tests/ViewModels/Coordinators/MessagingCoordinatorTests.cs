@@ -754,6 +754,140 @@ public class MessagingCoordinatorTests
         _conversationService.Verify(s => s.DeleteMessageAsync(It.IsAny<long>()), Times.Never);
     }
 
+    // --- Multi-agent context ---
+    // Multi-agent and Debate answers were given the new message alone, so a follow-up question
+    // reached the agents without anything said before it.
+
+    [Fact]
+    public async Task SendMessageAsync_InMultiAgentMode_GivesTheAgentsTheRecentConversation()
+    {
+        _conversationService
+            .Setup(s => s.GetMessagesAsync(5))
+            .ReturnsAsync([Said(1, "user", "Compare plan A and plan B."), Said(2, "assistant", "A ships sooner; B costs less.")]);
+        var tasks = RecordOrchestratorTasks(OrchestratorStrategy.Parallel);
+
+        var result = await _coordinator.SendMessageAsync(
+            "What about the second option?", 5, null, null, false, ChatOrchestrationMode.MultiAgentParallel);
+
+        tasks.Should().ContainSingle().Which.Should().Be(
+            "Conversation so far (oldest first):\n\n" +
+            "User: Compare plan A and plan B.\n\n" +
+            "Assistant: A ships sooner; B costs less.\n\n" +
+            "New message:\nWhat about the second option?");
+
+        // The orchestrator repeats its task in the answer; the answer names the message instead.
+        result.ResponseContent.Should().StartWith("# Multi-Agent Synthesis\n\nTask: What about the second option?\n\n")
+            .And.NotContain("Compare plan A");
+        _conversationService.Verify(s => s.AddMessageAsync(
+            5, "assistant", result.ResponseContent, It.IsAny<int?>(), It.IsAny<double?>(), It.IsAny<string?>(), It.IsAny<string?>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task SendMessageAsync_InMultiAgentMode_GivesTheAgentsNoMoreThanTheLastEightMessages()
+    {
+        _conversationService
+            .Setup(s => s.GetMessagesAsync(5))
+            .ReturnsAsync(Enumerable.Range(1, 12)
+                .Select(i => Said(i, i % 2 == 1 ? "user" : "assistant", $"Message {i:00}"))
+                .ToList());
+        var tasks = RecordOrchestratorTasks(OrchestratorStrategy.Parallel);
+
+        await _coordinator.SendMessageAsync("And now?", 5, null, null, false, ChatOrchestrationMode.MultiAgentParallel);
+
+        tasks.Should().ContainSingle().Which.Split('\n')
+            .Where(line => line.StartsWith("User: ", StringComparison.Ordinal) || line.StartsWith("Assistant: ", StringComparison.Ordinal))
+            .Should().Equal(
+                "User: Message 05", "Assistant: Message 06", "User: Message 07", "Assistant: Message 08",
+                "User: Message 09", "Assistant: Message 10", "User: Message 11", "Assistant: Message 12");
+    }
+
+    [Fact]
+    public async Task SendMessageAsync_InDebateMode_TrimsALongConversationFromTheOldestEnd()
+    {
+        // Eight messages of 1,400 characters each: only the newest four fit in about 6,000.
+        _conversationService
+            .Setup(s => s.GetMessagesAsync(5))
+            .ReturnsAsync(Enumerable.Range(1, 8)
+                .Select(i => Said(i, i % 2 == 1 ? "user" : "assistant", $"Message {i:00} " + new string('x', 1_389)))
+                .ToList());
+        var tasks = RecordOrchestratorTasks(OrchestratorStrategy.Debate);
+
+        await _coordinator.SendMessageAsync("Which one wins?", 5, null, null, false, ChatOrchestrationMode.MultiAgentDebate);
+
+        var task = tasks.Should().ContainSingle().Subject;
+        task.Should().EndWith("\n\nNew message:\nWhich one wins?");
+        var conversation = task[..task.IndexOf("\n\nNew message:\n", StringComparison.Ordinal)];
+        conversation.Length.Should().BeLessThanOrEqualTo(6_100);
+        Enumerable.Range(1, 8)
+            .Where(i => conversation.Contains($"Message {i:00} ", StringComparison.Ordinal))
+            .Should().Equal(5, 6, 7, 8);
+    }
+
+    [Fact]
+    public async Task RegenerateResponseAsync_InMultiAgentMode_GivesTheAgentsTheConversationBeforeThePrompt()
+    {
+        _conversationService
+            .Setup(s => s.GetMessagesAsync(42))
+            .ReturnsAsync(
+            [
+                Said(1, "user", "Compare plan A and plan B."),
+                Said(2, "assistant", "A ships sooner; B costs less."),
+                Said(3, "user", "What about the second option?"),
+                Said(4, "assistant", "The answer being replaced."),
+            ]);
+        var tasks = RecordOrchestratorTasks(OrchestratorStrategy.Parallel);
+
+        var result = await _coordinator.RegenerateResponseAsync(
+            42, 3, "What about the second option?", null, ChatOrchestrationMode.MultiAgentParallel);
+
+        result.HadError.Should().BeFalse();
+        tasks.Should().ContainSingle().Which.Should().Be(
+            "Conversation so far (oldest first):\n\n" +
+            "User: Compare plan A and plan B.\n\n" +
+            "Assistant: A ships sooner; B costs less.\n\n" +
+            "New message:\nWhat about the second option?");
+    }
+
+    [Fact]
+    public async Task SendMessageAsync_InMultiAgentMode_WhenTheConversationCannotBeRead_AnswersWithoutIt()
+    {
+        _conversationService
+            .Setup(s => s.GetMessagesAsync(5))
+            .ThrowsAsync(new InvalidOperationException("database is locked"));
+        var tasks = RecordOrchestratorTasks(OrchestratorStrategy.Parallel);
+
+        var result = await _coordinator.SendMessageAsync(
+            "Plan launch", 5, null, null, false, ChatOrchestrationMode.MultiAgentParallel);
+
+        result.HadError.Should().BeFalse();
+        tasks.Should().ContainSingle().Which.Should().Be("Plan launch");
+    }
+
+    [Fact]
+    public void FormatRecentConversation_CutsANewestMessageLongerThanTheWholeBudget()
+    {
+        const string header = "Conversation so far (oldest first):\n\n";
+
+        var conversation = MessagingCoordinator.FormatRecentConversation(
+        [
+            Said(1, "user", "Summarize the report."),
+            Said(2, "assistant", "Summary: " + new string('y', 9_000)),
+        ]);
+
+        conversation.Should().StartWith(header + "Assistant: Summary: yyy")
+            .And.EndWith("y...")
+            .And.NotContain("Summarize the report.");
+        conversation!.Length.Should().Be(header.Length + 6_000);
+    }
+
+    [Fact]
+    public void FormatRecentConversation_HasNothingToAddWithoutChatMessages()
+    {
+        MessagingCoordinator.FormatRecentConversation([Said(1, "system", "Be brief."), Said(2, "assistant", "  ")])
+            .Should().BeNull();
+    }
+
     [Fact]
     public async Task DeleteMessageAsync_ReportsWhetherTheRowIsGone()
     {
@@ -1083,6 +1217,40 @@ public class MessagingCoordinatorTests
         SortOrder = sortOrder,
         Timestamp = DateTime.UtcNow
     };
+
+    /// <summary>A saved message with its text, in the order of its id.</summary>
+    private static MessageEntity Said(long id, string role, string content) => new()
+    {
+        Id = id,
+        ConversationId = 5,
+        Role = role,
+        Content = content,
+        SortOrder = (int)id,
+        Timestamp = DateTime.UtcNow
+    };
+
+    /// <summary>
+    /// A fake orchestrator for <paramref name="strategy"/>: it records the task text of every run
+    /// and answers the way the real one does, repeating the task at the top of the answer.
+    /// </summary>
+    private List<string> RecordOrchestratorTasks(OrchestratorStrategy strategy)
+    {
+        var tasks = new List<string>();
+        _multiAgentOrchestrator
+            .Setup(s => s.RunAsync(It.IsAny<string>(), It.IsAny<IReadOnlyList<AgentRole>>(), strategy, It.IsAny<CancellationToken>()))
+            .Returns((string task, IReadOnlyList<AgentRole> _, OrchestratorStrategy _, CancellationToken _) =>
+            {
+                tasks.Add(task);
+                return Task.FromResult(new OrchestrationResult
+                {
+                    Task = task,
+                    Strategy = strategy,
+                    FinalAnswer = $"# Multi-Agent Synthesis\n\nTask: {task}\n\n## Consensus\nShip in phases.",
+                    IsSuccess = true
+                });
+            });
+        return tasks;
+    }
 
     private static async IAsyncEnumerable<string> GatedStream(
         TaskCompletionSource gate,
