@@ -8,7 +8,358 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 
 ## [Unreleased]
 
-Nothing yet.
+A full-repository review and repair release. Audits of the Core services, the App, the mobile
+companion, the browser extension and CI logged about 180 findings, and follow-up passes found
+more than 70 others; each was verified against the
+code, fixed at its cause, and pinned with a regression test where the test host can run it. The
+test suite grows from 3,029 to 4,967 tests. Several features that were built but never
+connected now work end to end: indexing, watch folders, plugin activation, scheduled backups,
+auto-sync, Temporal Identity learning, annotation creation, the speech-to-text model and OAuth
+connector setup. Documentation and the in-app user guide now
+describe what the app actually does, and the repository uses plain ASCII punctuation throughout
+(no em dashes, box-drawing characters or emoji).
+
+No database migration is added. Existing databases are repaired in place at startup (see the
+Temporal Identity entry under Fixed).
+
+### Added
+
+- **Display language picker** in Settings > Appearance: Windows default or one of the six
+  languages. The choice is saved and applies from the next start.
+- **Screen awareness switch** in Settings (Research Mode section): lets Quick Chat add the text of
+  the window in front, read with Windows OCR on this computer. The setting existed, but nothing
+  could turn it on.
+- **Watch folder management** in Settings: add and remove watch folders, choose whether
+  subfolders are included, and turn monitoring on or off without restarting. A catch-up scan
+  imports files added or changed while the app was closed.
+- **Backup schedule** controls on the Backup and Restore page (interval, number of backups to
+  keep, destination, optional password); scheduled backups start with the app.
+- **Workflow step settings editor** in the Workflow Builder: each step's settings are checked as
+  you type against what the workflow engine will actually read, and a workflow cannot be saved
+  while a step has settings the engine would reject or ignore. All five step types are offered.
+- **Email folder selection** for the Gmail and Outlook connectors, with a Refresh folders button
+  and a warning when no folder is selected.
+- **Chat sidebar actions**: open a conversation from the list, and pin, unpin or delete it from
+  a context menu.
+- **Research Mode web sources** are fetched, cited in the answer, shown as numbered sources under
+  it, saved with the message, and listed per answer in exports. The export dialog offers
+  "Include citations" and "Include model info" again, and each answer records the model that
+  wrote it.
+- **Plugin document processors**: an active plugin can add support for file formats the
+  built-in processors do not handle.
+- **Smart Inbox Refresh** button.
+- **Local API**: an authenticated `GET /api/auth/check` endpoint used by the browser extension
+  to validate pairing; the API token is masked in Settings with a Show toggle.
+- **Settings save errors** are shown under the Save button instead of failing silently.
+- **Speech-to-text model management** on the Model Manager page: install (with progress and
+  cancel) or remove the Whisper base model. Nothing is downloaded until the user asks. After an
+  install, audio that failed for lack of the model is queued for transcription again.
+- **OAuth App Credentials** on the Calendar and Email connector pages: enter your own Google
+  (client ID and secret) or Microsoft (application ID) OAuth client. Saving applies it at once,
+  without a restart; the secret is stored encrypted and masked with a Show toggle.
+- **Annotations from the vault preview**: the Document Preview shows the indexed text passage by
+  passage; select text to save a highlight with a note. The preview lists the document's
+  annotations, and they appear on the Annotations page.
+- **Chat memories**: the context inspector's Memories card lists what chat remembers, with the
+  count, a delete button per item and Clear all behind a confirmation.
+- **Draft as Me** is written by the active AI provider from the voice profile and the stances
+  recorded by the chosen time, with progress, Cancel and clear errors when no provider is
+  available.
+- **Past Self** shows when a view changed after the chosen time, and Active Topics lists topics
+  with when they were first and last recorded.
+- **Collections** can be nested one level with "Move into...".
+- **GPU layers** control for the built-in model in Settings (automatic or a fixed number, 0 keeps
+  it on the CPU); saving reloads the model without a restart.
+- **Confirmation dialogs** before deleting documents (single and bulk), collections, and before
+  uninstalling plugins.
+- The Knowledge Vault search box also matches tag names, and failed documents show why indexing
+  failed on the row and in the preview.
+- CI now compiles the WinUI app, audits the mobile app and the sample plugin for vulnerable
+  NuGet packages, and audits the full browser extension dependency tree.
+
+### Fixed
+
+**Indexing, search and RAG**
+
+- Imported documents were never indexed: nothing started the indexing pipeline, so documents
+  stayed "pending" and semantic search, keyword search and Ask Your Files returned nothing.
+  The pipeline now starts with the app, imports and re-indexes are queued, and work interrupted
+  by a shutdown is picked up again.
+- Deleting or re-indexing a document left its full-text rows and cached results behind.
+  Re-indexing now extracts first and leaves the existing index untouched if extraction fails.
+- Documents that could not be read were imported as empty documents; extraction failures are
+  now reported and the document is marked failed with the reason. `.doc` files are no longer
+  offered (only `.docx` is supported). PDF pages now carry page numbers.
+- Keyword search ANDed every word including stop words and dropped good matches with a fixed
+  score cut-off; it now matches any significant term, scores results relative to the best hit,
+  and applies collection, type and date filters in the query instead of after the top results.
+- Hybrid search and RAG applied the wrong score threshold to fused results.
+- Chunk overlap could push a chunk past the configured size, and an overlap not smaller than the
+  chunk size could be saved.
+- Tags lost non-Latin letters; collection document counts drifted.
+- Vault, Search, Ask Files and Collection Manager: honest import results, rows that update when
+  background indexing finishes or fails, Code and Images filters that find code and image files,
+  sorted results, the chosen search mode kept, stale searches cancelled, answers streamed on the
+  UI thread with citation badges, documents already in the vault added to collections, and
+  sub-collections kept after their parent is deleted.
+- Chunks embedded before embedding model versions were recorded are re-embedded once.
+- Document summaries were never saved, so the Knowledge Vault preview's AI summary never
+  appeared and the vault's Workflow action always sent the first chunk. A summary made on the
+  Quick Actions page is now kept with the document.
+- The `HnswEfSearch` setting was never read. It now sets a minimum search breadth for the HNSW
+  index; the default leaves searches as they were.
+- A document in a format that only a plugin reads failed with "No processor found" whenever the
+  indexer had to read it again (a re-index, or a restart before indexing); the indexer now uses
+  active plugins' processors too, as the import does.
+
+**AI providers and models**
+
+- The built-in model produced the same embedding for every text (it returned the first token's
+  vector instead of pooling), and inputs over 512 tokens threw. Embeddings are now mean-pooled
+  and long inputs are truncated safely. JSON mode no longer drops the opening brace.
+- Embeddings used the active chat provider (which fails for Anthropic and for OpenAI with a
+  local model name); the embedding provider is now chosen on its own and the saved embedding
+  model is honored. The embedding cache is keyed by model and bounded.
+- Anthropic requests sent sampling parameters current models reject; OpenAI reasoning models
+  received parameters they do not accept. Errors that arrive in the middle of a stream now fail
+  the request for Anthropic, OpenAI and Ollama instead of being reported as a complete answer.
+- New installs asked Anthropic for a retired model; the default is now the provider's default,
+  Claude Sonnet 5.
+- Model routing switched the app-wide provider and model as a side effect of routing one chat
+  message, and ignored the saved profile. A routing decision now applies only to the reply it
+  was made for, and the active provider and settings are never changed by it.
+- Chat failure messages and the status strip told users to start Ollama whatever provider was
+  active; they now name the active provider and what to check for it.
+- Usage costs were never recorded; prices are current and matched by model prefix.
+- GPU memory above 4 GB was misreported, which skewed the Hardware Advisor.
+- Onboarding's connection test used the saved endpoint instead of the one being typed, and it
+  said Ollama was not connected whenever no models were listed, including when Ollama was
+  connected but had no models installed.
+
+**Chat, Past Self and Quick Chat**
+
+- Regenerate deleted the answer before generating a new one and saved the question twice; it
+  now replaces the answer in place and keeps the old one if generation fails or is stopped.
+- Editing and resending a message could delete the wrong messages; deleting a conversation with
+  branches failed and broke later saves.
+- The generating and streaming indicators could stay on after an error, a stop or a thread
+  switch.
+- The "Context Used" note under each answer never appeared: it lived only in a message template
+  the chat did not use.
+- Multi-agent and Debate modes sent the agents only the new message, so follow-up questions lost
+  their context; the agents now get the recent conversation (the last eight messages, bounded).
+- Research Mode asked for a fixed five web results whatever Max Search Results said, and repeated
+  the same "cannot run" notice on every send; it now uses the setting and says each reason once.
+- Memory extraction ignored the newest messages and never parsed confidence.
+- After a switch to an embedding model with another vector size, chat memories fell back to
+  importance order and cross-conversation recall failed, because vectors of different sizes were
+  compared; they are now skipped, and new memories record which embedding model made them.
+- Past Self (Temporal Identity) could not save anything on a migrated database, because the
+  schema did not match its entities; the schema is now repaired at startup. Belief tracking,
+  highlight capture and reading-time recording had no caller, so Past Self and the dashboard's
+  belief-conflict panel never had data: chat prompts, new highlights, and the time a
+  conversation or a vault document stays open now feed it. Past Self answers with the stance
+  held at the chosen time.
+- Show Belief Evolution said a view had evolved but showed only today's stance; it now shows the
+  earlier stance and today's with the date it changed. The Dashboard's belief card no longer calls
+  beliefs consistent before any view has been recorded twice.
+- Quick Chat's screen awareness read its own window instead of the one in front, and its
+  instructions told the model that answers came from the knowledge vault, although Quick Chat
+  retrieves nothing from it.
+
+**Audio transcription**
+
+- MP3, M4A, FLAC and WAV files at 44.1 or 48 kHz were passed to Whisper unconverted and failed;
+  audio is now converted to 16 kHz mono PCM first. Progress is real rather than simulated, and
+  the detected language is reported.
+- Nothing ever downloaded the Whisper model, so imported audio was indexed as a placeholder
+  text ("Audio transcript unavailable") that polluted search, and voice input pointed to a
+  "Settings > Voice" page that does not exist. Audio that cannot be transcribed is now marked
+  failed with the reason; model downloads are written to a temporary file, checked for length and
+  the GGML header, and moved into place atomically; documents re-extracted by the indexer get their
+  word count refreshed.
+
+**Sync, workflows, web import and comparison**
+
+- Sync matched records between computers by local database numbers, so it could overwrite the
+  wrong record; it now matches by content and natural keys, isolates a failed change instead of
+  aborting the batch, and remembers what it has already exchanged. "Sync Now" now imports.
+- Workflow runs could lock up after an error, reported cancellation as failure, and stayed
+  "running" forever after a crash.
+- Web import returned results out of order, could lose the collection link, removed form
+  content and duplicated tables; feeds and sitemaps are bounded and cannot loop. Imported pages
+  are recorded through the document service like any other import.
+- Document Comparison compared only the top results across the whole vault and mixed up
+  documents with the same name; the exported report is now saved.
+
+**Backup, restore, encryption and settings**
+
+- Backups were built in memory (failing above 2 GB) and could include secrets; they are now
+  streamed to disk and exclude settings and keys.
+- Restore could not work on Windows (the vector store kept the database file open) and swapped
+  a live database; it now validates the backup first, swaps with a safety copy, rolls back on
+  failure, reloads the restored vectors, and asks for the password of an encrypted backup.
+- A crash while turning encryption on could leave the app believing a plaintext database was
+  encrypted; the marker is written last and interrupted changes are recovered at startup.
+- Settings were reset to defaults when the file could not be read; they are now kept aside,
+  written atomically and validated before saving.
+- The unlock dialog, the wrong-passphrase notice and the startup failure dialog were always in
+  English; they now follow the chosen language.
+- Workspace profiles could not be saved twice or re-marked as default; the page no longer claims
+  that profiles change the active model or collections.
+
+**Plugins, Smart Inbox, export and connectors**
+
+- The Import Files picker offered a fixed list of document, data and code types; it now offers
+  every format Agent-X can read, including images, audio and formats of active plugins.
+- The Plugin Manager switch showed "Active" before the plugin had loaded, and kept showing it when
+  enabling failed; it now shows the real result.
+- Accepting an inbox item whose content was already in the vault could fail with an English error;
+  the item is now linked to the existing document. Re-importing a web page that is already in the
+  vault says so instead of reporting a failure.
+- Clean Up Processed in the Smart Inbox also deleted deferred items, without asking; deferred items
+  now stay until they are accepted or rejected.
+- Plugins could not load their own dependencies, were never activated at startup, and their
+  manifest requirements were not enforced.
+- Accepting a Smart Inbox item did not import it into the vault; calendar and email items with
+  a ':' in their identifier failed on every sync.
+- Calendar sync was never incremental, shifted all-day and time-zone events, and missed
+  recurring Outlook meetings; Outlook mail never synced the inbox; Gmail history was not
+  incremental; saving email settings ran a full sync.
+- Events deleted or cancelled in Google Calendar, and Outlook occurrences that left the synced
+  range, stayed in Agent-X forever. They are now retired: an item still in the Smart Inbox is
+  removed, and a document already in the vault is kept but marked as removed and re-indexed,
+  because it may have been filed, annotated or cited.
+- The export dialog closed before its result could be read, listed formats and templates by
+  their internal names, and "Copy as Markdown" reported success on failure.
+- The Google and Microsoft connectors could only be configured by editing settings.json and
+  restarting. Providers are now registered, replaced and removed at runtime from the new
+  credentials form. Microsoft token requests no longer send an empty client secret, which public
+  clients reject, and a blank tenant or redirect URI falls back to the default.
+- Emails without a plain-text part were indexed with a character-by-character tag stripper that
+  kept CSS and script code; their HTML is now converted to readable text (the IncludeHtmlBody
+  option was documented but never read).
+
+**Local API, browser extension and mobile companion**
+
+- Regenerating the local API token did not revoke the old one until restart, and turning the API
+  off or on needed a restart.
+- The browser extension's clips failed on non-ISO dates, "Clip All Tabs" clipped only the active
+  tab, and "Full Page" sent raw HTML.
+- The Android companion crashed on launch and could not reach the desktop from the emulator.
+- When the local API could not start (for example because the port was taken), its listener was
+  left open; CORS preflight responses were logged with the wrong status code.
+
+**App shell and localization**
+
+- The shell stayed in the default language after a language change until the next launch, and
+  code-side strings showed their resource keys in the unpackaged app.
+- The navigation rail stayed disabled when onboarding was left by a shortcut or the command
+  palette; logging stopped after a navigation failure.
+- Caption buttons ignored the Day Shift theme, and the window could open off screen.
+- Page view models were kept in memory for the whole session each time a page was rebuilt.
+- The JOBS lamp opened the Workflow Builder instead of Operations.
+
+**Data layer**
+
+- The shared database context threw "A second operation was started on this context" when
+  background work (indexing, the local API, polling, sync, backups) overlapped the UI, and one
+  failed save broke every later save. Database work is now serialized, and a failed save
+  discards the pending changes instead of leaving them to fail every later save.
+- The startup schema repair recreated the `licenses` table, which a migration drops, on the second
+  launch of every install.
+- The log said "Agent-X started successfully" before the database and services had finished
+  starting; it now says so only when they have.
+
+**Chat, Dashboard and Past Self (follow-up passes)**
+
+- The empty chat said "no data leaves your machine" and showed a "100% Private" badge even with a
+  cloud provider, a remote Ollama host or web search active; it now names where messages go and
+  shows the badge only when nothing leaves the computer.
+- Compare branches always compared the main thread with the first branch; the Dashboard's New Chat
+  tile reopened the last conversation; the Dashboard hinted at Ollama whatever the provider and
+  called beliefs "consistent" when none had been recorded.
+- Translating text longer than 4,000 characters silently cut it; long text is translated in parts.
+- Past Self returned a stance for times before the belief was first recorded, looked topics up
+  case-sensitively, started the voice profile from an invented baseline, never showed the "view
+  has evolved" badge, and showed Active Topics as an empty belief result.
+- The cost tracker kept usage in memory only, so totals reset on every restart; usage history is
+  now kept for 90 days in the app data folder.
+- The Hardware Advisor and onboarding claimed CUDA acceleration for any NVIDIA GPU; GPU offload
+  needs the NVIDIA CUDA 12 Toolkit, and both now say so.
+
+**Localization**
+
+- More than 1,500 user-visible messages (status lines, errors, notifications, dialogs, labels built
+  in code, relative times such as "5m ago") were English in every language. They are now read
+  from the translation files in all six languages, and logic that compared displayed English text
+  (Operations and Dashboard statuses, export results, sync state) uses typed state instead.
+- The unlock and startup-failure dialogs, the export dialog's format and template names, and the
+  Model Manager subtitle follow the chosen language.
+- The Dashboard's privacy disclosures, the Settings connection-test and encryption statuses, the
+  chat's token counts and conversation times, the Quick Chat window, voice input status, the
+  Operations summary and the chat context inspector are translated as well.
+- Annotations were deleted without asking; the Annotations page now confirms first, and color
+  names and Inbox statuses are shown in the user's language.
+- Settings showed "SearXng" for SearXNG, Reset to Defaults said it restored every setting though
+  it keeps several, the Dashboard's search box promised Ctrl+K (which opens the Command Palette),
+  the Sync page said settings were synced, and the Dashboard subtitle and Research Mode tooltips
+  said everything stays on the machine or that chat answers from local knowledge; each now says what
+  is true.
+
+### Security
+
+- HTML exports rendered raw HTML from documents and chat, allowing stored script injection; raw
+  HTML is disabled, links and images are limited to safe schemes, and a restrictive Content
+  Security Policy is added. CSV exports are protected against formula injection.
+- Web import followed redirects, feed items, sitemap entries and page requests to private
+  network addresses; addresses discovered in remote content can no longer reach the local
+  network unless their source is itself local. Each connection is now checked when it is
+  opened, against the addresses the pre-request check approved, so a DNS answer that changes in
+  between (rebinding) cannot reach this computer or the LAN. Cloud metadata addresses are
+  refused in every form, typed URLs included, and a rendered page's WebSockets follow the same
+  rule.
+- Plugins no longer receive the OAuth service; plugin permissions are shown as informational
+  (plugins are not sandboxed).
+- The HNSW vector index is no longer written unencrypted next to an encrypted database.
+- Microsoft OAuth now requests offline access, and disconnecting revokes the whole grant.
+- PII redaction now runs before any language-model stage of the RAG pipeline and recognizes
+  current OpenAI, Anthropic, GitHub and AWS key formats.
+- The browser extension injects its content script only when a clip is requested and validates
+  the pairing token before storing it.
+- The unused collaboration hub, a local HTTP listener that nothing started, is removed.
+- The local API read request bodies whole whatever their size; bodies over 10 MB are now refused
+  with `413`.
+
+### Removed
+
+- The ReAct agent, reflection, reasoning, retry-policy, tool-registry and collaboration services,
+  which were registered but never used (tool calling is not implemented), and the unused
+  regenerate and truncate paths in the chat services.
+- Twelve feature flags that did not gate anything.
+- The "AI email categorization" option (email triage is rule-based), the "Include branches"
+  export option and the Calendar page's "Conflict resolution" choice (calendar sync only reads),
+  which did nothing.
+- Unused internal code paths and stale locale-audit task outputs.
+- The unused indexing job queue service (indexing keeps its own queue and job history), an
+  English model-size text nothing showed, and a stray resource file that duplicated 23 strings.
+- The canned-template Draft as Me generator (replaced by the AI provider), the "Copy for Chat"
+  button that only copied, an unused visibility converter, and the always-visible "Connect Ollama"
+  Dashboard hint.
+
+### Documentation
+
+- The user guide, in-app guide, README and reference docs were corrected to describe shipped
+  behavior only (keyboard shortcuts, workflows, connectors, profiles, backups, the local API,
+  the executable name `AgentX.App.exe`, search defaults, the Knowledge Graph, plugins, audio
+  transcription and web search), and the in-app guide sections that were still in English are
+  translated.
+- `API_ENDPOINTS.md` and `docs/API-REFERENCE.md` were rewritten from the code: the local REST API
+  as it is implemented, the public Core interfaces with their real signatures, and every outbound
+  connection the app can make. The old outbound list named services the app never calls.
+- The quick start, scenarios, templates, video scripts, `CONTRIBUTING.md`, `SECURITY.md` and
+  `docs/CI.md` were rebuilt around features and CI jobs that exist, and the historical release
+  notes and audits use plain ASCII punctuation.
 
 ## [2.2.0] - 2026-09-12 - "Command Console"
 
