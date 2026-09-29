@@ -64,7 +64,7 @@ public class DpapiEncryptionServiceTests
         string first = _sut.Encrypt(plaintext);
         string second = _sut.Encrypt(plaintext);
 
-        // Assert — DPAPI is non-deterministic; same input produces different output each time
+        // Assert - DPAPI is non-deterministic; same input produces different output each time
         first.Should().NotBe(second, "because DPAPI encryption is non-deterministic");
 
         // Both should still decrypt to the same original value

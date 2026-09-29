@@ -26,8 +26,9 @@ public interface IWorkflowEngine
         CancellationToken ct = default);
 
     /// <summary>
-    /// Requests cancellation of the currently executing workflow.
-    /// The engine will stop after the current step finishes and mark the run as cancelled.
+    /// Requests cancellation of the currently executing workflow. The running step's work (its
+    /// model or search call) is cancelled at once and the run is recorded as cancelled; this
+    /// method returns without waiting for the run to end.
     /// </summary>
     Task CancelExecutionAsync();
 

@@ -5,6 +5,7 @@ using AgentX.Core.Services.Analytics;
 using AgentX.Core.Services.Analytics.Models;
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Intelligence;
+using AgentX.Core.Services.Localization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Serilog;
@@ -19,15 +20,16 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
     private readonly IConversationThemeClusterService _conversationThemeClusterService;
     private readonly IConversationThemeTrendService _conversationThemeTrendService;
     private readonly IOperationsDrillInService? _operationsDrillInService;
+    private readonly ILocalizationService _localization;
     private readonly ILogger _log;
 
-    // ── Loading State ────────────────────────────────────────────────────────
+    // -- Loading State --------------------------------------------------------
 
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private bool _hasError;
     [ObservableProperty] private string _errorMessage = string.Empty;
 
-    // ── Summary Card Values ──────────────────────────────────────────────────
+    // -- Summary Card Values --------------------------------------------------
 
     [ObservableProperty] private string _totalConversations = "0";
     [ObservableProperty] private string _totalMessages = "0";
@@ -35,18 +37,18 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _totalDocuments = "0";
     [ObservableProperty] private string _totalSearches = "0";
     [ObservableProperty] private string _totalWorkflowRuns = "0";
-    [ObservableProperty] private string _averageResponseTime = "0 ms";
+    [ObservableProperty] private string _averageResponseTime;
     [ObservableProperty] private string _averageTokensPerMessage = "0";
     [ObservableProperty] private string _documentsIndexed = "0";
     [ObservableProperty] private string _documentsPending = "0";
 
-    // ── Indexing Progress ────────────────────────────────────────────────────
+    // -- Indexing Progress ----------------------------------------------------
 
-    /// <summary>Fraction of documents that are indexed (0.0–1.0) for the progress indicator.</summary>
+    /// <summary>Fraction of documents that are indexed (0.0-1.0) for the progress indicator.</summary>
     [ObservableProperty] private double _indexingCompletionFraction;
     [ObservableProperty] private string _indexingCompletionLabel = "0%";
 
-    // ── Daily Activity Trends ────────────────────────────────────────────────
+    // -- Daily Activity Trends ------------------------------------------------
 
     [ObservableProperty] private ObservableCollection<AnalyticsDailyItem> _dailyConversations = new();
     [ObservableProperty] private ObservableCollection<AnalyticsDailyItem> _dailyDocuments = new();
@@ -56,34 +58,34 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _hasDailyDocumentData;
     [ObservableProperty] private bool _hasDailySearchData;
 
-    // ── Model Usage ──────────────────────────────────────────────────────────
+    // -- Model Usage ----------------------------------------------------------
 
     [ObservableProperty] private ObservableCollection<AnalyticsModelItem> _modelUsage = new();
     [ObservableProperty] private bool _hasModelData;
 
-    // ── File Type Distribution ───────────────────────────────────────────────
+    // -- File Type Distribution -----------------------------------------------
 
     [ObservableProperty] private ObservableCollection<AnalyticsFileTypeItem> _fileTypeDistribution = new();
     [ObservableProperty] private bool _hasFileTypeData;
 
-    // ── Performance Metrics ──────────────────────────────────────────────────
+    // -- Performance Metrics --------------------------------------------------
 
-    [ObservableProperty] private string _perfAverage = "— ms";
-    [ObservableProperty] private string _perfMedian = "— ms";
-    [ObservableProperty] private string _perfP95 = "— ms";
-    [ObservableProperty] private string _perfFastest = "— ms";
-    [ObservableProperty] private string _perfSlowest = "— ms";
-    [ObservableProperty] private string _perfTotalInference = "—";
-    [ObservableProperty] private string _perfTokensPerSecond = "—";
+    [ObservableProperty] private string _perfAverage;
+    [ObservableProperty] private string _perfMedian;
+    [ObservableProperty] private string _perfP95;
+    [ObservableProperty] private string _perfFastest;
+    [ObservableProperty] private string _perfSlowest;
+    [ObservableProperty] private string _perfTotalInference = "-";
+    [ObservableProperty] private string _perfTokensPerSecond = "-";
     [ObservableProperty] private bool _hasPerformanceData;
 
-    // ── Workflow Intelligence ──────────────────────────────────────────────
+    // -- Workflow Intelligence ----------------------------------------------
 
     [ObservableProperty] private string _workflowRunsTotal = "0";
-    [ObservableProperty] private string _workflowSuccessRate = "—";
-    [ObservableProperty] private string _workflowAverageRunDuration = "—";
+    [ObservableProperty] private string _workflowSuccessRate = "-";
+    [ObservableProperty] private string _workflowAverageRunDuration = "-";
     [ObservableProperty] private string _workflowActiveRecently = "0";
-    [ObservableProperty] private string _workflowIntelligenceStatusMessage = "No workflow runs yet. Run a workflow to seed this section.";
+    [ObservableProperty] private string _workflowIntelligenceStatusMessage;
     [ObservableProperty] private ObservableCollection<AnalyticsDailyItem> _dailyWorkflowRuns = new();
     [ObservableProperty] private ObservableCollection<AnalyticsWorkflowTopItem> _topWorkflows = new();
     [ObservableProperty] private ObservableCollection<AnalyticsWorkflowRecentRunItem> _recentWorkflowRuns = new();
@@ -92,7 +94,7 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _hasTopWorkflows;
     [ObservableProperty] private bool _hasRecentWorkflowRuns;
 
-    // ── Conversation Intelligence ───────────────────────────────────────────
+    // -- Conversation Intelligence -------------------------------------------
 
     [ObservableProperty] private string _summarizedConversations = "0";
     [ObservableProperty] private string _currentSummarySnapshots = "0";
@@ -107,39 +109,39 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
     public bool HasFocusedConversationLanding => !string.IsNullOrWhiteSpace(FocusedConversationSourceLabel);
     public bool HasConversationIntelligenceStatusMessage => !string.IsNullOrWhiteSpace(ConversationIntelligenceStatusMessage);
 
-    // ── Conversation Recall ─────────────────────────────────────────────────
+    // -- Conversation Recall -------------------------------------------------
 
     [ObservableProperty] private string _embeddedMessages = "0";
     [ObservableProperty] private string _pendingMessageEmbeddings = "0";
     [ObservableProperty] private string _recallReadyConversations = "0";
-    [ObservableProperty] private string _lastMessageEmbeddingRefresh = "No embeddings yet";
+    [ObservableProperty] private string _lastMessageEmbeddingRefresh;
     [ObservableProperty] private string _recallQuery = string.Empty;
     [ObservableProperty] private bool _isRecallRunning;
-    [ObservableProperty] private string _recallStatusMessage = "Semantic recall searches durable message embeddings across past conversations.";
+    [ObservableProperty] private string _recallStatusMessage;
     [ObservableProperty] private ObservableCollection<AnalyticsConversationRecallItem> _conversationRecallResults = new();
     [ObservableProperty] private bool _hasConversationRecallCoverage;
     [ObservableProperty] private bool _hasConversationRecallResults;
 
-    // ── Conversation Themes ─────────────────────────────────────────────────
+    // -- Conversation Themes -------------------------------------------------
 
     [ObservableProperty] private string _activeThemeClusters = "0";
     [ObservableProperty] private string _clusteredThemeConversations = "0";
     [ObservableProperty] private string _newThemeClusters7d = "0";
-    [ObservableProperty] private string _lastThemeMaterialized = "No clusters yet";
+    [ObservableProperty] private string _lastThemeMaterialized;
     [ObservableProperty] private ObservableCollection<AnalyticsConversationThemeItem> _conversationThemeClusters = new();
     [ObservableProperty] private bool _hasConversationThemes;
     [ObservableProperty] private bool _hasConversationThemeClusters;
 
-    // ── Theme Trends ────────────────────────────────────────────────────────
+    // -- Theme Trends --------------------------------------------------------
 
     [ObservableProperty] private string _trendingThemes = "0";
     [ObservableProperty] private string _newThemeEntries7d = "0";
-    [ObservableProperty] private string _mostActiveTheme = "No trend data yet";
-    [ObservableProperty] private string _lastThemeTrendRefresh = "No trends yet";
+    [ObservableProperty] private string _mostActiveTheme;
+    [ObservableProperty] private string _lastThemeTrendRefresh;
     [ObservableProperty] private ObservableCollection<AnalyticsConversationThemeTrendItem> _conversationThemeTrends = new();
     [ObservableProperty] private bool _hasConversationThemeTrends;
 
-    // ── Computed Insights ────────────────────────────────────────────────────
+    // -- Computed Insights ----------------------------------------------------
 
     /// <summary>Formatted tokens per conversation (TotalTokens / TotalConversations).</summary>
     [ObservableProperty] private string _tokensPerConversation = "0";
@@ -151,6 +153,7 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
         IConversationThemeClusterService conversationThemeClusterService,
         IConversationThemeTrendService conversationThemeTrendService,
         ILogger logger,
+        ILocalizationService localization,
         IOperationsDrillInService? operationsDrillInService = null)
     {
         _analyticsService = analyticsService ?? throw new ArgumentNullException(nameof(analyticsService));
@@ -161,9 +164,24 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
         _operationsDrillInService = operationsDrillInService;
         _log = logger?.ForContext<AnalyticsViewModel>()
                ?? throw new ArgumentNullException(nameof(logger));
+        _localization = localization ?? throw new ArgumentNullException(nameof(localization));
+
+        _averageResponseTime = FormatMs(0);
+        var noTiming = _localization.GetString("Ana_DurationMilliseconds", "\u2014");
+        _perfAverage = noTiming;
+        _perfMedian = noTiming;
+        _perfP95 = noTiming;
+        _perfFastest = noTiming;
+        _perfSlowest = noTiming;
+        _workflowIntelligenceStatusMessage = _localization.GetString("Ana_WorkflowNoRunsYet");
+        _lastMessageEmbeddingRefresh = _localization.GetString("Ana_NoEmbeddingsYet");
+        _recallStatusMessage = _localization.GetString("Ana_RecallIntro");
+        _lastThemeMaterialized = _localization.GetString("Ana_NoClustersYet");
+        _mostActiveTheme = _localization.GetString("Ana_NoTrendDataYet");
+        _lastThemeTrendRefresh = _localization.GetString("Ana_NoTrendsYet");
     }
 
-    // ── Data Loading ─────────────────────────────────────────────────────────
+    // -- Data Loading ---------------------------------------------------------
 
     public async Task LoadDataAsync(CancellationToken ct = default)
     {
@@ -197,7 +215,7 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
         {
             _log.Error(ex, "Analytics: unexpected failure during full load");
             HasError = true;
-            ErrorMessage = "Failed to load analytics data. Please try refreshing.";
+            ErrorMessage = _localization.GetString("Ana_LoadFailed");
         }
         finally
         {
@@ -218,8 +236,8 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
             TotalSearches = FormatNumber(summary.TotalSearches);
             TotalWorkflowRuns = FormatNumber(summary.TotalWorkflowRuns);
             AverageResponseTime = summary.AverageResponseTimeMs > 0
-                ? $"{summary.AverageResponseTimeMs:F0} ms"
-                : "N/A";
+                ? _localization.GetString("Ana_DurationMilliseconds", summary.AverageResponseTimeMs.ToString("F0"))
+                : _localization.GetString("Ana_NotAvailable");
             AverageTokensPerMessage = summary.AverageTokensPerMessage > 0
                 ? $"{summary.AverageTokensPerMessage:F0}"
                 : "0";
@@ -299,14 +317,15 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
                 metrics.Select((m, i) => new AnalyticsModelItem
                 {
                     ModelId = m.ModelId,
+                    DisplayName = string.IsNullOrEmpty(m.ModelId) ? _localization.GetString("Ana_UnknownModel") : m.ModelId,
                     ConversationCount = m.ConversationCount,
                     TotalTokens = FormatTokens(m.TotalTokens),
                     Percentage = m.Percentage,
-                    // BarWidthFraction: 0.0–1.0 for PercentToWidthConverter
+                    // BarWidthFraction: 0.0-1.0 for PercentToWidthConverter
                     BarWidthFraction = m.Percentage / 100.0,
                     Color = colors[i % colors.Length],
                     PercentageLabel = $"{m.Percentage:F1}%",
-                    CountLabel = $"{m.ConversationCount} conv.",
+                    CountLabel = _localization.GetString("Ana_ModelConversationCount", m.ConversationCount),
                 }));
         }
         catch (Exception ex)
@@ -333,11 +352,13 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
                     Count = m.Count,
                     TotalSize = FormatHelper.FormatBytes(m.TotalSizeBytes),
                     Percentage = m.Percentage,
-                    // BarWidthFraction: 0.0–1.0 for PercentToWidthConverter
+                    // BarWidthFraction: 0.0-1.0 for PercentToWidthConverter
                     BarWidthFraction = m.Percentage / 100.0,
                     Color = colors[i % colors.Length],
                     PercentageLabel = $"{m.Percentage:F1}%",
-                    CountLabel = m.Count == 1 ? "1 file" : $"{m.Count} files",
+                    CountLabel = m.Count == 1
+                        ? _localization.GetString("Ana_FileCountOne")
+                        : _localization.GetString("Ana_FileCountMany", m.Count),
                 }));
         }
         catch (Exception ex)
@@ -365,13 +386,13 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
                 PerfSlowest = FormatMs(perf.SlowestResponseMs);
                 PerfTotalInference = FormatMs(perf.TotalInferenceTimeMs);
                 PerfTokensPerSecond = perf.AverageTokensPerSecond > 0
-                    ? $"{perf.AverageTokensPerSecond:F1} tok/s"
-                    : "N/A";
+                    ? _localization.GetString("Ana_TokensPerSecond", perf.AverageTokensPerSecond.ToString("F1"))
+                    : _localization.GetString("Ana_NotAvailable");
             }
             else
             {
                 PerfAverage = PerfMedian = PerfP95 = PerfFastest =
-                    PerfSlowest = PerfTotalInference = PerfTokensPerSecond = "N/A";
+                    PerfSlowest = PerfTotalInference = PerfTokensPerSecond = _localization.GetString("Ana_NotAvailable");
             }
         }
         catch (Exception ex)
@@ -379,7 +400,7 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
             _log.Warning(ex, "Analytics: failed to load performance metrics");
             HasPerformanceData = false;
             PerfAverage = PerfMedian = PerfP95 = PerfFastest =
-            PerfSlowest = PerfTotalInference = PerfTokensPerSecond = "N/A";
+            PerfSlowest = PerfTotalInference = PerfTokensPerSecond = _localization.GetString("Ana_NotAvailable");
         }
     }
 
@@ -399,10 +420,10 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
             WorkflowRunsTotal = FormatNumber(overview.TotalRuns);
             WorkflowSuccessRate = completedOutcomes > 0
                 ? $"{overview.SuccessRate:F1}%"
-                : "—";
+                : "-";
             WorkflowAverageRunDuration = overview.AverageRunDurationMs > 0
                 ? FormatMs(overview.AverageRunDurationMs)
-                : "—";
+                : "-";
             WorkflowActiveRecently = FormatNumber(overview.ActiveWorkflowsRecently);
 
             DailyWorkflowRuns = BuildDailyItems(dailyMetrics, "#FFB000");
@@ -440,14 +461,14 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
 
             WorkflowIntelligenceStatusMessage = HasWorkflowIntelligence
                 ? string.Empty
-                : "No workflow runs yet. Run a workflow to seed reliability, trend, and result analytics.";
+                : _localization.GetString("Ana_WorkflowNoRuns");
         }
         catch (Exception ex)
         {
             _log.Warning(ex, "Analytics: failed to load workflow intelligence");
             WorkflowRunsTotal = "0";
-            WorkflowSuccessRate = "—";
-            WorkflowAverageRunDuration = "—";
+            WorkflowSuccessRate = "-";
+            WorkflowAverageRunDuration = "-";
             WorkflowActiveRecently = "0";
             DailyWorkflowRuns = new ObservableCollection<AnalyticsDailyItem>();
             TopWorkflows = new ObservableCollection<AnalyticsWorkflowTopItem>();
@@ -456,7 +477,7 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
             HasTopWorkflows = false;
             HasRecentWorkflowRuns = false;
             HasWorkflowIntelligence = false;
-            WorkflowIntelligenceStatusMessage = "Workflow analytics are unavailable right now. Refresh and try again.";
+            WorkflowIntelligenceStatusMessage = _localization.GetString("Ana_WorkflowUnavailable");
         }
     }
 
@@ -542,6 +563,9 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
                 PreviewText = summary.PreviewText,
                 KeyPoints = summary.KeyPoints.ToList(),
                 CoveredMessageCount = summary.CoveredMessageCount,
+                CoverageLabel = summary.CoveredMessageCount == 1
+                    ? _localization.GetString("Ana_MessagesCoveredOne")
+                    : _localization.GetString("Ana_MessagesCoveredMany", summary.CoveredMessageCount),
                 GeneratedAt = summary.GeneratedAt,
                 StatusLabel = BuildConversationSummaryStatusLabel(summary),
                 StatusColor = summary.HasRefreshError
@@ -621,6 +645,7 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
             PreviewText = item.PreviewText,
             KeyPoints = item.KeyPoints,
             CoveredMessageCount = item.CoveredMessageCount,
+            CoverageLabel = item.CoverageLabel,
             GeneratedAt = item.GeneratedAt,
             GeneratedAtLabel = item.GeneratedAtLabel,
             StatusLabel = item.StatusLabel,
@@ -640,7 +665,7 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
             RecallReadyConversations = FormatNumber(overview.RecallReadyConversations);
             LastMessageEmbeddingRefresh = overview.LastEmbeddedAt.HasValue
                 ? BuildRelativeTimeLabel(overview.LastEmbeddedAt.Value)
-                : "No embeddings yet";
+                : _localization.GetString("Ana_NoEmbeddingsYet");
 
             HasConversationRecallCoverage = overview.EmbeddedMessages > 0
                 || overview.PendingMessageEmbeddings > 0
@@ -650,7 +675,7 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
         {
             _log.Warning(ex, "Analytics: failed to load conversation recall overview");
             HasConversationRecallCoverage = false;
-            LastMessageEmbeddingRefresh = "No embeddings yet";
+            LastMessageEmbeddingRefresh = _localization.GetString("Ana_NoEmbeddingsYet");
         }
     }
 
@@ -665,7 +690,7 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
             NewThemeClusters7d = FormatNumber(overview.NewThemes7d);
             LastThemeMaterialized = overview.LastMaterializedAt.HasValue
                 ? BuildRelativeTimeLabel(overview.LastMaterializedAt.Value)
-                : "No clusters yet";
+                : _localization.GetString("Ana_NoClustersYet");
 
             ConversationThemeClusters = new ObservableCollection<AnalyticsConversationThemeItem>(
                 overview.Clusters.Select(cluster => new AnalyticsConversationThemeItem
@@ -677,6 +702,11 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
                     ConversationCount = cluster.ConversationCount,
                     ActiveConversationCount7d = cluster.ActiveConversationCount7d,
                     ActiveConversationCount30d = cluster.ActiveConversationCount30d,
+                    ActivityLabel = _localization.GetString(
+                        "Ana_ThemeClusterActivity",
+                        cluster.ConversationCount,
+                        cluster.ActiveConversationCount7d,
+                        cluster.ActiveConversationCount30d),
                     LastActiveAtLabel = BuildRelativeTimeLabel(cluster.LastActiveAt),
                     RecentConversationTitles = cluster.RecentConversationTitles.ToList()
                 }));
@@ -692,7 +722,7 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
             ConversationThemeClusters = new ObservableCollection<AnalyticsConversationThemeItem>();
             HasConversationThemeClusters = false;
             HasConversationThemes = false;
-            LastThemeMaterialized = "No clusters yet";
+            LastThemeMaterialized = _localization.GetString("Ana_NoClustersYet");
         }
     }
 
@@ -705,11 +735,11 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
             TrendingThemes = FormatNumber(overview.TrendingThemes);
             NewThemeEntries7d = FormatNumber(overview.NewThemeEntries7d);
             MostActiveTheme = string.IsNullOrWhiteSpace(overview.MostActiveThemeLabel)
-                ? "No trend data yet"
+                ? _localization.GetString("Ana_NoTrendDataYet")
                 : overview.MostActiveThemeLabel;
             LastThemeTrendRefresh = overview.LastTrendRefresh.HasValue
                 ? BuildRelativeTimeLabel(overview.LastTrendRefresh.Value)
-                : "No trends yet";
+                : _localization.GetString("Ana_NoTrendsYet");
 
             ConversationThemeTrends = new ObservableCollection<AnalyticsConversationThemeTrendItem>(
                 overview.Trends.Select(metric =>
@@ -720,7 +750,8 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
                         ClusterId = metric.ClusterId,
                         Label = metric.Label,
                         PreviewText = metric.PreviewText,
-                        ActivitySummary = $"{metric.Recent7DayActivity} active / 7d · {recent30DayActivity} active / 30d",
+                        ActivitySummary = _localization.GetString(
+                            "Ana_ThemeTrendActivity", metric.Recent7DayActivity, recent30DayActivity),
                         MomentumLabel = BuildThemeTrendMomentumLabel(metric.Recent7DayActivity, metric.Previous7DayActivity),
                         NewEntriesLabel = BuildThemeTrendNewEntriesLabel(metric.Recent7DayNewEntries),
                         LastActiveAtLabel = BuildRelativeTimeLabel(metric.LastActiveAt),
@@ -735,12 +766,12 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
             _log.Warning(ex, "Analytics: failed to load conversation theme trends");
             ConversationThemeTrends = new ObservableCollection<AnalyticsConversationThemeTrendItem>();
             HasConversationThemeTrends = false;
-            MostActiveTheme = "No trend data yet";
-            LastThemeTrendRefresh = "No trends yet";
+            MostActiveTheme = _localization.GetString("Ana_NoTrendDataYet");
+            LastThemeTrendRefresh = _localization.GetString("Ana_NoTrendsYet");
         }
     }
 
-    // ── Commands ─────────────────────────────────────────────────────────────
+    // -- Commands -------------------------------------------------------------
 
     partial void OnRecallQueryChanged(string value)
     {
@@ -796,8 +827,7 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
         try
         {
             var refreshed = await _conversationSummaryService
-                .RefreshConversationSummaryAsync(targetConversationId, ct)
-                .ConfigureAwait(false);
+                .RefreshConversationSummaryAsync(targetConversationId, ct);
 
             if (!refreshed)
             {
@@ -806,13 +836,13 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
             }
 
             ClearFocusedConversationLanding();
-            await LoadConversationIntelligenceAsync(ct).ConfigureAwait(false);
+            await LoadConversationIntelligenceAsync(ct);
             ConversationIntelligenceStatusMessage = BuildConversationSummaryResolutionMessage(targetTitle);
         }
         catch (Exception ex)
         {
             _log.Warning(ex, "Analytics: focused durable summary refresh failed for conversation {ConversationId}", targetConversationId);
-            ConversationIntelligenceStatusMessage = "Focused durable summary refresh failed. Check AI connectivity and try again.";
+            ConversationIntelligenceStatusMessage = _localization.GetString("Ana_SummaryRefreshFailed");
         }
     }
 
@@ -828,17 +858,15 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
         }
 
         IsRecallRunning = true;
-        RecallStatusMessage = "Refreshing recent message embeddings and running recall...";
+        RecallStatusMessage = _localization.GetString("Ana_RecallRunning");
 
         try
         {
             await _conversationRecallService
-                .RefreshRecentConversationEmbeddingsAsync(6, ct)
-                .ConfigureAwait(false);
+                .RefreshRecentConversationEmbeddingsAsync(6, ct);
 
             var results = await _conversationRecallService
-                .SearchRelevantMessagesAsync(RecallQuery, maxResults: 6, minSimilarity: 0.68f, ct: ct)
-                .ConfigureAwait(false);
+                .SearchRelevantMessagesAsync(RecallQuery, maxResults: 6, minSimilarity: 0.68f, ct: ct);
 
             ConversationRecallResults = new ObservableCollection<AnalyticsConversationRecallItem>(
                 results.Select(result => new AnalyticsConversationRecallItem
@@ -847,29 +875,31 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
                     MessageId = result.MessageId,
                     ConversationTitle = result.ConversationTitle,
                     Role = result.Role,
-                    RoleLabel = result.Role == "assistant" ? "Assistant" : "User",
+                    RoleLabel = result.Role == "assistant"
+                        ? _localization.GetString("Ana_RoleAssistant")
+                        : _localization.GetString("Ana_RoleUser"),
                     PreviewText = result.ContentPreview,
                     Similarity = result.Similarity,
-                    SimilarityLabel = $"{Math.Round(result.Similarity * 100)}% match",
+                    SimilarityLabel = _localization.GetString("Ana_RecallMatchPercent", Math.Round(result.Similarity * 100)),
                     Timestamp = result.Timestamp,
                     TimestampLabel = BuildRelativeTimeLabel(result.Timestamp)
                 }));
 
             HasConversationRecallResults = ConversationRecallResults.Count > 0;
             RecallStatusMessage = ConversationRecallResults.Count == 0
-                ? "No durable recall matches cleared the current similarity threshold."
+                ? _localization.GetString("Ana_RecallNoMatches")
                 : ConversationRecallResults.Count == 1
-                    ? "1 durable recall match found."
-                    : $"{ConversationRecallResults.Count} durable recall matches found.";
+                    ? _localization.GetString("Ana_RecallMatchesOne")
+                    : _localization.GetString("Ana_RecallMatchesMany", ConversationRecallResults.Count);
 
-            await LoadConversationRecallAsync(ct).ConfigureAwait(false);
+            await LoadConversationRecallAsync(ct);
         }
         catch (Exception ex)
         {
             _log.Warning(ex, "Analytics: conversation recall query failed");
             ConversationRecallResults = new ObservableCollection<AnalyticsConversationRecallItem>();
             HasConversationRecallResults = false;
-            RecallStatusMessage = "Conversation recall failed. Check embedding availability and try again.";
+            RecallStatusMessage = _localization.GetString("Ana_RecallFailed");
         }
         finally
         {
@@ -891,23 +921,17 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
             RecentConversationSummaries.Select(item => CloneConversationSummaryItem(item, false)));
     }
 
-    private static string BuildConversationSummaryResolutionMessage(string? title)
-    {
-        var resolvedLabel = !string.IsNullOrWhiteSpace(title)
-            ? $"\"{title}\""
-            : "the focused conversation summary";
-        return $"Resolved {resolvedLabel} by refreshing its durable summary.";
-    }
+    private string BuildConversationSummaryResolutionMessage(string? title) =>
+        !string.IsNullOrWhiteSpace(title)
+            ? _localization.GetString("Ana_SummaryResolved", title)
+            : _localization.GetString("Ana_SummaryResolvedUntitled");
 
-    private static string BuildConversationSummaryRefreshUnchangedMessage(string? title)
-    {
-        var resolvedLabel = !string.IsNullOrWhiteSpace(title)
-            ? $"\"{title}\""
-            : "the focused conversation summary";
-        return $"No refreshed durable summary was generated for {resolvedLabel}. The current state was kept.";
-    }
+    private string BuildConversationSummaryRefreshUnchangedMessage(string? title) =>
+        !string.IsNullOrWhiteSpace(title)
+            ? _localization.GetString("Ana_SummaryUnchanged", title)
+            : _localization.GetString("Ana_SummaryUnchangedUntitled");
 
-    // ── Private Helpers ──────────────────────────────────────────────────────
+    // -- Private Helpers ------------------------------------------------------
 
     /// <summary>
     /// Converts a list of <see cref="DailyMetric"/> records into display items with
@@ -927,14 +951,14 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
                 Count = m.Count,
                 Label = m.Label,
                 Color = color,
-                // BarHeightPercent: 0–100 relative to the series maximum
+                // BarHeightPercent: 0-100 relative to the series maximum
                 BarHeightPercent = m.Count * 100.0 / max,
                 // Clamp minimum bar height so zero days are visually distinguishable
                 BarHeight = m.Count > 0 ? Math.Max(2.0, m.Count * 60.0 / max) : 1.0,
             }));
     }
 
-    private static IReadOnlyList<AnalyticsConversationThemeTrendBarItem> BuildThemeTrendBars(
+    private IReadOnlyList<AnalyticsConversationThemeTrendBarItem> BuildThemeTrendBars(
         IReadOnlyList<ConversationThemeDailyPoint> points)
     {
         if (points.Count == 0)
@@ -954,33 +978,38 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
             {
                 Date = point.Date,
                 BarHeight = total > 0 ? Math.Max(4.0, total * 44.0 / max) : 2.0,
-                Tooltip = $"{point.Date:MMM d}: {point.ActiveConversationCount} active, {point.NewConversationCount} new, {point.SnapshotRefreshCount} snapshots"
+                Tooltip = _localization.GetString(
+                    "Ana_ThemeTrendBarTooltip",
+                    point.Date.ToString("MMM d"),
+                    point.ActiveConversationCount,
+                    point.NewConversationCount,
+                    point.SnapshotRefreshCount)
             };
         }).ToList();
     }
 
-    private static string BuildThemeTrendMomentumLabel(int recent7DayActivity, int previous7DayActivity)
+    private string BuildThemeTrendMomentumLabel(int recent7DayActivity, int previous7DayActivity)
     {
         var delta = recent7DayActivity - previous7DayActivity;
         if (recent7DayActivity == 0 && previous7DayActivity == 0)
         {
-            return "No recent movement";
+            return _localization.GetString("Ana_TrendNoMovement");
         }
 
         if (delta > 0)
         {
-            return $"+{delta} vs prior 7d";
+            return _localization.GetString("Ana_TrendVsPrior", $"+{delta}");
         }
 
         if (delta < 0)
         {
-            return $"{delta} vs prior 7d";
+            return _localization.GetString("Ana_TrendVsPrior", delta);
         }
 
-        return "Flat vs prior 7d";
+        return _localization.GetString("Ana_TrendFlat");
     }
 
-    private static string BuildThemeTrendNewEntriesLabel(int recent7DayNewEntries)
+    private string BuildThemeTrendNewEntriesLabel(int recent7DayNewEntries)
     {
         if (recent7DayNewEntries <= 0)
         {
@@ -988,53 +1017,55 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
         }
 
         return recent7DayNewEntries == 1
-            ? "1 new theme entry this week"
-            : $"{recent7DayNewEntries} new theme entries this week";
+            ? _localization.GetString("Ana_NewThemeEntriesOne")
+            : _localization.GetString("Ana_NewThemeEntriesMany", recent7DayNewEntries);
     }
 
-    private static string BuildWorkflowRunVolumeLabel(int runCount) =>
-        runCount == 1 ? "1 run" : $"{runCount} runs";
+    private string BuildWorkflowRunVolumeLabel(int runCount) =>
+        runCount == 1
+            ? _localization.GetString("Ana_RunCountOne")
+            : _localization.GetString("Ana_RunCountMany", runCount);
 
-    private static string BuildWorkflowSuccessRateLabel(
+    private string BuildWorkflowSuccessRateLabel(
         double successRate,
         int successfulRuns,
         int failedOrCancelledRuns)
     {
         var outcomeRuns = successfulRuns + failedOrCancelledRuns;
         return outcomeRuns > 0
-            ? $"{successRate:F1}% success"
-            : "No completed outcomes yet";
+            ? _localization.GetString("Ana_SuccessRate", successRate.ToString("F1"))
+            : _localization.GetString("Ana_NoCompletedOutcomes");
     }
 
-    private static string BuildWorkflowReliabilityLabel(int successfulRuns, int failedOrCancelledRuns)
+    private string BuildWorkflowReliabilityLabel(int successfulRuns, int failedOrCancelledRuns)
     {
         var outcomeRuns = successfulRuns + failedOrCancelledRuns;
         if (outcomeRuns == 0)
         {
-            return "No completed outcomes yet";
+            return _localization.GetString("Ana_NoCompletedOutcomes");
         }
 
         if (failedOrCancelledRuns == 0)
         {
             return successfulRuns == 1
-                ? "1 successful run"
-                : $"{successfulRuns} successful runs";
+                ? _localization.GetString("Ana_SuccessfulRunsOne")
+                : _localization.GetString("Ana_SuccessfulRunsMany", successfulRuns);
         }
 
-        return $"{successfulRuns} succeeded · {failedOrCancelledRuns} failed/cancelled";
+        return _localization.GetString("Ana_RunsSucceededAndFailed", successfulRuns, failedOrCancelledRuns);
     }
 
-    private static string BuildWorkflowStatusLabel(string status) => status switch
+    private string BuildWorkflowStatusLabel(string status) => status switch
     {
-        "completed" => "Completed",
-        "failed" => "Failed",
-        "cancelled" => "Cancelled",
-        "running" => "Running",
-        "pending" => "Pending",
-        _ => "Unknown"
+        "completed" => _localization.GetString("Ana_RunStatusCompleted"),
+        "failed" => _localization.GetString("Ana_RunStatusFailed"),
+        "cancelled" => _localization.GetString("Ana_RunStatusCancelled"),
+        "running" => _localization.GetString("Ana_RunStatusRunning"),
+        "pending" => _localization.GetString("Ana_RunStatusPending"),
+        _ => _localization.GetString("Ana_RunStatusUnknown")
     };
 
-    private static string BuildWorkflowRunDurationLabel(string status, long? durationMs)
+    private string BuildWorkflowRunDurationLabel(string status, long? durationMs)
     {
         if (durationMs.HasValue && durationMs.Value > 0)
         {
@@ -1043,9 +1074,9 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
 
         return status switch
         {
-            "running" => "In progress",
-            "pending" => "Queued",
-            _ => "No duration"
+            "running" => _localization.GetString("Ana_DurationInProgress"),
+            "pending" => _localization.GetString("Ana_DurationQueued"),
+            _ => _localization.GetString("Ana_NoDuration")
         };
     }
 
@@ -1061,48 +1092,50 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
         : value >= 1_000 ? $"{value / 1_000.0:F1}K"
         : value.ToString();
 
-    private static string FormatMs(double ms) =>
-        ms >= 60_000 ? $"{ms / 60_000.0:F1} min"
-        : ms >= 1_000 ? $"{ms / 1_000.0:F2} s"
-        : $"{ms:F0} ms";
+    private string FormatMs(double ms) =>
+        ms >= 60_000 ? _localization.GetString("Ana_DurationMinutes", (ms / 60_000.0).ToString("F1"))
+        : ms >= 1_000 ? _localization.GetString("Ana_DurationSeconds", (ms / 1_000.0).ToString("F2"))
+        : _localization.GetString("Ana_DurationMilliseconds", ms.ToString("F0"));
 
-    private static string BuildConversationSummaryStatusLabel(ConversationSummaryMetric summary)
+    private string BuildConversationSummaryStatusLabel(ConversationSummaryMetric summary)
     {
         if (summary.HasRefreshError)
         {
-            return "Refresh issue";
+            return _localization.GetString("Ana_SummaryRefreshIssue");
         }
 
         if (summary.IsStale && summary.PendingMessageCount > 0)
         {
             return summary.PendingMessageCount == 1
-                ? "1 new message"
-                : $"{summary.PendingMessageCount} new messages";
+                ? _localization.GetString("Ana_NewMessagesOne")
+                : _localization.GetString("Ana_NewMessagesMany", summary.PendingMessageCount);
         }
 
-        return "Current";
+        return _localization.GetString("Ana_SummaryCurrent");
     }
 
-    private static string BuildRelativeTimeLabel(DateTime generatedAt)
+    private string BuildRelativeTimeLabel(DateTime generatedAt)
     {
         var elapsed = DateTime.UtcNow - generatedAt;
         if (elapsed < TimeSpan.FromMinutes(1))
         {
-            return "just now";
+            return _localization.GetString("Ana_TimeJustNow");
         }
 
         if (elapsed < TimeSpan.FromHours(1))
         {
-            return $"{Math.Max(1, (int)elapsed.TotalMinutes)} min ago";
+            return _localization.GetString("Ana_TimeMinutesAgo", Math.Max(1, (int)elapsed.TotalMinutes));
         }
 
         if (elapsed < TimeSpan.FromDays(1))
         {
-            return $"{Math.Max(1, (int)elapsed.TotalHours)} hr ago";
+            return _localization.GetString("Ana_TimeHoursAgo", Math.Max(1, (int)elapsed.TotalHours));
         }
 
         var days = Math.Max(1, (int)elapsed.TotalDays);
-        return days == 1 ? "1 day ago" : $"{days} days ago";
+        return days == 1
+            ? _localization.GetString("Ana_TimeOneDayAgo")
+            : _localization.GetString("Ana_TimeDaysAgo", days);
     }
 
     public void Dispose()
@@ -1111,9 +1144,9 @@ public partial class AnalyticsViewModel : ObservableObject, IDisposable
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════
+// ===================================================================
 //  DISPLAY ITEM CLASSES (top-level for x:Bind DataTemplate support)
-// ═══════════════════════════════════════════════════════════════════
+// ===================================================================
 
 /// <summary>
 /// Represents a single day's activity for display in a bar-chart row.
@@ -1159,7 +1192,7 @@ public sealed class AnalyticsWorkflowRecentRunItem
     public string PreviewText { get; init; } = string.Empty;
     public string TimelineLabel => string.IsNullOrWhiteSpace(DurationLabel)
         ? StartedAtLabel
-        : $"{StartedAtLabel} · {DurationLabel}";
+        : $"{StartedAtLabel} | {DurationLabel}";
 }
 
 /// <summary>
@@ -1176,7 +1209,9 @@ public sealed class AnalyticsModelItem
     public string Color { get; init; } = "#AA2024";
     public string PercentageLabel { get; init; } = string.Empty;
     public string CountLabel { get; init; } = string.Empty;
-    public string DisplayName => string.IsNullOrEmpty(ModelId) ? "Unknown" : ModelId;
+
+    /// <summary>The model id, or "Unknown" in the user's language when the usage row has none.</summary>
+    public string DisplayName { get; init; } = string.Empty;
 }
 
 /// <summary>
@@ -1213,10 +1248,10 @@ public sealed class AnalyticsConversationSummaryItem
     public string SourceLabel { get; init; } = string.Empty;
     public bool HasKeyPoints => KeyPoints.Count > 0;
     public bool HasSourceLabel => !string.IsNullOrWhiteSpace(SourceLabel);
-    public string KeyPointsPreview => string.Join(" · ", KeyPoints);
-    public string CoverageLabel => CoveredMessageCount == 1
-        ? "1 message covered"
-        : $"{CoveredMessageCount} messages covered";
+    public string KeyPointsPreview => string.Join(" | ", KeyPoints);
+
+    /// <summary>How many messages the summary covers, e.g. "6 messages covered".</summary>
+    public string CoverageLabel { get; init; } = string.Empty;
 }
 
 /// <summary>
@@ -1234,7 +1269,7 @@ public sealed class AnalyticsConversationRecallItem
     public string SimilarityLabel { get; init; } = string.Empty;
     public DateTime Timestamp { get; init; }
     public string TimestampLabel { get; init; } = string.Empty;
-    public string ConversationLabel => $"{ConversationTitle} · {RoleLabel}";
+    public string ConversationLabel => $"{ConversationTitle} | {RoleLabel}";
 }
 
 /// <summary>
@@ -1253,9 +1288,11 @@ public sealed class AnalyticsConversationThemeItem
     public IReadOnlyList<string> RecentConversationTitles { get; init; } = Array.Empty<string>();
     public bool HasKeyPoints => KeyPoints.Count > 0;
     public bool HasRecentConversations => RecentConversationTitles.Count > 0;
-    public string KeyPointsPreview => string.Join(" · ", KeyPoints);
-    public string RecentConversationsPreview => string.Join(" · ", RecentConversationTitles);
-    public string ActivityLabel => $"{ConversationCount} conversations · {ActiveConversationCount7d} active / 7d · {ActiveConversationCount30d} active / 30d";
+    public string KeyPointsPreview => string.Join(" | ", KeyPoints);
+    public string RecentConversationsPreview => string.Join(" | ", RecentConversationTitles);
+
+    /// <summary>The cluster's size and recent activity: conversations, and how many were active in 7 and 30 days.</summary>
+    public string ActivityLabel { get; init; } = string.Empty;
 }
 
 /// <summary>
@@ -1284,7 +1321,7 @@ public sealed class AnalyticsConversationThemeTrendBarItem
     public string Tooltip { get; init; } = string.Empty;
 }
 
-// ─── Task tuple extension ────────────────────────────────────────────────────
+// --- Task tuple extension ----------------------------------------------------
 // Allows awaiting a ValueTuple of Tasks elegantly in LoadDailyTrendsAsync.
 
 file static class TaskTupleExtensions

@@ -47,7 +47,7 @@ public sealed class SettingsServiceTests : IDisposable
         }
     }
 
-    // ── GetSettingsAsync ─────────────────────────────────────────────────
+    // -- GetSettingsAsync -------------------------------------------------
 
     [Fact]
     public async Task GetSettingsAsync_WhenNoFileExists_ReturnsDefaultSettings()
@@ -79,7 +79,7 @@ public sealed class SettingsServiceTests : IDisposable
         File.Exists(settingsPath).Should().BeTrue("the service should persist defaults when no file exists");
     }
 
-    // ── SaveSettingsAsync + GetSettingsAsync round-trip ──────────────────
+    // -- SaveSettingsAsync + GetSettingsAsync round-trip ------------------
 
     [Fact]
     public async Task SaveSettingsAsync_AndGetSettingsAsync_RoundTripCorrectly()
@@ -119,7 +119,7 @@ public sealed class SettingsServiceTests : IDisposable
         loaded.OpenAiApiKey.Should().Be("sk-test-key-12345");
     }
 
-    // ── GetValueAsync ───────────────────────────────────────────────────
+    // -- GetValueAsync ---------------------------------------------------
 
     [Fact]
     public async Task GetValueAsync_WithKnownProperty_ReturnsCorrectTypedValue()
@@ -175,7 +175,7 @@ public sealed class SettingsServiceTests : IDisposable
         result.Should().Be(0, "default(int) is 0 for a missing property");
     }
 
-    // ── SetValueAsync ───────────────────────────────────────────────────
+    // -- SetValueAsync ---------------------------------------------------
 
     [Fact]
     public async Task SetValueAsync_UpdatesPropertyAndPersists()
@@ -190,7 +190,7 @@ public sealed class SettingsServiceTests : IDisposable
         var settings = await _sut.GetSettingsAsync();
         settings.MaxTokens.Should().Be(16384);
 
-        // Assert: verify persistence — read from disk with a fresh instance
+        // Assert: verify persistence - read from disk with a fresh instance
         var freshService = new SettingsService(new DpapiEncryptionService());
         var field = typeof(SettingsService).GetField("_settingsPath",
             BindingFlags.Instance | BindingFlags.NonPublic);
@@ -213,7 +213,7 @@ public sealed class SettingsServiceTests : IDisposable
         await act.Should().NotThrowAsync();
     }
 
-    // ── Caching ─────────────────────────────────────────────────────────
+    // -- Caching ---------------------------------------------------------
 
     [Fact]
     public async Task GetSettingsAsync_ConcurrentCalls_ReturnSameCachedInstance()

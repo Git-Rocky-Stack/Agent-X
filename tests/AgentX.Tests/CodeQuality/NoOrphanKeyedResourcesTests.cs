@@ -144,7 +144,7 @@ public sealed class NoOrphanKeyedResourcesTests
             string.Join("\n  ", stale));
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
+    // -- Helpers --------------------------------------------------------------
 
     private sealed record Definition(string Key, string Path, int Start, int End);
 

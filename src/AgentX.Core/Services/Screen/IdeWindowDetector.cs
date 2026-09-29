@@ -6,7 +6,7 @@ namespace AgentX.Core.Services.Screen;
 /// Pure static utility that detects IDE context from a window title string.
 /// Parses structured information (IDE name, active file, project, language)
 /// from the title bars of common development environments.
-/// No external dependencies — entirely string-based detection.
+/// No external dependencies - entirely string-based detection.
 /// </summary>
 public static class IdeWindowDetector
 {

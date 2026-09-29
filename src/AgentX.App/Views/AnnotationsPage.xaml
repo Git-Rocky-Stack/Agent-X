@@ -16,7 +16,7 @@
 
     <Grid>
 
-        <!-- ═══════ ADAPTIVE LAYOUT (Tier 3) — see Colors.xaml breakpoints ═══════
+        <!-- ======= ADAPTIVE LAYOUT (Tier 3) - see Colors.xaml breakpoints =======
              Narrow (<960):  sidebar 240   |  Medium (>=960): sidebar 260
              Wide (>=1280):  sidebar 280 (markup default) -->
         <VisualStateManager.VisualStateGroups>
@@ -50,9 +50,9 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <!-- ══════════════════════════════════════════════════════════
+        <!-- ==========================================================
              LEFT PANEL: Filters & Stats
-             ══════════════════════════════════════════════════════════ -->
+             ========================================================== -->
         <Border Grid.Column="0"
                 Background="{ThemeResource CardGradientSubtleBrush}"
                 BorderBrush="{ThemeResource BorderSubtleBrush}"
@@ -87,10 +87,12 @@
                             <StackLayout Spacing="4" />
                         </ItemsRepeater.Layout>
                         <ItemsRepeater.ItemTemplate>
-                            <DataTemplate x:DataType="x:String">
-                                <Button Content="{x:Bind}"
+                            <!-- The button shows the color's name in the user's language and filters
+                                 by the stored color value. -->
+                            <DataTemplate x:DataType="vm:AnnotationColorOption">
+                                <Button Content="{x:Bind Label}"
                                         Command="{Binding ViewModel.FilterByColorCommand, ElementName=AnnotationsRoot}"
-                                        CommandParameter="{Binding}"
+                                        CommandParameter="{x:Bind Value}"
                                         HorizontalAlignment="Stretch"
                                         HorizontalContentAlignment="Left"
                                         Style="{StaticResource GhostButtonStyle}"
@@ -122,7 +124,7 @@
                                              Fill="{x:Bind views:AnnotationsPage.ColorToBrush(Color)}"
                                              VerticalAlignment="Center" />
                                     <TextBlock Grid.Column="1"
-                                               Text="{x:Bind Color}"
+                                               Text="{x:Bind ColorLabel}"
                                                Style="{StaticResource CaptionStyle}"
                                                VerticalAlignment="Center" />
                                     <TextBlock Grid.Column="2"
@@ -143,9 +145,9 @@
             </StackPanel>
         </Border>
 
-        <!-- ══════════════════════════════════════════════════════════
+        <!-- ==========================================================
              RIGHT PANEL: Annotation List
-             ══════════════════════════════════════════════════════════ -->
+             ========================================================== -->
         <Grid Grid.Column="1">
             <ScrollViewer VerticalScrollBarVisibility="Auto"
                           HorizontalScrollBarVisibility="Disabled">
@@ -278,11 +280,11 @@
             </ScrollViewer>
         </Grid>
 
-        <!-- ══════════════════════════════════════════════════════════
+        <!-- ==========================================================
              EDIT ANNOTATION PANEL
              Shown while an annotation is being edited. Spans both columns
              so it reads as a modal layer over the list beneath it.
-             ══════════════════════════════════════════════════════════ -->
+             ========================================================== -->
         <Grid Grid.Column="0" Grid.ColumnSpan="2"
               Background="{ThemeResource OverlayBrush}"
               Visibility="{x:Bind ViewModel.IsEditing, Mode=OneWay, Converter={StaticResource BoolToVis}}">
@@ -315,7 +317,7 @@
                         <TextBlock x:Uid="Annot_EditColorLabel" Text="Color"
                                    Style="{StaticResource LabelStyle}" />
                         <ComboBox ItemsSource="{x:Bind ViewModel.EditColorOptions}"
-                                  SelectedItem="{x:Bind ViewModel.EditColor, Mode=TwoWay}"
+                                  SelectedItem="{x:Bind ViewModel.EditColorOption, Mode=TwoWay}"
                                   x:Uid="Annot_EditColorBox"
                                   HorizontalAlignment="Stretch" />
                     </StackPanel>

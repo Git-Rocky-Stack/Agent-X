@@ -28,7 +28,7 @@ public sealed class AnalyticsService : IAnalyticsService
                ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    // ── Summary ─────────────────────────────────────────────────────────────
+    // -- Summary -------------------------------------------------------------
 
     /// <inheritdoc />
     public async Task<AnalyticsSummary> GetSummaryAsync(CancellationToken ct = default)
@@ -49,7 +49,7 @@ public sealed class AnalyticsService : IAnalyticsService
             var pendingCountTask = _db.Documents.AsNoTracking()
                 .CountAsync(d => d.IndexingStatus == "pending" || d.IndexingStatus == "processing", ct);
 
-            // Average response time — only assistant messages with timing data
+            // Average response time - only assistant messages with timing data
             var avgResponseTask = _db.Messages.AsNoTracking()
                 .Where(m => m.Role == "assistant" && m.GenerationTimeMs != null && m.GenerationTimeMs > 0)
                 .Select(m => m.GenerationTimeMs)
@@ -87,7 +87,7 @@ public sealed class AnalyticsService : IAnalyticsService
         }
     }
 
-    // ── Daily Metrics ────────────────────────────────────────────────────────
+    // -- Daily Metrics --------------------------------------------------------
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<DailyMetric>> GetDailyConversationMetricsAsync(
@@ -158,7 +158,7 @@ public sealed class AnalyticsService : IAnalyticsService
         }
     }
 
-    // ── Model Usage ──────────────────────────────────────────────────────────
+    // -- Model Usage ----------------------------------------------------------
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<ModelUsageMetric>> GetModelUsageAsync(CancellationToken ct = default)
@@ -200,7 +200,7 @@ public sealed class AnalyticsService : IAnalyticsService
         }
     }
 
-    // ── File Type Distribution ───────────────────────────────────────────────
+    // -- File Type Distribution -----------------------------------------------
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<FileTypeMetric>> GetFileTypeDistributionAsync(CancellationToken ct = default)
@@ -241,7 +241,7 @@ public sealed class AnalyticsService : IAnalyticsService
         }
     }
 
-    // ── Performance Metrics ──────────────────────────────────────────────────
+    // -- Performance Metrics --------------------------------------------------
 
     /// <inheritdoc />
     public async Task<PerformanceMetrics> GetPerformanceMetricsAsync(CancellationToken ct = default)
@@ -307,7 +307,7 @@ public sealed class AnalyticsService : IAnalyticsService
         }
     }
 
-    // ── Workflow Intelligence ──────────────────────────────────────────────
+    // -- Workflow Intelligence ----------------------------------------------
 
     /// <inheritdoc />
     public async Task<WorkflowIntelligenceOverview> GetWorkflowIntelligenceOverviewAsync(
@@ -497,7 +497,7 @@ public sealed class AnalyticsService : IAnalyticsService
         }
     }
 
-    // ── Conversation Intelligence ──────────────────────────────────────────
+    // -- Conversation Intelligence ------------------------------------------
 
     /// <inheritdoc />
     public async Task<ConversationIntelligenceOverview> GetConversationIntelligenceAsync(
@@ -856,7 +856,7 @@ public sealed class AnalyticsService : IAnalyticsService
         }
     }
 
-    // ── Private Helpers ──────────────────────────────────────────────────────
+    // -- Private Helpers ------------------------------------------------------
 
     /// <summary>
     /// Produces a contiguous list of <see cref="DailyMetric"/> records covering the last
@@ -952,7 +952,7 @@ public sealed class AnalyticsService : IAnalyticsService
     }
 
     /// <summary>
-    /// Computes the <paramref name="percentile"/>-th percentile (0–100) from an ascending-sorted
+    /// Computes the <paramref name="percentile"/>-th percentile (0-100) from an ascending-sorted
     /// list using the nearest-rank method.
     /// </summary>
     private static double ComputePercentile(List<double> sortedValues, int percentile)
@@ -1031,6 +1031,6 @@ public sealed class AnalyticsService : IAnalyticsService
 
         return compact.Length <= 160
             ? compact
-            : $"{compact[..159].TrimEnd()}…";
+            : $"{compact[..157].TrimEnd()}...";
     }
 }

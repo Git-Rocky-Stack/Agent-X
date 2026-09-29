@@ -1,6 +1,8 @@
+using System.Globalization;
 using System.Text;
 using AgentX.Core.Data;
 using AgentX.Core.Data.Entities;
+using AgentX.Core.Services.TemporalIdentity;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -15,6 +17,7 @@ public class AnnotationService : IAnnotationService
 {
     private readonly AgentXDbContext _db;
     private readonly ILogger _log;
+    private readonly ITemporalIdentityService? _temporalIdentity;
 
     /// <summary>
     /// Valid colour labels accepted by the annotation system.
@@ -25,11 +28,16 @@ public class AnnotationService : IAnnotationService
             "yellow", "green", "blue", "red", "purple"
         };
 
-    public AnnotationService(AgentXDbContext db, ILogger logger)
+    /// <param name="temporalIdentity">
+    /// Optional. When supplied, every new annotation is handed to Temporal Identity, which keeps
+    /// highlights as insight moments (resolved from DI when registered).
+    /// </param>
+    public AnnotationService(AgentXDbContext db, ILogger logger, ITemporalIdentityService? temporalIdentity = null)
     {
         _db = db ?? throw new ArgumentNullException(nameof(db));
         _log = logger?.ForContext<AnnotationService>()
                ?? throw new ArgumentNullException(nameof(logger));
+        _temporalIdentity = temporalIdentity;
     }
 
     /// <inheritdoc />
@@ -70,7 +78,8 @@ public class AnnotationService : IAnnotationService
                 StartOffset = startOffset,
                 EndOffset = endOffset,
                 HighlightedText = highlightedText.Trim(),
-                NoteText = noteText?.Trim(),
+                // A blank note is no note, the same rule UpdateAnnotationAsync applies.
+                NoteText = string.IsNullOrWhiteSpace(noteText) ? null : noteText.Trim(),
                 Color = color.ToLowerInvariant(),
                 CreatedAt = now,
                 UpdatedAt = now,
@@ -84,6 +93,7 @@ public class AnnotationService : IAnnotationService
                 "(offsets {Start}-{End}, color={Color})",
                 annotation.Id, documentId, startOffset, endOffset, annotation.Color);
 
+            await CaptureAsInsightAsync(annotation.Id);
             return annotation;
         }
         catch (ArgumentException)
@@ -96,6 +106,74 @@ public class AnnotationService : IAnnotationService
                 ex,
                 "Failed to create annotation on document {DocumentId}",
                 documentId);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// A highlight is a strong belief signal (the user chose to mark it), so Temporal Identity
+    /// keeps it as an insight moment. Nothing called it before, so highlights never reached
+    /// Past Self. The annotation is already saved: a failure here is logged, never thrown.
+    /// </summary>
+    private async Task CaptureAsInsightAsync(long annotationId)
+    {
+        if (_temporalIdentity is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _temporalIdentity.ProcessAnnotationAsync(annotationId);
+        }
+        catch (Exception ex)
+        {
+            _log.Warning(ex, "Temporal identity could not process annotation {AnnotationId}", annotationId);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<AnnotationPassage?> GetPassageAsync(
+        long documentId,
+        int position,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            var chunks = _db.DocumentChunks
+                .AsNoTracking()
+                .Where(c => c.DocumentId == documentId);
+
+            var count = await chunks.CountAsync(ct);
+            if (count == 0)
+            {
+                return null;
+            }
+
+            var clamped = Math.Clamp(position, 0, count - 1);
+            var chunk = await chunks
+                .OrderBy(c => c.ChunkIndex)
+                .ThenBy(c => c.Id)
+                .Skip(clamped)
+                .Select(c => new { c.Id, c.PageNumber, c.Content })
+                .FirstOrDefaultAsync(ct);
+
+            // The chunks can be replaced between the two reads (a re-index); the caller then
+            // shows no text rather than a passage that no longer exists.
+            return chunk is null
+                ? null
+                : new AnnotationPassage(chunk.Id, clamped, count, chunk.PageNumber, chunk.Content);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _log.Error(
+                ex,
+                "Failed to read passage {Position} of document {DocumentId}",
+                position, documentId);
             throw;
         }
     }
@@ -480,9 +558,11 @@ public class AnnotationService : IAnnotationService
             // Top-level heading.
             sb.AppendLine("# Annotations");
             sb.AppendLine();
+            // Timestamps use the invariant culture: under th-TH or ar-SA the current culture's
+            // calendar turned these ISO-style dates into Buddhist or Hijri years.
             sb.AppendLine(
                 $"_Exported {annotations.Count} annotation{(annotations.Count == 1 ? string.Empty : "s")} " +
-                $"on {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC_");
+                $"on {IsoMinutes(DateTime.UtcNow)} UTC_");
             sb.AppendLine();
 
             // Group by document for readability.
@@ -505,7 +585,7 @@ public class AnnotationService : IAnnotationService
                         ? char.ToUpperInvariant(annotation.Color[0]) + annotation.Color[1..]
                         : annotation.Color;
 
-                    sb.AppendLine($"### [{colorLabel}] Highlight (offset {annotation.StartOffset}–{annotation.EndOffset})");
+                    sb.AppendLine($"### [{colorLabel}] Highlight (offset {annotation.StartOffset}-{annotation.EndOffset})");
                     sb.AppendLine();
 
                     // The highlighted text in a blockquote.
@@ -522,9 +602,9 @@ public class AnnotationService : IAnnotationService
                     }
 
                     sb.AppendLine(
-                        $"_Created: {annotation.CreatedAt:yyyy-MM-dd HH:mm} UTC" +
+                        $"_Created: {IsoMinutes(annotation.CreatedAt)} UTC" +
                         (annotation.UpdatedAt != annotation.CreatedAt
-                            ? $" · Updated: {annotation.UpdatedAt:yyyy-MM-dd HH:mm} UTC"
+                            ? $" | Updated: {IsoMinutes(annotation.UpdatedAt)} UTC"
                             : string.Empty) +
                         "_");
 
@@ -551,4 +631,7 @@ public class AnnotationService : IAnnotationService
             throw;
         }
     }
+
+    private static string IsoMinutes(DateTime value) =>
+        value.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
 }

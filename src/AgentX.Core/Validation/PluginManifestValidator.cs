@@ -41,7 +41,7 @@ public sealed partial class PluginManifestValidator : IValidator<PluginManifest>
     /// Strict reverse-DNS plugin ID pattern: two or more dot-separated alphanumeric segments
     /// (hyphens allowed internally). Because the ID becomes a single on-disk directory name, this
     /// pattern intentionally rejects path separators, <c>..</c>, empty segments, leading/trailing
-    /// dots, and control characters — closing the install-path injection surface.
+    /// dots, and control characters - closing the install-path injection surface.
     /// </summary>
     [GeneratedRegex(@"^[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?)+$")]
     private static partial Regex PluginIdRegex();
@@ -64,7 +64,7 @@ public sealed partial class PluginManifestValidator : IValidator<PluginManifest>
 
         var errors = new List<ValidationError>();
 
-        // ── Id ───────────────────────────────────────────────────────────
+        // -- Id -----------------------------------------------------------
         // The ID is used verbatim as the plugin's install directory name, so it must be a
         // strict reverse-DNS identifier with no path-injection potential.
         if (string.IsNullOrWhiteSpace(instance.Id))
@@ -77,7 +77,7 @@ public sealed partial class PluginManifestValidator : IValidator<PluginManifest>
         {
             errors.Add(new ValidationError(
                 nameof(PluginManifest.Id),
-                $"Plugin ID must be a valid reverse-DNS identifier — two or more dot-separated alphanumeric segments (e.g., 'com.vendor.myplugin'), with no path separators or '..'. Got '{instance.Id}'."));
+                $"Plugin ID must be a valid reverse-DNS identifier - two or more dot-separated alphanumeric segments (e.g., 'com.vendor.myplugin'), with no path separators or '..'. Got '{instance.Id}'."));
         }
         else if (ReservedDeviceNames.Contains(instance.Id.Split('.', 2)[0]))
         {
@@ -86,7 +86,7 @@ public sealed partial class PluginManifestValidator : IValidator<PluginManifest>
                 $"Plugin ID must not begin with a reserved device name. Got '{instance.Id}'."));
         }
 
-        // ── Name ─────────────────────────────────────────────────────────
+        // -- Name ---------------------------------------------------------
         if (string.IsNullOrWhiteSpace(instance.Name))
         {
             errors.Add(new ValidationError(
@@ -100,7 +100,7 @@ public sealed partial class PluginManifestValidator : IValidator<PluginManifest>
                 $"Plugin name must not exceed {MaxNameLength} characters. Got {instance.Name.Length} characters."));
         }
 
-        // ── Version ──────────────────────────────────────────────────────
+        // -- Version ------------------------------------------------------
         if (string.IsNullOrWhiteSpace(instance.Version))
         {
             errors.Add(new ValidationError(
@@ -114,7 +114,7 @@ public sealed partial class PluginManifestValidator : IValidator<PluginManifest>
                 $"Plugin version must be a valid semantic version (e.g., '1.0.0'). Got '{instance.Version}'."));
         }
 
-        // ── EntryAssembly ────────────────────────────────────────────────
+        // -- EntryAssembly ------------------------------------------------
         // Must be a bare file name (no directory component, not rooted) so activation cannot be
         // redirected to load an assembly outside the plugin's install directory.
         if (string.IsNullOrWhiteSpace(instance.EntryAssembly))

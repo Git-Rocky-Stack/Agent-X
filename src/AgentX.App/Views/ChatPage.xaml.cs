@@ -2,6 +2,7 @@ using AgentX.App.Helpers;
 using AgentX.App.ViewModels;
 using AgentX.App.ViewModels.Coordinators;
 using AgentX.Core.Services.Chat.Models;
+using AgentX.Core.Services.Localization;
 using AgentX.Core.Services.Shortcuts;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -19,16 +20,27 @@ namespace AgentX.App.Views;
 /// </summary>
 public sealed partial class ChatPage : Page
 {
+    // The frame caches this page (NavigationCacheMode="Enabled") and only builds a new instance
+    // after it has evicted the previous one. The evicted page's view model is still subscribed
+    // to the singleton chat coordinators, so it keeps reacting to every generation (duplicate
+    // toasts, duplicate learning) until it is released here.
+    private static ChatViewModel? s_liveViewModel;
+
     private readonly IShortcutRegistry _shortcutRegistry;
     private IDisposable? _shortcutScope;
     private DispatcherTimer? _cursorBlinkTimer;
     private bool _cursorVisible = true;
 
+    // The sidebar row whose context menu is open.
+    private ConversationListItem? _contextConversation;
+
     public ChatViewModel ViewModel { get; }
 
     public ChatPage()
     {
-        ViewModel = App.GetService<ChatViewModel>();
+        ViewModel = PageViewModelFactory.Create<ChatViewModel>();
+        Interlocked.Exchange(ref s_liveViewModel, ViewModel)?.Dispose();
+        ViewModel.ConfirmClearMemoriesAsync = ConfirmClearMemoriesAsync;
         _shortcutRegistry = App.GetService<IShortcutRegistry>();
         InitializeComponent();
 
@@ -40,21 +52,26 @@ public sealed partial class ChatPage : Page
     {
         base.OnNavigatedTo(e);
 
+        // The open conversation counts as read again while this page is shown.
+        ViewModel.ResumeConversationEngagement();
+
         // Honour the item the caller picked (Jump-To, command palette) rather than
         // dropping it and opening this page on whatever was last active.
         _ = ViewModel.ApplyNavigationParameterAsync(e.Parameter);
 
+        var localization = App.GetService<ILocalizationService>();
+        var category = localization.GetString("Chat_ShortcutCategory");
         _shortcutScope = _shortcutRegistry.RegisterShortcuts(
             new AgentX.Core.Services.Shortcuts.ShortcutDescriptor(
                 "chat.new",
-                "New conversation",
+                localization.GetString("Chat_ShortcutNewConversation"),
                 new ShortcutScope(nameof(ChatPage)),
                 new[] { new KeyChord(KeyModifiers.Ctrl | KeyModifiers.Shift, VirtualKeyCode.N) },
                 _ => ViewModel.NewConversationCommand.ExecuteAsync(null),
-                "Chat"),
+                category),
             new AgentX.Core.Services.Shortcuts.ShortcutDescriptor(
                 "chat.toggle-pane",
-                "Toggle conversation pane",
+                localization.GetString("Chat_ShortcutToggleConversationPane"),
                 new ShortcutScope(nameof(ChatPage)),
                 new[] { new KeyChord(KeyModifiers.Ctrl, VirtualKeyCode.B) },
                 _ =>
@@ -62,7 +79,7 @@ public sealed partial class ChatPage : Page
                     ViewModel.ToggleConversationPaneCommand.Execute(null);
                     return Task.CompletedTask;
                 },
-                "Chat"));
+                category));
     }
 
     protected override void OnNavigatedFrom(NavigationEventArgs e)
@@ -70,11 +87,14 @@ public sealed partial class ChatPage : Page
         base.OnNavigatedFrom(e);
         _shortcutScope?.Dispose();
         _shortcutScope = null;
+
+        // Leaving Chat closes the conversation viewer: record the time it was read.
+        _ = ViewModel.PauseConversationEngagementAsync();
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // LIFECYCLE
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     private async void OnPageLoaded(object sender, RoutedEventArgs e)
     {
@@ -82,6 +102,7 @@ public sealed partial class ChatPage : Page
 
         // Initialize the ViewModel
         await ViewModel.InitializeAsync();
+        SyncConversationSelection();
 
         // Start the streaming cursor blink timer
         StartCursorBlinkTimer();
@@ -119,14 +140,18 @@ public sealed partial class ChatPage : Page
         {
             UpdateGenLamp();
         }
+        else if (e.PropertyName == nameof(ChatViewModel.ActiveConversationId))
+        {
+            SyncConversationSelection();
+        }
     }
 
     private void UpdateGenLamp()
         => GenLamp.State = ViewModel.IsGenerating ? Controls.LampState.Armed : Controls.LampState.Off;
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // KEYBOARD INPUT HANDLING
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     /// <summary>
     /// Handles keyboard shortcuts in the chat input box.
@@ -155,9 +180,9 @@ public sealed partial class ChatPage : Page
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // AUTO-SCROLL
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     /// <summary>
     /// Scrolls to the bottom of the messages list when new messages are added
@@ -183,9 +208,9 @@ public sealed partial class ChatPage : Page
         });
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // STREAMING CURSOR BLINK EFFECT
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     /// <summary>
     /// Starts a DispatcherTimer that toggles the visibility of streaming cursor
@@ -240,14 +265,14 @@ public sealed partial class ChatPage : Page
             }
             catch
             {
-                // Silently ignore — cursor blink is non-critical visual effect
+                // Silently ignore - cursor blink is non-critical visual effect
             }
         });
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // SUGGESTED QUESTIONS
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     /// <summary>
     /// Handles click events on suggested follow-up question buttons,
@@ -261,9 +286,9 @@ public sealed partial class ChatPage : Page
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // PER-MESSAGE ACTION HANDLERS (#18, #19)
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     private void OnCopyMessageClick(object sender, RoutedEventArgs e)
     {
@@ -278,6 +303,41 @@ public sealed partial class ChatPage : Page
         if (sender is Button btn && btn.Tag is ChatMessageItem message)
         {
             ViewModel.DeleteMessageCommand.Execute(message);
+        }
+    }
+
+    private void OnDeleteMemoryClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is ChatMemoryItem memory)
+        {
+            ViewModel.DeleteMemoryCommand.Execute(memory);
+        }
+    }
+
+    /// <summary>
+    /// Asks before every memory is deleted. Deleting cannot be undone; conversations are kept.
+    /// </summary>
+    private async Task<bool> ConfirmClearMemoriesAsync()
+    {
+        var localization = App.GetService<ILocalizationService>();
+        var dialog = new ContentDialog
+        {
+            Title = localization.GetString("Chat_ClearMemoriesTitle"),
+            Content = localization.GetString("Chat_ClearMemoriesBody"),
+            PrimaryButtonText = localization.GetString("Chat_ClearMemoriesConfirm"),
+            CloseButtonText = localization.GetString("Chat_ClearMemoriesCancel"),
+            DefaultButton = ContentDialogButton.Close,
+            XamlRoot = this.XamlRoot
+        };
+
+        return await dialog.ShowAsync() == ContentDialogResult.Primary;
+    }
+
+    private void OnOpenWebCitationClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is WebCitationChip chip)
+        {
+            ViewModel.OpenWebCitationCommand.Execute(chip);
         }
     }
 
@@ -337,9 +397,9 @@ public sealed partial class ChatPage : Page
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // VOICE INPUT
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     /// <summary>
     /// Right-click on mic button opens the audio file picker for transcribing
@@ -351,9 +411,9 @@ public sealed partial class ChatPage : Page
         ViewModel.PickAudioFileCommand.Execute(null);
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // FOLDER ORGANIZATION
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     private void OnFolderFilterClick(object sender, RoutedEventArgs e)
     {
@@ -387,28 +447,29 @@ public sealed partial class ChatPage : Page
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // CONVERSATION BRANCHING
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     private async void BranchFromMessage_Click(object sender, RoutedEventArgs e)
     {
         if (sender is Button btn && btn.Tag is ChatMessageItem msg)
         {
-            var input = new TextBox { PlaceholderText = "Branch label (optional)", Width = 300 };
+            var localization = App.GetService<ILocalizationService>();
+            var input = new TextBox { PlaceholderText = localization.GetString("Chat_CreateBranchPlaceholder"), Width = 300 };
             var dialog = new ContentDialog
             {
-                Title = "Create Branch",
+                Title = localization.GetString("Chat_CreateBranchTitle"),
                 Content = new StackPanel
                 {
                     Children =
                     {
-                        new TextBlock { Text = "Give this branch an optional label:", Margin = new(0, 0, 0, 8) },
+                        new TextBlock { Text = localization.GetString("Chat_CreateBranchPrompt"), Margin = new(0, 0, 0, 8) },
                         input
                     }
                 },
-                PrimaryButtonText = "Branch",
-                CloseButtonText = "Cancel",
+                PrimaryButtonText = localization.GetString("Chat_CreateBranchConfirm"),
+                CloseButtonText = localization.GetString("Chat_DeleteConversationCancel"),
                 DefaultButton = ContentDialogButton.Primary,
                 XamlRoot = this.XamlRoot
             };
@@ -434,12 +495,13 @@ public sealed partial class ChatPage : Page
     {
         if (sender is FrameworkElement fe && fe.Tag is long branchId)
         {
+            var localization = App.GetService<ILocalizationService>();
             var dialog = new ContentDialog
             {
-                Title = "Delete Branch",
-                Content = "Delete this branch and all its sub-branches?",
-                PrimaryButtonText = "Delete",
-                CloseButtonText = "Cancel",
+                Title = localization.GetString("Chat_DeleteBranchTitle"),
+                Content = localization.GetString("Chat_DeleteBranchBody"),
+                PrimaryButtonText = localization.GetString("Chat_DeleteConversationConfirm"),
+                CloseButtonText = localization.GetString("Chat_DeleteConversationCancel"),
                 DefaultButton = ContentDialogButton.Close,
                 XamlRoot = this.XamlRoot
             };
@@ -458,12 +520,13 @@ public sealed partial class ChatPage : Page
             var rootId = ViewModel.BranchTree?.Conversation.Id;
             if (rootId == null) return;
 
+            var localization = App.GetService<ILocalizationService>();
             var dialog = new ContentDialog
             {
-                Title = "Merge to Main Thread",
-                Content = "Merge all messages from this branch into the main conversation?",
-                PrimaryButtonText = "Merge",
-                CloseButtonText = "Cancel",
+                Title = localization.GetString("Chat_MergeBranchTitle"),
+                Content = localization.GetString("Chat_MergeBranchBody"),
+                PrimaryButtonText = localization.GetString("Chat_MergeBranchConfirm"),
+                CloseButtonText = localization.GetString("Chat_DeleteConversationCancel"),
                 DefaultButton = ContentDialogButton.Primary,
                 XamlRoot = this.XamlRoot
             };
@@ -476,9 +539,9 @@ public sealed partial class ChatPage : Page
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // EXPORT
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     /// <summary>
     /// Opens the ExportDialog for the active conversation.
@@ -505,6 +568,26 @@ public sealed partial class ChatPage : Page
             "Batch export of {Count} conversations finished: {Status}",
             conversationIds.Count,
             exportViewModel.StatusMessage);
+
+        // The outcome used to reach only the log: tell the user where the file went, or why
+        // there is none. The success text is one sentence in the resources, so each language
+        // words the count and the path together.
+        var notifications = App.GetService<AgentX.App.Services.INotificationService>();
+        var localization = App.GetService<ILocalizationService>();
+        if (exportViewModel.LastExportSucceeded)
+        {
+            var savedPath = exportViewModel.LastExportPath ?? string.Empty;
+            notifications.ShowSuccess(
+                localization.GetString("Export_CompleteTitle"),
+                conversationIds.Count == 1
+                    ? localization.GetString("Export_ConversationsSavedOne", conversationIds.Count, savedPath)
+                    : localization.GetString("Export_ConversationsSavedMany", conversationIds.Count, savedPath),
+                durationMs: 8000);
+        }
+        else
+        {
+            notifications.ShowError(localization.GetString("Export_FailedTitle"), exportViewModel.StatusMessage);
+        }
     }
 
     private async void ExportButton_Click(object sender, RoutedEventArgs e)
@@ -512,10 +595,11 @@ public sealed partial class ChatPage : Page
         if (ViewModel.ActiveConversationId is null) return;
 
         var exportVm = App.GetService<ExportViewModel>();
+        var localization = App.GetService<ILocalizationService>();
         var dialog = new ExportDialog(exportVm);
         dialog.SetConversation(
             ViewModel.ActiveConversationId.Value,
-            ViewModel.ActiveConversationTitle ?? "Conversation");
+            ViewModel.ActiveConversationTitle ?? localization.GetString("Chat_ExportUntitledConversation"));
         dialog.XamlRoot = this.XamlRoot;
 
         await dialog.ShowAsync();
@@ -533,22 +617,110 @@ public sealed partial class ChatPage : Page
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    /// <summary>
+    /// Applies the prompt picked in the system prompt flyout and closes the flyout.
+    /// </summary>
+    private void OnSystemPromptItemClick(object sender, ItemClickEventArgs e)
+    {
+        if (e.ClickedItem is SystemPromptItem prompt)
+        {
+            ViewModel.SelectSystemPromptCommand.Execute(prompt);
+            SystemPromptFlyout.Hide();
+        }
+    }
+
+    // ===============================================================
     // CONVERSATION LIST SELECTION
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     /// <summary>
-    /// Wired up to handle conversation selection from the sidebar ListView.
-    /// This is connected via SelectionChanged in case x:Bind commands
-    /// need supplementary event handling.
+    /// Opens the conversation clicked (or invoked with Enter) in the sidebar.
     /// </summary>
-    internal void OnConversationSelected(ConversationListItem? item)
+    private void OnConversationItemClick(object sender, ItemClickEventArgs e)
     {
-        if (item is null) return;
-
-        if (ViewModel.SelectConversationCommand.CanExecute(item.Id))
+        if (e.ClickedItem is ConversationListItem item &&
+            item.Id != ViewModel.ActiveConversationId &&
+            ViewModel.SelectConversationCommand.CanExecute(item.Id))
         {
             ViewModel.SelectConversationCommand.Execute(item.Id);
+        }
+    }
+
+    /// <summary>
+    /// Keeps the highlighted sidebar row on the open conversation, however it was opened
+    /// (sidebar, Jump-To, branch switch) or closed (New conversation, delete).
+    /// </summary>
+    private void SyncConversationSelection()
+    {
+        var active = ViewModel.ActiveConversationId;
+        ConversationListView.SelectedItem = active is null
+            ? null
+            : ViewModel.Conversations.FirstOrDefault(conversation => conversation.Id == active);
+    }
+
+    /// <summary>
+    /// Resolves the row the menu was opened on and offers Pin or Unpin to match it.
+    /// </summary>
+    private void OnConversationRowFlyoutOpening(object sender, object e)
+    {
+        if (sender is not MenuFlyout flyout)
+        {
+            return;
+        }
+
+        _contextConversation = flyout.Target is ListViewItem container
+            ? ConversationListView.ItemFromContainer(container) as ConversationListItem
+            : null;
+
+        if (_contextConversation is null)
+        {
+            return;
+        }
+
+        foreach (var item in flyout.Items.OfType<MenuFlyoutItem>())
+        {
+            item.Visibility = (item.Tag as string) switch
+            {
+                "Pin" => _contextConversation.IsPinned ? Visibility.Collapsed : Visibility.Visible,
+                "Unpin" => _contextConversation.IsPinned ? Visibility.Visible : Visibility.Collapsed,
+                _ => Visibility.Visible
+            };
+        }
+    }
+
+    private void OnTogglePinConversationClick(object sender, RoutedEventArgs e)
+    {
+        if (_contextConversation is { } conversation)
+        {
+            ViewModel.TogglePinCommand.Execute(conversation.Id);
+        }
+    }
+
+    /// <summary>
+    /// Deletes the row's conversation after confirmation. Deleting cannot be undone; branches
+    /// made from the conversation are kept as conversations of their own.
+    /// </summary>
+    private async void OnDeleteConversationClick(object sender, RoutedEventArgs e)
+    {
+        if (_contextConversation is not { } conversation)
+        {
+            return;
+        }
+
+        var localization = App.GetService<ILocalizationService>();
+        var dialog = new ContentDialog
+        {
+            Title = localization.GetString("Chat_DeleteConversationTitle"),
+            Content = localization.GetString("Chat_DeleteConversationBody", conversation.Title),
+            PrimaryButtonText = localization.GetString("Chat_DeleteConversationConfirm"),
+            CloseButtonText = localization.GetString("Chat_DeleteConversationCancel"),
+            DefaultButton = ContentDialogButton.Close,
+            XamlRoot = this.XamlRoot
+        };
+
+        if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+        {
+            await ViewModel.DeleteConversationCommand.ExecuteAsync(conversation.Id);
         }
     }
 }

@@ -1,456 +1,309 @@
 # Chat Templates
 
-**Pre-built prompts for common AI interactions**
+**Prompts and questions to copy into Agent-X**
 
 ---
 
 ## Overview
 
-Chat templates provide ready-to-use prompts for common tasks:
-- Document analysis
-- Content generation
-- Research assistance
-- Technical tasks
+Agent-X has no template picker in the chat. The prompts on this page are plain text: copy one,
+replace the parts in square brackets such as `[topic]`, and paste it where it fits.
+
+| Where to paste | Use it for | Keep in mind |
+|----------------|------------|--------------|
+| **Ask Your Files** | Questions about your own documents | The answer draws on the passages that match the question best (as many as **Top-K Results** in **Settings > Knowledge Vault** allows, 5 by default), not on every document in the vault. Pick a collection to narrow the search. |
+| **AI Chat** | Writing, explaining, brainstorming and code | Chat does not read your Knowledge Vault. Paste the text you want the model to work on into the message. |
+| A workflow step (`AiPrompt`) | Prompts you run again and again | Use `{{input}}` for the text you run the workflow on and `{{previous_output}}` for the previous step's result (see [Workflow templates](README.md#workflow-templates-workflows)). |
+
+Some jobs have their own page, which usually works better than a prompt:
+
+- **A summary or key points of one whole document:** Quick Actions > **Summarize** or
+  **Key Points**.
+- **Two or more documents side by side:** Compare Documents.
+- **Translation of a passage:** Quick Actions > **Translate**, or the **Translator** system
+  prompt in AI Chat.
 
 ---
 
-## Document Analysis Templates
+## Questions for Ask Your Files
 
-### Summarize Document
-
-```
-Please provide a comprehensive summary of the document {{document}}.
-
-Include:
-1. Main topic and purpose
-2. Key points or arguments
-3. Important conclusions or findings
-4. Action items or recommendations
-
-Keep the summary concise but comprehensive. Use bullet points where appropriate.
-```
-
-### Compare Documents
-
-```
-Compare the following documents:
-{{documents}}
-
-For each aspect, highlight:
-- Similarities
-- Differences
-- Unique elements in each document
-
-Provide a structured comparison with clear headings.
-```
+These work best when the answer is in a few passages. Each answer cites its sources as `[1]`,
+`[2]` and so on.
 
 ### Extract Key Information
 
 ```
-From the document {{document}}, extract the following information:
-
-1. Key dates and deadlines
-2. Important people or stakeholders
-3. Financial figures or metrics
-4. Action items or next steps
-5. Risks or concerns
-
-Present the extracted information in a structured format.
+What deadlines, dates and milestones do [project name] documents mention?
 ```
 
-### Explain Technical Document
+```
+Who are the people and organizations involved in [project or topic], and what is each one responsible for?
+```
 
 ```
-Act as a technical communicator. Explain the document {{document}} to a non-technical audience.
+What figures do my documents give for [metric], and for which periods?
+```
 
-Simplify complex concepts while maintaining accuracy. Use analogies where helpful. Organize the explanation with clear headings and subheadings.
+### Find Decisions and Action Items
+
+```
+What was decided about [subject], when, and what reasons were given?
+```
+
+```
+List the open action items about [subject], with the owner and due date where the documents give them.
+```
+
+### Explain and Compare
+
+```
+How does [system or process] work, according to my documents? Explain it step by step.
+```
+
+```
+Which approaches to [problem] do my documents describe, and how do they differ?
+```
+
+```
+Where do my documents disagree about [topic]? Name the sources on each side.
+```
+
+### Check What You Have
+
+```
+What do my documents say about [topic]? If they say nothing, tell me.
+```
+
+```
+Which of my documents discuss [concept], and what does each one say about it?
 ```
 
 ---
 
-## Content Generation Templates
+## Prompts for AI Chat
 
-### Generate Outline
+Paste the text you want to work on where the prompt says `[paste text here]`. A system prompt
+from the prompt button (for example **Writing Editor** or **Code Helper**) can set the tone for
+the whole conversation.
+
+### Content Generation
+
+**Generate Outline**
 
 ```
-Generate a comprehensive outline for {{topic}}.
+Generate a detailed outline for [topic].
 
 Include:
 - Main sections
 - Sub-sections
 - Key points to cover in each section
 
-Organize hierarchically with appropriate numbering.
+Organize it hierarchically with numbering.
 ```
 
-### Brainstorm Ideas
+**Brainstorm Ideas**
 
 ```
-Brainstorm {{count}} ideas for {{topic}}.
+Brainstorm [number] ideas for [topic].
 
-For each idea, provide:
-- Brief description
+For each idea, give:
+- A brief description
 - Potential benefits
 - Possible challenges
 - Estimated complexity
-
-Be creative and diverse in your suggestions.
 ```
 
-### Create Checklist
+**Create Checklist**
 
 ```
-Create a comprehensive checklist for {{activity}}.
+Create a checklist for [activity].
 
-Include:
-- Preparation steps
-- Execution steps
-- Verification steps
-- Completion criteria
-
-Organize logically with clear checkboxes [ ].
+Include preparation steps, execution steps, verification steps and completion criteria.
+Use checkboxes: [ ]
 ```
 
-### Write Email Draft
+**Write Email Draft**
 
 ```
-Draft an email for {{purpose}}.
+Draft an email about [purpose].
 
-Recipient: {{recipient}}
-Tone: {{tone}} (Professional / Friendly / Formal / Urgent)
-Key points to include: {{keyPoints}}
+Recipient: [recipient]
+Tone: [professional / friendly / formal / urgent]
+Points to include: [key points]
 
-Include appropriate subject line and call to action.
+Include a subject line and a clear call to action.
 ```
 
----
+### Research Assistance
 
-## Research Assistance Templates
-
-### Research Topic Overview
+**Topic Overview**
 
 ```
-Provide a comprehensive overview of {{topic}}.
-
-Cover:
-- Definition and background
-- Current state of knowledge
-- Key debates or controversies
-- Important researchers or works
-- Future directions or open questions
-
-Cite specific sources where available.
+Give an overview of [topic]: definition and background, the current state of knowledge,
+key debates, and open questions. Say where you are unsure.
 ```
 
-### Literature Review Structure
+**Literature Review Structure**
 
 ```
-Create a structure for a literature review on {{topic}}.
-
-Outline:
-- Introduction themes
-- Key categories of research
-- Important works in each category
-- Gaps in current research
-- Suggested organization
-
-Provide framework, not full content.
+Create a structure for a literature review on [topic]: introduction themes, categories of
+research, gaps, and a suggested order. Give the framework, not the full text.
 ```
 
-### Fact-Check Statements
+**Fact-Check Statements**
 
 ```
-Fact-check the following statements about {{topic}}:
+Check the following statements about [topic]:
 
-{{#each statements}}
-- {{this}}
-{{/each}}
+- [statement 1]
+- [statement 2]
+- [statement 3]
 
-For each statement, verify:
-- Accuracy
-- Context or caveats
-- Source reliability
-
-Mark each as: Confirmed / Partially True / False / Needs Context.
+For each one, rate it Confirmed / Partially True / False / Needs Context, and explain why.
 ```
 
-### Find Related Concepts
+For current facts, turn on Research Mode (the button next to the message box, after you enable
+it in **Settings > Research Mode**) so the answer can use web search results.
+
+### Technical
+
+**Debug Code Issue**
 
 ```
-From the document {{document}}, identify concepts and topics related to {{concept}}.
+Help me debug this issue.
 
-For each related concept, provide:
-- Name of concept
-- Relationship to main concept
-- Brief explanation
-- Potential applications
+Code:
+[paste code here]
+
+Error: [error message]
+Symptoms: [what happens]
+
+Explain the root cause, how to fix it, and how to prevent similar issues.
 ```
 
----
-
-## Technical Templates
-
-### Debug Code Issue
+**Explain Code**
 
 ```
-Act as a senior software engineer. Help debug the following issue:
+Explain this code: its purpose, how each part works, the techniques it uses, and any
+concerns or improvements. Assume intermediate programming knowledge.
 
-{{code}}
-
-Error: {{error}}
-
-Symptoms: {{symptoms}}
-
-Analyze:
-1. Root cause
-2. Why this error occurs
-3. How to fix it
-4. How to prevent similar issues
-
-Provide code examples for the fix.
+[paste code here]
 ```
 
-### Explain Code
+**Generate SQL Query**
 
 ```
-Explain the following code:
+Write a SQL query for this requirement.
 
-{{code}}
+Schema:
+[paste schema here]
 
-Cover:
-- Purpose and functionality
-- How each part works
-- Key techniques or patterns used
-- Potential improvements or concerns
+Requirement: [requirement]
 
-Assume intermediate programming knowledge.
+Comment the query and mention performance considerations.
 ```
 
-### Generate SQL Query
+### Writing Assistance
+
+**Improve Writing**
 
 ```
-Generate a SQL query for the following requirement:
+Review this text and suggest improvements to clarity, grammar, tone and structure.
+Then give a revised version and explain the main changes.
 
-Database schema: {{schema}}
-Requirement: {{requirement}}
-
-Include:
-- Query with comments
-- Explanation of approach
-- Performance considerations
-
-Use standard SQL syntax.
+[paste text here]
 ```
 
-### API Integration Guide
+**Change Tone**
 
 ```
-Create a guide for integrating with the {{apiName}} API.
+Rewrite this text in a [target tone] tone. Keep the meaning; adjust word choice, sentence
+structure and formality.
 
-Include:
-- Authentication method
-- Key endpoints
-- Request/response examples
-- Error handling
-- Rate limiting considerations
-- Best practices
+[paste text here]
+```
+
+**Create Abstract**
+
+```
+Write a 150 to 250 word abstract for the text below: the research question, the approach,
+the key findings and the implications.
+
+[paste text here]
+```
+
+### Productivity
+
+**Meeting Agenda**
+
+```
+Create an agenda for a [duration] meeting about [topic] with [attendees].
+Include objectives, agenda items with time allocations, preparation and expected outcomes.
+```
+
+**Project Timeline**
+
+```
+Create a timeline for [project]: phases, dependencies, estimated durations, deliverables and
+risks. Present it as a table.
+```
+
+**Test Cases**
+
+```
+Write test cases for [feature]. For each: ID, description, preconditions, steps, expected
+result and priority. Cover the happy path and edge cases.
 ```
 
 ---
 
-## Writing Assistance Templates
+## Prompts for Workflow Steps
 
-### Improve Writing
+In a workflow's `AiPrompt` step, the prompt runs on the workflow's input. Examples of steps you
+can chain:
 
-```
-Review the following text and suggest improvements:
-
-{{text}}
-
-Focus on:
-- Clarity and conciseness
-- Grammar and mechanics
-- Tone and style
-- Structure and flow
-
-Provide revised version with explanation of changes.
-```
-
-### Change Tone
+**Step 1: Summarize**
 
 ```
-Rewrite the following text in a {{targetTone}} tone:
+Summarize the following text in five sentences. Keep names, figures and dates.
 
-{{text}}
-
-Maintain the core meaning but adjust:
-- Word choice
-- Sentence structure
-- Level of formality
-- Emotional content
+{{input}}
 ```
 
-### Expand Content
+**Step 2: Find risks**
 
 ```
-Expand the following content with more detail:
+Based on the summary below, list the risks and open questions, most important first.
 
-{{content}}
-
-Add:
-- Supporting examples
-- Deeper explanations
-- Relevant context
-- Anticipated questions
-
-Maintain consistency with original style.
+Summary:
+{{previous_output}}
 ```
 
-### Create Abstract
+**Step 3: Draft a reply**
 
 ```
+Write a short reply to the author of the original text that thanks them, lists the risks
+below, and asks the open questions.
 
-Create a 150-250 word abstract for the document {{document}}.
+Original text:
+{{input}}
 
-Include:
-- Research question or problem
-- Methodology or approach
-- Key findings or results
-- Implications or conclusions
-
-Follow academic abstract conventions.
+Risks and questions:
+{{previous_output}}
 ```
 
----
-
-## Productivity Templates
-
-### Create Meeting Agenda
-
-```
-Create a meeting agenda for {{meetingType}}.
-
-Topic: {{topic}}
-Duration: {{duration}}
-Attendees: {{attendees}}
-
-Include:
-- Objectives
-- Agenda items with time allocations
-- Preparation requirements
-- Expected outcomes
-```
-
-### Plan Project Timeline
-
-```
-Create a project timeline for {{project}}.
-
-Include:
-- Major phases or milestones
-- Dependencies between phases
-- Estimated duration for each phase
-- Key deliverables
-- Risk considerations
-
-Present in tabular or Gantt format.
-```
-
-### Design Presentation Structure
-
-```
-Create a presentation structure for {{topic}}.
-
-Target audience: {{audience}}
-Duration: {{duration}}
-Presentation type: {{type}} (Informative / Persuasive / Instructional)
-
-Outline:
-- Slide count and breakdown
-- Key content per slide
-- Visual suggestions
-- Presenter notes
-- Transition strategy
-```
-
-### Generate Test Cases
-
-```
-Generate test cases for {{featureOrFunction}}.
-
-For each test case, include:
-- Test case ID
-- Description
-- Preconditions
-- Test steps
-- Expected results
-- Priority level
-
-Cover both happy path and edge cases.
-```
-
----
-
-## Using Chat Templates
-
-### Access Templates
-
-1. Navigate to **AI Chat**
-2. Click **[Templates]** button
-3. Browse categories or search
-4. Select template
-
-### Customize Template
-
-1. Template loads into chat input
-2. Edit variables and content as needed
-3. Click **Send** to execute
-
-### Create Custom Template
-
-1. Craft your ideal prompt in chat
-2. Navigate to **Settings → Templates**
-3. Click **[Save Current as Template]**
-4. Provide name, description, category
-5. Template saved for future use
-
----
-
-## Template Variables
-
-### Input Variables
-
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `{{document}}` | Currently selected document | "Project Plan.pdf" |
-| `{{documents}}` | Multiple selected documents | "3 documents" |
-| `{{topic}}` | Subject or theme | "Machine Learning" |
-| `{{count}}` | Number for generation | "10" |
-| `{{text}}` | Selected text passage | "Selected paragraph..." |
-| `{{code}}` | Selected code block | "function example() {...}" |
-
-### Output Variables
-
-Templates can specify desired output format:
-
-```
-Output format: Markdown with:
-- H1 for main title
-- H2 for sections
-- Bullet points for lists
-- Code blocks for examples
-```
+The four built-in workflow templates (Summarize & Act, Research Brief, Document Review and
+Content Repurpose) are complete examples of this pattern; **Use Template** copies one so you
+can adapt its prompts.
 
 ---
 
 ## Best Practices
 
-1. **Be specific** — Detailed templates produce better results
-2. **Provide context** — Include background information
-3. **Set constraints** — Specify length, format, tone
-4. **Iterate** — Refine templates based on results
-5. **Categorize** — Organize templates for easy discovery
-
----
-
-*Last updated: 2026-05-03*
+1. **Be specific.** Name the document type, the period, the audience and the format you want.
+2. **Give context.** In AI Chat, paste the text; in Ask Your Files, use the words your
+   documents use.
+3. **Set constraints.** Ask for a length, a structure or a tone.
+4. **Iterate.** Follow-up messages in the same AI Chat conversation keep its context.
+5. **Check the sources.** In Ask Your Files, open the cited documents for anything that
+   matters.

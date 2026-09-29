@@ -28,9 +28,9 @@ public sealed class SyncTransportTests : IDisposable
         try { Directory.Delete(_tempFolder, true); } catch { }
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
     //  Constructor
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
 
     [Fact]
     public void Constructor_NullLogger_Throws()
@@ -38,7 +38,7 @@ public sealed class SyncTransportTests : IDisposable
         Assert.Throws<ArgumentNullException>(() => new SyncTransport(null!));
     }
 
-    // ── EnsureFolderExists ────────────────────────────────────────────────
+    // -- EnsureFolderExists ------------------------------------------------
 
     [Fact]
     public void EnsureFolderExists_EmptyPath_Throws()
@@ -48,9 +48,9 @@ public sealed class SyncTransportTests : IDisposable
         Assert.True(ex is InvalidOperationException or ArgumentException);
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
     //  WriteSyncFileAsync
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
 
     [Fact]
     public async Task WriteSyncFileAsync_WritesFileToDisk()
@@ -77,9 +77,9 @@ public sealed class SyncTransportTests : IDisposable
         File.Exists(result).Should().BeTrue();
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
     //  BuildSyncFileName
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
 
     [Fact]
     public void BuildSyncFileName_ProducesCanonicalFormat()
@@ -94,9 +94,9 @@ public sealed class SyncTransportTests : IDisposable
         name.Should().Contain("20260419");
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
     //  ReadPeerFilesAsync
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
 
     [Fact]
     public async Task ReadPeerFilesAsync_SkipsOwnFiles()
@@ -152,9 +152,9 @@ public sealed class SyncTransportTests : IDisposable
         result.Should().HaveCount(3);
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
     //  MarkFileImportedAsync
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
 
     [Fact]
     public async Task MarkFileImportedAsync_RenamesToImported()
@@ -175,9 +175,9 @@ public sealed class SyncTransportTests : IDisposable
             () => _sut.MarkFileImportedAsync(""));
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
     //  EnsureFolderExists
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
 
     [Fact]
     public void EnsureFolderExists_CreatesDirectory()

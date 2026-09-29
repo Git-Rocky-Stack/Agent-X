@@ -2,7 +2,12 @@ using System.Text.Json;
 using AgentX.Core.Data;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Data.VectorDb;
+using AgentX.Core.Documents.Models;
+using AgentX.Core.Documents.Processors;
 using AgentX.Core.Helpers;
+using AgentX.Core.Search;
+using AgentX.Core.Services.Plugins;
+using AgentX.Core.Services.Search;
 using AgentX.Core.Services.Settings;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -18,8 +23,11 @@ public sealed class DocumentService : IDocumentService
 {
     private readonly AgentXDbContext _db;
     private readonly IReadOnlyList<IDocumentProcessor> _processors;
+    private readonly IPluginDocumentProcessorSource? _pluginProcessors;
     private readonly ISettingsService _settingsService;
     private readonly IVectorStore? _vectorStore;
+    private readonly IKeywordSearchService? _keywordSearchService;
+    private readonly ISearchCacheService? _searchCacheService;
     private readonly ILogger _logger;
 
     /// <summary>
@@ -27,18 +35,27 @@ public sealed class DocumentService : IDocumentService
     /// </summary>
     private readonly Lazy<IReadOnlySet<string>> _allSupportedExtensions;
 
+    /// <inheritdoc />
+    public event EventHandler<DocumentPendingIndexingEventArgs>? DocumentPendingIndexing;
+
     public DocumentService(
         AgentXDbContext db,
         IEnumerable<IDocumentProcessor> processors,
         ISettingsService settingsService,
         ILogger logger,
-        IVectorStore? vectorStore = null)
+        IVectorStore? vectorStore = null,
+        IKeywordSearchService? keywordSearchService = null,
+        ISearchCacheService? searchCacheService = null,
+        IPluginDocumentProcessorSource? pluginProcessors = null)
     {
         _db = db ?? throw new ArgumentNullException(nameof(db));
         _processors = (processors ?? throw new ArgumentNullException(nameof(processors))).ToList().AsReadOnly();
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _vectorStore = vectorStore;
+        _keywordSearchService = keywordSearchService;
+        _searchCacheService = searchCacheService;
+        _pluginProcessors = pluginProcessors;
 
         _allSupportedExtensions = new Lazy<IReadOnlySet<string>>(() =>
         {
@@ -55,10 +72,22 @@ public sealed class DocumentService : IDocumentService
     }
 
     /// <inheritdoc />
-    public async Task<DocumentEntity> ImportFileAsync(
+    public Task<DocumentEntity> ImportFileAsync(
         string filePath,
         long? collectionId = null,
         CancellationToken ct = default)
+        => ImportFileCoreAsync(filePath, collectionId, allowDuplicate: false, ct);
+
+    /// <summary>
+    /// Imports one file. When <paramref name="allowDuplicate"/> is false, a file whose content
+    /// matches an existing document throws <see cref="DuplicateDocumentException"/>; when true
+    /// (the user explicitly chose to import duplicates) it is imported as a separate document.
+    /// </summary>
+    private async Task<DocumentEntity> ImportFileCoreAsync(
+        string filePath,
+        long? collectionId,
+        bool allowDuplicate,
+        CancellationToken ct)
     {
         // 1. Validate file exists
         if (!File.Exists(filePath))
@@ -80,11 +109,17 @@ public sealed class DocumentService : IDocumentService
         var existingDoc = await GetDocumentByHashAsync(contentHash);
         if (existingDoc is not null)
         {
+            if (!allowDuplicate)
+            {
+                _logger.Information(
+                    "Duplicate detected: {FilePath} matches existing document {DocumentId} ({FileName})",
+                    filePath, existingDoc.Id, existingDoc.FileName);
+                throw new DuplicateDocumentException(existingDoc.Id, existingDoc.FileName);
+            }
+
             _logger.Information(
-                "Duplicate detected: {FilePath} matches existing document {DocumentId} ({FileName})",
+                "Importing {FilePath} although it matches existing document {DocumentId} ({FileName}); duplicates were allowed",
                 filePath, existingDoc.Id, existingDoc.FileName);
-            throw new InvalidOperationException(
-                $"A document with identical content already exists: '{existingDoc.FileName}' (ID {existingDoc.Id}).");
         }
 
         // 4. Find the appropriate processor
@@ -95,13 +130,15 @@ public sealed class DocumentService : IDocumentService
                 $"No processor found for file type '{extension}'. Supported types: {string.Join(", ", GetSupportedExtensions())}");
         }
 
-        // 5. Extract text and metadata
+        // 5. Extract text and metadata. A file the processor cannot read (encrypted, corrupt,
+        //    no text layer) is still recorded, as a failed document carrying the reason, so
+        //    the problem is visible in the vault instead of importing as a zero-word success.
         _logger.Debug("Processing file with {Processor}: {FilePath}", processor.GetType().Name, filePath);
-        var processed = await processor.ProcessAsync(filePath, ct);
+        var (processed, extractionError) = await TryExtractAsync(processor, filePath, ct);
 
         // 6. Gather file system metadata
         var fileInfo = new FileInfo(filePath);
-        var metadataJson = SerializeMetadata(processed.Metadata);
+        var metadataJson = processed is null ? null : SerializeMetadata(processed.Metadata);
 
         // 7. Create DocumentEntity
         var entity = new DocumentEntity
@@ -114,47 +151,49 @@ public sealed class DocumentService : IDocumentService
             ContentHash = contentHash,
             ImportedAt = DateTime.UtcNow,
             FileModifiedAt = fileInfo.LastWriteTimeUtc,
-            IndexingStatus = "pending",
-            PageCount = processed.PageCount,
-            WordCount = processed.WordCount,
-            ExtractedTitle = processed.ExtractedTitle,
-            Language = processed.Language,
+            IndexingStatus = extractionError is null ? "pending" : "failed",
+            IndexingError = extractionError,
+            PageCount = processed?.PageCount ?? 0,
+            WordCount = processed?.WordCount ?? 0,
+            ExtractedTitle = processed?.ExtractedTitle,
+            Language = processed?.Language,
             MetadataJson = metadataJson
         };
 
         _db.Documents.Add(entity);
         await _db.SaveChangesAsync(ct);
 
-        _logger.Information(
-            "Imported document: {FileName} (ID {DocumentId}, {FileType}, {WordCount} words, {PageCount} pages)",
-            entity.FileName, entity.Id, entity.FileType, entity.WordCount, entity.PageCount);
+        if (extractionError is null)
+        {
+            _logger.Information(
+                "Imported document: {FileName} (ID {DocumentId}, {FileType}, {WordCount} words, {PageCount} pages)",
+                entity.FileName, entity.Id, entity.FileType, entity.WordCount, entity.PageCount);
+        }
+        else
+        {
+            _logger.Warning(
+                "Imported document {FileName} (ID {DocumentId}) as failed: {Error}",
+                entity.FileName, entity.Id, extractionError);
+        }
 
         // 8. Associate with collection if specified
         if (collectionId.HasValue)
         {
-            var collectionExists = await _db.Collections
-                .AnyAsync(c => c.Id == collectionId.Value, ct);
-
-            if (!collectionExists)
+            if (!await AddToCollectionAsync(entity.Id, collectionId.Value, ct))
             {
                 _logger.Warning("Collection {CollectionId} not found; skipping collection association", collectionId.Value);
             }
             else
             {
-                var docCollection = new DocumentCollectionEntity
-                {
-                    DocumentId = entity.Id,
-                    CollectionId = collectionId.Value,
-                    AddedAt = DateTime.UtcNow
-                };
-
-                _db.DocumentCollections.Add(docCollection);
-                await _db.SaveChangesAsync(ct);
-
                 _logger.Debug(
                     "Associated document {DocumentId} with collection {CollectionId}",
                     entity.Id, collectionId.Value);
             }
+        }
+
+        if (processed is not null)
+        {
+            RaisePendingIndexing(entity.Id, processed);
         }
 
         return entity;
@@ -186,18 +225,19 @@ public sealed class DocumentService : IDocumentService
                 $"No processor found for file '{filePath}'. Supported types: {string.Join(", ", GetSupportedExtensions())}");
         }
 
-        var processed = await processor.ProcessAsync(filePath, ct);
+        var (processed, extractionError) = await TryExtractAsync(processor, filePath, ct);
 
         var fileInfo = new FileInfo(filePath);
         var contentHash = await HashHelper.ComputeFileHashAsync(filePath, ct);
-        var metadataJson = SerializeMetadata(processed.Metadata);
 
         // Store the source URL in metadata if provided
+        var metadata = processed?.Metadata ?? new DocumentMetadata();
         if (!string.IsNullOrWhiteSpace(sourceUrl))
         {
-            processed.Metadata.Custom["sourceUrl"] = sourceUrl;
-            metadataJson = SerializeMetadata(processed.Metadata);
+            metadata.Custom["sourceUrl"] = sourceUrl;
         }
+
+        var metadataJson = SerializeMetadata(metadata);
 
         var entity = new DocumentEntity
         {
@@ -209,11 +249,12 @@ public sealed class DocumentService : IDocumentService
             ContentHash = contentHash,
             ImportedAt = DateTime.UtcNow,
             FileModifiedAt = fileInfo.LastWriteTimeUtc,
-            IndexingStatus = "pending",
-            PageCount = processed.PageCount,
-            WordCount = processed.WordCount,
+            IndexingStatus = extractionError is null ? "pending" : "failed",
+            IndexingError = extractionError,
+            PageCount = processed?.PageCount ?? 0,
+            WordCount = processed?.WordCount ?? 0,
             ExtractedTitle = displayName,
-            Language = processed.Language,
+            Language = processed?.Language,
             MetadataJson = metadataJson,
         };
 
@@ -221,31 +262,134 @@ public sealed class DocumentService : IDocumentService
         await _db.SaveChangesAsync(ct);
 
         _logger.Information(
-            "Imported external content: {DisplayName} (ID {DocumentId}, Type={FileType}, {WordCount} words)",
-            displayName, entity.Id, entity.FileType, entity.WordCount);
+            "Imported external content: {DisplayName} (ID {DocumentId}, Type={FileType}, {WordCount} words, status {Status})",
+            displayName, entity.Id, entity.FileType, entity.WordCount, entity.IndexingStatus);
 
         // Associate with collection if specified
         if (collectionId.HasValue)
         {
-            var collectionExists = await _db.Collections
-                .AnyAsync(c => c.Id == collectionId.Value, ct);
+            await AddToCollectionAsync(entity.Id, collectionId.Value, ct);
+        }
 
-            if (collectionExists)
-            {
-                var docCollection = new DocumentCollectionEntity
-                {
-                    DocumentId = entity.Id,
-                    CollectionId = collectionId.Value,
-                    AddedAt = DateTime.UtcNow
-                };
-
-                _db.DocumentCollections.Add(docCollection);
-                await _db.SaveChangesAsync(ct);
-            }
+        if (processed is not null)
+        {
+            RaisePendingIndexing(entity.Id, processed);
         }
 
         return entity;
     }
+
+    /// <inheritdoc />
+    public async Task<DocumentEntity> ImportPreparedDocumentAsync(
+        DocumentEntity document,
+        long? collectionId = null,
+        CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(document);
+        ArgumentException.ThrowIfNullOrWhiteSpace(document.ContentHash);
+
+        // The same duplicate rule as file imports: identical content is one document.
+        var existing = await GetDocumentByHashAsync(document.ContentHash);
+        if (existing is not null)
+        {
+            _logger.Information(
+                "Duplicate detected: {FileName} matches existing document {DocumentId} ({ExistingFileName})",
+                document.FileName, existing.Id, existing.FileName);
+            throw new DuplicateDocumentException(existing.Id, existing.FileName);
+        }
+
+        CollectionEntity? collection = null;
+        if (collectionId.HasValue)
+        {
+            collection = await _db.Collections.FirstOrDefaultAsync(c => c.Id == collectionId.Value, ct)
+                ?? throw new InvalidOperationException($"Collection {collectionId.Value} was not found.");
+        }
+
+        _db.Documents.Add(document);
+
+        if (collection is not null)
+        {
+            _db.DocumentCollections.Add(new DocumentCollectionEntity
+            {
+                Document = document,
+                CollectionId = collection.Id,
+                AddedAt = DateTime.UtcNow
+            });
+
+            collection.DocumentCount += 1;
+            collection.UpdatedAt = DateTime.UtcNow;
+        }
+
+        // One save for the document, its link and the count. A failed save is discarded by
+        // the context, so nothing of this import stays pending for a later save.
+        await _db.SaveChangesAsync(ct);
+
+        _logger.Information(
+            "Imported document {FileName} (ID {DocumentId}, {FileType}), collection {CollectionId}",
+            document.FileName, document.Id, document.FileType, collection?.Id);
+
+        if (document.IndexingStatus == "pending")
+        {
+            RaisePendingIndexing(document.Id, extracted: null);
+        }
+
+        return document;
+    }
+
+    /// <summary>
+    /// Links a document to a collection and keeps the collection's denormalized
+    /// <see cref="CollectionEntity.DocumentCount"/> in step. Returns false when the collection
+    /// does not exist.
+    /// </summary>
+    private async Task<bool> AddToCollectionAsync(long documentId, long collectionId, CancellationToken ct)
+    {
+        var collection = await _db.Collections.FirstOrDefaultAsync(c => c.Id == collectionId, ct);
+        if (collection is null)
+        {
+            return false;
+        }
+
+        _db.DocumentCollections.Add(new DocumentCollectionEntity
+        {
+            DocumentId = documentId,
+            CollectionId = collectionId,
+            AddedAt = DateTime.UtcNow
+        });
+
+        collection.DocumentCount += 1;
+        collection.UpdatedAt = DateTime.UtcNow;
+
+        await _db.SaveChangesAsync(ct);
+        return true;
+    }
+
+    /// <summary>
+    /// Runs the processor, turning an extraction failure into an error message instead of an
+    /// exception so the caller can record the document as failed with that reason.
+    /// Cancellation still propagates.
+    /// </summary>
+    private async Task<(ProcessedDocument? Processed, string? Error)> TryExtractAsync(
+        IDocumentProcessor processor,
+        string filePath,
+        CancellationToken ct)
+    {
+        try
+        {
+            return (await processor.ProcessAsync(filePath, ct), null);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.Warning(ex, "Text extraction failed for {FilePath}", filePath);
+            return (null, DescribeExtractionFailure(ex));
+        }
+    }
+
+    /// <summary>
+    /// User-facing reason for a failed extraction. Processor messages are already written
+    /// for the user; anything else gets a prefix that says which step failed.
+    /// </summary>
+    private static string DescribeExtractionFailure(Exception ex)
+        => ex is DocumentExtractionException ? ex.Message : $"Text extraction failed: {ex.Message}";
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<DocumentEntity>> ImportFilesAsync(
@@ -254,12 +398,24 @@ public sealed class DocumentService : IDocumentService
         IProgress<int>? progress = null,
         CancellationToken ct = default)
     {
+        var report = await ImportFilesWithReportAsync(filePaths, collectionId, allowDuplicates: false, progress, ct);
+        return report.Imported.AsReadOnly();
+    }
+
+    /// <inheritdoc />
+    public async Task<DocumentImportReport> ImportFilesWithReportAsync(
+        IReadOnlyList<string> filePaths,
+        long? collectionId = null,
+        bool allowDuplicates = false,
+        IProgress<int>? progress = null,
+        CancellationToken ct = default)
+    {
+        var report = new DocumentImportReport();
         if (filePaths is null || filePaths.Count == 0)
         {
-            return Array.Empty<DocumentEntity>();
+            return report;
         }
 
-        var results = new List<DocumentEntity>(filePaths.Count);
         var completed = 0;
 
         foreach (var filePath in filePaths)
@@ -268,21 +424,28 @@ public sealed class DocumentService : IDocumentService
 
             try
             {
-                var entity = await ImportFileAsync(filePath, collectionId, ct);
-                results.Add(entity);
+                var entity = await ImportFileCoreAsync(filePath, collectionId, allowDuplicates, ct);
+                report.Imported.Add(entity);
+            }
+            catch (DuplicateDocumentException ex)
+            {
+                report.Duplicates.Add(new DocumentImportDuplicate(filePath, ex.ExistingDocumentId, ex.ExistingFileName));
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                // Log and continue with remaining files rather than aborting the batch
+                // Record and continue with the remaining files rather than aborting the batch
                 _logger.Warning(ex, "Failed to import file: {FilePath}", filePath);
+                report.Failed.Add(new DocumentImportFailure(filePath, ex.Message));
             }
 
             completed++;
             progress?.Report(completed);
         }
 
-        _logger.Information("Batch import completed: {Imported}/{Total} files imported", results.Count, filePaths.Count);
-        return results.AsReadOnly();
+        _logger.Information(
+            "Batch import completed: {Imported}/{Total} files imported ({ExtractionFailed} without readable text), {Duplicates} duplicates skipped, {Failed} failed",
+            report.Imported.Count, filePaths.Count, report.ExtractionFailedCount, report.Duplicates.Count, report.Failed.Count);
+        return report;
     }
 
     /// <inheritdoc />
@@ -356,11 +519,13 @@ public sealed class DocumentService : IDocumentService
     {
         IQueryable<DocumentEntity> query = _db.Documents.AsNoTracking();
 
-        // File type filter
+        // File type filter: one type, or a category chip ("code", "image") that covers every
+        // extension its processor reads. FileType holds the extension without the dot, so the
+        // categories never matched anything when compared as a type.
         if (!string.IsNullOrWhiteSpace(fileTypeFilter))
         {
-            var normalizedFilter = fileTypeFilter.TrimStart('.').ToLowerInvariant();
-            query = query.Where(d => d.FileType == normalizedFilter);
+            var fileTypes = DocumentFileTypeFilter.Resolve(fileTypeFilter).ToArray();
+            query = query.Where(d => fileTypes.Contains(d.FileType));
         }
 
         // Status filter
@@ -410,16 +575,6 @@ public sealed class DocumentService : IDocumentService
     }
 
     /// <inheritdoc />
-    public async Task<IReadOnlyList<DocumentEntity>> GetDocumentsByCollectionAsync(long collectionId)
-    {
-        return await _db.DocumentCollections
-            .Where(dc => dc.CollectionId == collectionId)
-            .Select(dc => dc.Document)
-            .OrderByDescending(d => d.ImportedAt)
-            .ToListAsync();
-    }
-
-    /// <inheritdoc />
     public async Task<IReadOnlyList<DocumentEntity>> GetRecentDocumentsAsync(int limit = 5, CancellationToken ct = default)
     {
         var normalizedLimit = Math.Max(1, limit);
@@ -435,7 +590,6 @@ public sealed class DocumentService : IDocumentService
     public async Task DeleteDocumentAsync(long documentId)
     {
         var document = await _db.Documents
-            .Include(d => d.Chunks)
             .FirstOrDefaultAsync(d => d.Id == documentId);
 
         if (document is null)
@@ -444,41 +598,101 @@ public sealed class DocumentService : IDocumentService
             return;
         }
 
-        // Delete vector embeddings for all chunks if VectorStore is available
-        if (_vectorStore is not null && document.Chunks.Count > 0)
-        {
-            var chunkIds = document.Chunks
-                .Where(c => c.IsEmbedded && c.VectorRowId.HasValue)
-                .Select(c => c.Id)
-                .ToList();
+        // Only the ids and embedding state are needed to clean up the vector store, so the
+        // chunk text is never loaded just to be deleted.
+        var embeddedChunkIds = await _db.DocumentChunks
+            .AsNoTracking()
+            .Where(c => c.DocumentId == documentId && c.IsEmbedded && c.VectorRowId.HasValue)
+            .Select(c => c.Id)
+            .ToListAsync();
 
-            if (chunkIds.Count > 0)
+        // Delete vector embeddings for all chunks if VectorStore is available
+        if (_vectorStore is not null && embeddedChunkIds.Count > 0)
+        {
+            try
             {
-                try
-                {
-                    await _vectorStore.DeleteEmbeddingsForDocumentAsync(documentId, chunkIds);
-                    _logger.Debug("Deleted {Count} vector embeddings for document {DocumentId}", chunkIds.Count, documentId);
-                }
-                catch (Exception ex)
-                {
-                    _logger.Error(ex, "Failed to delete vector embeddings for document {DocumentId}", documentId);
-                    // Continue with entity deletion even if vector cleanup fails
-                }
+                await _vectorStore.DeleteEmbeddingsForDocumentAsync(documentId, embeddedChunkIds);
+                _logger.Debug("Deleted {Count} vector embeddings for document {DocumentId}", embeddedChunkIds.Count, documentId);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Failed to delete vector embeddings for document {DocumentId}", documentId);
+                // Continue with entity deletion even if vector cleanup fails
             }
         }
 
-        // EF Core cascade delete will remove chunks, document-collection links, and tags
+        // Keyword hits carry their indexed text straight into search results and RAG
+        // prompts, so FTS rows left behind would keep serving the deleted document's text.
+        await RemoveFromKeywordIndexAsync(documentId, "delete");
+
+        // Keep the denormalized document count of every collection it belonged to in step.
+        var collectionIds = await _db.DocumentCollections
+            .AsNoTracking()
+            .Where(dc => dc.DocumentId == documentId)
+            .Select(dc => dc.CollectionId)
+            .ToListAsync();
+
+        if (collectionIds.Count > 0)
+        {
+            var collections = await _db.Collections
+                .Where(c => collectionIds.Contains(c.Id))
+                .ToListAsync();
+
+            foreach (var collection in collections)
+            {
+                collection.DocumentCount = Math.Max(0, collection.DocumentCount - 1);
+                collection.UpdatedAt = DateTime.UtcNow;
+            }
+        }
+
+        // Tracked dependents are removed by EF, the rest by the database cascade.
         _db.Documents.Remove(document);
         await _db.SaveChangesAsync();
 
+        // The cascade only runs when the connection enforces foreign keys, so sweep up any
+        // rows that survived. Tracked instances were already removed by SaveChanges above,
+        // so these set-based deletes cannot conflict with the change tracker.
+        await _db.DocumentChunks.Where(c => c.DocumentId == documentId).ExecuteDeleteAsync();
+        await _db.DocumentCollections.Where(dc => dc.DocumentId == documentId).ExecuteDeleteAsync();
+        await _db.DocumentTags.Where(dt => dt.DocumentId == documentId).ExecuteDeleteAsync();
+        await _db.Annotations.Where(a => a.DocumentId == documentId).ExecuteDeleteAsync();
+
+        // Cached result sets may still reference the deleted document.
+        _searchCacheService?.InvalidateForDocument(documentId);
+
         _logger.Information("Deleted document: {FileName} (ID {DocumentId})", document.FileName, documentId);
+    }
+
+    /// <summary>
+    /// Removes a document's rows from the FTS5 keyword index. Non-fatal: the caller's
+    /// primary operation proceeds even when the index cannot be updated.
+    /// </summary>
+    private async Task RemoveFromKeywordIndexAsync(long documentId, string operation, CancellationToken ct = default)
+    {
+        if (_keywordSearchService is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _keywordSearchService.RemoveDocumentFromFtsAsync(documentId, ct);
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning(ex, "Failed to remove document {DocumentId} from the keyword index during {Operation}",
+                documentId, operation);
+        }
     }
 
     /// <inheritdoc />
     public async Task ReindexDocumentAsync(long documentId, CancellationToken ct = default)
     {
         var document = await _db.Documents
-            .Include(d => d.Chunks)
             .FirstOrDefaultAsync(d => d.Id == documentId, ct);
 
         if (document is null)
@@ -489,50 +703,61 @@ public sealed class DocumentService : IDocumentService
         // Verify the source file still exists
         if (!File.Exists(document.FilePath))
         {
-            document.IndexingStatus = "failed";
-            document.IndexingError = $"Source file no longer exists: {document.FilePath}";
-            await _db.SaveChangesAsync(ct);
+            await MarkFailedAsync(document, $"Source file no longer exists: {document.FilePath}");
             throw new FileNotFoundException($"Source file no longer exists: {document.FilePath}", document.FilePath);
         }
 
-        // Delete existing vector embeddings
-        if (_vectorStore is not null && document.Chunks.Count > 0)
-        {
-            var chunkIds = document.Chunks
-                .Where(c => c.IsEmbedded && c.VectorRowId.HasValue)
-                .Select(c => c.Id)
-                .ToList();
-
-            if (chunkIds.Count > 0)
-            {
-                try
-                {
-                    await _vectorStore.DeleteEmbeddingsForDocumentAsync(documentId, chunkIds);
-                }
-                catch (Exception ex)
-                {
-                    _logger.Error(ex, "Failed to delete vector embeddings during re-index for document {DocumentId}", documentId);
-                }
-            }
-        }
-
-        // Remove existing chunks
-        _db.DocumentChunks.RemoveRange(document.Chunks);
-
-        // Recompute hash (file may have changed)
-        var newHash = await HashHelper.ComputeFileHashAsync(document.FilePath, ct);
-
-        // Re-extract text
         var processor = FindProcessorFor(document.FilePath);
         if (processor is null)
         {
-            document.IndexingStatus = "failed";
-            document.IndexingError = $"No processor found for file type: {Path.GetExtension(document.FilePath)}";
-            await _db.SaveChangesAsync(ct);
-            throw new NotSupportedException(document.IndexingError);
+            var error = $"No processor found for file type: {Path.GetExtension(document.FilePath)}";
+            await MarkFailedAsync(document, error);
+            throw new NotSupportedException(error);
         }
 
-        var processed = await processor.ProcessAsync(document.FilePath, ct);
+        // Hash and extract BEFORE touching the existing index data. If either throws, the
+        // document keeps its current chunks and vectors, and no half-finished deletes are
+        // left pending in the shared change tracker for some later SaveChanges to flush.
+        string newHash;
+        ProcessedDocument processed;
+        try
+        {
+            newHash = await HashHelper.ComputeFileHashAsync(document.FilePath, ct);
+            processed = await processor.ProcessAsync(document.FilePath, ct);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.Warning(ex, "Re-index of document {DocumentId} failed during text extraction", documentId);
+            await MarkFailedAsync(document, DescribeExtractionFailure(ex));
+            throw;
+        }
+
+        // Extraction succeeded: remove the previous version's index data.
+        var existingChunks = await _db.DocumentChunks
+            .Where(c => c.DocumentId == documentId)
+            .ToListAsync(ct);
+
+        var embeddedChunkIds = existingChunks
+            .Where(c => c.IsEmbedded && c.VectorRowId.HasValue)
+            .Select(c => c.Id)
+            .ToList();
+
+        if (_vectorStore is not null && embeddedChunkIds.Count > 0)
+        {
+            try
+            {
+                await _vectorStore.DeleteEmbeddingsForDocumentAsync(documentId, embeddedChunkIds, ct);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                _logger.Error(ex, "Failed to delete vector embeddings during re-index for document {DocumentId}", documentId);
+            }
+        }
+
+        await RemoveFromKeywordIndexAsync(documentId, "re-index", ct);
+
+        _db.DocumentChunks.RemoveRange(existingChunks);
+
         var fileInfo = new FileInfo(document.FilePath);
 
         // Update document metadata
@@ -551,7 +776,40 @@ public sealed class DocumentService : IDocumentService
 
         await _db.SaveChangesAsync(ct);
 
+        _searchCacheService?.InvalidateForDocument(documentId);
+
         _logger.Information("Document {DocumentId} ({FileName}) reset to pending for re-indexing", documentId, document.FileName);
+
+        // Hand the document to the indexing pipeline; without this it would sit in "pending"
+        // until the next startup even though every caller reports it as queued.
+        RaisePendingIndexing(documentId, processed);
+    }
+
+    /// <summary>
+    /// Records a failure on the document. Saved without the caller's token so the status
+    /// persists even when the failure was raised on the way out of a cancelled operation.
+    /// </summary>
+    private async Task MarkFailedAsync(DocumentEntity document, string error)
+    {
+        document.IndexingStatus = "failed";
+        document.IndexingError = error;
+        await _db.SaveChangesAsync(CancellationToken.None);
+    }
+
+    /// <summary>
+    /// Notifies subscribers (the indexing pipeline) that a document is waiting in "pending".
+    /// A failing handler must not fail the import that raised the event.
+    /// </summary>
+    private void RaisePendingIndexing(long documentId, ProcessedDocument? extracted)
+    {
+        try
+        {
+            DocumentPendingIndexing?.Invoke(this, new DocumentPendingIndexingEventArgs(documentId, extracted));
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning(ex, "A DocumentPendingIndexing handler failed for document {DocumentId}", documentId);
+        }
     }
 
     /// <inheritdoc />
@@ -562,7 +820,9 @@ public sealed class DocumentService : IDocumentService
             return null;
         }
 
+        // Duplicate checks only read the match, so it is not tracked in the shared context.
         return await _db.Documents
+            .AsNoTracking()
             .FirstOrDefaultAsync(d => d.ContentHash == contentHash);
     }
 
@@ -601,10 +861,24 @@ public sealed class DocumentService : IDocumentService
     /// <inheritdoc />
     public IReadOnlySet<string> GetSupportedExtensions()
     {
-        return _allSupportedExtensions.Value;
+        // Plugins activate and deactivate at run time, so their formats are added per call
+        // instead of being cached with the built-in ones.
+        var pluginProcessors = _pluginProcessors?.GetDocumentProcessors();
+        if (pluginProcessors is null || pluginProcessors.Count == 0)
+        {
+            return _allSupportedExtensions.Value;
+        }
+
+        var extensions = new HashSet<string>(_allSupportedExtensions.Value, StringComparer.OrdinalIgnoreCase);
+        foreach (var processor in pluginProcessors)
+        {
+            extensions.UnionWith(processor.SupportedExtensions);
+        }
+
+        return extensions;
     }
 
-    // ─── Duplicate Detection ────────────────────────────────────────────
+    // --- Duplicate Detection --------------------------------------------
 
     /// <inheritdoc />
     public async Task<DuplicateCheckResult> CheckForDuplicateAsync(string filePath, CancellationToken ct = default)
@@ -613,7 +887,7 @@ public sealed class DocumentService : IDocumentService
         {
             if (!File.Exists(filePath))
             {
-                _logger.Warning("Duplicate check skipped — file does not exist: {FilePath}", filePath);
+                _logger.Warning("Duplicate check skipped - file does not exist: {FilePath}", filePath);
                 return new DuplicateCheckResult { IsDuplicate = false };
             }
 
@@ -649,7 +923,7 @@ public sealed class DocumentService : IDocumentService
         }
     }
 
-    // ─── Bulk Operations ──────────────────────────────────────────────
+    // --- Bulk Operations ----------------------------------------------
 
     /// <inheritdoc />
     public async Task BulkDeleteAsync(IReadOnlyList<long> documentIds, CancellationToken ct = default)
@@ -698,6 +972,54 @@ public sealed class DocumentService : IDocumentService
     }
 
     /// <inheritdoc />
+    public async Task<int> RequeueAudioAwaitingSpeechModelAsync(CancellationToken ct = default)
+    {
+        var audioFileTypes = AudioProcessor.FileTypes;
+        var legacyMarker = AudioProcessor.LegacyTranscriptionErrorMarker;
+
+        // Failed for want of the model, or kept by an earlier version with a placeholder
+        // transcript and the transcription error in its metadata. Documents that are pending or
+        // being indexed are already on their way through the pipeline.
+        var documents = await _db.Documents
+            .Where(d => audioFileTypes.Contains(d.FileType))
+            .Where(d =>
+                (d.IndexingStatus == "failed" && d.IndexingError == AudioProcessor.SpeechModelMissingError) ||
+                ((d.IndexingStatus == "completed" || d.IndexingStatus == "failed") &&
+                 d.MetadataJson != null && d.MetadataJson.Contains(legacyMarker)))
+            .ToListAsync(ct);
+
+        if (documents.Count == 0)
+        {
+            return 0;
+        }
+
+        foreach (var document in documents)
+        {
+            document.IndexingStatus = "pending";
+            document.IndexingError = null;
+
+            // The placeholder's error record describes a transcript that is about to be made, and
+            // left in place it would select the document again after every later download.
+            if (document.MetadataJson?.Contains(legacyMarker, StringComparison.Ordinal) == true)
+            {
+                document.MetadataJson = null;
+            }
+        }
+
+        await _db.SaveChangesAsync(ct);
+
+        _logger.Information(
+            "Queued {Count} audio documents that were waiting for the speech-to-text model", documents.Count);
+
+        foreach (var document in documents)
+        {
+            RaisePendingIndexing(document.Id, extracted: null);
+        }
+
+        return documents.Count;
+    }
+
+    /// <inheritdoc />
     public async Task BulkAssignToCollectionAsync(IReadOnlyList<long> documentIds, long collectionId, CancellationToken ct = default)
     {
         if (documentIds is null || documentIds.Count == 0) return;
@@ -733,15 +1055,7 @@ public sealed class DocumentService : IDocumentService
                     continue;
                 }
 
-                var docCollection = new DocumentCollectionEntity
-                {
-                    DocumentId = id,
-                    CollectionId = collectionId,
-                    AddedAt = DateTime.UtcNow
-                };
-
-                _db.DocumentCollections.Add(docCollection);
-                await _db.SaveChangesAsync(ct);
+                await AddToCollectionAsync(id, collectionId, ct);
             }
             catch (Exception ex)
             {
@@ -753,10 +1067,12 @@ public sealed class DocumentService : IDocumentService
             documentIds.Count, collectionId);
     }
 
-    // ─── Private Helpers ─────────────────────────────────────────────
+    // --- Private Helpers ---------------------------------------------
 
     /// <summary>
-    /// Finds the first registered processor that can handle the given file path.
+    /// Finds the first registered processor that can handle the given file path. Built-in
+    /// processors win; a processor contributed by an active plugin handles only formats that
+    /// no built-in processor accepts.
     /// </summary>
     private IDocumentProcessor? FindProcessorFor(string filePath)
     {
@@ -768,7 +1084,7 @@ public sealed class DocumentService : IDocumentService
             }
         }
 
-        return null;
+        return _pluginProcessors?.GetDocumentProcessors().FirstOrDefault(p => p.CanProcess(filePath));
     }
 
     /// <summary>

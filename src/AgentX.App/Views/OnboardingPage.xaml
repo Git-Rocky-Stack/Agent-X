@@ -1,4 +1,4 @@
-﻿<Page
+<Page
     x:Class="AgentX.App.Views.OnboardingPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -28,9 +28,9 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <!-- ═══════════════════════════════════════════════════════
+            <!-- =======================================================
                  ROW 0: STEP INDICATOR (5 dots with connectors)
-                 ═══════════════════════════════════════════════════════ -->
+                 ======================================================= -->
             <StackPanel Grid.Row="0"
                         Orientation="Horizontal"
                         HorizontalAlignment="Center"
@@ -101,9 +101,9 @@
                 </Grid>
             </StackPanel>
 
-            <!-- ═══════════════════════════════════════════════════════
-                 ROW 1: CONTENT AREA — All Steps
-                 ═══════════════════════════════════════════════════════ -->
+            <!-- =======================================================
+                 ROW 1: CONTENT AREA - All Steps
+                 ======================================================= -->
             <ScrollViewer Grid.Row="1"
                           VerticalScrollBarVisibility="Auto"
                           HorizontalScrollBarVisibility="Disabled"
@@ -113,9 +113,9 @@
                       MaxWidth="700"
                       Padding="32,40,32,32">
 
-                    <!-- ════════════════════════════════════════════
+                    <!-- ============================================
                          STEP 0: WELCOME
-                         ════════════════════════════════════════════ -->
+                         ============================================ -->
                     <StackPanel Visibility="{x:Bind ViewModel.IsStep0Visible, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                                 Spacing="32"
                                 HorizontalAlignment="Center">
@@ -231,9 +231,9 @@
                         </StackPanel>
                     </StackPanel>
 
-                    <!-- ════════════════════════════════════════════
+                    <!-- ============================================
                          STEP 1: OLLAMA CONNECTION
-                         ════════════════════════════════════════════ -->
+                         ============================================ -->
                     <StackPanel Visibility="{x:Bind ViewModel.IsStep1Visible, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                                 Spacing="24"
                                 HorizontalAlignment="Stretch">
@@ -309,16 +309,16 @@
                                 <Run x:Uid="Onb_OllamaHelpRun2" Text="to install it." />
                             </TextBlock>
 
-                            <Button x:Uid="Onb_SkipBtn" Content="Skip for now — I'll set it up later"
+                            <Button x:Uid="Onb_SkipBtn" Content="Skip for now - I'll set it up later"
                                     Style="{StaticResource GhostButtonStyle}"
                                     HorizontalAlignment="Center"
                                     Command="{x:Bind ViewModel.SkipOllamaSetupCommand}" />
                         </StackPanel>
                     </StackPanel>
 
-                    <!-- ════════════════════════════════════════════
+                    <!-- ============================================
                          STEP 2: MODEL SELECTION
-                         ════════════════════════════════════════════ -->
+                         ============================================ -->
                     <StackPanel Visibility="{x:Bind ViewModel.IsStep2Visible, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                                 Spacing="24"
                                 HorizontalAlignment="Stretch">
@@ -414,7 +414,7 @@
                                 <TextBlock x:Uid="Onb_NoModelsTitle" Text="No models available"
                                            Style="{StaticResource HeadingSmallStyle}"
                                            HorizontalAlignment="Center" />
-                                <TextBlock x:Uid="Onb_NoModelsDesc" Text="Ollama is not connected, so models cannot be listed. You can configure models later in Settings or the Model Manager."
+                                <TextBlock x:Uid="Onb_NoModelsDesc" Text="No Ollama models could be listed: Ollama is not connected, or it has no models installed. You can configure models later in Settings or the Model Manager."
                                            Style="{StaticResource BodySecondaryStyle}"
                                            HorizontalAlignment="Center"
                                            TextAlignment="Center"
@@ -431,9 +431,9 @@
                         </controls:Faceplate>
                     </StackPanel>
 
-                    <!-- ════════════════════════════════════════════
+                    <!-- ============================================
                          STEP 3: BUILT-IN AI & CLOUD API KEYS
-                         ════════════════════════════════════════════ -->
+                         ============================================ -->
                     <StackPanel Visibility="{x:Bind ViewModel.IsStep3Visible, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                                 Spacing="24"
                                 HorizontalAlignment="Stretch">
@@ -605,9 +605,9 @@
                         </controls:Faceplate>
                     </StackPanel>
 
-                    <!-- ════════════════════════════════════════════
+                    <!-- ============================================
                          STEP 4: ALL SET!
-                         ════════════════════════════════════════════ -->
+                         ============================================ -->
                     <StackPanel Visibility="{x:Bind ViewModel.IsStep4Visible, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                                 Spacing="32"
                                 HorizontalAlignment="Center">
@@ -750,9 +750,9 @@
                 </Grid>
             </ScrollViewer>
 
-            <!-- ═══════════════════════════════════════════════════════
+            <!-- =======================================================
                  ROW 2: NAVIGATION BUTTONS
-                 ═══════════════════════════════════════════════════════ -->
+                 ======================================================= -->
             <Border Grid.Row="2"
                     BorderBrush="{ThemeResource BorderSubtleBrush}"
                     BorderThickness="0,1,0,0"
@@ -777,21 +777,21 @@
                                 Orientation="Horizontal"
                                 Spacing="12">
 
-                        <!-- "Get Started" — Only on Step 0 -->
+                        <!-- "Get Started" - Only on Step 0 -->
                         <Button x:Uid="Onb_GetStartedBtn" Content="Get Started"
                                 Style="{StaticResource AccentButtonStyle}"
                                 Command="{x:Bind ViewModel.NextStepCommand}"
                                 Visibility="{x:Bind ViewModel.IsStep0Visible, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                                 Padding="32,12,32,12" />
 
-                        <!-- "Next" — Steps 1, 2, 3 (not 0 or 4) -->
+                        <!-- "Next" - Steps 1, 2, 3 (not 0 or 4) -->
                         <Button x:Uid="Onb_NextBtn" Content="Next"
                                 Style="{StaticResource AccentButtonStyle}"
                                 Command="{x:Bind ViewModel.NextStepCommand}"
                                 Visibility="{x:Bind ViewModel.ShowNextButton, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                                 Padding="32,12,32,12" />
 
-                        <!-- "Launch Agent-X" — Only on Step 4. The one polished
+                        <!-- "Launch Agent-X" - Only on Step 4. The one polished
                              chrome cap on the bench: DESIGN.md allows at most one
                              chrome CTA per view, and powering the instrument on
                              is that moment. -->

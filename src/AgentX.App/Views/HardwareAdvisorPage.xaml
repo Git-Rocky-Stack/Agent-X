@@ -78,7 +78,7 @@
                  ROW 1 (shared): ELEVATION HINT (UAC acknowledgement)
 
                  Shown only after detection completes with partial/empty
-                 sensor data — the typical signature of running unelevated.
+                 sensor data - the typical signature of running unelevated.
                  LibreHardwareMonitor / WMI sensor reads require admin, so we
                  surface the requirement instead of silently showing blanks.
                  Mutually exclusive with the detecting spinner above (IsDetecting
@@ -698,7 +698,7 @@
                     <TextBlock Style="{StaticResource BodySmallStyle}"
                                Foreground="{ThemeResource TextTertiaryBrush}">
                         <Run x:Uid="HwAdvisor_LocalAiOnly" Text="Local AI Only" FontWeight="SemiBold" Foreground="{ThemeResource TextSecondaryBrush}" />
-                        <Run x:Uid="HwAdvisor_AllModelsRunEntirely" Text=" — All models run entirely on your hardware. No data is sent to external servers. Your hardware information never leaves this machine." />
+                        <Run x:Uid="HwAdvisor_AllModelsRunEntirely" Text=" - All models run entirely on your hardware. No data is sent to external servers. Your hardware information never leaves this machine." />
                     </TextBlock>
                 </StackPanel>
             </Border>

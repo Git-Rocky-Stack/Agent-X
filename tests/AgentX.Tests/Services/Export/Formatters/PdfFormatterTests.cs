@@ -138,6 +138,16 @@ public sealed class PdfFormatterTests
     }
 
     [Fact]
+    public async Task ExportConversationAsync_WithWebCitationsAndModelInfo_ReturnsAPdf()
+    {
+        var result = await _sut.ExportConversationAsync(
+            ResearchConversation.Create(), new ExportOptions { IncludeCitations = true, IncludeModelInfo = true });
+
+        var bytes = Convert.FromBase64String(result);
+        System.Text.Encoding.ASCII.GetString(bytes, 0, 5).Should().Be("%PDF-");
+    }
+
+    [Fact]
     public async Task ExportConversationAsync_WithCitations_ReturnsValidBase64()
     {
         // Arrange

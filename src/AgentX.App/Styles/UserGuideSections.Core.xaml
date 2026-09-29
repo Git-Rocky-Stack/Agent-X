@@ -2,16 +2,16 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!--
-    ╔══════════════════════════════════════════════════════════════════╗
-    ║            USER GUIDE CORE SECTIONS (BATCH 1)                    ║
-    ║                                                                  ║
-    ║  WelcomeTemplate, GettingStartedTemplate, DashboardTemplate      ║
-    ╚══════════════════════════════════════════════════════════════════╝
+    +==================================================================+
+    |            USER GUIDE CORE SECTIONS (BATCH 1)                    |
+    |                                                                  |
+    |  WelcomeTemplate, GettingStartedTemplate, DashboardTemplate      |
+    +==================================================================+
     -->
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          ROW 1: WELCOME TO AGENT-X
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
     <DataTemplate x:Key="WelcomeTemplate">
         <Border Style="{StaticResource CardAccentStyle}">
             <StackPanel Spacing="16">
@@ -43,9 +43,9 @@
         </Border>
     </DataTemplate>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          ROW 2: GETTING STARTED
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
     <DataTemplate x:Key="GettingStartedTemplate">
         <Border Style="{StaticResource CardStyle}">
             <StackPanel Spacing="16">
@@ -179,9 +179,9 @@
         </Border>
     </DataTemplate>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          ROW 3: DASHBOARD
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
     <DataTemplate x:Key="DashboardTemplate">
         <Border Style="{StaticResource CardStyle}">
             <StackPanel Spacing="16">

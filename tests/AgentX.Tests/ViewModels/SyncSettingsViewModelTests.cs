@@ -4,6 +4,7 @@ using AgentX.Core.Data.Entities;
 using AgentX.Core.Services.Collections;
 using AgentX.Core.Services.Sync;
 using AgentX.Core.Services.Sync.Models;
+using AgentX.Tests.Helpers;
 using FluentAssertions;
 using Moq;
 using Xunit;
@@ -45,7 +46,7 @@ public sealed class SyncSettingsViewModelTests
                 new CollectionEntity { Id = 3, Name = "Gamma", DocumentCount = 7 }
             });
 
-        var viewModel = new SyncSettingsViewModel(_syncService.Object, _collectionService.Object, _operationsDrillInService.Object);
+        var viewModel = new SyncSettingsViewModel(_syncService.Object, _collectionService.Object, EnglishResources.Create(), _operationsDrillInService.Object);
 
         await viewModel.InitializeAsync();
 
@@ -75,7 +76,7 @@ public sealed class SyncSettingsViewModelTests
                 new CollectionEntity { Id = 21, Name = "Operations", DocumentCount = 3, SortOrder = 2 }
             });
 
-        var viewModel = new SyncSettingsViewModel(_syncService.Object, _collectionService.Object, _operationsDrillInService.Object)
+        var viewModel = new SyncSettingsViewModel(_syncService.Object, _collectionService.Object, EnglishResources.Create(), _operationsDrillInService.Object)
         {
             SyncFolderPath = @"C:\Sync",
             EncryptionKey = "secret",
@@ -107,7 +108,7 @@ public sealed class SyncSettingsViewModelTests
                 new CollectionEntity { Id = 10, Name = "Research", DocumentCount = 5 }
             });
 
-        var viewModel = new SyncSettingsViewModel(_syncService.Object, _collectionService.Object, _operationsDrillInService.Object)
+        var viewModel = new SyncSettingsViewModel(_syncService.Object, _collectionService.Object, EnglishResources.Create(), _operationsDrillInService.Object)
         {
             SyncFolderPath = @"C:\Sync",
             EncryptionKey = "secret",
@@ -156,7 +157,7 @@ public sealed class SyncSettingsViewModelTests
         _operationsDrillInService.Setup(service => service.ConsumePendingSyncRequest())
             .Returns(new OperationsSyncDrillInRequest(9, "Opened sync history entry \"Import sync\" from Operations"));
 
-        var viewModel = new SyncSettingsViewModel(_syncService.Object, _collectionService.Object, _operationsDrillInService.Object);
+        var viewModel = new SyncSettingsViewModel(_syncService.Object, _collectionService.Object, EnglishResources.Create(), _operationsDrillInService.Object);
 
         await viewModel.InitializeAsync();
 
@@ -203,7 +204,7 @@ public sealed class SyncSettingsViewModelTests
         _operationsDrillInService.Setup(service => service.ConsumePendingSyncRequest())
             .Returns(new OperationsSyncDrillInRequest(9, "Opened sync history entry \"Import sync\" from Operations"));
 
-        var viewModel = new SyncSettingsViewModel(_syncService.Object, _collectionService.Object, _operationsDrillInService.Object);
+        var viewModel = new SyncSettingsViewModel(_syncService.Object, _collectionService.Object, EnglishResources.Create(), _operationsDrillInService.Object);
 
         await viewModel.InitializeAsync();
         viewModel.DismissFocusedSyncLandingCommand.Execute(null);
@@ -251,7 +252,7 @@ public sealed class SyncSettingsViewModelTests
             .Returns(new OperationsSyncDrillInRequest(9, "Opened sync history entry \"Import sync\" from Operations"))
             .Returns((OperationsSyncDrillInRequest?)null);
 
-        var viewModel = new SyncSettingsViewModel(_syncService.Object, _collectionService.Object, _operationsDrillInService.Object);
+        var viewModel = new SyncSettingsViewModel(_syncService.Object, _collectionService.Object, EnglishResources.Create(), _operationsDrillInService.Object);
 
         await viewModel.InitializeAsync();
         await viewModel.RefreshCommand.ExecuteAsync(null);
@@ -315,34 +316,19 @@ public sealed class SyncSettingsViewModelTests
                     DurationMs = 2400
                 }
             ]);
-        _syncService.Setup(service => service.ExportChangesAsync(It.IsAny<DateTime?>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new SyncChangeSet
-            {
-                Changes =
-                [
-                    new SyncChange
-                    {
-                        EntityType = "ConversationEntity",
-                        EntityId = 42,
-                        ChangeType = SyncChangeType.Updated,
-                        Timestamp = DateTime.UtcNow,
-                        SerializedData = "{}"
-                    }
-                ]
-            });
-        _syncService.Setup(service => service.StartAutoSyncAsync(It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+        _syncService.Setup(service => service.SyncNowAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new SyncRunResult { ExportedChanges = 1 });
         _operationsDrillInService.SetupSequence(service => service.ConsumePendingSyncRequest())
             .Returns(new OperationsSyncDrillInRequest(9, "Opened sync history entry \"Import sync\" from Operations"))
             .Returns((OperationsSyncDrillInRequest?)null);
 
-        var viewModel = new SyncSettingsViewModel(_syncService.Object, _collectionService.Object, _operationsDrillInService.Object);
+        var viewModel = new SyncSettingsViewModel(_syncService.Object, _collectionService.Object, EnglishResources.Create(), _operationsDrillInService.Object);
 
         await viewModel.InitializeAsync();
         await viewModel.SyncNowCommand.ExecuteAsync(null);
 
-        _syncService.Verify(service => service.ExportChangesAsync(It.IsAny<DateTime?>(), It.IsAny<CancellationToken>()), Times.Once);
-        _syncService.Verify(service => service.StartAutoSyncAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _syncService.Verify(service => service.SyncNowAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _syncService.Verify(service => service.StartAutoSyncAsync(It.IsAny<CancellationToken>()), Times.Never);
         viewModel.FocusedSyncLogId.Should().Be(0);
         viewModel.FocusedSyncSourceLabel.Should().BeEmpty();
         viewModel.HasFocusedSyncLanding.Should().BeFalse();
@@ -350,7 +336,7 @@ public sealed class SyncSettingsViewModelTests
         viewModel.StatusMessage.Should().Be("Resolved the focused sync history entry by running a fresh sync pass.");
     }
 
-    // ── Auto-sync toggle ─────────────────────────────────────────────────────
+    // -- Auto-sync toggle -----------------------------------------------------
     // The Auto-Sync switch bound straight to the flag, so turning it off left the
     // background loop running: the control reported a state it did not enforce.
 
@@ -382,12 +368,114 @@ public sealed class SyncSettingsViewModelTests
         var viewModel = new SyncSettingsViewModel(
             _syncService.Object,
             _collectionService.Object,
+            EnglishResources.Create(),
             _operationsDrillInService.Object);
 
         await viewModel.InitializeAsync();
 
         viewModel.AutoSyncEnabled.Should().BeTrue();
         _syncService.Verify(service => service.StopAutoSyncAsync(), Times.Never);
+    }
+
+    // ---- Sync Now reports what really happened ----
+
+    [Fact]
+    public async Task SyncNowAsync_ReportsTheImportOutcome_NotJustTheExport()
+    {
+        var viewModel = CreateConfiguredViewModel();
+        await viewModel.InitializeAsync();
+        _syncService.Setup(service => service.SyncNowAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new SyncRunResult
+            {
+                ExportedChanges = 2,
+                PeerFilesFound = 1,
+                PeerFilesImported = 1,
+                ChangesApplied = 4,
+                ConflictsResolved = 1,
+            });
+
+        await viewModel.SyncNowCommand.ExecuteAsync(null);
+
+        viewModel.StatusMessage.Should().Be(
+            "Sync complete. Exported 2 changes; imported 1 peer file (4 change(s) applied, 1 older than the local copy and skipped).");
+        viewModel.HasError.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task SyncNowAsync_SurfacesFilesLeftForRetry_InsteadOfClaimingSuccess()
+    {
+        var viewModel = CreateConfiguredViewModel();
+        await viewModel.InitializeAsync();
+        var result = new SyncRunResult { PeerFilesFound = 1, PeerFilesPendingRetry = 1, ChangesFailed = 1 };
+        result.Errors.Add("agentx-sync-peer: Conversation (remote id 9) could not be saved: constraint failed");
+        _syncService.Setup(service => service.SyncNowAsync(It.IsAny<CancellationToken>())).ReturnsAsync(result);
+
+        await viewModel.SyncNowCommand.ExecuteAsync(null);
+
+        viewModel.HasError.Should().BeTrue();
+        viewModel.ErrorMessage.Should().Contain("will be retried on the next sync");
+        viewModel.ErrorMessage.Should().Contain("constraint failed");
+        viewModel.StatusMessage.Should().StartWith("Sync finished with problems.");
+    }
+
+    // ---- Auto-sync toggle persistence ----
+
+    [Fact]
+    public async Task StartAutoSync_PersistsTheToggleBeforeStartingTheLoop()
+    {
+        var viewModel = CreateConfiguredViewModel();
+        await viewModel.InitializeAsync();
+
+        var calls = new List<string>();
+        _syncService.Setup(service => service.ConfigureAsync(It.IsAny<SyncConfiguration>()))
+            .Callback((SyncConfiguration config) => calls.Add($"configure:{config.AutoSyncEnabled}"))
+            .Returns(Task.CompletedTask);
+        _syncService.Setup(service => service.StartAutoSyncAsync(It.IsAny<CancellationToken>()))
+            .Callback(() => calls.Add("start"))
+            .Returns(Task.CompletedTask);
+        _syncService.SetupGet(service => service.IsAutoSyncRunning).Returns(true);
+
+        await viewModel.StartAutoSyncCommand.ExecuteAsync(null);
+
+        calls.Should().Equal("configure:True", "start");
+        viewModel.AutoSyncEnabled.Should().BeTrue();
+        viewModel.StatusMessage.Should().Contain("Auto-sync is on").And.Contain("15 minutes");
+    }
+
+    [Fact]
+    public async Task StartAutoSync_WhenTheLoopDidNotStart_SaysSoAndTurnsTheToggleBackOff()
+    {
+        var viewModel = CreateConfiguredViewModel();
+        await viewModel.InitializeAsync();
+        _syncService.SetupGet(service => service.IsAutoSyncRunning).Returns(false);
+
+        await viewModel.StartAutoSyncCommand.ExecuteAsync(null);
+
+        viewModel.AutoSyncEnabled.Should().BeFalse();
+        viewModel.HasError.Should().BeTrue();
+        viewModel.ErrorMessage.Should().Contain("could not be started");
+        viewModel.StatusMessage.Should().NotContain("started");
+    }
+
+    [Fact]
+    public async Task StopAutoSync_PersistsTheDisabledToggle_SoItStaysOffAfterARestart()
+    {
+        _syncService.Setup(service => service.GetConfigurationAsync())
+            .ReturnsAsync(new SyncConfiguration
+            {
+                SyncFolderPath = @"C:\Sync",
+                EncryptionKey = "secret",
+                AutoSyncEnabled = true,
+                SyncIntervalMinutes = 15,
+            });
+        var viewModel = new SyncSettingsViewModel(_syncService.Object, _collectionService.Object, EnglishResources.Create(), _operationsDrillInService.Object);
+        await viewModel.InitializeAsync();
+
+        await viewModel.StopAutoSyncCommand.ExecuteAsync(null);
+
+        _syncService.Verify(service => service.ConfigureAsync(It.Is<SyncConfiguration>(c => !c.AutoSyncEnabled)), Times.Once);
+        _syncService.Verify(service => service.StopAutoSyncAsync(), Times.AtLeastOnce);
+        viewModel.StatusMessage.Should().Be("Auto-sync stopped.");
     }
 
     private SyncSettingsViewModel CreateConfiguredViewModel()
@@ -404,6 +492,136 @@ public sealed class SyncSettingsViewModelTests
         return new SyncSettingsViewModel(
             _syncService.Object,
             _collectionService.Object,
+            EnglishResources.Create(),
             _operationsDrillInService.Object);
+    }
+
+    // ---- Shown in the user's language ----
+
+    [Fact]
+    public async Task SyncState_IsTranslated_WhileTheBadgeDotStillReadsAStatusToken()
+    {
+        // The badge dot is colored by StatusToColorConverter, which matches English status words.
+        // It used to read the displayed state, so a translated state would have lost its color.
+        var german = ReswLocalization.For("de");
+        _syncService.Setup(service => service.GetConfigurationAsync())
+            .ReturnsAsync(new SyncConfiguration { SyncFolderPath = @"C:\Sync", EncryptionKey = "secret" });
+        _syncService.Setup(service => service.SyncNowAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new IOException("share offline"));
+        var viewModel = new SyncSettingsViewModel(_syncService.Object, _collectionService.Object, german, _operationsDrillInService.Object);
+        await viewModel.InitializeAsync();
+
+        viewModel.SyncStateTone.Should().Be("idle");
+        viewModel.SyncState.Should().Be(german.GetString("Sync_StateIdle")).And.NotBe("Idle");
+
+        await viewModel.SyncNowCommand.ExecuteAsync(null);
+
+        viewModel.CurrentSyncState.Should().Be(SyncState.Error);
+        viewModel.SyncStateTone.Should().Be("error");
+        viewModel.SyncState.Should().Be(german.GetString("Sync_StateError")).And.NotBe("Error");
+        viewModel.ErrorMessage.Should().Be(german.GetString("Sync_SyncFailed", "share offline"));
+    }
+
+    [Fact]
+    public void SyncScopeDropdown_SelectsByIndex_SoTheShownLabelsCanBeTranslated()
+    {
+        // The dropdown used to bind the stored value itself, so it listed "SelectedCollections".
+        var viewModel = CreateConfiguredViewModel();
+
+        viewModel.SyncScopeOptions.Should().Equal("All", "Selected Collections");
+        viewModel.SelectedSyncScopeIndex.Should().Be(0);
+
+        viewModel.SelectedSyncScopeIndex = 1;
+
+        viewModel.SyncScope.Should().Be("SelectedCollections");
+        viewModel.ShowSelectedCollectionsPicker.Should().BeTrue();
+
+        viewModel.SyncScope = "All";
+
+        viewModel.SelectedSyncScopeIndex.Should().Be(0);
+        viewModel.ShowSelectedCollectionsPicker.Should().BeFalse();
+    }
+
+    [Fact]
+    public void IntervalOptionsAndCollectionLabels_ComeFromTheResources()
+    {
+        var viewModel = CreateConfiguredViewModel();
+
+        viewModel.IntervalOptions.Should().Equal(
+            "Every 5 minutes", "Every 15 minutes", "Every 30 minutes", "Every hour", "Every 2 hours");
+        viewModel.SelectedCollectionSummary.Should().Be("No collections selected");
+        viewModel.LastSyncAt.Should().Be("Never");
+        viewModel.SyncState.Should().Be("Idle");
+    }
+
+    [Fact]
+    public async Task DismissingTheFocusedEntry_KeepsAStatusThatReplacedItsLabel()
+    {
+        // Whether the status line still shows the focus label is tracked as state, not found by
+        // comparing the displayed text with the label.
+        _syncService.Setup(service => service.GetConfigurationAsync())
+            .ReturnsAsync(new SyncConfiguration { SyncFolderPath = @"C:\Sync", EncryptionKey = "secret" });
+        _syncService.Setup(service => service.GetSyncHistoryAsync(It.IsAny<int>()))
+            .ReturnsAsync([new SyncLogEntity { Id = 9, Direction = "import", IsSuccess = true, SyncedAt = DateTime.UtcNow }]);
+        _operationsDrillInService.SetupSequence(service => service.ConsumePendingSyncRequest())
+            .Returns(new OperationsSyncDrillInRequest(9, "Opened sync history entry \"Import sync\" from Operations"))
+            .Returns((OperationsSyncDrillInRequest?)null);
+        var viewModel = new SyncSettingsViewModel(_syncService.Object, _collectionService.Object, EnglishResources.Create(), _operationsDrillInService.Object);
+        await viewModel.InitializeAsync();
+
+        await viewModel.SaveConfigurationCommand.ExecuteAsync(null);
+        viewModel.DismissFocusedSyncLandingCommand.Execute(null);
+
+        viewModel.StatusMessage.Should().Be("Sync configuration saved successfully.");
+        viewModel.HasStatusMessage.Should().BeTrue();
+        viewModel.HasFocusedSyncLanding.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task HistoryRows_NameTheirDirectionAndStatus_InTheUsersLanguage()
+    {
+        // The rows showed "Export" or "Import" and "Success" or "Failed" in every language.
+        var german = ReswLocalization.For("de");
+        _syncService.Setup(service => service.GetConfigurationAsync())
+            .ReturnsAsync(new SyncConfiguration { SyncFolderPath = @"C:\Sync", EncryptionKey = "secret" });
+        _syncService.Setup(service => service.GetSyncHistoryAsync(It.IsAny<int>()))
+            .ReturnsAsync(
+            [
+                new SyncLogEntity { Id = 1, Direction = "export", IsSuccess = true, SyncedAt = DateTime.UtcNow.AddMinutes(-3) },
+                new SyncLogEntity { Id = 2, Direction = "import", IsSuccess = false, SyncedAt = DateTime.UtcNow.AddMinutes(-1) }
+            ]);
+        var viewModel = new SyncSettingsViewModel(_syncService.Object, _collectionService.Object, german, _operationsDrillInService.Object);
+
+        await viewModel.InitializeAsync();
+
+        var export = viewModel.SyncHistory.Single(row => row.Id == 1);
+        var import = viewModel.SyncHistory.Single(row => row.Id == 2);
+        export.DirectionDisplay.Should().Be(german.GetString("Sync_HistoryDirectionExport"));
+        export.StatusText.Should().Be(german.GetString("Sync_HistoryStatusSuccess")).And.NotBe("Success");
+        import.DirectionDisplay.Should().Be(german.GetString("Sync_HistoryDirectionImport"));
+        import.StatusText.Should().Be(german.GetString("Sync_HistoryStatusFailed")).And.NotBe("Failed");
+        import.StatusLabel.Should().Be(german.GetString("Sync_HistoryStatusFailed").ToUpperInvariant());
+        export.Direction.Should().Be("export", "the stored direction token stays as it is");
+    }
+
+    [Fact]
+    public async Task HistoryRows_ReadTheSameEnglishAsBefore()
+    {
+        _syncService.Setup(service => service.GetConfigurationAsync())
+            .ReturnsAsync(new SyncConfiguration { SyncFolderPath = @"C:\Sync", EncryptionKey = "secret" });
+        _syncService.Setup(service => service.GetSyncHistoryAsync(It.IsAny<int>()))
+            .ReturnsAsync(
+            [
+                new SyncLogEntity { Id = 1, Direction = "export", IsSuccess = true, SyncedAt = DateTime.UtcNow.AddMinutes(-3) },
+                new SyncLogEntity { Id = 2, Direction = "import", IsSuccess = false, SyncedAt = DateTime.UtcNow.AddMinutes(-1) }
+            ]);
+        var viewModel = new SyncSettingsViewModel(_syncService.Object, _collectionService.Object, EnglishResources.Create(), _operationsDrillInService.Object);
+
+        await viewModel.InitializeAsync();
+
+        var export = viewModel.SyncHistory.Single(row => row.Id == 1);
+        var import = viewModel.SyncHistory.Single(row => row.Id == 2);
+        (export.DirectionDisplay, export.StatusText, export.StatusLabel).Should().Be(("Export", "Success", "SUCCESS"));
+        (import.DirectionDisplay, import.StatusText, import.StatusLabel).Should().Be(("Import", "Failed", "FAILED"));
     }
 }

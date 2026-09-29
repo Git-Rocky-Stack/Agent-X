@@ -29,8 +29,8 @@ public sealed record StartupResult(
 public interface IStartupOrchestrator
 {
     /// <summary>
-    /// Runs the critical startup sequence: AWAIT the database migration, then — only if it
-    /// succeeds — start the REST API host and initialize built-in connectors, in that order. If the
+    /// Runs the critical startup sequence: AWAIT the database migration, then - only if it
+    /// succeeds - start the REST API host and initialize built-in connectors, in that order. If the
     /// migration throws, returns a recovery-state result and starts NEITHER the API NOR the
     /// connectors (fail closed), so nothing runs against a broken schema.
     /// </summary>
@@ -40,7 +40,7 @@ public interface IStartupOrchestrator
 
 /// <summary>
 /// Default <see cref="IStartupOrchestrator"/>. Depends only on the migration runner and the two
-/// lifecycle interfaces plus a logger — no WinUI types — so the ordering/fail-closed contract for
+/// lifecycle interfaces plus a logger - no WinUI types - so the ordering/fail-closed contract for
 /// AX-QA-003 can be verified with mocks in AgentX.Tests.
 ///
 /// Fail-closed boundary: the database migration is the single gate. If it throws, the data-backed
@@ -73,7 +73,7 @@ public sealed class StartupOrchestrator : IStartupOrchestrator
     public async System.Threading.Tasks.Task<StartupResult> RunCriticalStartupAsync(
         System.Threading.CancellationToken cancellationToken = default)
     {
-        // ── Gate: the database migration MUST complete before anything data-backed comes up. ──
+        // -- Gate: the database migration MUST complete before anything data-backed comes up. --
         MigrationResult migrationResult;
         try
         {
@@ -93,7 +93,7 @@ public sealed class StartupOrchestrator : IStartupOrchestrator
             _startupGate.SignalStartupFailed();
             _log.Error(
                 ex,
-                "Database migration failed — entering recovery state. REST API, built-in connectors, "
+                "Database migration failed - entering recovery state. REST API, built-in connectors, "
                 + "and data-backed features will NOT be started to avoid running against a broken schema");
             return new StartupResult(
                 MigrationSucceeded: false,
@@ -102,13 +102,13 @@ public sealed class StartupOrchestrator : IStartupOrchestrator
                 Failure: ex);
         }
 
-        // ── Past the gate: schema is valid. Open the data-ready gate IMMEDIATELY so data-backed UI
+        // -- Past the gate: schema is valid. Open the data-ready gate IMMEDIATELY so data-backed UI
         //    (e.g. the dashboard, already showing its shell) can load in parallel with the API and
-        //    connectors — those read no schema the dashboard needs, so there is no reason to make UI
-        //    reads wait on them (AX-QA-003 follow-up: dashboard-load-vs-migration race). ──
+        //    connectors - those read no schema the dashboard needs, so there is no reason to make UI
+        //    reads wait on them (AX-QA-003 follow-up: dashboard-load-vs-migration race). --
         _startupGate.SignalDataReady();
 
-        // ── Start data-backed lifecycle steps in defined order. ──
+        // -- Start data-backed lifecycle steps in defined order. --
 
         // 1) Local REST API used by the browser extension and mobile companion.
         try
@@ -117,10 +117,10 @@ public sealed class StartupOrchestrator : IStartupOrchestrator
         }
         catch (System.Exception ex)
         {
-            // Independent best-effort step against a valid schema — log and continue to connectors.
+            // Independent best-effort step against a valid schema - log and continue to connectors.
             _log.Error(
                 ex,
-                "REST API startup failed — browser extension and mobile companion connectivity will be unavailable");
+                "REST API startup failed - browser extension and mobile companion connectivity will be unavailable");
         }
 
         // 2) First-party calendar/email connectors (now that the database is ready).

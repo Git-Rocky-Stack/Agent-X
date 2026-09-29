@@ -6,11 +6,11 @@
     The OFFLINE installer exceeds GitHub Releases' 2 GiB per-asset limit, so it is hosted on
     Cloudflare R2 and linked from the release notes (the SLIM installer is the GitHub asset).
 
-    Wrangler's `r2 object put` is capped at 315 MB and is therefore NOT usable here — Cloudflare
+    Wrangler's `r2 object put` is capped at 315 MB and is therefore NOT usable here - Cloudflare
     recommends an S3-compatible tool with multipart support. This script uses **rclone** (auto
     multipart, resumable) against R2's S3 endpoint.
 
-    Credentials are read from the environment — nothing secret is stored in the repo. Create an
+    Credentials are read from the environment - nothing secret is stored in the repo. Create an
     R2 API token in the dashboard (R2 -> Manage R2 API Tokens -> Create, Object Read & Write),
     which yields the S3 Access Key ID + Secret, then set:
       R2_ACCESS_KEY_ID        S3 Access Key ID from the R2 API token.
@@ -98,7 +98,7 @@ Write-Host "Object key:  $objectKey"
 Write-Host "Endpoint:    $endpoint"
 Write-Host ""
 
-# rclone on-the-fly :s3: remote — no config file, credentials passed as flags from env.
+# rclone on-the-fly :s3: remote - no config file, credentials passed as flags from env.
 $rcloneArgs = @(
     'copyto', $InstallerPath, ":s3:$Bucket/$objectKey",
     '--s3-provider', 'Cloudflare',

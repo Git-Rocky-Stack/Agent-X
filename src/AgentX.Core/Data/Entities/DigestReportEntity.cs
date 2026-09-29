@@ -23,14 +23,14 @@ public class DigestReportEntity
     /// </summary>
     public DateTime PeriodEnd { get; set; }
 
-    // ── Summary Statistics ──────────────────────────────────────
+    // -- Summary Statistics --------------------------------------
     public int NewDocumentsCount { get; set; }
     public int NewConversationsCount { get; set; }
     public int TotalSearches { get; set; }
     public int TotalTokensUsed { get; set; }
     public long StorageDeltaBytes { get; set; }
 
-    // ── JSON Detail Fields ──────────────────────────────────────
+    // -- JSON Detail Fields --------------------------------------
     /// <summary>JSON array of top search queries with counts.</summary>
     public string? TopSearchesJson { get; set; }
 

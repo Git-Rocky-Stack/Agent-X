@@ -3,12 +3,12 @@
                     xmlns:selectors="using:AgentX.App.Selectors">
 
     <!--
-    ╔══════════════════════════════════════════════════════════════════╗
-    ║              USER GUIDE SECTION DATATEMPLATES                    ║
-    ║                                                                  ║
-    ║  DataTemplates for UserGuidePage sections. Each section is      ║
-    ║  extracted into a reusable template with x:Uid localization.    ║
-    ╚══════════════════════════════════════════════════════════════════╝
+    +==================================================================+
+    |              USER GUIDE SECTION DATATEMPLATES                    |
+    |                                                                  |
+    |  DataTemplates for UserGuidePage sections. Each section is      |
+    |  extracted into a reusable template with x:Uid localization.    |
+    +==================================================================+
     -->
 
     <ResourceDictionary.MergedDictionaries>

@@ -1,5 +1,7 @@
 using System.ComponentModel;
+using AgentX.App.Helpers;
 using AgentX.App.ViewModels;
+using AgentX.Core.Services.Localization;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -22,19 +24,25 @@ public sealed partial class PluginManagerPage : Page
     /// </summary>
     private PluginDisplayItem? _selectedPlugin;
 
+    /// <summary>Set while an enable or disable started from the detail switch runs.</summary>
+    private bool _pluginChangeInFlight;
+
     public PluginManagerViewModel ViewModel { get; }
 
     public PluginManagerPage()
     {
-        ViewModel = App.GetService<PluginManagerViewModel>();
+        ViewModel = PageViewModelFactory.Create<PluginManagerViewModel>();
+        ViewModel.ConfirmDestructiveActionAsync = request => ConfirmationDialog.ShowAsync(XamlRoot, request);
         InitializeComponent();
 
-        // Wire up the file-picker request from the ViewModel
-        ViewModel.FilePickerRequested += OnFilePickerRequestedAsync;
-
+        // The page is cached, so Loaded runs on every visit while the constructor runs once.
+        // The file-picker request is wired here, symmetrically with Unloaded: wired in the
+        // constructor, the first Unloaded removed it for good and Install did nothing after.
         Loaded += async (_, _) =>
         {
             Log.Debug("PluginManagerPage loaded");
+            ViewModel.FilePickerRequested -= OnFilePickerRequestedAsync;
+            ViewModel.FilePickerRequested += OnFilePickerRequestedAsync;
             ViewModel.PropertyChanged -= OnViewModelPropertyChanged;
             ViewModel.PropertyChanged += OnViewModelPropertyChanged;
             await ViewModel.InitializeAsync();
@@ -48,9 +56,9 @@ public sealed partial class PluginManagerPage : Page
         };
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // FILE PICKER
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     /// <summary>
     /// Shows a file picker for .agentx-plugin / .zip files and returns the
@@ -88,43 +96,24 @@ public sealed partial class PluginManagerPage : Page
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // SELECTION — MASTER/DETAIL BINDING
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
+    // SELECTION - MASTER/DETAIL BINDING
+    // ===============================================================
+
+    /// <summary>
+    /// Uninstalls the selected plugins. Uninstall removes files from disk and cannot be undone,
+    /// so the view model asks for confirmation first, the same way as for a single plugin.
+    /// </summary>
+    private async void OnBulkUninstallPluginsClick(object sender, RoutedEventArgs e)
+    {
+        await ViewModel.BulkUninstallCommand.ExecuteAsync(null);
+    }
 
     /// <summary>
     /// Handles selection changes in the plugin list. Updates the detail
     /// panel to reflect the newly selected plugin, or shows the empty
     /// state when nothing is selected.
     /// </summary>
-    /// <summary>
-    /// Confirms before uninstalling plugins in bulk. Uninstall removes files from disk and
-    /// cannot be undone, so it takes a gate rather than firing on a single click.
-    /// </summary>
-    private async void OnBulkUninstallPluginsClick(object sender, RoutedEventArgs e)
-    {
-        if (ViewModel.SelectedCount == 0)
-        {
-            return;
-        }
-
-        var dialog = new ContentDialog
-        {
-            Title = "Uninstall Plugins?",
-            Content = $"This permanently removes {ViewModel.SelectedCount} plugin(s) from disk. " +
-                      "This cannot be undone.",
-            PrimaryButtonText = "Uninstall",
-            CloseButtonText = "Cancel",
-            DefaultButton = ContentDialogButton.Close,
-            XamlRoot = this.XamlRoot
-        };
-
-        if (await dialog.ShowAsync() == ContentDialogResult.Primary)
-        {
-            await ViewModel.BulkUninstallCommand.ExecuteAsync(null);
-        }
-    }
-
     private void OnPluginSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (PluginListView.SelectedItem is PluginDisplayItem plugin)
@@ -176,7 +165,7 @@ public sealed partial class PluginManagerPage : Page
         // Status badge styling
         UpdateStatusBadge(plugin.IsEnabled);
 
-        // Toggle switch — temporarily unhook the event to avoid re-triggering
+        // Toggle switch - temporarily unhook the event to avoid re-triggering
         DetailToggle.Toggled -= OnPluginToggled;
         DetailToggle.IsOn = plugin.IsEnabled;
         DetailToggle.Tag = plugin.Id;
@@ -189,7 +178,7 @@ public sealed partial class PluginManagerPage : Page
         // Description
         DetailDescription.Text = !string.IsNullOrWhiteSpace(plugin.Description)
             ? plugin.Description
-            : "No description provided.";
+            : App.GetService<ILocalizationService>().GetString("Plugin_NoDescription");
 
         // Details card
         DetailInstallPath.Text = plugin.InstallPath;
@@ -295,48 +284,80 @@ public sealed partial class PluginManagerPage : Page
         UpdateOperationsBadge(currentPlugin);
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // PLUGIN ACTIONS — EVENT HANDLERS FOR DATA-TEMPLATE ITEMS
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
+    // PLUGIN ACTIONS - EVENT HANDLERS FOR DATA-TEMPLATE ITEMS
+    // ===============================================================
 
     /// <summary>
-    /// Handles the ToggleSwitch Toggled event. The plugin ID is stored
-    /// in the Tag property so the correct command can be dispatched.
-    /// After toggling, refreshes the detail panel to keep it in sync.
+    /// Handles the ToggleSwitch Toggled event. The plugin ID is stored in the Tag property so
+    /// the correct command can be dispatched. Once the command has finished, the switch and the
+    /// status lamp show the state the plugin is in: a failed enable leaves it disabled, so the
+    /// switch flips back instead of reading Active over a plugin that is not running. One change
+    /// runs at a time; a flip while one runs is undone when it settles.
     /// </summary>
-    private void OnPluginToggled(object sender, RoutedEventArgs e)
+    private async void OnPluginToggled(object sender, RoutedEventArgs e)
     {
-        if (sender is ToggleSwitch toggle && toggle.Tag is long pluginId)
+        if (sender is not ToggleSwitch { Tag: long pluginId } toggle || _pluginChangeInFlight)
+        {
+            return;
+        }
+
+        _pluginChangeInFlight = true;
+        try
         {
             if (toggle.IsOn)
             {
-                ViewModel.EnablePluginCommand.Execute(pluginId);
+                await ViewModel.EnablePluginCommand.ExecuteAsync(pluginId);
             }
             else
             {
-                ViewModel.DisablePluginCommand.Execute(pluginId);
-            }
-
-            // Refresh the status badge in the detail panel if this is the selected plugin
-            if (_selectedPlugin is not null && _selectedPlugin.Id == pluginId)
-            {
-                UpdateStatusBadge(toggle.IsOn);
+                await ViewModel.DisablePluginCommand.ExecuteAsync(pluginId);
             }
         }
+        finally
+        {
+            _pluginChangeInFlight = false;
+        }
+
+        ShowSelectedPluginState();
+    }
+
+    /// <summary>
+    /// Sets the detail switch, status lamp and last activation of the plugin on show from its
+    /// real state, which may be another plugin than the one toggled if the selection changed
+    /// meanwhile. Toggled is unhooked while the switch is set, so this starts no change.
+    /// </summary>
+    private void ShowSelectedPluginState()
+    {
+        if (_selectedPlugin is null)
+        {
+            return;
+        }
+
+        var plugin = ViewModel.Plugins.FirstOrDefault(item => item.Id == _selectedPlugin.Id) ?? _selectedPlugin;
+        _selectedPlugin = plugin;
+
+        UpdateStatusBadge(plugin.IsEnabled);
+        DetailLastActivated.Text = plugin.LastActivatedAtFormatted;
+
+        DetailToggle.Toggled -= OnPluginToggled;
+        DetailToggle.IsOn = plugin.IsEnabled;
+        DetailToggle.Toggled += OnPluginToggled;
     }
 
     /// <summary>
     /// Handles the Uninstall button click. The plugin ID is passed via
-    /// the Button's Tag property.
+    /// the Button's Tag property. The view model asks for confirmation first.
     /// </summary>
-    private void OnUninstallPluginClick(object sender, RoutedEventArgs e)
+    private async void OnUninstallPluginClick(object sender, RoutedEventArgs e)
     {
         if (sender is Button button && button.Tag is long pluginId)
         {
-            ViewModel.UninstallPluginCommand.Execute(pluginId);
+            await ViewModel.UninstallPluginCommand.ExecuteAsync(pluginId);
 
-            // If the uninstalled plugin was selected, clear the detail panel
-            if (_selectedPlugin is not null && _selectedPlugin.Id == pluginId)
+            // If the selected plugin was uninstalled (not cancelled), clear the detail panel
+            if (_selectedPlugin is not null && _selectedPlugin.Id == pluginId
+                && ViewModel.Plugins.All(plugin => plugin.Id != pluginId))
             {
                 _selectedPlugin = null;
                 PluginListView.SelectedItem = null;
@@ -346,9 +367,9 @@ public sealed partial class PluginManagerPage : Page
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // HELPER — EMPTY STATE VISIBILITY
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
+    // HELPER - EMPTY STATE VISIBILITY
+    // ===============================================================
 
     /// <summary>
     /// Returns <see cref="Visibility.Visible"/> when the plugin count is 0

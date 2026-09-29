@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
 using HtmlAgilityPack;
 
 namespace AgentX.Core.Services.Web;
@@ -7,7 +8,8 @@ namespace AgentX.Core.Services.Web;
 /// <summary>
 /// Static helpers for supplementary HTML extraction that falls outside the scope
 /// of the primary <see cref="IHtmlParser"/> and <see cref="IStructuredDataExtractor"/> services.
-/// Covers canonical URL resolution, language detection, and table-to-markdown conversion.
+/// Covers canonical URL resolution, language detection, and table-to-Markdown conversion
+/// (used by <see cref="HtmlParser"/> for tables inside the extracted article).
 /// <para>
 /// Extracted from <see cref="WebScraperService"/> to keep the orchestrator thin
 /// while preserving the specialized extraction logic.
@@ -45,50 +47,43 @@ internal static class HtmlSupplementaryHelper
     }
 
     /// <summary>
-    /// Converts HTML <c>&lt;table&gt;</c> elements to markdown table format.
-    /// Each table is rendered as a pipe-delimited markdown table with a separator
-    /// row after the header. Tables are separated by blank lines.
+    /// Converts one HTML <c>&lt;table&gt;</c> element to a pipe-delimited Markdown table with a
+    /// separator row after the first row. Cell text is whitespace-collapsed so a line break
+    /// inside a cell cannot split a Markdown row. Returns an empty string for a table without
+    /// cells. The HTML parser calls this for data tables inside the extracted article only, so
+    /// navigation and layout tables elsewhere on the page never reach the imported text.
     /// </summary>
-    public static string ExtractTablesAsMarkdown(string html)
+    public static string TableToMarkdown(HtmlNode table)
     {
-        var doc = new HtmlDocument();
-        doc.LoadHtml(html);
-
         var sb = new StringBuilder();
-        var tables = doc.DocumentNode.SelectNodes("//table");
-        if (tables == null) return string.Empty;
+        var rows = table.SelectNodes(".//tr");
+        if (rows == null) return string.Empty;
 
-        foreach (var table in tables)
+        var isFirstRow = true;
+        foreach (var row in rows)
         {
-            var rows = table.SelectNodes(".//tr");
-            if (rows == null) continue;
+            var cells = row.SelectNodes(".//th | .//td");
+            if (cells == null) continue;
 
-            var isFirstRow = true;
-            foreach (var row in rows)
+            var cellTexts = cells.Select(c =>
             {
-                var cells = row.SelectNodes(".//th | .//td");
-                if (cells == null) continue;
+                var text = WebUtility.HtmlDecode(c.InnerText ?? string.Empty);
+                return CellWhitespace.Replace(text, " ").Trim().Replace("|", "\\|");
+            }).ToList();
 
-                var cellTexts = cells.Select(c =>
-                {
-                    var text = System.Net.WebUtility.HtmlDecode(c.InnerText ?? string.Empty).Trim();
-                    return text.Replace("|", "\\|");
-                }).ToList();
+            if (cellTexts.Count == 0) continue;
 
-                if (cellTexts.Count == 0) continue;
+            sb.Append("| ").Append(string.Join(" | ", cellTexts)).Append(" |\n");
 
-                sb.AppendLine("| " + string.Join(" | ", cellTexts) + " |");
-
-                if (isFirstRow)
-                {
-                    sb.AppendLine("| " + string.Join(" | ", cellTexts.Select(_ => "---")) + " |");
-                    isFirstRow = false;
-                }
+            if (isFirstRow)
+            {
+                sb.Append("| ").Append(string.Join(" | ", cellTexts.Select(_ => "---"))).Append(" |\n");
+                isFirstRow = false;
             }
-
-            sb.AppendLine();
         }
 
         return sb.ToString();
     }
+
+    private static readonly Regex CellWhitespace = new(@"\s+", RegexOptions.Compiled);
 }

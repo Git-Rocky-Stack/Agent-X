@@ -12,13 +12,12 @@
     <ContentPage.ToolbarItems>
         <ToolbarItem
             Text="Refresh"
-            IconImageSource="icon_refresh.png"
             Command="{Binding LoadCommand}" />
     </ContentPage.ToolbarItems>
 
     <Grid RowDefinitions="Auto,Auto,*">
 
-        <!-- ── Loading indicator ──────────────────────────────────────── -->
+        <!-- == Loading indicator ======================================== -->
         <ActivityIndicator
             Grid.Row="0"
             IsRunning="{Binding IsLoading}"
@@ -26,7 +25,7 @@
             Color="{StaticResource BrandPrimary}"
             Margin="0,8" />
 
-        <!-- ── Error banner ───────────────────────────────────────────── -->
+        <!-- == Error banner ============================================= -->
         <Frame
             Grid.Row="1"
             IsVisible="{Binding HasError}"
@@ -41,7 +40,7 @@
                 FontSize="13" />
         </Frame>
 
-        <!-- ── Empty state ─────────────────────────────────────────────── -->
+        <!-- == Empty state =============================================== -->
         <VerticalStackLayout
             Grid.Row="2"
             IsVisible="{Binding IsEmpty}"
@@ -63,7 +62,7 @@
                 Margin="32,0" />
         </VerticalStackLayout>
 
-        <!-- ── Conversation list ──────────────────────────────────────── -->
+        <!-- == Conversation list ======================================== -->
         <CollectionView
             Grid.Row="2"
             ItemsSource="{Binding Conversations}"
@@ -102,7 +101,7 @@
                                 <Label.FormattedText>
                                     <FormattedString>
                                         <Span Text="{Binding ModelDisplay}" FontAttributes="Bold" />
-                                        <Span Text="  •  " />
+                                        <Span Text=" | " />
                                         <Span Text="{Binding MessageCount, StringFormat='{0} messages'}" />
                                     </FormattedString>
                                 </Label.FormattedText>

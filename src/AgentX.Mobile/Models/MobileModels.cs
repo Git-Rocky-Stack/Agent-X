@@ -1,6 +1,6 @@
 namespace AgentX.Mobile.Models;
 
-// ── Generic envelope ─────────────────────────────────────────────────────────
+// -- Generic envelope ---------------------------------------------------------
 
 /// <summary>
 /// Mirror of the desktop AgentX REST API response envelope.
@@ -15,7 +15,57 @@ public sealed class ApiResponse<T>
     public DateTime Timestamp { get; init; }
 }
 
-// ── Document ─────────────────────────────────────────────────────────────────
+// --- Client call results ---
+
+/// <summary>How a call to the desktop API ended.</summary>
+public enum ApiStatus
+{
+    /// <summary>The call succeeded and <see cref="ApiResult{T}.Data"/> holds the payload.</summary>
+    Ok,
+
+    /// <summary>The desktop answered 404 (unknown item, or a route this desktop build lacks).</summary>
+    NotFound,
+
+    /// <summary>The desktop rejected the bearer token (401/403): unpaired, or the token was regenerated.</summary>
+    Unauthorized,
+
+    /// <summary>No HTTP answer at all: not running, wrong URL, blocked, or timed out.</summary>
+    Unreachable,
+
+    /// <summary>The desktop answered with a server error or a response the app cannot read.</summary>
+    Error,
+}
+
+/// <summary>
+/// Result of one desktop API call. Failures are reported as a status plus a user-facing message
+/// instead of an empty list, so an unpaired app no longer claims "No documents found".
+/// </summary>
+public sealed class ApiResult<T>
+{
+    private ApiResult(ApiStatus status, T? data, string? errorMessage)
+    {
+        Status = status;
+        Data = data;
+        ErrorMessage = errorMessage;
+    }
+
+    public ApiStatus Status { get; }
+
+    /// <summary>The payload; set only when <see cref="IsSuccess"/> is true.</summary>
+    public T? Data { get; }
+
+    /// <summary>A message to show the user; null on success.</summary>
+    public string? ErrorMessage { get; }
+
+    public bool IsSuccess => Status == ApiStatus.Ok;
+
+    public static ApiResult<T> Ok(T data) => new(ApiStatus.Ok, data, null);
+
+    public static ApiResult<T> Failure(ApiStatus status, string? errorMessage) =>
+        new(status, default, errorMessage ?? "The request failed.");
+}
+
+// -- Document -----------------------------------------------------------------
 
 /// <summary>
 /// A document as returned by GET /api/documents.
@@ -29,7 +79,7 @@ public sealed class DocumentDto
     public DateTime ImportedAt { get; init; }
     public string IndexingStatus { get; init; } = string.Empty;
 
-    // ── Derived display helpers ───────────────────────────────────────────────
+    // -- Derived display helpers -----------------------------------------------
 
     /// <summary>Human-readable file size (e.g., "1.4 MB").</summary>
     public string FileSizeDisplay => FileSizeBytes switch
@@ -61,7 +111,7 @@ public sealed class DocumentDto
     };
 }
 
-// ── Conversation ─────────────────────────────────────────────────────────────
+// -- Conversation -------------------------------------------------------------
 
 /// <summary>
 /// A conversation as returned by GET /api/conversations.
@@ -96,7 +146,7 @@ public sealed class ConversationDto
     }
 }
 
-// ── Collection ────────────────────────────────────────────────────────────────
+// -- Collection ----------------------------------------------------------------
 
 /// <summary>
 /// A collection as returned by GET /api/collections.
@@ -110,7 +160,7 @@ public sealed class CollectionDto
     public DateTime CreatedAt { get; init; }
 }
 
-// ── Search ────────────────────────────────────────────────────────────────────
+// -- Search --------------------------------------------------------------------
 
 /// <summary>
 /// A single result from POST /api/search.
@@ -136,11 +186,11 @@ public sealed class SearchResultDto
 
     /// <summary>Content trimmed to a reasonable preview length.</summary>
     public string ContentPreview => ChunkContent.Length > 250
-        ? string.Concat(ChunkContent.AsSpan(0, 247), "…")
+        ? string.Concat(ChunkContent.AsSpan(0, 247), "...")
         : ChunkContent;
 }
 
-// ── Health ────────────────────────────────────────────────────────────────────
+// -- Health --------------------------------------------------------------------
 
 /// <summary>
 /// Response payload from GET /api/health.

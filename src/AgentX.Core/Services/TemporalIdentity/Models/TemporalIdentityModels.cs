@@ -1,11 +1,11 @@
 namespace AgentX.Core.Services.TemporalIdentity.Models;
 
 /// <summary>
-/// Temporal Identity — tracks how the user's beliefs, expertise, and communication patterns evolve over time.
+/// Temporal Identity - tracks how the user's beliefs, expertise, and communication patterns evolve over time.
 /// This is the foundation for "Past Self" mode and generative identity features.
 /// </summary>
 
-// ─── Core Entities ─────────────────────────────────────────────────────────────
+// --- Core Entities -------------------------------------------------------------
 
 /// <summary>
 /// A belief, opinion, or stance held by the user at a point in time.
@@ -17,6 +17,12 @@ public class TemporalBeliefEntity
     public DateTime FirstDetectedAt { get; set; }
     public DateTime LastObservedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+
+    /// <summary>
+    /// Row creation time. Mapped because the AddTemporalIdentity migration created this column
+    /// as NOT NULL without a default, so every insert must supply it.
+    /// </summary>
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     /// <summary>
     /// The topic/concept this belief is about (e.g., "remote work", "AI safety", "microservices").
@@ -67,7 +73,7 @@ public class TemporalBeliefEntity
 }
 
 /// <summary>
-/// A moment of insight — when the user had a "click," breakthrough, or meaningful realization.
+/// A moment of insight - when the user had a "click," breakthrough, or meaningful realization.
 /// Harvested from message sentiment spikes, annotation intensity, and re-visit patterns.
 /// </summary>
 public class InsightMomentEntity
@@ -75,6 +81,12 @@ public class InsightMomentEntity
     public long Id { get; set; }
     public DateTime CapturedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+
+    /// <summary>
+    /// Row creation time. Mapped because the AddTemporalIdentity migration created this column
+    /// as NOT NULL without a default, so every insert must supply it.
+    /// </summary>
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     /// <summary>
     /// What the insight was about.
@@ -148,6 +160,12 @@ public class EngagementMetricsEntity
     public DateTime UpdatedAt { get; set; }
 
     /// <summary>
+    /// Row creation time. Mapped because the AddTemporalIdentity migration created this column
+    /// as NOT NULL without a default, so every insert must supply it.
+    /// </summary>
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    /// <summary>
     /// What type of content this is.
     /// </summary>
     public EngagementTargetType TargetType { get; set; }
@@ -177,7 +195,7 @@ public class EngagementMetricsEntity
 
     /// <summary>
     /// Has the user's sentiment toward this content changed?
-    /// From positive → negative or vice versa.
+    /// From positive -> negative or vice versa.
     /// </summary>
     public bool SentimentShifted { get; set; }
 
@@ -208,17 +226,35 @@ public enum EngagementDepth
     Read,         // Full consumption, minimal engagement
     Engaged,      // Annotations, questions, follow-up actions
     Deep,         // Multiple re-visits, extensive notes, referenced in other work
-    Core,         // Seminal material that shaped thinking—referenced frequently
+    Core,         // Seminal material that shaped thinking - referenced frequently
 }
 
 /// <summary>
-/// Detected belief conflicts — when current stance contradicts past self.
+/// Detected belief conflicts - when current stance contradicts past self.
 /// These are the "You said X then, Y now" moments that trigger self-reflection.
 /// </summary>
 public class BeliefConflictEntity
 {
     public long Id { get; set; }
     public DateTime DetectedAt { get; set; }
+
+    /// <summary>
+    /// Row creation time. Mapped because the AddTemporalIdentity migration created this column
+    /// as NOT NULL without a default, so every insert must supply it.
+    /// </summary>
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    /// <summary>
+    /// Last modification time (for example when the conflict is acknowledged). Mapped for the
+    /// same reason as <see cref="CreatedAt"/>.
+    /// </summary>
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+    /// <summary>
+    /// Topic of the conflicting belief, copied from <see cref="TemporalBeliefEntity.Topic"/> so
+    /// conflicts can be listed without a join. The column is NOT NULL in every schema version.
+    /// </summary>
+    public string Topic { get; set; } = string.Empty;
 
     /// <summary>
     /// The belief that has conflicted.
@@ -268,7 +304,7 @@ public class BeliefConflictEntity
 }
 
 /// <summary>
-/// Communication style profile — learns how the user writes and speaks.
+/// Communication style profile - learns how the user writes and speaks.
 /// Enables "draft as me" generative identity.
 /// </summary>
 public class VoiceProfileEntity
@@ -277,6 +313,12 @@ public class VoiceProfileEntity
     public DateTime FirstSampleAt { get; set; }
     public DateTime LastSampleAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+
+    /// <summary>
+    /// Row creation time. Mapped because the AddTemporalIdentity migration created this column
+    /// as NOT NULL without a default, so every insert must supply it.
+    /// </summary>
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     /// <summary>
     /// How many messages/communications have been analyzed.
@@ -328,7 +370,7 @@ public class VoiceProfileEntity
     public string StylisticTraitsJson { get; set; } = "{}";
 }
 
-// ─── DTOs for Queries ─────────────────────────────────────────────────────────────
+// --- DTOs for Queries -------------------------------------------------------------
 
 /// <summary>
 /// Response for "Past Self" queries.
@@ -343,9 +385,26 @@ public class PastSelfResponse
     public required string[] EvidenceExcerpts { get; set; }
     public required string[] RelatedConversations { get; set; }
     public required string[] RelatedDocuments { get; set; }
+
+    /// <summary>
+    /// The stance changed after <see cref="TimePeriod"/>, so the view held now
+    /// (<see cref="CurrentStance"/>) differs from <see cref="Stance"/>. False for a belief whose
+    /// last change came before that time: it already held today's stance then.
+    /// </summary>
     public bool HasEvolved { get; set; }
+
+    /// <summary>Today's stance when <see cref="HasEvolved"/>; otherwise null.</summary>
     public string? CurrentStance { get; set; }
+
+    /// <summary>When the stance last changed, to <see cref="CurrentStance"/>; null unless <see cref="HasEvolved"/>.</summary>
+    public DateTime? StanceChangedAt { get; set; }
 }
+
+/// <summary>
+/// A topic the user has stated a view on recently: the wording it was recorded under, and when
+/// it was first and most recently recorded.
+/// </summary>
+public sealed record ActiveTopic(string Topic, DateTime FirstRecordedAt, DateTime LastRecordedAt);
 
 /// <summary>
 /// Response for temporal queries about problem-solving patterns.
@@ -368,7 +427,19 @@ public class ResurfacedInsight
     public long Id { get; set; }
     public required string Insight { get; set; }
     public DateTime OriginalDate { get; set; }
-    public required string RelevanceReason { get; set; }
+
+    /// <summary>
+    /// The topics the insight was saved under: why it is shown. The page words the reason in
+    /// the user's language; this used to be a finished English sentence ("Related to ...").
+    /// </summary>
+    public IReadOnlyList<string> RelatedTopics { get; set; } = [];
+
     public double Significance { get; set; }
-    public required string Context { get; set; }
+
+    /// <summary>
+    /// Left empty. It held an English sentence ("From UserExplicitSave on 2026-09-01") that no
+    /// page or prompt shows; the page words an insight's date and topics itself, from
+    /// <see cref="OriginalDate"/> and <see cref="RelatedTopics"/>.
+    /// </summary>
+    public string Context { get; set; } = string.Empty;
 }

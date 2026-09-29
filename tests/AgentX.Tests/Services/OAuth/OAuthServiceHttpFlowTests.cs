@@ -17,7 +17,7 @@ namespace AgentX.Tests.Services.OAuth;
 
 /// <summary>
 /// Coverage for the HTTP-dependent and browser-walled paths of <see cref="OAuthService"/>
-/// that the base <c>OAuthServiceTests</c> cannot reach (AX-QA-009 — lifting the binding
+/// that the base <c>OAuthServiceTests</c> cannot reach (AX-QA-009 - lifting the binding
 /// OAuth critical namespace so the global coverage floor can ratchet further).
 ///
 /// The service constructs its own <see cref="HttpClient"/> with no injection seam, so the
@@ -26,7 +26,7 @@ namespace AgentX.Tests.Services.OAuth;
 /// endpoints point at it). The token-exchange, credential-persistence, scope-building, PKCE
 /// and authorization-URL helpers are only reachable through <c>AuthorizeAsync</c>, which
 /// launches the system browser via <c>Process.Start</c> (untestable in CI), so they are
-/// invoked directly by reflection — the same approach used for other unreachable-by-public-API
+/// invoked directly by reflection - the same approach used for other unreachable-by-public-API
 /// internals in this initiative.
 /// </summary>
 public sealed class OAuthServiceHttpFlowTests : IDisposable
@@ -89,7 +89,7 @@ public sealed class OAuthServiceHttpFlowTests : IDisposable
         return await ctx.OAuthCredentials.AsNoTracking().FirstOrDefaultAsync(c => c.ProviderId == "google");
     }
 
-    // ── Reflection bridges for the browser-walled internals ─────────────────────
+    // -- Reflection bridges for the browser-walled internals ---------------------
 
     private static async Task<object?> InvokePrivateAsync(OAuthService svc, string method, params object?[] args)
     {
@@ -118,9 +118,9 @@ public sealed class OAuthServiceHttpFlowTests : IDisposable
         return tr;
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
     //  In-process token/revocation stub server
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
 
     private sealed class StubHttpServer : IDisposable
     {
@@ -193,9 +193,9 @@ public sealed class OAuthServiceHttpFlowTests : IDisposable
         }
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  RefreshTokenAsync — success + branch coverage (real HTTP)
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
+    //  RefreshTokenAsync - success + branch coverage (real HTTP)
+    // ==========================================================================
 
     [Fact]
     public async Task RefreshTokenAsync_Success_UpdatesCredentialAndReturnsTrue()
@@ -226,7 +226,7 @@ public sealed class OAuthServiceHttpFlowTests : IDisposable
     public async Task RefreshTokenAsync_Success_KeepsOldRefreshToken_AndDefaultsExpiry_WhenServerOmitsThem()
     {
         using var server = new StubHttpServer();
-        // No refresh_token and no expires_in → keep old refresh cipher, default 1-hour expiry.
+        // No refresh_token and no expires_in -> keep old refresh cipher, default 1-hour expiry.
         server.Handler = _ => (200, """{"access_token":"new-access-token","token_type":"Bearer"}""");
 
         SeedCredential(refreshCipher: "DPAPI:original-refresh");
@@ -302,7 +302,7 @@ public sealed class OAuthServiceHttpFlowTests : IDisposable
     [Fact]
     public async Task RefreshTokenAsync_ReturnsFalse_OnNetworkError()
     {
-        // Endpoint that refuses the connection → HttpRequestException caught → false.
+        // Endpoint that refuses the connection -> HttpRequestException caught -> false.
         SeedCredential();
         _encryption.Setup(e => e.Decrypt("DPAPI:refresh")).Returns("refresh-plain");
 
@@ -312,9 +312,9 @@ public sealed class OAuthServiceHttpFlowTests : IDisposable
         (await service.RefreshTokenAsync("google")).Should().BeFalse();
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  GetAccessTokenAsync — successful auto-refresh path (real HTTP)
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
+    //  GetAccessTokenAsync - successful auto-refresh path (real HTTP)
+    // ==========================================================================
 
     [Fact]
     public async Task GetAccessTokenAsync_RefreshesExpiredToken_AndReturnsNewAccessToken()
@@ -322,7 +322,7 @@ public sealed class OAuthServiceHttpFlowTests : IDisposable
         using var server = new StubHttpServer();
         server.Handler = _ => (200, """{"access_token":"refreshed-access","token_type":"Bearer","expires_in":3600}""");
 
-        // Expires within the 5-minute refresh buffer → triggers auto-refresh.
+        // Expires within the 5-minute refresh buffer -> triggers auto-refresh.
         SeedCredential(expiry: DateTime.UtcNow.AddMinutes(2));
         _encryption.Setup(e => e.Decrypt("DPAPI:refresh")).Returns("refresh-plain");
         _encryption.Setup(e => e.Decrypt("ENC:refreshed-access")).Returns("refreshed-access-plain");
@@ -335,9 +335,9 @@ public sealed class OAuthServiceHttpFlowTests : IDisposable
         token.Should().Be("refreshed-access-plain");
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  RevokeAsync — server-side revocation success (real HTTP)
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
+    //  RevokeAsync - server-side revocation success (real HTTP)
+    // ==========================================================================
 
     [Fact]
     public async Task RevokeAsync_PerformsServerSideRevocation_ThenDeletesCredential()
@@ -357,9 +357,9 @@ public sealed class OAuthServiceHttpFlowTests : IDisposable
         server.Requests.Should().ContainSingle().Which.Should().Contain("token=access-plain");
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  ExchangeCodeForTokensAsync (reflection — walled behind AuthorizeAsync)
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
+    //  ExchangeCodeForTokensAsync (reflection - walled behind AuthorizeAsync)
+    // ==========================================================================
 
     [Fact]
     public async Task ExchangeCodeForTokens_Success_ReturnsTokenResponse()
@@ -414,9 +414,81 @@ public sealed class OAuthServiceHttpFlowTests : IDisposable
             .Which.Message.Should().Contain("did not contain an access token");
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  PersistCredentialAsync (reflection — walled behind AuthorizeAsync)
-    // ══════════════════════════════════════════════════════════════════════════
+    // -- Client secret in the token requests (public vs confidential clients) ------------
+
+    [Fact]
+    public async Task RefreshTokenAsync_ForAPublicClient_SendsNoClientSecret()
+    {
+        // A Microsoft app registered for mobile and desktop applications has no secret, and
+        // Microsoft rejects such a client when the request carries a client_secret parameter.
+        using var server = new StubHttpServer();
+        server.Handler = _ => (200, """{"access_token":"new-access","token_type":"Bearer","expires_in":3600}""");
+        SeedCredential();
+        _encryption.Setup(e => e.Decrypt("DPAPI:refresh")).Returns("refresh-plain");
+
+        using var service = CreateService();
+        var config = ProviderConfig(server.TokenEndpoint);
+        service.RegisterProvider(new OAuthProviderConfig
+        {
+            ProviderId = config.ProviderId,
+            TokenEndpoint = config.TokenEndpoint,
+            ClientId = config.ClientId,
+            ClientSecret = string.Empty,
+            RedirectUri = config.RedirectUri,
+        });
+
+        (await service.RefreshTokenAsync("google")).Should().BeTrue();
+
+        var request = server.Requests.Should().ContainSingle().Subject;
+        request.Should().Contain("client_id=test-client-id").And.NotContain("client_secret");
+    }
+
+    [Fact]
+    public async Task RefreshTokenAsync_ForAClientWithASecret_SendsIt()
+    {
+        // Google's Desktop app clients need their secret in every token request.
+        using var server = new StubHttpServer();
+        server.Handler = _ => (200, """{"access_token":"new-access","token_type":"Bearer","expires_in":3600}""");
+        SeedCredential();
+        _encryption.Setup(e => e.Decrypt("DPAPI:refresh")).Returns("refresh-plain");
+
+        using var service = CreateService();
+        service.RegisterProvider(ProviderConfig(server.TokenEndpoint));
+
+        (await service.RefreshTokenAsync("google")).Should().BeTrue();
+
+        server.Requests.Should().ContainSingle().Which.Should().Contain("client_secret=test-client-secret");
+    }
+
+    [Theory]
+    [InlineData("", false)]
+    [InlineData("test-client-secret", true)]
+    public async Task ExchangeCodeForTokens_SendsTheClientSecretOnlyWhenTheClientHasOne(string secret, bool sent)
+    {
+        using var server = new StubHttpServer();
+        server.Handler = _ => (200, """{"access_token":"exchanged-access","expires_in":3600}""");
+
+        using var service = CreateService();
+        var template = ProviderConfig(server.TokenEndpoint);
+        var config = new OAuthProviderConfig
+        {
+            ProviderId = template.ProviderId,
+            TokenEndpoint = template.TokenEndpoint,
+            ClientId = template.ClientId,
+            ClientSecret = secret,
+            RedirectUri = template.RedirectUri,
+        };
+
+        await InvokePrivateAsync(service, "ExchangeCodeForTokensAsync", config, "auth-code", config.RedirectUri, "verifier");
+
+        var request = server.Requests.Should().ContainSingle().Subject;
+        request.Contains("client_secret", StringComparison.Ordinal).Should().Be(sent);
+        request.Should().Contain("code_verifier=verifier");
+    }
+
+    // ==========================================================================
+    //  PersistCredentialAsync (reflection - walled behind AuthorizeAsync)
+    // ==========================================================================
 
     [Fact]
     public async Task PersistCredential_InsertsNewCredential()
@@ -461,7 +533,8 @@ public sealed class OAuthServiceHttpFlowTests : IDisposable
         }
 
         using var service = CreateService();
-        // No refresh token in the response → encrypts an empty string for the refresh slot.
+        // No refresh token in the response: the stored one is kept, because the earlier
+        // grant still works and an empty value would end access at the next expiry.
         var tokenResponse = NewTokenResponse("new-access", refresh: null, expiresIn: 0, userId: "new-user");
 
         var result = (OAuthCredential)(await InvokePrivateAsync(
@@ -473,16 +546,16 @@ public sealed class OAuthServiceHttpFlowTests : IDisposable
         (await verify.OAuthCredentials.CountAsync(c => c.ProviderId == "google")).Should().Be(1);
         var entity = await verify.OAuthCredentials.AsNoTracking().FirstAsync(c => c.ProviderId == "google");
         entity.AccessToken.Should().Be("ENC:new-access");
-        entity.RefreshToken.Should().Be("ENC:"); // Encrypt(string.Empty)
+        entity.RefreshToken.Should().Be("DPAPI:old-refresh"); // kept, not replaced by Encrypt(string.Empty)
         entity.Scopes.Should().Be("openid email");
         entity.UserId.Should().Be("new-user");
         entity.CreatedAt.Should().BeCloseTo(originalCreatedAt, TimeSpan.FromSeconds(1)); // preserved
         entity.TokenExpiry.Should().BeCloseTo(DateTime.UtcNow.AddSeconds(3600), TimeSpan.FromMinutes(1)); // default
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
     //  DecryptEntity failure branches (via GetCredentialAsync)
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
 
     [Fact]
     public async Task GetCredentialAsync_Throws_WhenAccessTokenDecryptFails()
@@ -515,9 +588,9 @@ public sealed class OAuthServiceHttpFlowTests : IDisposable
 
     private sealed class CryptographicExceptionStub : Exception { }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  AuthorizeAsync — early validation (runs before the browser launch)
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
+    //  AuthorizeAsync - early validation (runs before the browser launch)
+    // ==========================================================================
 
     [Fact]
     public async Task AuthorizeAsync_Throws_WhenRedirectUriIsNotLocalhost()
@@ -541,9 +614,21 @@ public sealed class OAuthServiceHttpFlowTests : IDisposable
             .Which.Message.Should().Contain("No OAuth provider configuration");
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  BuildScopes (reflection — static helper)
-    // ══════════════════════════════════════════════════════════════════════════
+    [Fact]
+    public async Task AuthorizeAsync_WhenProviderNotRegistered_IdentifiesTheMissingSetup()
+    {
+        // The connector pages catch this type to point the user at the credentials form.
+        using var service = CreateService();
+
+        Func<Task> act = () => service.AuthorizeAsync("google");
+
+        var thrown = (await act.Should().ThrowAsync<OAuthProviderNotConfiguredException>()).Which;
+        thrown.Provider.Should().Be("google");
+    }
+
+    // ==========================================================================
+    //  BuildScopes (reflection - static helper)
+    // ==========================================================================
 
     [Fact]
     public void BuildScopes_ReturnsDefault_WhenAdditionalIsBlank()
@@ -567,9 +652,9 @@ public sealed class OAuthServiceHttpFlowTests : IDisposable
         scopes.Should().BeEquivalentTo("openid", "profile", "email");
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  BuildAuthorizationUrl (reflection — static helper)
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
+    //  BuildAuthorizationUrl (reflection - static helper)
+    // ==========================================================================
 
     [Fact]
     public void BuildAuthorizationUrl_IncludesPkceStateAndExtraParameters()
@@ -619,9 +704,9 @@ public sealed class OAuthServiceHttpFlowTests : IDisposable
         url.Should().Contain("code_challenge_method=S256");
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  CSRF / PKCE helpers (reflection — static)
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
+    //  CSRF / PKCE helpers (reflection - static)
+    // ==========================================================================
 
     [Fact]
     public void GenerateState_ProducesDecodable32ByteValue()
@@ -662,9 +747,9 @@ public sealed class OAuthServiceHttpFlowTests : IDisposable
         encoded.Should().NotContain("+").And.NotContain("/").And.NotContain("=");
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
     //  Dispose
-    // ══════════════════════════════════════════════════════════════════════════
+    // ==========================================================================
 
     [Fact]
     public async Task Dispose_IsIdempotent_AndDisposesRefreshLocks()
@@ -680,5 +765,118 @@ public sealed class OAuthServiceHttpFlowTests : IDisposable
         service.Dispose();
         Action second = () => service.Dispose(); // guard: _isDisposed short-circuits
         second.Should().NotThrow();
+    }
+
+    // -- Refresh token lifecycle, revocation, settings --------------------------
+
+    [Fact]
+    public async Task PersistCredential_WithoutAnyRefreshToken_IsFlaggedForReauthorization()
+    {
+        using var service = CreateService();
+        var tokenResponse = NewTokenResponse("access-plain", refresh: null, expiresIn: 3600);
+
+        var result = (OAuthCredential)(await InvokePrivateAsync(
+            service, "PersistCredentialAsync", "microsoft", tokenResponse, "Mail.Read"))!;
+
+        result.RequiresReauthorization.Should().BeTrue(
+            "without a refresh token nothing can renew access after the first hour");
+    }
+
+    [Fact]
+    public async Task GetAccessTokenAsync_ExpiredWithoutRefreshToken_AsksForAReconnect()
+    {
+        using var server = new StubHttpServer();
+        SeedCredential(expiry: DateTime.UtcNow.AddMinutes(-1));
+        _encryption.Setup(e => e.Decrypt("DPAPI:access")).Returns("access-plain");
+        _encryption.Setup(e => e.Decrypt("DPAPI:refresh")).Returns(string.Empty);
+
+        using var service = CreateService();
+        service.RegisterProvider(ProviderConfig(server.TokenEndpoint));
+
+        Func<Task> act = () => service.GetAccessTokenAsync("google");
+
+        (await act.Should().ThrowAsync<InvalidOperationException>())
+            .Which.Message.Should().Contain("no refresh token").And.Contain("Reconnect");
+        server.Requests.Should().BeEmpty("there is no refresh token to send");
+    }
+
+    [Fact]
+    public async Task RevokeAsync_RevokesTheRefreshToken_SoTheWholeGrantEnds()
+    {
+        using var server = new StubHttpServer();
+        server.Handler = _ => (200, "{}");
+
+        SeedCredential(expiry: DateTime.UtcNow.AddHours(-2)); // an expired access token
+        _encryption.Setup(e => e.Decrypt("DPAPI:access")).Returns("access-plain");
+        _encryption.Setup(e => e.Decrypt("DPAPI:refresh")).Returns("refresh-plain");
+
+        using var service = CreateService();
+        service.RegisterProvider(ProviderConfig(server.TokenEndpoint, revocationEndpoint: server.RevocationEndpoint));
+
+        await service.RevokeAsync("google");
+
+        (await ReadCredentialAsync()).Should().BeNull();
+        var request = server.Requests.Should().ContainSingle().Subject;
+        request.Should().Contain("token=refresh-plain");
+        request.Should().NotContain("access-plain");
+    }
+
+    [Fact]
+    public void ApplySettings_UsesTheConfiguredBufferAndTimeout_Clamped()
+    {
+        using var service = CreateService();
+        service.RefreshBuffer.Should().Be(TimeSpan.FromMinutes(5));
+        service.AuthTimeout.Should().Be(TimeSpan.FromMinutes(5));
+
+        service.ApplySettings(new AgentX.Core.Services.Settings.OAuthSettings
+        {
+            TokenRefreshBufferMinutes = 15,
+            AuthTimeoutSeconds = 120,
+        });
+        service.RefreshBuffer.Should().Be(TimeSpan.FromMinutes(15));
+        service.AuthTimeout.Should().Be(TimeSpan.FromSeconds(120));
+
+        service.ApplySettings(new AgentX.Core.Services.Settings.OAuthSettings
+        {
+            TokenRefreshBufferMinutes = -5,
+            AuthTimeoutSeconds = 1,
+        });
+        service.RefreshBuffer.Should().Be(TimeSpan.Zero);
+        service.AuthTimeout.Should().Be(TimeSpan.FromSeconds(30));
+    }
+
+    [Fact]
+    public async Task GetAccessTokenAsync_RefreshesWithinTheConfiguredBuffer()
+    {
+        using var server = new StubHttpServer();
+        server.Handler = _ => (200, """{"access_token":"refreshed-access","token_type":"Bearer","expires_in":3600}""");
+
+        // Ten minutes left: outside the default 5-minute buffer, inside a 15-minute one.
+        SeedCredential(expiry: DateTime.UtcNow.AddMinutes(10));
+        _encryption.Setup(e => e.Decrypt("DPAPI:access")).Returns("access-plain");
+        _encryption.Setup(e => e.Decrypt("DPAPI:refresh")).Returns("refresh-plain");
+        _encryption.Setup(e => e.Decrypt("ENC:refreshed-access")).Returns("refreshed-access-plain");
+
+        using var service = CreateService();
+        service.RegisterProvider(ProviderConfig(server.TokenEndpoint));
+
+        (await service.GetAccessTokenAsync("google")).Should().Be("access-plain");
+        server.Requests.Should().BeEmpty();
+
+        service.ApplySettings(new AgentX.Core.Services.Settings.OAuthSettings { TokenRefreshBufferMinutes = 15 });
+
+        (await service.GetAccessTokenAsync("google")).Should().Be("refreshed-access-plain");
+        server.Requests.Should().ContainSingle();
+    }
+
+    [Fact]
+    public void BuildScopes_SplitsSpaceSeparatedLists_AndKeepsEachScopeOnce()
+    {
+        var result = (string)InvokeStatic(
+            "BuildScopes",
+            "openid profile email offline_access User.Read",
+            "offline_access Mail.Read User.Read")!;
+
+        result.Should().Be("openid profile email offline_access User.Read Mail.Read");
     }
 }

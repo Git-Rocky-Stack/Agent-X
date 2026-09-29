@@ -1,19 +1,19 @@
-﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!--
-    ╔══════════════════════════════════════════════════════════════════╗
-    ║          USER GUIDE FEATURES SECTIONS (BATCH 2)                  ║
-    ║                                                                  ║
-    ║  AiChatTemplate, AskYourFilesTemplate, QuickActionsTemplate,     ║
-    ║  KnowledgeVaultTemplate, CollectionsTemplate,                   ║
-    ║  KnowledgeGraphTemplate, WeeklyDigestTemplate                   ║
-    ╚══════════════════════════════════════════════════════════════════╝
+    +==================================================================+
+    |          USER GUIDE FEATURES SECTIONS (BATCH 2)                  |
+    |                                                                  |
+    |  AiChatTemplate, AskYourFilesTemplate, QuickActionsTemplate,     |
+    |  KnowledgeVaultTemplate, CollectionsTemplate,                   |
+    |  KnowledgeGraphTemplate, WeeklyDigestTemplate                   |
+    +==================================================================+
     -->
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          ROW 4: AI CHAT
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
     <DataTemplate x:Key="AiChatTemplate">
         <Border Style="{StaticResource CardStyle}">
             <StackPanel Spacing="16">
@@ -190,9 +190,9 @@
         </Border>
     </DataTemplate>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          ROW 5: ASK YOUR FILES (RAG)
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
     <DataTemplate x:Key="AskYourFilesTemplate">
         <Border Style="{StaticResource CardStyle}">
             <StackPanel Spacing="16">
@@ -305,9 +305,9 @@
         </Border>
     </DataTemplate>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          ROW 6: QUICK ACTIONS
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
     <DataTemplate x:Key="QuickActionsTemplate">
         <Border Style="{StaticResource CardStyle}">
             <StackPanel Spacing="16">
@@ -392,7 +392,7 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <FontIcon Glyph="&#xE70F;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                            <FontIcon Glyph="&#xE8C6;" FontFamily="Segoe MDL2 Assets" FontSize="16"
                                       Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,2,0,0" />
                             <StackPanel Grid.Column="1" Spacing="2">
                                 <TextBlock x:Uid="UserGuide_QuickActions_Action4_Title"
@@ -409,7 +409,7 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <FontIcon Glyph="&#xE7BE;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                            <FontIcon Glyph="&#xE8B7;" FontFamily="Segoe MDL2 Assets" FontSize="16"
                                       Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,2,0,0" />
                             <StackPanel Grid.Column="1" Spacing="2">
                                 <TextBlock x:Uid="UserGuide_QuickActions_Action5_Title"
@@ -426,7 +426,7 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <FontIcon Glyph="&#xE9CE;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                            <FontIcon Glyph="&#xE82F;" FontFamily="Segoe MDL2 Assets" FontSize="16"
                                       Foreground="{ThemeResource TextAccentBrush}" VerticalAlignment="Top" Margin="0,2,0,0" />
                             <StackPanel Grid.Column="1" Spacing="2">
                                 <TextBlock x:Uid="UserGuide_QuickActions_Action6_Title"
@@ -444,9 +444,9 @@
         </Border>
     </DataTemplate>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          ROW 7: KNOWLEDGE VAULT
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
     <DataTemplate x:Key="KnowledgeVaultTemplate">
         <Border Style="{StaticResource CardStyle}">
             <StackPanel Spacing="16">
@@ -632,9 +632,9 @@
         </Border>
     </DataTemplate>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          ROW 8: COLLECTIONS
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
     <DataTemplate x:Key="CollectionsTemplate">
         <Border Style="{StaticResource CardStyle}">
             <StackPanel Spacing="16">
@@ -710,9 +710,9 @@
         </Border>
     </DataTemplate>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          ROW 9: KNOWLEDGE GRAPH
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
     <DataTemplate x:Key="KnowledgeGraphTemplate">
         <Border Style="{StaticResource CardStyle}">
             <StackPanel Spacing="16">
@@ -828,9 +828,9 @@
         </Border>
     </DataTemplate>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          ROW 10: WEEKLY DIGEST
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
     <DataTemplate x:Key="WeeklyDigestTemplate">
         <Border Style="{StaticResource CardStyle}">
             <StackPanel Spacing="16">
@@ -917,9 +917,9 @@
         </Border>
     </DataTemplate>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          ROW 11: TEMPORAL IDENTITY COHERENCE
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
     <DataTemplate x:Key="TemporalIdentityTemplate">
         <Border Style="{StaticResource CardStyle}">
             <StackPanel Spacing="16">
@@ -1037,9 +1037,9 @@
         </Border>
     </DataTemplate>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          ROW 12: PAST SELF
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
     <DataTemplate x:Key="PastSelfTemplate">
         <Border Style="{StaticResource CardStyle}">
             <StackPanel Spacing="16">
@@ -1117,7 +1117,7 @@
                     <StackPanel Spacing="4">
                         <TextBlock x:Uid="UserGuide_PastSelf_QueryExample_Label"
                                    Style="{StaticResource OverlineStyle}" />
-                        <TextBlock Text="&quot;What did I think about AI safety last year?&quot;"
+                        <TextBlock x:Uid="PastSelf_GuideQueryExample"
                                    Style="{StaticResource MonoSmallStyle}"
                                    Foreground="{ThemeResource TextSecondaryBrush}" />
                     </StackPanel>
@@ -1175,9 +1175,9 @@
         </Border>
     </DataTemplate>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          ROW 13: GENERATIVE IDENTITY (DRAFT AS ME)
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
     <DataTemplate x:Key="GenerativeIdentityTemplate">
         <Border Style="{StaticResource CardStyle}">
             <StackPanel Spacing="16">
@@ -1340,9 +1340,9 @@
         </Border>
     </DataTemplate>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          ROW 14: INSIGHT HARVESTING
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
     <DataTemplate x:Key="InsightHarvestingTemplate">
         <Border Style="{StaticResource CardStyle}">
             <StackPanel Spacing="16">

@@ -89,6 +89,55 @@ public class EncryptionStateFileTests
     }
 
     [Fact]
+    public async Task WriteAsync_leaves_no_temp_file_next_to_the_marker()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), $"agentx-encstate-dir-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(dir);
+        try
+        {
+            var path = Path.Combine(dir, "encryption.info.json");
+            var sut = new EncryptionStateFile(path);
+
+            await sut.WriteAsync(NewDpapiInfo());
+            await sut.WriteAsync(NewPassphraseInfo());
+
+            // The marker is written to a temp file and moved into place, so a crash can never
+            // leave a truncated marker; the temp file must not outlive the write.
+            Directory.GetFiles(dir).Select(Path.GetFileName).Should().Equal("encryption.info.json");
+            sut.Read()!.StorageMode.Should().Be(KeyStorageMode.UserPassphrase);
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task MoveAside_renames_the_marker_so_it_no_longer_exists()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), $"agentx-encstate-dir-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(dir);
+        try
+        {
+            var path = Path.Combine(dir, "encryption.info.json");
+            var sut = new EncryptionStateFile(path);
+            await sut.WriteAsync(NewDpapiInfo());
+
+            var movedTo = sut.MoveAside();
+
+            sut.Exists().Should().BeFalse();
+            movedTo.Should().NotBeNull();
+            File.Exists(movedTo!).Should().BeTrue();
+            Path.GetFileName(movedTo).Should().StartWith("encryption.info.json.stale-");
+            sut.MoveAside().Should().BeNull("there is no marker left to move");
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
     public async Task Delete_removes_the_file()
     {
         var path = NewTempPath();

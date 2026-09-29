@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using AgentX.App.Services;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Helpers;
+using AgentX.Core.Services.Localization;
 using AgentX.Core.Services.Plugins;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -13,11 +14,12 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
 {
     // -- Services ---------------------------------------------------------
     private readonly IPluginService _pluginService;
+    private readonly ILocalizationService _localization;
     private readonly IOperationsDrillInService? _operationsDrillInService;
 
     // -- Page Properties --------------------------------------------------
     [ObservableProperty] private bool _isLoading;
-    [ObservableProperty] private string _statusMessage = "Ready";
+    [ObservableProperty] private string _statusMessage = string.Empty;
     [ObservableProperty] private int _pluginCount;
     [ObservableProperty] private string _errorMessage = string.Empty;
     [ObservableProperty] private bool _hasError;
@@ -38,13 +40,25 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
     /// </summary>
     public event Func<Task<string?>>? FilePickerRequested;
 
+    /// <summary>
+    /// Asks the user to confirm an uninstall and answers true when they do. The page supplies
+    /// it (a ContentDialog). While it is unset, Uninstall removes nothing.
+    /// </summary>
+    public Func<ConfirmationRequest, Task<bool>>? ConfirmDestructiveActionAsync { get; set; }
+
     // -- Constructor ------------------------------------------------------
+    /// <param name="pluginService">Plugin install, uninstall and state changes.</param>
+    /// <param name="localization">Every text the page shows: status lines, errors, labels and the uninstall confirmations.</param>
+    /// <param name="operationsDrillInService">Focus requests from the Operations page.</param>
     public PluginManagerViewModel(
         IPluginService pluginService,
+        ILocalizationService localization,
         IOperationsDrillInService? operationsDrillInService = null)
     {
         _pluginService = pluginService;
+        _localization = localization;
         _operationsDrillInService = operationsDrillInService;
+        StatusMessage = localization.GetString("Plugin_StatusReady");
         Log.Debug("PluginManagerViewModel created with services");
     }
 
@@ -82,7 +96,7 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to load plugins");
-            SetError("Failed to load installed plugins. Please try again.");
+            SetError(_localization.GetString("Plugin_LoadFailed"));
         }
         finally
         {
@@ -119,7 +133,7 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
             }
 
             IsLoading = true;
-            StatusMessage = "Installing plugin...";
+            StatusMessage = _localization.GetString("Plugin_Installing");
 
             var installed = await _pluginService.InstallPluginAsync(packagePath);
 
@@ -127,15 +141,15 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
             Plugins.Add(CreateDisplayItem(installed));
             PluginCount = Plugins.Count;
 
-            StatusMessage = $"Successfully installed {installed.Name}";
+            StatusMessage = _localization.GetString("Plugin_InstallSucceeded", installed.Name);
             Log.Information("Plugin installed: {PluginName} v{Version} (ID: {Id})",
                 installed.Name, installed.Version, installed.Id);
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to install plugin");
-            SetError($"Installation failed: {ex.Message}");
-            StatusMessage = "Installation failed";
+            SetError(_localization.GetString("Plugin_InstallFailedDetail", ex.Message));
+            StatusMessage = _localization.GetString("Plugin_InstallFailed");
         }
         finally
         {
@@ -144,20 +158,35 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
     }
 
     // -- Uninstall Plugin Command -----------------------------------------
+    /// <summary>
+    /// Uninstalls a plugin once the user confirms: its folder, with any data it keeps there,
+    /// and its record are deleted.
+    /// </summary>
     [RelayCommand]
     private async Task UninstallPluginAsync(long id)
     {
+        var target = Plugins.FirstOrDefault(p => p.Id == id);
+        var pluginName = target?.Name ?? $"#{id}";
+
+        var confirmed = await IsConfirmedAsync(new ConfirmationRequest(
+            _localization.GetString("Plugin_UninstallConfirmTitle"),
+            _localization.GetString("Plugin_UninstallConfirmMessage", pluginName),
+            _localization.GetString("Plugin_UninstallConfirmButton"),
+            _localization.GetString("Plugin_ConfirmCancelButton")));
+        if (!confirmed)
+        {
+            Log.Information("Uninstall of plugin ID {PluginId} was not confirmed", id);
+            return;
+        }
+
         Log.Information("Uninstalling plugin ID: {PluginId}", id);
         ClearError();
 
         try
         {
-            var target = Plugins.FirstOrDefault(p => p.Id == id);
-            var pluginName = target?.Name ?? $"#{id}";
+            StatusMessage = _localization.GetString("Plugin_Uninstalling", pluginName);
 
-            StatusMessage = $"Uninstalling {pluginName}...";
-
-            await _pluginService.UninstallPluginAsync(id);
+            var result = await _pluginService.UninstallPluginAsync(id);
 
             // Remove from local collection
             if (target is not null)
@@ -166,14 +195,25 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
             }
 
             PluginCount = Plugins.Count;
-            StatusMessage = $"Successfully uninstalled {pluginName}";
+            if (result.LeftoverDirectory is not null)
+            {
+                // The plugin is gone but Windows still held some of its files; say so rather
+                // than report a clean uninstall.
+                SetError(_localization.GetString("Plugin_UninstalledLeftoverError", pluginName, result.LeftoverDirectory));
+                StatusMessage = _localization.GetString("Plugin_UninstalledLeftoverStatus", pluginName);
+            }
+            else
+            {
+                StatusMessage = _localization.GetString("Plugin_UninstallSucceeded", pluginName);
+            }
+
             Log.Information("Plugin uninstalled: {PluginName} (ID: {PluginId})", pluginName, id);
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to uninstall plugin ID: {PluginId}", id);
-            SetError($"Failed to uninstall plugin. {ex.Message}");
-            StatusMessage = "Uninstall failed";
+            SetError(_localization.GetString("Plugin_UninstallFailedDetail", ex.Message));
+            StatusMessage = _localization.GetString("Plugin_UninstallFailed");
         }
     }
 
@@ -188,13 +228,15 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
         {
             await _pluginService.EnablePluginAsync(id);
 
-            // Update the local display item
+            // Update the local display item. The service stores the activation time in UTC, and
+            // TimeAgo reads UTC: a local time here read "5h ago" west of UTC a moment after enabling.
             var target = Plugins.FirstOrDefault(p => p.Id == id);
             if (target is not null)
             {
+                var activatedAt = DateTime.UtcNow;
                 target.IsEnabled = true;
-                target.LastActivatedAt = DateTime.Now;
-                target.LastActivatedAtFormatted = FormatHelper.TimeAgoWithMonths(DateTime.Now);
+                target.LastActivatedAt = activatedAt;
+                target.LastActivatedAtFormatted = FormatHelper.TimeAgoWithMonths(activatedAt);
             }
 
             if (TryResolveFocusedPluginAction(id, target?.Name, out var resolutionMessage))
@@ -203,14 +245,15 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
             }
             else
             {
-                StatusMessage = $"Enabled {target?.Name ?? $"plugin #{id}"}";
+                var pluginName = target?.Name ?? _localization.GetString("Plugin_FallbackName", id);
+                StatusMessage = _localization.GetString("Plugin_Enabled", pluginName);
             }
             Log.Information("Plugin enabled: {PluginId}", id);
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to enable plugin ID: {PluginId}", id);
-            SetError($"Failed to enable plugin. {ex.Message}");
+            SetError(_localization.GetString("Plugin_EnableFailed", ex.Message));
         }
     }
 
@@ -232,13 +275,14 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
                 target.IsEnabled = false;
             }
 
-            StatusMessage = $"Disabled {target?.Name ?? $"plugin #{id}"}";
+            var pluginName = target?.Name ?? _localization.GetString("Plugin_FallbackName", id);
+            StatusMessage = _localization.GetString("Plugin_Disabled", pluginName);
             Log.Information("Plugin disabled: {PluginId}", id);
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to disable plugin ID: {PluginId}", id);
-            SetError($"Failed to disable plugin. {ex.Message}");
+            SetError(_localization.GetString("Plugin_DisableFailed", ex.Message));
         }
     }
 
@@ -325,7 +369,9 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
         Log.Information("Bulk enabling {Count} plugins", count);
         ClearError();
         IsLoading = true;
-        StatusMessage = $"Enabling {count} plugins...";
+        StatusMessage = count == 1
+            ? _localization.GetString("Plugin_BulkEnablingOne")
+            : _localization.GetString("Plugin_BulkEnablingMany", count);
 
         try
         {
@@ -343,14 +389,16 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
             }
             else
             {
-                StatusMessage = $"Successfully enabled {count} plugin{(count == 1 ? "" : "s")}";
+                StatusMessage = count == 1
+                    ? _localization.GetString("Plugin_BulkEnabledOne")
+                    : _localization.GetString("Plugin_BulkEnabledMany", count);
             }
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Bulk enable failed");
-            SetError($"Bulk enable failed: {ex.Message}");
-            StatusMessage = "Bulk enable failed";
+            SetError(_localization.GetString("Plugin_BulkEnableFailedDetail", ex.Message));
+            StatusMessage = _localization.GetString("Plugin_BulkEnableFailed");
         }
         finally
         {
@@ -374,7 +422,9 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
         Log.Information("Bulk disabling {Count} plugins", count);
         ClearError();
         IsLoading = true;
-        StatusMessage = $"Disabling {count} plugins...";
+        StatusMessage = count == 1
+            ? _localization.GetString("Plugin_BulkDisablingOne")
+            : _localization.GetString("Plugin_BulkDisablingMany", count);
 
         try
         {
@@ -385,13 +435,15 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
 
             await LoadPluginsAsync();
             Log.Information("Bulk disabled {Count} plugins", count);
-            StatusMessage = $"Successfully disabled {count} plugin{(count == 1 ? "" : "s")}";
+            StatusMessage = count == 1
+                ? _localization.GetString("Plugin_BulkDisabledOne")
+                : _localization.GetString("Plugin_BulkDisabledMany", count);
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Bulk disable failed");
-            SetError($"Bulk disable failed: {ex.Message}");
-            StatusMessage = "Bulk disable failed";
+            SetError(_localization.GetString("Plugin_BulkDisableFailedDetail", ex.Message));
+            StatusMessage = _localization.GetString("Plugin_BulkDisableFailed");
         }
         finally
         {
@@ -403,9 +455,9 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
-    /// Uninstalls all currently selected plugins in bulk.
+    /// Uninstalls all currently selected plugins in bulk, once the user confirms.
     /// After completion, the selection is cleared, multi-select mode is exited,
-    /// and the plugin list is refreshed.
+    /// and the plugin list is refreshed. Without confirmation the selection is kept.
     /// </summary>
     [RelayCommand]
     private async Task BulkUninstallAsync()
@@ -413,27 +465,54 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
         if (SelectedPluginIds.Count == 0) return;
 
         var count = SelectedPluginIds.Count;
+        var confirmed = await IsConfirmedAsync(new ConfirmationRequest(
+            _localization.GetString("Plugin_BulkUninstallConfirmTitle"),
+            _localization.GetString("Plugin_BulkUninstallConfirmMessage", count),
+            _localization.GetString("Plugin_UninstallConfirmButton"),
+            _localization.GetString("Plugin_ConfirmCancelButton")));
+        if (!confirmed)
+        {
+            Log.Information("Bulk uninstall of {Count} plugins was not confirmed", count);
+            return;
+        }
+
         Log.Information("Bulk uninstalling {Count} plugins", count);
         ClearError();
         IsLoading = true;
-        StatusMessage = $"Uninstalling {count} plugins...";
+        StatusMessage = count == 1
+            ? _localization.GetString("Plugin_BulkUninstallingOne")
+            : _localization.GetString("Plugin_BulkUninstallingMany", count);
 
         try
         {
+            var leftovers = new List<string>();
             foreach (var id in SelectedPluginIds.ToList())
             {
-                await _pluginService.UninstallPluginAsync(id);
+                var result = await _pluginService.UninstallPluginAsync(id);
+                if (result.LeftoverDirectory is not null)
+                {
+                    leftovers.Add(result.LeftoverDirectory);
+                }
             }
 
             await LoadPluginsAsync();
             Log.Information("Bulk uninstalled {Count} plugins", count);
-            StatusMessage = $"Successfully uninstalled {count} plugin{(count == 1 ? "" : "s")}";
+            StatusMessage = count == 1
+                ? _localization.GetString("Plugin_BulkUninstalledOne")
+                : _localization.GetString("Plugin_BulkUninstalledMany", count);
+            if (leftovers.Count > 0)
+            {
+                SetError(_localization.GetString("Plugin_BulkLeftoverError", string.Join("; ", leftovers)));
+                StatusMessage = count == 1
+                    ? _localization.GetString("Plugin_BulkUninstalledLeftoverOne")
+                    : _localization.GetString("Plugin_BulkUninstalledLeftoverMany", count);
+            }
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Bulk uninstall failed");
-            SetError($"Bulk uninstall failed: {ex.Message}");
-            StatusMessage = "Bulk uninstall failed";
+            SetError(_localization.GetString("Plugin_BulkUninstallFailedDetail", ex.Message));
+            StatusMessage = _localization.GetString("Plugin_BulkUninstallFailed");
         }
         finally
         {
@@ -450,7 +529,7 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
     /// <summary>
     /// Creates a <see cref="PluginDisplayItem"/> from a <see cref="PluginEntity"/>.
     /// </summary>
-    private static PluginDisplayItem CreateDisplayItem(PluginEntity entity) => new()
+    private PluginDisplayItem CreateDisplayItem(PluginEntity entity) => new()
     {
         Id = entity.Id,
         PluginId = entity.PluginId,
@@ -459,6 +538,9 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
         Author = entity.Author,
         Description = entity.Description,
         PluginType = entity.PluginType,
+        TypeLabel = string.IsNullOrWhiteSpace(entity.PluginType)
+            ? _localization.GetString("Plugin_TypeExtension")
+            : char.ToUpperInvariant(entity.PluginType[0]) + entity.PluginType[1..].ToLowerInvariant(),
         InstallPath = entity.InstallPath,
         IsEnabled = entity.IsEnabled,
         InstalledAt = entity.InstalledAt,
@@ -466,7 +548,7 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
         LastActivatedAt = entity.LastActivatedAt,
         LastActivatedAtFormatted = entity.LastActivatedAt.HasValue
             ? FormatHelper.TimeAgoWithMonths(entity.LastActivatedAt.Value)
-            : "Never",
+            : _localization.GetString("Plugin_NeverActivated"),
         SettingsJson = entity.SettingsJson,
         ReadmeContent = entity.ReadmeContent
     };
@@ -545,18 +627,40 @@ public partial class PluginManagerViewModel : ObservableObject, IDisposable
         return true;
     }
 
-    private static string BuildFocusedPluginResolutionMessage(string? pluginName)
-    {
-        var resolvedLabel = !string.IsNullOrWhiteSpace(pluginName)
-            ? $"\"{pluginName}\""
-            : "the focused connector";
-        return $"Resolved {resolvedLabel} by enabling it.";
-    }
+    private string BuildFocusedPluginResolutionMessage(string? pluginName) =>
+        !string.IsNullOrWhiteSpace(pluginName)
+            ? _localization.GetString("Plugin_ResolvedFocused", pluginName)
+            : _localization.GetString("Plugin_ResolvedFocusedUnnamed");
 
-    private string BuildInstalledPluginsStatusMessage() =>
-        PluginCount > 0
-            ? $"{PluginCount} plugin{(PluginCount == 1 ? "" : "s")} installed"
-            : "No plugins installed";
+    private string BuildInstalledPluginsStatusMessage() => PluginCount switch
+    {
+        <= 0 => _localization.GetString("Plugin_NoneInstalled"),
+        1 => _localization.GetString("Plugin_InstalledOne"),
+        _ => _localization.GetString("Plugin_InstalledMany", PluginCount)
+    };
+
+    /// <summary>
+    /// Asks <see cref="ConfirmDestructiveActionAsync"/>. No handler, or a dialog that fails to
+    /// open, counts as "not confirmed": nothing is uninstalled without an answer.
+    /// </summary>
+    private async Task<bool> IsConfirmedAsync(ConfirmationRequest request)
+    {
+        if (ConfirmDestructiveActionAsync is not { } confirm)
+        {
+            Log.Warning("No confirmation handler is attached; '{Title}' was not carried out", request.Title);
+            return false;
+        }
+
+        try
+        {
+            return await confirm(request);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "The confirmation '{Title}' could not be shown", request.Title);
+            return false;
+        }
+    }
 
     private void SetError(string message)
     {
@@ -597,7 +701,9 @@ public partial class PluginDisplayItem : ObservableObject
     [ObservableProperty] private DateTime _installedAt;
     [ObservableProperty] private string _installedAtFormatted = string.Empty;
     [ObservableProperty] private DateTime? _lastActivatedAt;
-    [ObservableProperty] private string _lastActivatedAtFormatted = "Never";
+
+    /// <summary>When the plugin was last enabled, or the view model's localized "Never".</summary>
+    [ObservableProperty] private string _lastActivatedAtFormatted = string.Empty;
     [ObservableProperty] private string? _settingsJson;
     [ObservableProperty] private string? _readmeContent;
     [ObservableProperty] private bool _isFocused;
@@ -626,11 +732,10 @@ public partial class PluginDisplayItem : ObservableObject
     };
 
     /// <summary>
-    /// Human-readable label for the plugin type (title-cased).
+    /// Human-readable label for the plugin type (title-cased), set by the view model, which
+    /// words a plugin that declares no type in the user's language.
     /// </summary>
-    public string TypeLabel => string.IsNullOrWhiteSpace(PluginType)
-        ? "Extension"
-        : char.ToUpperInvariant(PluginType[0]) + PluginType[1..].ToLowerInvariant();
+    [ObservableProperty] private string _typeLabel = string.Empty;
 
     /// <summary>
     /// Status label reflecting the enabled state.

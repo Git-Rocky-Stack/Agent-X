@@ -12,9 +12,9 @@ namespace AgentX.Tests.Services.Calendar;
 /// </summary>
 public sealed class CalendarModelsTests
 {
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  CalEvent defaults & construction
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void CalEvent_Default_Id_IsEmptyString()
@@ -115,9 +115,9 @@ public sealed class CalendarModelsTests
         evt.CalendarId.Should().Be("cal-work");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  CalAttendee defaults & construction
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void CalAttendee_Default_DisplayName_IsEmptyString()
@@ -164,9 +164,9 @@ public sealed class CalendarModelsTests
         att.IsOrganizer.Should().BeTrue();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  CalendarInfo defaults & construction
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void CalendarInfo_Default_Id_IsEmptyString()
@@ -227,9 +227,9 @@ public sealed class CalendarModelsTests
         info.LastSyncedAt.Should().Be(now);
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  CalendarSyncSettings defaults
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void CalendarSyncSettings_Default_EnabledCalendars_IsEmptyDictionary()
@@ -308,9 +308,9 @@ public sealed class CalendarModelsTests
         settings.IncludeDescriptions.Should().BeFalse();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  SyncResult construction & computed properties
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void SyncResult_Default_Values_AreZero()

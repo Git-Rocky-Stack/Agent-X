@@ -54,4 +54,24 @@ public interface IVectorStore : IAsyncDisposable
     /// May be a no-op for some implementations.
     /// </summary>
     Task OptimizeAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Waits for the operations already running to finish, then closes the store's connection to
+    /// the database file, so the file can be replaced (restore) or re-encrypted: on Windows any
+    /// open handle makes that fail. Operations called while suspended wait until the matching
+    /// <see cref="ResumeAsync"/>. Suspensions nest: the store reopens when the last one ends.
+    /// When <paramref name="ct"/> is cancelled while waiting, the store stays in service and the
+    /// suspension does not count.
+    /// </summary>
+    Task SuspendAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Ends one suspension. The last one reopens the connection with the database key that is
+    /// current now and lets waiting operations continue, also when reopening fails (they then
+    /// fail instead of waiting). With <paramref name="reloadFromDatabase"/> the store first drops
+    /// what it derived from the previous file (an in-memory index, index files on disk) and loads
+    /// again from the database, as after a restore. A store that was never initialized stays
+    /// uninitialized. Does nothing when the store is not suspended.
+    /// </summary>
+    Task ResumeAsync(bool reloadFromDatabase, CancellationToken ct = default);
 }

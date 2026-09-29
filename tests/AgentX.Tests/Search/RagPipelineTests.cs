@@ -6,6 +6,8 @@ using AgentX.Core.Data;
 using AgentX.Core.Observability;
 using AgentX.Core.Search;
 using AgentX.Core.Search.Models;
+using AgentX.Core.Services.Search;
+using AgentX.Core.Services.Settings;
 using FluentAssertions;
 using Moq;
 using Serilog;
@@ -15,7 +17,7 @@ namespace AgentX.Tests.Search;
 
 /// <summary>
 /// FU-6: integration tests covering the RAG pipeline behaviors added across
-/// the audit waves — HyDE gating, PII redaction, search-mode routing, eval
+/// the audit waves - HyDE gating, PII redaction, search-mode routing, eval
 /// sample-rate gating, multi-block system prompt selection, and fail-open
 /// behavior on optional service exceptions.
 ///
@@ -36,7 +38,7 @@ public sealed class RagPipelineTests
 
     public RagPipelineTests()
     {
-        // Sensible defaults — individual tests override as needed.
+        // Sensible defaults - individual tests override as needed.
         _config.Setup(c => c.DefaultTopK).Returns(8);
         _config.Setup(c => c.DefaultMinScore).Returns(0.25f);
         _config.Setup(c => c.DefaultSearchMode).Returns("Hybrid");
@@ -64,7 +66,9 @@ public sealed class RagPipelineTests
         IParentDocumentRetriever? parentRetriever = null,
         IContextualCompressor? compressor = null,
         IRagEvaluator? evaluator = null,
-        IPiiDetector? piiDetector = null)
+        IPiiDetector? piiDetector = null,
+        ISettingsService? settingsService = null,
+        IWebSearchService? webSearchService = null)
     {
         return new RagPipeline(
             _searchOrchestrator.Object,
@@ -80,7 +84,9 @@ public sealed class RagPipelineTests
             parentRetriever: parentRetriever,
             compressor: compressor,
             evaluator: evaluator,
-            piiDetector: piiDetector);
+            webSearchService: webSearchService,
+            piiDetector: piiDetector,
+            settingsService: settingsService);
     }
 
     private void SetupSearchReturns(params SearchResult[] results)
@@ -128,9 +134,9 @@ public sealed class RagPipelineTests
         CollectionNames = new List<string>()
     };
 
-    // ════════════════════════════════════════════════════════════════════
+    // ====================================================================
     //  HyDE gating
-    // ════════════════════════════════════════════════════════════════════
+    // ====================================================================
 
     [Fact]
     public async Task AskAsync_HydeDisabled_DoesNotInvokeHyde()
@@ -142,7 +148,7 @@ public sealed class RagPipelineTests
 
         var pipeline = BuildPipeline(hyde: hyde.Object);
 
-        // Long question — would clear the length gate if HyDE were enabled.
+        // Long question - would clear the length gate if HyDE were enabled.
         var longQuestion = new string('x', 200);
         await pipeline.AskAsync(longQuestion);
 
@@ -202,7 +208,7 @@ public sealed class RagPipelineTests
         seenQueries.Should().HaveCount(2);
         seenQueries.Should().Contain(longQuestion, "the original question is always searched");
         seenQueries.Should().Contain(hypotheticalDoc,
-            "the hypothetical document text must be added as a second search query — that's the whole point of HyDE");
+            "the hypothetical document text must be added as a second search query - that's the whole point of HyDE");
     }
 
     [Fact]
@@ -227,9 +233,9 @@ public sealed class RagPipelineTests
             Times.Once);
     }
 
-    // ════════════════════════════════════════════════════════════════════
+    // ====================================================================
     //  PII redaction
-    // ════════════════════════════════════════════════════════════════════
+    // ====================================================================
 
     [Fact]
     public async Task AskAsync_PiiEnabled_RedactsContextBeforeLlmCall()
@@ -253,6 +259,175 @@ public sealed class RagPipelineTests
     }
 
     [Fact]
+    public async Task AskAsync_PiiEnabled_RedactsChunkTextBeforeTheLlmRerankerAndCompressorSeeIt()
+    {
+        // The LLM reranker and the compressor both send chunk text to the model. Redaction
+        // used to run only before the final prompt, after both had already sent it.
+        _config.Setup(c => c.EnablePiiRedaction).Returns(true);
+        _config.Setup(c => c.EnableLlmReranking).Returns(true);
+
+        List<RagContextChunk>? rerankerInput = null;
+        var reranker = new Mock<ILlmReranker>();
+        reranker
+            .Setup(r => r.RerankAsync(It.IsAny<List<RagContextChunk>>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .Callback<List<RagContextChunk>, string, int, CancellationToken>((chunks, _, _, _) => rerankerInput = chunks.ToList())
+            .ReturnsAsync((List<RagContextChunk> chunks, string _, int _, CancellationToken _) => chunks);
+
+        List<RagContextChunk>? compressorInput = null;
+        var compressor = new Mock<IContextualCompressor>();
+        compressor
+            .Setup(c => c.CompressAsync(It.IsAny<List<RagContextChunk>>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Callback<List<RagContextChunk>, string, CancellationToken>((chunks, _, _) => compressorInput = chunks.ToList())
+            .ReturnsAsync((List<RagContextChunk> chunks, string _, CancellationToken _) => chunks);
+
+        SetupSearchReturns(
+            MakeResult(1, text: "Contact jane.doe@example.com about the renewal."),
+            MakeResult(2, text: "Her phone is 555-123-4567."),
+            MakeResult(3, text: "Nothing sensitive here."));
+        SetupAiStreamReturns("answer");
+
+        var pipeline = BuildPipeline(llmReranker: reranker.Object, compressor: compressor.Object,
+            piiDetector: new PiiDetector(_logger));
+
+        await pipeline.AskAsync("question");
+
+        rerankerInput.Should().NotBeNull();
+        rerankerInput!.Select(c => c.ChunkText).Should().NotContain(t => t.Contains("jane.doe@example.com") || t.Contains("555-123-4567"));
+        compressorInput!.Select(c => c.ChunkText).Should().NotContain(t => t.Contains("jane.doe@example.com") || t.Contains("555-123-4567"));
+    }
+
+    [Fact]
+    public async Task AskAsync_PiiEnabled_RedactsTextThatParentRetrievalAdds()
+    {
+        _config.Setup(c => c.EnablePiiRedaction).Returns(true);
+
+        var parent = new Mock<IParentDocumentRetriever>();
+        parent
+            .Setup(p => p.RetrieveParentChunksAsync(It.IsAny<List<RagContextChunk>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((List<RagContextChunk> chunks, CancellationToken _) => chunks
+                .Select(c => new RagContextChunk
+                {
+                    ChunkId = c.ChunkId,
+                    DocumentId = c.DocumentId,
+                    FileName = c.FileName,
+                    ChunkText = c.ChunkText + " Neighbouring chunk: card 4111111111111111."
+                })
+                .ToList());
+
+        List<RagContextChunk>? compressorInput = null;
+        var compressor = new Mock<IContextualCompressor>();
+        compressor
+            .Setup(c => c.CompressAsync(It.IsAny<List<RagContextChunk>>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Callback<List<RagContextChunk>, string, CancellationToken>((chunks, _, _) => compressorInput = chunks.ToList())
+            .ReturnsAsync((List<RagContextChunk> chunks, string _, CancellationToken _) => chunks);
+
+        SetupSearchReturns(MakeResult(1, text: "Plain context."));
+        SetupAiStreamReturns("answer");
+
+        var pipeline = BuildPipeline(parentRetriever: parent.Object, compressor: compressor.Object,
+            piiDetector: new PiiDetector(_logger));
+
+        await pipeline.AskAsync("question");
+
+        compressorInput!.Single().ChunkText.Should().NotContain("4111111111111111");
+    }
+
+    [Fact]
+    public async Task AskAsync_LlmRerankingDisabledInConfiguration_DoesNotCallTheReranker()
+    {
+        // Rag:EnableLlmReranking was validated but never read, so the reranker always ran.
+        _config.Setup(c => c.EnableLlmReranking).Returns(false);
+        var reranker = new Mock<ILlmReranker>();
+        SetupSearchReturns(MakeResult(1), MakeResult(2), MakeResult(3));
+        SetupAiStreamReturns("answer");
+
+        await BuildPipeline(llmReranker: reranker.Object).AskAsync("question");
+
+        reranker.Verify(r => r.RerankAsync(
+            It.IsAny<List<RagContextChunk>>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Theory]
+    [InlineData(3, 3)]
+    [InlineData(80, 50)] // capped at MaxTopK
+    public async Task AskAsync_UsesTheTopKFromSettings(int settingsTopK, int expected)
+    {
+        // Settings > Top-K Results was validated and saved but never used by search or RAG.
+        _config.Setup(c => c.MaxTopK).Returns(50);
+        var settings = new Mock<ISettingsService>();
+        settings.Setup(s => s.GetSettingsAsync()).ReturnsAsync(new AppSettings { TopKResults = settingsTopK });
+
+        SearchQuery? captured = null;
+        _searchOrchestrator
+            .Setup(s => s.SearchAsync(It.IsAny<SearchQuery>(), It.IsAny<CancellationToken>()))
+            .Callback<SearchQuery, CancellationToken>((q, _) => captured = q)
+            .ReturnsAsync(new List<SearchResult> { MakeResult(1) });
+        SetupAiStreamReturns("answer");
+
+        await BuildPipeline(settingsService: settings.Object).AskAsync("question");
+
+        captured!.TopK.Should().Be(expected);
+        _reranker.Verify(r => r.Rerank(It.IsAny<List<RagContextChunk>>(), It.IsAny<string>(), expected), Times.Once);
+    }
+
+    [Theory]
+    [InlineData(15, 15)]
+    [InlineData(20, 20)]
+    [InlineData(3, 3)]
+    [InlineData(50, 20)] // above the range Settings offers
+    [InlineData(0, 10)] // not set
+    public async Task AskAsync_ResearchMode_AsksForTheConfiguredNumberOfWebResults(int setting, int expected)
+    {
+        // The pipeline always asked for 10 web results and the web search service caps the
+        // request at Max Search Results, so the setting could lower the count but not raise it.
+        var settings = new Mock<ISettingsService>();
+        settings.Setup(s => s.GetSettingsAsync()).ReturnsAsync(new AppSettings { MaxSearchResults = setting });
+        var webSearch = new Mock<IWebSearchService>();
+        webSearch.SetupGet(w => w.IsConfigured).Returns(true);
+        webSearch
+            .Setup(w => w.SearchAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new WebSearchResponse());
+        SetupSearchReturns(MakeResult(1));
+        SetupAiStreamReturns("answer");
+
+        await BuildPipeline(settingsService: settings.Object, webSearchService: webSearch.Object)
+            .AskAsync("question", enableResearchMode: true);
+
+        webSearch.Verify(w => w.SearchAsync("question", expected, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task AskAsync_ResearchModeWithoutSettings_AsksForTheDefaultNumberOfWebResults()
+    {
+        var webSearch = new Mock<IWebSearchService>();
+        webSearch.SetupGet(w => w.IsConfigured).Returns(true);
+        webSearch
+            .Setup(w => w.SearchAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new WebSearchResponse());
+        SetupSearchReturns(MakeResult(1));
+        SetupAiStreamReturns("answer");
+
+        await BuildPipeline(webSearchService: webSearch.Object).AskAsync("question", enableResearchMode: true);
+
+        webSearch.Verify(w => w.SearchAsync("question", 10, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task AskAsync_WithoutSettings_UsesTheConfiguredDefaultTopK()
+    {
+        SearchQuery? captured = null;
+        _searchOrchestrator
+            .Setup(s => s.SearchAsync(It.IsAny<SearchQuery>(), It.IsAny<CancellationToken>()))
+            .Callback<SearchQuery, CancellationToken>((q, _) => captured = q)
+            .ReturnsAsync(new List<SearchResult> { MakeResult(1) });
+        SetupAiStreamReturns("answer");
+
+        await BuildPipeline().AskAsync("question");
+
+        captured!.TopK.Should().Be(8);
+    }
+
+    [Fact]
     public async Task AskAsync_PiiDisabled_DoesNotInvokeDetector()
     {
         _config.Setup(c => c.EnablePiiRedaction).Returns(false);
@@ -269,9 +444,9 @@ public sealed class RagPipelineTests
         pii.Verify(p => p.RedactPii(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
 
-    // ════════════════════════════════════════════════════════════════════
+    // ====================================================================
     //  Search-mode routing
-    // ════════════════════════════════════════════════════════════════════
+    // ====================================================================
 
     [Fact]
     public async Task AskAsync_SemanticSearchMode_RoutesToSemantic()
@@ -318,9 +493,9 @@ public sealed class RagPipelineTests
             Times.AtLeastOnce);
     }
 
-    // ════════════════════════════════════════════════════════════════════
+    // ====================================================================
     //  Eval sample-rate gating
-    // ════════════════════════════════════════════════════════════════════
+    // ====================================================================
 
     [Fact]
     public async Task AskAsync_EvalSampleRateZero_DoesNotInvokeEvaluator()
@@ -334,7 +509,7 @@ public sealed class RagPipelineTests
         var pipeline = BuildPipeline(evaluator: evaluator.Object);
         await pipeline.AskAsync("question");
 
-        // Give the fire-and-forget Task.Run a chance — should be a no-op anyway.
+        // Give the fire-and-forget Task.Run a chance - should be a no-op anyway.
         await Task.Delay(50);
 
         evaluator.Verify(e => e.EvaluateAsync(
@@ -348,6 +523,7 @@ public sealed class RagPipelineTests
     public async Task AskAsync_EvalSampleRateOne_InvokesEvaluator()
     {
         _config.Setup(c => c.EvalSampleRate).Returns(1.0);
+        var evaluated = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var evaluator = new Mock<IRagEvaluator>();
         evaluator
             .Setup(e => e.EvaluateAsync(
@@ -355,6 +531,7 @@ public sealed class RagPipelineTests
                 It.IsAny<string>(),
                 It.IsAny<IReadOnlyList<RagContextChunk>>(),
                 It.IsAny<CancellationToken>()))
+            .Callback(() => evaluated.TrySetResult())
             .ReturnsAsync(new RagEvalMetrics { ContextRelevance = 0.9 });
 
         SetupSearchReturns(MakeResult(1));
@@ -363,8 +540,9 @@ public sealed class RagPipelineTests
         var pipeline = BuildPipeline(evaluator: evaluator.Object);
         await pipeline.AskAsync("question");
 
-        // Eval is fire-and-forget — wait briefly for the background task.
-        await Task.Delay(200);
+        // Evaluation is fire-and-forget. Wait for the call itself: a fixed 200 ms delay was
+        // sometimes too short on a loaded machine, and the call arrived just after the check.
+        await evaluated.Task.WaitAsync(TimeSpan.FromSeconds(10));
 
         evaluator.Verify(e => e.EvaluateAsync(
             It.IsAny<string>(),
@@ -373,9 +551,9 @@ public sealed class RagPipelineTests
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
-    // ════════════════════════════════════════════════════════════════════
+    // ====================================================================
     //  Multi-block system prompt
-    // ════════════════════════════════════════════════════════════════════
+    // ====================================================================
 
     [Fact]
     public async Task AskAsync_AlwaysSetsSystemPromptBlocks()
@@ -408,9 +586,9 @@ public sealed class RagPipelineTests
         capturedOptions.SystemPromptBlocks![1].Cacheable.Should().BeFalse("the per-question context is not cacheable");
     }
 
-    // ════════════════════════════════════════════════════════════════════
+    // ====================================================================
     //  No-results path
-    // ════════════════════════════════════════════════════════════════════
+    // ====================================================================
 
     [Fact]
     public async Task AskAsync_NoSearchResults_ReturnsNoResultsMessageAndDoesNotCallLlm()
@@ -430,9 +608,9 @@ public sealed class RagPipelineTests
             It.IsAny<CancellationToken>()), Times.Never);
     }
 
-    // ════════════════════════════════════════════════════════════════════
+    // ====================================================================
     //  Fail-open on optional services
-    // ════════════════════════════════════════════════════════════════════
+    // ====================================================================
 
     [Fact]
     public async Task AskAsync_MultiQueryThrows_FailsOpenWithOriginalQueryOnly()

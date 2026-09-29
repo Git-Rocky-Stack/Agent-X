@@ -6,16 +6,21 @@ using AgentX.Core.AI.Models;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Documents;
 using AgentX.Core.Helpers;
+using AgentX.Core.Search.Models;
+using AgentX.Core.Services.Annotations;
 using AgentX.Core.Services.Collections;
 using AgentX.Core.Services.Indexing;
+using AgentX.Core.Services.Localization;
 using AgentX.Core.Services.Tagging;
+using AgentX.Core.Services.TemporalIdentity;
+using AgentX.Core.Services.TemporalIdentity.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Serilog;
 
 namespace AgentX.App.ViewModels;
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // KNOWLEDGE VAULT VIEW MODEL
 //
 // Comprehensive ViewModel for the document management experience.
@@ -23,19 +28,37 @@ namespace AgentX.App.ViewModels;
 //
 // Accepts IDocumentService and IIndexingService via DI and calls real
 // services with graceful error handling.
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
 {
-    // ── Services ──────────────────────────────────────────────
+    // -- Services ----------------------------------------------
     private readonly IDocumentService _documentService;
     private readonly IIndexingService _indexingService;
     private readonly IAiService _aiService;
     private readonly IAutoTagService _autoTagService;
     private readonly ICollectionService _collectionService;
+    private readonly ILocalizationService _localization;
     private readonly IWorkflowLaunchService? _workflowLaunchService;
     private readonly IOperationsDrillInService? _operationsDrillInService;
     private bool _suppressFilterRefresh;
+
+    // Times how long a document stays open in the preview, for Temporal Identity. Null when
+    // the service is not available.
+    private readonly EngagementTracker? _documentEngagement;
+
+    /// <summary>The clock the engagement timing reads; tests replace it.</summary>
+    internal Func<DateTime> UtcNow { get; set; } = () => DateTime.UtcNow;
+
+    // The indexing service raises its events on its background thread, while the rows are
+    // bound to the view: updates are posted to the context the view model was created on
+    // (the UI thread, since the page builds it).
+    private readonly SynchronizationContext? _uiContext;
+    private volatile bool _disposed;
+
+    // True while the vault page is on screen, so a preview left open behind another page
+    // does not keep counting as read.
+    private bool _isPreviewShown;
 
     // Monotonic load token. Every document reload claims the next value; only the most
     // recent load is allowed to mutate the UI-bound Documents collection, so overlapping
@@ -43,7 +66,7 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     // can neither tear the collection nor overwrite newer, correct state.
     private int _documentLoadGeneration;
 
-    // ── Page State ─────────────────────────────────────────────
+    // -- Page State ---------------------------------------------
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private bool _isImporting;
     [ObservableProperty] private int _importProgress;
@@ -56,45 +79,45 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _hasError;
     [ObservableProperty] private string _focusedDocumentVisibilityHint = string.Empty;
 
-    // ── Filters ──────────────────────────────────────────────
+    // -- Filters ----------------------------------------------
     [ObservableProperty] private string? _fileTypeFilter;
     [ObservableProperty] private string? _statusFilter;
     [ObservableProperty] private string? _tagFilter;
     [ObservableProperty] private string _searchQuery = string.Empty;
     [ObservableProperty] private bool _showDropZone = true;
 
-    // ── Advanced Filters (Feature 9) ─────────────────────────
+    // -- Advanced Filters (Feature 9) -------------------------
     [ObservableProperty] private long? _collectionFilter;
     [ObservableProperty] private DateTime? _dateAfterFilter;
     [ObservableProperty] private DateTime? _dateBeforeFilter;
     [ObservableProperty] private string _sortBy = "date";
 
-    // ── Multi-Select (Feature 8) ─────────────────────────────
+    // -- Multi-Select (Feature 8) -----------------------------
     [ObservableProperty] private bool _isMultiSelectMode;
     [ObservableProperty] private int _selectedCount;
 
-    // ── Duplicate Detection (Feature 14) ────────────────────────
+    // -- Duplicate Detection (Feature 14) ------------------------
     [ObservableProperty] private bool _showDuplicateWarning;
     [ObservableProperty] private string _duplicateWarningMessage = string.Empty;
     [ObservableProperty] private string? _duplicateFileName;
     private List<string>? _pendingImportPaths;
     private List<string>? _duplicateFilePaths;
 
-    // ── Selected Document Preview ─────────────────────────────
+    // -- Selected Document Preview -----------------------------
     [ObservableProperty] private DocumentDisplayItem? _selectedDocument;
     [ObservableProperty] private bool _isPreviewOpen;
 
-    // ── Collections ──────────────────────────────────────────
+    // -- Collections ------------------------------------------
     public ObservableCollection<DocumentDisplayItem> Documents { get; } = new();
     public ObservableCollection<long> SelectedDocumentIds { get; } = new();
 
-    // ── Tags (Feature 7) ────────────────────────────────────
+    // -- Tags (Feature 7) ------------------------------------
     public ObservableCollection<TagDisplayItem> AllTags { get; } = new();
 
-    // ── Available Collections for Filtering (Feature 9) ──────
+    // -- Available Collections for Filtering (Feature 9) ------
     public ObservableCollection<CollectionFilterItem> AvailableCollections { get; } = new();
 
-    // ── Computed Properties ──────────────────────────────────
+    // -- Computed Properties ----------------------------------
     public bool HasDocuments => Documents.Count > 0;
     public bool HasSelection => SelectedCount > 0;
     public bool HasActiveFilters =>
@@ -109,28 +132,53 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     public bool HasSelectedDocument => SelectedDocument is not null;
     public NavigateHandler? NavigateRequested { get; set; }
 
+    /// <summary>
+    /// Asks the operator to confirm a deletion before anything is removed; the page supplies a
+    /// dialog. Deleting cannot be undone, so without an answer of true (or without a handler)
+    /// nothing is deleted.
+    /// </summary>
+    public Func<DocumentDeletionRequest, Task<bool>>? ConfirmDeleteAsync { get; set; }
+
+    /// <summary>The previewed document's passages and annotations.</summary>
+    public DocumentNotesViewModel Notes { get; }
+
     public KnowledgeVaultViewModel(
         IDocumentService documentService,
         IIndexingService indexingService,
         IAiService aiService,
         IAutoTagService autoTagService,
         ICollectionService collectionService,
+        ILocalizationService localization,
         IWorkflowLaunchService? workflowLaunchService = null,
-        IOperationsDrillInService? operationsDrillInService = null)
+        IOperationsDrillInService? operationsDrillInService = null,
+        ITemporalIdentityService? temporalIdentity = null,
+        IAnnotationService? annotationService = null)
     {
         _documentService = documentService;
         _indexingService = indexingService;
         _aiService = aiService;
         _autoTagService = autoTagService;
         _collectionService = collectionService;
+        _localization = localization ?? throw new ArgumentNullException(nameof(localization));
         _workflowLaunchService = workflowLaunchService;
         _operationsDrillInService = operationsDrillInService;
+        _documentEngagement = temporalIdentity is null
+            ? null
+            : new EngagementTracker(temporalIdentity, EngagementTargetType.Document, () => UtcNow());
+        Notes = new DocumentNotesViewModel(annotationService, localization);
+
+        // Rows showed the status they were loaded with until the next refresh, so a document
+        // imported as "pending" never turned "Indexed" (or "Failed") on screen.
+        _uiContext = SynchronizationContext.Current;
+        _indexingService.DocumentIndexed += OnDocumentIndexed;
+        _indexingService.DocumentIndexingFailed += OnDocumentIndexingFailed;
+
         Log.Debug("KnowledgeVaultViewModel created with services");
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // INITIALIZATION
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     public async Task InitializeAsync()
     {
@@ -152,7 +200,7 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to initialize KnowledgeVaultViewModel");
-            SetError("Failed to load documents. Please try refreshing.");
+            SetError(_localization.GetString("Vault_LoadFailed"));
         }
         finally
         {
@@ -171,35 +219,26 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         List<DocumentDisplayItem>? loaded = null;
         try
         {
+            // The pickers yield local calendar days while ImportedAt is stored in UTC; the
+            // "before" day is inclusive, so the bound is the end of that day.
             var docs = await _documentService.GetAllDocumentsAsync(
                 fileTypeFilter: FileTypeFilter,
                 statusFilter: StatusFilter,
                 tagFilter: TagFilter,
                 collectionId: CollectionFilter,
-                importedAfter: DateAfterFilter,
-                importedBefore: DateBeforeFilter,
+                importedAfter: DateAfterFilter.HasValue ? LocalDayRange.StartUtc(DateAfterFilter.Value) : null,
+                importedBefore: DateBeforeFilter.HasValue ? LocalDayRange.EndUtc(DateBeforeFilter.Value) : null,
                 sortBy: SortBy);
 
-            var filteredDocs = new List<AgentX.Core.Data.Entities.DocumentEntity>();
-            foreach (var doc in docs)
-            {
-                // If a search query is active, filter locally by file name
-                if (!string.IsNullOrEmpty(SearchQuery) &&
-                    !doc.FileName.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                filteredDocs.Add(doc);
-            }
-
+            // The search box matches tag names as well as file names, so the tags of every
+            // document the filters return are loaded (in one batch) before the search applies.
             IReadOnlyDictionary<long, IReadOnlyList<TagEntity>> tagMap = new Dictionary<long, IReadOnlyList<TagEntity>>();
-            if (filteredDocs.Count > 0)
+            if (docs.Count > 0)
             {
                 try
                 {
                     tagMap = await _autoTagService.GetTagsForDocumentsAsync(
-                        filteredDocs.Select(doc => doc.Id).ToArray());
+                        docs.Select(doc => doc.Id).ToArray());
                 }
                 catch (Exception ex)
                 {
@@ -207,17 +246,22 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
                 }
             }
 
-            loaded = new List<DocumentDisplayItem>(filteredDocs.Count);
-            foreach (var doc in filteredDocs)
+            loaded = new List<DocumentDisplayItem>(docs.Count);
+            foreach (var doc in docs)
             {
-                var displayItem = MapDocumentToDisplay(doc);
+                var tags = tagMap.TryGetValue(doc.Id, out var documentTags)
+                    ? documentTags
+                    : Array.Empty<TagEntity>();
 
-                if (tagMap.TryGetValue(doc.Id, out var tags))
+                if (!MatchesSearch(doc.FileName, tags, SearchQuery))
                 {
-                    foreach (var tag in tags)
-                    {
-                        displayItem.Tags.Add(tag.Name);
-                    }
+                    continue;
+                }
+
+                var displayItem = MapDocumentToDisplay(doc);
+                foreach (var tag in tags)
+                {
+                    displayItem.Tags.Add(tag.Name);
                 }
 
                 loaded.Add(displayItem);
@@ -228,7 +272,7 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
             Log.Warning(ex, "Failed to load documents from service");
         }
 
-        // A newer reload started while we were fetching — discard these results instead of
+        // A newer reload started while we were fetching - discard these results instead of
         // overwriting the newer (correct) collection state. This is what prevents the
         // filter-triggered reload from clobbering an in-flight initialization/drill-in.
         if (generation != Volatile.Read(ref _documentLoadGeneration))
@@ -247,8 +291,52 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
             }
         }
 
+        SyncSelectionWithDocuments();
         OnPropertyChanged(nameof(HasDocuments));
         UpdateDropZoneVisibility();
+    }
+
+    /// <summary>
+    /// Whether a document matches the vault's search box: the query occurs in its file name or
+    /// in one of its tag names, ignoring case. The box does not look inside documents; Semantic
+    /// Search and Ask Your Files search their content.
+    /// </summary>
+    internal static bool MatchesSearch(string fileName, IEnumerable<TagEntity> tags, string? query)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return true;
+        }
+
+        var term = query.Trim();
+        return fileName.Contains(term, StringComparison.OrdinalIgnoreCase)
+            || tags.Any(tag => tag.Name.Contains(term, StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>
+    /// Keeps the multi-select state in step with the rows on screen. A reload creates new
+    /// row items, so their checkboxes are re-applied from <see cref="SelectedDocumentIds"/>,
+    /// and selections whose rows are no longer shown are dropped: a bulk action must only
+    /// touch rows the user can see checked.
+    /// </summary>
+    private void SyncSelectionWithDocuments()
+    {
+        var visibleIds = new HashSet<long>(Documents.Select(document => document.Id));
+        for (var i = SelectedDocumentIds.Count - 1; i >= 0; i--)
+        {
+            if (!visibleIds.Contains(SelectedDocumentIds[i]))
+            {
+                SelectedDocumentIds.RemoveAt(i);
+            }
+        }
+
+        foreach (var document in Documents)
+        {
+            document.IsSelected = SelectedDocumentIds.Contains(document.Id);
+        }
+
+        SelectedCount = SelectedDocumentIds.Count;
+        OnPropertyChanged(nameof(HasSelection));
     }
 
     private async Task LoadStatsAsync()
@@ -348,9 +436,101 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // --- Live indexing updates ---
+
+    private void OnDocumentIndexed(object? sender, long documentId) =>
+        PostToUi(() => _ = RefreshDocumentAfterIndexingAsync(documentId, failure: null));
+
+    private void OnDocumentIndexingFailed(object? sender, DocumentIndexingFailedEventArgs e) =>
+        PostToUi(() => _ = RefreshDocumentAfterIndexingAsync(e.DocumentId, e.Error));
+
+    /// <summary>
+    /// Runs <paramref name="action"/> on the context the view model was created on: inline
+    /// when already there (or when there is none), posted otherwise.
+    /// </summary>
+    private void PostToUi(Action action)
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        if (_uiContext is null || ReferenceEquals(SynchronizationContext.Current, _uiContext))
+        {
+            action();
+            return;
+        }
+
+        _uiContext.Post(_ => action(), null);
+    }
+
+    /// <summary>
+    /// Brings the row of a document the indexing pipeline has just finished, or failed, up to
+    /// date with the stored document (status, error, chunk count), and refreshes the queue
+    /// indicators. Documents that are not on screen only refresh the indicators.
+    /// </summary>
+    private async Task RefreshDocumentAfterIndexingAsync(long documentId, string? failure)
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        try
+        {
+            var item = Documents.FirstOrDefault(d => d.Id == documentId);
+            if (item is not null)
+            {
+                DocumentEntity? entity = null;
+                try
+                {
+                    entity = await _documentService.GetDocumentAsync(documentId);
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, "Failed to reload document {DocumentId} after indexing", documentId);
+                }
+
+                if (_disposed)
+                {
+                    return;
+                }
+
+                if (entity is not null)
+                {
+                    ApplyIndexingState(item, entity);
+                }
+                else
+                {
+                    // Not readable now: show what the pipeline reported.
+                    item.IndexingStatus = failure is null ? "completed" : "failed";
+                    item.IndexingError = failure;
+                    item.StatusColor = GetStatusColor(item.IndexingStatus);
+                }
+            }
+
+            await CheckIndexingStatusAsync();
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to refresh document {DocumentId} after indexing", documentId);
+        }
+    }
+
+    private static void ApplyIndexingState(DocumentDisplayItem item, DocumentEntity entity)
+    {
+        item.IndexingStatus = entity.IndexingStatus;
+        item.IndexingError = entity.IndexingError;
+        item.StatusColor = GetStatusColor(entity.IndexingStatus);
+        item.ChunkCount = entity.ChunkCount;
+        item.WordCount = entity.WordCount;
+        item.PageCount = entity.PageCount;
+        item.ExtractedTitle = entity.ExtractedTitle;
+    }
+
+    // ===============================================================
     // PROPERTY CHANGE HOOKS
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     partial void OnFileTypeFilterChanged(string? value)
     {
@@ -442,8 +622,20 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
 
     partial void OnSelectedDocumentChanged(DocumentDisplayItem? value)
     {
+        // Moving off a document records the time it was open; the next one starts timing.
+        if (_isPreviewShown && _documentEngagement is not null)
+        {
+            _ = value is null
+                ? _documentEngagement.CloseAsync()
+                : _documentEngagement.OpenAsync(value.Id);
+        }
+
         IsPreviewOpen = value is not null;
         OnPropertyChanged(nameof(HasSelectedDocument));
+
+        // The preview's passage and annotations follow the previewed document. The load
+        // handles its own failures.
+        _ = Notes.ShowDocumentAsync(value?.Id);
 
         if (value is null)
         {
@@ -457,26 +649,30 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // COMMANDS
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     /// <summary>
-    /// Opens a file picker and imports the selected files.
-    /// The actual picker logic is handled in the code-behind because
-    /// WinUI 3 file pickers require a window handle (HWND).
-    /// This command is invoked after the code-behind obtains file paths.
+    /// Imports a batch of files and reports what actually happened. The file picker lives in
+    /// the code-behind because WinUI 3 pickers need a window handle; picked and dropped files
+    /// reach this through the duplicate check in <see cref="ImportWithDedupAsync"/>.
     /// </summary>
-    [RelayCommand]
-    private async Task ImportFilesAsync(IReadOnlyList<string>? filePaths)
+    /// <param name="filePaths">Files to import.</param>
+    /// <param name="allowDuplicates">
+    /// True when the user chose "Import all anyway", so files matching an existing document
+    /// are imported as separate documents instead of being skipped.
+    /// </param>
+    /// <param name="fromFolder">Whether the files came from a folder scan (wording only).</param>
+    private async Task ImportBatchAsync(IReadOnlyList<string> filePaths, bool allowDuplicates, bool fromFolder = false)
     {
-        if (filePaths is null || filePaths.Count == 0) return;
+        if (filePaths.Count == 0) return;
 
         Log.Information("Importing {Count} file(s)", filePaths.Count);
 
         IsImporting = true;
         ImportProgress = 0;
-        ImportStatus = $"Importing {filePaths.Count} file(s)...";
+        ImportStatus = _localization.GetString("Vault_ImportingFiles", filePaths.Count);
         ClearError();
 
         try
@@ -484,13 +680,31 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
             var progressReporter = new Progress<int>(completed =>
             {
                 ImportProgress = (int)((double)completed / filePaths.Count * 100);
-                ImportStatus = $"Importing file {completed}/{filePaths.Count}...";
+                ImportStatus = _localization.GetString("Vault_ImportingFileProgress", completed, filePaths.Count);
             });
 
-            await _documentService.ImportFilesAsync(filePaths, progress: progressReporter);
+            var report = await _documentService.ImportFilesWithReportAsync(
+                filePaths, allowDuplicates: allowDuplicates, progress: progressReporter);
 
-            ImportStatus = $"Successfully imported {filePaths.Count} file(s)";
-            Log.Information("Import completed: {Count} files", filePaths.Count);
+            var summary = FormatImportSummary(_localization, report, filePaths.Count, fromFolder);
+            ImportStatus = summary;
+            Log.Information(
+                "Import completed: {Imported}/{Total} imported, {ExtractionFailed} unreadable, {Duplicates} duplicates skipped, {Failed} failed",
+                report.Imported.Count, filePaths.Count, report.ExtractionFailedCount, report.Duplicates.Count, report.Failed.Count);
+
+            // The progress panel disappears when the import ends, so anything short of a
+            // clean import is also raised on the page's message banner.
+            if (report.Failed.Count > 0 || report.Duplicates.Count > 0 || report.ExtractionFailedCount > 0)
+            {
+                var firstFailure = report.Failed.FirstOrDefault();
+                SetError(firstFailure is null
+                    ? summary
+                    : _localization.GetString(
+                        "Vault_ImportSummaryWithFailure",
+                        summary,
+                        Path.GetFileName(firstFailure.FilePath),
+                        firstFailure.Reason));
+            }
 
             // Refresh the document list
             await LoadDocumentsAsync();
@@ -500,13 +714,63 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to import files");
-            ImportStatus = "Import failed";
-            SetError($"Failed to import files: {ex.Message}");
+            ImportStatus = _localization.GetString("Vault_ImportFailedStatus");
+            SetError(_localization.GetString("Vault_ImportFilesFailed", ex.Message));
         }
         finally
         {
             IsImporting = false;
         }
+    }
+
+    /// <summary>
+    /// One-line outcome of an import, in the user's language: a plain success message when
+    /// every file was imported and readable, otherwise the real counts of what was imported,
+    /// unreadable, skipped as a duplicate, or not imported.
+    /// </summary>
+    internal static string FormatImportSummary(
+        ILocalizationService localization, DocumentImportReport report, int totalFiles, bool fromFolder = false)
+    {
+        var imported = report.Imported.Count;
+        var unreadable = report.ExtractionFailedCount;
+        var duplicates = report.Duplicates.Count;
+        var failed = report.Failed.Count;
+
+        if (unreadable == 0 && duplicates == 0 && failed == 0)
+        {
+            return fromFolder
+                ? localization.GetString("Vault_ImportSucceededFromFolder", imported)
+                : localization.GetString("Vault_ImportSucceeded", imported);
+        }
+
+        var parts = new List<string>
+        {
+            fromFolder
+                ? localization.GetString("Vault_ImportPartialFromFolder", imported, totalFiles)
+                : localization.GetString("Vault_ImportPartial", imported, totalFiles)
+        };
+        if (unreadable > 0)
+        {
+            parts.Add(unreadable == 1
+                ? localization.GetString("Vault_ImportUnreadableOne")
+                : localization.GetString("Vault_ImportUnreadableMany", unreadable));
+        }
+
+        if (duplicates > 0)
+        {
+            parts.Add(duplicates == 1
+                ? localization.GetString("Vault_ImportDuplicateOne")
+                : localization.GetString("Vault_ImportDuplicateMany", duplicates));
+        }
+
+        if (failed > 0)
+        {
+            parts.Add(failed == 1
+                ? localization.GetString("Vault_ImportNotImportedOne")
+                : localization.GetString("Vault_ImportNotImportedMany", failed));
+        }
+
+        return string.Join("; ", parts);
     }
 
     /// <summary>
@@ -523,57 +787,96 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
 
         IsImporting = true;
         ImportProgress = 0;
-        ImportStatus = "Scanning folder...";
+        ImportStatus = _localization.GetString("Vault_ScanningFolder");
         ClearError();
 
+        List<string> filePaths;
         try
         {
-            // Enumerate supported files in the folder
-            var supportedExtensions = _documentService.GetSupportedExtensions();
-            var filePaths = new List<string>();
-
-            foreach (var file in Directory.EnumerateFiles(folderPath, "*.*", SearchOption.AllDirectories))
-            {
-                var ext = Path.GetExtension(file).ToLowerInvariant();
-                if (supportedExtensions.Contains(ext))
-                {
-                    filePaths.Add(file);
-                }
-            }
-
-            if (filePaths.Count == 0)
-            {
-                ImportStatus = "No supported files found in folder";
-                return;
-            }
-
-            ImportStatus = $"Found {filePaths.Count} supported file(s). Importing...";
-
-            var progressReporter = new Progress<int>(completed =>
-            {
-                ImportProgress = (int)((double)completed / filePaths.Count * 100);
-                ImportStatus = $"Importing file {completed}/{filePaths.Count}...";
-            });
-
-            await _documentService.ImportFilesAsync(filePaths, progress: progressReporter);
-
-            ImportStatus = $"Successfully imported {filePaths.Count} file(s) from folder";
-            Log.Information("Folder import completed: {FolderPath} ({Count} files)", folderPath, filePaths.Count);
-
-            await LoadDocumentsAsync();
-            await LoadStatsAsync();
-            await CheckIndexingStatusAsync();
+            filePaths = await Task.Run(() => EnumerateSupportedFiles(folderPath));
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Failed to import folder: {FolderPath}", folderPath);
-            ImportStatus = "Folder import failed";
-            SetError($"Failed to import folder: {ex.Message}");
-        }
-        finally
-        {
+            Log.Error(ex, "Failed to scan folder: {FolderPath}", folderPath);
+            ImportStatus = _localization.GetString("Vault_FolderImportFailedStatus");
+            SetError(_localization.GetString("Vault_ImportFolderFailed", ex.Message));
             IsImporting = false;
+            return;
         }
+
+        if (filePaths.Count == 0)
+        {
+            ImportStatus = _localization.GetString("Vault_NoSupportedFilesStatus");
+            SetError(_localization.GetString("Vault_NoSupportedFilesInFolder"));
+            IsImporting = false;
+            return;
+        }
+
+        await ImportBatchAsync(filePaths, allowDuplicates: false, fromFolder: true);
+    }
+
+    /// <summary>
+    /// The file types the Import Files picker offers: every extension a document processor reads,
+    /// built in or from an active plugin, the same set folder imports use. Asked for each time the
+    /// picker opens, because plugins are enabled and disabled while the app runs.
+    /// </summary>
+    public IReadOnlyList<string> GetImportFileTypes() =>
+        ToPickerFileTypes(_documentService.GetSupportedExtensions());
+
+    /// <summary>
+    /// <paramref name="extensions"/> as a file picker accepts them: in lower case, each once and
+    /// in alphabetical order, starting with a dot and made of letters, digits, '-', '_', '+' and
+    /// inner dots (".tar.gz"). A plugin's "zzz" or "*.zzz" becomes ".zzz"; a blank entry, or one
+    /// with a wildcard, a space or another character the picker rejects, is left out.
+    /// </summary>
+    public static IReadOnlyList<string> ToPickerFileTypes(IEnumerable<string?> extensions)
+    {
+        var fileTypes = new SortedSet<string>(StringComparer.Ordinal);
+        foreach (var extension in extensions)
+        {
+            var fileType = extension?.Trim().ToLowerInvariant();
+            if (string.IsNullOrEmpty(fileType))
+            {
+                continue;
+            }
+
+            if (fileType.StartsWith("*.", StringComparison.Ordinal))
+            {
+                fileType = fileType[1..];
+            }
+
+            if (!fileType.StartsWith('.'))
+            {
+                fileType = "." + fileType;
+            }
+
+            if (IsPickerFileType(fileType))
+            {
+                fileTypes.Add(fileType);
+            }
+        }
+
+        return fileTypes.ToList();
+    }
+
+    private static bool IsPickerFileType(string fileType) =>
+        fileType.Length > 1 &&
+        !fileType.EndsWith('.') &&
+        !fileType.Contains("..", StringComparison.Ordinal) &&
+        fileType.Skip(1).All(c => char.IsLetterOrDigit(c) || c is '-' or '_' or '+' or '.');
+
+    /// <summary>
+    /// Supported files under <paramref name="folderPath"/>, including subfolders. Subfolders
+    /// the user cannot read are skipped instead of aborting the whole scan.
+    /// </summary>
+    private List<string> EnumerateSupportedFiles(string folderPath)
+    {
+        var supportedExtensions = _documentService.GetSupportedExtensions();
+        var options = new EnumerationOptions { RecurseSubdirectories = true, IgnoreInaccessible = true };
+
+        return Directory.EnumerateFiles(folderPath, "*", options)
+            .Where(file => supportedExtensions.Contains(Path.GetExtension(file).ToLowerInvariant()))
+            .ToList();
     }
 
     [RelayCommand]
@@ -589,9 +892,23 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         Log.Information("Delete document requested: {DocumentId}", id);
         ClearError();
 
+        var name = await GetDocumentNameAsync(id);
+        if (name is null)
+        {
+            Log.Warning("Delete requested for document {DocumentId}, which was not found", id);
+            return;
+        }
+
+        if (!await IsDeletionConfirmedAsync(new DocumentDeletionRequest(1, name)))
+        {
+            Log.Information("Delete of document {DocumentId} was not confirmed", id);
+            return;
+        }
+
         try
         {
             await _documentService.DeleteDocumentAsync(id);
+            ForgetDeletedDocuments([id]);
 
             var item = Documents.FirstOrDefault(d => d.Id == id);
             if (item is not null)
@@ -601,13 +918,19 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
                 UpdateDropZoneVisibility();
             }
 
+            if (SelectedDocumentIds.Remove(id))
+            {
+                SelectedCount = SelectedDocumentIds.Count;
+                OnPropertyChanged(nameof(HasSelection));
+            }
+
             TotalDocuments = await _documentService.GetTotalDocumentCountAsync();
             Log.Information("Document deleted: {DocumentId}", id);
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to delete document: {DocumentId}", id);
-            SetError($"Failed to delete document: {ex.Message}");
+            SetError(_localization.GetString("Vault_DeleteFailed", ex.Message));
         }
     }
 
@@ -635,7 +958,7 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to re-index document: {DocumentId}", id);
-            SetError($"Failed to re-index document: {ex.Message}");
+            SetError(_localization.GetString("Vault_ReindexFailed", ex.Message));
         }
     }
 
@@ -644,30 +967,23 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     {
         Log.Debug("Select document for preview: {DocumentId}", id);
 
-        // Deselect previous
-        if (SelectedDocument is not null)
-        {
-            SelectedDocument.IsSelected = false;
-        }
-
+        // The previewed document is tracked by SelectedDocument alone. IsSelected is the
+        // multi-select checkbox, backed by SelectedDocumentIds, and must not change here:
+        // toggling it made rows look checked (or unchecked) out of step with what a bulk
+        // delete or re-index would actually act on.
         var item = Documents.FirstOrDefault(d => d.Id == id);
         if (item is not null)
         {
-            item.IsSelected = true;
-
             // Enrich with latest data from the database
             try
             {
                 var entity = await _documentService.GetDocumentAsync(id);
                 if (entity is not null)
                 {
+                    // The failure reason comes along with the status, so the preview never
+                    // shows a "Failed" document without its reason, or a stale reason.
                     item.Summary = entity.Summary;
-                    item.ExtractedTitle = entity.ExtractedTitle;
-                    item.ChunkCount = entity.ChunkCount;
-                    item.WordCount = entity.WordCount;
-                    item.PageCount = entity.PageCount;
-                    item.IndexingStatus = entity.IndexingStatus;
-                    item.StatusColor = GetStatusColor(entity.IndexingStatus);
+                    ApplyIndexingState(item, entity);
                 }
             }
             catch (Exception ex)
@@ -682,10 +998,7 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private void ClosePreview()
     {
-        if (SelectedDocument is not null)
-        {
-            SelectedDocument.IsSelected = false;
-        }
+        // Closing the preview leaves the multi-select checkboxes as they are.
         SelectedDocument = null;
     }
 
@@ -799,7 +1112,7 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     {
         if (_workflowLaunchService is null)
         {
-            SetError("Workflow launch service unavailable.");
+            SetError(_localization.GetString("Vault_WorkflowLaunchUnavailable"));
             return;
         }
 
@@ -808,14 +1121,14 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
             var document = await _documentService.GetDocumentAsync(id);
             if (document is null)
             {
-                SetError("Unable to prepare the selected document for workflows.");
+                SetError(_localization.GetString("Vault_WorkflowDocumentMissing"));
                 return;
             }
 
             var previewText = await _documentService.GetDocumentPreviewTextAsync(id);
             if (string.IsNullOrWhiteSpace(previewText) && string.IsNullOrWhiteSpace(document.Summary))
             {
-                SetError("This document does not have enough indexed text to launch into a workflow yet.");
+                SetError(_localization.GetString("Vault_WorkflowNotEnoughText"));
                 return;
             }
 
@@ -825,7 +1138,7 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to launch document {DocumentId} into workflow", id);
-            SetError("Failed to prepare the document for workflows.");
+            SetError(_localization.GetString("Vault_WorkflowPrepareFailed"));
         }
     }
 
@@ -864,9 +1177,9 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         Log.Debug("Filter by tag: {Tag}", tagName ?? "all");
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // MULTI-SELECT & BULK OPERATIONS (Feature 8)
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     [RelayCommand]
     private void ToggleMultiSelect()
@@ -921,12 +1234,22 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     {
         if (SelectedDocumentIds.Count == 0) return;
         var ids = SelectedDocumentIds.ToList();
-        Log.Information("Bulk delete: {Count} documents", ids.Count);
         ClearError();
+
+        // A single document is named in the confirmation; several are counted.
+        var name = ids.Count == 1 ? await GetDocumentNameAsync(ids[0]) : null;
+        if (!await IsDeletionConfirmedAsync(new DocumentDeletionRequest(ids.Count, name)))
+        {
+            Log.Information("Bulk delete of {Count} documents was not confirmed", ids.Count);
+            return;
+        }
+
+        Log.Information("Bulk delete: {Count} documents", ids.Count);
 
         try
         {
             await _documentService.BulkDeleteAsync(ids);
+            ForgetDeletedDocuments(ids);
             await LoadDocumentsAsync();
             await LoadStatsAsync();
             ClearSelection();
@@ -934,7 +1257,7 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Bulk delete failed");
-            SetError("Bulk delete failed");
+            SetError(_localization.GetString("Vault_BulkDeleteFailed"));
         }
     }
 
@@ -955,29 +1278,61 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Bulk reindex failed");
-            SetError("Bulk reindex failed");
+            SetError(_localization.GetString("Vault_BulkReindexFailed"));
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // DRAG AND DROP SUPPORT
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     /// <summary>
-    /// Called by the code-behind when files are dropped onto the drop zone.
-    /// Routes through dedup check before importing.
+    /// Called by the code-behind when items are dropped onto the drop zone. Dropped folders
+    /// are expanded to the supported files they contain, and everything dropped (files and
+    /// folders together) is imported as one batch through the duplicate check.
     /// </summary>
-    public async Task HandleDroppedFilesAsync(IReadOnlyList<string> filePaths)
+    public async Task HandleDroppedItemsAsync(IReadOnlyList<string> filePaths, IReadOnlyList<string> folderPaths)
     {
-        if (filePaths.Count == 0) return;
+        if (filePaths.Count == 0 && folderPaths.Count == 0) return;
 
-        Log.Information("Files dropped: {Count}", filePaths.Count);
-        await ImportWithDedupAsync(filePaths);
+        Log.Information("Items dropped: {FileCount} file(s), {FolderCount} folder(s)", filePaths.Count, folderPaths.Count);
+        ClearError();
+
+        var toImport = new List<string>(filePaths);
+        var unreadableFolders = new List<string>();
+        foreach (var folderPath in folderPaths)
+        {
+            try
+            {
+                toImport.AddRange(await Task.Run(() => EnumerateSupportedFiles(folderPath)));
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Failed to scan dropped folder: {FolderPath}", folderPath);
+                unreadableFolders.Add(folderPath);
+            }
+        }
+
+        var distinct = toImport.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        if (distinct.Count > 0)
+        {
+            await ImportWithDedupAsync(distinct);
+        }
+
+        // Import errors take precedence on the banner; otherwise say what was left out.
+        if (!HasError && unreadableFolders.Count > 0)
+        {
+            SetError(_localization.GetString("Vault_DroppedFolderUnreadable", unreadableFolders[0]));
+        }
+        else if (distinct.Count == 0 && unreadableFolders.Count == 0)
+        {
+            SetError(_localization.GetString("Vault_NoSupportedFilesDropped"));
+        }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // DUPLICATE DETECTION (Feature 14)
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     /// <summary>
     /// Checks each file for duplicates before importing. If any duplicates are
@@ -1003,8 +1358,8 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
                 if (result.IsDuplicate)
                 {
                     duplicatePaths.Add(path);
-                    duplicateNames.Add(
-                        $"'{Path.GetFileName(path)}' matches '{result.ExistingFileName}'");
+                    duplicateNames.Add(_localization.GetString(
+                        "Vault_DuplicateMatch", Path.GetFileName(path), result.ExistingFileName ?? string.Empty));
                     Log.Debug("Duplicate detected: {FilePath} -> {ExistingFile}",
                         path, result.ExistingFileName);
                 }
@@ -1026,8 +1381,8 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
             _duplicateFilePaths = duplicatePaths;
 
             DuplicateWarningMessage = duplicatePaths.Count == 1
-                ? $"1 file is a duplicate and will be skipped"
-                : $"{duplicatePaths.Count} files are duplicates and will be skipped";
+                ? _localization.GetString("Vault_DuplicateWarningOne")
+                : _localization.GetString("Vault_DuplicateWarningMany", duplicatePaths.Count);
 
             DuplicateFileName = duplicateNames.Count > 0 ? duplicateNames[0] : null;
             ShowDuplicateWarning = true;
@@ -1037,8 +1392,8 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         }
         else
         {
-            // No duplicates found — import all files directly
-            await ImportFilesCommand.ExecuteAsync(filePaths);
+            // No duplicates found, so import all files directly
+            await ImportBatchAsync(filePaths, allowDuplicates: false);
         }
     }
 
@@ -1050,23 +1405,26 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
     {
         ShowDuplicateWarning = false;
 
-        if (_pendingImportPaths is not null && _pendingImportPaths.Count > 0)
+        // Claim the pending batch before awaiting so a second click cannot import it twice.
+        var pending = _pendingImportPaths;
+        _pendingImportPaths = null;
+        _duplicateFilePaths = null;
+
+        if (pending is not null && pending.Count > 0)
         {
             Log.Information("Importing {Count} non-duplicate file(s), skipping duplicates",
-                _pendingImportPaths.Count);
-            await ImportFilesCommand.ExecuteAsync(_pendingImportPaths);
+                pending.Count);
+            await ImportBatchAsync(pending, allowDuplicates: false);
         }
         else
         {
             Log.Information("No non-duplicate files to import after skipping duplicates");
         }
-
-        _pendingImportPaths = null;
-        _duplicateFilePaths = null;
     }
 
     /// <summary>
-    /// Imports all files regardless of duplicate status.
+    /// Imports all files regardless of duplicate status. The duplicates become separate
+    /// documents, because the user explicitly asked for them.
     /// </summary>
     [RelayCommand]
     private async Task ImportAllAnywayAsync()
@@ -1076,15 +1434,14 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         var allPaths = new List<string>();
         if (_pendingImportPaths is not null) allPaths.AddRange(_pendingImportPaths);
         if (_duplicateFilePaths is not null) allPaths.AddRange(_duplicateFilePaths);
+        _pendingImportPaths = null;
+        _duplicateFilePaths = null;
 
         if (allPaths.Count > 0)
         {
             Log.Information("Importing all {Count} file(s) including duplicates", allPaths.Count);
-            await ImportFilesCommand.ExecuteAsync(allPaths);
+            await ImportBatchAsync(allPaths, allowDuplicates: true);
         }
-
-        _pendingImportPaths = null;
-        _duplicateFilePaths = null;
     }
 
     /// <summary>
@@ -1099,14 +1456,79 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         Log.Debug("Duplicate warning dismissed");
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // PRIVATE HELPERS
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
+
+    /// <summary>
+    /// The file name the deletion confirmation names: from the row or the preview when the
+    /// document is on screen, otherwise from the vault. Null when the document does not exist.
+    /// </summary>
+    private async Task<string?> GetDocumentNameAsync(long id)
+    {
+        var shown = Documents.FirstOrDefault(d => d.Id == id)
+            ?? (SelectedDocument?.Id == id ? SelectedDocument : null);
+        if (shown is not null)
+        {
+            return shown.FileName;
+        }
+
+        try
+        {
+            return (await _documentService.GetDocumentAsync(id))?.FileName;
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to look up document {DocumentId} for its deletion", id);
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Asks the page to confirm <paramref name="request"/>. No handler, or a dialog that could
+    /// not be shown, counts as not confirmed: a deletion never goes ahead unasked.
+    /// </summary>
+    private async Task<bool> IsDeletionConfirmedAsync(DocumentDeletionRequest request)
+    {
+        if (ConfirmDeleteAsync is null)
+        {
+            Log.Warning("No deletion confirmation is available, so nothing was deleted");
+            return false;
+        }
+
+        try
+        {
+            return await ConfirmDeleteAsync(request);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "The deletion confirmation could not be shown, so nothing was deleted");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Lets go of documents that were just deleted: the time the previewed one was open is not
+    /// recorded, and its preview closes, so nothing in it can act on a document that no longer
+    /// exists.
+    /// </summary>
+    private void ForgetDeletedDocuments(IReadOnlyCollection<long> ids)
+    {
+        if (_documentEngagement?.OpenTargetId is { } open && ids.Contains(open))
+        {
+            _documentEngagement.Discard();
+        }
+
+        if (SelectedDocument is { } previewed && ids.Contains(previewed.Id))
+        {
+            SelectedDocument = null;
+        }
+    }
 
     private void ApplyFilters()
     {
         // Reload on the current (UI) thread context. The Documents collection is bound to the
-        // view, so it must be mutated on the UI thread — NOT on a thread-pool thread via
+        // view, so it must be mutated on the UI thread - NOT on a thread-pool thread via
         // Task.Run, which races initialization and throws RPC_E_WRONG_THREAD against a live
         // ItemsRepeater. The generation guard in LoadDocumentsAsync coalesces overlapping
         // reloads so the newest filter state always wins.
@@ -1181,7 +1603,7 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
                 target = Documents.FirstOrDefault(document => document.Id == documentId);
                 if (target is not null)
                 {
-                    FocusedDocumentVisibilityHint = "Filters were widened to show the requested document.";
+                    FocusedDocumentVisibilityHint = _localization.GetString("Vault_FiltersWidened");
                 }
             }
         }
@@ -1244,10 +1666,11 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         return true;
     }
 
-    private static DocumentDisplayItem MapDocumentToDisplay(AgentX.Core.Data.Entities.DocumentEntity doc)
+    private DocumentDisplayItem MapDocumentToDisplay(AgentX.Core.Data.Entities.DocumentEntity doc)
     {
         return new DocumentDisplayItem
         {
+            Localization = _localization,
             Id = doc.Id,
             FileName = doc.FileName,
             FilePath = doc.FilePath,
@@ -1289,26 +1712,32 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         _ => "#6B7280"
     };
 
-    private static WorkflowLaunchRequest BuildWorkflowLaunchRequest(
+    /// <summary>
+    /// The input the Workflows page opens with: the document's name, title, summary and preview
+    /// under headings in the user's language, each heading underlined to its own length. The
+    /// recommended workflow is named as stored, since the page matches it by name.
+    /// </summary>
+    private WorkflowLaunchRequest BuildWorkflowLaunchRequest(
         AgentX.Core.Data.Entities.DocumentEntity document,
         string? previewText)
     {
         var lines = new List<string>
         {
-            "Source: Knowledge Vault document",
-            $"Document: {document.FileName}"
+            _localization.GetString("Vault_WorkflowSourceLine"),
+            _localization.GetString("Vault_WorkflowDocumentLine", document.FileName)
         };
 
         if (!string.IsNullOrWhiteSpace(document.ExtractedTitle))
         {
-            lines.Add($"Title: {document.ExtractedTitle.Trim()}");
+            lines.Add(_localization.GetString("Vault_WorkflowTitleLine", document.ExtractedTitle.Trim()));
         }
 
         if (!string.IsNullOrWhiteSpace(document.Summary))
         {
+            var heading = _localization.GetString("Vault_WorkflowSummaryHeading");
             lines.Add(string.Empty);
-            lines.Add("Summary");
-            lines.Add("-------");
+            lines.Add(heading);
+            lines.Add(new string('-', heading.Length));
             lines.Add(document.Summary.Trim());
         }
 
@@ -1318,16 +1747,17 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
                 previewText.Trim(),
                 StringComparison.Ordinal))
         {
+            var heading = _localization.GetString("Vault_WorkflowPreviewHeading");
             lines.Add(string.Empty);
-            lines.Add("Document Preview");
-            lines.Add("----------------");
+            lines.Add(heading);
+            lines.Add(new string('-', heading.Length));
             lines.Add(previewText.Trim());
         }
 
         return new WorkflowLaunchRequest
         {
             InputText = string.Join(Environment.NewLine, lines),
-            SourceLabel = $"Loaded document context from \"{document.FileName}\"",
+            SourceLabel = _localization.GetString("Vault_WorkflowSourceLabel", document.FileName),
             RecommendedWorkflowName = "Summarize & Act"
         };
     }
@@ -1344,19 +1774,60 @@ public partial class KnowledgeVaultViewModel : ObservableObject, IDisposable
         HasError = false;
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // DISPOSAL
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
+    /// <summary>
+    /// The vault page left the screen: the previewed document stops counting as read, and the
+    /// time it was shown is recorded.
+    /// </summary>
+    public Task PauseDocumentEngagementAsync()
+    {
+        _isPreviewShown = false;
+        return _documentEngagement?.CloseAsync() ?? Task.CompletedTask;
+    }
+
+    /// <summary>The vault page is on screen again: the previewed document counts as read from now.</summary>
+    public void ResumeDocumentEngagement()
+    {
+        _isPreviewShown = true;
+        if (SelectedDocument is { } open && _documentEngagement is not null)
+        {
+            _ = _documentEngagement.OpenAsync(open.Id);
+        }
+    }
+
+    /// <summary>
+    /// Stops the live row updates. The indexing service is a singleton, so without this every
+    /// view model it ever notified would stay reachable from its events. Nothing else is
+    /// released or stopped: imports and indexing already under way carry on.
+    /// </summary>
     public void Dispose()
     {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+        _indexingService.DocumentIndexed -= OnDocumentIndexed;
+        _indexingService.DocumentIndexingFailed -= OnDocumentIndexingFailed;
         Log.Debug("KnowledgeVaultViewModel disposed");
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+/// <summary>
+/// What a deletion would remove, for the confirmation the page shows: one document by name,
+/// or several by count.
+/// </summary>
+/// <param name="Count">How many documents would be deleted.</param>
+/// <param name="DocumentName">The file name when exactly one document would be deleted.</param>
+public sealed record DocumentDeletionRequest(int Count, string? DocumentName);
+
+// ===========================================================================
 // DOCUMENT DISPLAY ITEM
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 /// <summary>
 /// Represents a document displayed in the Knowledge Vault UI.
@@ -1369,6 +1840,15 @@ public class DocumentDisplayItem : ObservableObject
     private string? _indexingError;
     private bool _isSelected;
     private string _focusedSourceLabel = string.Empty;
+    private int _chunkCount;
+    private long _wordCount;
+    private int _pageCount;
+
+    /// <summary>
+    /// Words the status badge in the user's language. The vault sets it on every row it
+    /// builds; without it <see cref="IndexingStatusLabel"/> shows the raw status.
+    /// </summary>
+    public ILocalizationService? Localization { get; init; }
 
     public long Id { get; set; }
     public string FileName { get; set; } = string.Empty;
@@ -1376,21 +1856,69 @@ public class DocumentDisplayItem : ObservableObject
     public string FileType { get; set; } = string.Empty;
     public string FileSizeFormatted { get; set; } = string.Empty;
     public string ImportedAtFormatted { get; set; } = string.Empty;
-    public int ChunkCount { get; set; }
-    public long WordCount { get; set; }
-    public int PageCount { get; set; }
+
+    // Notifying, because indexing finishes after the row is shown and updates these in place.
+    public int ChunkCount
+    {
+        get => _chunkCount;
+        set => SetProperty(ref _chunkCount, value);
+    }
+
+    public long WordCount
+    {
+        get => _wordCount;
+        set
+        {
+            if (SetProperty(ref _wordCount, value))
+            {
+                OnPropertyChanged(nameof(WordCountFormatted));
+            }
+        }
+    }
+
+    public int PageCount
+    {
+        get => _pageCount;
+        set => SetProperty(ref _pageCount, value);
+    }
 
     public string IndexingStatus
     {
         get => _indexingStatus;
-        set => SetProperty(ref _indexingStatus, value);
+        set
+        {
+            if (SetProperty(ref _indexingStatus, value))
+            {
+                // The status badge binds the derived label, not the raw status.
+                OnPropertyChanged(nameof(IndexingStatusLabel));
+                OnPropertyChanged(nameof(HasIndexingFailureReason));
+                OnPropertyChanged(nameof(IndexingFailureReason));
+            }
+        }
     }
 
     public string? IndexingError
     {
         get => _indexingError;
-        set => SetProperty(ref _indexingError, value);
+        set
+        {
+            if (SetProperty(ref _indexingError, value))
+            {
+                OnPropertyChanged(nameof(HasIndexingFailureReason));
+                OnPropertyChanged(nameof(IndexingFailureReason));
+            }
+        }
     }
+
+    /// <summary>
+    /// True while the document is marked failed and the pipeline stored why. The status badge
+    /// only says "Failed"; the row and the preview show this reason with it.
+    /// </summary>
+    public bool HasIndexingFailureReason =>
+        IndexingStatus == "failed" && !string.IsNullOrWhiteSpace(IndexingError);
+
+    /// <summary>Why indexing failed, while <see cref="HasIndexingFailureReason"/>; empty otherwise.</summary>
+    public string IndexingFailureReason => HasIndexingFailureReason ? IndexingError!.Trim() : string.Empty;
 
     private string? _summary;
     private string? _extractedTitle;
@@ -1457,14 +1985,16 @@ public class DocumentDisplayItem : ObservableObject
     /// <summary>
     /// Display label for the indexing status badge.
     /// </summary>
-    public string IndexingStatusLabel => IndexingStatus switch
-    {
-        "completed" => "Indexed",
-        "processing" => "Processing",
-        "pending" => "Pending",
-        "failed" => "Failed",
-        _ => IndexingStatus
-    };
+    public string IndexingStatusLabel => Localization is not { } localization
+        ? IndexingStatus
+        : IndexingStatus switch
+        {
+            "completed" => localization.GetString("Vault_StatusIndexed"),
+            "processing" => localization.GetString("Vault_StatusProcessing"),
+            "pending" => localization.GetString("Vault_StatusPending"),
+            "failed" => localization.GetString("Vault_StatusFailed"),
+            _ => IndexingStatus
+        };
 
     /// <summary>
     /// File type display label (uppercased).
@@ -1472,9 +2002,9 @@ public class DocumentDisplayItem : ObservableObject
     public string FileTypeLabel => FileType.ToUpperInvariant();
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // TAG DISPLAY ITEM (Feature 7)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 /// <summary>
 /// Represents a tag displayed in the Knowledge Vault filter UI.
@@ -1490,9 +2020,9 @@ public class TagDisplayItem
     public string DocumentCountFormatted => DocumentCount > 0 ? $"({DocumentCount})" : string.Empty;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // COLLECTION FILTER ITEM (Feature 9)
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 /// <summary>
 /// Represents a collection option in the advanced filter dropdown.

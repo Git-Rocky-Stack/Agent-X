@@ -3,6 +3,7 @@ using System.Threading;
 using AgentX.Core.AI;
 using AgentX.Core.Documents;
 using AgentX.Core.Services.Indexing;
+using AgentX.Core.Services.Localization;
 using Serilog;
 
 namespace AgentX.App.Services;
@@ -78,6 +79,9 @@ public sealed class StatusBarService : IStatusBarService
 
         var connected = false;
         var modelId = string.Empty;
+        var localization = ResolveLocalization();
+        // The status names the active provider; it used to say Ollama whatever was active.
+        var providerName = ProviderStatusText.GenericName(localization);
         var isIndexing = false;
         var indexingQueueLength = 0;
         var docCount = 0L;
@@ -86,7 +90,13 @@ public sealed class StatusBarService : IStatusBarService
         try
         {
             var aiService = (IAiService)_serviceProvider.GetService(typeof(IAiService))!;
-            connected = await aiService.ActiveProvider.CheckConnectionAsync();
+            var activeProvider = aiService.ActiveProvider;
+            if (!string.IsNullOrWhiteSpace(activeProvider.DisplayName))
+            {
+                providerName = activeProvider.DisplayName;
+            }
+
+            connected = await activeProvider.CheckConnectionAsync();
 
             if (connected)
             {
@@ -129,13 +139,31 @@ public sealed class StatusBarService : IStatusBarService
 
         var state = new StatusBarState(
             connected,
-            connected ? (!string.IsNullOrEmpty(modelId) ? $"Connected \u2014 {modelId}" : "Connected to Ollama") : "Ollama not detected",
+            connected
+                ? (!string.IsNullOrEmpty(modelId)
+                    ? ProviderStatusText.ConnectedToModel(localization, modelId)
+                    : ProviderStatusText.ConnectedTo(localization, providerName))
+                : ProviderStatusText.NotAvailable(localization, providerName),
             modelId,
             isIndexing,
             indexingQueueLength,
             docCount);
 
         StateChanged?.Invoke(this, state);
+    }
+
+    /// <summary>The app's localization service, or null (English text) when it cannot be resolved.</summary>
+    private ILocalizationService? ResolveLocalization()
+    {
+        try
+        {
+            return _serviceProvider.GetService(typeof(ILocalizationService)) as ILocalizationService;
+        }
+        catch (Exception ex)
+        {
+            Log.Debug(ex, "Localization is unavailable to the status strip; using English");
+            return null;
+        }
     }
 
     public void Dispose()
@@ -145,7 +173,7 @@ public sealed class StatusBarService : IStatusBarService
         _disposed = true;
     }
 
-    // ── Private ──────────────────────────────────────────────────
+    // -- Private --------------------------------------------------
 
     private async Task RunPollingLoopAsync(int intervalMs, int initialDelayMs, CancellationToken ct)
     {

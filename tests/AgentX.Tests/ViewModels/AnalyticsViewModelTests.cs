@@ -4,6 +4,7 @@ using AgentX.Core.Services.Analytics;
 using AgentX.Core.Services.Analytics.Models;
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Intelligence;
+using AgentX.Tests.Helpers;
 using FluentAssertions;
 using Moq;
 using Serilog;
@@ -21,7 +22,7 @@ public sealed class AnalyticsViewModelTests
     private readonly Mock<IOperationsDrillInService> _operationsDrillInService = new();
     private readonly ILogger _logger = Log.ForContext<AnalyticsViewModelTests>();
 
-    private AnalyticsViewModel CreateViewModel() =>
+    private AnalyticsViewModel CreateViewModel(AgentX.Core.Services.Localization.ILocalizationService? localization = null) =>
         new(
             _analyticsService.Object,
             _conversationRecallService.Object,
@@ -29,6 +30,7 @@ public sealed class AnalyticsViewModelTests
             _conversationThemeClusterService.Object,
             _conversationThemeTrendService.Object,
             _logger,
+            localization ?? EnglishResources.Create(),
             _operationsDrillInService.Object);
 
     private void SetupDefaultLoadDataDependencies()
@@ -645,5 +647,46 @@ public sealed class AnalyticsViewModelTests
         viewModel.HasTopWorkflows.Should().BeFalse();
         viewModel.HasRecentWorkflowRuns.Should().BeFalse();
         viewModel.WorkflowIntelligenceStatusMessage.Should().Be("No workflow runs yet. Run a workflow to seed reliability, trend, and result analytics.");
+    }
+
+    [Fact]
+    public async Task LoadDataAsync_shows_labels_and_empty_states_in_the_users_language()
+    {
+        SetupDefaultLoadDataDependencies();
+        _analyticsService
+            .Setup(service => service.GetWorkflowIntelligenceOverviewAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new WorkflowIntelligenceOverview
+            {
+                TotalRuns = 1,
+                SuccessfulRuns = 1,
+                SuccessRate = 100,
+                RecentRuns =
+                [
+                    new WorkflowRecentRunMetric
+                    {
+                        WorkflowRunId = 5,
+                        WorkflowId = 1,
+                        WorkflowName = "Digest",
+                        Status = "completed",
+                        StartedAt = DateTime.UtcNow.AddHours(-3),
+                        DurationMs = 1500
+                    }
+                ]
+            });
+        var german = ReswLocalization.For("de");
+        var viewModel = CreateViewModel(german);
+
+        viewModel.RecallStatusMessage.Should().Be(german.GetString("Ana_RecallIntro"));
+
+        await viewModel.LoadDataAsync();
+
+        viewModel.AverageResponseTime.Should().Be(german.GetString("Ana_NotAvailable")).And.NotBe("N/A");
+        viewModel.PerfTokensPerSecond.Should().Be(german.GetString("Ana_NotAvailable"));
+        viewModel.LastThemeMaterialized.Should().Be(german.GetString("Ana_NoClustersYet"));
+        viewModel.MostActiveTheme.Should().Be(german.GetString("Ana_NoTrendDataYet"));
+        viewModel.RecentWorkflowRuns.Should().ContainSingle();
+        viewModel.RecentWorkflowRuns[0].StatusLabel.Should().Be(german.GetString("Ana_RunStatusCompleted"));
+        viewModel.RecentWorkflowRuns[0].StartedAtLabel.Should().Be(german.GetString("Ana_TimeHoursAgo", 3));
+        viewModel.RecentWorkflowRuns[0].DurationLabel.Should().Be(german.GetString("Ana_DurationSeconds", 1.5.ToString("F2")));
     }
 }

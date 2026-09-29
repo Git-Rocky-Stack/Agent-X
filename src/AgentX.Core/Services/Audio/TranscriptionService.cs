@@ -9,28 +9,37 @@ namespace AgentX.Core.Services.Audio;
 /// Local Whisper-based transcription service, backed by Whisper.net.
 /// <para>
 /// Model files are stored as GGML binaries under %LOCALAPPDATA%/AgentX/Models/Whisper/.
-/// <see cref="DownloadModelAsync"/> fetches a model on demand; <see cref="TranscribeFileAsync"/>
+/// <see cref="DownloadModelAsync"/> fetches a model when the user asks for one (the Model
+/// Manager page), <see cref="RemoveModelAsync"/> deletes it, and <see cref="TranscribeFileAsync"/>
 /// loads it through <c>WhisperFactory</c> and runs the audio through the processor.
 /// </para>
 /// <para>
-/// <see cref="TranscribeFileAsync"/> throws <see cref="NotSupportedException"/> only for an
-/// audio container this service does not accept (see <c>AudioFormats</c>), and
-/// <see cref="InvalidOperationException"/> when the requested model is missing or its file
-/// cannot be loaded.
+/// Whisper.net reads only 16 kHz integer-PCM WAV, so any other input (MP3, M4A, FLAC, a 44.1 or
+/// 48 kHz WAV, a float WAV) is first decoded, mixed to mono and resampled into a temporary WAV
+/// by <see cref="WhisperAudioConverter"/>, which is deleted afterwards.
+/// </para>
+/// <para>
+/// <see cref="TranscribeFileAsync"/> throws <see cref="NotSupportedException"/> for an audio
+/// container this service does not accept (see <c>AudioFormats</c>) or a file this machine cannot
+/// decode, <see cref="TranscriptionRuntimeUnavailableException"/> when the native Whisper runtime
+/// cannot be loaded, <see cref="TranscriptionModelMissingException"/> when the requested model is
+/// not installed, and <see cref="InvalidOperationException"/> when its file cannot be loaded.
 /// </para>
 /// </summary>
 public sealed class TranscriptionService : ITranscriptionService
 {
-    // ── Constants ────────────────────────────────────────────────────────────
+    // -- Constants ------------------------------------------------------------
 
     /// <summary>
-    /// Root directory for all Whisper GGML model files.
-    /// Resolved at construction time so the path is stable for the lifetime of this instance.
+    /// The first four bytes of every whisper.cpp GGML model file: the magic 0x67676d6c ("ggml")
+    /// written little-endian. whisper.cpp rejects a file without it ("bad magic"), so a download
+    /// that does not start with it (an error page served with status 200, for example) is not
+    /// installed as a model.
     /// </summary>
-    private static readonly string ModelStoragePath = PathHelper.EnsureDirectoryExists(
-        Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "AgentX", "Models", "Whisper"));
+    private static ReadOnlySpan<byte> GgmlMagic => new byte[] { 0x6c, 0x6d, 0x67, 0x67 };
+
+    /// <summary>Suffix of the temporary file a download is written to before it is moved into place.</summary>
+    private const string PartialDownloadSuffix = ".download";
 
     /// <summary>
     /// All Whisper model size identifiers accepted by this service, ordered smallest-to-largest.
@@ -70,7 +79,7 @@ public sealed class TranscriptionService : ITranscriptionService
             ["large"] = 3_094_000_000L,
         };
 
-    // ── Supported formats ────────────────────────────────────────────────────
+    // -- Supported formats ----------------------------------------------------
 
     private static readonly IReadOnlyList<string> AudioFormats =
     [
@@ -80,11 +89,23 @@ public sealed class TranscriptionService : ITranscriptionService
     private static readonly IReadOnlySet<string> AudioFormatsSet =
         new HashSet<string>(AudioFormats, StringComparer.OrdinalIgnoreCase);
 
-    // ── Fields ───────────────────────────────────────────────────────────────
+    // -- Fields ---------------------------------------------------------------
 
     private readonly ILogger _log;
 
-    // ── Constructor ──────────────────────────────────────────────────────────
+    /// <summary>Directory holding the GGML model files.</summary>
+    private readonly string _modelDirectory;
+
+    /// <summary>Handler model downloads are sent through; null uses a default handler.</summary>
+    private readonly HttpMessageHandler? _httpHandler;
+
+    /// <summary>
+    /// Serializes downloads and removals, so two downloads never write the same temporary file
+    /// and a removal never runs while a download is moving its file into place.
+    /// </summary>
+    private readonly SemaphoreSlim _modelFileGate = new(1, 1);
+
+    // -- Constructor ----------------------------------------------------------
 
     /// <summary>
     /// Initialises a new <see cref="TranscriptionService"/> instance.
@@ -95,11 +116,29 @@ public sealed class TranscriptionService : ITranscriptionService
     /// through the DI container.
     /// </param>
     public TranscriptionService(ILogger logger)
+        : this(
+            logger,
+            Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "AgentX", "Models", "Whisper"),
+            httpHandler: null)
     {
-        _log = logger.ForContext<TranscriptionService>();
     }
 
-    // ── ITranscriptionService ────────────────────────────────────────────────
+    /// <summary>
+    /// Keeps models in <paramref name="modelDirectory"/> and downloads them through
+    /// <paramref name="httpHandler"/> (the caller keeps ownership of it). Internal so the DI
+    /// container, which only sees public constructors, keeps using the one above; tests use it
+    /// to download from a stub handler into a temporary directory.
+    /// </summary>
+    internal TranscriptionService(ILogger logger, string modelDirectory, HttpMessageHandler? httpHandler)
+    {
+        _log = logger.ForContext<TranscriptionService>();
+        _modelDirectory = modelDirectory;
+        _httpHandler = httpHandler;
+    }
+
+    // -- ITranscriptionService ------------------------------------------------
 
     /// <inheritdoc />
     public IReadOnlyList<string> SupportedFormats => AudioFormats;
@@ -111,10 +150,19 @@ public sealed class TranscriptionService : ITranscriptionService
         var exists = File.Exists(modelPath);
 
         _log.Debug(
-            "Model availability check — size: {ModelSize}, path: {ModelPath}, exists: {Exists}",
+            "Model availability check - size: {ModelSize}, path: {ModelPath}, exists: {Exists}",
             modelSize, modelPath, exists);
 
         return Task.FromResult(exists);
+    }
+
+    /// <inheritdoc />
+    public Task<long?> GetInstalledModelSizeAsync(string modelSize = "base")
+    {
+        ValidateModelSize(modelSize);
+
+        var modelFile = new FileInfo(GetModelFilePath(modelSize));
+        return Task.FromResult(modelFile.Exists ? modelFile.Length : (long?)null);
     }
 
     /// <inheritdoc />
@@ -125,6 +173,65 @@ public sealed class TranscriptionService : ITranscriptionService
     {
         ValidateModelSize(modelSize);
 
+        if (!ModelDownloadUrls.TryGetValue(modelSize, out var downloadUrl))
+        {
+            // Should not reach here after ValidateModelSize, but guard defensively.
+            throw new InvalidOperationException(
+                $"No download URL configured for Whisper model size '{modelSize}'.");
+        }
+
+        await _modelFileGate.WaitAsync(ct).ConfigureAwait(false);
+        try
+        {
+            await DownloadModelCoreAsync(modelSize, downloadUrl, progress, ct).ConfigureAwait(false);
+        }
+        finally
+        {
+            _modelFileGate.Release();
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task RemoveModelAsync(string modelSize = "base")
+    {
+        ValidateModelSize(modelSize);
+
+        var modelPath = GetModelFilePath(modelSize);
+        var partialPath = modelPath + PartialDownloadSuffix;
+
+        await _modelFileGate.WaitAsync().ConfigureAwait(false);
+        try
+        {
+            // A session that ended mid-download can leave its partial file behind.
+            if (File.Exists(partialPath))
+            {
+                TryDeleteTemporaryFile(partialPath);
+            }
+
+            if (File.Exists(modelPath))
+            {
+                File.Delete(modelPath);
+                _log.Information("Removed Whisper model '{ModelSize}' from {ModelPath}", modelSize, modelPath);
+            }
+        }
+        finally
+        {
+            _modelFileGate.Release();
+        }
+    }
+
+    /// <summary>
+    /// Downloads one model while holding <see cref="_modelFileGate"/>. The file is written next
+    /// to its final path under a temporary name and moved into place only after it has been
+    /// verified, so a cancelled, failed or incomplete download never leaves a file that looks
+    /// like an installed model, nor a partial file.
+    /// </summary>
+    private async Task DownloadModelCoreAsync(
+        string modelSize,
+        string downloadUrl,
+        IProgress<double>? progress,
+        CancellationToken ct)
+    {
         var modelPath = GetModelFilePath(modelSize);
 
         if (File.Exists(modelPath))
@@ -137,110 +244,126 @@ public sealed class TranscriptionService : ITranscriptionService
             return;
         }
 
-        if (!ModelDownloadUrls.TryGetValue(modelSize, out var downloadUrl))
-        {
-            // Should not reach here after ValidateModelSize, but guard defensively.
-            throw new InvalidOperationException(
-                $"No download URL configured for Whisper model size '{modelSize}'.");
-        }
-
         _log.Information(
-            "Initiating Whisper model download — size: {ModelSize}, url: {Url}, destination: {Destination}",
+            "Initiating Whisper model download - size: {ModelSize}, url: {Url}, destination: {Destination}",
             modelSize, downloadUrl, modelPath);
 
-        // Ensure the parent directory exists before streaming to disk.
-        PathHelper.EnsureDirectoryExists(Path.GetDirectoryName(modelPath)!);
+        PathHelper.EnsureDirectoryExists(_modelDirectory);
 
-        var approximateBytes = ApproximateModelBytes.GetValueOrDefault(
-            modelSize, ApproximateModelBytes["base"]);
-
-        using var httpClient = new HttpClient
-        {
-            Timeout = TimeSpan.FromMinutes(30),
-        };
+        var tempPath = modelPath + PartialDownloadSuffix;
 
         try
         {
-            using var response = await httpClient
-                .GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead, ct)
-                .ConfigureAwait(false);
+            await DownloadToFileAsync(modelSize, downloadUrl, tempPath, progress, ct).ConfigureAwait(false);
 
-            response.EnsureSuccessStatusCode();
-
-            var totalBytes = response.Content.Headers.ContentLength ?? approximateBytes;
-            var tempPath = modelPath + ".download";
-
-            try
-            {
-                await using var contentStream = await response.Content
-                    .ReadAsStreamAsync(ct)
-                    .ConfigureAwait(false);
-
-                await using var fileStream = new FileStream(
-                    tempPath,
-                    FileMode.Create,
-                    FileAccess.Write,
-                    FileShare.None,
-                    bufferSize: 81_920,
-                    useAsync: true);
-
-                var buffer = new byte[81_920];
-                long bytesReceived = 0;
-                int bytesRead;
-
-                while ((bytesRead = await contentStream
-                           .ReadAsync(buffer, ct)
-                           .ConfigureAwait(false)) > 0)
-                {
-                    await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead), ct)
-                        .ConfigureAwait(false);
-
-                    bytesReceived += bytesRead;
-
-                    var fraction = totalBytes > 0
-                        ? Math.Min(1.0, (double)bytesReceived / totalBytes)
-                        : 0.0;
-
-                    progress?.Report(fraction);
-                }
-
-                await fileStream.FlushAsync(ct).ConfigureAwait(false);
-            }
-            catch
-            {
-                // Clean up partial download on failure or cancellation.
-                if (File.Exists(tempPath))
-                    File.Delete(tempPath);
-
-                throw;
-            }
-
-            // Atomic rename: only replace the target after a complete write.
-            if (File.Exists(modelPath))
-                File.Delete(modelPath);
-
-            File.Move(tempPath, modelPath);
-
-            progress?.Report(1.0);
-
-            _log.Information(
-                "Whisper model '{ModelSize}' downloaded successfully to {ModelPath}",
-                modelSize, modelPath);
-        }
-        catch (OperationCanceledException)
-        {
-            _log.Information(
-                "Whisper model download cancelled — size: {ModelSize}", modelSize);
-            throw;
+            // A rename within one directory: the model appears complete or not at all.
+            File.Move(tempPath, modelPath, overwrite: true);
         }
         catch (Exception ex)
         {
-            _log.Error(
-                ex,
-                "Failed to download Whisper model '{ModelSize}' from {Url}",
-                modelSize, downloadUrl);
+            TryDeleteTemporaryFile(tempPath);
+
+            if (ex is OperationCanceledException)
+            {
+                _log.Information("Whisper model download cancelled - size: {ModelSize}", modelSize);
+            }
+            else
+            {
+                _log.Error(ex, "Failed to download Whisper model '{ModelSize}' from {Url}", modelSize, downloadUrl);
+            }
+
             throw;
         }
+
+        progress?.Report(1.0);
+
+        _log.Information(
+            "Whisper model '{ModelSize}' downloaded successfully to {ModelPath}",
+            modelSize, modelPath);
+    }
+
+    /// <summary>
+    /// Streams the model at <paramref name="downloadUrl"/> into <paramref name="tempPath"/> and
+    /// checks the result: the byte count must equal the Content-Length the server announced (when
+    /// it announced one) and the file must start with the GGML magic. Throws on any mismatch.
+    /// </summary>
+    private async Task DownloadToFileAsync(
+        string modelSize,
+        string downloadUrl,
+        string tempPath,
+        IProgress<double>? progress,
+        CancellationToken ct)
+    {
+        using var httpClient = _httpHandler is null
+            ? new HttpClient()
+            : new HttpClient(_httpHandler, disposeHandler: false);
+        httpClient.Timeout = TimeSpan.FromMinutes(30);
+
+        using var response = await httpClient
+            .GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead, ct)
+            .ConfigureAwait(false);
+
+        response.EnsureSuccessStatusCode();
+
+        var expectedBytes = response.Content.Headers.ContentLength;
+
+        // Progress needs a total before the first byte; without a Content-Length the size the
+        // model is known to have stands in for it.
+        var progressTotal = expectedBytes ?? ApproximateModelBytes.GetValueOrDefault(
+            modelSize, ApproximateModelBytes["base"]);
+
+        long bytesReceived = 0;
+
+        await using (var contentStream = await response.Content.ReadAsStreamAsync(ct).ConfigureAwait(false))
+        await using (var fileStream = new FileStream(
+            tempPath,
+            FileMode.Create,
+            FileAccess.Write,
+            FileShare.None,
+            bufferSize: 81_920,
+            useAsync: true))
+        {
+            var buffer = new byte[81_920];
+            int bytesRead;
+
+            while ((bytesRead = await contentStream.ReadAsync(buffer, ct).ConfigureAwait(false)) > 0)
+            {
+                await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead), ct).ConfigureAwait(false);
+
+                bytesReceived += bytesRead;
+
+                progress?.Report(progressTotal > 0
+                    ? Math.Min(1.0, (double)bytesReceived / progressTotal)
+                    : 0.0);
+            }
+
+            await fileStream.FlushAsync(ct).ConfigureAwait(false);
+        }
+
+        if (expectedBytes is long expected && bytesReceived != expected)
+        {
+            throw new IOException(
+                $"The download of the Whisper '{modelSize}' model was incomplete: " +
+                $"{bytesReceived} of {expected} bytes arrived.");
+        }
+
+        if (!StartsWithGgmlMagic(tempPath))
+        {
+            throw new InvalidDataException(
+                $"The file downloaded for the Whisper '{modelSize}' model is not a Whisper model.");
+        }
+    }
+
+    /// <summary>
+    /// True when the file at <paramref name="path"/> begins with <see cref="GgmlMagic"/>.
+    /// </summary>
+    private static bool StartsWithGgmlMagic(string path)
+    {
+        Span<byte> header = stackalloc byte[4];
+
+        using var stream = File.OpenRead(path);
+        return stream.ReadAtLeast(header, header.Length, throwOnEndOfStream: false) == header.Length
+            && header.SequenceEqual(GgmlMagic);
     }
 
     /// <inheritdoc />
@@ -252,7 +375,7 @@ public sealed class TranscriptionService : ITranscriptionService
     {
         options ??= new TranscriptionOptions();
 
-        // ── Phase 0: Validate inputs (0%) ────────────────────────────────────
+        // -- Phase 0: Validate inputs (0%) ------------------------------------
 
         ReportProgress(progress, 0.0, "Validating file...");
 
@@ -272,81 +395,87 @@ public sealed class TranscriptionService : ITranscriptionService
         }
 
         _log.Information(
-            "Transcription requested — file: {FileName}, size: {FileSizeBytes} bytes, model: {ModelSize}, language: {Language}",
+            "Transcription requested - file: {FileName}, size: {FileSizeBytes} bytes, model: {ModelSize}, language: {Language}",
             fileInfo.Name, fileInfo.Length, options.ModelSize, options.Language ?? "auto");
 
-        // ── Phase 1: Check model availability (5%) ────────────────────────────
+        // -- Phase 1: Check model availability (5%) ----------------------------
 
         ReportProgress(progress, 5.0, "Checking model...");
 
         var modelPath = GetModelFilePath(options.ModelSize);
         if (!File.Exists(modelPath))
         {
-            throw new InvalidOperationException(
-                $"Whisper model '{options.ModelSize}' is not available at {modelPath}. " +
-                $"Call DownloadModelAsync(\"{options.ModelSize}\") first.");
+            throw new TranscriptionModelMissingException(options.ModelSize, modelPath);
         }
 
-        // ── Phase 2: Load model (10–30%) ──────────────────────────────────────
+        // Phase 2: Whisper.net reads only 16 kHz integer-PCM WAV. Decode and resample anything
+        // else into a temporary file first (10-20%).
 
-        ReportProgress(progress, 10.0, "Loading model...");
+        if (options.EnableSpeakerDiarization)
+        {
+            _log.Warning(
+                "Speaker diarization was requested for {FileName}, but the bundled Whisper.net runtime does not support it; segments will carry no speaker ids",
+                fileInfo.Name);
+        }
 
-        _log.Debug(
-            "Loading Whisper model from {ModelPath}", modelPath);
+        string? convertedPath = null;
+        try
+        {
+            var whisperInputPath = audioFilePath;
+            if (!WhisperAudioConverter.IsWhisperReadyWav(audioFilePath))
+            {
+                ReportProgress(progress, 10.0, "Preparing audio...");
+                convertedPath = Path.Combine(PathHelper.GetTempPath(), $"whisper-{Guid.NewGuid():N}.wav");
+                await ConvertForWhisperAsync(audioFilePath, convertedPath, ct).ConfigureAwait(false);
+                whisperInputPath = convertedPath;
+            }
 
-        ct.ThrowIfCancellationRequested();
+            // Phase 3: Load the model and transcribe (20-90%).
 
-        // Simulate model load phase for progress fidelity.
-        // In the integrated implementation this range is consumed by the factory call.
-        await SimulatePhaseAsync(progressStart: 10.0, progressEnd: 30.0, steps: 4,
-            label: "Loading model...", progress, ct).ConfigureAwait(false);
+            _log.Debug(
+                "Starting Whisper transcription - file: {FilePath}, timestamps: {Timestamps}",
+                audioFilePath, options.EnableTimestamps);
 
-        // ── Phase 3: Transcribe audio (30–90%) ────────────────────────────────
+            var result = await RunWhisperAsync(
+                whisperInputPath, modelPath, options, progress, ct).ConfigureAwait(false);
 
-        ReportProgress(progress, 30.0, "Transcribing...");
+            ReportProgress(progress, 100.0, "Complete");
 
-        _log.Debug(
-            "Starting Whisper transcription — file: {FilePath}, timestamps: {Timestamps}, diarization: {Diarization}",
-            audioFilePath, options.EnableTimestamps, options.EnableSpeakerDiarization);
+            _log.Information(
+                "Transcription complete - file: {FileName}, segments: {SegmentCount}, language: {Language}, durationMs: {DurationMs}",
+                fileInfo.Name, result.Segments.Count, result.Language, result.DurationMs);
 
-        ct.ThrowIfCancellationRequested();
-
-        var result = await RunWhisperAsync(
-            audioFilePath, modelPath, options, progress, ct).ConfigureAwait(false);
-
-        // ── Phase 4: Finalise (90–100%) ───────────────────────────────────────
-
-        ReportProgress(progress, 90.0, "Generating segments...");
-        ct.ThrowIfCancellationRequested();
-        await SimulatePhaseAsync(progressStart: 90.0, progressEnd: 100.0, steps: 2,
-            label: "Generating segments...", progress, ct).ConfigureAwait(false);
-
-        ReportProgress(progress, 100.0, "Complete");
-
-        _log.Information(
-            "Transcription complete — file: {FileName}, segments: {SegmentCount}, language: {Language}, durationMs: {DurationMs}",
-            fileInfo.Name, result.Segments.Count, result.Language, result.DurationMs);
-
-        return result;
+            return result;
+        }
+        finally
+        {
+            if (convertedPath is not null)
+            {
+                TryDeleteTemporaryFile(convertedPath);
+            }
+        }
     }
 
-    // ── Private pipeline ─────────────────────────────────────────────────────
+    // -- Private pipeline -----------------------------------------------------
 
     /// <summary>
-    /// The core Whisper execution boundary. Runs the Whisper model on the given audio file
+    /// The core Whisper execution boundary. Runs the Whisper model on a Whisper-ready WAV file
     /// and produces a <see cref="TranscriptionResult"/> with text, segments, language, and duration.
+    /// Progress in the 30-90% range comes from Whisper's own progress callback.
     /// </summary>
     private async Task<TranscriptionResult> RunWhisperAsync(
-        string audioFilePath,
+        string wavFilePath,
         string modelPath,
         TranscriptionOptions options,
         IProgress<TranscriptionProgress>? progress,
         CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
+        ReportProgress(progress, 20.0, "Loading model...");
 
-        // ── Whisper.net execution ──────────────────────────────────────────────
-
+        // FromPath loads the native whisper library before anything reads the model, and the
+        // model itself is read by the native side, which reports a bad file only when a builder
+        // is created. An exception here therefore means the runtime cannot run on this machine.
         WhisperFactory whisperFactory;
         try
         {
@@ -354,26 +483,48 @@ public sealed class TranscriptionService : ITranscriptionService
         }
         catch (Exception ex)
         {
-            throw new InvalidOperationException(
-                $"Failed to load Whisper model from '{modelPath}'. " +
-                "The model file may be corrupt or incompatible. " +
-                "Try deleting the file and downloading it again.", ex);
+            throw new TranscriptionRuntimeUnavailableException(
+                $"The speech-to-text runtime could not be loaded on this computer: {ex.Message}", ex);
         }
 
         using var factory = whisperFactory;
 
-        var builder = whisperFactory.CreateBuilder()
-            .WithLanguage(options.Language ?? "auto");
+        var forcedLanguage = string.IsNullOrWhiteSpace(options.Language)
+            || string.Equals(options.Language, "auto", StringComparison.OrdinalIgnoreCase)
+                ? null
+                : options.Language;
+
+        WhisperProcessorBuilder modelBuilder;
+        try
+        {
+            modelBuilder = whisperFactory.CreateBuilder();
+        }
+        catch (WhisperModelLoadException ex)
+        {
+            throw new InvalidOperationException(
+                $"The speech-to-text model file '{modelPath}' could not be loaded; it may be damaged " +
+                "or incompatible. Remove it on the Model Manager page and download it again.", ex);
+        }
+
+        var percent = new TranscriptionPercent();
+        var builder = modelBuilder
+            .WithLanguage(forcedLanguage ?? "auto")
+            .WithProgressHandler(whisperPercent =>
+            {
+                percent.Value = 30.0 + (Math.Clamp(whisperPercent, 0, 100) * 0.6);
+                ReportProgress(progress, percent.Value, "Transcribing...");
+            });
 
         var segments = new List<TranscriptionSegment>();
+        string? detectedLanguage = null;
 
         await using var processor = builder.Build();
 
         ct.ThrowIfCancellationRequested();
+        ReportProgress(progress, 30.0, "Transcribing...");
 
-        // Process the audio file via FileStream and iterate over segments
         await using var fileStream = new FileStream(
-            audioFilePath,
+            wavFilePath,
             FileMode.Open,
             FileAccess.Read,
             FileShare.Read,
@@ -391,12 +542,15 @@ public sealed class TranscriptionService : ITranscriptionService
 
             segments.Add(transcriptSegment);
 
-            // Progress: 30–90% range during transcription
-            var pct = Math.Min(90.0, 30.0 + segments.Count * 2.0);
-            ReportProgress(progress, pct, "Transcribing...", transcriptSegment);
+            if (detectedLanguage is null && !string.IsNullOrWhiteSpace(segment.Language))
+            {
+                detectedLanguage = segment.Language;
+            }
+
+            ReportProgress(progress, percent.Value, "Transcribing...", transcriptSegment);
         }
 
-        // ── Assemble result ────────────────────────────────────────────────────
+        ReportProgress(progress, 90.0, "Finalizing...");
 
         var fullText = string.Join(" ", segments.Select(s => s.Text));
 
@@ -404,31 +558,75 @@ public sealed class TranscriptionService : ITranscriptionService
             ? segments[^1].EndMs
             : 0;
 
-        // Language: if user forced a specific language, report that; otherwise null (auto-detected)
-        string? detectedLanguage = options.Language;
+        var language = forcedLanguage ?? detectedLanguage;
 
         _log.Debug(
-            "Whisper transcription complete — file: {FilePath}, segments: {SegmentCount}, " +
+            "Whisper transcription complete - file: {FilePath}, segments: {SegmentCount}, " +
             "durationMs: {DurationMs}, language: {Language}",
-            audioFilePath, segments.Count, durationMs, detectedLanguage ?? "auto-detected");
+            wavFilePath, segments.Count, durationMs, language ?? "unknown");
 
         return new TranscriptionResult
         {
             FullText = fullText,
-            Segments = segments,
-            Language = detectedLanguage,
+            Segments = options.EnableTimestamps ? segments : [],
+            Language = language,
             DurationMs = durationMs,
             ModelUsed = options.ModelSize,
         };
     }
 
-    // ── Private helpers ───────────────────────────────────────────────────────
+    /// <summary>
+    /// Decodes <paramref name="sourcePath"/> into a Whisper-ready WAV off the calling thread.
+    /// A file this machine cannot decode surfaces as <see cref="NotSupportedException"/>, the
+    /// same contract as an unsupported container.
+    /// </summary>
+    private static async Task ConvertForWhisperAsync(string sourcePath, string wavPath, CancellationToken ct)
+    {
+        try
+        {
+            await Task.Run(() => WhisperAudioConverter.ConvertToWhisperWav(sourcePath, wavPath, ct), ct)
+                .ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException and not NotSupportedException)
+        {
+            throw new NotSupportedException(
+                $"The audio in '{Path.GetFileName(sourcePath)}' could not be decoded. " +
+                "The file may be damaged, or no decoder for its codec is installed on this machine.",
+                ex);
+        }
+    }
+
+    private void TryDeleteTemporaryFile(string path)
+    {
+        try
+        {
+            File.Delete(path);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            _log.Warning(ex, "Could not delete temporary file {Path}", path);
+        }
+    }
+
+    /// <summary>Latest transcription percentage, written from Whisper's native callback thread.</summary>
+    private sealed class TranscriptionPercent
+    {
+        private double _value = 30.0;
+
+        public double Value
+        {
+            get => Volatile.Read(ref _value);
+            set => Volatile.Write(ref _value, value);
+        }
+    }
+
+    // -- Private helpers -------------------------------------------------------
 
     /// <summary>
     /// Builds the canonical file system path for a Whisper GGML model binary.
     /// </summary>
-    private static string GetModelFilePath(string modelSize)
-        => Path.Combine(ModelStoragePath, $"ggml-{modelSize.ToLowerInvariant()}.bin");
+    private string GetModelFilePath(string modelSize)
+        => Path.Combine(_modelDirectory, $"ggml-{modelSize.ToLowerInvariant()}.bin");
 
     /// <summary>
     /// Validates that the provided model size string is one of the accepted identifiers.
@@ -463,33 +661,5 @@ public sealed class TranscriptionService : ITranscriptionService
             CurrentPhase = phase,
             Segment = segment,
         });
-    }
-
-    /// <summary>
-    /// Advances a progress range incrementally across a fixed number of steps to give
-    /// the UI smooth feedback during phases that don't emit natural checkpoints
-    /// (e.g., model loading). Each step awaits a <see cref="Task.Yield"/> so the caller's
-    /// UI thread remains responsive.
-    /// </summary>
-    private static async Task SimulatePhaseAsync(
-        double progressStart,
-        double progressEnd,
-        int steps,
-        string label,
-        IProgress<TranscriptionProgress>? progress,
-        CancellationToken ct)
-    {
-        if (progress is null || steps <= 0)
-            return;
-
-        var step = (progressEnd - progressStart) / steps;
-
-        for (var i = 1; i <= steps; i++)
-        {
-            ct.ThrowIfCancellationRequested();
-            var pct = Math.Min(progressEnd, progressStart + step * i);
-            ReportProgress(progress, pct, label);
-            await Task.Yield();
-        }
     }
 }

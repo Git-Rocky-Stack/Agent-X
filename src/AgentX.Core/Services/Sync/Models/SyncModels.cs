@@ -1,6 +1,6 @@
 namespace AgentX.Core.Services.Sync.Models;
 
-// ── Enumerations ──────────────────────────────────────────────────────────────
+// -- Enumerations --------------------------------------------------------------
 
 /// <summary>
 /// Represents the current operational state of the sync engine.
@@ -43,8 +43,29 @@ public enum SyncScope
     /// <summary>All supported entity types are included in the sync.</summary>
     All,
 
-    /// <summary>Only the collections listed in <see cref="SyncConfiguration.SelectedCollectionIds"/> are synced.</summary>
+    /// <summary>
+    /// Only the collections listed in <see cref="SyncConfiguration.SelectedCollectionIds"/> are synced:
+    /// those collections (plus the names of their ancestor collections, so the hierarchy can be
+    /// rebuilt), the documents they contain, and the annotations on those documents. Entities that do
+    /// not belong to a collection (tags, conversations, system prompts) are not exported in this scope.
+    /// </summary>
     SelectedCollections,
+}
+
+/// <summary>
+/// Outcome of comparing an incoming change against the local copy of the same entity
+/// (last writer wins by modification timestamp, with a deterministic tie-break).
+/// </summary>
+public enum SyncDecision
+{
+    /// <summary>The remote change is newer (or wins the tie-break) and must be applied.</summary>
+    ApplyRemote,
+
+    /// <summary>The local copy was modified more recently; the remote change is discarded.</summary>
+    KeepLocal,
+
+    /// <summary>Both sides carry the same version (equal timestamps, local wins the tie-break) or the change has nothing to act on.</summary>
+    AlreadyCurrent,
 }
 
 /// <summary>
@@ -65,7 +86,7 @@ public enum SyncResolution
     Merged,
 }
 
-// ── Configuration & status ────────────────────────────────────────────────────
+// -- Configuration & status ----------------------------------------------------
 
 /// <summary>
 /// Persisted configuration for the Collaborative Sync feature.
@@ -118,7 +139,8 @@ public sealed class SyncConfiguration
 public sealed class SyncStatus
 {
     /// <summary>UTC timestamp of the last successful sync pass, or <see langword="null"/> if
-    /// no sync has completed in this session.</summary>
+    /// none has completed yet. Restored from persisted state after a restart. For display
+    /// only: it is neither the export watermark nor a conflict baseline.</summary>
     public DateTime? LastSyncAt { get; set; }
 
     /// <summary>Current operational state of the sync engine.</summary>
@@ -136,7 +158,7 @@ public sealed class SyncStatus
     public double LastSyncDurationMs { get; set; }
 }
 
-// ── Change tracking ───────────────────────────────────────────────────────────
+// -- Change tracking -----------------------------------------------------------
 
 /// <summary>
 /// A portable, serialisable package of changes produced by one Agent-X installation
@@ -157,8 +179,15 @@ public sealed class SyncChangeSet
     public List<SyncChange> Changes { get; set; } = [];
 
     /// <summary>
+    /// Wire-format version written by this build. Version 2 adds
+    /// <see cref="SyncChange.NaturalKey"/> and <see cref="SyncChange.References"/>.
+    /// </summary>
+    public const int CurrentVersion = 2;
+
+    /// <summary>
     /// Monotonically increasing format version for forward-compatibility checks.
-    /// Current value: <c>1</c>.
+    /// Files without the property deserialize as <c>1</c> (the original format, which
+    /// carries no natural keys); this build writes <see cref="CurrentVersion"/>.
     /// </summary>
     public int Version { get; set; } = 1;
 }
@@ -174,8 +203,27 @@ public sealed class SyncChange
     /// </summary>
     public string EntityType { get; set; } = string.Empty;
 
-    /// <summary>Primary key of the affected entity on the originating device.</summary>
+    /// <summary>
+    /// Primary key of the affected entity on the originating device. Informational only:
+    /// auto-increment ids are local to one installation, so imports never match rows by it.
+    /// </summary>
     public long EntityId { get; set; }
+
+    /// <summary>
+    /// Installation-independent identity of the entity (content hash for documents, name
+    /// path for collections, name for tags and system prompts, creation time for
+    /// conversations, document plus position and text for annotations). Imports match
+    /// local rows by this key. <see langword="null"/> in version 1 files, in which case the
+    /// importer derives it from <see cref="SerializedData"/>.
+    /// </summary>
+    public string? NaturalKey { get; set; }
+
+    /// <summary>
+    /// Natural keys of the entities this entity points at, keyed by the foreign-key
+    /// property name (for example <c>"DocumentId"</c> on an annotation). Lets the importer
+    /// translate the originating installation's ids into local ids.
+    /// </summary>
+    public Dictionary<string, string>? References { get; set; }
 
     /// <summary>How the entity was changed.</summary>
     public SyncChangeType ChangeType { get; set; }
@@ -191,7 +239,7 @@ public sealed class SyncChange
     public string? SerializedData { get; set; }
 }
 
-// ── Conflict handling ─────────────────────────────────────────────────────────
+// -- Conflict handling ---------------------------------------------------------
 
 /// <summary>
 /// Describes a situation where both the local installation and a remote change set
@@ -216,4 +264,84 @@ public sealed class SyncConflict
     /// Starts as <see cref="SyncResolution.Pending"/> until actioned.
     /// </summary>
     public SyncResolution Resolution { get; set; } = SyncResolution.Pending;
+}
+
+// Results
+
+/// <summary>
+/// Per-change-set outcome of an import. Every incoming change lands in exactly one bucket.
+/// </summary>
+public sealed class SyncImportResult
+{
+    /// <summary>Changes whose effect is now reflected locally (inserted, updated, merged or deleted).</summary>
+    public int Applied { get; set; }
+
+    /// <summary>Changes that needed no work (the local copy already matched, or the entity to delete was absent).</summary>
+    public int Unchanged { get; set; }
+
+    /// <summary>
+    /// Changes discarded because the local copy was modified more recently (last writer wins).
+    /// Counted as conflicts that were detected and resolved automatically.
+    /// </summary>
+    public int ConflictsResolved { get; set; }
+
+    /// <summary>
+    /// Changes that can never be applied (unreadable payload, unknown entity type, missing
+    /// natural key, or a reference to an entity that does not exist on this machine).
+    /// Permanent: retrying the same file would not help.
+    /// </summary>
+    public int Rejected { get; set; }
+
+    /// <summary>
+    /// Changes that could not be saved (database error). Their tracked state was rolled back
+    /// and the peer file is left in place so the next cycle retries them.
+    /// </summary>
+    public int Failed { get; set; }
+
+    /// <summary>Human-readable reasons for rejected and failed changes.</summary>
+    public List<string> Errors { get; } = [];
+
+    /// <summary>True when no change failed, so the peer file can be marked as imported.</summary>
+    public bool IsComplete => Failed == 0;
+}
+
+/// <summary>
+/// Outcome of a manual or scheduled sync pass (<see cref="ISyncService.SyncNowAsync"/> or
+/// <see cref="ISyncService.ImportNowAsync"/>), so callers can report what really happened.
+/// </summary>
+public sealed class SyncRunResult
+{
+    /// <summary>Number of local changes written to the sync folder (0 for an import-only pass).</summary>
+    public int ExportedChanges { get; set; }
+
+    /// <summary>Peer .axs files found in the sync folder.</summary>
+    public int PeerFilesFound { get; set; }
+
+    /// <summary>Peer files fully applied and renamed to .imported.</summary>
+    public int PeerFilesImported { get; set; }
+
+    /// <summary>Peer files with at least one failed change; left in place to be retried.</summary>
+    public int PeerFilesPendingRetry { get; set; }
+
+    /// <summary>Peer files that could not be read (invalid header, wrong passphrase, corrupt data).</summary>
+    public int PeerFilesUnreadable { get; set; }
+
+    /// <summary>Total changes applied across all imported files.</summary>
+    public int ChangesApplied { get; set; }
+
+    /// <summary>Total changes discarded because the local copy was newer.</summary>
+    public int ConflictsResolved { get; set; }
+
+    /// <summary>Total changes that can never be applied.</summary>
+    public int ChangesRejected { get; set; }
+
+    /// <summary>Total changes that failed to save and will be retried.</summary>
+    public int ChangesFailed { get; set; }
+
+    /// <summary>Human-readable problems encountered during the pass.</summary>
+    public List<string> Errors { get; } = [];
+
+    /// <summary>True when anything went wrong that the user should know about.</summary>
+    public bool HasProblems =>
+        PeerFilesPendingRetry > 0 || PeerFilesUnreadable > 0 || ChangesRejected > 0 || ChangesFailed > 0;
 }

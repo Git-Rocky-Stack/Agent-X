@@ -1,3 +1,4 @@
+using AgentX.Core.Helpers;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace AgentX.App.ViewModels;
@@ -36,16 +37,9 @@ public class ConversationListItem : ObservableObject
 
     public int MessageCount { get; set; }
 
-    public string FormattedTime
-    {
-        get
-        {
-            var span = DateTime.UtcNow - UpdatedAt;
-            return span.TotalMinutes < 1 ? "now"
-                : span.TotalMinutes < 60 ? $"{(int)span.TotalMinutes}m ago"
-                : span.TotalHours < 24 ? $"{(int)span.TotalHours}h ago"
-                : span.TotalDays < 7 ? $"{(int)span.TotalDays}d ago"
-                : UpdatedAt.ToLocalTime().ToString("MMM d");
-        }
-    }
+    /// <summary>
+    /// How long ago the conversation last changed ("5m ago", then weeks, months and the date), in
+    /// the user's language, worded like the dashboard's recent conversations.
+    /// </summary>
+    public string FormattedTime => FormatHelper.TimeAgoWithMonths(UpdatedAt);
 }

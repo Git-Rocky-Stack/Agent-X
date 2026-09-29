@@ -53,7 +53,7 @@ public static class FuzzyMatcher
                     hi++;
                 }
             }
-            if (!found) return 0; // any query char not found → no match
+            if (!found) return 0; // any query char not found -> no match
         }
 
         // Pure-prefix bonus: needle matched consecutively starting at haystack[0].

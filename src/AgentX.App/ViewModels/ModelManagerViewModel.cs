@@ -1,8 +1,12 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using AgentX.App.Services;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
+using AgentX.Core.Documents;
 using AgentX.Core.Helpers;
+using AgentX.Core.Services.Audio;
+using AgentX.Core.Services.Localization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Serilog;
@@ -12,18 +16,21 @@ namespace AgentX.App.ViewModels;
 
 public partial class ModelManagerViewModel : ObservableObject, IDisposable
 {
-    // ── Services ──────────────────────────────────────────────
+    // -- Services ----------------------------------------------
     private readonly IModelManager _modelManager;
     private readonly IAiService _aiService;
+    private readonly ILocalizationService _localization;
     private CancellationTokenSource? _downloadCts;
 
-    // ── Page Properties ────────────────────────────────────────
+    // -- Page Properties ----------------------------------------
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private bool _isDownloading;
     [ObservableProperty] private string _downloadModelName = string.Empty;
     [ObservableProperty] private double _downloadProgress;
     [ObservableProperty] private string _downloadStatus = string.Empty;
-    [ObservableProperty] private string _connectionStatus = "Checking...";
+
+    // "Checking..." in the user's language, set by the constructor.
+    [ObservableProperty] private string _connectionStatus;
     [ObservableProperty] private bool _isConnected;
     [ObservableProperty] private int _totalModels;
     [ObservableProperty] private string _totalModelSize = "0 MB";
@@ -32,18 +39,36 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
 
     public ObservableCollection<ModelDisplayItem> InstalledModels { get; } = new();
 
-    // ── Constructor ────────────────────────────────────────────
-    public ModelManagerViewModel(IModelManager modelManager, IAiService aiService)
+    /// <summary>
+    /// The Speech-to-Text Model section: the Whisper model that transcribes imported audio
+    /// files and voice input, installed and removed from this page.
+    /// </summary>
+    public SpeechModelViewModel SpeechModel { get; }
+
+    // -- Constructor --------------------------------------------
+    public ModelManagerViewModel(
+        IModelManager modelManager,
+        IAiService aiService,
+        ITranscriptionService transcriptionService,
+        IDocumentService documentService,
+        ILocalizationService localization,
+        INotificationService? notifications = null)
     {
         _modelManager = modelManager;
         _aiService = aiService;
+        _localization = localization ?? throw new ArgumentNullException(nameof(localization));
+        _connectionStatus = _localization.GetString("ModelMgr_CheckingConnection");
+        SpeechModel = new SpeechModelViewModel(transcriptionService, documentService, localization, notifications);
         Log.Debug("ModelManagerViewModel created with services");
     }
 
-    // ── Initialization ─────────────────────────────────────────
+    // -- Initialization -----------------------------------------
     public async Task InitializeAsync()
     {
         Log.Information("ModelManager initializing...");
+
+        // A local file check, so the section is filled in before the provider round-trips below.
+        await SpeechModel.LoadAsync();
 
         try
         {
@@ -53,29 +78,49 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "ModelManager initialization failed");
-            ConnectionStatus = "Connection failed";
+            ConnectionStatus = _localization.GetString("ModelMgr_ConnectionFailed");
             IsConnected = false;
-            SetError("Failed to connect to Ollama. Ensure Ollama is running.");
+            SetError(_localization.GetString("ModelMgr_ConnectFailed", ActiveProviderName()));
         }
     }
 
-    // ── Connection Check ───────────────────────────────────────
+    /// <summary>
+    /// Display name of the active provider (the built-in model, Ollama, OpenAI or Anthropic), so
+    /// status and error text never name a provider that is not in use.
+    /// </summary>
+    private string ActiveProviderName()
+    {
+        try
+        {
+            return _aiService.ActiveProvider.DisplayName;
+        }
+        catch (InvalidOperationException)
+        {
+            return ProviderStatusText.GenericName(_localization); // not initialized yet
+        }
+    }
+
+    // -- Connection Check ---------------------------------------
+    // Worded like the status strip and the dashboard, through ProviderStatusText.
     private async Task CheckConnectionAsync()
     {
+        var providerName = ActiveProviderName();
         try
         {
             var connected = await _aiService.ActiveProvider.CheckConnectionAsync();
             IsConnected = connected;
-            ConnectionStatus = connected ? "Connected to Ollama" : "Ollama not detected";
+            ConnectionStatus = connected
+                ? ProviderStatusText.ConnectedTo(_localization, providerName)
+                : ProviderStatusText.NotAvailable(_localization, providerName);
         }
         catch
         {
             IsConnected = false;
-            ConnectionStatus = "Ollama not detected";
+            ConnectionStatus = ProviderStatusText.NotAvailable(_localization, providerName);
         }
     }
 
-    // ── Load Models ────────────────────────────────────────────
+    // -- Load Models --------------------------------------------
     private async Task LoadModelsAsync()
     {
         IsLoading = true;
@@ -113,7 +158,7 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to load models");
-            SetError("Failed to load model list. Check Ollama connection.");
+            SetError(_localization.GetString("ModelMgr_LoadModelsFailed", ActiveProviderName()));
         }
         finally
         {
@@ -121,7 +166,7 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
         }
     }
 
-    // ── Refresh Command ────────────────────────────────────────
+    // -- Refresh Command ----------------------------------------
     [RelayCommand]
     private async Task RefreshModelsAsync()
     {
@@ -129,7 +174,7 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
         await InitializeAsync();
     }
 
-    // ── Pull Model Command ─────────────────────────────────────
+    // -- Pull Model Command -------------------------------------
     [RelayCommand(CanExecute = nameof(CanPullModel))]
     private async Task PullModelAsync()
     {
@@ -140,7 +185,7 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
 
         IsDownloading = true;
         DownloadProgress = 0;
-        DownloadStatus = $"Preparing to download {modelName}...";
+        DownloadStatus = _localization.GetString("ModelMgr_PreparingDownload", modelName);
         ClearError();
 
         _downloadCts = new CancellationTokenSource();
@@ -154,7 +199,7 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
             });
             await _modelManager.PullModelAsync(modelName, progressReporter, _downloadCts.Token);
 
-            DownloadStatus = $"Successfully downloaded {modelName}";
+            DownloadStatus = _localization.GetString("ModelMgr_Downloaded", modelName);
             DownloadModelName = string.Empty;
 
             // Refresh model list after download
@@ -162,14 +207,14 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
         }
         catch (OperationCanceledException)
         {
-            DownloadStatus = "Download cancelled";
+            DownloadStatus = _localization.GetString("ModelMgr_DownloadCancelled");
             Log.Information("Model download cancelled: {ModelName}", modelName);
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to pull model: {ModelName}", modelName);
-            DownloadStatus = $"Download failed: {ex.Message}";
-            SetError($"Failed to download {modelName}. Ensure Ollama is running and the model name is correct.");
+            DownloadStatus = _localization.GetString("ModelMgr_DownloadFailedStatus", ex.Message);
+            SetError(_localization.GetString("ModelMgr_DownloadFailed", modelName, ActiveProviderName()));
         }
         finally
         {
@@ -186,7 +231,7 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
         PullModelCommand.NotifyCanExecuteChanged();
     }
 
-    // ── Cancel Download Command ────────────────────────────────
+    // -- Cancel Download Command --------------------------------
     [RelayCommand]
     private void CancelDownload()
     {
@@ -194,7 +239,7 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
         Log.Information("Download cancellation requested");
     }
 
-    // ── Delete Model Command ───────────────────────────────────
+    // -- Delete Model Command -----------------------------------
     [RelayCommand]
     private async Task DeleteModelAsync(string? modelId)
     {
@@ -214,11 +259,11 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to delete model: {ModelId}", modelId);
-            SetError($"Failed to delete model. {ex.Message}");
+            SetError(_localization.GetString("ModelMgr_DeleteFailed", ex.Message));
         }
     }
 
-    // ── Set Active Model Command ───────────────────────────────
+    // -- Set Active Model Command -------------------------------
     [RelayCommand]
     private async Task SetActiveModelAsync(string? modelId)
     {
@@ -248,11 +293,11 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to set active model: {ModelId}", modelId);
-            SetError($"Failed to set active model. {ex.Message}");
+            SetError(_localization.GetString("ModelMgr_SetActiveFailed", ex.Message));
         }
     }
 
-    // ── Copy Model Name Command ────────────────────────────────
+    // -- Copy Model Name Command --------------------------------
     [RelayCommand]
     private void CopyModelName(string? name)
     {
@@ -271,7 +316,7 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
         }
     }
 
-    // ── Set Download Model Name (for suggestion chips) ─────────
+    // -- Set Download Model Name (for suggestion chips) ---------
     [RelayCommand]
     private void SetModelSuggestion(string? modelName)
     {
@@ -281,7 +326,7 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
         }
     }
 
-    // ── Open Ollama Library ────────────────────────────────────
+    // -- Open Ollama Library ------------------------------------
     [RelayCommand]
     private void OpenOllamaLibrary()
     {
@@ -299,7 +344,7 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
         }
     }
 
-    // ── Helpers ────────────────────────────────────────────────
+    // -- Helpers ------------------------------------------------
 
     private static string FormatDownloadStatus(ModelDownloadProgress progress)
     {
@@ -327,11 +372,12 @@ public partial class ModelManagerViewModel : ObservableObject, IDisposable
     {
         _downloadCts?.Cancel();
         _downloadCts?.Dispose();
+        SpeechModel.Dispose();
         Log.Debug("ModelManagerViewModel disposed");
     }
 }
 
-// ── Display Item ───────────────────────────────────────────────
+// -- Display Item -----------------------------------------------
 public partial class ModelDisplayItem : ObservableObject
 {
     [ObservableProperty] private string _id = string.Empty;

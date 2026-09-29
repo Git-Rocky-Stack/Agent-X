@@ -27,9 +27,16 @@ public sealed class SyncResult
     public int ItemsFailed { get; init; }
 
     /// <summary>
+    /// Number of stored items retired because they are gone at the source (for a calendar, also
+    /// an event moved out of the synced date range). One that reached the vault is marked as
+    /// removed and its document kept; one that never did is taken out of the inbox.
+    /// </summary>
+    public int ItemsRemoved { get; init; }
+
+    /// <summary>
     /// Total number of items examined during the sync operation.
     /// </summary>
-    public int TotalItemsProcessed => ItemsAdded + ItemsUpdated + ItemsSkipped + ItemsFailed;
+    public int TotalItemsProcessed => ItemsAdded + ItemsUpdated + ItemsSkipped + ItemsRemoved + ItemsFailed;
 
     /// <summary>
     /// Whether the sync completed without any failures.

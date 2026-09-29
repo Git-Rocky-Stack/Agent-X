@@ -3,7 +3,12 @@
 **Application:** Agent-X
 **Platform:** Windows Desktop (.NET 8 / WinUI 3)
 **Core Library:** `AgentX.Core`
-**Last Updated:** 2026-04-16
+**Last Updated:** 2026-09-27
+
+This reference describes the public service interfaces and models of `AgentX.Core` that the app
+and plugins build on, with the signatures as they are in the code. Every service is registered as
+a singleton in `src/AgentX.App/App.xaml.cs`. The HTTP routes of the local REST API are documented
+in [`API_ENDPOINTS.md`](../API_ENDPOINTS.md).
 
 ---
 
@@ -15,12 +20,14 @@
    - [IHardwareDetector](#ihardwaredetector)
    - [IModelManager](#imodelmanager)
    - [IEmbeddingService](#iembeddingservice)
+   - [ICostTracker](#icosttracker)
 2. [AI Models](#2-ai-models)
    - [ChatMessage](#chatmessage)
    - [ChatOptions](#chatoptions)
    - [AiModel](#aimodel)
    - [HardwareCapability](#hardwarecapability)
    - [ModelDownloadProgress](#modeldownloadprogress)
+   - [EmbeddingTarget and EmbeddingTargetResolver](#embeddingtarget-and-embeddingtargetresolver)
 3. [Document Services](#3-document-services)
    - [IDocumentService](#idocumentservice)
    - [IDocumentProcessor](#idocumentprocessor)
@@ -28,6 +35,8 @@
    - [Document Models](#document-models)
 4. [Search and RAG](#4-search-and-rag)
    - [ISemanticSearchService](#isemanticsearchservice)
+   - [IKeywordSearchService](#ikeywordsearchservice)
+   - [IHybridSearchOrchestrator](#ihybridsearchorchestrator)
    - [IRagPipeline](#iragpipeline)
    - [ICitationService](#icitationservice)
    - [Search Models](#search-models)
@@ -43,9 +52,8 @@
    - [IAutoTagService](#iautotagservice)
 8. [Indexing Services](#8-indexing-services)
    - [IIndexingService](#iindexingservice)
-   - [IIndexingQueueService](#iindexingqueueservice)
    - [IFileWatcherService](#ifilewatcherservice)
-   - [IndexingProgressEventArgs](#indexingprogresseventargs)
+   - [Indexing Event Data](#indexing-event-data)
 9. [Settings](#9-settings)
    - [ISettingsService](#isettingsservice)
    - [AppSettings](#appsettings)
@@ -70,7 +78,7 @@
     - [IndexingJobEntity](#indexingjobentity)
     - [OAuthCredentialEntity](#oauthcredentialentity)
 12. [OAuth Services](#12-oauth-services)
-    - [IOAuthService](#ioauthservice-1)
+    - [IOAuthService](#ioauthservice)
     - [OAuthService](#oauthservice)
     - [OAuthProviderConfig](#oauthproviderconfig)
     - [OAuthProviderRegistry](#oauthproviderregistry)
@@ -86,8 +94,19 @@
     - [EmailPlugin](#emailplugin)
     - [Email Models](#email-models)
 15. [Plugin Infrastructure](#15-plugin-infrastructure)
+    - [IPlugin](#iplugin)
     - [IPluginContext](#iplugincontext)
     - [PluginType](#plugintype)
+    - [IDocumentProcessorPlugin](#idocumentprocessorplugin)
+    - [IPluginDocumentProcessorSource](#iplugindocumentprocessorsource)
+16. [Local REST API Host](#16-local-rest-api-host)
+    - [IApiHostService](#iapihostservice)
+    - [LocalApiSecurity](#localapisecurity)
+    - [API Models](#api-models)
+17. [Database Encryption](#17-database-encryption)
+    - [IDatabaseEncryptionManager](#idatabaseencryptionmanager)
+18. [Draft As Me](#18-draft-as-me)
+    - [IVoiceDraftService](#ivoicedraftservice)
 
 ---
 
@@ -101,19 +120,27 @@ namespace AgentX.Core.AI;
 public interface IAiService : IDisposable
 ```
 
-High-level AI service that orchestrates provider selection and provides the primary interface for all AI operations. Wraps the active `IAiProvider` and adds application-specific capabilities such as summarization and tagging.
+High-level AI service that owns the providers, keeps the active provider and model, and adds
+application operations such as summarization and tagging.
 
 **Namespace:** `AgentX.Core.AI`
 **Assembly:** `AgentX.Core`
 **Implementation:** `AiService` (sealed)
 
+The implementation publishes its provider state (the registered providers, the active provider,
+the active model and the connection flag) as one immutable snapshot, so a caller always sees a
+provider and a model that belong together, also while the service re-initializes. `AiService`
+takes an optional `ICostTracker`, which it hands to the Ollama, OpenAI and Anthropic providers so
+they record token usage.
+
 #### Properties
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `ActiveProvider` | `IAiProvider` | The currently active AI provider instance. Throws `InvalidOperationException` if the service has not been initialized via `InitializeAsync`. |
-| `IsConnected` | `bool` | Indicates whether the active provider is connected and operational. Updated during initialization and provider switching. |
-| `ActiveModelId` | `string` | The model identifier currently selected for inference. Set during initialization from persisted settings and updated by `SetActiveModelAsync`. |
+| `ActiveProvider` | `IAiProvider` | The active provider. Throws `InvalidOperationException` when the service is not initialized or no provider could be registered. |
+| `IsConnected` | `bool` | Whether the active provider answered its last connection check. |
+| `ActiveModelId` | `string` | The model used for requests that do not name one. Set to the active provider's default model at initialization and when the provider changes; `SetActiveModelAsync` changes it. |
+| `RegisteredProviderIds` | `IReadOnlyCollection<string>` | The ids of the registered providers (`local`, `ollama`, `openai`, `anthropic`). |
 
 #### Methods
 
@@ -125,21 +152,30 @@ High-level AI service that orchestrates provider selection and provides the prim
 Task InitializeAsync(CancellationToken ct = default);
 ```
 
-Initializes the AI service by creating providers and establishing the initial connection based on persisted settings.
+Builds the providers from the saved settings and activates the preferred one. It is called at
+startup and again after Settings are saved.
 
 **Behavior:**
-- Reads the `OllamaEndpoint` from `AppSettings` via `ISettingsService`.
-- Creates an `OllamaProvider` instance with the configured endpoint URI.
-- Tests the connection via `CheckConnectionAsync`.
-- On success, sets `IsConnected = true` and `ActiveModelId` to the `DefaultModel` from settings.
-- On connection failure, the provider is still assigned (allowing retry) but `IsConnected` is set to `false`.
-- Throws on non-connection errors (e.g., invalid URI).
+- Registers the built-in provider (`local`) always; Ollama (`ollama`) when
+  `AppSettings.OllamaEndpoint` is an absolute `http` or `https` URL (otherwise a warning is logged
+  and Ollama stays unavailable); OpenAI (`openai`) and Anthropic (`anthropic`) only when their API
+  keys are set. A provider that fails to construct is skipped with a warning.
+- A provider whose configuration did not change keeps its instance, so a settings save does not
+  reload the built-in model or cut off a response that is streaming. Replaced providers are
+  disposed after the calls running on them finish.
+- Activates `AppSettings.ActiveProviderId` (default `local`). When that provider is not
+  registered, it falls back to the built-in provider if its model file is installed, then Ollama,
+  then any registered provider.
+- Checks the active provider's connection. `IsConnected` reflects the result; a provider that does
+  not answer is still activated (offline mode).
+- Sets `ActiveModelId` to the provider's default model: `LocalModelFileName` for `local`,
+  `OpenAiDefaultModel` (`gpt-4o-mini`) for `openai`, `AnthropicDefaultModel` (`claude-sonnet-5`)
+  for `anthropic`, and `DefaultModel` (`llama3.2`) for `ollama`.
+- The new state is built completely before it replaces the old one, so an invalid setting never
+  leaves the service without a provider.
 
-**Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `ct` | `CancellationToken` | `default` | Cancellation token. |
+**Exceptions:** Rethrows unexpected errors (for example a settings read failure) after logging
+them. `ObjectDisposedException` after `Dispose`.
 
 ---
 
@@ -149,20 +185,22 @@ Initializes the AI service by creating providers and establishing the initial co
 Task<bool> SwitchProviderAsync(string providerId, CancellationToken ct = default);
 ```
 
-Switches the active provider to the one identified by `providerId`.
-
-**Parameters:**
+Makes a registered, reachable provider the active one. The active model becomes that provider's
+default model, so a model id of the previous provider is never sent to the new one.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `providerId` | `string` | -- | The provider identifier (e.g., `"ollama"`). Case-insensitive lookup. |
+| `providerId` | `string` | -- | The provider id (for example `"ollama"`). Matched without regard to case. |
 | `ct` | `CancellationToken` | `default` | Cancellation token. |
 
-**Returns:** `true` if the switch succeeded and the new provider is connected; `false` if the provider was not found or the connection check failed.
+**Returns:** `true` when the switch happened. `false` when the provider is not registered or not
+reachable; the previous provider then stays active.
 
-**Exceptions:**
-- `ArgumentException` -- `providerId` is null or whitespace.
-- `ObjectDisposedException` -- Service has been disposed.
+**Behavior:** The connection check reuses a recent result: a success for 60 seconds, a failure
+for 15 seconds.
+
+**Exceptions:** `ArgumentException` when `providerId` is null or whitespace;
+`ObjectDisposedException`.
 
 ---
 
@@ -172,22 +210,60 @@ Switches the active provider to the one identified by `providerId`.
 Task SetActiveModelAsync(string modelId, CancellationToken ct = default);
 ```
 
-Sets the active model for subsequent inference operations and persists the choice to `AppSettings.DefaultModel`.
+Sets `ActiveModelId` at once and saves the choice in the active provider's own setting:
+`DefaultModel` for Ollama, `OpenAiDefaultModel` for OpenAI, `AnthropicDefaultModel` for Anthropic.
+For the built-in provider the choice lasts for this session only, because its configured model
+file is also the embedding model. A failure to save is logged as a warning; the in-memory value is
+kept.
 
-**Parameters:**
+**Exceptions:** `ArgumentException` when `modelId` is null or whitespace;
+`ObjectDisposedException`.
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `modelId` | `string` | -- | The model identifier to activate (e.g., `"llama3.2"`). |
-| `ct` | `CancellationToken` | `default` | Cancellation token. |
+---
 
-**Behavior:**
-- Updates the in-memory `ActiveModelId` immediately.
-- Persists the selection to settings. If persistence fails, the in-memory value is still updated and a warning is logged.
+##### GetProvider
 
-**Exceptions:**
-- `ArgumentException` -- `modelId` is null or whitespace.
-- `ObjectDisposedException` -- Service has been disposed.
+```csharp
+IAiProvider? GetProvider(string providerId);
+```
+
+Returns the registered provider with this id, or `null` when it is not registered (for example a
+cloud provider without an API key) or the id is blank.
+
+---
+
+##### IsProviderAvailableAsync
+
+```csharp
+Task<bool> IsProviderAvailableAsync(string providerId, CancellationToken ct = default);
+```
+
+Checks whether a registered provider answers. Recent results are reused (60 seconds after a
+success, 15 seconds after a failure), so model routing does not probe or bill a provider on every
+message. Returns `false` for an unregistered provider.
+
+---
+
+##### GetDefaultModelId
+
+```csharp
+string GetDefaultModelId(string providerId);
+```
+
+Returns the model a provider uses when it becomes active, from the current settings (see
+`InitializeAsync`). Throws `ArgumentException` for a blank id.
+
+---
+
+##### ResolveEmbeddingTarget
+
+```csharp
+EmbeddingTarget ResolveEmbeddingTarget();
+```
+
+Returns the provider and model that produce embeddings, chosen independently of the chat provider
+by [`EmbeddingTargetResolver`](#embeddingtarget-and-embeddingtargetresolver) from the Embedding
+Model setting and the state of the built-in model file.
 
 ---
 
@@ -201,22 +277,20 @@ IAsyncEnumerable<string> StreamChatAsync(
     CancellationToken ct = default);
 ```
 
-Streams a chat completion token-by-token. Optionally prepends a system prompt message to the conversation history before sending to the provider.
-
-**Parameters:**
+Streams a chat completion from the active provider, token by token.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `messages` | `IReadOnlyList<ChatMessage>` | -- | The conversation message history. |
-| `systemPrompt` | `string?` | `null` | Optional system prompt text. When provided, a `ChatMessage` with `Role = "system"` is prepended to the message list. |
-| `options` | `ChatOptions?` | `null` | Optional inference parameters. If `null` or if `ModelId` is not set, the `ActiveModelId` is used. |
+| `messages` | `IReadOnlyList<ChatMessage>` | -- | The conversation history. |
+| `systemPrompt` | `string?` | `null` | When set, a `system` message with this text is put in front of the history. |
+| `options` | `ChatOptions?` | `null` | Inference options. When `null` or when `ModelId` is empty, a copy carrying `ActiveModelId` is used; the caller's object is never modified. |
 | `ct` | `CancellationToken` | `default` | Cancellation token. |
 
-**Returns:** `IAsyncEnumerable<string>` -- An async stream of generated text tokens.
+**Returns:** The generated text, piece by piece. The provider and model are taken from one
+snapshot, so they stay together even if the service re-initializes during the stream.
 
-**Exceptions:**
-- `InvalidOperationException` -- No active provider (service not initialized).
-- `ObjectDisposedException` -- Service has been disposed.
+**Exceptions:** `InvalidOperationException` when there is no active provider;
+`ObjectDisposedException`; provider errors (for example `HttpRequestException`) propagate.
 
 ---
 
@@ -230,15 +304,7 @@ Task<string> ChatAsync(
     CancellationToken ct = default);
 ```
 
-Generates a complete (non-streaming) chat response. Optionally prepends a system prompt to the conversation history.
-
-**Parameters:** Same as `StreamChatAsync`.
-
-**Returns:** `string` -- The full generated response text.
-
-**Exceptions:**
-- `InvalidOperationException` -- No active provider.
-- `ObjectDisposedException` -- Service has been disposed.
+Same as `StreamChatAsync`, returning the complete answer. Provider errors are logged and rethrown.
 
 ---
 
@@ -248,22 +314,11 @@ Generates a complete (non-streaming) chat response. Optionally prepends a system
 Task<string> SummarizeAsync(string content, CancellationToken ct = default);
 ```
 
-Generates a concise AI summary of the provided content.
+Asks the active model for a summary of `content` with a built-in instruction (key points and main
+ideas, at most 2-3 paragraphs).
 
-**Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `content` | `string` | -- | The text content to summarize. |
-| `ct` | `CancellationToken` | `default` | Cancellation token. |
-
-**Returns:** `string` -- A summary of 2-3 paragraphs maximum.
-
-**Behavior:** Uses a built-in system prompt instructing the model to produce a clear, concise summary focused on key points and main ideas.
-
-**Exceptions:**
-- `ArgumentException` -- `content` is null, empty, or whitespace.
-- `ObjectDisposedException` -- Service has been disposed.
+**Exceptions:** `ArgumentException` when `content` is null, empty or whitespace;
+`ObjectDisposedException`; provider errors propagate.
 
 ---
 
@@ -276,27 +331,23 @@ Task<IReadOnlyList<string>> GenerateTagsAsync(
     CancellationToken ct = default);
 ```
 
-Generates descriptive tags for the provided content using the active model.
-
-**Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `content` | `string` | -- | The text content to generate tags for. |
-| `maxTags` | `int` | `5` | Maximum number of tags to generate. |
-| `ct` | `CancellationToken` | `default` | Cancellation token. |
-
-**Returns:** `IReadOnlyList<string>` -- A list of lowercase, deduplicated tags (1-3 words each).
+Asks the active model for up to `maxTags` tags in JSON mode (`ResponseFormat.JsonObject`).
 
 **Behavior:**
-- Instructs the model to return a JSON array of tag strings.
-- Parses the response as JSON first. If JSON parsing fails (e.g., model returns non-JSON text), falls back to splitting by commas/newlines and cleaning the results.
-- Tags are lowercased, deduplicated, and capped at `maxTags`.
-- On complete failure, returns an empty list rather than throwing.
+- Reads the JSON array between the first `[` and the last `]` of the answer. When that fails, the
+  answer is split at commas and line breaks and quotes, brackets, dashes and asterisks are
+  stripped; pieces longer than 50 characters are dropped.
+- Tags are trimmed, lowercased, de-duplicated and capped at `maxTags`.
+- Any failure after the argument check returns an empty list instead of throwing.
 
-**Exceptions:**
-- `ArgumentException` -- `content` is null, empty, or whitespace.
-- `ObjectDisposedException` -- Service has been disposed.
+**Exceptions:** `ArgumentException` when `content` is null, empty or whitespace;
+`ObjectDisposedException`.
+
+---
+
+`AiService` also has a public static helper used by the settings and onboarding connection tests:
+`public static bool TryParseHttpEndpoint(string? value, out Uri endpoint)`, which accepts only
+absolute `http` and `https` URLs.
 
 ---
 
@@ -308,169 +359,44 @@ namespace AgentX.Core.AI;
 public interface IAiProvider : IDisposable
 ```
 
-Low-level abstraction over AI inference providers (Ollama, LLamaSharp, etc.). Each implementation wraps a specific backend and exposes a unified interface for model management, chat inference, and embedding generation.
+Low-level abstraction over one inference backend.
 
 **Namespace:** `AgentX.Core.AI`
 **Assembly:** `AgentX.Core`
-**Known Implementation:** `OllamaProvider` (in `AgentX.Core.AI.Providers`)
+**Implementations** (in `AgentX.Core.AI.Providers`):
+
+| Class | `ProviderId` | `DisplayName` | Backend |
+|-------|--------------|---------------|---------|
+| `LocalLlmProvider` | `local` | `Built-in LLM` | LLamaSharp, GGUF files in `{StoragePath}\Models` |
+| `OllamaProvider` | `ollama` | `Ollama` | Ollama server through OllamaSharp |
+| `OpenAiProvider` | `openai` | `OpenAI` | OpenAI Chat Completions or a compatible server |
+| `AnthropicProvider` | `anthropic` | `Anthropic Claude` | Anthropic Messages API |
+
+The HTTP requests each provider makes are listed in
+[`API_ENDPOINTS.md`](../API_ENDPOINTS.md#ai-providers). Disposal is deferred while a call is
+running on the provider, so a settings change cannot pull resources out from under a streaming
+answer.
 
 #### Properties
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `ProviderId` | `string` | Unique identifier for this provider (e.g., `"ollama"`, `"llamasharp"`). |
-| `DisplayName` | `string` | Human-readable display name for UI presentation (e.g., `"Ollama"`, `"LLamaSharp"`). |
-| `IsAvailable` | `bool` | Indicates whether the provider is currently reachable and operational. Updated by `CheckConnectionAsync`. |
+| `ProviderId` | `string` | Stable id (see the table above). |
+| `DisplayName` | `string` | Name for the UI. |
+| `IsAvailable` | `bool` | Result of the last `CheckConnectionAsync`. |
 
 #### Methods
 
----
-
-##### CheckConnectionAsync
-
-```csharp
-Task<bool> CheckConnectionAsync(CancellationToken ct = default);
-```
-
-Tests the connection to the AI provider backend.
-
-**Returns:** `true` if the provider is reachable and operational; `false` on timeout or error.
-
-**Behavior:** Uses a 3-second timeout. Returns `false` rather than throwing on connection failures.
-
----
-
-##### ListModelsAsync
-
-```csharp
-Task<IReadOnlyList<AiModel>> ListModelsAsync(CancellationToken ct = default);
-```
-
-Lists all models currently available (installed) on this provider.
-
-**Returns:** An ordered list of `AiModel` instances representing installed models.
-
----
-
-##### PullModelAsync
-
-```csharp
-Task PullModelAsync(
-    string modelName,
-    IProgress<ModelDownloadProgress>? progress = null,
-    CancellationToken ct = default);
-```
-
-Downloads/pulls a model from the provider's model registry.
-
-**Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `modelName` | `string` | -- | The name/tag of the model to pull (e.g., `"llama3.2:latest"`). |
-| `progress` | `IProgress<ModelDownloadProgress>?` | `null` | Optional progress reporter for download status updates. |
-| `ct` | `CancellationToken` | `default` | Cancellation token. |
-
----
-
-##### DeleteModelAsync
-
-```csharp
-Task DeleteModelAsync(string modelName, CancellationToken ct = default);
-```
-
-Deletes a locally installed model from the provider.
-
-**Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `modelName` | `string` | -- | The name/tag of the model to delete. |
-| `ct` | `CancellationToken` | `default` | Cancellation token. |
-
----
-
-##### StreamChatAsync
-
-```csharp
-IAsyncEnumerable<string> StreamChatAsync(
-    IReadOnlyList<ChatMessage> messages,
-    ChatOptions? options = null,
-    CancellationToken ct = default);
-```
-
-Streams a chat completion token-by-token for the given conversation history.
-
-**Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `messages` | `IReadOnlyList<ChatMessage>` | -- | The conversation message history. |
-| `options` | `ChatOptions?` | `null` | Optional inference parameters (temperature, max tokens, etc.). |
-| `ct` | `CancellationToken` | `default` | Cancellation token. |
-
-**Returns:** `IAsyncEnumerable<string>` -- An async stream of generated text tokens.
-
----
-
-##### ChatAsync
-
-```csharp
-Task<string> ChatAsync(
-    IReadOnlyList<ChatMessage> messages,
-    ChatOptions? options = null,
-    CancellationToken ct = default);
-```
-
-Generates a complete chat response for the given conversation history.
-
-**Returns:** `string` -- The full generated response text.
-
----
-
-##### GenerateEmbeddingAsync
-
-```csharp
-Task<float[]> GenerateEmbeddingAsync(
-    string text,
-    string modelName,
-    CancellationToken ct = default);
-```
-
-Generates a vector embedding for a single text input.
-
-**Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `text` | `string` | -- | The text to embed. |
-| `modelName` | `string` | -- | The embedding model to use (e.g., `"all-minilm"`). |
-| `ct` | `CancellationToken` | `default` | Cancellation token. |
-
-**Returns:** `float[]` -- The embedding vector.
-
----
-
-##### GenerateEmbeddingsAsync
-
-```csharp
-Task<IReadOnlyList<float[]>> GenerateEmbeddingsAsync(
-    IReadOnlyList<string> texts,
-    string modelName,
-    CancellationToken ct = default);
-```
-
-Generates vector embeddings for multiple text inputs in a batch.
-
-**Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `texts` | `IReadOnlyList<string>` | -- | The texts to embed. |
-| `modelName` | `string` | -- | The embedding model to use. |
-| `ct` | `CancellationToken` | `default` | Cancellation token. |
-
-**Returns:** `IReadOnlyList<float[]>` -- A list of embedding vectors, one per input text, in corresponding order.
+| Method | Description |
+|--------|-------------|
+| `Task<bool> CheckConnectionAsync(CancellationToken ct = default)` | Tests the backend and returns `false` instead of throwing on failure. Timeouts: Ollama 3 seconds, OpenAI and Anthropic 10 seconds. The built-in provider checks that its model file exists and loads it. Anthropic uses the Models API, so no tokens are generated. |
+| `Task<IReadOnlyList<AiModel>> ListModelsAsync(CancellationToken ct = default)` | Models this provider offers: the local Ollama models; OpenAI chat models only; Anthropic's Models API list, or a built-in fallback list; for the built-in provider, the configured GGUF file and any other `.gguf` file in the models folder. |
+| `Task PullModelAsync(string modelName, IProgress<ModelDownloadProgress>? progress = null, CancellationToken ct = default)` | Downloads a model. Ollama pulls from its registry. The built-in provider downloads only models listed in `BuiltInModelCatalog` and throws `NotSupportedException` for other names. OpenAI and Anthropic do nothing. |
+| `Task DeleteModelAsync(string modelName, CancellationToken ct = default)` | Deletes a local model. Ollama deletes it on the server; the built-in provider unloads and deletes the GGUF file; OpenAI and Anthropic do nothing. |
+| `IAsyncEnumerable<string> StreamChatAsync(IReadOnlyList<ChatMessage> messages, ChatOptions? options = null, CancellationToken ct = default)` | Streams a completion. An error reported after the HTTP response started (an error event, or an Ollama stream without its final chunk) throws, so a cut-off answer is never returned as complete. |
+| `Task<string> ChatAsync(IReadOnlyList<ChatMessage> messages, ChatOptions? options = null, CancellationToken ct = default)` | Returns the complete answer (the cloud providers collect their stream). |
+| `Task<float[]> GenerateEmbeddingAsync(string text, string modelName, CancellationToken ct = default)` | Embeds one text. Anthropic throws `NotSupportedException`. The built-in provider embeds only with its configured model file. |
+| `Task<IReadOnlyList<float[]>> GenerateEmbeddingsAsync(IReadOnlyList<string> texts, string modelName, CancellationToken ct = default)` | Embeds several texts, one vector per text in the same order. |
 
 ---
 
@@ -480,28 +406,21 @@ Generates vector embeddings for multiple text inputs in a batch.
 namespace AgentX.Core.AI;
 
 public interface IHardwareDetector
+{
+    Task<HardwareCapability> DetectAsync(CancellationToken ct = default);
+}
 ```
 
-Detects system hardware capabilities relevant to local AI inference -- GPU, VRAM, NPU, CPU cores, and available system memory.
+Detects the hardware relevant to local inference.
 
-**Namespace:** `AgentX.Core.AI`
-**Assembly:** `AgentX.Core`
+**Implementation:** `HardwareDetector`
 
-#### Methods
-
----
-
-##### DetectAsync
-
-```csharp
-Task<HardwareCapability> DetectAsync(CancellationToken ct = default);
-```
-
-Detects the local hardware capabilities using WMI (Windows Management Instrumentation) queries.
-
-**Returns:** A `HardwareCapability` instance with detected GPU, CPU, RAM, and NPU information.
-
-**Behavior:** Results are cached for the duration of the session. Subsequent calls return the cached result without re-querying hardware.
+**Behavior:** Queries WMI (`Win32_VideoController` through `GpuMemoryReader`, `Win32_Processor`,
+`Win32_OperatingSystem` for free memory, and `Win32_PnPEntity` for an NPU); total memory comes from
+`GC.GetGCMemoryInfo`. GPU memory is read from the driver's 64-bit `qwMemorySize` registry value,
+with WMI `AdapterRAM` (which stops at 4 GB) as the fallback, and the GPU with the most memory is
+chosen. The result is cached for the rest of the session. When GPU detection fails, `GpuName` is
+`"Detection failed"`.
 
 ---
 
@@ -513,94 +432,19 @@ namespace AgentX.Core.AI;
 public interface IModelManager
 ```
 
-Manages locally available AI models -- listing, downloading, deleting, and querying model information. Delegates to the active `IAiProvider` and provides caching and change notification.
+Lists, downloads and deletes models through the active provider.
 
-**Namespace:** `AgentX.Core.AI`
-**Assembly:** `AgentX.Core`
 **Implementation:** `ModelManager`
 
-#### Methods
-
----
-
-##### GetAvailableModelsAsync
-
-```csharp
-Task<IReadOnlyList<AiModel>> GetAvailableModelsAsync(CancellationToken ct = default);
-```
-
-Gets all models available from the remote registry for the active provider. For Ollama, this returns the same as installed models since there is no separate "available" vs "installed" distinction locally.
-
----
-
-##### GetInstalledModelsAsync
-
-```csharp
-Task<IReadOnlyList<AiModel>> GetInstalledModelsAsync(CancellationToken ct = default);
-```
-
-Gets all models currently installed on the local system.
-
----
-
-##### PullModelAsync
-
-```csharp
-Task PullModelAsync(
-    string modelName,
-    IProgress<ModelDownloadProgress>? progress = null,
-    CancellationToken ct = default);
-```
-
-Downloads/pulls a model from the provider's registry. Fires `ModelListChanged` on completion.
-
-**Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `modelName` | `string` | -- | The model name/tag to pull (e.g., `"llama3.2:latest"`). |
-| `progress` | `IProgress<ModelDownloadProgress>?` | `null` | Optional progress reporter for download status. |
-| `ct` | `CancellationToken` | `default` | Cancellation token. |
-
----
-
-##### DeleteModelAsync
-
-```csharp
-Task DeleteModelAsync(string modelName, CancellationToken ct = default);
-```
-
-Deletes a locally installed model. Fires `ModelListChanged` on completion.
-
----
-
-##### GetModelInfoAsync
-
-```csharp
-Task<AiModel?> GetModelInfoAsync(string modelName, CancellationToken ct = default);
-```
-
-Retrieves detailed information for a specific model by name.
-
-**Returns:** The `AiModel` instance, or `null` if not found.
-
----
-
-##### IsModelAvailableAsync
-
-```csharp
-Task<bool> IsModelAvailableAsync(string modelName, CancellationToken ct = default);
-```
-
-Checks whether a specific model is currently installed and available locally.
-
-**Returns:** `true` if the model is installed locally.
-
-#### Events
-
-| Event | Type | Description |
-|-------|------|-------------|
-| `ModelListChanged` | `EventHandler<AiModel>?` | Raised when the local model list changes (after a pull or delete operation). The event argument is the affected `AiModel`. |
+| Member | Description |
+|--------|-------------|
+| `Task<IReadOnlyList<AiModel>> GetAvailableModelsAsync(CancellationToken ct = default)` | Same as `GetInstalledModelsAsync` (there is no separate registry listing). |
+| `Task<IReadOnlyList<AiModel>> GetInstalledModelsAsync(CancellationToken ct = default)` | The active provider's `ListModelsAsync`, cached for 30 seconds. The cache belongs to the provider that produced it and is not used after a provider change. Errors are logged and rethrown. |
+| `Task PullModelAsync(string modelName, IProgress<ModelDownloadProgress>? progress = null, CancellationToken ct = default)` | Pulls through the active provider, clears the cache and raises `ModelListChanged`. `ArgumentException` for a blank name. |
+| `Task DeleteModelAsync(string modelName, CancellationToken ct = default)` | Deletes through the active provider, clears the cache and raises `ModelListChanged`. `ArgumentException` for a blank name. |
+| `Task<AiModel?> GetModelInfoAsync(string modelName, CancellationToken ct = default)` | Finds an installed model by `Name` or `Id`, ignoring case. Returns `null` when it is not found, the name is blank, or the list cannot be read. |
+| `Task<bool> IsModelAvailableAsync(string modelName, CancellationToken ct = default)` | `true` when `GetModelInfoAsync` finds the model. |
+| `event EventHandler<AiModel>? ModelListChanged` | Raised after a pull or delete. The argument carries only `Id` and `Name` (the model name). |
 
 ---
 
@@ -612,60 +456,65 @@ namespace AgentX.Core.AI;
 public interface IEmbeddingService
 ```
 
-Generates vector embeddings from text content using a local embedding model.
+Generates embedding vectors with the embedding provider and model that
+`IAiService.ResolveEmbeddingTarget` chooses, independently of the chat provider.
 
-**Namespace:** `AgentX.Core.AI`
-**Assembly:** `AgentX.Core`
-**Implementation:** `EmbeddingService`
+**Implementation:** `EmbeddingService`, registered wrapped in `CachedEmbeddingService` (an LRU cache
+of 2,048 vectors keyed by `ModelVersion` and the text hash; entries of an earlier version are
+dropped when the version changes).
 
 #### Properties
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `Dimensions` | `int` | The dimensionality of the embedding vectors produced by the configured model. |
-| `ModelName` | `string` | The name of the embedding model being used (e.g., `"all-minilm"`). |
+| `Dimensions` | `int` | Vector size of the current embedding model: the size observed from its last embedding, otherwise the known size of the model (`EmbeddingTargetResolver.KnownDimensions`), otherwise the configured default. |
+| `ModelName` | `string` | The embedding model name (for example `all-minilm`, or the GGUF file name for the built-in model). |
+| `ModelVersion` | `string` | The embedding space, `{providerId}:{modelName}:{dimensions}`, for example `ollama:all-minilm:384`. Chunks are stamped with it, and search leaves out chunks embedded with a different version. |
 
 #### Methods
 
----
+| Method | Description |
+|--------|-------------|
+| `Task<float[]> EmbedAsync(string text, CancellationToken ct = default)` | Embeds one text. `ArgumentException` for blank text. |
+| `Task<IReadOnlyList<float[]>> EmbedBatchAsync(IEnumerable<string> texts, CancellationToken ct = default)` | Embeds texts in batches of `EmbeddingBatchSize` (RAG configuration) and returns the vectors in input order. A provider that returns a different number of vectors than texts fails the batch. |
 
-##### EmbedAsync
-
-```csharp
-Task<float[]> EmbedAsync(string text, CancellationToken ct = default);
-```
-
-Generates a single embedding vector for the given text.
-
-**Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `text` | `string` | -- | The text to embed. |
-| `ct` | `CancellationToken` | `default` | Cancellation token. |
-
-**Returns:** `float[]` -- The embedding vector with `Dimensions` elements.
+**Exceptions:** `InvalidOperationException` when the embedding provider is not registered (for
+example an OpenAI embedding model without an OpenAI API key, or an invalid Ollama endpoint) or
+returns an empty vector. There is no fallback to another provider, because that would mix
+embedding spaces in one index.
 
 ---
 
-##### EmbedBatchAsync
+### ICostTracker
 
 ```csharp
-Task<IReadOnlyList<float[]>> EmbedBatchAsync(
-    IEnumerable<string> texts,
-    CancellationToken ct = default);
+namespace AgentX.Core.AI.Models;
+
+public interface ICostTracker
 ```
 
-Generates embedding vectors for multiple texts in a batch.
+Records the token usage the providers report and estimates its cost.
 
-**Parameters:**
+**Implementation:** `CostTracker` (also `IDisposable`)
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `texts` | `IEnumerable<string>` | -- | The texts to embed. |
-| `ct` | `CancellationToken` | `default` | Cancellation token. |
+| Member | Description |
+|--------|-------------|
+| `void RecordUsage(string modelId, string providerId, int inputTokens, int outputTokens)` | Records one response. |
+| `void RecordUsage(string modelId, string providerId, int inputTokens, int outputTokens, int cacheCreationInputTokens, int cacheReadInputTokens)` | Records one response with prompt-cache writes and reads (Anthropic). |
+| `double GetTotalCostUsd()` | Estimated cost of all tracked usage, including records already dropped from the history. |
+| `double GetCostForPeriod(DateTime start, DateTime end)` | Estimated cost of the kept records in the range. |
+| `IReadOnlyList<UsageRecord> GetUsageHistory(int limit = 50)` | The most recent usage records. |
+| `int GetTotalInputTokens()` / `int GetTotalOutputTokens()` | Token totals of all tracked usage. |
 
-**Returns:** `IReadOnlyList<float[]>` -- A list of embedding vectors in the same order as the input texts.
+**Behavior:** Records are saved to `%LOCALAPPDATA%\AgentX\usage-history.json` shortly after new
+usage and at shutdown, kept for 90 days (at most 20,000), and the totals of dropped records are
+carried forward. Costs come from a built-in price table matched by the longest model id prefix;
+local models and unknown models cost nothing. The table is listed in
+[`API_ENDPOINTS.md`](../API_ENDPOINTS.md#errors-retries-and-usage-costs).
+
+`UsageRecord` has `ModelId`, `ProviderId`, `InputTokens` (all prompt tokens, cache writes and reads
+included), `OutputTokens`, `CacheCreationInputTokens`, `CacheReadInputTokens`, `EstimatedCostUsd`
+and `Timestamp` (UTC).
 
 ---
 
@@ -679,13 +528,19 @@ namespace AgentX.Core.AI.Models;
 public class ChatMessage
 ```
 
-Represents a single message in a chat conversation.
+One message in a chat request.
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `Role` | `string` | `""` | The message role. Valid values: `"user"`, `"assistant"`, `"system"`. |
-| `Content` | `string` | `""` | The text content of the message. |
-| `Timestamp` | `DateTime` | `DateTime.UtcNow` | The timestamp when the message was created. Defaults to the current UTC time. |
+| `Role` | `string` | `""` | `"user"`, `"assistant"`, `"system"` or `"tool"`. |
+| `Content` | `string` | `""` | The message text. |
+| `Timestamp` | `DateTime` | `DateTime.UtcNow` | When the message was created. |
+| `ToolCalls` | `List<ToolCall>?` | `null` | Tool calls made by an assistant message. |
+| `ToolCallId` | `string?` | `null` | For a `tool` message, the call it answers. |
+
+Factory methods: `ChatMessage.User(string content)`, `ChatMessage.Assistant(string content)`,
+`ChatMessage.AssistantWithTools(List<ToolCall> toolCalls)`, `ChatMessage.System(string content)`
+and `ChatMessage.ToolResult(string toolCallId, string content)`.
 
 ---
 
@@ -697,18 +552,30 @@ namespace AgentX.Core.AI.Models;
 public class ChatOptions
 ```
 
-Configuration options for AI chat inference, controlling model behavior such as temperature, token limits, and sampling parameters.
+Inference options for one request. Providers send only what their API accepts: OpenAI reasoning
+models (`o1`, `o3`, `o4`, `gpt-5`) get no sampling or penalty parameters, and Anthropic receives
+at most `Temperature` (clamped to 0-1, and only for model families that accept it).
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `ModelId` | `string?` | `null` | The model identifier to use for this request. When `null`, the active model from `IAiService.ActiveModelId` is used. |
-| `Temperature` | `double` | `0.7` | Controls randomness in the output. Higher values (e.g., 1.0) produce more creative responses; lower values (e.g., 0.2) produce more deterministic responses. |
-| `MaxTokens` | `int` | `2048` | Maximum number of tokens to generate in the response. |
-| `ContextWindow` | `int` | `4096` | Size of the context window used for token generation. |
-| `TopP` | `double` | `0.9` | Nucleus sampling parameter. Controls the cumulative probability threshold for token selection. A value of 0.9 considers tokens comprising the top 90% of probability mass. |
-| `FrequencyPenalty` | `double` | `0` | Penalizes tokens based on their frequency in the generated text so far, reducing repetition of common phrases. |
-| `PresencePenalty` | `double` | `0` | Penalizes tokens based on whether they have appeared in the generated text so far, encouraging the model to explore new topics. |
-| `StopSequences` | `string[]?` | `null` | Sequences that will cause the model to stop generating further tokens when encountered. |
+| `ModelId` | `string?` | `null` | Model for this request. When `null`, `IAiService` fills in `ActiveModelId`. |
+| `Temperature` | `double` | `0.7` | Sampling temperature. |
+| `MaxTokens` | `int` | `2048` | Maximum tokens to generate. |
+| `ContextWindow` | `int` | `4096` | Context window size used for generation. |
+| `TopP` | `double` | `0.9` | Nucleus sampling threshold. OpenAI receives it only when it is between 0 and 1 exclusive; Anthropic never receives it. |
+| `FrequencyPenalty` | `double` | `0` | Frequency penalty (OpenAI, only when not 0). |
+| `PresencePenalty` | `double` | `0` | Presence penalty (OpenAI, only when not 0). |
+| `StopSequences` | `string[]?` | `null` | Stop sequences. |
+| `ResponseFormat` | `ResponseFormat` | `Text` | `JsonObject` asks for JSON output in the provider's native JSON mode. |
+| `JsonSchema` | `string?` | `null` | A JSON Schema document. With `JsonSchemaName` and `ResponseFormat.JsonObject`, OpenAI enforces it (`json_schema`, `strict: true`); other providers fall back to plain JSON mode. |
+| `JsonSchemaName` | `string?` | `null` | Name for the schema (required with `JsonSchema` on OpenAI). |
+| `CacheSystemPrompt` | `bool` | `false` | Marks the system prompt for prompt caching on providers that support it (Anthropic). |
+| `SystemPromptBlocks` | `IReadOnlyList<SystemPromptBlock>?` | `null` | A system prompt in blocks, each `SystemPromptBlock(string Text, bool Cacheable)`, for per-block prompt caching (Anthropic). Other providers ignore it, so callers still pass the joined system prompt. |
+| `Tools` | `IReadOnlyList<ToolDefinition>?` | `null` | Not implemented: no provider sends tools to the model yet, so this and the two options below have no effect. |
+| `ForceToolCall` | `bool` | `false` | See `Tools`. |
+| `ForceToolName` | `string?` | `null` | See `Tools`. |
+
+`ResponseFormat` is an enum: `Text = 0`, `JsonObject = 1`.
 
 ---
 
@@ -720,30 +587,22 @@ namespace AgentX.Core.AI.Models;
 public class AiModel
 ```
 
-Represents a locally available AI model with its metadata.
+A model a provider offers.
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `Id` | `string` | `""` | Unique model identifier. |
-| `Name` | `string` | `""` | Human-readable model name. |
-| `Family` | `string` | `""` | Model family (e.g., `"llama"`, `"mistral"`). |
-| `SizeBytes` | `long` | `0` | Model file size in bytes. |
-| `QuantizationLevel` | `string` | `""` | Quantization level (e.g., `"Q4_K_M"`, `"Q8_0"`). |
-| `ParameterCount` | `int` | `0` | Number of model parameters (e.g., `7000000000` for 7B). |
-| `ContextLength` | `int` | `0` | Maximum context length the model supports. |
-| `ModifiedAt` | `DateTime` | `default` | Last modification timestamp of the model. |
-| `Digest` | `string` | `""` | Content digest/hash of the model file. |
-| `SizeFormatted` | `string` | *(computed)* | Human-readable file size. Returns `"{MB} MB"` for sizes under 1 GB, `"{GB} GB"` for sizes at or above 1 GB. |
-
-**Computed Property Logic:**
-
-```csharp
-public string SizeFormatted => SizeBytes switch
-{
-    < 1_000_000_000 => $"{SizeBytes / 1_000_000.0:F1} MB",
-    _ => $"{SizeBytes / 1_000_000_000.0:F1} GB"
-};
-```
+| `Id` | `string` | `""` | Model id (for the built-in provider, the GGUF file name). |
+| `Name` | `string` | `""` | Display name. |
+| `ProviderId` | `string` | `""` | The provider that lists the model. |
+| `Family` | `string` | `""` | Model family (for example `"llama"`; `"gguf"` for other GGUF files). |
+| `IsAvailable` | `bool` | `true` | Whether the model can be used. |
+| `SizeBytes` | `long` | `0` | Size in bytes. |
+| `QuantizationLevel` | `string` | `""` | Quantization (for example `"Q4_K_M"`). |
+| `ParameterCount` | `int` | `0` | Parameter count in millions (for example `7000` for a 7B model). |
+| `ContextLength` | `int` | `0` | Context length, when the provider reports it. |
+| `ModifiedAt` | `DateTime` | `default` | Last modification time. |
+| `Digest` | `string` | `""` | Content digest, when the provider reports it. |
+| `SizeFormatted` | `string` | *(computed)* | `"{MB:F1} MB"` below 1,000,000,000 bytes, otherwise `"{GB:F1} GB"`. |
 
 ---
 
@@ -755,37 +614,29 @@ namespace AgentX.Core.AI.Models;
 public class HardwareCapability
 ```
 
-Represents the detected hardware capabilities of the local system, used for model recommendations.
+Hardware detected by `IHardwareDetector`.
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `GpuName` | `string` | `"Unknown"` | Display name of the detected GPU. |
-| `GpuVramBytes` | `long` | `0` | Amount of dedicated GPU VRAM in bytes. |
-| `HasNpu` | `bool` | `false` | Whether a Neural Processing Unit was detected. |
-| `NpuName` | `string` | `"None"` | Display name of the detected NPU. |
-| `CpuCores` | `int` | `0` | Number of logical CPU cores. |
-| `CpuName` | `string` | `"Unknown"` | Display name of the CPU. |
-| `TotalRamBytes` | `long` | `0` | Total system RAM in bytes. |
-| `AvailableRamBytes` | `long` | `0` | Currently available (free) RAM in bytes. |
+| `GpuName` | `string` | `"Unknown"` | GPU with the most memory (`"Detection failed"` when detection failed). |
+| `GpuVramBytes` | `long` | `0` | Dedicated GPU memory in bytes. |
+| `HasNpu` | `bool` | `false` | Whether an NPU was found. |
+| `NpuName` | `string` | `"None"` | NPU name. |
+| `CpuCores` | `int` | `0` | Physical cores of the first processor (`Win32_Processor.NumberOfCores`). |
+| `CpuName` | `string` | `"Unknown"` | Processor name. |
+| `TotalRamBytes` | `long` | `0` | Total RAM in bytes. |
+| `AvailableRamBytes` | `long` | `0` | Free RAM in bytes. |
 
-**Computed Properties:**
+**Computed properties:**
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `GpuVramFormatted` | `string` | Returns `"No dedicated GPU"` when VRAM is 0, otherwise formats as MB or GB. |
-| `TotalRamFormatted` | `string` | Total RAM formatted as `"{N} GB"`. |
-| `AvailableRamFormatted` | `string` | Available RAM formatted as `"{N.N} GB"`. |
-| `RecommendedMaxModelSize` | `string` | Human-readable model size recommendation based on available RAM. |
-
-**RecommendedMaxModelSize Logic:**
-
-| Available RAM | Recommendation |
-|--------------|----------------|
-| < 4 GB | `"Up to 3B parameter models"` |
-| < 8 GB | `"Up to 7B parameter models"` |
-| < 16 GB | `"Up to 13B parameter models"` |
-| < 32 GB | `"Up to 34B parameter models"` |
-| >= 32 GB | `"Up to 70B+ parameter models"` |
+| `GpuVramFormatted` | `string` | `"No dedicated GPU"` for 0, `"{MB:F0} MB"` below 1,000,000,000 bytes, otherwise `"{GB:F1} GB"`. |
+| `TotalRamFormatted` | `string` | `"{GB:F0} GB"`. |
+| `AvailableRamFormatted` | `string` | `"{GB:F1} GB"`. |
+| `RecommendedMaxModelParameters` | `string` | Largest model size the free RAM holds: `"3B"` below 4 GB, `"7B"` below 8 GB, `"13B"` below 16 GB, `"34B"` below 32 GB, otherwise `"70B+"`. The Hardware Advisor shows it inside a localized sentence. |
+| `IsNvidiaGpu` | `bool` | Whether `GpuName` contains `NVIDIA`. |
+| `RecommendedGpuLayers` | `int` | 0 for other GPUs; for NVIDIA: 0 below 2 GB, 16 below 4 GB, 28 below 6 GB, otherwise 33. |
 
 ---
 
@@ -797,15 +648,35 @@ namespace AgentX.Core.AI.Models;
 public class ModelDownloadProgress
 ```
 
-Reports progress during a model download/pull operation.
-
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `ModelId` | `string` | `""` | The identifier of the model being downloaded. |
-| `Status` | `string` | `""` | Current status description (e.g., `"pulling manifest"`, `"downloading"`, `"verifying"`). |
-| `CompletedBytes` | `long` | `0` | Number of bytes downloaded so far. |
-| `TotalBytes` | `long` | `0` | Total number of bytes to download. |
-| `PercentComplete` | `double` | *(computed)* | Download completion percentage (0.0 to 100.0). Returns `0` when `TotalBytes` is 0 to avoid division by zero. |
+| `ModelId` | `string` | `""` | The model being downloaded. |
+| `Status` | `string` | `""` | Status text from the provider or downloader. |
+| `CompletedBytes` | `long` | `0` | Bytes downloaded so far. |
+| `TotalBytes` | `long` | `0` | Total bytes. |
+| `PercentComplete` | `double` | *(computed)* | 0 to 100; `0` when `TotalBytes` is 0. |
+
+---
+
+### EmbeddingTarget and EmbeddingTargetResolver
+
+```csharp
+namespace AgentX.Core.AI;
+
+public sealed record EmbeddingTarget(string ProviderId, string ModelName);
+
+public static class EmbeddingTargetResolver
+```
+
+`EmbeddingTarget` names the provider (`"local"`, `"ollama"` or `"openai"`, never `"anthropic"`) and
+the model passed to its embedding call.
+
+| Member | Description |
+|--------|-------------|
+| `const string DefaultEmbeddingModelSetting = "all-minilm"` | The Embedding Model setting of a fresh install. |
+| `static EmbeddingTarget Resolve(string? embeddingModelSetting, string? localModelFileName, bool localModelInstalled)` | 1. A `text-embedding-*` model uses OpenAI (the only case that sends document text to a cloud service for embedding). 2. A `.gguf` file name uses the built-in provider. 3. Any other name except the default uses Ollama with that model. 4. The default uses the built-in model when its file is installed, and Ollama `all-minilm` when it is not. |
+| `static bool IsOpenAiEmbeddingModel(string? model)` | `true` for ids starting with `text-embedding-`. |
+| `static int? KnownDimensions(EmbeddingTarget target)` | Vector size of well-known models by id prefix (`all-minilm` 384, `nomic-embed-text` 768, `mxbai-embed-large` and `bge-m3` 1024, `text-embedding-3-small` and `text-embedding-ada-002` 1536, `text-embedding-3-large` 3072, `llama-3.2-3b` 3072, `llama-3.2-1b` 2048), or `null`. |
 
 ---
 
@@ -819,11 +690,19 @@ namespace AgentX.Core.Documents;
 public interface IDocumentService
 ```
 
-Orchestrates the document import pipeline: file validation, text extraction, metadata capture, and database record creation. Imported documents are left in `"pending"` status for the indexing pipeline to pick up for chunking and embedding.
+Runs the document import pipeline: file validation, SHA-256 content hashing, text extraction and
+the database record. A new document is left in `"pending"` status and handed to the indexing
+pipeline, which chunks and embeds it.
 
 **Namespace:** `AgentX.Core.Documents`
 **Assembly:** `AgentX.Core`
 **Implementation:** `DocumentService`
+
+#### Events
+
+| Event | Type | Description |
+|-------|------|-------------|
+| `DocumentPendingIndexing` | `EventHandler<DocumentPendingIndexingEventArgs>?` | Raised after a document was imported or reset for re-indexing and waits in `"pending"` status. `IndexingService` subscribes and queues the document at once. Handlers run on the caller's thread and must not block. |
 
 #### Methods
 
@@ -838,17 +717,22 @@ Task<DocumentEntity> ImportFileAsync(
     CancellationToken ct = default);
 ```
 
-Imports a single file: validates the file path, computes a SHA-256 content hash, extracts text via the appropriate `IDocumentProcessor`, and creates a `DocumentEntity` record.
-
-**Parameters:**
+Imports one file: validates the path, hashes the content, extracts the text with the processor
+that claims the file, and creates the `DocumentEntity`.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `filePath` | `string` | -- | Absolute path to the file to import. |
-| `collectionId` | `long?` | `null` | Optional collection to associate the document with. |
+| `filePath` | `string` | -- | Absolute path to the file. |
+| `collectionId` | `long?` | `null` | Collection to add the document to. |
 | `ct` | `CancellationToken` | `default` | Cancellation token. |
 
-**Returns:** The created `DocumentEntity` with `IndexingStatus = "pending"`.
+**Returns:** The new document, in `"pending"` status. When the processor cannot extract text (the
+file is encrypted, corrupt, has no text layer, and so on) it throws `DocumentExtractionException`
+and the document is recorded as `"failed"` with that reason instead; it stays visible in the vault
+and is not queued.
+
+**Exceptions:** `DuplicateDocumentException` (an `InvalidOperationException`) when a document with
+the same content already exists.
 
 ---
 
@@ -862,18 +746,74 @@ Task<IReadOnlyList<DocumentEntity>> ImportFilesAsync(
     CancellationToken ct = default);
 ```
 
-Imports multiple files, reporting progress as each file completes.
+Imports several files and reports the number of files completed through `progress`. It runs
+`ImportFilesWithReportAsync` without `allowDuplicates`, so duplicates and files that cannot be
+imported are skipped (and logged) rather than thrown.
 
-**Parameters:**
+**Returns:** The documents created.
+
+---
+
+##### ImportFilesWithReportAsync
+
+```csharp
+Task<DocumentImportReport> ImportFilesWithReportAsync(
+    IReadOnlyList<string> filePaths,
+    long? collectionId = null,
+    bool allowDuplicates = false,
+    IProgress<int>? progress = null,
+    CancellationToken ct = default);
+```
+
+Imports several files and reports what happened to each one. The failure of one file does not
+stop the batch.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `filePaths` | `IReadOnlyList<string>` | -- | Absolute paths to the files to import. |
-| `collectionId` | `long?` | `null` | Optional collection to associate all documents with. |
-| `progress` | `IProgress<int>?` | `null` | Optional progress reporter. Reports the number of files completed so far. |
+| `filePaths` | `IReadOnlyList<string>` | -- | Absolute paths of the files. |
+| `collectionId` | `long?` | `null` | Collection to add every document to. |
+| `allowDuplicates` | `bool` | `false` | When `true`, files whose content matches an existing document are imported anyway; otherwise they are listed in `DocumentImportReport.Duplicates`. |
+| `progress` | `IProgress<int>?` | `null` | Number of files completed. |
 | `ct` | `CancellationToken` | `default` | Cancellation token. |
 
-**Returns:** The list of created `DocumentEntity` records.
+**Returns:** A [`DocumentImportReport`](#documentimportreport).
+
+---
+
+##### ImportExternalContentAsync
+
+```csharp
+Task<DocumentEntity> ImportExternalContentAsync(
+    string filePath,
+    string fileTypeOverride,
+    string displayName,
+    string? sourceUrl = null,
+    long? collectionId = null,
+    CancellationToken ct = default);
+```
+
+Imports a file written for a connector item (calendar event, email) and stores the semantic type
+given in `fileTypeOverride` (for example `"CalendarEvent"` or `"EmailMessage"`) instead of the
+extension, with `displayName` as the file name.
+
+---
+
+##### ImportPreparedDocumentAsync
+
+```csharp
+Task<DocumentEntity> ImportPreparedDocumentAsync(
+    DocumentEntity document,
+    long? collectionId = null,
+    CancellationToken ct = default);
+```
+
+Saves a document for a file Agent-X wrote itself from content it already holds (a page saved by
+Web Import). The caller fills in the new `"pending"` document, including `ContentHash`; the file is
+not read. The document and its collection link are saved together, so the call either adds the
+document to the collection or adds nothing. Raises `DocumentPendingIndexing`.
+
+**Exceptions:** `DuplicateDocumentException` when the content already exists;
+`InvalidOperationException` when the collection does not exist.
 
 ---
 
@@ -883,9 +823,18 @@ Imports multiple files, reporting progress as each file completes.
 Task<DocumentEntity?> GetDocumentAsync(long documentId);
 ```
 
-Retrieves a single document by its primary key.
+Returns the document with its collection and tag links, or `null` when it does not exist.
 
-**Returns:** The `DocumentEntity`, or `null` if not found.
+---
+
+##### GetDocumentPreviewTextAsync
+
+```csharp
+Task<string?> GetDocumentPreviewTextAsync(long documentId, int maxChars = 1800, CancellationToken ct = default);
+```
+
+Returns a short preview for launching a workflow from a document: the stored summary when there is
+one, otherwise the start of the indexed content. `maxChars` is clamped to 200-4000.
 
 ---
 
@@ -894,111 +843,48 @@ Retrieves a single document by its primary key.
 ```csharp
 Task<IReadOnlyList<DocumentEntity>> GetAllDocumentsAsync(
     string? fileTypeFilter = null,
-    string? statusFilter = null);
+    string? statusFilter = null,
+    string? tagFilter = null,
+    long? collectionId = null,
+    DateTime? importedAfter = null,
+    DateTime? importedBefore = null,
+    string? sortBy = null,
+    CancellationToken ct = default);
 ```
 
-Retrieves all documents with optional filtering. Results are ordered by `ImportedAt` descending (newest first).
-
-**Parameters:**
+Returns documents with optional filters. The documents are not tracked by the database context.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `fileTypeFilter` | `string?` | `null` | Optional file type to filter by (e.g., `"pdf"`, `"docx"`). |
-| `statusFilter` | `string?` | `null` | Optional indexing status to filter by (e.g., `"completed"`, `"pending"`, `"failed"`). |
+| `fileTypeFilter` | `string?` | `null` | One file type (for example `"pdf"`), or the category `"code"` or `"image"`, which matches every extension of the code or image processor ([`DocumentFileTypeFilter`](#documentfiletypefilter)). |
+| `statusFilter` | `string?` | `null` | Indexing status (`"pending"`, `"processing"`, `"completed"`, `"failed"`), matched without regard to case. |
+| `tagFilter` | `string?` | `null` | Tag name; documents with this tag, ignoring case. |
+| `collectionId` | `long?` | `null` | Documents in this collection. |
+| `importedAfter` | `DateTime?` | `null` | Inclusive lower bound for `ImportedAt` (UTC). |
+| `importedBefore` | `DateTime?` | `null` | Inclusive upper bound for `ImportedAt` (UTC). |
+| `sortBy` | `string?` | `null` | `"name"` (A-Z), `"size"` (largest first), `"type"` (then newest first), or `"date"` / `null` (newest import first). |
+| `ct` | `CancellationToken` | `default` | Cancellation token. |
 
 ---
 
-##### GetDocumentsByCollectionAsync
+##### Other members
 
-```csharp
-Task<IReadOnlyList<DocumentEntity>> GetDocumentsByCollectionAsync(long collectionId);
-```
-
-Retrieves all documents belonging to a specific collection.
-
----
-
-##### DeleteDocumentAsync
-
-```csharp
-Task DeleteDocumentAsync(long documentId);
-```
-
-Deletes a document, its chunks, and any associated vector embeddings. Cascades through `DocumentChunkEntity` records and their vector store entries.
-
----
-
-##### ReindexDocumentAsync
-
-```csharp
-Task ReindexDocumentAsync(long documentId, CancellationToken ct = default);
-```
-
-Re-processes a document by deleting existing chunks and re-extracting text. Resets the document status to `"pending"` for re-indexing by the background indexing pipeline.
-
----
-
-##### GetDocumentByHashAsync
-
-```csharp
-Task<DocumentEntity?> GetDocumentByHashAsync(string contentHash);
-```
-
-Looks up a document by its SHA-256 content hash. Used for duplicate detection during import.
-
-**Returns:** The matching `DocumentEntity`, or `null` if no document has the specified hash.
-
----
-
-##### GetTotalDocumentCountAsync
-
-```csharp
-Task<long> GetTotalDocumentCountAsync();
-```
-
-Returns the total number of documents in the knowledge vault.
-
----
-
-##### GetTotalStorageBytesAsync
-
-```csharp
-Task<long> GetTotalStorageBytesAsync();
-```
-
-Returns the total storage consumed by all imported documents in bytes.
-
----
-
-##### GetFileTypeDistributionAsync
-
-```csharp
-Task<Dictionary<string, int>> GetFileTypeDistributionAsync();
-```
-
-Returns a distribution of file types and their document counts.
-
-**Returns:** A dictionary mapping file type strings to counts (e.g., `{"pdf": 12, "docx": 5, "txt": 3}`).
-
----
-
-##### CanProcess
-
-```csharp
-bool CanProcess(string filePath);
-```
-
-Checks whether the given file can be processed by any registered document processor. Evaluates the file extension against all registered `IDocumentProcessor` instances.
-
----
-
-##### GetSupportedExtensions
-
-```csharp
-IReadOnlySet<string> GetSupportedExtensions();
-```
-
-Returns the union of all supported file extensions across all registered processors.
+| Member | Description |
+|--------|-------------|
+| `Task<IReadOnlyList<DocumentEntity>> GetRecentDocumentsAsync(int limit = 5, CancellationToken ct = default)` | The most recently imported documents, newest first (at least 1). |
+| `Task DeleteDocumentAsync(long documentId)` | Deletes the document with its chunks, vectors and keyword index rows, and lowers the document count of every collection it belonged to. A missing id is logged and ignored. |
+| `Task ReindexDocumentAsync(long documentId, CancellationToken ct = default)` | Extracts the text again first. On success it removes the old chunks, vectors and keyword rows, resets the status to `"pending"` and raises `DocumentPendingIndexing`. When the source file is missing or extraction fails, the document is marked `"failed"` and its current index data is kept. |
+| `Task<DocumentEntity?> GetDocumentByHashAsync(string contentHash)` | Finds a document by its SHA-256 content hash. |
+| `Task<long> GetTotalDocumentCountAsync()` | Number of documents. |
+| `Task<long> GetTotalStorageBytesAsync()` | Sum of `FileSizeBytes`. |
+| `Task<Dictionary<string, int>> GetFileTypeDistributionAsync()` | Document count per `FileType`, for example `{"pdf": 12, "docx": 5}`. |
+| `bool CanProcess(string filePath)` | Whether a built-in processor, or a processor of an active plugin, claims the file. |
+| `IReadOnlySet<string> GetSupportedExtensions()` | Extensions of the built-in processors, plus those of active plugin processors (computed on each call, because plugins activate and deactivate at run time). |
+| `Task<DuplicateCheckResult> CheckForDuplicateAsync(string filePath, CancellationToken ct = default)` | Compares the file's SHA-256 hash with the vault. |
+| `Task BulkDeleteAsync(IReadOnlyList<long> documentIds, CancellationToken ct = default)` | Deletes several documents; a failure is logged and the batch continues. |
+| `Task BulkReindexAsync(IReadOnlyList<long> documentIds, CancellationToken ct = default)` | Calls `ReindexDocumentAsync` for each document; a failure is logged and the batch continues. |
+| `Task BulkAssignToCollectionAsync(IReadOnlyList<long> documentIds, long collectionId, CancellationToken ct = default)` | Adds several documents to a collection; a failure is logged and the batch continues. |
+| `Task<int> RequeueAudioAwaitingSpeechModelAsync(CancellationToken ct = default)` | Queues again the audio documents that have no transcript because the speech-to-text model was missing when they were read. Call it once the model is installed. Returns the number of documents queued. |
 
 ---
 
@@ -1008,53 +894,34 @@ Returns the union of all supported file extensions across all registered process
 namespace AgentX.Core.Documents;
 
 public interface IDocumentProcessor
+{
+    IReadOnlySet<string> SupportedExtensions { get; }
+    bool CanProcess(string filePath);
+    Task<ProcessedDocument> ProcessAsync(string filePath, CancellationToken ct = default);
+}
 ```
 
-Extracts text content from a specific file type. Each supported format gets its own processor implementation.
+Extracts text from one kind of file. `ProcessAsync` throws `DocumentExtractionException` with a
+user-facing reason when a file cannot be turned into text.
 
 **Namespace:** `AgentX.Core.Documents`
 **Assembly:** `AgentX.Core`
 
 #### Implementations
 
-| Processor | Supported Extensions | Notes |
-|-----------|---------------------|-------|
-| `PdfProcessor` | `.pdf` | PDF text extraction. |
-| `DocxProcessor` | `.docx`, `.doc` | Microsoft Word document extraction. |
-| `TextProcessor` | `.txt`, `.csv`, `.log`, `.xml`, `.json` | Plain text and structured text formats. |
-| `MarkdownProcessor` | `.md`, `.markdown` | Markdown files with metadata extraction. |
-| `CodeFileProcessor` | `.cs`, `.js`, `.ts`, `.py`, `.java`, `.cpp`, `.c`, `.h`, `.go`, `.rs`, `.swift`, `.kt`, `.rb`, `.php`, `.html`, `.css`, `.scss`, `.sql`, `.sh`, `.yaml`, `.yml`, `.toml`, `.ini`, `.cfg`, `.xaml` | Source code files (26 extensions). |
-| `ImageProcessor` | `.png`, `.jpg`, `.jpeg`, `.bmp`, `.tiff` | Image files with OCR via Windows OCR engine. |
+The processors are registered in this order, and the first one that claims a file reads it.
+Processors of active plugins are asked only for files that no built-in processor claims.
 
-#### Properties
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `SupportedExtensions` | `IReadOnlySet<string>` | The set of file extensions this processor can handle (case-insensitive). |
-
-#### Methods
-
----
-
-##### CanProcess
-
-```csharp
-bool CanProcess(string filePath);
-```
-
-Returns `true` if this processor supports the given file's extension.
-
----
-
-##### ProcessAsync
-
-```csharp
-Task<ProcessedDocument> ProcessAsync(string filePath, CancellationToken ct = default);
-```
-
-Extracts text content and metadata from the specified file.
-
-**Returns:** A `ProcessedDocument` containing the extracted text, file metadata, page count, word count, and optional chunks.
+| Processor | Extensions | Notes |
+|-----------|-----------|-------|
+| `PdfProcessor` | `.pdf` | Pages are separated with a form feed, so chunks carry page numbers. A PDF without a text layer, or whose text cannot be decoded, is reported as a failure. |
+| `DocxProcessor` | `.docx` | Word documents. Legacy `.doc` files are not read. |
+| `TextProcessor` | `.txt`, `.csv`, `.log`, `.json`, `.xml`, `.yaml`, `.yml`, `.toml`, `.ini`, `.cfg` | Plain and structured text. |
+| `MarkdownProcessor` | `.md`, `.mdx`, `.markdown` | Converted to plain text with Markdig. YAML front matter is stripped, and the first level-1 heading becomes the title. |
+| `CodeFileProcessor` | `.cs`, `.js`, `.ts`, `.py`, `.java`, `.cpp`, `.c`, `.h`, `.go`, `.rs`, `.swift`, `.kt`, `.rb`, `.php`, `.html`, `.htm`, `.css`, `.scss`, `.sql`, `.sh`, `.yaml`, `.yml`, `.toml`, `.ini`, `.cfg`, `.xaml` | `SupportedFileTypes.Code` (26 extensions). The configuration formats it lists are read by `TextProcessor`, which is registered first. |
+| `ImageProcessor` | `.png`, `.jpg`, `.jpeg`, `.bmp`, `.tiff` | Windows OCR (`OcrEngine`). An image without recognizable text yields empty text; a missing OCR language is reported as a failure. |
+| `AudioProcessor` | `.mp3`, `.wav`, `.m4a`, `.flac`, `.ogg`, `.webm` | Transcription with the Whisper speech-to-text model. |
+| `WebProcessor` | `.url`, `.webloc` | Fetches the page a shortcut file points to. URLs that point at this computer or the local network are refused. |
 
 ---
 
@@ -1066,15 +933,14 @@ namespace AgentX.Core.Documents;
 public interface IChunkingService
 ```
 
-Splits text content into overlapping chunks suitable for embedding generation. Uses a recursive character text splitter strategy: paragraphs, then sentences, then words.
+Splits text into overlapping chunks for embedding: paragraphs first, then sentences, then words.
 
 **Namespace:** `AgentX.Core.Documents`
 **Assembly:** `AgentX.Core`
-**Implementation:** `ChunkingService`
+**Implementation:** `ChunkingService` (created with `ITokenCounter` and, when registered,
+`IAdaptiveChunkingService`)
 
 #### Methods
-
----
 
 ##### ChunkText
 
@@ -1087,21 +953,16 @@ IReadOnlyList<DocumentChunk> ChunkText(
     int? pageNumber = null);
 ```
 
-Splits raw text into overlapping chunks with metadata.
-
-**Parameters:**
-
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `text` | `string` | -- | The text content to chunk. |
-| `chunkSize` | `int` | `512` | Maximum number of tokens (approximated as word count) per chunk. |
-| `chunkOverlap` | `int` | `50` | Number of overlapping tokens between consecutive chunks. |
-| `sectionTitle` | `string?` | `null` | Optional section title to attach to all generated chunks. |
-| `pageNumber` | `int?` | `null` | Optional page number to attach to all generated chunks. |
+| `text` | `string` | -- | Text to split. Empty or whitespace text returns an empty list. |
+| `chunkSize` | `int` | `512` | Maximum tokens per chunk, counted with `ITokenCounter`. |
+| `chunkOverlap` | `int` | `50` | Tokens carried from the end of one chunk to the start of the next. Whole trailing segments are carried while they fit, and the segment that does not fit contributes only its last words, so the overlap never exceeds this size. |
+| `sectionTitle` | `string?` | `null` | Section title stored on every chunk. |
+| `pageNumber` | `int?` | `null` | Page number stored on every chunk. |
 
-**Returns:** An ordered list of `DocumentChunk` instances with content, character offsets, and token counts.
-
----
+**Exceptions:** `ArgumentOutOfRangeException` when `chunkSize` is not positive, `chunkOverlap` is
+negative, or `chunkOverlap` is not smaller than `chunkSize`.
 
 ##### ChunkDocument
 
@@ -1112,17 +973,10 @@ IReadOnlyList<DocumentChunk> ChunkDocument(
     int chunkOverlap = 50);
 ```
 
-Splits a processed document into overlapping chunks, respecting page boundaries when page-level text is available.
-
-**Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `document` | `ProcessedDocument` | -- | The processed document containing extracted text and metadata. |
-| `chunkSize` | `int` | `512` | Maximum number of tokens per chunk. |
-| `chunkOverlap` | `int` | `50` | Number of overlapping tokens between consecutive chunks. |
-
-**Returns:** An ordered list of `DocumentChunk` instances covering the entire document.
+Chunks a processed document. A document without extracted text returns an empty list. When the
+adaptive analyzer detects code or table content, its recommended chunk size replaces `chunkSize`
+(and the overlap is lowered below it when needed). A multi-page document whose text contains form
+feeds is chunked page by page, so chunks keep their page numbers.
 
 ---
 
@@ -1136,22 +990,22 @@ namespace AgentX.Core.Documents.Models;
 public class ProcessedDocument
 ```
 
-Represents a document after text extraction and before chunking/embedding.
+A document after text extraction and before chunking.
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `FilePath` | `string` | `""` | Absolute path to the source file. |
-| `FileName` | `string` | `""` | The file name (without directory path). |
-| `FileType` | `string` | `""` | The file type extension (e.g., `"pdf"`, `"docx"`). |
+| `FilePath` | `string` | `""` | Absolute path of the source file. |
+| `FileName` | `string` | `""` | File name. |
+| `FileType` | `string` | `""` | File type (the extension without the dot). |
 | `FileSizeBytes` | `long` | `0` | File size in bytes. |
-| `ContentHash` | `string` | `""` | SHA-256 hash of the file content for duplicate detection. |
-| `ExtractedText` | `string` | `""` | The full extracted text content. |
-| `ExtractedTitle` | `string?` | `null` | Title extracted from document metadata (if available). |
-| `PageCount` | `int` | `0` | Number of pages in the source document. |
-| `WordCount` | `long` | `0` | Approximate word count of the extracted text. |
-| `Language` | `string?` | `null` | Detected language of the content (if available). |
-| `Metadata` | `DocumentMetadata` | `new()` | Additional metadata extracted from the document. |
-| `Chunks` | `List<DocumentChunk>` | `new()` | Pre-chunked content (populated during processing if applicable). |
+| `ContentHash` | `string` | `""` | SHA-256 hash of the content. |
+| `ExtractedText` | `string` | `""` | The extracted text. |
+| `ExtractedTitle` | `string?` | `null` | Title from the document metadata. |
+| `PageCount` | `int` | `0` | Number of pages. |
+| `WordCount` | `long` | `0` | Approximate word count. |
+| `Language` | `string?` | `null` | Detected language. |
+| `Metadata` | `DocumentMetadata` | `new()` | Additional metadata. |
+| `Chunks` | `List<DocumentChunk>` | `new()` | Chunks, when a processor produces them. |
 
 #### DocumentChunk
 
@@ -1161,18 +1015,16 @@ namespace AgentX.Core.Documents.Models;
 public class DocumentChunk
 ```
 
-Represents a single chunk of text within a document, suitable for embedding.
-
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `Index` | `int` | `0` | Zero-based index of this chunk within the document. |
-| `Content` | `string` | `""` | The text content of the chunk. |
-| `StartCharOffset` | `int` | `0` | Starting character offset within the source document text. |
-| `EndCharOffset` | `int` | `0` | Ending character offset within the source document text. |
-| `PageNumber` | `int?` | `null` | The page number this chunk belongs to (if available). |
-| `SectionTitle` | `string?` | `null` | The section title this chunk falls under (if available). |
-| `TokenCount` | `int` | `0` | Approximate token count for this chunk. |
-| `Embedding` | `float[]?` | `null` | The generated embedding vector (populated after embedding generation). |
+| `Index` | `int` | `0` | Zero-based position in the document. |
+| `Content` | `string` | `""` | Chunk text. |
+| `StartCharOffset` | `int` | `0` | Start offset in the source text. |
+| `EndCharOffset` | `int` | `0` | End offset in the source text. |
+| `PageNumber` | `int?` | `null` | Page number, when known. |
+| `SectionTitle` | `string?` | `null` | Section title, when known. |
+| `TokenCount` | `int` | `0` | Token count. |
+| `Embedding` | `float[]?` | `null` | Embedding vector, once generated. |
 
 #### DocumentMetadata
 
@@ -1182,15 +1034,13 @@ namespace AgentX.Core.Documents.Models;
 public class DocumentMetadata
 ```
 
-Additional metadata extracted from a document during processing.
-
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `Author` | `string?` | `null` | Document author (from PDF/DOCX metadata). |
-| `Subject` | `string?` | `null` | Document subject (from PDF/DOCX metadata). |
-| `CreatedDate` | `DateTime?` | `null` | Document creation date (from metadata). |
-| `ModifiedDate` | `DateTime?` | `null` | Document last modified date (from metadata). |
-| `Custom` | `Dictionary<string, string>` | `new()` | Arbitrary key-value metadata pairs. |
+| `Author` | `string?` | `null` | Author from the file metadata. |
+| `Subject` | `string?` | `null` | Subject from the file metadata. |
+| `CreatedDate` | `DateTime?` | `null` | Creation date from the file metadata. |
+| `ModifiedDate` | `DateTime?` | `null` | Modification date from the file metadata. |
+| `Custom` | `Dictionary<string, string>` | `new()` | Other key-value metadata. |
 
 #### SupportedFileTypes
 
@@ -1200,17 +1050,83 @@ namespace AgentX.Core.Documents.Models;
 public static class SupportedFileTypes
 ```
 
-Static reference for all supported file extensions, grouped by category.
+Extension sets used for file categories (`FileTypeHelper`) and by the vault's Code and Images
+filters. Which files can be imported is decided by the registered processors (see
+[IDocumentProcessor](#idocumentprocessor)).
 
 | Field | Extensions |
 |-------|-----------|
 | `Pdf` | `.pdf` |
-| `Office` | `.docx`, `.doc` |
+| `Office` | `.docx`, `.doc` (no processor reads `.doc`) |
 | `Text` | `.txt`, `.csv`, `.log`, `.xml`, `.json` |
 | `Markdown` | `.md`, `.markdown` |
 | `Image` | `.png`, `.jpg`, `.jpeg`, `.bmp`, `.tiff` |
-| `Code` | `.cs`, `.js`, `.ts`, `.py`, `.java`, `.cpp`, `.c`, `.h`, `.go`, `.rs`, `.swift`, `.kt`, `.rb`, `.php`, `.html`, `.css`, `.scss`, `.sql`, `.sh`, `.yaml`, `.yml`, `.toml`, `.ini`, `.cfg`, `.xaml` |
-| `All` | Union of all above sets (case-insensitive). |
+| `Code` | The 26 extensions of `CodeFileProcessor` (see above). |
+| `All` | Union of the sets above, compared without regard to case. |
+
+#### DocumentFileTypeFilter
+
+```csharp
+namespace AgentX.Core.Documents;
+
+public static class DocumentFileTypeFilter
+```
+
+Turns a file type filter into the `DocumentEntity.FileType` values it matches.
+`Resolve(string filter)` ignores a leading dot and case; the constants `Code` (`"code"`) and
+`Image` (`"image"`) expand to every extension of `SupportedFileTypes.Code` and
+`SupportedFileTypes.Image`, and any other value matches that single type.
+
+#### DocumentImportReport
+
+```csharp
+namespace AgentX.Core.Documents;
+
+public sealed class DocumentImportReport
+```
+
+| Member | Type | Description |
+|--------|------|-------------|
+| `Imported` | `List<DocumentEntity>` | Documents created, including those recorded as `"failed"` because no text could be extracted. |
+| `Duplicates` | `List<DocumentImportDuplicate>` | Files skipped because a document with the same content exists: `DocumentImportDuplicate(string FilePath, long ExistingDocumentId, string ExistingFileName)`. |
+| `Failed` | `List<DocumentImportFailure>` | Files that could not be imported: `DocumentImportFailure(string FilePath, string Reason)`. |
+| `ExtractionFailedCount` | `int` | Imported documents in `"failed"` status. |
+
+#### DuplicateCheckResult
+
+```csharp
+namespace AgentX.Core.Documents;
+
+public class DuplicateCheckResult
+```
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `IsDuplicate` | `bool` | A matching document exists. |
+| `IsExactMatch` | `bool` | The match has the same SHA-256 hash. |
+| `ExistingDocumentId` | `long?` | The matching document. |
+| `ExistingFileName` | `string?` | Its file name. |
+| `MatchScore` | `float` | `1.0` for an exact match. |
+
+#### DocumentPendingIndexingEventArgs
+
+```csharp
+namespace AgentX.Core.Documents;
+
+public sealed class DocumentPendingIndexingEventArgs : EventArgs
+```
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `DocumentId` | `long` | The document waiting to be indexed. |
+| `Extracted` | `ProcessedDocument?` | The extraction the import already did, when available. The indexer reuses it instead of parsing, OCR-ing or fetching the file again, as long as the file has not changed. |
+
+#### Exceptions
+
+| Type | Description |
+|------|-------------|
+| `DuplicateDocumentException` | Derives from `InvalidOperationException`. Properties `ExistingDocumentId` and `ExistingFileName`; message `A document with identical content already exists: '{name}' (ID {id}).` |
+| `DocumentExtractionException` | Thrown by a processor when a file cannot be turned into text. The message is written for the user and becomes the document's `IndexingError`. |
 
 ---
 
@@ -1224,81 +1140,55 @@ namespace AgentX.Core.Search;
 public interface ISemanticSearchService
 ```
 
-Performs semantic (vector-based) search across indexed document chunks. Combines embedding generation, vector similarity search, and result enrichment with document metadata.
+Vector search over the indexed chunks, plus the search history.
 
 **Namespace:** `AgentX.Core.Search`
 **Assembly:** `AgentX.Core`
 **Implementation:** `SemanticSearchService`
 
-#### Methods
-
----
-
-##### SearchAsync
+#### SearchAsync
 
 ```csharp
-Task<IReadOnlyList<SearchResult>> SearchAsync(
-    SearchQuery query,
-    CancellationToken ct = default);
+Task<IReadOnlyList<SearchResult>> SearchAsync(SearchQuery query, CancellationToken ct = default);
 ```
 
-Performs a semantic search using the given query. The query text is embedded, matched against the vector store, and results are enriched with document metadata.
+Embeds `QueryText`, searches the vector store, and returns the matching chunks with their document
+metadata, highest score first, at most `TopK`.
 
-**Parameters:**
+**Behavior:**
+- One result per chunk, so a document can appear more than once. Results below `MinScore` are
+  dropped.
+- Chunks embedded with a different `ModelVersion` than the current embedding model are left out
+  (chunks without a version are kept); a warning is logged once per session.
+- The collection, file type and date filters (`CreatedAfter` and `CreatedBefore` compare with
+  `ImportedAt`) are applied to the candidates. For a filtered search the candidate pool is widened
+  step by step, up to a bounded ceiling, until `TopK` results are found or no candidates are left.
+- An empty query, a failed embedding or a failed vector search returns an empty list (logged)
+  instead of throwing. Cancellation propagates.
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `query` | `SearchQuery` | -- | The search query with optional filters (collection, file type, date range). |
-| `ct` | `CancellationToken` | `default` | Cancellation token. |
-
-**Returns:** An ordered list of `SearchResult` instances, highest relevance first.
-
----
-
-##### SaveSearchHistoryAsync
-
-```csharp
-Task SaveSearchHistoryAsync(string queryText, int resultCount);
-```
-
-Saves a search query to the search history for later re-use.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `queryText` | `string` | The search query text. |
-| `resultCount` | `int` | The number of results returned. |
-
----
-
-##### GetSearchHistoryAsync
+#### Search history
 
 ```csharp
+Task SaveSearchHistoryAsync(string queryText, int resultCount,
+    double? minScore = null, int? maxResults = null,
+    DateTime? dateAfter = null, DateTime? dateBefore = null,
+    string? sortOrder = null, string? searchType = null);
 Task<IReadOnlyList<SearchHistoryEntry>> GetSearchHistoryAsync(int limit = 20);
-```
-
-Retrieves recent search history entries, ordered by most recent first.
-
-**Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `limit` | `int` | `20` | Maximum number of entries to return. |
-
----
-
-##### ClearSearchHistoryAsync
-
-```csharp
 Task ClearSearchHistoryAsync();
+Task SaveSearchFilterAsync(long historyId);
+Task UnsaveSearchFilterAsync(long historyId);
+Task<IReadOnlyList<SearchHistoryEntry>> GetSavedFiltersAsync();
 ```
 
-Clears all search history records.
+| Method | Description |
+|--------|-------------|
+| `SaveSearchHistoryAsync` | Saves a search with its optional filter settings. `searchType` is the mode it ran in (`"semantic"`, `"keyword"` or `"hybrid"`); `"semantic"` when not given. |
+| `GetSearchHistoryAsync` | Most recent entries first; an empty list when `limit` is 0 or less. |
+| `ClearSearchHistoryAsync` | Deletes every history entry, saved filters included. |
+| `SaveSearchFilterAsync` / `UnsaveSearchFilterAsync` | Sets or clears `IsSaved` on an entry. |
+| `GetSavedFiltersAsync` | Entries saved as filters. |
 
-#### Supporting Types
-
-##### SearchHistoryEntry
+#### SearchHistoryEntry
 
 ```csharp
 namespace AgentX.Core.Search;
@@ -1306,12 +1196,51 @@ namespace AgentX.Core.Search;
 public class SearchHistoryEntry
 ```
 
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `Id` | `long` | -- | Primary key (init-only). |
-| `QueryText` | `string` | `""` | The search query text (init-only). |
-| `ResultCount` | `int` | -- | Number of results returned (init-only). |
-| `SearchedAt` | `DateTime` | -- | Timestamp of the search (init-only). |
+All properties are init-only: `Id` (`long`), `QueryText` (`string`), `ResultCount` (`int`),
+`SearchedAt` (`DateTime`), `IsSaved` (`bool`), `SearchType` (`string`, default `"semantic"`),
+`CollectionFilter` (`string?`), and the saved filter settings `MinScore` (`double?`),
+`MaxResults` (`int?`), `DateAfter` (`DateTime?`), `DateBefore` (`DateTime?`) and `SortOrder`
+(`string?`).
+
+---
+
+### IKeywordSearchService
+
+```csharp
+namespace AgentX.Core.Search;
+
+public interface IKeywordSearchService
+```
+
+Full-text search with SQLite FTS5 and BM25 ranking.
+
+**Implementation:** `KeywordSearchService`
+
+| Method | Description |
+|--------|-------------|
+| `Task InitializeFtsAsync(CancellationToken ct = default)` | Creates the FTS5 table when it does not exist. Called once at startup. |
+| `Task IndexDocumentChunksAsync(long documentId, CancellationToken ct = default)` | Adds a document's chunks to the FTS table (the indexer does this before it reports the document complete). |
+| `Task RemoveDocumentFromFtsAsync(long documentId, CancellationToken ct = default)` | Removes a document's FTS rows (on delete and re-index). |
+| `Task<IReadOnlyList<SearchResult>> SearchAsync(SearchQuery query, CancellationToken ct = default)` | FTS5 `MATCH` search. Stop words are ignored and any remaining term may match. Collection, file type and date filters are applied in the query. Scores are relative to the best match (0-1), and `MinScore` applies on that scale. |
+
+---
+
+### IHybridSearchOrchestrator
+
+```csharp
+namespace AgentX.Core.Search;
+
+public interface IHybridSearchOrchestrator
+{
+    Task<IReadOnlyList<SearchResult>> SearchAsync(SearchQuery query, CancellationToken ct = default);
+}
+```
+
+Runs a search in the mode `SearchQuery.Mode` names: `Semantic` uses `ISemanticSearchService`,
+`Keyword` uses `IKeywordSearchService`, and `Hybrid` runs both and merges them with Reciprocal Rank
+Fusion.
+
+**Implementation:** `HybridSearchOrchestrator`
 
 ---
 
@@ -1323,53 +1252,56 @@ namespace AgentX.Core.Search;
 public interface IRagPipeline
 ```
 
-Orchestrates the Retrieval-Augmented Generation pipeline:
-1. Embeds the user question.
-2. Retrieves relevant context chunks via semantic search.
-3. Builds a grounded prompt with context.
-4. Streams the AI response.
-5. Extracts citations from the response.
+Answers a question from the indexed documents (Retrieval-Augmented Generation).
 
-**Namespace:** `AgentX.Core.Search`
-**Assembly:** `AgentX.Core`
-**Implementation:** `RagPipeline`
+**Implementation:** `RagPipeline`. The optional enhancement services (multi-query expansion, HyDE,
+LLM reranking, parent document retrieval, contextual compression, evaluation) are used when they
+are registered and enabled in the RAG configuration.
 
-#### Methods
-
----
-
-##### AskAsync
+#### AskAsync
 
 ```csharp
 Task<RagResponse> AskAsync(
     string question,
     long? collectionId = null,
     Action<string>? onToken = null,
+    bool enableResearchMode = false,
     CancellationToken ct = default);
 ```
 
-Executes the full RAG pipeline: search for context, build prompt, stream response, and extract citations.
-
-**Parameters:**
-
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `question` | `string` | -- | The user's natural language question. |
-| `collectionId` | `long?` | `null` | Optional collection scope. When `null`, searches across all collections. |
-| `onToken` | `Action<string>?` | `null` | Callback invoked for each streamed token during generation. Enables real-time UI updates. |
+| `question` | `string` | -- | The question. |
+| `collectionId` | `long?` | `null` | Collection to search; `null` searches everything. |
+| `onToken` | `Action<string>?` | `null` | Called for each streamed piece of the answer. |
+| `enableResearchMode` | `bool` | `false` | Adds web search results to the context (Research Mode). Needs a configured `IWebSearchService`; the number of web results is the Max Search Results setting (1-20, default 10). |
 | `ct` | `CancellationToken` | `default` | Cancellation token. |
 
-**Returns:** A `RagResponse` containing the complete answer text, citations, and latency metrics.
+**Behavior:**
+1. Optional query expansion and HyDE produce more query variants.
+2. Every variant is searched through `IHybridSearchOrchestrator` in the configured mode
+   (`Rag:DefaultSearchMode` in `appsettings.json`, `Hybrid` by default). The number of chunks
+   retrieved and kept is the Top-K Results setting, capped at `Rag:MaxTopK`; `Rag:DefaultTopK`
+   applies when settings are unavailable.
+3. When nothing is found, the answer says so and the answering model is not called.
+4. When `Rag:EnablePiiRedaction` is on (the default), chunks are redacted as soon as they are built
+   (and again after parent retrieval), so every model call that sees chunk text, reranking and
+   compression included, gets the redacted text.
+5. Heuristic reranking, optional LLM reranking, parent retrieval and compression shape the
+   context; Research Mode adds web results.
+6. The answer streams from the active provider, `[N]` citations are resolved, and an optional
+   evaluation runs in the background.
 
----
+**Returns:** A [`RagResponse`](#ragresponse) with the answer, citations, web citations (Research
+Mode) and timings.
 
-##### GetIndexedChunkCountAsync
+#### GetIndexedChunkCountAsync
 
 ```csharp
 Task<long> GetIndexedChunkCountAsync(CancellationToken ct = default);
 ```
 
-Gets the number of indexed chunks available for RAG queries. Used to show the user how much knowledge is available for question answering.
+Number of indexed chunks available for questions.
 
 ---
 
@@ -1379,40 +1311,17 @@ Gets the number of indexed chunks available for RAG queries. Used to show the us
 namespace AgentX.Core.Search;
 
 public interface ICitationService
+{
+    List<Citation> ExtractCitations(string responseText, IReadOnlyList<RagContextChunk> contextChunks);
+}
 ```
 
-Extracts and resolves citation references from AI-generated RAG responses. Citation format: `[N]` where N is the 1-based index of the context chunk.
+Finds the `[N]` references in an answer and maps each to the N-th context chunk (1-based) given to
+the model.
 
-**Namespace:** `AgentX.Core.Search`
-**Assembly:** `AgentX.Core`
 **Implementation:** `CitationService`
 
-#### Methods
-
----
-
-##### ExtractCitations
-
-```csharp
-List<Citation> ExtractCitations(
-    string responseText,
-    IReadOnlyList<RagContextChunk> contextChunks);
-```
-
-Extracts all `[N]` citation references from the response text and maps them to the corresponding source chunks.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `responseText` | `string` | The AI-generated response text containing `[N]` references. |
-| `contextChunks` | `IReadOnlyList<RagContextChunk>` | The ordered list of context chunks that were provided to the AI (1-indexed in citations). |
-
-**Returns:** A list of resolved `Citation` instances with document metadata.
-
-#### Supporting Types
-
-##### RagContextChunk
+#### RagContextChunk
 
 ```csharp
 namespace AgentX.Core.Search;
@@ -1420,22 +1329,24 @@ namespace AgentX.Core.Search;
 public class RagContextChunk
 ```
 
-Represents a single chunk of context that was provided to the AI during RAG. Used by `CitationService` to resolve citation references back to source documents.
-
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `ChunkId` | `long` | -- | The document chunk entity ID (init-only). |
-| `DocumentId` | `long` | -- | The parent document entity ID (init-only). |
-| `FileName` | `string` | `""` | The source document file name (init-only). |
-| `FilePath` | `string` | `""` | The source document file path (init-only). |
-| `PageNumber` | `int?` | `null` | Page number within the source document (init-only). |
-| `ChunkIndex` | `int` | -- | The chunk index within the document (init-only). |
-| `ChunkText` | `string` | `""` | The text content of the chunk (init-only). |
-| `RelevanceScore` | `float` | -- | The similarity score from the vector search (init-only). |
+One chunk given to the model. All properties are init-only: `ChunkId` (`long`), `DocumentId`
+(`long`), `FileName` (`string`), `FilePath` (`string`), `PageNumber` (`int?`), `ChunkIndex`
+(`int`), `ChunkText` (`string`) and `RelevanceScore` (`float`).
 
 ---
 
 ### Search Models
+
+#### SearchMode
+
+```csharp
+namespace AgentX.Core.Search.Models;
+
+public enum SearchMode { Semantic, Keyword, Hybrid }
+```
+
+`Semantic` is vector search, `Keyword` is FTS5 with BM25 ranking, `Hybrid` merges both with
+Reciprocal Rank Fusion.
 
 #### SearchQuery
 
@@ -1445,21 +1356,18 @@ namespace AgentX.Core.Search.Models;
 public class SearchQuery
 ```
 
-Represents a semantic search query with optional filters.
+All properties use `init` accessors.
 
 | Property | Type | Default | Required | Description |
 |----------|------|---------|----------|-------------|
-| `QueryText` | `string` | -- | **Yes** | The natural language query text. Uses `required` keyword. |
-| `TopK` | `int` | `10` | No | Maximum number of results to return. |
-| `MinScore` | `float` | `0.3f` | No | Minimum similarity score (0.0 to 1.0) to include in results. |
-| `CollectionId` | `long?` | `null` | No | Optional collection ID to scope the search. |
-| `FileTypeFilter` | `string?` | `null` | No | Optional file type filter (e.g., `"pdf"`, `"docx"`). |
-| `CreatedAfter` | `DateTime?` | `null` | No | Only include documents created after this date. |
-| `CreatedBefore` | `DateTime?` | `null` | No | Only include documents created before this date. |
-
-All properties use `init` accessors.
-
----
+| `QueryText` | `string` | -- | **Yes** (`required`) | The query text. |
+| `TopK` | `int` | `10` | No | Maximum number of results. |
+| `MinScore` | `float` | `0.3f` | No | Minimum score (0.0 to 1.0). |
+| `CollectionId` | `long?` | `null` | No | Collection scope. |
+| `FileTypeFilter` | `string?` | `null` | No | File type (for example `"pdf"`). |
+| `CreatedAfter` | `DateTime?` | `null` | No | Only documents imported at or after this time. |
+| `CreatedBefore` | `DateTime?` | `null` | No | Only documents imported at or before this time. |
+| `Mode` | `SearchMode` | `Semantic` | No | Search mode used by `IHybridSearchOrchestrator`. |
 
 #### SearchResult
 
@@ -1469,24 +1377,22 @@ namespace AgentX.Core.Search.Models;
 public class SearchResult
 ```
 
-A single semantic search result with matched chunk, relevance score, and source document metadata.
+One matching chunk. All properties are init-only except the computed one.
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `ChunkId` | `long` | -- | The document chunk entity ID (init-only). |
-| `DocumentId` | `long` | -- | The parent document entity ID (init-only). |
-| `FileName` | `string` | `""` | The source document file name (init-only). |
-| `FilePath` | `string` | `""` | The source document file path (init-only). |
-| `FileType` | `string` | `""` | The source document file type, e.g., `"pdf"`, `"docx"` (init-only). |
-| `PageNumber` | `int?` | `null` | Page number within the source document (init-only). |
-| `ChunkIndex` | `int` | -- | The chunk index within the document (init-only). |
-| `MatchedText` | `string` | `""` | The full matched text from the chunk (init-only). |
-| `Excerpt` | `string` | `""` | A shorter excerpt suitable for display, with the most relevant section highlighted (init-only). |
-| `Score` | `float` | -- | Cosine similarity score between 0.0 and 1.0. Higher = more relevant (init-only). |
-| `RelevancePercent` | `int` | *(computed)* | Relevance as a percentage (0-100), derived as `(int)(Score * 100)`. |
-| `CollectionNames` | `List<string>` | `new()` | Collection names this document belongs to (init-only). |
-
----
+| `ChunkId` | `long` | -- | The chunk. |
+| `DocumentId` | `long` | -- | Its document. |
+| `FileName` | `string` | `""` | Document file name. |
+| `FilePath` | `string` | `""` | Document file path. |
+| `FileType` | `string` | `""` | Document file type. |
+| `PageNumber` | `int?` | `null` | Page number. |
+| `ChunkIndex` | `int` | -- | Chunk position in the document. |
+| `MatchedText` | `string` | `""` | Full chunk text. |
+| `Excerpt` | `string` | `""` | Shorter excerpt for display. |
+| `Score` | `float` | -- | 0.0 to 1.0, higher is more relevant (cosine similarity for semantic results). |
+| `RelevancePercent` | `int` | *(computed)* | `(int)(Score * 100)`. |
+| `CollectionNames` | `List<string>` | `new()` | Collections the document belongs to. |
 
 #### RagResponse
 
@@ -1496,20 +1402,18 @@ namespace AgentX.Core.Search.Models;
 public class RagResponse
 ```
 
-The complete response from a RAG (Retrieval-Augmented Generation) query.
-
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `AnswerText` | `string` | `""` | The AI-generated answer text. May contain `[N]` citation references. |
-| `Question` | `string` | `""` | The original user question (init-only). |
-| `Citations` | `List<Citation>` | `new()` | All citations referenced in the answer, resolved to source documents. |
-| `ContextChunksUsed` | `int` | -- | Number of context chunks that were provided to the AI (init-only). |
-| `IsStreaming` | `bool` | `false` | Whether the response is still being streamed. |
-| `TotalLatencyMs` | `double` | `0` | Total time taken for search + generation in milliseconds. |
-| `SearchLatencyMs` | `double` | `0` | Time taken for the semantic search portion in milliseconds. |
-| `CollectionScope` | `long?` | `null` | The collection scope used for the query. `null` means all collections (init-only). |
-
----
+| `AnswerText` | `string` | `""` | The answer, with `[N]` references. |
+| `Question` | `string` | `""` | The question (init-only). |
+| `Citations` | `List<Citation>` | `new()` | Resolved document citations. |
+| `ContextChunksUsed` | `int` | -- | Number of chunks given to the model (init-only). |
+| `IsStreaming` | `bool` | `false` | Whether the answer is still streaming. |
+| `TotalLatencyMs` | `double` | `0` | Search plus generation time. |
+| `SearchLatencyMs` | `double` | `0` | Search time. |
+| `CollectionScope` | `long?` | `null` | Collection searched; `null` means all (init-only). |
+| `EvalMetrics` | `RagEvalMetrics?` | `null` | Quality evaluation, filled in asynchronously when an evaluator runs. |
+| `WebCitations` | `IReadOnlyList<WebCitation>?` | `null` | Web sources used by Research Mode; `null` when it is off or found nothing. |
 
 #### Citation
 
@@ -1519,19 +1423,22 @@ namespace AgentX.Core.Search.Models;
 public class Citation
 ```
 
-A citation reference extracted from an AI-generated RAG response, linking back to a source document and chunk.
+All properties are init-only: `Number` (`int`, the N of `[N]`), `DocumentId` (`long`), `ChunkId`
+(`long`), `FileName` (`string`), `FilePath` (`string`), `PageNumber` (`int?`), `ChunkIndex`
+(`int`), `Excerpt` (`string`) and `RelevanceScore` (`float`).
 
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `Number` | `int` | -- | The citation number as it appears in the response text (e.g., `1` for `[1]`) (init-only). |
-| `DocumentId` | `long` | -- | The source document entity ID (init-only). |
-| `ChunkId` | `long` | -- | The source chunk entity ID (init-only). |
-| `FileName` | `string` | `""` | The source document file name (init-only). |
-| `FilePath` | `string` | `""` | The source document file path (init-only). |
-| `PageNumber` | `int?` | `null` | Page number within the source document (init-only). |
-| `ChunkIndex` | `int` | -- | The chunk index within the document (init-only). |
-| `Excerpt` | `string` | `""` | A short excerpt from the cited chunk (init-only). |
-| `RelevanceScore` | `float` | -- | The relevance score of this chunk to the original query (init-only). |
+#### WebCitation
+
+```csharp
+namespace AgentX.Core.Search.Models;
+
+public sealed class WebCitation
+```
+
+A source that is either a vault document or a web page (Research Mode). Init-only properties:
+`Title` (`string`), `Url` (`string`, the web URL, or the file path for a vault source), `Snippet`
+(`string`), `Source` (`WebCitationSource`: `Vault` or `Web`) and `DocumentName` (`string?`, the
+file name for a vault source).
 
 ---
 
@@ -1545,122 +1452,32 @@ namespace AgentX.Core.Data.VectorDb;
 public interface IVectorStore : IAsyncDisposable
 ```
 
-Abstraction over the vector database used for semantic embedding storage and retrieval. Implementations may use SQLite with custom distance functions, FAISS, or other backends.
+Stores embedding vectors and finds the nearest ones.
 
 **Namespace:** `AgentX.Core.Data.VectorDb`
 **Assembly:** `AgentX.Core`
-**Implementation:** `SqliteVecStore`
+**Implementations:** `VectorStoreFactory.Create` returns `HnswVectorStore` when
+`AppSettings.EnableHnswIndex` is on (the default; it scans linearly below
+`HnswFallbackThreshold` vectors) and `SqliteVecStore` (linear scan) when it is off. Both keep the
+vectors in `agentx.db` under `AppSettings.StoragePath` and open it through
+`IEncryptedConnectionFactory`, so an encrypted database works. The HNSW index follows the vector
+size of the current embedding model (vectors of other sizes are searched by linear scan). Its
+index files are saved next to the database only while the database is not encrypted; with an
+encrypted database the index is kept in memory and rebuilt at start.
 
 #### Methods
 
----
-
-##### InitializeAsync
-
-```csharp
-Task InitializeAsync(CancellationToken ct = default);
-```
-
-Initializes the vector store (creates tables, loads indexes, etc.). Must be called before any other operations.
-
----
-
-##### InsertEmbeddingAsync
-
-```csharp
-Task<long> InsertEmbeddingAsync(
-    long chunkId,
-    float[] embedding,
-    CancellationToken ct = default);
-```
-
-Inserts a single embedding vector associated with a document chunk.
-
-**Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `chunkId` | `long` | -- | The ID of the document chunk this embedding represents. |
-| `embedding` | `float[]` | -- | The embedding vector (float array). |
-| `ct` | `CancellationToken` | `default` | Cancellation token. |
-
-**Returns:** `long` -- The row ID of the inserted embedding record.
-
----
-
-##### SearchAsync
-
-```csharp
-Task<IReadOnlyList<VectorSearchResult>> SearchAsync(
-    float[] queryEmbedding,
-    int topK = 5,
-    double minSimilarity = 0.3,
-    CancellationToken ct = default);
-```
-
-Searches for the nearest neighbors to the given query embedding.
-
-**Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `queryEmbedding` | `float[]` | -- | The query embedding vector. |
-| `topK` | `int` | `5` | Maximum number of results to return. |
-| `minSimilarity` | `double` | `0.3` | Minimum cosine similarity threshold (0.0 to 1.0) for inclusion. |
-| `ct` | `CancellationToken` | `default` | Cancellation token. |
-
-**Returns:** An ordered list of `VectorSearchResult` instances ranked by similarity (highest first).
-
----
-
-##### DeleteEmbeddingAsync
-
-```csharp
-Task DeleteEmbeddingAsync(long chunkId, CancellationToken ct = default);
-```
-
-Deletes the embedding associated with a specific chunk.
-
----
-
-##### DeleteEmbeddingsForDocumentAsync
-
-```csharp
-Task DeleteEmbeddingsForDocumentAsync(
-    long documentId,
-    IReadOnlyList<long> chunkIds,
-    CancellationToken ct = default);
-```
-
-Deletes all embeddings associated with a document's chunks.
-
-**Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `documentId` | `long` | -- | The parent document ID (used for logging/auditing). |
-| `chunkIds` | `IReadOnlyList<long>` | -- | The chunk IDs whose embeddings should be removed. |
-| `ct` | `CancellationToken` | `default` | Cancellation token. |
-
----
-
-##### GetEmbeddingCountAsync
-
-```csharp
-Task<long> GetEmbeddingCountAsync(CancellationToken ct = default);
-```
-
-Returns the total number of embedding vectors currently stored.
-
----
-
-##### OptimizeAsync
-
-```csharp
-Task OptimizeAsync(CancellationToken ct = default);
-```
-
-Optimizes the vector index for faster search (e.g., rebuild HNSW, vacuum). May be a no-op for some implementations.
+| Method | Description |
+|--------|-------------|
+| `Task InitializeAsync(CancellationToken ct = default)` | Opens the store (creates tables, loads or builds the index). Must be called before other operations; the indexing service does this at startup. |
+| `Task<long> InsertEmbeddingAsync(long chunkId, float[] embedding, CancellationToken ct = default)` | Stores the vector of a chunk and returns its row id. |
+| `Task<IReadOnlyList<VectorSearchResult>> SearchAsync(float[] queryEmbedding, int topK = 5, double minSimilarity = 0.3, CancellationToken ct = default)` | Nearest neighbors with cosine similarity of at least `minSimilarity`, highest first. |
+| `Task DeleteEmbeddingAsync(long chunkId, CancellationToken ct = default)` | Deletes one chunk's vector. |
+| `Task DeleteEmbeddingsForDocumentAsync(long documentId, IReadOnlyList<long> chunkIds, CancellationToken ct = default)` | Deletes the vectors of the given chunks (`documentId` is for logging). |
+| `Task<long> GetEmbeddingCountAsync(CancellationToken ct = default)` | Number of stored vectors. |
+| `Task OptimizeAsync(CancellationToken ct = default)` | Optimizes the index; may do nothing. |
+| `Task SuspendAsync(CancellationToken ct = default)` | Waits for running operations, then closes the store's connection to the database file so it can be replaced (restore) or re-encrypted; on Windows an open handle makes that fail. Operations called while suspended wait. Suspensions nest. If `ct` is cancelled while waiting, the store stays in service and the suspension does not count. |
+| `Task ResumeAsync(bool reloadFromDatabase, CancellationToken ct = default)` | Ends one suspension; the last one reopens the connection with the current database key and releases waiting operations (they fail if reopening fails). With `reloadFromDatabase`, the store drops what it derived from the previous file (the in-memory index and index files) and loads again, as after a restore. Does nothing when the store is not suspended. |
 
 ---
 
@@ -1672,13 +1489,11 @@ namespace AgentX.Core.Data.VectorDb;
 public class VectorSearchResult
 ```
 
-Represents a single result from a vector similarity search.
-
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `ChunkId` | `long` | `0` | The ID of the document chunk that matched the query. |
-| `Distance` | `double` | `0` | The raw cosine distance metric between the query vector and this result. `0.0` = identical, `2.0` = opposite. |
-| `Similarity` | `double` | *(computed)* | Cosine similarity derived from distance: `1.0 - Distance`. Range: `-1.0` to `1.0` where `1.0` = identical. |
+| `ChunkId` | `long` | `0` | The matching chunk. |
+| `Distance` | `double` | `0` | Cosine distance: `0.0` identical, `2.0` opposite. |
+| `Similarity` | `double` | *(computed)* | `1.0 - Distance`, from `-1.0` to `1.0`. |
 
 ---
 
@@ -1692,85 +1507,79 @@ namespace AgentX.Core.Services.Chat;
 public interface IChatService
 ```
 
-Orchestrates AI chat operations: sends messages, streams responses, manages generation state, and coordinates persistence via `IConversationService`.
+Sends chat messages, streams the replies and saves both through `IConversationService`.
 
 **Namespace:** `AgentX.Core.Services.Chat`
 **Assembly:** `AgentX.Core`
 **Implementation:** `ChatService`
 
-#### Properties
+#### Properties and events
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `IsGenerating` | `bool` | Indicates whether an AI response is currently being generated. |
+| Member | Type | Description |
+|--------|------|-------------|
+| `IsGenerating` | `bool` | Whether a reply is being generated. |
+| `GenerationStateChanged` | `EventHandler<bool>?` | Raised when `IsGenerating` changes; the argument is the new value. |
 
-#### Events
-
-| Event | Type | Description |
-|-------|------|-------------|
-| `GenerationStateChanged` | `EventHandler<bool>?` | Fires when `IsGenerating` changes. The event argument is the new value of `IsGenerating`. |
-
-#### Methods
-
----
-
-##### SendMessageAsync
+#### SendMessageAsync
 
 ```csharp
 IAsyncEnumerable<string> SendMessageAsync(
     long conversationId,
     string userMessage,
     CancellationToken ct = default);
-```
 
-Sends a user message and streams the assistant response token-by-token. The user message and final assistant response are persisted automatically to the database.
-
-**Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `conversationId` | `long` | -- | The conversation to send the message in. |
-| `userMessage` | `string` | -- | The user's message content. |
-| `ct` | `CancellationToken` | `default` | Cancellation token. |
-
-**Returns:** `IAsyncEnumerable<string>` -- An async stream of response tokens as they arrive.
-
----
-
-##### SendMessageAndWaitAsync
-
-```csharp
-Task<string> SendMessageAndWaitAsync(
+IAsyncEnumerable<string> SendMessageAsync(
     long conversationId,
     string userMessage,
-    CancellationToken ct = default);
+    SupplementalContext? supplementalContext,
+    CancellationToken ct);
 ```
 
-Sends a user message and waits for the complete assistant response. The user message and assistant response are persisted automatically.
+Saves the user message, assembles the context (conversation history, memories and, in the second
+overload, `supplementalContext`), streams the reply, and saves the complete reply.
 
-**Returns:** `string` -- The complete assistant response.
+**Behavior:**
+- An empty or whitespace message yields nothing and saves nothing.
+- Temperature, maximum tokens and context window come from Settings > Inference.
+- With **Multi-Model Routing** on (`AppSettings.EnableModelRouting`), `IModelRouterService` picks a
+  provider and model for this reply only; the active provider, the active model and the saved
+  settings are not changed. When routing is off, fails, or picks a provider that is not registered
+  or not reachable, the active provider answers.
+- The reply is saved once it is complete, with the id of the model that wrote it (the routed model,
+  otherwise the active model) and, when `supplementalContext` has citations, those sources in
+  `MessageEntity.CitationsJson` (see `MessageCitations`). A reply that is stopped or fails is not
+  saved.
+- Memory extraction runs in the background after a saved reply.
 
----
+`SupplementalContext` is `public sealed record SupplementalContext(string PromptContext,
+IReadOnlyList<WebCitation> Citations)` in `AgentX.Core.Services.Chat.Models`. `PromptContext`
+(for example Research Mode's web results) is added to this reply's context only and is not saved;
+`Citations` are numbered in the order of the block (`[1]` is the first).
 
-##### RegenerateLastResponseAsync
+#### RegenerateResponseAsync
 
 ```csharp
-Task RegenerateLastResponseAsync(
+IAsyncEnumerable<string> RegenerateResponseAsync(
     long conversationId,
+    long userMessageId,
     CancellationToken ct = default);
 ```
 
-Deletes the last assistant message and re-sends the last user message to generate a new response.
+Streams a new answer to a saved user message without saving that message again. The message must
+close the conversation, optionally followed by its current answer. The old answer is removed only
+after the new one has been saved, so stopping or a failure keeps it.
 
----
+**Exceptions:** `InvalidOperationException` when the conversation does not exist, the message is
+not a user message of the conversation, or anything other than its own answer follows it.
 
-##### StopGenerationAsync
+#### Other members
 
-```csharp
-Task StopGenerationAsync();
-```
-
-Cancels any in-progress generation. Sets `IsGenerating` to `false` and fires `GenerationStateChanged`.
+| Member | Description |
+|--------|-------------|
+| `Task<string> SendMessageAndWaitAsync(long conversationId, string userMessage, CancellationToken ct = default)` | Runs `SendMessageAsync` and returns the whole reply. |
+| `ChatContextInspectionSnapshot? GetLatestContextInspection(long conversationId)` | The last context assembly captured for the conversation in this session (what went into the prompt and why), or `null`. |
+| `Task<ConversationSummaryRefreshResult> RefreshConversationSummaryInspectionAsync(long conversationId, CancellationToken ct = default)` | Refreshes the conversation's durable summary and the cached snapshot. The result has `Succeeded`, `Snapshot` and `ErrorMessage`; a failure keeps the previous summary. |
+| `Task StopGenerationAsync()` | Cancels the reply being generated. `IsGenerating` turns `false` when that reply's stream ends. |
 
 ---
 
@@ -1782,180 +1591,45 @@ namespace AgentX.Core.Services.Chat;
 public interface IConversationService
 ```
 
-Manages conversation and message persistence. Provides CRUD operations for conversations and their associated messages via Entity Framework Core.
+Stores conversations and messages with EF Core.
 
-**Namespace:** `AgentX.Core.Services.Chat`
-**Assembly:** `AgentX.Core`
 **Implementation:** `ConversationService`
 
-#### Methods
+#### Conversations
 
----
+| Member | Description |
+|--------|-------------|
+| `Task<ConversationEntity> CreateConversationAsync(string? title = null, string? systemPrompt = null, string? modelId = null)` | Creates a conversation. |
+| `Task<ConversationEntity?> GetConversationAsync(long conversationId)` | The conversation with its messages in `SortOrder`, archived ones included; `null` when it does not exist. |
+| `Task<IReadOnlyList<ConversationEntity>> GetAllConversationsAsync(bool includeArchived = false)` | Pinned conversations first, then the most recently updated. Archived ones only with `includeArchived`. |
+| `Task<IReadOnlyList<ConversationEntity>> GetRecentConversationsAsync(int limit = 5, bool includeArchived = false, CancellationToken ct = default)` | The most recently updated conversations. |
+| `Task<IReadOnlyList<ConversationEntity>> SearchConversationsAsync(string query)` | Conversations that are not archived whose title or any message contains the text (SQL `LIKE`), most recently updated first. A blank query returns all conversations that are not archived. |
+| `Task UpdateConversationTitleAsync(long conversationId, string title)` | Renames a conversation. |
+| `Task TogglePinAsync(long conversationId)` | Toggles `IsPinned`. |
+| `Task ArchiveConversationAsync(long conversationId)` | Archives a conversation (hidden from the default list). |
+| `Task DeleteConversationAsync(long conversationId)` | Deletes a conversation and its messages. Branches made from it are kept and promoted in the same save. |
+| `Task<int> GetConversationCountAsync()` | Number of conversations that are not archived. |
+| `Task<long> GetTotalTokensUsedAsync()` | Sum of `TokensUsed` over all conversations. |
 
-##### CreateConversationAsync
+#### Messages
 
-```csharp
-Task<ConversationEntity> CreateConversationAsync(
-    string? title = null,
-    string? systemPrompt = null,
-    string? modelId = null);
-```
+| Member | Description |
+|--------|-------------|
+| `Task<IReadOnlyList<MessageEntity>> GetMessagesAsync(long conversationId)` | Messages in `SortOrder`. |
+| `Task AddMessageAsync(long conversationId, string role, string content, int? tokenCount = null, double? generationTimeMs = null, string? modelId = null, string? citationsJson = null)` | Appends a message and updates `MessageCount`, `TokensUsed` (when `tokenCount` is given) and `UpdatedAt`. A blank `modelId` or `citationsJson` is stored as `null`. |
+| `Task DeleteMessageAsync(long messageId)` | Deletes one message and updates the conversation. |
+| `Task UpdateMessageContentAsync(long messageId, string newContent)` | Changes a message's text (message editing). |
+| `Task<int> DeleteMessageAndFollowingAsync(long conversationId, long messageId)` | Deletes a message and every message after it in one save (used when an edited prompt is resent). Returns the number deleted, 0 when the message is not in the conversation. |
 
-Creates a new conversation with optional title, system prompt, and model.
+#### Folders and tags
 
-**Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `title` | `string?` | `null` | Display title for the conversation. |
-| `systemPrompt` | `string?` | `null` | System prompt to use for all messages in this conversation. |
-| `modelId` | `string?` | `null` | The AI model to use for this conversation. |
-
-**Returns:** The newly created `ConversationEntity`.
-
----
-
-##### GetConversationAsync
-
-```csharp
-Task<ConversationEntity?> GetConversationAsync(long conversationId);
-```
-
-Retrieves a conversation by ID, including its messages.
-
-**Returns:** The `ConversationEntity` with loaded `Messages` navigation, or `null` if not found.
-
----
-
-##### GetAllConversationsAsync
-
-```csharp
-Task<IReadOnlyList<ConversationEntity>> GetAllConversationsAsync(
-    bool includeArchived = false);
-```
-
-Returns all conversations ordered by `UpdatedAt` descending.
-
-**Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `includeArchived` | `bool` | `false` | When `false` (default), archived conversations are excluded. |
-
----
-
-##### SearchConversationsAsync
-
-```csharp
-Task<IReadOnlyList<ConversationEntity>> SearchConversationsAsync(string query);
-```
-
-Searches conversations by title or message content matching the query text.
-
----
-
-##### UpdateConversationTitleAsync
-
-```csharp
-Task UpdateConversationTitleAsync(long conversationId, string title);
-```
-
-Updates the title of an existing conversation.
-
----
-
-##### TogglePinAsync
-
-```csharp
-Task TogglePinAsync(long conversationId);
-```
-
-Toggles the `IsPinned` state of a conversation.
-
----
-
-##### ArchiveConversationAsync
-
-```csharp
-Task ArchiveConversationAsync(long conversationId);
-```
-
-Archives a conversation, hiding it from the default conversation list.
-
----
-
-##### DeleteConversationAsync
-
-```csharp
-Task DeleteConversationAsync(long conversationId);
-```
-
-Permanently deletes a conversation and all its messages. Cascades through `MessageEntity` records.
-
----
-
-##### GetMessagesAsync
-
-```csharp
-Task<IReadOnlyList<MessageEntity>> GetMessagesAsync(long conversationId);
-```
-
-Returns all messages for a conversation, ordered by `SortOrder` ascending.
-
----
-
-##### AddMessageAsync
-
-```csharp
-Task AddMessageAsync(
-    long conversationId,
-    string role,
-    string content,
-    int? tokenCount = null,
-    double? generationTimeMs = null);
-```
-
-Adds a new message to a conversation and updates conversation metadata (`MessageCount`, `TokensUsed`, `UpdatedAt`).
-
-**Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `conversationId` | `long` | -- | The target conversation. |
-| `role` | `string` | -- | Message role: `"user"`, `"assistant"`, or `"system"`. |
-| `content` | `string` | -- | The message content. |
-| `tokenCount` | `int?` | `null` | Optional estimated token count for the message. |
-| `generationTimeMs` | `double?` | `null` | Optional generation time in milliseconds (for assistant messages). |
-
----
-
-##### DeleteLastAssistantMessageAsync
-
-```csharp
-Task DeleteLastAssistantMessageAsync(long conversationId);
-```
-
-Removes the most recent assistant message from a conversation. Used by the regeneration flow to replace the last response.
-
----
-
-##### GetConversationCountAsync
-
-```csharp
-Task<int> GetConversationCountAsync();
-```
-
-Returns the count of non-archived conversations.
-
----
-
-##### GetTotalTokensUsedAsync
-
-```csharp
-Task<long> GetTotalTokensUsedAsync();
-```
-
-Returns the sum of `TokensUsed` across all conversations.
+| Member | Description |
+|--------|-------------|
+| `Task SetConversationFolderAsync(long conversationId, string? folderName)` | Sets the folder; `null` removes it from any folder. |
+| `Task<IReadOnlyList<string>> GetAllFolderNamesAsync()` | Folder names in use. |
+| `Task AddTagToConversationAsync(long conversationId, long tagId)` | Tags a conversation. |
+| `Task RemoveTagFromConversationAsync(long conversationId, long tagId)` | Removes a tag from a conversation. |
+| `Task<IReadOnlyList<ConversationEntity>> GetConversationsByFolderAsync(string folderName)` | Conversations in a folder. |
 
 ---
 
@@ -1967,110 +1641,20 @@ namespace AgentX.Core.Services.Chat;
 public interface ISystemPromptService
 ```
 
-Manages system prompt templates. Provides CRUD operations, favorites, usage tracking, and seeding of built-in prompts.
+Manages reusable system prompts.
 
-**Namespace:** `AgentX.Core.Services.Chat`
-**Assembly:** `AgentX.Core`
 **Implementation:** `SystemPromptService`
 
-#### Methods
-
----
-
-##### GetAllPromptsAsync
-
-```csharp
-Task<IReadOnlyList<SystemPromptEntity>> GetAllPromptsAsync(string? category = null);
-```
-
-Returns all prompts, optionally filtered by category. Results are ordered by `IsFavorite` descending, then `UsageCount` descending.
-
-**Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `category` | `string?` | `null` | Optional category filter (e.g., `"General"`, `"Writing"`, `"Code"`, `"Analysis"`, `"Creative"`). |
-
----
-
-##### GetPromptAsync
-
-```csharp
-Task<SystemPromptEntity?> GetPromptAsync(long id);
-```
-
-Retrieves a single prompt by its primary key.
-
----
-
-##### CreatePromptAsync
-
-```csharp
-Task<SystemPromptEntity> CreatePromptAsync(
-    string name,
-    string content,
-    string category);
-```
-
-Creates a new user-defined prompt.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `name` | `string` | Display name for the prompt. |
-| `content` | `string` | The system prompt text. |
-| `category` | `string` | Category classification (e.g., `"General"`, `"Writing"`, `"Code"`). |
-
----
-
-##### UpdatePromptAsync
-
-```csharp
-Task UpdatePromptAsync(long id, string name, string content, string category);
-```
-
-Updates an existing prompt's name, content, and category.
-
----
-
-##### DeletePromptAsync
-
-```csharp
-Task DeletePromptAsync(long id);
-```
-
-Deletes a prompt by ID. Built-in prompts (where `IsBuiltIn = true`) cannot be deleted.
-
----
-
-##### ToggleFavoriteAsync
-
-```csharp
-Task ToggleFavoriteAsync(long id);
-```
-
-Toggles the `IsFavorite` status of a prompt.
-
----
-
-##### IncrementUsageAsync
-
-```csharp
-Task IncrementUsageAsync(long id);
-```
-
-Increments the `UsageCount` counter for a prompt. Called when a prompt is selected for a conversation.
-
----
-
-##### SeedBuiltInPromptsAsync
-
-```csharp
-Task SeedBuiltInPromptsAsync();
-```
-
-Seeds the database with built-in prompts if they do not already exist. Should be called once during application startup.
+| Member | Description |
+|--------|-------------|
+| `Task<IReadOnlyList<SystemPromptEntity>> GetAllPromptsAsync(string? category = null)` | All prompts, or one category; favorites first, then by `UsageCount` descending. |
+| `Task<SystemPromptEntity?> GetPromptAsync(long id)` | One prompt. |
+| `Task<SystemPromptEntity> CreatePromptAsync(string name, string content, string category)` | Creates a user prompt. `ArgumentException` when any argument is blank. |
+| `Task UpdatePromptAsync(long id, string name, string content, string category)` | Updates a prompt. `ArgumentException` when any argument is blank. |
+| `Task DeletePromptAsync(long id)` | Deletes a prompt. Built-in prompts cannot be deleted (`InvalidOperationException`). |
+| `Task ToggleFavoriteAsync(long id)` | Toggles `IsFavorite`. |
+| `Task IncrementUsageAsync(long id)` | Adds one to `UsageCount`. |
+| `Task SeedBuiltInPromptsAsync()` | Adds the built-in prompts when they do not exist yet (categories `General`, `Writing`, `Code`, `Analysis` and `Creative`). |
 
 ---
 
@@ -2084,158 +1668,24 @@ namespace AgentX.Core.Services.Collections;
 public interface ICollectionService
 ```
 
-Manages document collections, including CRUD operations, hierarchical organization, and document-collection associations.
+Manages nested document collections and their documents.
 
-**Namespace:** `AgentX.Core.Services.Collections`
-**Assembly:** `AgentX.Core`
 **Implementation:** `CollectionService`
 
-#### Methods
-
----
-
-##### CreateCollectionAsync
-
-```csharp
-Task<CollectionEntity> CreateCollectionAsync(
-    string name,
-    string? description = null,
-    long? parentId = null);
-```
-
-Creates a new collection with the given name, optional description, and optional parent for hierarchical nesting.
-
-**Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `name` | `string` | -- | The name of the collection (must not be empty). |
-| `description` | `string?` | `null` | Optional description of the collection. |
-| `parentId` | `long?` | `null` | Optional parent collection ID for nesting. |
-
-**Returns:** The newly created `CollectionEntity`.
-
----
-
-##### GetAllCollectionsAsync
-
-```csharp
-Task<IReadOnlyList<CollectionEntity>> GetAllCollectionsAsync();
-```
-
-Retrieves all collections, ordered by `SortOrder` then `Name`, with child collections included.
-
----
-
-##### GetRootCollectionsAsync
-
-```csharp
-Task<IReadOnlyList<CollectionEntity>> GetRootCollectionsAsync();
-```
-
-Retrieves only root-level collections (those without a parent), with child collections included.
-
----
-
-##### GetChildCollectionsAsync
-
-```csharp
-Task<IReadOnlyList<CollectionEntity>> GetChildCollectionsAsync(long parentId);
-```
-
-Retrieves the immediate child collections of the specified parent collection.
-
----
-
-##### GetCollectionAsync
-
-```csharp
-Task<CollectionEntity?> GetCollectionAsync(long collectionId);
-```
-
-Retrieves a single collection by ID, including its document associations and child collections.
-
-**Returns:** The `CollectionEntity`, or `null` if not found.
-
----
-
-##### UpdateCollectionAsync
-
-```csharp
-Task UpdateCollectionAsync(
-    long collectionId,
-    string name,
-    string? description = null);
-```
-
-Updates the name and description of an existing collection.
-
----
-
-##### DeleteCollectionAsync
-
-```csharp
-Task DeleteCollectionAsync(long collectionId, bool deleteDocuments = false);
-```
-
-Deletes a collection. Children are re-parented to the deleted collection's parent.
-
-**Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `collectionId` | `long` | -- | The ID of the collection to delete. |
-| `deleteDocuments` | `bool` | `false` | If `true`, cascade-deletes all documents associated with this collection. If `false`, only the collection and its associations are removed; documents remain. |
-
----
-
-##### AddDocumentToCollectionAsync
-
-```csharp
-Task AddDocumentToCollectionAsync(long documentId, long collectionId);
-```
-
-Associates a document with a collection. Creates a `DocumentCollectionEntity` join record.
-
----
-
-##### RemoveDocumentFromCollectionAsync
-
-```csharp
-Task RemoveDocumentFromCollectionAsync(long documentId, long collectionId);
-```
-
-Removes the association between a document and a collection.
-
----
-
-##### MoveCollectionAsync
-
-```csharp
-Task MoveCollectionAsync(long collectionId, long? newParentId);
-```
-
-Moves a collection to a new parent, or to root level if `newParentId` is `null`.
-
----
-
-##### GetCollectionCountAsync
-
-```csharp
-Task<int> GetCollectionCountAsync();
-```
-
-Returns the total number of collections in the database.
-
----
-
-##### GetDocumentsInCollectionAsync
-
-```csharp
-Task<IReadOnlyList<DocumentEntity>> GetDocumentsInCollectionAsync(long collectionId);
-```
-
-Retrieves all documents belonging to a specific collection via the `DocumentCollectionEntity` join table.
+| Member | Description |
+|--------|-------------|
+| `Task<CollectionEntity> CreateCollectionAsync(string name, string? description = null, long? parentId = null)` | Creates a collection, optionally inside a parent. The name must not be empty. |
+| `Task<IReadOnlyList<CollectionEntity>> GetAllCollectionsAsync()` | All collections, nested ones included, ordered by `SortOrder` then `Name`, with child collections loaded. Document counts are refreshed first. |
+| `Task<IReadOnlyList<CollectionEntity>> GetRootCollectionsAsync()` | Collections without a parent, with their children loaded. |
+| `Task<IReadOnlyList<CollectionEntity>> GetChildCollectionsAsync(long parentId)` | The direct children of a collection. |
+| `Task<CollectionEntity?> GetCollectionAsync(long collectionId)` | One collection with its document links and children. |
+| `Task UpdateCollectionAsync(long collectionId, string name, string? description = null)` | Renames a collection and sets its description. |
+| `Task DeleteCollectionAsync(long collectionId, bool deleteDocuments = false)` | Deletes a collection; its children move to its parent. With `deleteDocuments`, its documents are deleted through `IDocumentService.DeleteDocumentAsync`, so their vectors and keyword rows go too. A missing id is logged and ignored. |
+| `Task<bool> AddDocumentToCollectionAsync(long documentId, long collectionId)` | Adds a document. Returns `true` when it was added and `false` when it was already in the collection. `InvalidOperationException` when the document or the collection does not exist. |
+| `Task RemoveDocumentFromCollectionAsync(long documentId, long collectionId)` | Removes a document from a collection. |
+| `Task MoveCollectionAsync(long collectionId, long? newParentId)` | Moves a collection under another one, or to the top level with `null`. `InvalidOperationException` when either collection does not exist, or when the move would put a collection inside itself or one of its descendants. |
+| `Task<int> GetCollectionCountAsync()` | Number of collections. |
+| `Task<IReadOnlyList<DocumentEntity>> GetDocumentsInCollectionAsync(long collectionId)` | The collection's documents ordered by file name, not tracked by the context. |
 
 ---
 
@@ -2247,117 +1697,26 @@ namespace AgentX.Core.Services.Tagging;
 public interface IAutoTagService
 ```
 
-AI-powered automatic tagging and manual tag management. Provides both AI-generated tag suggestions and CRUD operations for the tag system.
+AI tag suggestions and tag management.
 
-**Namespace:** `AgentX.Core.Services.Tagging`
-**Assembly:** `AgentX.Core`
 **Implementation:** `AutoTagService`
 
-#### Methods
+Tag names are normalized: trimmed, composed to Unicode NFC and lowercased; spaces and underscores
+become hyphens; everything except letters, combining marks and digits of any script and hyphens is
+removed; repeated hyphens are collapsed and edge hyphens trimmed. `"Machine Learning"` becomes
+`machine-learning`.
 
----
-
-##### GenerateTagsAsync
-
-```csharp
-Task<IReadOnlyList<(string TagName, double Confidence)>> GenerateTagsAsync(
-    string documentContent,
-    int maxTags = 5,
-    CancellationToken ct = default);
-```
-
-Uses the AI service to generate descriptive tags for the given document content.
-
-**Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `documentContent` | `string` | -- | The text content to analyze for tag generation. |
-| `maxTags` | `int` | `5` | Maximum number of tags to generate. |
-| `ct` | `CancellationToken` | `default` | Cancellation token. |
-
-**Returns:** A list of tuples containing tag names paired with confidence scores (0.0 to 1.0).
-
----
-
-##### ApplyAutoTagsAsync
-
-```csharp
-Task ApplyAutoTagsAsync(long documentId, CancellationToken ct = default);
-```
-
-Generates tags for a document and persists them as `TagEntity`/`DocumentTagEntity` records.
-
-**Behavior:**
-- Existing tags are matched by name (case-insensitive); new tags are created as auto-generated (`IsAutoGenerated = true`).
-- Duplicate document-tag associations are skipped.
-
----
-
-##### GetAllTagsAsync
-
-```csharp
-Task<IReadOnlyList<TagEntity>> GetAllTagsAsync();
-```
-
-Retrieves all tags in the system, ordered by name.
-
----
-
-##### CreateTagAsync
-
-```csharp
-Task<TagEntity> CreateTagAsync(string name, string? colorHex = null);
-```
-
-Creates a new tag with the given name and optional display color.
-
-**Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `name` | `string` | -- | The tag name (must not be empty, must be unique). |
-| `colorHex` | `string?` | `null` | Optional hex color string for display (e.g., `"#FF5733"`). |
-
----
-
-##### DeleteTagAsync
-
-```csharp
-Task DeleteTagAsync(long tagId);
-```
-
-Deletes a tag by ID. Cascade removes all `DocumentTagEntity` associations.
-
----
-
-##### AssignTagAsync
-
-```csharp
-Task AssignTagAsync(long documentId, long tagId);
-```
-
-Manually assigns a tag to a document with full confidence (1.0).
-
----
-
-##### RemoveTagAsync
-
-```csharp
-Task RemoveTagAsync(long documentId, long tagId);
-```
-
-Removes a tag assignment from a document.
-
----
-
-##### GetTagsForDocumentAsync
-
-```csharp
-Task<IReadOnlyList<TagEntity>> GetTagsForDocumentAsync(long documentId);
-```
-
-Retrieves all tags currently assigned to a specific document.
+| Member | Description |
+|--------|-------------|
+| `Task<IReadOnlyList<(string TagName, double Confidence)>> GenerateTagsAsync(string documentContent, int maxTags = 5, CancellationToken ct = default)` | Asks the AI service for tags with confidence scores (0.0 to 1.0). |
+| `Task ApplyAutoTagsAsync(long documentId, CancellationToken ct = default)` | Generates tags for a document and saves them. Existing tags are matched by name ignoring case, new ones are created with `IsAutoGenerated = true`, and each normalized tag is applied once per call. |
+| `Task<IReadOnlyList<TagEntity>> GetAllTagsAsync()` | All tags by name. |
+| `Task<TagEntity> CreateTagAsync(string name, string? colorHex = null)` | Creates a tag with the normalized name. `ArgumentException` for a blank name; `InvalidOperationException` when the tag exists. |
+| `Task DeleteTagAsync(long tagId)` | Deletes a tag and its document links. |
+| `Task AssignTagAsync(long documentId, long tagId)` | Assigns a tag with confidence 1.0. |
+| `Task RemoveTagAsync(long documentId, long tagId)` | Removes a tag from a document. |
+| `Task<IReadOnlyList<TagEntity>> GetTagsForDocumentAsync(long documentId)` | Tags of one document. |
+| `Task<IReadOnlyDictionary<long, IReadOnlyList<TagEntity>>> GetTagsForDocumentsAsync(IReadOnlyList<long> documentIds)` | Tags of several documents in one call, keyed by document id. |
 
 ---
 
@@ -2371,201 +1730,44 @@ namespace AgentX.Core.Services.Indexing;
 public interface IIndexingService : IDisposable
 ```
 
-Manages the background indexing pipeline: processes pending documents by chunking their extracted text, generating embeddings, and storing vectors for semantic search.
+The background indexing pipeline: it chunks the extracted text of pending documents, embeds the
+chunks, stores the vectors and writes the keyword (FTS5) rows.
 
-**Namespace:** `AgentX.Core.Services.Indexing`
-**Assembly:** `AgentX.Core`
 **Implementation:** `IndexingService`
 
-#### Properties
+**Behavior:**
+- `InitializeAsync` runs at app launch, after the AI service is initialized; watch folder
+  monitoring starts after it.
+- It subscribes to `IDocumentService.DocumentPendingIndexing`, so imports and re-indexes are
+  processed during the session, and it reuses the extraction handed over with the event. The idle
+  loop also picks up `"pending"` documents written by other paths (Web Import, sync, the local
+  API).
+- At start, documents and jobs left in `"processing"` by an interrupted session are queued again;
+  a document interrupted by shutdown goes back to `"pending"`.
+- Chunks are stamped with `EmbeddingModelVersion`, `EmbeddingDimensions` and `EmbeddedAt`. When
+  nothing is queued, completed documents whose chunks carry no version, or the legacy
+  `all-minilm:1.0`, are embedded again from their stored chunk text, one document at a time.
+- If the vector store cannot be initialized, the loop still runs and marks every document it takes
+  as failed with the reason.
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `IsProcessing` | `bool` | Indicates whether the indexing service is currently processing a document. |
+#### Properties and events
 
-#### Events
-
-| Event | Type | Description |
-|-------|------|-------------|
-| `ProgressChanged` | `EventHandler<IndexingProgressEventArgs>?` | Raised when the indexing queue state changes (item queued, processing, completed, etc.). |
-| `DocumentIndexed` | `EventHandler<long>?` | Raised when a document has been successfully indexed. The event argument is the document ID. |
-
-#### Methods
-
----
-
-##### InitializeAsync
-
-```csharp
-Task InitializeAsync(CancellationToken ct = default);
-```
-
-Initializes the indexing service: sets up the vector store and starts the background processing loop for queued indexing jobs.
-
----
-
-##### IndexDocumentAsync
-
-```csharp
-Task IndexDocumentAsync(long documentId, CancellationToken ct = default);
-```
-
-Indexes a single document: re-processes the file, chunks the text, generates embeddings, and stores them in the vector database.
-
----
-
-##### ReindexAllAsync
-
-```csharp
-Task ReindexAllAsync(
-    IProgress<(int Processed, int Total)>? progress = null,
-    CancellationToken ct = default);
-```
-
-Re-indexes all completed documents. Useful after changing chunking or embedding settings.
-
-**Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `progress` | `IProgress<(int Processed, int Total)>?` | `null` | Optional progress reporter with (processed, total) tuple. |
-| `ct` | `CancellationToken` | `default` | Cancellation token. |
-
----
-
-##### GetQueueLengthAsync
-
-```csharp
-Task<int> GetQueueLengthAsync();
-```
-
-Returns the number of documents currently waiting in the indexing queue.
-
----
-
-##### GetProcessedCountAsync
-
-```csharp
-Task<int> GetProcessedCountAsync();
-```
-
-Returns the total number of documents that have been successfully indexed.
-
----
-
-### IIndexingQueueService
-
-```csharp
-namespace AgentX.Core.Services.Indexing;
-
-public interface IIndexingQueueService
-```
-
-Manages the persistent indexing job queue backed by the database. Provides enqueue, dequeue, and status update operations for `IndexingJobEntity` records.
-
-**Namespace:** `AgentX.Core.Services.Indexing`
-**Assembly:** `AgentX.Core`
-**Implementation:** `IndexingQueueService`
+| Member | Type | Description |
+|--------|------|-------------|
+| `IsProcessing` | `bool` | Whether a document is being processed. |
+| `ProgressChanged` | `EventHandler<IndexingProgressEventArgs>?` | Queue state changes. |
+| `DocumentIndexed` | `EventHandler<long>?` | A document was indexed; the argument is its id. Raised on the indexing thread. |
+| `DocumentIndexingFailed` | `EventHandler<DocumentIndexingFailedEventArgs>?` | Indexing failed, after the document was saved as `"failed"` with the reason. Raised on the indexing thread. |
 
 #### Methods
 
----
-
-##### EnqueueAsync
-
-```csharp
-Task EnqueueAsync(long documentId);
-```
-
-Creates a new indexing job for the specified document with `Status = "queued"`.
-
----
-
-##### EnqueueBatchAsync
-
-```csharp
-Task EnqueueBatchAsync(IReadOnlyList<long> documentIds);
-```
-
-Creates indexing jobs for multiple documents at once.
-
----
-
-##### DequeueAsync
-
-```csharp
-Task<IndexingJobEntity?> DequeueAsync(CancellationToken ct = default);
-```
-
-Atomically dequeues the oldest queued job by setting its status to `"processing"` and recording the start time.
-
-**Returns:** The dequeued `IndexingJobEntity`, or `null` if the queue is empty.
-
----
-
-##### MarkCompletedAsync
-
-```csharp
-Task MarkCompletedAsync(
-    long jobId,
-    int chunksProcessed,
-    int embeddingsGenerated,
-    double processingTimeMs);
-```
-
-Marks a job as successfully completed with processing metrics.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `jobId` | `long` | The ID of the indexing job. |
-| `chunksProcessed` | `int` | Number of text chunks created. |
-| `embeddingsGenerated` | `int` | Number of embedding vectors generated. |
-| `processingTimeMs` | `double` | Total processing time in milliseconds. |
-
----
-
-##### MarkFailedAsync
-
-```csharp
-Task MarkFailedAsync(long jobId, string errorMessage);
-```
-
-Marks a job as failed with a descriptive error message.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `jobId` | `long` | The ID of the indexing job. |
-| `errorMessage` | `string` | A description of the error that caused the failure. |
-
----
-
-##### GetPendingCountAsync
-
-```csharp
-Task<int> GetPendingCountAsync();
-```
-
-Returns the count of jobs that are either queued or currently processing.
-
----
-
-##### GetRecentJobsAsync
-
-```csharp
-Task<IReadOnlyList<IndexingJobEntity>> GetRecentJobsAsync(int limit = 50);
-```
-
-Returns the most recent indexing jobs, ordered by `QueuedAt` descending.
-
-**Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `limit` | `int` | `50` | Maximum number of jobs to return. |
+| Method | Description |
+|--------|-------------|
+| `Task InitializeAsync(CancellationToken ct = default)` | Initializes the vector store, recovers interrupted work and starts the background loop. |
+| `Task IndexDocumentAsync(long documentId, CancellationToken ct = default)` | Queues one document for the background loop. `InvalidOperationException` when the document does not exist. |
+| `Task ReindexAllAsync(IProgress<(int Processed, int Total)>? progress = null, CancellationToken ct = default)` | Removes the chunks, vectors and keyword rows of every completed or failed document, resets it to `"pending"` and queues it. |
+| `Task<int> GetQueueLengthAsync()` | Documents waiting in the in-memory queue plus the one being processed. |
+| `Task<int> GetProcessedCountAsync()` | Number of completed jobs in the indexing job history (`IndexingJobEntity`). |
 
 ---
 
@@ -2577,92 +1779,27 @@ namespace AgentX.Core.Services.Indexing;
 public interface IFileWatcherService : IDisposable
 ```
 
-Monitors registered watch folders for new or modified files and automatically imports them into the knowledge vault via `IDocumentService`. Uses `FileSystemWatcher` with per-file debouncing to avoid duplicate events.
+Watches the registered watch folders and imports new or changed files through `IDocumentService`,
+with per-file debouncing. Watch folders are managed in Settings > Knowledge Vault.
 
-**Namespace:** `AgentX.Core.Services.Indexing`
-**Assembly:** `AgentX.Core`
 **Implementation:** `FileWatcherService`
 
-#### Properties
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `IsWatching` | `bool` | Indicates whether any watch folders are currently being monitored. |
-
-#### Events
-
-| Event | Type | Description |
-|-------|------|-------------|
-| `FileDetected` | `EventHandler<string>?` | Raised when a new or modified file is detected in a watched folder. The event argument is the full file path. |
-
-#### Methods
+| Member | Description |
+|--------|-------------|
+| `Task InitializeAsync(CancellationToken ct = default)` | Startup entry point, called after the indexing pipeline starts. When the `AutoIndexWatchFolders` setting is on, it starts watching every enabled folder and then catches up: files added while the app was closed are imported and files changed since their import are re-indexed. Does nothing when the setting is off. |
+| `Task StartWatchingAsync(CancellationToken ct = default)` | Starts a watcher for every enabled folder. |
+| `Task StopWatchingAsync()` | Stops all watchers; the folder list is kept. |
+| `Task AddWatchFolderAsync(string path, bool includeSubfolders = true, string? fileTypeFilter = null, long? collectionId = null)` | Registers a folder and starts watching it at once. `fileTypeFilter` is a comma-separated extension list such as `"pdf,docx,txt"` (`null` for all supported types). `ArgumentException` for a blank path, `DirectoryNotFoundException` when the folder does not exist, `InvalidOperationException` when the folder is already registered (compared without regard to case) or the collection does not exist. |
+| `Task RemoveWatchFolderAsync(long watchFolderId)` | Stops watching a folder and deletes its record. |
+| `Task<IReadOnlyList<WatchFolderEntity>> GetWatchFoldersAsync()` | All registered folders. |
+| `bool IsWatching` | Whether any folder is being watched. |
+| `event EventHandler<string>? FileDetected` | A new or changed file was detected; the argument is its full path. |
 
 ---
 
-##### StartWatchingAsync
+### Indexing Event Data
 
-```csharp
-Task StartWatchingAsync(CancellationToken ct = default);
-```
-
-Loads all enabled watch folders from the database and starts a `FileSystemWatcher` for each one.
-
----
-
-##### StopWatchingAsync
-
-```csharp
-Task StopWatchingAsync();
-```
-
-Stops all active file system watchers and clears internal state. The watch folder configuration is preserved in the database.
-
----
-
-##### AddWatchFolderAsync
-
-```csharp
-Task AddWatchFolderAsync(
-    string path,
-    bool includeSubfolders = true,
-    string? fileTypeFilter = null,
-    long? collectionId = null);
-```
-
-Registers a new watch folder, persists it to the database, and starts watching immediately.
-
-**Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `path` | `string` | -- | Absolute path to the folder to watch. |
-| `includeSubfolders` | `bool` | `true` | Whether to recursively monitor subdirectories. |
-| `fileTypeFilter` | `string?` | `null` | Comma-separated list of extensions to watch (e.g., `"pdf,docx,txt"`). `null` means all supported types. |
-| `collectionId` | `long?` | `null` | Optional collection to associate imported documents with. |
-
----
-
-##### RemoveWatchFolderAsync
-
-```csharp
-Task RemoveWatchFolderAsync(long watchFolderId);
-```
-
-Stops watching a folder, removes its watcher, and deletes the database record.
-
----
-
-##### GetWatchFoldersAsync
-
-```csharp
-Task<IReadOnlyList<WatchFolderEntity>> GetWatchFoldersAsync();
-```
-
-Returns all registered watch folders from the database.
-
----
-
-### IndexingProgressEventArgs
+#### IndexingProgressEventArgs
 
 ```csharp
 namespace AgentX.Core.Services.Indexing;
@@ -2670,14 +1807,25 @@ namespace AgentX.Core.Services.Indexing;
 public class IndexingProgressEventArgs : EventArgs
 ```
 
-Event data for indexing progress updates.
-
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `QueueLength` | `int` | -- | Number of items remaining in the indexing queue (init-only). |
-| `Processed` | `int` | -- | Number of items processed so far in the current batch or since initialization (init-only). |
-| `CurrentDocument` | `string?` | `null` | The file name of the document currently being processed (`null` if idle) (init-only). |
-| `PercentComplete` | `double?` | `null` | Overall completion percentage (0-100), or `null` if indeterminate (init-only). |
+| `QueueLength` | `int` | -- | Items left in the queue (init-only). |
+| `Processed` | `int` | -- | Items processed since initialization (init-only). |
+| `CurrentDocument` | `string?` | `null` | File name being processed; `null` when idle (init-only). |
+| `PercentComplete` | `double?` | `null` | 0 to 100, or `null` when unknown (init-only). |
+
+#### DocumentIndexingFailedEventArgs
+
+```csharp
+namespace AgentX.Core.Services.Indexing;
+
+public sealed class DocumentIndexingFailedEventArgs : EventArgs
+```
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `DocumentId` | `long` | The document that could not be indexed. |
+| `Error` | `string` | The reason, as saved in `DocumentEntity.IndexingError`. |
 
 ---
 
@@ -2689,74 +1837,31 @@ Event data for indexing progress updates.
 namespace AgentX.Core.Services.Settings;
 
 public interface ISettingsService
+{
+    Task<AppSettings> GetSettingsAsync();
+    Task SaveSettingsAsync(AppSettings settings);
+    Task<T?> GetValueAsync<T>(string key);
+    Task SetValueAsync<T>(string key, T value);
+}
 ```
 
-Manages application settings persistence. Settings are stored as a JSON file at `%LOCALAPPDATA%/AgentX/settings.json`.
+Reads and writes `%LOCALAPPDATA%\AgentX\settings.json` (camelCase JSON).
 
-**Namespace:** `AgentX.Core.Services.Settings`
-**Assembly:** `AgentX.Core`
 **Implementation:** `SettingsService`
 
-#### Methods
+| Method | Description |
+|--------|-------------|
+| `GetSettingsAsync` | Returns the cached settings, loading them on first use. A missing file is created with defaults. A file that cannot be read or parsed is copied to `settings.json.corrupt-<utc>` and defaults are used for the session; it is never overwritten with defaults. Each secret is decrypted on its own: one that cannot be decrypted (DPAPI data from another Windows account or machine) is cleared and logged, the file is copied to `settings.json.undecryptable-<utc>`, and every other setting is kept. Plaintext secrets found on disk are encrypted and rewritten. |
+| `SaveSettingsAsync` | Validates the settings with `AppSettingsValidator`, encrypts the secrets and writes the file atomically (a temporary file swapped in), one save at a time. Clearly invalid values throw `SettingsValidationException` and nothing is written; when the rejected object is the cached instance, the cache is dropped so the next read returns the last saved settings. A missing cloud API key is only advisory, and a field that is already invalid on disk does not block unrelated saves. |
+| `GetValueAsync<T>(string key)` | Reads the `AppSettings` property named `key` (exact, case-sensitive property name) by reflection; `default(T)` when there is no such property. |
+| `SetValueAsync<T>(string key, T value)` | Sets the property named `key` and saves; does nothing when there is no such property. |
 
----
+**Encrypted fields:** `OpenAiApiKey`, `AnthropicApiKey`, `WebSearchApiKey`, `LocalApiToken`,
+`OAuth.Google.ClientSecret`, `OAuth.Microsoft.ClientSecret` and `BackupSchedule.EncryptionPassword`
+are stored DPAPI-encrypted on disk and plaintext in memory.
 
-##### GetSettingsAsync
-
-```csharp
-Task<AppSettings> GetSettingsAsync();
-```
-
-Returns the current application settings. Results are cached in memory after the first load. If no settings file exists, creates one with default values.
-
-**Returns:** The current `AppSettings` instance.
-
----
-
-##### SaveSettingsAsync
-
-```csharp
-Task SaveSettingsAsync(AppSettings settings);
-```
-
-Persists the settings to disk and updates the in-memory cache.
-
-**Exceptions:** Throws on I/O errors.
-
----
-
-##### GetValueAsync\<T\>
-
-```csharp
-Task<T?> GetValueAsync<T>(string key);
-```
-
-Retrieves a single setting value by property name using reflection.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `string` | The name of the `AppSettings` property to read. |
-
-**Returns:** The value cast to `T`, or `default(T)` if the property is not found.
-
----
-
-##### SetValueAsync\<T\>
-
-```csharp
-Task SetValueAsync<T>(string key, T value);
-```
-
-Sets a single setting value by property name and persists to disk.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `string` | The name of the `AppSettings` property to write. |
-| `value` | `T` | The value to set. |
+`SettingsValidationException` derives from `ArgumentException`; its `Errors` property lists the
+`ValidationError` items that blocked the save.
 
 ---
 
@@ -2768,22 +1873,53 @@ namespace AgentX.Core.Services.Settings;
 public class AppSettings
 ```
 
-Application configuration stored as `settings.json` in `%LOCALAPPDATA%/AgentX/`.
+The contents of `settings.json`.
 
-| Property | Type | Default | Category | Description |
-|----------|------|---------|----------|-------------|
-| `OnboardingCompleted` | `bool` | `false` | Onboarding | Whether the user has completed the first-run setup wizard. |
-| `OllamaEndpoint` | `string` | `"http://localhost:11434"` | AI Provider | The base URL for the Ollama API. |
-| `DefaultModel` | `string` | `"llama3.2"` | AI Provider | The default model identifier for chat inference. |
-| `EmbeddingModel` | `string` | `"all-minilm"` | AI Provider | The model used for generating vector embeddings. |
-| `Temperature` | `double` | `0.7` | Inference | Default temperature for AI inference. |
-| `MaxTokens` | `int` | `4096` | Inference | Default maximum token count for AI responses. |
-| `ContextWindow` | `int` | `8192` | Inference | Default context window size. |
-| `ChunkSize` | `int` | `512` | Knowledge Vault | Maximum tokens per text chunk during document indexing. |
-| `ChunkOverlap` | `int` | `50` | Knowledge Vault | Number of overlapping tokens between consecutive chunks. |
-| `TopKResults` | `int` | `5` | Knowledge Vault | Number of top results to retrieve during semantic search. |
-| `AutoIndexWatchFolders` | `bool` | `true` | Knowledge Vault | Whether to automatically index files detected in watch folders. |
-| `StoragePath` | `string` | `%LOCALAPPDATA%/AgentX` | Storage | Base path for application data storage (databases, indexes, etc.). |
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `OnboardingCompleted` | `bool` | `false` | First-run setup finished. |
+| `Theme` | `string` | `"Dark"` | `"Dark"`, `"Light"` or `"Default"` (follows Windows). |
+| `LanguageOverride` | `string?` | `null` | UI language (`en-US`, `de`, `es`, `fr`, `ja`, `zh-CN`); `null` follows the Windows display language. |
+| `ActiveProviderId` | `string` | `"local"` | Preferred provider: `local`, `ollama`, `openai` or `anthropic`. |
+| `LocalModelFileName` | `string` | `"llama-3.2-3b-instruct-q4_k_m.gguf"` | Built-in model file (also its embedding model). |
+| `LocalContextSize` | `int` | `8192` | Built-in model context size. |
+| `LocalGpuLayers` | `int` | `0` | Built-in model layers on the GPU: 0 automatic, a positive count, or negative for CPU only. |
+| `OllamaEndpoint` | `string` | `"http://localhost:11434"` | Ollama server URL. |
+| `DefaultModel` | `string` | `"llama3.2"` | Ollama chat model. |
+| `EmbeddingModel` | `string` | `"all-minilm"` | Embedding Model setting (see `EmbeddingTargetResolver`). |
+| `OpenAiApiKey` | `string?` | `null` | OpenAI API key (encrypted on disk). |
+| `OpenAiEndpoint` | `string` | `"https://api.openai.com/v1/"` | OpenAI or compatible endpoint. |
+| `OpenAiDefaultModel` | `string?` | `"gpt-4o-mini"` | OpenAI chat model. |
+| `AnthropicApiKey` | `string?` | `null` | Anthropic API key (encrypted on disk). |
+| `AnthropicEndpoint` | `string` | `"https://api.anthropic.com/v1/"` | Anthropic endpoint. |
+| `AnthropicDefaultModel` | `string?` | `"claude-sonnet-5"` | Anthropic chat model (`AnthropicProvider.DefaultModelId`). |
+| `Temperature` | `double` | `0.7` | Chat temperature. |
+| `MaxTokens` | `int` | `4096` | Maximum tokens per chat reply. |
+| `ContextWindow` | `int` | `8192` | Chat context window. |
+| `ChunkSize` | `int` | `512` | Tokens per chunk. |
+| `ChunkOverlap` | `int` | `50` | Overlap between chunks; must be smaller than `ChunkSize`. |
+| `TopKResults` | `int` | `5` | Chunks the RAG pipeline retrieves and keeps. |
+| `AutoIndexWatchFolders` | `bool` | `true` | Watch folders are monitored and imported. |
+| `EnableModelRouting` | `bool` | `false` | Multi-Model Routing per reply. |
+| `ActiveRoutingProfileId` | `string` | `"balanced"` | Routing profile. |
+| `EnableResearchMode` | `bool` | `false` | Research Mode web search in chat. |
+| `WebSearchProvider` | `WebSearchProvider` | `Brave` | `Brave`, `Serper` or `SearXng`. |
+| `WebSearchApiKey` | `string?` | `null` | Brave or Serper API key, or the SearXNG instance URL (encrypted on disk). |
+| `MaxSearchResults` | `int` | `10` | Web results per search, used up to 20. |
+| `SearchCacheTtlMinutes` | `int` | `60` | Web result cache duration, used up to 1440. |
+| `EnableScreenAwareness` | `bool` | `false` | Lets Quick Chat add OCR text from the window in front (Settings, Screen awareness in Quick Chat). |
+| `LocalApiEnabled` | `bool` | `true` | Enable Local API. |
+| `LocalApiToken` | `string?` | `null` | Local REST API bearer token (encrypted on disk); created the first time the API starts. |
+| `EnableHnswIndex` | `bool` | `true` | Use the HNSW vector store. |
+| `HnswM` | `int` | `16` | HNSW graph degree. |
+| `HnswEfConstruction` | `int` | `200` | HNSW build parameter. |
+| `HnswEfSearch` | `int` | `50` | Minimum HNSW search breadth (ef). A query already searches at least max(`HnswEfConstruction`, 2 x candidates), so only a larger value widens the search (better recall, slower queries). |
+| `HnswFallbackThreshold` | `int` | `10000` | Below this many vectors the HNSW store scans linearly. |
+| `OAuth` | `OAuthSettings` | `new()` | `Google` (`ClientId`, `ClientSecret`, `RedirectUri` default `http://localhost:8400/oauth/callback`), `Microsoft` (`ClientId`, `ClientSecret`, `TenantId` default `common`, `RedirectUri` default `http://localhost:8401/oauth/callback`), `TokenRefreshBufferMinutes` (5) and `AuthTimeoutSeconds` (300). |
+| `CalendarConnector` | `CalendarSettings` | `new()` | `EnableCalendarSync` (false), `SyncIntervalMinutes` (15), `DaysPastToSync` (90), `DaysFutureToSync` (30), `ConflictResolution` (`"RemoteWins"`), `IncludeAttendeeDetails` (true), `IncludeDescriptions` (true). |
+| `EmailConnector` | `EmailSettings` | `new()` | `EnableEmailSync` (false), `SyncIntervalMinutes` (10), `MessagesPerSync` (50), `DaysBackToSync` (30), `EnableAiCategorization` (true, not applied: messages are categorized by rules), `IncludeBodyContent` (true, not applied: the connector's own `EmailSyncSettings.IncludeHtmlBody` decides whether bodies are kept), `IncludeAttachmentMetadata` (false). |
+| `BackupSchedule` | `BackupScheduleConfig` | `new()` | `Enabled` (false), `IntervalHours` (168, at most 720), `MaxBackupsToKeep` (5, 0 keeps all), `DestinationPath`, `EncryptionPassword` (encrypted on disk). |
+| `StoragePath` | `string` | `%LOCALAPPDATA%\AgentX` | Folder for the built-in models, the vector store, web imports and exports. Shown read-only in Settings > Storage. |
 
 ---
 
@@ -2797,78 +1933,15 @@ namespace AgentX.Core.Services.Intelligence;
 public interface ISummaryService
 ```
 
-Provides AI-powered document summarization, key-point extraction, and text translation capabilities.
+Document summaries, key points and translation.
 
-**Namespace:** `AgentX.Core.Services.Intelligence`
-**Assembly:** `AgentX.Core`
 **Implementation:** `SummaryService`
 
-#### Methods
-
----
-
-##### SummarizeDocumentAsync
-
-```csharp
-Task<string> SummarizeDocumentAsync(long documentId, CancellationToken ct = default);
-```
-
-Generates a concise summary of a document by its ID. Loads the document and its chunks from the database, concatenates chunk text (up to 8000 characters), and uses the AI service to produce a summary.
-
-**Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `documentId` | `long` | -- | The primary key of the document to summarize. |
-| `ct` | `CancellationToken` | `default` | Cancellation token. |
-
-**Returns:** `string` -- A concise AI-generated summary.
-
-**Exceptions:**
-- `InvalidOperationException` -- Thrown when the document is not found or has no indexed chunks.
-
----
-
-##### ExtractKeyPointsAsync
-
-```csharp
-Task<IReadOnlyList<string>> ExtractKeyPointsAsync(
-    long documentId,
-    CancellationToken ct = default);
-```
-
-Extracts key points (bullet list) from a document by its ID. Each key point is a concise, single-sentence summary of an important finding or topic.
-
-**Returns:** An ordered list of key point strings.
-
-**Exceptions:**
-- `InvalidOperationException` -- Thrown when the document is not found or has no indexed chunks.
-
----
-
-##### TranslateTextAsync
-
-```csharp
-Task<string> TranslateTextAsync(
-    string text,
-    string targetLanguage,
-    CancellationToken ct = default);
-```
-
-Translates the given text to the specified target language. Input text is capped at 4000 characters to fit within context limits.
-
-**Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `text` | `string` | -- | The source text to translate. |
-| `targetLanguage` | `string` | -- | The target language (e.g., `"Spanish"`, `"French"`, `"Japanese"`). |
-| `ct` | `CancellationToken` | `default` | Cancellation token. |
-
-**Returns:** `string` -- The translated text.
-
-**Exceptions:**
-- `ArgumentException` -- Thrown when `text` or `targetLanguage` is null or empty.
+| Member | Description |
+|--------|-------------|
+| `Task<string> SummarizeDocumentAsync(long documentId, CancellationToken ct = default)` | Reads the document's chunks in order, up to 8,000 characters, and builds the summary with `IHierarchicalSummaryService` (section summaries combined into one). `InvalidOperationException` when the document does not exist or has no indexed chunks. |
+| `Task<IReadOnlyList<string>> ExtractKeyPointsAsync(long documentId, CancellationToken ct = default)` | Key points from the same hierarchical summary. Same exceptions. |
+| `Task<string> TranslateTextAsync(string text, string targetLanguage, CancellationToken ct = default)` | Translates `text` into `targetLanguage` (for example `"Spanish"`). Text longer than 4,000 characters is translated in parts split at paragraph, line or sentence breaks, and the parts are joined in order, so nothing is cut off. Each request uses temperature 0.3 and at most 2,048 output tokens. `ArgumentException` when either argument is blank. |
 
 ---
 
@@ -2880,48 +1953,12 @@ namespace AgentX.Core.Services.Intelligence;
 public interface IDuplicateDetectionService
 ```
 
-Detects duplicate and near-duplicate documents in the knowledge vault. Supports both exact-match detection via content hashes and semantic near-duplicate detection via vector embedding similarity.
-
-**Namespace:** `AgentX.Core.Services.Intelligence`
-**Assembly:** `AgentX.Core`
 **Implementation:** `DuplicateDetectionService`
 
-#### Methods
-
----
-
-##### FindDuplicatesAsync
-
-```csharp
-Task<IReadOnlyList<DuplicateGroup>> FindDuplicatesAsync(CancellationToken ct = default);
-```
-
-Scans all documents and groups those with identical content hashes. This is an efficient operation that requires no AI inference -- it relies solely on the SHA-256 content hashes computed during document import.
-
-**Returns:** A list of `DuplicateGroup` instances, each containing two or more documents that share the same content hash. Returns an empty list if no duplicates are found.
-
----
-
-##### FindNearDuplicatesAsync
-
-```csharp
-Task<IReadOnlyList<DuplicateGroup>> FindNearDuplicatesAsync(
-    float similarityThreshold = 0.9f,
-    CancellationToken ct = default);
-```
-
-Finds documents that are near-duplicates based on semantic similarity. Uses vector embeddings to identify documents whose content is similar but not necessarily byte-for-byte identical (e.g., reformatted versions, minor edits, or different file formats of the same content).
-
-**Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `similarityThreshold` | `float` | `0.9f` | The minimum cosine similarity (0.0 to 1.0) required to consider two documents as near-duplicates. |
-| `ct` | `CancellationToken` | `default` | Cancellation token. |
-
-**Returns:** A list of `DuplicateGroup` instances for near-duplicate documents. Returns an empty list if none are found.
-
-**Performance Note:** This operation is more expensive than exact-hash detection as it requires loading and comparing vector embeddings. The scan is capped at the first 500 documents to avoid excessive computation time.
+| Member | Description |
+|--------|-------------|
+| `Task<IReadOnlyList<DuplicateGroup>> FindDuplicatesAsync(CancellationToken ct = default)` | Groups documents with the same SHA-256 content hash (no AI). Each group has at least two documents; an empty list when there are none. |
+| `Task<IReadOnlyList<DuplicateGroup>> FindNearDuplicatesAsync(float similarityThreshold = 0.9f, CancellationToken ct = default)` | Groups documents whose chunk embeddings reach `similarityThreshold` (cosine similarity), with the evidence per match. The scan covers at most 500 documents. |
 
 ---
 
@@ -2931,401 +1968,370 @@ Finds documents that are near-duplicates based on semantic similarity. Uses vect
 namespace AgentX.Core.Services.Intelligence;
 
 public interface IOrganizationSuggestionService
+{
+    Task<IReadOnlyList<OrganizationSuggestion>> SuggestOrganizationAsync(
+        int maxDocuments = 20, CancellationToken ct = default);
+}
 ```
 
-Analyzes uncategorized documents and provides AI-powered suggestions for organizing them into collections with appropriate tags.
+Asks the AI service to suggest a collection and tags for documents that are in no collection, at
+most `maxDocuments` per call. Returns an empty list when every document is in a collection.
 
-**Namespace:** `AgentX.Core.Services.Intelligence`
-**Assembly:** `AgentX.Core`
 **Implementation:** `OrganizationSuggestionService`
-
-#### Methods
-
----
-
-##### SuggestOrganizationAsync
-
-```csharp
-Task<IReadOnlyList<OrganizationSuggestion>> SuggestOrganizationAsync(
-    int maxDocuments = 20,
-    CancellationToken ct = default);
-```
-
-Analyzes documents that have no collection associations and suggests appropriate collections and tags for each one based on their content.
-
-**Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `maxDocuments` | `int` | `20` | The maximum number of uncategorized documents to analyze in a single batch. Defaults to 20 to balance thoroughness with response time. |
-| `ct` | `CancellationToken` | `default` | Cancellation token. |
-
-**Returns:** A list of `OrganizationSuggestion` instances, one per analyzed document. Returns an empty list if all documents are already categorized.
 
 ---
 
 ### Intelligence Models
 
+Namespace `AgentX.Core.Services.Intelligence.Models`.
+
 #### DuplicateGroup
-
-```csharp
-namespace AgentX.Core.Services.Intelligence.Models;
-
-public class DuplicateGroup
-```
-
-Represents a group of documents that share identical or near-identical content.
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `ContentHash` | `string` | `""` | The content hash shared by all documents in this group (for exact duplicates), or the hash of the reference document (for near-duplicates) (init-only). |
-| `Documents` | `List<DuplicateDocument>` | `new()` | The documents in this group. The first document is the "original"; subsequent entries are duplicates (init-only). |
-| `WastedStorageBytes` | `long` | *(computed)* | Total storage consumed by duplicate copies (all documents except the first/original). |
+| `ContentHash` | `string` | `""` | The shared hash (exact duplicates) or the reference document's hash (near duplicates) (init-only). |
+| `MatchKind` | `DuplicateMatchKind` | `Exact` | `Exact` or `Semantic` (init-only). |
+| `Documents` | `List<DuplicateDocument>` | `new()` | The documents; the first one is treated as the original (init-only). |
+| `WastedStorageBytes` | `long` | *(computed)* | Size of all documents except the first. |
 
 #### DuplicateDocument
 
-```csharp
-namespace AgentX.Core.Services.Intelligence.Models;
-
-public class DuplicateDocument
-```
-
-Metadata for a single document within a duplicate group.
-
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `DocumentId` | `long` | -- | Primary key of the document (init-only). |
-| `FileName` | `string` | `""` | Original file name (init-only). |
-| `FilePath` | `string` | `""` | Absolute file path (init-only). |
-| `FileSizeBytes` | `long` | -- | File size in bytes (init-only). |
-| `ImportedAt` | `DateTime` | -- | Timestamp when imported into the knowledge vault (init-only). |
+| Property | Type | Description |
+|----------|------|-------------|
+| `DocumentId` | `long` | The document (init-only). |
+| `FileName` | `string` | File name (init-only). |
+| `FilePath` | `string` | File path (init-only). |
+| `FileSizeBytes` | `long` | Size in bytes (init-only). |
+| `ImportedAt` | `DateTime` | Import time (init-only). |
+| `Evidence` | `DuplicateEvidence?` | For semantic matches: `DocumentId`, `SupportingChunkCount`, `MaxSimilarity`, `AverageSimilarity` and `Confidence`. Unset for exact duplicates (init-only). |
 
 #### OrganizationSuggestion
 
-```csharp
-namespace AgentX.Core.Services.Intelligence.Models;
-
-public class OrganizationSuggestion
-```
-
-An AI-generated suggestion for organizing an uncategorized document.
-
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `DocumentId` | `long` | -- | Primary key of the document this suggestion applies to (init-only). |
-| `FileName` | `string` | `""` | File name of the document (init-only). |
-| `SuggestedCollection` | `string` | `""` | The collection name the AI suggests. May be an existing or new collection name (init-only). |
-| `SuggestedTags` | `List<string>` | `new()` | A list of 2-3 descriptive tags the AI suggests (init-only). |
-| `Reasoning` | `string` | `""` | The AI's reasoning for the suggested organization (init-only). |
-| `Confidence` | `float` | -- | Confidence score from 0.0 (no confidence) to 1.0 (certain) (init-only). |
+| Property | Type | Description |
+|----------|------|-------------|
+| `DocumentId` | `long` | The document (init-only). |
+| `FileName` | `string` | Its file name (init-only). |
+| `SuggestedCollection` | `string` | An existing or new collection name (init-only). |
+| `SuggestedTags` | `List<string>` | Suggested tags (init-only). |
+| `Reasoning` | `string` | The model's reason (init-only). |
+| `Confidence` | `float` | 0.0 to 1.0 (init-only). |
 
 ---
 
 ## 11. Database Entities
 
-All entities are managed by Entity Framework Core via `AgentXDbContext`. The database is SQLite, stored at the path configured in `AppSettings.StoragePath`.
+All entities are EF Core entities of `AgentXDbContext`. The database is the SQLite file
+`%LOCALAPPDATA%\AgentX\agentx.db`, encrypted with SQLCipher when database encryption is on. One
+context instance is shared by the app, and operations on it are serialized instead of running
+concurrently. Dates are stored in UTC.
 
 **Namespace:** `AgentX.Core.Data.Entities`
 **Assembly:** `AgentX.Core`
+
+This section covers the entities of the services above. The other tables (annotations, inbox
+items, workflows, memories, sync logs, digests and more) are described in
+[`DATABASE_SCHEMA.md`](../DATABASE_SCHEMA.md).
 
 ---
 
 ### ConversationEntity
 
-Represents a chat conversation with an AI model.
+A chat conversation.
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `Id` | `long` | *(auto)* | Primary key (auto-increment). |
-| `Title` | `string` | `""` | Display title of the conversation. |
-| `SystemPrompt` | `string?` | `null` | System prompt used for all messages in this conversation. |
-| `ModelId` | `string` | `""` | The AI model identifier used for this conversation. |
-| `CreatedAt` | `DateTime` | *(set on create)* | When the conversation was created. |
-| `UpdatedAt` | `DateTime` | *(set on modify)* | When the conversation was last updated. |
-| `IsPinned` | `bool` | `false` | Whether the conversation is pinned to the top of the list. |
-| `IsArchived` | `bool` | `false` | Whether the conversation is archived (hidden from default view). |
-| `MessageCount` | `int` | `0` | Total number of messages in the conversation. |
-| `TokensUsed` | `long` | `0` | Cumulative token count across all messages. |
+| `Id` | `long` | *(auto)* | Primary key. |
+| `Title` | `string` | `""` | Title. |
+| `SystemPrompt` | `string?` | `null` | System prompt for the conversation. |
+| `ModelId` | `string` | `""` | Model chosen for the conversation. |
+| `CreatedAt` | `DateTime` | *(set on create)* | Creation time. |
+| `UpdatedAt` | `DateTime` | *(set on change)* | Last change, including new messages. |
+| `IsPinned` | `bool` | `false` | Pinned to the top of the list. |
+| `IsArchived` | `bool` | `false` | Hidden from the default list. |
+| `MessageCount` | `int` | `0` | Number of messages. |
+| `TokensUsed` | `long` | `0` | Sum of the token counts given for its messages. |
+| `FolderName` | `string?` | `null` | Folder the conversation is filed in. |
+| `ParentConversationId` | `long?` | `null` | For a branch, the conversation it was branched from. |
+| `BranchPointMessageId` | `long?` | `null` | For a branch, the message it was branched at. |
+| `BranchLabel` | `string?` | `null` | Label of a branch. |
 
-**Navigation Properties:**
-
-| Property | Type | Relationship |
-|----------|------|-------------|
-| `Messages` | `ICollection<MessageEntity>` | One-to-many: a conversation has many messages. |
+**Navigation Properties:** `Messages` (`ICollection<MessageEntity>`), `ConversationTags`
+(`ICollection<ConversationTagEntity>`), `SummarySnapshots`
+(`ICollection<ConversationSummarySnapshotEntity>`), `ThemeMembership`
+(`ConversationThemeMembershipEntity?`), `SummaryState` (`ConversationSummaryStateEntity?`),
+`ParentConversation` (`ConversationEntity?`) and `Branches` (`ICollection<ConversationEntity>`).
 
 ---
 
 ### MessageEntity
 
-Represents a single message within a conversation.
+One message of a conversation.
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `Id` | `long` | *(auto)* | Primary key (auto-increment). |
+| `Id` | `long` | *(auto)* | Primary key. |
 | `ConversationId` | `long` | -- | Foreign key to `ConversationEntity`. |
-| `Role` | `string` | `""` | Message role: `"user"`, `"assistant"`, or `"system"`. |
-| `Content` | `string` | `""` | The message text content. |
-| `Timestamp` | `DateTime` | *(set on create)* | When the message was created. |
-| `TokenCount` | `int` | `0` | Estimated token count for this message. |
-| `GenerationTimeMs` | `double?` | `null` | Generation time in milliseconds (for assistant messages only). |
-| `ModelId` | `string?` | `null` | The AI model that generated this message (for assistant messages). |
-| `CitationsJson` | `string?` | `null` | JSON array of `Citation` objects (for RAG-sourced assistant messages). |
-| `SortOrder` | `int` | `0` | Ordering index within the conversation. |
+| `Role` | `string` | `""` | `"user"`, `"assistant"` or `"system"`. |
+| `Content` | `string` | `""` | Message text. |
+| `Timestamp` | `DateTime` | *(set on create)* | Creation time. |
+| `TokenCount` | `int` | `0` | Token count, when given. |
+| `GenerationTimeMs` | `double?` | `null` | Generation time of an assistant message. |
+| `ModelId` | `string?` | `null` | The model that wrote an assistant message (the routed model for a routed reply). |
+| `CitationsJson` | `string?` | `null` | JSON array of the sources an assistant message cites (`MessageCitations`): web pages as `{"kind":"web","title","url","snippet"}` (Research Mode), documents as `{"fileName","pageNumber","excerpt"}`. |
+| `SortOrder` | `int` | `0` | Position in the conversation. |
+| `Embedding` | `string?` | `null` | Serialized embedding of the message, written for conversation recall. |
+| `EmbeddingModel` | `string?` | `null` | Model that produced `Embedding`. |
+| `EmbeddingDimensions` | `int?` | `null` | Vector size of `Embedding`. |
+| `EmbeddedAt` | `DateTime?` | `null` | When `Embedding` was written. |
 
-**Navigation Properties:**
-
-| Property | Type | Relationship |
-|----------|------|-------------|
-| `Conversation` | `ConversationEntity` | Many-to-one: each message belongs to one conversation. |
+**Navigation Properties:** `Conversation` (`ConversationEntity`).
 
 ---
 
 ### DocumentEntity
 
-Represents an imported document in the knowledge vault.
+A document in the Knowledge Vault.
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `Id` | `long` | *(auto)* | Primary key (auto-increment). |
-| `FileName` | `string` | `""` | The original file name. |
-| `FilePath` | `string` | `""` | Absolute path to the source file. |
-| `FileType` | `string` | `""` | File type extension without dot (e.g., `"pdf"`, `"docx"`, `"txt"`). |
-| `MimeType` | `string?` | `null` | MIME type of the file. |
-| `FileSizeBytes` | `long` | `0` | File size in bytes. |
-| `ContentHash` | `string` | `""` | SHA-256 hash of the file content for duplicate detection. |
-| `ImportedAt` | `DateTime` | *(set on create)* | When the document was imported. |
-| `FileModifiedAt` | `DateTime` | *(from file)* | Last modification time of the source file. |
-| `LastIndexedAt` | `DateTime?` | `null` | When the document was last successfully indexed. |
-| `IndexingStatus` | `string` | `"pending"` | Indexing status: `"pending"`, `"processing"`, `"completed"`, `"failed"`. |
-| `IndexingError` | `string?` | `null` | Error message if indexing failed. |
-| `ChunkCount` | `int` | `0` | Number of text chunks created from this document. |
-| `PageCount` | `int` | `0` | Number of pages in the source document. |
-| `WordCount` | `long` | `0` | Approximate word count of extracted text. |
-| `Summary` | `string?` | `null` | AI-generated summary of the document content. |
-| `ExtractedTitle` | `string?` | `null` | Title extracted from document metadata. |
-| `Language` | `string?` | `null` | Detected language of the document content. |
-| `ThumbnailPath` | `string?` | `null` | Path to a generated thumbnail image. |
-| `MetadataJson` | `string?` | `null` | Additional metadata stored as a JSON string. |
+| `Id` | `long` | *(auto)* | Primary key. |
+| `FileName` | `string` | `""` | File name (or display name for connector items). |
+| `FilePath` | `string` | `""` | Path of the source file. |
+| `FileType` | `string` | `""` | Lower-case extension without the dot (for example `"pdf"`), or a type name such as `"CalendarEvent"` or `"EmailMessage"` for connector items. |
+| `MimeType` | `string?` | `null` | MIME type. |
+| `FileSizeBytes` | `long` | `0` | Size in bytes. |
+| `ContentHash` | `string` | `""` | SHA-256 hash, used for duplicate detection. |
+| `ImportedAt` | `DateTime` | *(set on create)* | Import time (UTC). |
+| `FileModifiedAt` | `DateTime` | *(from file)* | Last write time of the source file. |
+| `LastIndexedAt` | `DateTime?` | `null` | Last successful indexing. |
+| `IndexingStatus` | `string` | `"pending"` | `"pending"`, `"processing"`, `"completed"` or `"failed"`. |
+| `IndexingError` | `string?` | `null` | Why extraction or indexing failed. |
+| `ChunkCount` | `int` | `0` | Number of chunks. |
+| `PageCount` | `int` | `0` | Number of pages. |
+| `WordCount` | `long` | `0` | Word count of the extracted text. |
+| `Summary` | `string?` | `null` | Stored summary. |
+| `ExtractedTitle` | `string?` | `null` | Title from the document metadata. |
+| `Language` | `string?` | `null` | Detected language. |
+| `ThumbnailPath` | `string?` | `null` | Thumbnail image path. |
+| `MetadataJson` | `string?` | `null` | Extra metadata as JSON. |
 
-**Navigation Properties:**
-
-| Property | Type | Relationship |
-|----------|------|-------------|
-| `Chunks` | `ICollection<DocumentChunkEntity>` | One-to-many: a document has many chunks. |
-| `DocumentCollections` | `ICollection<DocumentCollectionEntity>` | Many-to-many join: document-collection associations. |
-| `DocumentTags` | `ICollection<DocumentTagEntity>` | Many-to-many join: document-tag associations. |
+**Navigation Properties:** `Chunks` (`ICollection<DocumentChunkEntity>`), `DocumentCollections`
+(`ICollection<DocumentCollectionEntity>`) and `DocumentTags` (`ICollection<DocumentTagEntity>`).
 
 ---
 
 ### DocumentChunkEntity
 
-Represents a single text chunk extracted from a document, suitable for embedding.
+A chunk of a document's text.
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `Id` | `long` | *(auto)* | Primary key (auto-increment). |
+| `Id` | `long` | *(auto)* | Primary key. |
 | `DocumentId` | `long` | -- | Foreign key to `DocumentEntity`. |
-| `ChunkIndex` | `int` | `0` | Zero-based index of this chunk within the document. |
-| `Content` | `string` | `""` | The text content of the chunk. |
-| `StartCharOffset` | `int` | `0` | Starting character offset within the source document text. |
-| `EndCharOffset` | `int` | `0` | Ending character offset within the source document text. |
-| `PageNumber` | `int?` | `null` | The page number this chunk belongs to (if available). |
-| `SectionTitle` | `string?` | `null` | The section title this chunk falls under (if available). |
-| `TokenCount` | `int` | `0` | Approximate token count for this chunk. |
-| `IsEmbedded` | `bool` | `false` | Whether an embedding vector has been generated for this chunk. |
-| `VectorRowId` | `long?` | `null` | Foreign key to the sqlite-vec virtual table row containing the embedding. |
+| `ChunkIndex` | `int` | `0` | Position in the document. |
+| `Content` | `string` | `""` | Chunk text. |
+| `StartCharOffset` | `int` | `0` | Start offset in the extracted text. |
+| `EndCharOffset` | `int` | `0` | End offset in the extracted text. |
+| `PageNumber` | `int?` | `null` | Page number, when known. |
+| `SectionTitle` | `string?` | `null` | Section title, when known. |
+| `TokenCount` | `int` | `0` | Token count. |
+| `IsEmbedded` | `bool` | `false` | Whether the chunk has a stored vector. |
+| `VectorRowId` | `long?` | `null` | Row id of the stored vector (from `IVectorStore.InsertEmbeddingAsync`). |
+| `EmbeddingModelVersion` | `string?` | `null` | `IEmbeddingService.ModelVersion` of the vector (`provider:model:dimensions`). Search leaves out chunks of another version. |
+| `EmbeddingDimensions` | `int?` | `null` | Vector size. |
+| `EmbeddedAt` | `DateTime?` | `null` | When the vector was written. |
 
-**Navigation Properties:**
-
-| Property | Type | Relationship |
-|----------|------|-------------|
-| `Document` | `DocumentEntity` | Many-to-one: each chunk belongs to one document. |
+**Navigation Properties:** `Document` (`DocumentEntity`).
 
 ---
 
 ### CollectionEntity
 
-Represents a hierarchical document collection (folder-like organization).
+A collection of documents; collections can be nested.
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `Id` | `long` | *(auto)* | Primary key (auto-increment). |
-| `Name` | `string` | `""` | Display name of the collection. |
-| `Description` | `string?` | `null` | Optional description. |
-| `IconGlyph` | `string?` | `null` | Segoe Fluent Icons glyph for UI display. |
-| `ColorHex` | `string?` | `null` | Hex color code for UI display (e.g., `"#3B82F6"`). |
-| `ParentCollectionId` | `long?` | `null` | Foreign key to parent `CollectionEntity`. `null` for root collections. |
-| `CreatedAt` | `DateTime` | *(set on create)* | When the collection was created. |
-| `UpdatedAt` | `DateTime` | *(set on modify)* | When the collection was last updated. |
-| `DocumentCount` | `int` | `0` | Number of documents in this collection. |
-| `SortOrder` | `int` | `0` | Display ordering index. |
+| `Id` | `long` | *(auto)* | Primary key. |
+| `Name` | `string` | `""` | Name. |
+| `Description` | `string?` | `null` | Description. |
+| `IconGlyph` | `string?` | `null` | Segoe Fluent Icons glyph. |
+| `ColorHex` | `string?` | `null` | Color, for example `"#3B82F6"`. |
+| `ParentCollectionId` | `long?` | `null` | Parent collection; `null` at the top level. |
+| `CreatedAt` | `DateTime` | *(set on create)* | Creation time. |
+| `UpdatedAt` | `DateTime` | *(set on change)* | Last change. |
+| `DocumentCount` | `int` | `0` | Number of documents (kept in step by the services). |
+| `SortOrder` | `int` | `0` | Display order. |
 
-**Navigation Properties:**
-
-| Property | Type | Relationship |
-|----------|------|-------------|
-| `ParentCollection` | `CollectionEntity?` | Self-referential many-to-one: parent collection. |
-| `ChildCollections` | `ICollection<CollectionEntity>` | Self-referential one-to-many: child collections. |
-| `DocumentCollections` | `ICollection<DocumentCollectionEntity>` | Many-to-many join: collection-document associations. |
+**Navigation Properties:** `ParentCollection` (`CollectionEntity?`), `ChildCollections`
+(`ICollection<CollectionEntity>`) and `DocumentCollections`
+(`ICollection<DocumentCollectionEntity>`).
 
 ---
 
 ### DocumentCollectionEntity
 
-Join table for the many-to-many relationship between documents and collections.
+Link between a document and a collection. The primary key is (`DocumentId`, `CollectionId`).
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `DocumentId` | `long` | -- | Foreign key to `DocumentEntity`. Composite primary key part 1. |
-| `CollectionId` | `long` | -- | Foreign key to `CollectionEntity`. Composite primary key part 2. |
-| `AddedAt` | `DateTime` | *(set on create)* | When the document was added to the collection. |
+| `DocumentId` | `long` | -- | Foreign key to `DocumentEntity`. |
+| `CollectionId` | `long` | -- | Foreign key to `CollectionEntity`. |
+| `AddedAt` | `DateTime` | *(set on create)* | When the document was added. |
 
-**Navigation Properties:**
-
-| Property | Type | Relationship |
-|----------|------|-------------|
-| `Document` | `DocumentEntity` | Many-to-one. |
-| `Collection` | `CollectionEntity` | Many-to-one. |
+**Navigation Properties:** `Document` (`DocumentEntity`) and `Collection` (`CollectionEntity`).
 
 ---
 
 ### TagEntity
 
-Represents a tag that can be applied to documents.
+A tag for documents and conversations.
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `Id` | `long` | *(auto)* | Primary key (auto-increment). |
-| `Name` | `string` | `""` | Tag name (unique, case-insensitive). |
-| `ColorHex` | `string?` | `null` | Hex color code for UI display (e.g., `"#FF5733"`). |
-| `IsAutoGenerated` | `bool` | `false` | Whether this tag was created by the AI auto-tagging system. |
-| `CreatedAt` | `DateTime` | *(set on create)* | When the tag was created. |
+| `Id` | `long` | *(auto)* | Primary key. |
+| `Name` | `string` | `""` | Normalized name (see `IAutoTagService`), unique ignoring case. |
+| `ColorHex` | `string?` | `null` | Color, for example `"#FF5733"`. |
+| `IsAutoGenerated` | `bool` | `false` | Created by auto-tagging. |
+| `CreatedAt` | `DateTime` | *(set on create)* | Creation time. |
 
-**Navigation Properties:**
-
-| Property | Type | Relationship |
-|----------|------|-------------|
-| `DocumentTags` | `ICollection<DocumentTagEntity>` | One-to-many: tag-document associations. |
+**Navigation Properties:** `DocumentTags` (`ICollection<DocumentTagEntity>`) and
+`ConversationTags` (`ICollection<ConversationTagEntity>`).
 
 ---
 
 ### DocumentTagEntity
 
-Join table for the many-to-many relationship between documents and tags.
+Link between a document and a tag. The primary key is (`DocumentId`, `TagId`).
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `DocumentId` | `long` | -- | Foreign key to `DocumentEntity`. Composite primary key part 1. |
-| `TagId` | `long` | -- | Foreign key to `TagEntity`. Composite primary key part 2. |
-| `Confidence` | `double` | `0.0` | Confidence score (0.0 to 1.0) for auto-generated tags. Manual assignments use `1.0`. |
-| `AssignedAt` | `DateTime` | *(set on create)* | When the tag was assigned to the document. |
+| `DocumentId` | `long` | -- | Foreign key to `DocumentEntity`. |
+| `TagId` | `long` | -- | Foreign key to `TagEntity`. |
+| `Confidence` | `double` | `0.0` | Confidence of an auto-generated tag; manual assignments use `1.0`. |
+| `AssignedAt` | `DateTime` | *(set on create)* | When the tag was assigned. |
 
-**Navigation Properties:**
-
-| Property | Type | Relationship |
-|----------|------|-------------|
-| `Document` | `DocumentEntity` | Many-to-one. |
-| `Tag` | `TagEntity` | Many-to-one. |
+**Navigation Properties:** `Document` (`DocumentEntity`) and `Tag` (`TagEntity`).
 
 ---
 
 ### SearchHistoryEntity
 
-Stores search query history for re-use and analytics.
+A search from the Search page, and saved filters.
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `Id` | `long` | *(auto)* | Primary key (auto-increment). |
-| `Query` | `string` | `""` | The search query text. |
-| `SearchType` | `string` | `"semantic"` | Type of search: `"semantic"`, `"keyword"`, or `"rag"`. |
-| `ResultCount` | `int` | `0` | Number of results returned for this search. |
-| `SearchedAt` | `DateTime` | *(set on create)* | Timestamp of the search. |
-| `IsSaved` | `bool` | `false` | Whether the user has explicitly saved this search. |
-| `CollectionFilter` | `string?` | `null` | Comma-separated collection IDs used as filters. |
+| `Id` | `long` | *(auto)* | Primary key. |
+| `Query` | `string` | `""` | Query text. |
+| `SearchType` | `string` | `"semantic"` | Mode the search ran in: `"semantic"`, `"keyword"` or `"hybrid"`. |
+| `ResultCount` | `int` | `0` | Number of results. |
+| `SearchedAt` | `DateTime` | *(set on create)* | Search time. |
+| `IsSaved` | `bool` | `false` | Saved as a filter. |
+| `CollectionFilter` | `string?` | `null` | Comma-separated collection ids. |
+| `MinScore` | `double?` | `null` | Saved minimum score. |
+| `MaxResults` | `int?` | `null` | Saved result limit. |
+| `DateAfter` | `DateTime?` | `null` | Saved lower date bound. |
+| `DateBefore` | `DateTime?` | `null` | Saved upper date bound. |
+| `SortOrder` | `string?` | `null` | Saved sort order. |
 
 ---
 
 ### SystemPromptEntity
 
-Represents a reusable system prompt template.
+A reusable system prompt.
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `Id` | `long` | *(auto)* | Primary key (auto-increment). |
-| `Name` | `string` | `""` | Display name of the prompt. |
-| `Content` | `string` | `""` | The full system prompt text. |
-| `Category` | `string` | `"General"` | Category classification: `"General"`, `"Writing"`, `"Code"`, `"Analysis"`, `"Creative"`. |
-| `IsBuiltIn` | `bool` | `false` | Whether this is a built-in prompt (cannot be deleted). |
-| `IsFavorite` | `bool` | `false` | Whether the user has favorited this prompt. |
-| `CreatedAt` | `DateTime` | *(set on create)* | When the prompt was created. |
-| `UpdatedAt` | `DateTime` | *(set on modify)* | When the prompt was last updated. |
-| `UsageCount` | `int` | `0` | Number of times this prompt has been used. |
+| `Id` | `long` | *(auto)* | Primary key. |
+| `Name` | `string` | `""` | Name. |
+| `Content` | `string` | `""` | Prompt text. |
+| `Category` | `string` | `"General"` | `"General"`, `"Writing"`, `"Code"`, `"Analysis"` or `"Creative"` for the built-in prompts; any text for user prompts. |
+| `IsBuiltIn` | `bool` | `false` | Built-in prompt (cannot be deleted). |
+| `IsFavorite` | `bool` | `false` | Marked as favorite. |
+| `CreatedAt` | `DateTime` | *(set on create)* | Creation time. |
+| `UpdatedAt` | `DateTime` | *(set on change)* | Last change. |
+| `UsageCount` | `int` | `0` | Times the prompt was used. |
 
 ---
 
 ### UserSettingsEntity
 
-Key-value store for individual user settings, providing a flexible schema for settings that do not fit in `AppSettings`.
+Key-value settings stored in the database: feature flags (`FeatureFlagService`) and the sync
+configuration, device id and state (`SyncService`).
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `Id` | `long` | *(auto)* | Primary key (auto-increment). |
-| `Key` | `string` | `""` | The setting key (unique). |
-| `Value` | `string` | `""` | The serialized setting value. |
-| `ValueType` | `string` | `"string"` | The data type of the value: `"string"`, `"int"`, `"bool"`, `"double"`, `"json"`. |
-| `UpdatedAt` | `DateTime` | *(set on modify)* | When the setting was last updated. |
+| `Id` | `long` | *(auto)* | Primary key. |
+| `Key` | `string` | `""` | Setting key (unique). |
+| `Value` | `string` | `""` | Serialized value. |
+| `ValueType` | `string` | `"string"` | `"string"`, `"int"`, `"bool"`, `"double"` or `"json"`. |
+| `UpdatedAt` | `DateTime` | *(set on change)* | Last change. |
 
 ---
 
 ### WatchFolderEntity
 
-Represents a folder being monitored for automatic document import.
+A folder watched for automatic import.
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `Id` | `long` | *(auto)* | Primary key (auto-increment). |
-| `FolderPath` | `string` | `""` | Absolute path to the watched folder. |
-| `IsEnabled` | `bool` | `false` | Whether this watch folder is currently active. |
-| `IncludeSubfolders` | `bool` | `false` | Whether to recursively monitor subdirectories. |
-| `FileTypeFilter` | `string?` | `null` | Comma-separated extension filter (e.g., `"pdf,docx,txt,md"`). `null` = all supported types. |
-| `TargetCollectionId` | `long?` | `null` | Foreign key to `CollectionEntity`. Documents imported from this folder are associated with this collection. |
-| `CreatedAt` | `DateTime` | *(set on create)* | When the watch folder was registered. |
-| `LastScanAt` | `DateTime?` | `null` | When the folder was last scanned. |
-| `FilesIndexed` | `int` | `0` | Cumulative count of files imported from this folder. |
+| `Id` | `long` | *(auto)* | Primary key. |
+| `FolderPath` | `string` | `""` | Full folder path. |
+| `IsEnabled` | `bool` | `false` | Whether the folder is watched (`AddWatchFolderAsync` creates it enabled). |
+| `IncludeSubfolders` | `bool` | `false` | Whether subfolders are watched. |
+| `FileTypeFilter` | `string?` | `null` | Comma-separated extensions, for example `"pdf,docx,txt,md"`; `null` for all supported types. |
+| `TargetCollectionId` | `long?` | `null` | Collection that imported documents are added to. |
+| `CreatedAt` | `DateTime` | *(set on create)* | When the folder was added. |
+| `LastScanAt` | `DateTime?` | `null` | Last scan. |
+| `FilesIndexed` | `int` | `0` | Files imported from the folder. |
 
-**Navigation Properties:**
-
-| Property | Type | Relationship |
-|----------|------|-------------|
-| `TargetCollection` | `CollectionEntity?` | Many-to-one: optional target collection. |
+**Navigation Properties:** `TargetCollection` (`CollectionEntity?`).
 
 ---
 
 ### IndexingJobEntity
 
-Represents a single document indexing job in the processing queue.
+History of indexing runs. The live queue is kept in memory by `IndexingService`; these rows record
+each run.
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `Id` | `long` | *(auto)* | Primary key (auto-increment). |
+| `Id` | `long` | *(auto)* | Primary key. |
 | `DocumentId` | `long` | -- | Foreign key to `DocumentEntity`. |
-| `Status` | `string` | `"queued"` | Job status: `"queued"`, `"processing"`, `"completed"`, `"failed"`. |
-| `QueuedAt` | `DateTime` | *(set on create)* | When the job was added to the queue. |
-| `StartedAt` | `DateTime?` | `null` | When processing began. |
-| `CompletedAt` | `DateTime?` | `null` | When processing finished (success or failure). |
-| `ErrorMessage` | `string?` | `null` | Error description if the job failed. |
-| `ChunksProcessed` | `int` | `0` | Number of text chunks created during indexing. |
-| `EmbeddingsGenerated` | `int` | `0` | Number of embedding vectors generated during indexing. |
-| `ProcessingTimeMs` | `double?` | `null` | Total processing time in milliseconds. |
+| `Status` | `string` | `"queued"` | `"queued"`, `"processing"`, `"completed"` or `"failed"`. |
+| `QueuedAt` | `DateTime` | *(set on create)* | When the job was created. |
+| `StartedAt` | `DateTime?` | `null` | Start of processing. |
+| `CompletedAt` | `DateTime?` | `null` | End of processing. |
+| `ErrorMessage` | `string?` | `null` | Error of a failed job. |
+| `ChunksProcessed` | `int` | `0` | Chunks created. |
+| `EmbeddingsGenerated` | `int` | `0` | Vectors generated. |
+| `ProcessingTimeMs` | `double?` | `null` | Processing time. |
 
-**Navigation Properties:**
-
-| Property | Type | Relationship |
-|----------|------|-------------|
-| `Document` | `DocumentEntity` | Many-to-one: each job references one document. |
+**Navigation Properties:** `Document` (`DocumentEntity`).
 
 ---
 
+### OAuthCredentialEntity
+
+```csharp
+namespace AgentX.Core.Data.Entities;
+
+public class OAuthCredentialEntity
+```
+
+The stored OAuth tokens of one provider (Google or Microsoft). The tokens are DPAPI-encrypted; one
+row per provider (`ProviderId` is unique).
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `Id` | `long` | *(auto)* | Primary key. |
+| `ProviderId` | `string` | `""` | `"google"` or `"microsoft"`. Unique. |
+| `AccessToken` | `string` | `""` | DPAPI-encrypted access token. |
+| `RefreshToken` | `string` | `""` | DPAPI-encrypted refresh token (an encrypted empty value when none was issued). |
+| `TokenExpiry` | `DateTime` | -- | When the access token expires (UTC). |
+| `Scopes` | `string` | `""` | The scopes requested at sign-in, space-separated. |
+| `UserId` | `string` | `""` | The `user_id` field of the token response, when the provider sends one; Google and Microsoft do not, so it is usually empty. |
+| `CreatedAt` | `DateTime` | -- | When the credential was first stored (UTC). |
+| `UpdatedAt` | `DateTime` | -- | Last refresh or re-authorization (UTC). |
 
 ---
 
@@ -3339,20 +2345,24 @@ namespace AgentX.Core.Services.OAuth;
 public interface IOAuthService
 ```
 
-Manages the OAuth2 authorization code flow for external providers (Google, Microsoft). Handles browser-based consent, token exchange, DPAPI-encrypted persistence, automatic refresh, and server-side revocation.
+The OAuth 2.0 authorization code flow for Google and Microsoft, used by the built-in Calendar and
+Email connectors. Tokens are stored DPAPI-encrypted in the database and decrypted only in memory.
+The service is not offered to installed plugins (see [IPluginContext](#iplugincontext)).
 
 **Namespace:** `AgentX.Core.Services.OAuth`
 **Assembly:** `AgentX.Core`
 
-#### Methods
-
 | Method | Return Type | Description |
 |--------|------------|-------------|
-| `AuthorizeAsync(string provider, string? scopes = null, string? redirectUri = null, CancellationToken cancellationToken = default)` | `Task<OAuthCredential>` | Opens a browser consent screen, exchanges the authorization code for tokens, encrypts and persists the credential. Returns the decrypted credential. |
-| `GetAccessTokenAsync(string provider)` | `Task<string>` | Returns a valid access token for the provider. Automatically refreshes if the token is expired or within 5 minutes of expiry. |
-| `RefreshTokenAsync(string provider)` | `Task<bool>` | Refreshes the access token using the stored refresh token. Returns `true` if refresh succeeded. Uses per-provider semaphore to prevent concurrent refresh races. |
-| `RevokeAsync(string provider)` | `Task` | Sends a server-side revocation request to the provider's revocation endpoint (if configured), then deletes the local credential. |
-| `GetCredentialAsync(string provider)` | `Task<OAuthCredential?>` | Returns the stored credential for the provider, or `null` if the user has not authorized. Does not trigger a refresh. |
+| `AuthorizeAsync(string provider, string? scopes = null, string? redirectUri = null, CancellationToken cancellationToken = default)` | `Task<OAuthCredential>` | Opens the consent page in the system browser, waits for the redirect on the loopback URI, exchanges the code for tokens and stores them. `scopes` are added to the provider's default scopes (space- or comma-separated; duplicates are dropped). The flow uses PKCE (`S256`) and a one-time `state` value. Throws `ArgumentException` for a blank provider or a redirect URI that does not start with `http://localhost:` or `http://127.0.0.1:`, `OAuthProviderNotConfiguredException` when the provider has no registered configuration, `InvalidOperationException` when consent is denied or the exchange fails, and `OperationCanceledException` on cancellation or when the sign-in times out (`OAuthSettings.AuthTimeoutSeconds`, 300 by default). |
+| `GetAccessTokenAsync(string provider)` | `Task<string>` | A valid access token. A token that expires within the refresh buffer (`OAuthSettings.TokenRefreshBufferMinutes`, 5 by default) is refreshed first. Throws `InvalidOperationException` when no credential is stored, when there is no refresh token (the account has to be reconnected), or when the refresh fails. |
+| `RefreshTokenAsync(string provider)` | `Task<bool>` | Refreshes the access token with the stored refresh token. `false` when there is no credential or the refresh failed. Refreshes are serialized per provider. |
+| `RevokeAsync(string provider)` | `Task` | When the provider has a revocation endpoint (Google), revokes the refresh token (which ends the whole grant) or, without one, the access token; this is best effort. Then deletes the stored credential. Microsoft has no revocation endpoint, so only the local tokens are deleted. |
+| `GetCredentialAsync(string provider)` | `Task<OAuthCredential?>` | The stored credential, decrypted, or `null`. Does not refresh. |
+| `ApplyProviderSettings(OAuthSettings settings)` | `void` | Registers Google and Microsoft from the client credentials in the settings (OAuth App Credentials on the connector pages): a provider with a client ID is registered, replacing its old configuration; a provider whose client ID is empty is removed. Stored credentials are kept. Blank tenant or redirect URI values fall back to the defaults. Called at startup and when the credentials are saved, so changes apply without a restart. |
+
+`OAuthProviderNotConfiguredException` derives from `InvalidOperationException` and has a
+`Provider` property. The connector pages catch it to explain how to set up the OAuth client.
 
 ---
 
@@ -3364,46 +2374,23 @@ namespace AgentX.Core.Services.OAuth;
 public sealed class OAuthService : IOAuthService, IDisposable
 ```
 
-Production implementation of `IOAuthService`. Manages the full OAuth2 authorization code flow for desktop applications, including browser-based consent, token exchange, DPAPI-encrypted persistence, automatic token refresh (5-minute buffer), and server-side revocation.
-
-**Namespace:** `AgentX.Core.Services.OAuth`
-**Assembly:** `AgentX.Core`
-
-**Thread Safety:** Per-provider `SemaphoreSlim` guards prevent concurrent token refresh operations.
-
-**DPAPI Encryption:** All tokens are encrypted via `IDpapiEncryptionService` before being persisted to SQLite. Decryption happens only at runtime, in memory.
-
-**Auto-Refresh:** `GetAccessTokenAsync` checks whether the stored access token is expired or within 5 minutes of expiry. If so, it calls `RefreshTokenAsync` automatically before returning the token.
-
-#### Constructor
+The implementation of `IOAuthService`.
 
 ```csharp
 public OAuthService(AgentXDbContext db, IDpapiEncryptionService encryption, ILogger logger)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `db` | `AgentXDbContext` | Application database context for credential persistence. |
-| `encryption` | `IDpapiEncryptionService` | DPAPI encryption service for token protection. |
-| `logger` | `ILogger` | Application-level Serilog logger. |
-
-#### Methods
-
-| Method | Return Type | Description |
-|--------|------------|-------------|
-| `RegisterProvider(OAuthProviderConfig config)` | `void` | Registers an OAuth provider configuration. Must be called before `AuthorizeAsync` or `RefreshTokenAsync`. |
-| `GetRegisteredProviders()` | `IReadOnlyDictionary<string, OAuthProviderConfig>` | Returns all registered provider configurations. |
-
-#### Internal Methods
-
-| Method | Description |
+| Member | Description |
 |--------|-------------|
-| `BuildAuthorizationUrl(...)` | Builds the full authorization URL with CSRF state parameter and PKCE code_challenge. |
-| `ExchangeCodeForTokensAsync(...)` | Exchanges authorization code for tokens via the token endpoint, including PKCE code_verifier. |
-| `RefreshAccessTokenAsync(...)` | Refreshes an expired access token using the stored refresh token. |
-| `PersistCredentialAsync(...)` | Encrypts tokens and persists the credential to the database. |
-| `RevokeTokenAsync(...)` | Sends a server-side revocation request to the provider. |
-| `DecryptCredential(...)` | Decrypts an `OAuthCredentialEntity` into a plain `OAuthCredential`. |
+| `void ApplySettings(OAuthSettings settings)` | Applies `TokenRefreshBufferMinutes` (clamped to 0-60) and `AuthTimeoutSeconds` (clamped to 30-3600). Called at startup. |
+| `void RegisterProvider(OAuthProviderConfig config)` | Registers or replaces a provider configuration. An authorization or refresh already running keeps the configuration it started with. `ArgumentException` when `ProviderId` is blank. |
+| `bool UnregisterProvider(string provider)` | Removes a configuration; `true` when one was registered. Stored credentials are kept. |
+| `IReadOnlyDictionary<string, OAuthProviderConfig> GetRegisteredProviders()` | The registered configurations. |
+| `void Dispose()` | Releases the HTTP client and the refresh locks. |
+
+Token requests send `client_secret` only when the client has one; a Microsoft app registered as a
+public client (mobile and desktop applications) has none. A re-authorization whose token response
+carries no refresh token keeps the stored one.
 
 ---
 
@@ -3415,23 +2402,20 @@ namespace AgentX.Core.Services.OAuth;
 public sealed class OAuthProviderConfig
 ```
 
-Immutable configuration for an OAuth2 provider. Contains the endpoints, client credentials, and default scopes needed to initiate and complete the authorization code flow.
-
-**Namespace:** `AgentX.Core.Services.OAuth`
-**Assembly:** `AgentX.Core`
+The configuration of one OAuth provider. All properties are init-only.
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `ProviderId` | `string` | `""` | Stable identifier (e.g. `"google"`, `"microsoft"`). Must match `OAuthCredential.ProviderId`. |
-| `DisplayName` | `string` | `""` | Display name for UI (e.g. `"Google Calendar"`, `"Microsoft Outlook"`). |
-| `ClientId` | `string` | `""` | OAuth2 client ID from the provider's developer console. |
-| `ClientSecret` | `string` | `""` | OAuth2 client secret. DPAPI-encrypted at rest when loaded from settings. |
-| `AuthorizationEndpoint` | `string` | `""` | OAuth2 authorization endpoint URL. |
-| `TokenEndpoint` | `string` | `""` | OAuth2 token exchange endpoint URL. |
-| `RevocationEndpoint` | `string?` | `null` | OAuth2 revocation endpoint URL. Leave empty to skip server-side revocation. |
-| `Scopes` | `string` | `""` | Comma-separated default scopes for authorization. |
-| `RedirectUri` | `string` | `""` | Redirect URI for the OAuth2 flow. Defaults to localhost listener. |
-| `ExtraAuthParameters` | `Dictionary<string, string>` | `new()` | Provider-specific auth parameters (e.g. Google: `access_type=offline`, `prompt=consent`; Microsoft: `prompt=select_account`). |
+| `ProviderId` | `string` | `""` | `"google"` or `"microsoft"`; matches `OAuthCredential.ProviderId`. |
+| `DisplayName` | `string` | `""` | Name for the UI (`"Google"`, `"Microsoft"`). |
+| `AuthorizationEndpoint` | `string` | `""` | Authorization URL. |
+| `TokenEndpoint` | `string` | `""` | Token URL. |
+| `RevocationEndpoint` | `string?` | `null` | Revocation URL; empty or `null` skips server-side revocation. |
+| `Scopes` | `string` | `""` | Default scopes, space-separated (commas are accepted too). |
+| `ClientId` | `string` | `""` | OAuth client ID. |
+| `ClientSecret` | `string` | `""` | Client secret, or empty for a public client. Stored DPAPI-encrypted in `settings.json`. |
+| `RedirectUri` | `string` | `""` | Loopback redirect URI. |
+| `ExtraAuthParameters` | `Dictionary<string, string>?` | `null` | Extra authorization URL parameters. |
 
 ---
 
@@ -3443,24 +2427,14 @@ namespace AgentX.Core.Services.OAuth;
 public static class OAuthProviderRegistry
 ```
 
-Static factory for pre-configured OAuth2 provider configurations (Google, Microsoft). These factories incorporate the correct authorization/token/revocation endpoints, default scopes, and provider-specific extra parameters.
+Builds the configurations for Google and Microsoft.
 
-**Namespace:** `AgentX.Core.Services.OAuth`
-**Assembly:** `AgentX.Core`
-
-#### Constants
-
-| Constant | Type | Value | Description |
-|----------|------|-------|-------------|
-| `ProviderIdGoogle` | `string` | `"google"` | Stable identifier for the Google OAuth2 provider. |
-| `ProviderIdMicrosoft` | `string` | `"microsoft"` | Stable identifier for the Microsoft OAuth2 provider. |
-
-#### Methods
-
-| Method | Return Type | Description |
-|--------|------------|-------------|
-| `CreateGoogleConfig(string clientId, string clientSecret, string? redirectUri = null)` | `OAuthProviderConfig` | Factory for Google OAuth2 config with correct endpoints, scopes, and `access_type=offline`, `prompt=consent`. |
-| `CreateMicrosoftConfig(string clientId, string clientSecret, string? redirectUri = null)` | `OAuthProviderConfig` | Factory for Microsoft OAuth2 config with Graph endpoints, scopes, and `prompt=select_account`. |
+| Member | Description |
+|--------|-------------|
+| `const string ProviderIdGoogle = "google"` | Google provider id. |
+| `const string ProviderIdMicrosoft = "microsoft"` | Microsoft provider id. |
+| `static OAuthProviderConfig Google(string clientId, string clientSecret, string redirectUri)` | Endpoints `https://accounts.google.com/o/oauth2/v2/auth`, `https://oauth2.googleapis.com/token` and `https://oauth2.googleapis.com/revoke`; scopes `openid profile email https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/gmail.readonly`; extra parameters `access_type=offline` and `prompt=consent`. |
+| `static OAuthProviderConfig Microsoft(string clientId, string clientSecret, string tenantId, string redirectUri)` | Endpoints `https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/authorize` and `.../token`, no revocation endpoint; scopes `openid profile email offline_access Calendars.Read Mail.Read User.Read`; extra parameter `prompt=select_account`. |
 
 ---
 
@@ -3472,21 +2446,19 @@ namespace AgentX.Core.Services.OAuth;
 public sealed class OAuthCredential
 ```
 
-Decrypted OAuth2 credential DTO returned by `IOAuthService` methods. This is the clean in-memory representation, as opposed to the persisted `OAuthCredentialEntity` which stores encrypted tokens.
-
-**Namespace:** `AgentX.Core.Services.OAuth`
-**Assembly:** `AgentX.Core`
+A decrypted credential, in memory only. All properties are init-only except the computed one.
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `ProviderId` | `string` | `""` | Stable identifier of the OAuth provider (e.g. `"google"`, `"microsoft"`). |
-| `AccessToken` | `string` | `""` | Decrypted access token for API calls. Never persisted in plaintext. |
-| `RefreshToken` | `string` | `""` | Decrypted refresh token. Never persisted in plaintext. |
-| `TokenExpiry` | `DateTime` | — | UTC timestamp when the access token expires. |
-| `Scopes` | `string` | `""` | Comma-separated OAuth scopes granted (e.g. `"calendar.read,calendar.write,email.read"`). |
-| `UserId` | `string` | `""` | Provider-specific user identifier (Google `sub` claim or Microsoft `oid` claim). |
-| `CreatedAt` | `DateTime` | — | UTC timestamp when credential was first stored. |
-| `UpdatedAt` | `DateTime` | — | UTC timestamp when credential was last refreshed/updated. |
+| `ProviderId` | `string` | `""` | `"google"` or `"microsoft"`. |
+| `AccessToken` | `string` | `""` | Decrypted access token. |
+| `RefreshToken` | `string` | `""` | Decrypted refresh token; empty when none was issued. |
+| `TokenExpiry` | `DateTime` | -- | Access token expiry (UTC). |
+| `RequiresReauthorization` | `bool` | *(computed)* | `true` when there is no refresh token, so the account has to be reconnected once the access token expires. |
+| `Scopes` | `string` | `""` | Scopes requested at sign-in, space-separated. |
+| `UserId` | `string` | `""` | See `OAuthCredentialEntity.UserId`. |
+| `CreatedAt` | `DateTime` | -- | First stored (UTC). |
+| `UpdatedAt` | `DateTime` | -- | Last updated (UTC). |
 
 ---
 
@@ -3500,22 +2472,19 @@ namespace AgentX.Core.Services.Plugins.Calendar;
 public interface ICalendarService
 ```
 
-High-level calendar service exposed by the `CalendarPlugin`. Provides upcoming event queries, full sync operations, and event detail retrieval. This is the public API that other AgentX services (search, RAG, Quick Chat) consume to access calendar data.
+Calendar operations over the connected providers, backed by `CalendarPlugin`.
 
-**Namespace:** `AgentX.Core.Services.Plugins.Calendar`
-**Assembly:** `AgentX.Core`
-
-#### Methods
+**Implementation:** `CalendarService`
 
 | Method | Return Type | Description |
 |--------|------------|-------------|
-| `GetUpcomingEventsAsync(int daysAhead = 7, CancellationToken cancellationToken = default)` | `Task<IReadOnlyList<CalEvent>>` | Returns upcoming calendar events within the specified number of days ahead. Queries all enabled calendars across all connected providers. Sorted by start time. |
-| `SyncCalendarsAsync(CancellationToken cancellationToken = default)` | `Task<SyncResult>` | Triggers a full sync cycle: fetches events from all enabled calendars across all connected providers and pushes new/updated items into the Smart Inbox pipeline. |
-| `GetEventAsync(string eventId, string sourceProvider, string calendarId, CancellationToken cancellationToken = default)` | `Task<CalEvent?>` | Retrieves the full details of a specific calendar event by its provider-specific event ID and source provider. |
-| `ListCalendarsAsync(CancellationToken cancellationToken = default)` | `Task<IReadOnlyList<CalendarInfo>>` | Lists all calendars available from connected providers. Used by the settings UI. |
-| `IsConnected` | `bool` | Whether at least one calendar provider is connected (has valid OAuth credentials). |
-| `GetSyncSettingsAsync()` | `Task<CalendarSyncSettings>` | Returns the current sync settings for the calendar connector. |
-| `UpdateSyncSettingsAsync(CalendarSyncSettings settings)` | `Task` | Updates and persists the sync settings. |
+| `GetUpcomingEventsAsync(int daysAhead = 7, CancellationToken cancellationToken = default)` | `Task<IReadOnlyList<CalEvent>>` | Upcoming events of the enabled calendars of all connected providers, sorted by start time. |
+| `SyncEventsAsync(CancellationToken cancellationToken = default)` | `Task<SyncResult>` | Runs a sync of all enabled calendars and pushes new and changed events into the Smart Inbox. |
+| `GetEventDetailsAsync(string eventId, string sourceProvider, string calendarId, CancellationToken cancellationToken = default)` | `Task<CalEvent?>` | One event with full details, or `null`. |
+| `ListAvailableCalendarsAsync(CancellationToken cancellationToken = default)` | `Task<IReadOnlyList<CalendarInfo>>` | Calendars of the connected providers, for the calendar selection list. |
+| `IsConnectedAsync()` | `Task<bool>` | Whether at least one provider has stored OAuth credentials. |
+| `GetSyncSettingsAsync()` | `Task<CalendarSyncSettings>` | The connector's sync settings. |
+| `UpdateSyncSettingsAsync(CalendarSyncSettings settings)` | `Task` | Saves the sync settings to the plugin data folder. |
 
 ---
 
@@ -3527,23 +2496,15 @@ namespace AgentX.Core.Services.Plugins.Calendar;
 public interface ICalendarProvider
 ```
 
-Abstraction over a specific calendar API provider (Google Calendar, Microsoft Outlook). Implementations are registered per provider and use `IOAuthService` for authentication.
+One calendar API. **Implementations:** `GoogleCalendarProvider` (Google Calendar API v3) and
+`OutlookCalendarProvider` (Microsoft Graph v1.0, which reads the calendar view so recurring series
+are expanded into occurrences, with times in UTC).
 
-**Namespace:** `AgentX.Core.Services.Plugins.Calendar`
-**Assembly:** `AgentX.Core`
-
-#### Properties
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `ProviderId` | `string` | Provider identifier matching `OAuthProviderConfig.ProviderId` (e.g. `"google"`, `"microsoft"`). |
-
-#### Methods
-
-| Method | Return Type | Description |
-|--------|------------|-------------|
-| `ListCalendarsAsync(CancellationToken cancellationToken = default)` | `Task<IReadOnlyList<CalendarInfo>>` | Lists all calendars the authenticated user has read access to. |
-| `GetEventsAsync(string calendarId, DateTime start, DateTime end, string? deltaToken = null, CancellationToken cancellationToken = default)` | `Task<(IReadOnlyList<CalEvent> Events, string? NewDeltaToken)>` | Fetches events from a specific calendar within the given time range. Supports incremental sync via `deltaToken`. Returns events and optional new delta token. |
+| Member | Description |
+|--------|-------------|
+| `string ProviderId { get; }` | `"google"` or `"microsoft"`. |
+| `Task<IReadOnlyList<CalendarInfo>> ListCalendarsAsync(CancellationToken cancellationToken = default)` | Calendars the user can read. |
+| `Task<(IReadOnlyList<CalEvent> Events, string? DeltaToken)> GetEventsAsync(string calendarId, DateTime start, DateTime end, string? deltaToken = null, CancellationToken cancellationToken = default)` | Events in a UTC range, or the changes since `deltaToken`, plus the token for the next sync. The built-in providers return a `CalendarEventBatch`, whose `IsCompleteWindow` says whether the read listed the whole range (so an event missing from it is gone) or only changes; a deletion in an incremental read is a `CalEvent` with `IsDeleted` set. A stored token the provider no longer accepts is discarded in favor of a full read. |
 
 ---
 
@@ -3555,12 +2516,9 @@ namespace AgentX.Core.Services.Plugins.Calendar;
 public sealed class CalendarPlugin : IPlugin
 ```
 
-First-party DataConnector plugin that syncs Google Calendar and Microsoft Outlook calendar events into the AgentX knowledge vault. Events flow through the Smart Inbox pipeline and become searchable alongside documents.
-
-**Namespace:** `AgentX.Core.Services.Plugins.Calendar`
-**Assembly:** `AgentX.Core`
-
-#### IPlugin Metadata
+The built-in Calendar Connector. It syncs Google Calendar and Outlook events into the Smart Inbox,
+from where they reach the Knowledge Vault. `BuiltinConnectorLifecycleService` starts it and gives it
+`IOAuthService` and `IInboxService`.
 
 | Property | Value |
 |----------|-------|
@@ -3571,105 +2529,104 @@ First-party DataConnector plugin that syncs Google Calendar and Microsoft Outloo
 | `Author` | `"AgentX"` |
 | `Type` | `PluginType.DataConnector` |
 
-#### Events
-
-| Event | Type | Description |
-|-------|------|-------------|
-| `SyncCompleted` | `EventHandler<SyncResult>` | Fired after each sync cycle completes. Subscribers can update UI without polling. |
-
-#### Properties
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `LastSyncResult` | `SyncResult?` | The last sync result, or `null` if no sync has run yet. |
-
-#### Lifecycle Methods
-
-| Method | Description |
+| Member | Description |
 |--------|-------------|
-| `InitializeAsync(IPluginContext)` | Resolves `IOAuthService` from plugin context, loads persisted sync settings, registers provider implementations. Does NOT start background sync. |
-| `ActivateAsync()` | Registers providers and starts the periodic sync timer. |
-| `DeactivateAsync()` | Stops the sync timer and flushes pending operations. |
-| `DisposeAsync()` | Disposes the sync timer and releases resources. |
+| `event EventHandler<SyncResult>? SyncCompleted` | Raised after each sync cycle. |
+| `SyncResult? LastSyncResult` | The last sync result, or `null`. |
+| `InitializeAsync(IPluginContext context)` | Resolves `IOAuthService` and `IInboxService`, loads the sync settings from the plugin data folder, and creates a provider for each account with stored credentials. Starts no background work. |
+| `ActivateAsync()` | Starts the sync timer (`CalendarSyncSettings.SyncIntervalMinutes`). |
+| `DeactivateAsync()` | Stops the timer, cancels a running sync, waits up to 10 seconds for it, and saves the sync settings. |
+| `Dispose()` | Releases the timer and resources. |
 
 ---
 
 ### Calendar Models
 
+Namespace `AgentX.Core.Services.Plugins.Calendar.Models`.
+
 #### CalEvent
 
-```csharp
-namespace AgentX.Core.Services.Plugins.Calendar.Models;
-
-public sealed class CalEvent
-```
-
-Unified calendar event DTO that provider implementations map their API-specific responses into.
+`public sealed class CalEvent`, all properties init-only.
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `Id` | `string` | `""` | Provider-specific event identifier (Google `id` or Microsoft `iCalUId`). Used for deduplication. |
-| `Title` | `string` | `""` | Event title / subject line. |
-| `Description` | `string?` | `null` | Full event description. May contain HTML from the provider. |
-| `Start` | `DateTime` | — | Event start time (UTC). |
-| `End` | `DateTime` | — | Event end time (UTC). |
-| `Location` | `string?` | `null` | Event location (e.g. "Conference Room B" or video call URL). |
-| `IsAllDay` | `bool` | `false` | Whether this is an all-day event. |
-| `IsRecurring` | `bool` | `false` | Whether this event is part of a recurring series. |
-| `Attendees` | `IReadOnlyList<CalAttendee>` | `[]` | List of attendees including the organizer. |
-| `Organizer` | `string?` | `null` | Display name of the event organizer. |
-| `CalendarName` | `string?` | `null` | Name of the calendar this event belongs to. |
-| `SourceProvider` | `string` | `""` | Provider identifier: `"google"` or `"microsoft"`. |
-| `HtmlLink` | `string?` | `null` | Link to view the event in the provider's web UI. |
-| `CalendarId` | `string?` | `null` | Provider-specific calendar identifier for this event. |
+| `Id` | `string` | `""` | Provider event id (Google `id`, Microsoft `iCalUId`), used for de-duplication. |
+| `Title` | `string` | `""` | Title. |
+| `Description` | `string?` | `null` | Description; may contain HTML. |
+| `Start` | `DateTime` | -- | Start (UTC). |
+| `End` | `DateTime` | -- | End (UTC). |
+| `Location` | `string?` | `null` | Location or meeting link. |
+| `IsAllDay` | `bool` | `false` | All-day event. |
+| `IsRecurring` | `bool` | `false` | Part of a recurring series. |
+| `IsCancelled` | `bool` | `false` | Cancelled by the organizer but still in the calendar (Outlook). Still synced so the vault copy says so. |
+| `IsDeleted` | `bool` | `false` | A deletion notice from an incremental read: only `Id`, `CalendarId` and `SourceProvider` are set. |
+| `Attendees` | `IReadOnlyList<CalAttendee>` | `[]` | Attendees, organizer included. |
+| `Organizer` | `string?` | `null` | Organizer name. |
+| `CalendarName` | `string?` | `null` | Calendar name. |
+| `SourceProvider` | `string` | `""` | `"google"` or `"microsoft"`. |
+| `HtmlLink` | `string?` | `null` | Link to the event in the provider's web UI. |
+| `CalendarId` | `string?` | `null` | Provider calendar id. |
 
 #### CalAttendee
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `DisplayName` | `string` | `""` | Attendee display name (may be empty if only email available). |
-| `Email` | `string` | `""` | Attendee email address. |
-| `ResponseStatus` | `string` | `"needsAction"` | Response status: `"accepted"`, `"declined"`, `"tentative"`, `"needsAction"`. |
-| `IsOrganizer` | `bool` | `false` | Whether this attendee is the event organizer. |
+| `DisplayName` | `string` | `""` | Name (may be empty). |
+| `Email` | `string` | `""` | Email address. |
+| `ResponseStatus` | `string` | `"needsAction"` | `"accepted"`, `"declined"`, `"tentative"` or `"needsAction"`. |
+| `IsOrganizer` | `bool` | `false` | The attendee organizes the event. |
 
 #### CalendarInfo
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `Id` | `string` | `""` | Provider-specific calendar identifier. |
-| `Name` | `string` | `""` | Human-readable calendar name. |
-| `Owner` | `string?` | `null` | Display name or email of the calendar owner. |
-| `EventCount` | `int` | `0` | Approximate number of events in sync window. |
-| `SourceProvider` | `string` | `""` | Provider identifier: `"google"` or `"microsoft"`. |
-| `IsPrimary` | `bool` | `false` | Whether this is the user's primary calendar. |
-| `LastSyncedAt` | `DateTime?` | `null` | UTC timestamp of last successful sync. Null if never synced. |
+| `Id` | `string` | `""` | Provider calendar id. |
+| `Name` | `string` | `""` | Calendar name. |
+| `Owner` | `string?` | `null` | Owner name or email. |
+| `EventCount` | `int` | `0` | Approximate number of events in the sync window. |
+| `SourceProvider` | `string` | `""` | `"google"` or `"microsoft"`. |
+| `IsPrimary` | `bool` | `false` | The user's primary calendar. |
+| `LastSyncedAt` | `DateTime?` | `null` | Last successful sync (UTC). |
 
 #### SyncResult
 
+Result of a calendar or email sync. The email connector uses the same type.
+
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `ItemsAdded` | `int` | — | New items fetched and added to the inbox. |
-| `ItemsUpdated` | `int` | — | Existing items modified since last sync. |
-| `ItemsSkipped` | `int` | — | Items unchanged since last sync (detected via delta token). |
-| `ItemsFailed` | `int` | — | Items that failed to process. Errors are logged individually. |
-| `TotalItemsProcessed` | `int` | *(computed)* | `ItemsAdded + ItemsUpdated + ItemsSkipped + ItemsFailed`. |
+| `ItemsAdded` | `int` | -- | New items added to the inbox. |
+| `ItemsUpdated` | `int` | -- | Items changed since the last sync. |
+| `ItemsSkipped` | `int` | -- | Unchanged items. |
+| `ItemsFailed` | `int` | -- | Items that failed (each is logged). |
+| `ItemsRemoved` | `int` | -- | Stored items retired because they are gone at the source (for a calendar, also events moved out of the synced range). One that reached the vault is marked as removed and its document kept; one that never did is taken out of the inbox. |
+| `TotalItemsProcessed` | `int` | *(computed)* | `ItemsAdded + ItemsUpdated + ItemsSkipped + ItemsRemoved + ItemsFailed`. |
 | `IsSuccess` | `bool` | *(computed)* | `ItemsFailed == 0`. |
-| `StartedAt` | `DateTime` | — | UTC timestamp when the sync started. |
-| `CompletedAt` | `DateTime` | — | UTC timestamp when the sync completed. |
+| `StartedAt` | `DateTime` | -- | Start (UTC). |
+| `CompletedAt` | `DateTime` | -- | End (UTC). |
 | `Duration` | `TimeSpan` | *(computed)* | `CompletedAt - StartedAt`. |
-| `DeltaToken` | `string?` | `null` | Provider-specific delta token for incremental sync. Null for full syncs. |
+| `DeltaToken` | `string?` | `null` | Token for the next incremental sync, when the provider has one. |
 
 #### CalendarSyncSettings
 
+Saved as JSON in the plugin data folder.
+
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `EnabledCalendars` | `Dictionary<string, bool>` | `new()` | Map of calendar ID to enabled state. Only `true` calendars are synced. |
-| `SyncIntervalMinutes` | `int` | `15` | Polling interval in minutes. |
-| `DaysFutureToSync` | `int` | `30` | Days in the future to include. |
-| `DaysPastToSync` | `int` | `90` | Days in the past to include. |
-| `ConflictResolution` | `string` | `"RemoteWins"` | Conflict strategy: `"LocalWins"`, `"RemoteWins"`, or `"Merge"`. |
-| `IncludeAttendeeDetails` | `bool` | `true` | Whether to include attendee names, emails, and response status. |
-| `IncludeDescriptions` | `bool` | `true` | Whether to include full event description/body. |
+| `EnabledCalendars` | `Dictionary<string, bool>` | `new()` | Calendar id to enabled; only `true` calendars are synced. |
+| `SyncIntervalMinutes` | `int` | `15` | Sync interval. |
+| `DaysFutureToSync` | `int` | `30` | Days ahead to sync. |
+| `DaysPastToSync` | `int` | `90` | Days back to sync. |
+| `ConflictResolution` | `string` | `"RemoteWins"` | `"LocalWins"`, `"RemoteWins"` or `"Merge"`. |
+| `IncludeAttendeeDetails` | `bool` | `true` | Include attendee names, emails and responses. |
+| `IncludeDescriptions` | `bool` | `true` | Include event descriptions. |
+
+#### CalendarEventBatch and CalendarRemovalReason
+
+`public sealed class CalendarEventBatch : ReadOnlyCollection<CalEvent>` is what the built-in
+providers return from `GetEventsAsync`; `IsCompleteWindow` is `true` for a full read of the range
+and `false` for the changes since a delta token. `public enum CalendarRemovalReason` says why the
+sync retires a stored event: `Deleted` (an incremental read reported it deleted or cancelled) or
+`NoLongerListed` (a full read of the range no longer lists it).
 
 ---
 
@@ -3683,21 +2640,18 @@ namespace AgentX.Core.Services.Plugins.Email;
 public interface IEmailService
 ```
 
-High-level email service exposed by the EmailPlugin. Delegates to registered `IEmailProvider` instances.
+Email operations over the connected providers, backed by `EmailPlugin`.
 
-**Namespace:** `AgentX.Core.Services.Plugins.Email`
-**Assembly:** `AgentX.Core`
-
-#### Methods
+**Implementation:** `EmailService`
 
 | Method | Return Type | Description |
 |--------|------------|-------------|
-| `GetRecentMessagesAsync(int count = 20, CancellationToken cancellationToken = default)` | `Task<IReadOnlyList<EmailMessage>>` | Gets recent messages across all enabled folders and providers, sorted by `ReceivedAt` descending. |
-| `SyncMessagesAsync(CancellationToken cancellationToken = default)` | `Task<SyncResult>` | Triggers a sync cycle across all providers and folders. Pushes new/updated messages into the Smart Inbox. |
-| `ListFoldersAsync(CancellationToken cancellationToken = default)` | `Task<IReadOnlyList<EmailFolderInfo>>` | Lists available mail folders from all connected providers. |
-| `GetSyncSettingsAsync()` | `Task<EmailSyncSettings>` | Returns the current sync settings. |
-| `UpdateSyncSettingsAsync(EmailSyncSettings settings)` | `Task` | Updates and persists sync settings. |
-| `IsConnected` | `bool` | Whether at least one email provider is connected. |
+| `GetRecentMessagesAsync(int count = 20, CancellationToken cancellationToken = default)` | `Task<IReadOnlyList<EmailMessage>>` | Recent messages of the enabled folders of all providers. |
+| `SyncMessagesAsync(CancellationToken cancellationToken = default)` | `Task<SyncResult>` | Runs a sync of all providers and enabled folders and pushes new and changed messages into the Smart Inbox. |
+| `ListAvailableFoldersAsync(CancellationToken cancellationToken = default)` | `Task<IReadOnlyList<EmailFolderInfo>>` | The folders of every connected account, whether or not sync is on (used to choose which folders to sync). A provider that cannot be reached is left out and logged. |
+| `GetSyncSettingsAsync()` | `Task<EmailSyncSettings>` | The sync settings. |
+| `UpdateSyncSettingsAsync(EmailSyncSettings settings)` | `Task` | Saves the sync settings. |
+| `IsConnectedAsync()` | `Task<bool>` | Whether the plugin has at least one provider; it creates one for each account with stored credentials when it is activated. |
 
 ---
 
@@ -3709,23 +2663,15 @@ namespace AgentX.Core.Services.Plugins.Email;
 public interface IEmailProvider
 ```
 
-Abstraction for an email provider (Gmail, Outlook). Each provider handles API-specific pagination, auth, and normalization.
+One mail API. **Implementations:** `GmailProvider` (Gmail API v1; incremental sync through the
+history id) and `OutlookEmailProvider` (Microsoft Graph v1.0; incremental sync through delta links).
 
-**Namespace:** `AgentX.Core.Services.Plugins.Email`
-**Assembly:** `AgentX.Core`
-
-#### Properties
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `ProviderId` | `string` | Unique provider identifier (e.g. `"google"`, `"microsoft"`). |
-
-#### Methods
-
-| Method | Return Type | Description |
-|--------|------------|-------------|
-| `ListFoldersAsync(CancellationToken cancellationToken = default)` | `Task<IReadOnlyList<EmailFolderInfo>>` | Lists all mail folders/labels available to the authenticated user. |
-| `GetMessagesAsync(string folderId, int maxResults = 50, string? deltaToken = null, CancellationToken cancellationToken = default)` | `Task<(IReadOnlyList<EmailMessage> Messages, string? NewDeltaToken)>` | Fetches messages from a specific folder. Returns messages and optional delta token for incremental sync. |
+| Member | Description |
+|--------|-------------|
+| `const string InboxFolderId = "INBOX"` | The folder id every provider uses for the inbox (Gmail's label id; Outlook reports its inbox under it too). |
+| `string ProviderId { get; }` | `"google"` or `"microsoft"`. |
+| `Task<IReadOnlyList<EmailFolderInfo>> ListFoldersAsync(CancellationToken cancellationToken = default)` | Folders or labels of the account; the inbox has the id `InboxFolderId`. |
+| `Task<(IReadOnlyList<EmailMessage> Messages, string? DeltaToken)> GetMessagesAsync(string folderId, int maxResults = 50, string? deltaToken = null, DateTime? receivedAfterUtc = null, CancellationToken cancellationToken = default)` | Messages of a folder. A full read (no token) returns only messages received after `receivedAfterUtc` (the "days back" setting); an incremental read returns the changes since `deltaToken` and ignores it. The returned token is the provider's sync position, or a continuation when `maxResults` stopped the read early, so the next call resumes there. |
 
 ---
 
@@ -3737,12 +2683,8 @@ namespace AgentX.Core.Services.Plugins.Email;
 public sealed class EmailPlugin : IPlugin
 ```
 
-Email Connector plugin. Implements the `IPlugin` lifecycle to provide email sync capabilities from Gmail and Microsoft Outlook.
-
-**Namespace:** `AgentX.Core.Services.Plugins.Email`
-**Assembly:** `AgentX.Core`
-
-#### IPlugin Metadata
+The built-in Email Connector. It syncs Gmail and Outlook mail into the Smart Inbox.
+`BuiltinConnectorLifecycleService` starts it and gives it `IOAuthService` and `IInboxService`.
 
 | Property | Value |
 |----------|-------|
@@ -3753,91 +2695,123 @@ Email Connector plugin. Implements the `IPlugin` lifecycle to provide email sync
 | `Author` | `"AgentX"` |
 | `Type` | `PluginType.DataConnector` |
 
-#### Properties
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `Providers` | `IReadOnlyList<IEmailProvider>` | Currently registered email provider instances. |
-
-#### Lifecycle Methods
-
-| Method | Description |
+| Member | Description |
 |--------|-------------|
-| `InitializeAsync(IPluginContext)` | Resolves `IOAuthService` and `IInboxService` from plugin context, loads persisted sync settings. |
-| `ActivateAsync()` | Registers providers, creates the triage processor and sync service, starts the periodic sync timer. |
-| `DeactivateAsync()` | Stops the sync timer and flushes pending operations. |
-| `DisposeAsync()` | Disposes the sync timer and releases resources. |
+| `IReadOnlyList<IEmailProvider> Providers` | The registered providers. |
+| `event EventHandler<SyncResult>? SyncCompleted` | Raised after each sync cycle. |
+| `SyncResult? LastSyncResult` | The last sync result, or `null`. |
+| `EmailSyncSettings GetSettings()` / `void UpdateSettings(EmailSyncSettings settings)` | Reads or replaces the sync settings. |
+| `Task<IReadOnlyList<IEmailProvider>> GetProvidersForFolderListingAsync()` | A provider for each account with stored credentials, for listing folders while sync is off. |
+| `InitializeAsync(IPluginContext context)` | Resolves `IOAuthService` and `IInboxService` and loads the sync settings (`email-sync-settings.json` in the plugin data folder). |
+| `ActivateAsync()` | Creates a provider for each account with stored credentials, the triage processor and the sync service, and starts the sync timer (first run after one minute, then every `SyncIntervalMinutes`). |
+| `DeactivateAsync()` | Stops the timer, cancels a running sync and waits up to 10 seconds for it. |
+| `Dispose()` | Releases the timer and resources. |
 
 ---
 
 ### Email Models
 
+Namespace `AgentX.Core.Services.Plugins.Email.Models`.
+
 #### EmailMessage
 
-```csharp
-namespace AgentX.Core.Services.Plugins.Email.Models;
-
-public sealed class EmailMessage
-```
-
-Unified email message DTO returned by all email providers. Provider-specific JSON is normalized into this shape.
+`public sealed class EmailMessage`, all properties init-only.
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `Id` | `string` | `""` | Provider-specific message identifier. |
-| `Subject` | `string` | `""` | Message subject line. |
-| `BodyPreview` | `string` | `""` | Short preview of the message body. |
-| `BodyHtml` | `string` | `""` | Full HTML body content. |
-| `BodyText` | `string` | `""` | Plain text body content. |
-| `From` | `EmailContact` | `new()` | Sender contact information. |
+| `Id` | `string` | `""` | Provider message id. |
+| `Subject` | `string` | `""` | Subject. |
+| `BodyPreview` | `string` | `""` | Short preview. |
+| `BodyHtml` | `string` | `""` | HTML body as received (not stored). |
+| `BodyText` | `string` | `""` | Plain-text body. |
+| `From` | `EmailContact` | `new()` | Sender. |
 | `To` | `List<EmailContact>` | `[]` | To recipients. |
-| `Cc` | `List<EmailContact>` | `[]` | CC recipients. |
-| `Bcc` | `List<EmailContact>` | `[]` | BCC recipients. |
-| `ReceivedAt` | `DateTime` | — | UTC timestamp when the message was received. |
-| `IsRead` | `bool` | `false` | Whether the message has been read. |
-| `IsStarred` | `bool` | `false` | Whether the message is starred/flagged. |
-| `HasAttachments` | `bool` | `false` | Whether the message has attachments. |
-| `FolderName` | `string` | `""` | Display name of the folder/label. |
-| `FolderId` | `string` | `""` | Provider-specific folder identifier. |
-| `ThreadId` | `string` | `""` | Conversation/thread identifier. |
-| `SourceProvider` | `string` | `""` | Provider identifier: `"google"` or `"microsoft"`. |
-| `AttachmentNames` | `List<string>` | `[]` | Names of attached files. |
-| `WebLink` | `string?` | `null` | Link to view the message in the provider's web UI. |
+| `Cc` | `List<EmailContact>` | `[]` | Cc recipients. |
+| `Bcc` | `List<EmailContact>` | `[]` | Bcc recipients. |
+| `ReceivedAt` | `DateTime` | -- | Receive time (UTC). |
+| `IsRead` | `bool` | `false` | Read. |
+| `IsStarred` | `bool` | `false` | Starred or flagged. |
+| `HasAttachments` | `bool` | `false` | Has attachments. |
+| `FolderName` | `string` | `""` | Folder or label name. |
+| `FolderId` | `string` | `""` | Folder id. |
+| `ThreadId` | `string` | `""` | Thread id. |
+| `SourceProvider` | `string` | `""` | `"google"` or `"microsoft"`. |
+| `AttachmentNames` | `List<string>` | `[]` | Attachment file names. |
+| `WebLink` | `string?` | `null` | Link to the message in the provider's web UI. |
 
 #### EmailContact
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `DisplayName` | `string` | `""` | Contact display name. |
-| `EmailAddress` | `string` | `""` | Contact email address. |
-| `IsMe` | `bool` | `false` | Whether this contact is the authenticated user. |
+| `DisplayName` | `string` | `""` | Name. |
+| `EmailAddress` | `string` | `""` | Address. |
+| `IsMe` | `bool` | `false` | The signed-in user. |
 
 #### EmailFolderInfo
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `Id` | `string` | `""` | Provider-specific folder/label identifier. |
-| `Name` | `string` | `""` | Display name of the folder. |
-| `TotalCount` | `int` | `0` | Total number of messages in the folder. |
-| `UnreadCount` | `int` | `0` | Number of unread messages. |
-| `SourceProvider` | `string` | `""` | Provider identifier: `"google"` or `"microsoft"`. |
+| `Id` | `string` | `""` | Folder or label id. |
+| `Name` | `string` | `""` | Name. |
+| `TotalCount` | `int` | `0` | Messages in the folder. |
+| `UnreadCount` | `int` | `0` | Unread messages. |
+| `SourceProvider` | `string` | `""` | `"google"` or `"microsoft"`. |
 
 #### EmailSyncSettings
 
+`public sealed class EmailSyncSettings`, saved as camelCase JSON in the plugin data folder.
+`static EmailSyncSettings Load(string path)` returns defaults for a missing file and also for an
+unreadable or corrupt one (a corrupt file is kept as `{path}.corrupt`); `void Save(string path)`
+writes atomically through a temporary file.
+
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `EnabledFolders` | `Dictionary<string, bool>` | `{ ["INBOX"] = true }` | Which folders to sync. Key = folder ID, Value = enabled. |
-| `SyncIntervalMinutes` | `int` | `10` | Polling interval in minutes. |
-| `MaxMessagesPerSync` | `int` | `50` | Maximum messages to fetch per sync cycle. |
-| `SyncDaysBack` | `int` | `30` | How many days back to sync on first connection. |
-| `EnableAiCategorization` | `bool` | `true` | Whether to use AI to categorize emails during triage. |
-| `CategorizationPrompt` | `string?` | `null` | Custom prompt for AI categorization (null = default prompt). |
-| `IncludeHtmlBody` | `bool` | `false` | Whether to include full HTML body in indexed content. |
-| `IncludeAttachmentNames` | `bool` | `true` | Whether to include attachment names in indexed content. |
+| `EnabledFolders` | `Dictionary<string, bool>` | `{ ["INBOX"] = true }` | Folder id to enabled. |
+| `SyncIntervalMinutes` | `int` | `10` | Sync interval. |
+| `MaxMessagesPerSync` | `int` | `50` | Messages read per sync cycle. |
+| `SyncDaysBack` | `int` | `30` | How far back the first (full) sync of a folder reaches; later syncs are incremental. |
+| `EnableAiCategorization` | `bool` | `true` | Not applied: no AI categorizes email (see the note below). Kept so existing settings files load. |
+| `CategorizationPrompt` | `string?` | `null` | Not applied. |
+| `IncludeHtmlBody` | `bool` | `true` | For a message without a plain-text part: when on, its HTML body is converted to readable text (`HtmlParser.ConvertToPlainText`), stored, indexed and used for the inbox preview; when off, the message is stored with its headers and preview only. A plain-text part is always kept and raw HTML is never stored. Saved as `includeHtmlBodyText`; the old `includeHtmlBody` key is ignored. |
+| `IncludeAttachmentNames` | `bool` | `true` | Include attachment names in the indexed content. |
+
+**Triage categories.** Email triage is rule-based. `EmailTriageProcessor.Classify` gives each
+message one `EmailCategory` from ordered keyword and sender rules, and the first match wins:
+`ActionRequired`, `Meeting`, `Financial`, `Social`, `Promotion`, `Newsletter`, `Notification`,
+otherwise `Other`. The rules run offline and give the same category for the same message every
+time. The category name is stored in `InboxItemEntity.SourceCategory`. There is no setting to turn
+categorization off.
 
 ---
 
 ## 15. Plugin Infrastructure
+
+### IPlugin
+
+```csharp
+namespace AgentX.Core.Services.Plugins;
+
+public interface IPlugin : IDisposable
+```
+
+The interface every plugin's entry type implements. Plugins are loaded into collectible
+`AssemblyLoadContext` instances by `IPluginService`. They run in-process with the user's rights;
+the host isolates their assemblies but does not sandbox file-system or network access.
+
+| Member | Description |
+|--------|-------------|
+| `string Id` | Stable plugin id; matches `PluginManifest.Id`. |
+| `string Name`, `string Version`, `string Author`, `string Description` | Display metadata. |
+| `PluginType Type` | The plugin's main extension point. |
+| `Task InitializeAsync(IPluginContext context)` | Called once after the assembly is loaded. One-time setup only; no background work. |
+| `Task ActivateAsync()` | Called when the user enables the plugin, and at startup for a plugin left enabled. The host waits 30 seconds and treats a slower activation as a failure. |
+| `Task DeactivateAsync()` | Called before the plugin is disabled or uninstalled, and at shutdown. The host waits at most 10 seconds, then disposes and unloads the plugin anyway. |
+| `void Dispose()` | Called after deactivation. |
+
+Installing a plugin only extracts it and records it as disabled; nothing is loaded until it is
+enabled.
+
+---
 
 ### IPluginContext
 
@@ -3847,20 +2821,14 @@ namespace AgentX.Core.Services.Plugins;
 public interface IPluginContext
 ```
 
-Provides a plugin with controlled, safe access to host application resources. An instance of this interface is created per plugin by `IPluginService` and passed to `IPlugin.InitializeAsync` before activation.
-
-**Namespace:** `AgentX.Core.Services.Plugins`
-**Assembly:** `AgentX.Core`
-
-**Design Rationale:** Plugins must never receive the root `IServiceProvider` directly. Instead, `Services` is a dedicated child scope containing only safe services. File-system access is constrained to `PluginDataPath`.
-
-#### Properties
+The host resources given to a plugin in `InitializeAsync`. Plugins never receive the root
+`IServiceProvider`.
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `Services` | `IServiceProvider` | Scoped service provider exposing only host-approved services. `IOAuthService` is available for `DataConnector` plugins. |
-| `PluginDataPath` | `string` | Absolute path to a per-plugin data directory for reading/writing private data (config, caches, state). Created by the host before `InitializeAsync`. |
-| `Logger` | `ILogger` | Serilog logger pre-enriched with plugin identifier and version via `ForContext`. |
+| `Services` | `IServiceProvider` | A scoped provider with the host services approved for plugins: currently `IInboxService` alone. `IOAuthService` is deliberately not offered, because it can return the stored Google and Microsoft refresh tokens; only the built-in Calendar and Email connectors receive it, from `BuiltinConnectorLifecycleService`. |
+| `PluginDataPath` | `string` | The plugin's own data folder, `%LOCALAPPDATA%\AgentX\Plugins\<plugin id>\data`, created before `InitializeAsync`. A convention, not a sandbox; manifest permissions are informational only. |
+| `Logger` | `ILogger` | Serilog logger tagged with the plugin id and version. |
 
 ---
 
@@ -3872,39 +2840,204 @@ namespace AgentX.Core.Services.Plugins;
 public enum PluginType
 ```
 
-Defines the type of plugin, which determines its capabilities and what host services it can access.
+Only `DocumentProcessor` and `DataConnector` have a host integration today; the other values are
+labels the Plugin Manager shows. Every plugin receives the same `IPluginContext` services, whatever
+its type.
 
 | Value | Name | Description |
 |-------|------|-------------|
-| `0` | `DataConnector` | Plugin that connects to external data sources (Calendar, Email) and syncs data into the knowledge vault. Has access to `IOAuthService` for OAuth2 authentication. |
+| `0` | `DocumentProcessor` | Adds text extraction for file formats. The entry type implements `IDocumentProcessorPlugin`; while the plugin is active the host offers it every file that no built-in processor claims (`IPluginDocumentProcessorSource`). |
+| `1` | `AiProvider` | Label only: the host does not call such plugins yet. |
+| `2` | `QuickAction` | Label only: the host does not call such plugins yet. |
+| `3` | `WorkflowStep` | Label only: the host does not call such plugins yet. |
+| `4` | `DataConnector` | Pushes external items into the Smart Inbox through the `IInboxService` in `IPluginContext.Services`. |
+| `5` | `Theme` | Label only: the host does not call such plugins yet. |
+| `6` | `Custom` | Catch-all label; no host integration. |
 
 ---
 
-### OAuthCredentialEntity
+### IDocumentProcessorPlugin
 
 ```csharp
-namespace AgentX.Core.Data.Entities;
+namespace AgentX.Core.Services.Plugins;
 
-public class OAuthCredentialEntity
+public interface IDocumentProcessorPlugin : IPlugin, IDocumentProcessor
+{
+}
 ```
 
-Persists OAuth2 tokens for external providers (Google, Microsoft) in the SQLite database. Tokens are stored in DPAPI-encrypted form; the host decrypts them at runtime before passing them to provider clients. One row per provider; `ProviderId` is enforced unique.
-
-**Namespace:** `AgentX.Core.Data.Entities`
-**Assembly:** `AgentX.Core`
-
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `Id` | `long` | *(auto)* | Primary key (auto-increment). |
-| `ProviderId` | `string` | `""` | Stable OAuth provider identifier (e.g. `"google"`, `"microsoft"`). Unique index. |
-| `AccessToken` | `string` | `""` | DPAPI-encrypted access token. Base64-encoded encrypted blob. |
-| `RefreshToken` | `string` | `""` | DPAPI-encrypted refresh token. Base64-encoded encrypted blob. |
-| `TokenExpiry` | `DateTime` | — | UTC timestamp when the access token expires. |
-| `Scopes` | `string` | `""` | Comma-separated OAuth scopes granted (e.g. `"calendar.read,email.read"`). |
-| `UserId` | `string` | `""` | Provider-specific user identifier (Google `sub` or Microsoft `oid`). |
-| `CreatedAt` | `DateTime` | — | UTC timestamp when this credential was first stored. |
-| `UpdatedAt` | `DateTime` | — | UTC timestamp when this credential was last refreshed/updated. |
+The entry type of a `DocumentProcessor` plugin (implementing `IDocumentProcessor` directly works
+too). Built-in processors take precedence: a plugin processor is asked only for files that no
+built-in processor claims, so a plugin can add formats but cannot change how PDF, DOCX, text,
+Markdown, code, image, audio or web files are read.
 
 ---
 
-*This document was generated from the Agent-X source code in `AgentX.Core` and reflects the public API surface as of 2026-04-16.*
+### IPluginDocumentProcessorSource
+
+```csharp
+namespace AgentX.Core.Services.Plugins;
+
+public interface IPluginDocumentProcessorSource
+{
+    IReadOnlyList<IDocumentProcessor> GetDocumentProcessors();
+}
+```
+
+Returns a snapshot of the processors of the active plugins whose entry type implements
+`IDocumentProcessor`, empty when there are none. `DocumentService` asks it after the built-in
+processors, each time it chooses a processor; callers must not cache the list, because plugins are
+enabled, disabled and unloaded at run time. The returned processors guard `CanProcess` and
+`SupportedExtensions`, so a faulty plugin cannot break processor selection for other files;
+exceptions from `ProcessAsync` fail only that import.
+
+**Implementation:** `PluginService` (the same instance that is registered as `IPluginService`).
+
+---
+
+## 16. Local REST API Host
+
+The HTTP routes, request and response bodies and status codes are documented in
+[`API_ENDPOINTS.md`](../API_ENDPOINTS.md#local-rest-api). This section covers the .NET types.
+
+### IApiHostService
+
+```csharp
+namespace AgentX.Core.Services.Api;
+
+public interface IApiHostService
+```
+
+The local REST API host, an `HttpListener` inside the desktop process.
+
+**Implementation:** `ApiHostService` (also `IAsyncDisposable`). In the app,
+`ApiHostLifecycleService` (`IApiHostLifecycleService` in `AgentX.App.Services`) starts it on port
+9846 after the database migration, creates the token on first start, and applies Settings changes
+at run time through `ApplySettingsAsync`.
+
+| Member | Description |
+|--------|-------------|
+| `bool IsRunning` | Whether the listener is running. |
+| `int Port` | The port it was started on. |
+| `string BaseUrl` | For example `http://localhost:9846/`. |
+| `Task StartAsync(int port = 9846, string? authToken = null, CancellationToken ct = default)` | Starts listening on `http://localhost:{port}/` with the given bearer token. Calling it while running does nothing. A null or empty token fails closed: every route except the public extension health probe returns 401. Throws `HttpListenerException` when the listener cannot start (for example the port is in use). |
+| `void SetAuthToken(string? authToken)` | Replaces the bearer token for the next request, so a regenerated token works at once and the previous one stops working, without a restart. Null or empty locks every data route. Safe to call from any thread. |
+| `Task StopAsync(CancellationToken ct = default)` | Stops the listener. Calling it when stopped does nothing. |
+
+The host processes at most 16 requests at a time and logs every request with its status and
+duration.
+
+---
+
+### LocalApiSecurity
+
+```csharp
+namespace AgentX.Core.Services.Api;
+
+public static class LocalApiSecurity
+```
+
+The authorization and CORS decisions of the host, free of `HttpListener` types so they are unit
+tested directly.
+
+| Member | Description |
+|--------|-------------|
+| `static bool IsPublicPath(string path)` | `true` only for `/api/extension/health` (ignoring case). |
+| `static bool IsAuthorized(string? authorizationHeader, string? expectedToken)` | `true` when the header is `Bearer <token>` (scheme ignoring case, token trimmed) and the token equals `expectedToken`, compared in constant time. `false` whenever `expectedToken` is null or empty. |
+| `static string? ResolveAllowedOrigin(string? origin)` | Echoes an origin that starts with `chrome-extension://`, `moz-extension://` or `ms-browser-extension://`; `null` for everything else, so web pages get no CORS grant. |
+| `static string GenerateToken()` | A new random 256-bit token as 64 uppercase hexadecimal characters. |
+
+---
+
+### API Models
+
+Namespace `AgentX.Core.Services.Api.Models`. The host serializes them as camelCase JSON and leaves
+out null properties.
+
+| Type | Shape |
+|------|-------|
+| `ApiResponse<T>` | `bool Success`, `T? Data`, `string? Error`, `DateTime Timestamp` (UTC, set when created). Factories `Ok(T data)` and `Fail(string error)`. |
+| `ApiDocumentDto` | `record ApiDocumentDto(long Id, string FileName, string FileType, long FileSizeBytes, DateTime ImportedAt, string IndexingStatus)` |
+| `ApiConversationDto` | `record ApiConversationDto(long Id, string Title, string ModelId, DateTime CreatedAt, DateTime UpdatedAt, int MessageCount, long TokensUsed)` |
+| `ApiCollectionDto` | `record ApiCollectionDto(long Id, string Name, string? Description, int DocumentCount, DateTime CreatedAt)` |
+| `ApiSearchRequest` | `string Query` (default `""`), `int TopK` (default 10), `float MinScore` (default 0.3) |
+| `ApiSearchResultDto` | `record ApiSearchResultDto(long DocumentId, string FileName, string ChunkContent, float Score)` |
+| `ApiHealthDto` | `string Status` (`"ok"`), `string Version`, `string Uptime`, `long DocumentCount`, `int ConversationCount` |
+| `ApiClipRequest` | `string Title`, `string Content`, `string SourceUrl`, `string? Author`, `string? PublishedDate` (read by a lenient converter: a JSON string as is, a number as its text, anything else as null), `string ClipMode` (default `"selection"`), `int WordCount`, `Dictionary<string, string>? Metadata` |
+| `ApiClipResponse` | `long InboxItemId`, `string Status`, `string Message` |
+| `ApiExtensionHealthDto` | `bool Connected`, `string Version`, `bool InboxEnabled`, `string Provider` |
+| `ApiAuthCheckDto` | `bool Authenticated`, `string Version` |
+
+---
+
+## 17. Database Encryption
+
+### IDatabaseEncryptionManager
+
+```csharp
+namespace AgentX.Core.Services.Security;
+
+public interface IDatabaseEncryptionManager
+```
+
+Turns on at-rest encryption (SQLCipher, AES-256) for the live application database and reports
+whether it is on. It is the one entry point the UI uses (Settings > Database Encryption).
+
+**Implementation:** `DatabaseEncryptionManager`
+
+| Member | Description |
+|--------|-------------|
+| `bool IsEncryptionEnabled` | `true` when the encryption marker file (`encryption.info.json`) exists. |
+| `KeyStorageMode? ProvisionedMode` | The key storage mode recorded in the marker, or `null` when the database is not encrypted or the marker cannot be read. |
+| `Task<bool> EnableEncryptionAsync(CancellationToken ct = default)` | Provisions a DPAPI-wrapped key, releases the shared database connection and suspends the vector store, migrates and verifies the file, writes the encryption marker last, and reopens the connection with the key that matches the file. Returns `false` without doing anything when encryption is already on, `true` after a successful migration. On failure the database stays plaintext, no marker is written, the connection is reopened without a key, and the exception propagates. |
+
+The key state lives outside the encrypted database, in the marker file
+`%LOCALAPPDATA%\AgentX\encryption.info.json`, because the database cannot be opened without the key.
+`KeyStorageMode` has two values: `DpapiWrapped = 0` (a generated 32-byte key, DPAPI-wrapped and tied
+to the Windows account; the mode `EnableEncryptionAsync` uses) and `UserPassphrase = 1` (a key
+derived from a passphrase entered at each launch with PBKDF2-HMAC-SHA256, kept for databases
+encrypted by older builds).
+
+---
+
+## 18. Draft As Me
+
+### IVoiceDraftService
+
+```csharp
+namespace AgentX.Core.Services.TemporalIdentity;
+
+public interface IVoiceDraftService
+{
+    Task<VoiceDraft?> StartDraftAsync(VoiceDraftRequest request, CancellationToken ct = default);
+}
+```
+
+"Draft as Me" on the Past Self page: the active AI provider writes a draft in the user's voice from
+what Temporal Identity has recorded about how the user writes and what the user thought.
+
+**Implementation:** `VoiceDraftService`
+
+**StartDraftAsync** prepares the prompt and returns the draft ready to stream. The prompt carries
+the learned voice profile, the stances the user held on related topics at `request.At`, and the
+insights saved by then, and asks the model not to invent facts about the user. A context longer
+than 6,000 characters is cut to its first 6,000. The request uses temperature 0.7 and at most
+1,024 output tokens.
+
+**Returns:** The draft, or `null` when no AI provider is available (none is set up, or the active
+one cannot be reached); nothing is sent to a provider then.
+
+**Exceptions:** `ArgumentException` when the request has no context; `OperationCanceledException`
+when `ct` is cancelled.
+
+| Type | Shape |
+|------|-------|
+| `VoiceDraftRequest` | `record VoiceDraftRequest(string Context, string? Goal, DateTime? At)`. `Context` is required; `At` is the point in time whose views the draft follows (only stances and insights recorded by then are used), `null` for now. |
+| `VoiceDraft` | `record VoiceDraft(VoiceDraftBasis Basis, IAsyncEnumerable<string> Text)`. Enumerating `Text` runs the model; a provider failure surfaces there, and cancelling the token stops it. |
+| `VoiceDraftBasis` | `record VoiceDraftBasis(string WrittenBy, DateTime AsOf, VoiceProfileEntity? VoiceProfile, IReadOnlyList<VoiceDraftView> Views, IReadOnlyList<VoiceDraftInsight> Insights)`. `WrittenBy` names the model and provider, for example `"llama3.2 (Ollama)"`. |
+| `VoiceDraftView` | `record VoiceDraftView(string Topic, string Stance)`. |
+| `VoiceDraftInsight` | `record VoiceDraftInsight(string Text, DateTime SavedAt)`. |
+
+---
+
+*This reference was checked against the `AgentX.Core` source on 2026-09-27.*

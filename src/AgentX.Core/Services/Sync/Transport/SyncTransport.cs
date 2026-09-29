@@ -11,16 +11,16 @@ namespace AgentX.Core.Services.Sync.Transport;
 /// </summary>
 public sealed class SyncTransport : ISyncTransport
 {
-    // ── Constants ─────────────────────────────────────────────────────────────
+    // -- Constants -------------------------------------------------------------
 
     private const string SyncFileExtension = ".axs";
     private const string SyncFilePrefix = "agentx-sync-";
 
-    // ── Fields ────────────────────────────────────────────────────────────────
+    // -- Fields ----------------------------------------------------------------
 
     private readonly ILogger _log;
 
-    // ── Constructor ───────────────────────────────────────────────────────────
+    // -- Constructor -----------------------------------------------------------
 
     /// <summary>
     /// Initialises a new <see cref="SyncTransport"/>.
@@ -34,7 +34,7 @@ public sealed class SyncTransport : ISyncTransport
         _log.Debug("SyncTransport initialised");
     }
 
-    // ── ISyncTransport: WriteSyncFileAsync ────────────────────────────────────
+    // -- ISyncTransport: WriteSyncFileAsync ------------------------------------
 
     /// <inheritdoc />
     public async Task<string> WriteSyncFileAsync(
@@ -60,7 +60,7 @@ public sealed class SyncTransport : ISyncTransport
         return filePath;
     }
 
-    // ── ISyncTransport: ReadPeerFilesAsync ────────────────────────────────────
+    // -- ISyncTransport: ReadPeerFilesAsync ------------------------------------
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<SyncFilePayload>> ReadPeerFilesAsync(
@@ -71,7 +71,7 @@ public sealed class SyncTransport : ISyncTransport
         if (!Directory.Exists(syncFolderPath))
         {
             _log.Warning(
-                "SyncTransport.ReadPeerFilesAsync: sync folder does not exist — skipping. Path={Path}",
+                "SyncTransport.ReadPeerFilesAsync: sync folder does not exist - skipping. Path={Path}",
                 syncFolderPath);
             return [];
         }
@@ -116,7 +116,7 @@ public sealed class SyncTransport : ISyncTransport
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 _log.Warning(ex,
-                    "SyncTransport.ReadPeerFilesAsync: failed to read {FileName} — skipping",
+                    "SyncTransport.ReadPeerFilesAsync: failed to read {FileName} - skipping",
                     fileName);
             }
         }
@@ -128,7 +128,7 @@ public sealed class SyncTransport : ISyncTransport
         return peerFiles;
     }
 
-    // ── ISyncTransport: MarkFileImportedAsync ─────────────────────────────────
+    // -- ISyncTransport: MarkFileImportedAsync ---------------------------------
 
     /// <inheritdoc />
     public Task MarkFileImportedAsync(string filePath)
@@ -146,7 +146,7 @@ public sealed class SyncTransport : ISyncTransport
         return Task.CompletedTask;
     }
 
-    // ── ISyncTransport: EnsureFolderExists ────────────────────────────────────
+    // -- ISyncTransport: EnsureFolderExists ------------------------------------
 
     /// <inheritdoc />
     public void EnsureFolderExists(string syncFolderPath)
@@ -162,7 +162,7 @@ public sealed class SyncTransport : ISyncTransport
         }
     }
 
-    // ── Private: file naming ──────────────────────────────────────────────────
+    // -- Private: file naming --------------------------------------------------
 
     /// <summary>
     /// Builds the canonical sync file name:

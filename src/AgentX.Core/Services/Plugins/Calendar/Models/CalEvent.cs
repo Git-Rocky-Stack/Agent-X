@@ -50,6 +50,22 @@ public sealed class CalEvent
     public bool IsRecurring { get; init; }
 
     /// <summary>
+    /// Whether the organizer cancelled this meeting (or this occurrence of a series) while it is
+    /// still in the calendar, as Outlook keeps a cancelled meeting until the attendee removes
+    /// it. Such events are still synced so the vault copy says so instead of keeping a stale
+    /// meeting. Google has no such state: its cancelled events arrive as <see cref="IsDeleted"/>
+    /// notices.
+    /// </summary>
+    public bool IsCancelled { get; init; }
+
+    /// <summary>
+    /// True for a deletion notice rather than an event: an incremental read reported that the
+    /// event (or this occurrence of a series) is gone from the calendar. Only <see cref="Id"/>,
+    /// <see cref="CalendarId"/> and <see cref="SourceProvider"/> are set.
+    /// </summary>
+    public bool IsDeleted { get; init; }
+
+    /// <summary>
     /// List of attendees (including the organizer, who is also listed separately).
     /// </summary>
     public IReadOnlyList<CalAttendee> Attendees { get; init; } = [];

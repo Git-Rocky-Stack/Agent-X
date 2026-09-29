@@ -23,7 +23,7 @@ public static class VectorStoreFactory
     /// <param name="settingsService">Settings service providing app configuration.</param>
     /// <param name="embeddingService">Embedding service providing dimension information.</param>
     /// <param name="logger">Serilog logger instance.</param>
-    /// <param name="connectionFactory">Encrypted connection factory — required so PRAGMA key is applied when opening SQLite.</param>
+    /// <param name="connectionFactory">Encrypted connection factory - required so PRAGMA key is applied when opening SQLite.</param>
     /// <returns>A fully constructed (but not yet initialized) <see cref="IVectorStore"/>.</returns>
     public static IVectorStore Create(
         ISettingsService settingsService,
@@ -40,7 +40,7 @@ public static class VectorStoreFactory
         // DI factory lambda (Microsoft.Extensions.DependencyInjection does not support
         // async construction). SettingsService caches its result on first access and
         // performs no I/O after that, so the GetResult call is non-blocking in practice.
-        // A proper fix would require pre-resolving settings before container build —
+        // A proper fix would require pre-resolving settings before container build -
         // architectural change tracked separately.
 #pragma warning disable VSTHRD002
         var settings = settingsService.GetSettingsAsync().GetAwaiter().GetResult();
@@ -53,16 +53,21 @@ public static class VectorStoreFactory
         }
 
         logger.Information(
-            "HNSW index enabled; creating HnswVectorStore (M={M}, EfConstruction={EfConstruction}, FallbackThreshold={Threshold}, Dimensions={Dimensions})",
-            settings.HnswM, settings.HnswEfConstruction, settings.HnswFallbackThreshold, embeddingService.Dimensions);
+            "HNSW index enabled; creating HnswVectorStore (M={M}, EfConstruction={EfConstruction}, EfSearch={EfSearch}, FallbackThreshold={Threshold})",
+            settings.HnswM, settings.HnswEfConstruction, settings.HnswEfSearch, settings.HnswFallbackThreshold);
 
+        // The embedding size is read lazily: at construction time the AI service is not yet
+        // initialized, so the embedding service cannot know the current model's vector size.
         return new HnswVectorStore(
             settingsService,
             logger,
             m: settings.HnswM,
             efConstruction: settings.HnswEfConstruction,
-            dimensions: embeddingService.Dimensions,
+            dimensionsProvider: () => embeddingService.Dimensions,
             fallbackThreshold: settings.HnswFallbackThreshold,
-            connectionFactory: connectionFactory);
+            connectionFactory: connectionFactory)
+        {
+            EfSearch = settings.HnswEfSearch,
+        };
     }
 }

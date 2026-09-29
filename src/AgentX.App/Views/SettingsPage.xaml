@@ -10,6 +10,7 @@
 
     <Page.Resources>
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibility" />
+        <converters:BoolToVisibilityConverter x:Key="InverseBoolToVisibility" IsInverted="True" />
         <converters:StringToVisibilityConverter x:Key="StringToVisibility" />
     </Page.Resources>
 
@@ -38,9 +39,9 @@
                            Style="{StaticResource BodySecondaryStyle}" />
             </StackPanel>
 
-            <!-- ════════════════════════════════════════════════════════
+            <!-- ========================================================
                  AI PROVIDERS
-                 ════════════════════════════════════════════════════════ -->
+                 ======================================================== -->
             <controls:Faceplate Grid.Row="1" Kicker="MOD - PROV - 01">
                 <StackPanel Spacing="20">
                     <TextBlock x:Uid="Settings_AiProviders" Text="AI Providers"
@@ -66,7 +67,35 @@
                     <!-- Separator -->
                     <Border Style="{StaticResource SeparatorStyle}" />
 
-                    <!-- ── Ollama (Local) ─────────────────────────── -->
+                    <!-- Built-in LLM: GPU layers (BuiltInModelSettingsViewModel). Saved with the
+                         page; saving reloads the built-in model with the new value. -->
+                    <StackPanel Spacing="12">
+                        <TextBlock x:Uid="Settings_BuiltInLlm" Text="Built-in LLM (Local)"
+                                   Style="{StaticResource HeadingSmallStyle}" />
+
+                        <ToggleSwitch x:Uid="Settings_GpuLayersAutomatic" Header="Automatic GPU layers"
+                                      IsOn="{x:Bind ViewModel.BuiltInModel.IsGpuLayersAutomatic, Mode=TwoWay}" />
+
+                        <StackPanel Spacing="4"
+                                    Visibility="{x:Bind ViewModel.BuiltInModel.IsGpuLayersAutomatic, Mode=OneWay, Converter={StaticResource InverseBoolToVisibility}}">
+                            <TextBlock x:Name="GpuLayersLabel" x:Uid="Settings_GpuLayers" Text="GPU Layers"
+                                       Style="{StaticResource LabelStyle}" />
+                            <NumberBox Value="{x:Bind ViewModel.BuiltInModel.GpuLayers, Mode=TwoWay}"
+                                       Minimum="0" Maximum="999" SpinButtonPlacementMode="Compact"
+                                       HorizontalAlignment="Left" MinWidth="160"
+                                       AutomationProperties.LabeledBy="{x:Bind GpuLayersLabel}" />
+                        </StackPanel>
+
+                        <TextBlock x:Uid="Settings_GpuLayersHint"
+                                   Text="Automatic picks 16 to 33 layers from an NVIDIA GPU's video memory (none below 2 GB); 0 keeps the model on the CPU. Layers run on the GPU only when the NVIDIA CUDA 12 Toolkit is installed. Saving reloads the built-in model."
+                                   Style="{StaticResource CaptionStyle}"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+
+                    <!-- Separator -->
+                    <Border Style="{StaticResource SeparatorStyle}" />
+
+                    <!-- == Ollama (Local) =========================== -->
                     <StackPanel Spacing="12">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <TextBlock x:Uid="Settings_OllamaLocal" Text="Ollama (Local)"
@@ -124,7 +153,7 @@
                     <!-- Separator -->
                     <Border Style="{StaticResource SeparatorStyle}" />
 
-                    <!-- ── OpenAI ─────────────────────────────────── -->
+                    <!-- == OpenAI =================================== -->
                     <StackPanel Spacing="12">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <TextBlock Text="OpenAI"
@@ -183,7 +212,7 @@
                     <!-- Separator -->
                     <Border Style="{StaticResource SeparatorStyle}" />
 
-                    <!-- ── Anthropic Claude ────────────────────────── -->
+                    <!-- == Anthropic Claude ========================== -->
                     <StackPanel Spacing="12">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <TextBlock Text="Anthropic Claude"
@@ -224,7 +253,7 @@
                                            Style="{StaticResource LabelStyle}" />
                                 <TextBox Style="{StaticResource InputTextBoxStyle}"
                                          Text="{x:Bind ViewModel.AnthropicDefaultModel, Mode=TwoWay}"
-                                         PlaceholderText="claude-sonnet-4-20250514" />
+                                         PlaceholderText="claude-sonnet-5" />
                             </StackPanel>
                         </Grid>
 
@@ -244,9 +273,9 @@
                 </StackPanel>
             </controls:Faceplate>
 
-            <!-- ════════════════════════════════════════════════════════
+            <!-- ========================================================
                  APPEARANCE
-                 ════════════════════════════════════════════════════════ -->
+                 ======================================================== -->
             <controls:Faceplate Grid.Row="2" Kicker="MOD - SHIFT - 02">
                 <StackPanel Spacing="16">
                     <TextBlock x:Uid="Settings_Appearance" Text="Appearance"
@@ -262,12 +291,25 @@
                         <TextBlock x:Uid="Settings_ChangesApplyImmediatelySystem" Text="Changes apply immediately. 'System Default' follows your Windows theme."
                                    Style="{StaticResource CaptionStyle}" />
                     </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock x:Uid="Settings_Language" Text="Language"
+                                   Style="{StaticResource LabelStyle}" />
+                        <ComboBox x:Uid="Settings_LanguagePicker"
+                                  ItemsSource="{x:Bind ViewModel.LanguageOptions}"
+                                  SelectedIndex="{x:Bind ViewModel.LanguageIndex, Mode=TwoWay}"
+                                  HorizontalAlignment="Stretch"
+                                  MinWidth="200" />
+                        <TextBlock x:Uid="Settings_LanguageRestartHint" Text="Saved immediately. Restart Agent-X to see every page in the new language. 'Windows default' follows your Windows display language."
+                                   Style="{StaticResource CaptionStyle}"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
                 </StackPanel>
             </controls:Faceplate>
 
-            <!-- ════════════════════════════════════════════════════════
+            <!-- ========================================================
                  COST TRACKING
-                 ════════════════════════════════════════════════════════ -->
+                 ======================================================== -->
             <!-- Multi-Model Routing section -->
             <controls:Faceplate Grid.Row="3" Kicker="MOD - ROUTE - 03">
                 <StackPanel Spacing="16">
@@ -292,11 +334,11 @@
                                   IsEnabled="{x:Bind ViewModel.EnableModelRouting, Mode=OneWay}" />
 
                         <StackPanel Spacing="4" Padding="4,0,0,0">
-                            <TextBlock x:Uid="Settings_CostOptimizedLocalModels" Text="Cost Optimized — Local models for all tasks, cloud only as fallback"
+                            <TextBlock x:Uid="Settings_CostOptimizedLocalModels" Text="Cost Optimized - Local models for all tasks, cloud only as fallback"
                                        Style="{StaticResource CaptionStyle}" />
-                            <TextBlock x:Uid="Settings_QualityOptimizedCloudModels" Text="Quality Optimized — Cloud models for analysis, code, creative"
+                            <TextBlock x:Uid="Settings_QualityOptimizedCloudModels" Text="Quality Optimized - Cloud models for analysis, code, creative"
                                        Style="{StaticResource CaptionStyle}" />
-                            <TextBlock x:Uid="Settings_BalancedLocalForSimple" Text="Balanced — Local for simple tasks, cloud for quality-critical tasks"
+                            <TextBlock x:Uid="Settings_BalancedLocalForSimple" Text="Balanced - Local for simple tasks, cloud for quality-critical tasks"
                                        Style="{StaticResource CaptionStyle}" />
                         </StackPanel>
                     </StackPanel>
@@ -354,9 +396,9 @@
                 </StackPanel>
             </controls:Faceplate>
 
-            <!-- ════════════════════════════════════════════════════════
+            <!-- ========================================================
                  INFERENCE PARAMETERS
-                 ════════════════════════════════════════════════════════ -->
+                 ======================================================== -->
             <controls:Faceplate Grid.Row="5" Kicker="MOD - INFER - 05">
                 <StackPanel Spacing="20">
                     <TextBlock x:Uid="Settings_Inference" Text="Inference"
@@ -397,9 +439,9 @@
                 </StackPanel>
             </controls:Faceplate>
 
-            <!-- ════════════════════════════════════════════════════════
+            <!-- ========================================================
                  KNOWLEDGE VAULT
-                 ════════════════════════════════════════════════════════ -->
+                 ======================================================== -->
             <controls:Faceplate Grid.Row="6" Kicker="MOD - VAULT - 06">
                 <StackPanel Spacing="20">
                     <TextBlock x:Uid="Settings_KnowledgeVault" Text="Knowledge Vault"
@@ -436,44 +478,116 @@
 
                     <ToggleSwitch x:Uid="Settings_AutoIndexWatchFolders" Header="Auto-index watch folders"
                                   IsOn="{x:Bind ViewModel.AutoIndexWatchFolders, Mode=TwoWay}" />
+
+                    <!-- Watch folders (WatchFolderSettingsViewModel). Adding and removing act at once;
+                         the switch above is applied to the watcher when settings are saved. -->
+                    <StackPanel Spacing="8">
+                        <TextBlock x:Uid="Settings_WatchFolders" Text="Watch Folders"
+                                   Style="{StaticResource LabelStyle}" />
+                        <TextBlock x:Uid="Settings_WatchFoldersDescription"
+                                   Text="While the switch is on, Agent-X imports the supported files in these folders and keeps importing new and changed ones while it runs. Adding or removing a folder takes effect at once; the switch takes effect when you save settings."
+                                   Style="{StaticResource CaptionStyle}"
+                                   TextWrapping="Wrap" />
+
+                        <ItemsRepeater ItemsSource="{x:Bind ViewModel.WatchFolders.Folders}">
+                            <ItemsRepeater.Layout>
+                                <StackLayout Spacing="8" />
+                            </ItemsRepeater.Layout>
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate x:DataType="vm:WatchFolderItem">
+                                    <Border Style="{StaticResource CardInsetStyle}" Padding="12">
+                                        <Grid ColumnSpacing="12">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Spacing="2" VerticalAlignment="Center">
+                                                <TextBlock Text="{x:Bind Path}"
+                                                           Style="{StaticResource MonoSmallStyle}"
+                                                           TextTrimming="CharacterEllipsis" />
+                                                <TextBlock Text="{x:Bind Details}"
+                                                           Style="{StaticResource CaptionStyle}" />
+                                            </StackPanel>
+                                            <Button Grid.Column="1"
+                                                    Content="&#xE74D;"
+                                                    FontFamily="{ThemeResource SymbolThemeFontFamily}"
+                                                    x:Uid="Settings_RemoveWatchFolder" ToolTipService.ToolTip="Remove watch folder"
+                                                    AutomationProperties.Name="Remove watch folder"
+                                                    Style="{StaticResource GhostButtonStyle}"
+                                                    Tag="{x:Bind Id}"
+                                                    Click="OnRemoveWatchFolderClick"
+                                                    Padding="8" MinWidth="0" MinHeight="0" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
+
+                        <TextBlock x:Uid="Settings_NoWatchFolders" Text="No watch folders yet."
+                                   Style="{StaticResource CaptionStyle}"
+                                   Visibility="{x:Bind ViewModel.WatchFolders.HasFolders, Mode=OneWay, Converter={StaticResource InverseBoolToVisibility}}" />
+
+                        <StackPanel Orientation="Horizontal" Spacing="16">
+                            <Button x:Uid="Settings_AddWatchFolder" Content="Add Folder"
+                                    Click="OnAddWatchFolderClick"
+                                    Style="{StaticResource SecondaryButtonStyle}" />
+                            <CheckBox x:Uid="Settings_WatchIncludeSubfolders" Content="Include subfolders"
+                                      IsChecked="{x:Bind ViewModel.WatchFolders.IncludeSubfolders, Mode=TwoWay}"
+                                      VerticalAlignment="Center" />
+                        </StackPanel>
+
+                        <TextBlock Text="{x:Bind ViewModel.WatchFolders.StatusMessage, Mode=OneWay}"
+                                   Style="{StaticResource CaptionStyle}"
+                                   TextWrapping="Wrap"
+                                   Visibility="{x:Bind ViewModel.WatchFolders.StatusMessage, Mode=OneWay, Converter={StaticResource StringToVisibility}}" />
+                    </StackPanel>
                 </StackPanel>
             </controls:Faceplate>
 
-            <!-- ════════════════════════════════════════════════════════
-                 LICENSE
-                 ════════════════════════════════════════════════════════ -->
+            <!-- ========================================================
+                 RESEARCH MODE AND SCREEN AWARENESS
+                 ======================================================== -->
             <controls:Faceplate Grid.Row="7" Kicker="MOD - RSRCH - 07">
                 <StackPanel Spacing="16">
                     <TextBlock x:Uid="Settings_ResearchMode" Text="Research Mode"
                                Style="{StaticResource HeadingSmallStyle}" />
 
-                    <TextBlock x:Uid="Settings_AugmentAiAnswersWith" Text="Augment AI answers with live web sources. When enabled, queries will search the web and blend results with your local Knowledge Vault."
+                    <TextBlock x:Uid="Settings_AugmentAiAnswersWith" Text="Augment chat answers with live web sources. When enabled and Research Mode is on in chat, your question is sent to the search provider below and the results are added to the answer with their sources."
                                Style="{StaticResource BodySecondaryStyle}"
                                TextWrapping="Wrap" />
 
                     <ToggleSwitch x:Uid="Settings_EnableResearchMode" Header="Enable Research Mode"
                                   IsOn="{x:Bind ViewModel.EnableResearchMode, Mode=TwoWay}"
-                                  OffContent="Local vault only"
-                                  OnContent="Local vault + web search" />
+                                  OffContent="No web search"
+                                  OnContent="Chat can add web results" />
 
                     <StackPanel Spacing="12"
                                 Visibility="{x:Bind ViewModel.EnableResearchMode, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                        <!-- Product names (WebSearchProviderChoices); the provider is saved by its enum value. -->
                         <StackPanel Spacing="4">
                             <TextBlock x:Uid="Settings_SearchProvider" Text="Search Provider"
                                        Style="{StaticResource LabelStyle}" />
-                            <ComboBox ItemsSource="{x:Bind ViewModel.WebSearchProviders, Mode=OneWay}"
-                                      SelectedItem="{x:Bind ViewModel.SelectedWebSearchProvider, Mode=TwoWay}"
+                            <ComboBox ItemsSource="{x:Bind ViewModel.WebSearchProviderOptions}"
+                                      SelectedIndex="{x:Bind ViewModel.WebSearchProviderIndex, Mode=TwoWay}"
                                       HorizontalAlignment="Stretch"
                                       MinWidth="200" />
                         </StackPanel>
 
+                        <!-- One stored field (WebSearchApiKey) holds the selected provider's API key,
+                             or the instance URL for SearXNG (WebSearchConfiguration.FromSettings). -->
                         <StackPanel Spacing="4">
-                            <TextBlock x:Uid="Settings_SearchApiKey" Text="Search API Key"
+                            <TextBlock x:Name="SearchCredentialLabel"
+                                       x:Uid="Settings_SearchApiKey" Text="API Key or Instance URL"
                                        Style="{StaticResource LabelStyle}" />
                             <PasswordBox Password="{x:Bind ViewModel.WebSearchApiKey, Mode=TwoWay}"
-                                         x:Uid="Settings_EnterYourSearchApiPh" PlaceholderText="Enter your search API key"
+                                         x:Uid="Settings_EnterYourSearchApiPh" PlaceholderText="Brave or Serper API key, or SearXNG URL"
+                                         AutomationProperties.LabeledBy="{x:Bind SearchCredentialLabel}"
                                          CornerRadius="{StaticResource RCard}"
                                          MinHeight="40" />
+                            <TextBlock x:Uid="Settings_SearchCredentialHint"
+                                       Text="Brave and Serper: paste your API key. SearXNG: enter your instance URL instead, for example http://localhost:8080. Only the selected provider is used."
+                                       Style="{StaticResource CaptionStyle}"
+                                       TextWrapping="Wrap" />
                         </StackPanel>
 
                         <Grid ColumnSpacing="16">
@@ -497,12 +611,25 @@
                             </StackPanel>
                         </Grid>
                     </StackPanel>
+
+                    <!-- Screen awareness (AppSettings.EnableScreenAwareness, off by default) sits with
+                         Research Mode as the other opt-in source of context for answers.
+                         ScreenCaptureService reads the window Quick Chat recorded when it was
+                         summoned, with the OCR built into Windows. -->
+                    <StackPanel Spacing="4">
+                        <ToggleSwitch x:Uid="Settings_EnableScreenAwareness" Header="Screen awareness in Quick Chat"
+                                      IsOn="{x:Bind ViewModel.EnableScreenAwareness, Mode=TwoWay}" />
+                        <TextBlock x:Uid="Settings_ScreenAwarenessDescription"
+                                   Text="Quick Chat reads the text of the window that was in front when you summoned it, with Windows OCR on this computer, and adds it to your question."
+                                   Style="{StaticResource CaptionStyle}"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
                 </StackPanel>
             </controls:Faceplate>
 
-            <!-- ════════════════════════════════════════════════════════
+            <!-- ========================================================
                  STORAGE
-                 ════════════════════════════════════════════════════════ -->
+                 ======================================================== -->
             <controls:Faceplate Grid.Row="8" Kicker="MOD - STOR - 08">
                 <StackPanel Spacing="12">
                     <TextBlock x:Uid="Settings_Storage" Text="Storage"
@@ -517,9 +644,9 @@
                 </StackPanel>
             </controls:Faceplate>
 
-            <!-- ════════════════════════════════════════════════════════
+            <!-- ========================================================
                  DATABASE ENCRYPTION
-                 ════════════════════════════════════════════════════════ -->
+                 ======================================================== -->
             <controls:Faceplate Grid.Row="9" Kicker="MOD - CRYPT - 09">
                 <StackPanel Spacing="12">
                     <TextBlock x:Name="EncryptionSectionHeader"
@@ -530,10 +657,11 @@
                                Text="Encrypt your knowledge vault with AES-256 (SQLCipher). The key is managed automatically and tied to your Windows account."
                                Style="{StaticResource BodySecondaryStyle}"
                                TextWrapping="Wrap" />
+                    <!-- IsOn is set from code-behind with Toggled unhooked (SettingsPage.SyncEncryptionToggle):
+                         a TwoWay binding re-raised Toggled for every view-model write. -->
                     <ToggleSwitch x:Name="EncryptionToggle"
                                   x:Uid="Settings_Encrypted" OnContent="Encrypted"
                                   OffContent="Not encrypted"
-                                  IsOn="{x:Bind ViewModel.EncryptionEnabled, Mode=TwoWay}"
                                   Toggled="EncryptionToggle_Toggled"
                                   AutomationProperties.LabeledBy="{x:Bind EncryptionSectionHeader}" />
                     <TextBlock Text="{x:Bind ViewModel.EncryptionStatus, Mode=OneWay}"
@@ -541,15 +669,16 @@
                 </StackPanel>
             </controls:Faceplate>
 
-            <!-- ════════════════════════════════════════════════════════
+            <!-- ========================================================
                  CONNECTIONS (Local REST API / Browser Extension)
-                 ════════════════════════════════════════════════════════ -->
+                 ======================================================== -->
             <controls:Faceplate Grid.Row="10" Kicker="MOD - API - 10">
                 <StackPanel Spacing="16">
                     <TextBlock x:Uid="Settings_Connections" Text="Connections"
                                Style="{StaticResource HeadingSmallStyle}" />
 
-                    <TextBlock Text="The local API lets the AgentX browser extension clip web pages into your Smart Inbox. It runs on http://localhost:9846 and requires the token below — paste it into the extension popup to pair. Only the AgentX extension can use it; web pages are blocked."
+                    <TextBlock x:Uid="Settings_LocalApiDescription"
+                               Text="The local API lets the AgentX browser extension clip web pages into your Smart Inbox. It runs on http://localhost:9846 and requires the token below. Paste it into the extension popup to pair. Only the AgentX extension can use it; web pages are blocked."
                                Style="{StaticResource BodySecondaryStyle}"
                                TextWrapping="Wrap" />
 
@@ -560,48 +689,64 @@
 
                     <StackPanel Spacing="4"
                                 Visibility="{x:Bind ViewModel.LocalApiEnabled, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
-                        <TextBlock x:Uid="Settings_ApiToken" Text="API Token"
+                        <TextBlock x:Name="ApiTokenLabel"
+                                   x:Uid="Settings_ApiToken" Text="API Token"
                                    Style="{StaticResource LabelStyle}" />
                         <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
+                            <!-- Masked until revealed (LocalApiTokenDisplay); Copy always copies the real token. -->
                             <TextBox Style="{StaticResource InputTextBoxStyle}"
-                                     Text="{x:Bind ViewModel.LocalApiToken, Mode=OneWay}"
+                                     Text="{x:Bind ViewModel.LocalApiTokenDisplay, Mode=OneWay}"
                                      IsReadOnly="True"
                                      FontFamily="{StaticResource FontMono}"
-                                     x:Uid="Settings_NoTokenYetClickPh" PlaceholderText="No token yet — click Regenerate" />
+                                     AutomationProperties.LabeledBy="{x:Bind ApiTokenLabel}"
+                                     x:Uid="Settings_NoTokenYetClickPh" PlaceholderText="No token yet. Click Regenerate." />
 
-                            <Button Grid.Column="1"
+                            <ToggleButton Grid.Column="1"
+                                          x:Uid="Settings_RevealApiToken" Content="Show"
+                                          AutomationProperties.Name="Show API token"
+                                          Style="{StaticResource GhostToggleButtonStyle}"
+                                          MinHeight="40"
+                                          IsChecked="{x:Bind ViewModel.IsApiTokenRevealed, Mode=TwoWay}" />
+
+                            <Button Grid.Column="2"
                                     x:Uid="Settings_Copy" Content="Copy"
+                                    AutomationProperties.Name="Copy API token"
                                     Style="{StaticResource SecondaryButtonStyle}"
                                     Command="{x:Bind ViewModel.CopyApiTokenCommand}" />
 
-                            <Button Grid.Column="2"
+                            <Button Grid.Column="3"
                                     x:Uid="Settings_Regenerate" Content="Regenerate"
                                     Style="{StaticResource SecondaryButtonStyle}"
                                     Command="{x:Bind ViewModel.RegenerateApiTokenCommand}" />
                         </Grid>
-                        <TextBlock x:Uid="Settings_KeepThisTokenSecret" Text="Keep this token secret. Regenerating it unpairs existing clients until you paste the new token. Toggle changes apply on next launch."
+                        <TextBlock x:Uid="Settings_KeepThisTokenSecret" Text="Keep this token secret. Regenerating it revokes the old token at once, so paired clients stop working until you paste the new one. Turning the API on or off takes effect when you save settings."
                                    Style="{StaticResource CaptionStyle}"
                                    TextWrapping="Wrap" />
                     </StackPanel>
                 </StackPanel>
             </controls:Faceplate>
 
-            <!-- ════════════════════════════════════════════════════════
+            <!-- ========================================================
                  ACTIONS
-                 ════════════════════════════════════════════════════════ -->
-            <Grid Grid.Row="11" ColumnSpacing="12">
+                 ======================================================== -->
+            <Grid Grid.Row="11" ColumnSpacing="12" RowSpacing="12">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
 
                 <Button x:Uid="Settings_SaveSettings" Content="Save Settings"
                         Style="{StaticResource AccentButtonStyle}"
@@ -618,6 +763,13 @@
                     <Run Text="Agent-X v" />
                     <Run Text="{x:Bind ViewModel.AppVersion, Mode=OneWay}" />
                 </TextBlock>
+
+                <InfoBar Grid.Row="1" Grid.ColumnSpan="4"
+                         x:Uid="Settings_SaveError" Title="Settings were not saved"
+                         Severity="Error"
+                         IsOpen="{x:Bind ViewModel.HasSaveError, Mode=TwoWay}"
+                         Message="{x:Bind ViewModel.SaveErrorMessage, Mode=OneWay}"
+                         IsClosable="True" />
             </Grid>
 
         </Grid>

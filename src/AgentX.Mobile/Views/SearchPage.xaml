@@ -11,7 +11,7 @@
 
     <Grid RowDefinitions="Auto,Auto,Auto,*">
 
-        <!-- ── Search bar ──────────────────────────────────────────────── -->
+        <!-- == Search bar ================================================ -->
         <Grid
             Grid.Row="0"
             ColumnDefinitions="*,Auto"
@@ -20,7 +20,7 @@
 
             <SearchBar
                 Grid.Column="0"
-                Placeholder="Ask anything about your documents…"
+                Placeholder="Ask anything about your documents..."
                 Text="{Binding Query}"
                 SearchCommand="{Binding SearchCommand}"
                 IsEnabled="{Binding IsSearching, Converter={StaticResource InvertedBoolConverter}}"
@@ -39,7 +39,7 @@
 
         </Grid>
 
-        <!-- ── Loading indicator ──────────────────────────────────────── -->
+        <!-- == Loading indicator ======================================== -->
         <ActivityIndicator
             Grid.Row="1"
             IsRunning="{Binding IsSearching}"
@@ -47,7 +47,7 @@
             Color="{StaticResource BrandPrimary}"
             Margin="0,4" />
 
-        <!-- ── Error banner ───────────────────────────────────────────── -->
+        <!-- == Error banner ============================================= -->
         <Frame
             Grid.Row="2"
             IsVisible="{Binding HasError}"
@@ -62,7 +62,7 @@
                 FontSize="13" />
         </Frame>
 
-        <!-- ── Prompt / empty state ────────────────────────────────────── -->
+        <!-- == Prompt / empty state ====================================== -->
         <VerticalStackLayout
             Grid.Row="3"
             IsVisible="{Binding HasSearched, Converter={StaticResource InvertedBoolConverter}}"
@@ -85,7 +85,7 @@
                 HorizontalTextAlignment="Center" />
         </VerticalStackLayout>
 
-        <!-- ── No results ──────────────────────────────────────────────── -->
+        <!-- == No results ================================================ -->
         <VerticalStackLayout
             Grid.Row="3"
             IsVisible="{Binding IsEmpty}"
@@ -107,7 +107,7 @@
                 Margin="32,0" />
         </VerticalStackLayout>
 
-        <!-- ── Results list ────────────────────────────────────────────── -->
+        <!-- == Results list ============================================== -->
         <CollectionView
             Grid.Row="3"
             ItemsSource="{Binding Results}"

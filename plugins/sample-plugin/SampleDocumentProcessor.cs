@@ -23,7 +23,7 @@ public sealed record ProcessedDocument(
     DateTime ProcessedAt);
 
 /// <summary>
-/// Document processor that handles plain-text (.txt) and Markdown (.md) files.
+/// Document processor that handles plain-text (.txt, .text) and Markdown (.md) files.
 /// Reads file content, computes word/line/character counts, and extracts YAML
 /// frontmatter from Markdown files bounded by <c>---</c> delimiters.
 /// </summary>
@@ -38,12 +38,15 @@ public sealed class SampleDocumentProcessor
     private readonly Serilog.ILogger _logger;
 
     /// <summary>
-    /// File extensions this processor can handle, with the leading dot.
+    /// File extensions this processor can handle, with the leading dot. The host's built-in
+    /// processors take precedence for <c>.txt</c> and <c>.md</c>, so <c>.text</c> is the
+    /// extension that actually reaches this plugin.
     /// </summary>
-    private static readonly IReadOnlySet<string> SupportedExtensions =
+    internal static readonly IReadOnlySet<string> Extensions =
         new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             ".txt",
+            ".text",
             ".md"
         };
 
@@ -110,7 +113,7 @@ public sealed class SampleDocumentProcessor
         var characterCount = content.Length;
 
         _logger.Information(
-            "Document processed: {FilePath} — {WordCount} words, {LineCount} lines, {CharacterCount} characters",
+            "Document processed: {FilePath} - {WordCount} words, {LineCount} lines, {CharacterCount} characters",
             filePath, wordCount, lineCount, characterCount);
 
         return new ProcessedDocument(
@@ -134,10 +137,10 @@ public sealed class SampleDocumentProcessor
         }
 
         var extension = Path.GetExtension(filePath);
-        if (!SupportedExtensions.Contains(extension))
+        if (!Extensions.Contains(extension))
         {
             throw new ArgumentException(
-                $"Unsupported file extension '{extension}'. This processor supports: {string.Join(", ", SupportedExtensions)}.",
+                $"Unsupported file extension '{extension}'. This processor supports: {string.Join(", ", Extensions)}.",
                 nameof(filePath));
         }
 
@@ -180,7 +183,8 @@ public sealed class SampleDocumentProcessor
         var closingIndex = rawContent.IndexOf("\n---", 3, StringComparison.Ordinal);
         if (closingIndex < 0)
         {
-            _logger.Debug("Opening frontmatter delimiter found but no closing delimiter — treating as regular content.");
+            _logger.Debug("Opening frontmatter delimiter found but no closing delimiter - treating as regular content.");
+
             return (frontmatter, rawContent);
         }
 

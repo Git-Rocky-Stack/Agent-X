@@ -1,8 +1,12 @@
 using System.Text;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Documents;
+using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Export.Models;
 using Markdig;
+using Markdig.Renderers;
+using Markdig.Syntax;
+using Markdig.Syntax.Inlines;
 
 namespace AgentX.Core.Services.Export.Formats;
 
@@ -12,9 +16,35 @@ namespace AgentX.Core.Services.Export.Formats;
 /// </summary>
 public sealed class HtmlExport : IExportFormat
 {
+    /// <summary>
+    /// Markdown pipeline for model output and search excerpts, both of which are untrusted
+    /// text. Raw HTML is disabled (it renders as escaped text) and the generic-attributes
+    /// extension is deliberately absent, so neither an embedded <c>&lt;img onerror&gt;</c>
+    /// nor a <c>{onclick=...}</c> attribute block reaches the document. Link and image
+    /// targets are filtered separately in <see cref="RenderUntrustedMarkdown"/>.
+    /// </summary>
     private static readonly MarkdownPipeline MarkdownPipeline = new MarkdownPipelineBuilder()
-        .UseAdvancedExtensions()
+        .DisableHtml()
+        .UsePipeTables()
+        .UseGridTables()
+        .UseEmphasisExtras()
+        .UseListExtras()
+        .UseTaskLists()
+        .UseAutoLinks()
+        .UseFootnotes()
+        .UseDefinitionLists()
+        .UseAbbreviations()
         .Build();
+
+    /// <summary>
+    /// Content-Security-Policy for every exported page: no scripts, frames, forms, or
+    /// plugins; only the inline stylesheet and web images may load. A second line of defense
+    /// behind the sanitizing renderer.
+    /// </summary>
+    internal const string ContentSecurityPolicy =
+        "default-src 'none'; style-src 'unsafe-inline'; img-src https: http:; base-uri 'none'; form-action 'none'";
+
+    private static readonly string[] AllowedUrlSchemes = ["http", "https", "mailto"];
 
     public ExportFormat Format => ExportFormat.Html;
 
@@ -91,7 +121,7 @@ public sealed class HtmlExport : IExportFormat
                 sb.AppendLine($"    <div class=\"relevance\">Relevance: {result.RelevanceScore:P1}</div>");
             }
 
-            var contentHtml = Markdown.ToHtml(result.Content, MarkdownPipeline);
+            var contentHtml = RenderUntrustedMarkdown(result.Content);
             sb.AppendLine($"    <div class=\"content\">{contentHtml}</div>");
 
             if (options.IncludeCitations && result.Citations.Count > 0)
@@ -147,7 +177,6 @@ public sealed class HtmlExport : IExportFormat
         sb.AppendLine("  <div class=\"messages\">");
 
         var messages = conversation.Messages.OrderBy(m => m.SortOrder).ToList();
-        var citationsList = new List<string>();
 
         foreach (var message in messages)
         {
@@ -165,10 +194,15 @@ public sealed class HtmlExport : IExportFormat
             }
 
             var htmlContent = message.Role == "assistant"
-                ? Markdown.ToHtml(message.Content, MarkdownPipeline)
+                ? RenderUntrustedMarkdown(message.Content)
                 : $"<p>{HtmlEncode(message.Content)}</p>";
 
             sb.AppendLine($"      <div class=\"content\">{htmlContent}</div>");
+
+            if (options.IncludeCitations)
+            {
+                AppendCitations(sb, message.CitationsJson);
+            }
 
             if (options.IncludeModelInfo && !string.IsNullOrWhiteSpace(message.ModelId))
             {
@@ -189,29 +223,9 @@ public sealed class HtmlExport : IExportFormat
             }
 
             sb.AppendLine("    </div>");
-
-            if (options.IncludeCitations && !string.IsNullOrWhiteSpace(message.CitationsJson))
-            {
-                var citations = TryParseCitations(message.CitationsJson);
-                citationsList.AddRange(citations);
-            }
         }
 
         sb.AppendLine("  </div>");
-
-        if (citationsList.Count > 0)
-        {
-            sb.AppendLine("  <div class=\"citations\">");
-            sb.AppendLine("    <h2>Citations</h2>");
-            sb.AppendLine("    <ol>");
-            foreach (var citation in citationsList)
-            {
-                sb.AppendLine($"      <li>{HtmlEncode(citation)}</li>");
-            }
-            sb.AppendLine("    </ol>");
-            sb.AppendLine("  </div>");
-        }
-
         sb.AppendLine("</div>");
         return sb.ToString();
     }
@@ -223,6 +237,7 @@ public sealed class HtmlExport : IExportFormat
 <head>
   <meta charset=""UTF-8"" />
   <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"" />
+  <meta http-equiv=""Content-Security-Policy"" content=""{ContentSecurityPolicy}"" />
   <meta name=""generator"" content=""Agent-X Export"" />
   <title>{HtmlEncode(title)}</title>
   <style>
@@ -308,6 +323,10 @@ public sealed class HtmlExport : IExportFormat
     .citations {{ margin-top: 2rem; padding-top: 1rem; border-top: 2px solid var(--border-color); }}
     .citations ol {{ padding-left: 1.5rem; }}
     .citations li {{ margin-bottom: 0.25rem; font-size: 0.875rem; color: var(--text-secondary); }}
+    .message-citations {{ margin-top: 0.75rem; font-size: 0.8125rem; color: var(--text-secondary); }}
+    .message-citations ol {{ padding-left: 1.5rem; margin-top: 0.25rem; }}
+    .message-citations li {{ margin-bottom: 0.125rem; overflow-wrap: anywhere; }}
+    .citations-label {{ font-weight: 600; color: var(--text-muted); }}
     .result {{ padding: 1rem 1.25rem; border-radius: 12px; border: 1px solid var(--border-color); background-color: var(--bg-secondary); margin-bottom: 1rem; }}
     .relevance {{ font-size: 0.8rem; color: var(--accent-color); font-weight: 600; margin-bottom: 0.5rem; }}
     hr.section-divider {{ border: none; border-top: 2px solid var(--border-color); margin: 2rem 0; }}
@@ -330,6 +349,72 @@ public sealed class HtmlExport : IExportFormat
 ";
     }
 
+    /// <summary>
+    /// Renders Markdown that came from a model or a document as HTML that cannot run script:
+    /// raw HTML is escaped by the pipeline, and every link, image, and autolink whose target
+    /// is not http, https, mailto, or relative is neutralized before rendering.
+    /// </summary>
+    internal static string RenderUntrustedMarkdown(string? markdown)
+    {
+        var document = Markdown.Parse(markdown ?? string.Empty, MarkdownPipeline);
+
+        foreach (var link in document.Descendants<LinkInline>())
+        {
+            if (!IsSafeUrl(link.Url))
+            {
+                link.Url = "#";
+            }
+        }
+
+        // Autolinks (<scheme:target>) render their target as the visible text, so an unsafe
+        // one is replaced by plain text rather than re-pointed.
+        foreach (var autolink in document.Descendants<AutolinkInline>().ToList())
+        {
+            var target = autolink.IsEmail ? "mailto:" + autolink.Url : autolink.Url;
+            if (!IsSafeUrl(target))
+            {
+                autolink.ReplaceBy(new LiteralInline(autolink.Url));
+            }
+        }
+
+        using var writer = new StringWriter();
+        var renderer = new HtmlRenderer(writer);
+        MarkdownPipeline.Setup(renderer);
+        renderer.Render(document);
+        writer.Flush();
+        return writer.ToString();
+    }
+
+    /// <summary>
+    /// True for relative references and for http, https, and mailto URLs. Whitespace and
+    /// control characters are removed before the scheme is read, because browsers ignore
+    /// them there ("java&#9;script:" still runs).
+    /// </summary>
+    internal static bool IsSafeUrl(string? url)
+    {
+        if (string.IsNullOrEmpty(url))
+        {
+            return true;
+        }
+
+        var compact = new string(url.Where(c => c > ' ' && c != '\u007f').ToArray());
+        var colon = compact.IndexOf(':');
+        if (colon < 0)
+        {
+            return true;
+        }
+
+        // A colon after the first '/', '?' or '#' belongs to a relative path, not a scheme.
+        var delimiter = compact.IndexOfAny(['/', '?', '#']);
+        if (delimiter >= 0 && delimiter < colon)
+        {
+            return true;
+        }
+
+        var scheme = compact[..colon];
+        return AllowedUrlSchemes.Contains(scheme, StringComparer.OrdinalIgnoreCase);
+    }
+
     private static string HtmlEncode(string text)
     {
         if (string.IsNullOrEmpty(text)) return string.Empty;
@@ -345,34 +430,28 @@ public sealed class HtmlExport : IExportFormat
         _ => role
     };
 
-    private static List<string> TryParseCitations(string citationsJson)
+    /// <summary>
+    /// Lists a message's sources with it, numbered as the message's own [n] markers number
+    /// them. Each answer numbers its own sources from 1, so one list for the whole export
+    /// would not match the markers of any answer after the first.
+    /// </summary>
+    private static void AppendCitations(StringBuilder sb, string? citationsJson)
     {
-        var result = new List<string>();
-        try
+        var citations = MessageCitations.Describe(citationsJson);
+        if (citations.Count == 0)
         {
-            using var doc = System.Text.Json.JsonDocument.Parse(citationsJson);
-            if (doc.RootElement.ValueKind != System.Text.Json.JsonValueKind.Array) return result;
-
-            foreach (var element in doc.RootElement.EnumerateArray())
-            {
-                var fileName = element.TryGetProperty("fileName", out var fn) ? fn.GetString() ?? "Unknown" : "Unknown";
-                var pageNumber = element.TryGetProperty("pageNumber", out var pn) && pn.ValueKind == System.Text.Json.JsonValueKind.Number ? pn.GetInt32() : (int?)null;
-                var excerpt = element.TryGetProperty("excerpt", out var ex) ? ex.GetString() : null;
-
-                var description = pageNumber.HasValue ? $"{fileName}, page {pageNumber.Value}" : fileName;
-                if (!string.IsNullOrWhiteSpace(excerpt))
-                {
-                    var shortExcerpt = excerpt.Length > 80 ? excerpt[..80] + "..." : excerpt;
-                    description += $" - \"{shortExcerpt}\"";
-                }
-                result.Add(description);
-            }
+            return;
         }
-        catch (System.Text.Json.JsonException)
+
+        sb.AppendLine("      <div class=\"message-citations\">");
+        sb.AppendLine("        <div class=\"citations-label\">Citations</div>");
+        sb.AppendLine("        <ol>");
+        foreach (var citation in citations)
         {
-            // Citation metadata is optional and decorative; malformed or partial
-            // JSON must not fail the export. Return whatever parsed successfully.
+            sb.AppendLine($"          <li>{HtmlEncode(citation)}</li>");
         }
-        return result;
+
+        sb.AppendLine("        </ol>");
+        sb.AppendLine("      </div>");
     }
 }

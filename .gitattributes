@@ -1,8 +1,8 @@
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Line-ending policy (AX-QA-012)
 #
 # The repository is LF-normalized. `.editorconfig` declares `end_of_line = lf`,
-# so the working tree must be LF on every platform — otherwise `dotnet format`
+# so the working tree must be LF on every platform - otherwise `dotnet format`
 # reports thousands of ENDOFLINE diagnostics and the format CI gate fails.
 #
 # `eol=lf` forces an LF working copy on checkout regardless of the local
@@ -12,11 +12,11 @@
 #
 # `text=auto` lets Git still auto-detect binary content; the explicit `binary`
 # rules below are belt-and-suspenders for asset types that must never be touched.
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 * text=auto eol=lf
 
-# ── Source & config (explicit LF; redundant with the default but self-documenting)
+# -- Source & config (explicit LF; redundant with the default but self-documenting)
 *.cs        text eol=lf
 *.csx       text eol=lf
 *.csproj    text eol=lf
@@ -42,7 +42,7 @@
 .gitignore  text eol=lf
 .gitattributes text eol=lf
 
-# ── Binary assets (never EOL- or charset-converted)
+# -- Binary assets (never EOL- or charset-converted)
 *.png   binary
 *.jpg   binary
 *.jpeg  binary

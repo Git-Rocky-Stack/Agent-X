@@ -10,12 +10,21 @@ namespace AgentX.Core.Documents;
 public interface IDocumentService
 {
     /// <summary>
+    /// Raised after a document has been imported or reset for re-indexing and is waiting in
+    /// "pending" status. The indexing pipeline subscribes so new work is processed during the
+    /// session instead of only at the next startup. Handlers run on the caller's thread and
+    /// must not block.
+    /// </summary>
+    event EventHandler<DocumentPendingIndexingEventArgs>? DocumentPendingIndexing;
+
+    /// <summary>
     /// Imports a single file: validates, hashes, extracts text, creates DocumentEntity.
     /// </summary>
     /// <param name="filePath">Absolute path to the file to import.</param>
     /// <param name="collectionId">Optional collection to associate the document with.</param>
     /// <param name="ct">Cancellation token.</param>
     /// <returns>The created DocumentEntity with status "pending".</returns>
+    /// <exception cref="DuplicateDocumentException">A document with the same content already exists.</exception>
     Task<DocumentEntity> ImportFileAsync(string filePath, long? collectionId = null, CancellationToken ct = default);
 
     /// <summary>
@@ -40,6 +49,26 @@ public interface IDocumentService
         CancellationToken ct = default);
 
     /// <summary>
+    /// Records a document for a file Agent-X wrote itself from content it already holds (a web
+    /// page saved by Web Import). The caller fills in the new "pending" document, including its
+    /// <see cref="DocumentEntity.ContentHash"/>; the file is not read here. The document and,
+    /// when <paramref name="collectionId"/> is given, its collection link are saved together,
+    /// with the collection's document count, so the call either adds the document to that
+    /// collection or adds nothing. Raises <see cref="DocumentPendingIndexing"/> so the indexer
+    /// takes the document at once.
+    /// </summary>
+    /// <param name="document">The new document. Must not be tracked or saved yet.</param>
+    /// <param name="collectionId">Optional collection to add the document to.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>The saved document.</returns>
+    /// <exception cref="DuplicateDocumentException">A document with the same content already exists.</exception>
+    /// <exception cref="InvalidOperationException">The collection does not exist.</exception>
+    Task<DocumentEntity> ImportPreparedDocumentAsync(
+        DocumentEntity document,
+        long? collectionId = null,
+        CancellationToken ct = default);
+
+    /// <summary>
     /// Imports multiple files, reporting progress as each file completes.
     /// </summary>
     /// <param name="filePaths">Absolute paths to the files to import.</param>
@@ -50,6 +79,27 @@ public interface IDocumentService
     Task<IReadOnlyList<DocumentEntity>> ImportFilesAsync(
         IReadOnlyList<string> filePaths,
         long? collectionId = null,
+        IProgress<int>? progress = null,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// Imports multiple files and reports the outcome of each: imported (possibly recorded as
+    /// failed when its text could not be extracted), skipped as a duplicate, or not imported
+    /// with a reason. Failures of individual files do not abort the batch.
+    /// </summary>
+    /// <param name="filePaths">Absolute paths to the files to import.</param>
+    /// <param name="collectionId">Optional collection to associate all documents with.</param>
+    /// <param name="allowDuplicates">
+    /// When true, files whose content matches an existing document are imported anyway (the
+    /// user explicitly asked for it); otherwise they are reported in
+    /// <see cref="DocumentImportReport.Duplicates"/>.
+    /// </param>
+    /// <param name="progress">Optional progress reporter (number of files completed).</param>
+    /// <param name="ct">Cancellation token.</param>
+    Task<DocumentImportReport> ImportFilesWithReportAsync(
+        IReadOnlyList<string> filePaths,
+        long? collectionId = null,
+        bool allowDuplicates = false,
         IProgress<int>? progress = null,
         CancellationToken ct = default);
 
@@ -68,7 +118,10 @@ public interface IDocumentService
     /// Retrieves all documents with optional filtering by file type and indexing status.
     /// Results are ordered by ImportedAt descending (newest first).
     /// </summary>
-    /// <param name="fileTypeFilter">Optional file type to filter by (e.g., "pdf").</param>
+    /// <param name="fileTypeFilter">
+    /// Optional file type to filter by (e.g., "pdf"), or a category: "code" or "image" match every
+    /// extension the code or image processor reads (see <see cref="DocumentFileTypeFilter"/>).
+    /// </param>
     /// <param name="statusFilter">Optional indexing status to filter by (e.g., "completed").</param>
     /// <param name="tagFilter">Optional tag name to filter documents that have this tag assigned.</param>
     /// <param name="collectionId">Optional collection ID to filter documents belonging to a specific collection.</param>
@@ -87,11 +140,6 @@ public interface IDocumentService
         CancellationToken ct = default);
 
     /// <summary>
-    /// Retrieves all documents belonging to a specific collection.
-    /// </summary>
-    Task<IReadOnlyList<DocumentEntity>> GetDocumentsByCollectionAsync(long collectionId);
-
-    /// <summary>
     /// Retrieves the most recently imported documents, ordered newest first.
     /// Used by overview surfaces that only need a small recent slice.
     /// </summary>
@@ -103,8 +151,11 @@ public interface IDocumentService
     Task DeleteDocumentAsync(long documentId);
 
     /// <summary>
-    /// Re-processes a document by deleting existing chunks and re-extracting text.
-    /// Resets the document status to "pending" for re-indexing.
+    /// Re-processes a document: re-extracts its text first, then deletes the existing chunks,
+    /// vectors and keyword rows, resets the status to "pending" and raises
+    /// <see cref="DocumentPendingIndexing"/> so the indexing pipeline picks it up. When the
+    /// source is missing or extraction fails, the document is marked "failed" and its current
+    /// index data is left untouched.
     /// </summary>
     Task ReindexDocumentAsync(long documentId, CancellationToken ct = default);
 
@@ -138,7 +189,7 @@ public interface IDocumentService
     /// </summary>
     IReadOnlySet<string> GetSupportedExtensions();
 
-    // ── Duplicate Detection ──────────────────────────────────────
+    // -- Duplicate Detection --------------------------------------
 
     /// <summary>
     /// Checks an incoming file against the knowledge vault for duplicate content
@@ -150,7 +201,7 @@ public interface IDocumentService
     /// <returns>A <see cref="DuplicateCheckResult"/> indicating whether a duplicate exists.</returns>
     Task<DuplicateCheckResult> CheckForDuplicateAsync(string filePath, CancellationToken ct = default);
 
-    // ── Bulk Operations ──────────────────────────────────────────
+    // -- Bulk Operations ------------------------------------------
 
     /// <summary>
     /// Deletes multiple documents by their IDs. Failures for individual documents
@@ -159,11 +210,22 @@ public interface IDocumentService
     Task BulkDeleteAsync(IReadOnlyList<long> documentIds, CancellationToken ct = default);
 
     /// <summary>
-    /// Re-indexes multiple documents by their IDs. Each document is reset to
-    /// "pending" status. Failures for individual documents are logged but do not
-    /// abort the batch.
+    /// Re-indexes multiple documents by their IDs through <see cref="ReindexDocumentAsync"/>,
+    /// so each one is queued for the indexing pipeline. Failures for individual documents are
+    /// logged but do not abort the batch.
     /// </summary>
     Task BulkReindexAsync(IReadOnlyList<long> documentIds, CancellationToken ct = default);
+
+    /// <summary>
+    /// Queues the audio documents that have no transcript because the speech-to-text model was
+    /// not installed when they were read: documents that failed with
+    /// <see cref="Processors.AudioProcessor.SpeechModelMissingError"/>, and documents imported by
+    /// earlier versions, which kept a placeholder transcript instead of failing. Each is reset to
+    /// "pending" and handed to the indexing pipeline through <see cref="DocumentPendingIndexing"/>,
+    /// which transcribes it; a pending document is also picked up again at the next start. Call
+    /// it once the model is installed. Returns the number of documents queued.
+    /// </summary>
+    Task<int> RequeueAudioAwaitingSpeechModelAsync(CancellationToken ct = default);
 
     /// <summary>
     /// Associates multiple documents with the specified collection. Failures for

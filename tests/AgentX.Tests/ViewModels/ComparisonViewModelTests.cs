@@ -3,6 +3,7 @@ using AgentX.Core.Data.Entities;
 using AgentX.Core.Documents;
 using AgentX.Core.Services.Intelligence;
 using AgentX.Core.Services.Intelligence.Models;
+using AgentX.Tests.Helpers;
 using FluentAssertions;
 using Moq;
 using Xunit;
@@ -34,7 +35,7 @@ public sealed class ComparisonViewModelTests
                 CreateDocument(3, "gamma.md"),
             ]);
 
-        var viewModel = new ComparisonViewModel(_comparisonService.Object, _documentService.Object);
+        var viewModel = new ComparisonViewModel(_comparisonService.Object, _documentService.Object, EnglishResources.Create());
 
         await viewModel.InitializeAsync();
 
@@ -93,7 +94,7 @@ public sealed class ComparisonViewModelTests
                 TotalTokensUsed = 1234
             });
 
-        var viewModel = new ComparisonViewModel(_comparisonService.Object, _documentService.Object);
+        var viewModel = new ComparisonViewModel(_comparisonService.Object, _documentService.Object, EnglishResources.Create());
         await viewModel.InitializeAsync();
 
         viewModel.AvailableDocuments[0].IsSelected = true;
@@ -109,7 +110,120 @@ public sealed class ComparisonViewModelTests
         viewModel.UniquePoints[0].Points.Should().ContainSingle()
             .Which.Should().Be("Contains milestone sequencing for rollout.");
         viewModel.UniquePoints[1].DocumentName.Should().Be("research.md");
-        viewModel.StatusMessage.Should().Contain("Comparison complete");
+        viewModel.StatusMessage.Should().Be("Comparison complete in 321ms");
+    }
+
+    [Fact]
+    public async Task InitializeAsync_counts_the_available_documents_with_one_and_many_wording()
+    {
+        _documentService
+            .Setup(service => service.GetAllDocumentsAsync(
+                It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<long?>(),
+                It.IsAny<DateTime?>(), It.IsAny<DateTime?>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync([CreateDocument(1, "a.md")]);
+        var viewModel = new ComparisonViewModel(_comparisonService.Object, _documentService.Object, EnglishResources.Create());
+
+        await viewModel.InitializeAsync();
+        viewModel.StatusMessage.Should().Be("1 document available");
+
+        await viewModel.CompareDocumentsCommand.ExecuteAsync(null);
+        viewModel.StatusMessage.Should().Be("Select at least 2 documents to compare");
+    }
+
+    [Fact]
+    public async Task CompareDocumentsAsync_sends_the_value_of_the_chosen_detail_level()
+    {
+        // The combo shows each level's translated name; the comparison still gets its value.
+        ComparisonOptions? sent = null;
+        _documentService
+            .Setup(service => service.GetAllDocumentsAsync(
+                It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<long?>(),
+                It.IsAny<DateTime?>(), It.IsAny<DateTime?>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync([CreateDocument(1, "a.md"), CreateDocument(2, "b.md")]);
+        _comparisonService
+            .Setup(service => service.CompareDocumentsAsync(
+                It.IsAny<IReadOnlyList<long>>(), It.IsAny<ComparisonOptions?>(),
+                It.IsAny<IProgress<string>?>(), It.IsAny<CancellationToken>()))
+            .Callback((IReadOnlyList<long> _, ComparisonOptions? options, IProgress<string>? _, CancellationToken _) => sent = options)
+            .ReturnsAsync(new ComparisonReport { Summary = "Summary" });
+        var viewModel = new ComparisonViewModel(_comparisonService.Object, _documentService.Object, EnglishResources.Create());
+        await viewModel.InitializeAsync();
+        viewModel.AvailableDocuments[0].IsSelected = true;
+        viewModel.AvailableDocuments[1].IsSelected = true;
+
+        viewModel.DetailLevels.Select(level => level.ToString()).Should().Equal("summary", "detailed");
+        viewModel.DetailLevel.Should().BeSameAs(viewModel.DetailLevels[1]);
+
+        viewModel.DetailLevel = viewModel.DetailLevels[0];
+        await viewModel.CompareDocumentsCommand.ExecuteAsync(null);
+
+        sent!.DetailLevel.Should().Be("summary");
+    }
+
+    // ---- Export Report ----
+
+    private async Task<ComparisonViewModel> CreateViewModelWithReportAsync()
+    {
+        _documentService
+            .Setup(service => service.GetAllDocumentsAsync(
+                It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<long?>(),
+                It.IsAny<DateTime?>(), It.IsAny<DateTime?>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync([CreateDocument(1, "a.md"), CreateDocument(2, "b.md")]);
+        _comparisonService
+            .Setup(service => service.CompareDocumentsAsync(
+                It.IsAny<IReadOnlyList<long>>(), It.IsAny<ComparisonOptions?>(),
+                It.IsAny<IProgress<string>?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ComparisonReport { Summary = "Summary" });
+        _comparisonService
+            .Setup(service => service.ExportComparisonAsMarkdownAsync(It.IsAny<ComparisonReport>()))
+            .ReturnsAsync("# Comparative Analysis Report");
+
+        var viewModel = new ComparisonViewModel(_comparisonService.Object, _documentService.Object, EnglishResources.Create());
+        await viewModel.InitializeAsync();
+        viewModel.AvailableDocuments[0].IsSelected = true;
+        viewModel.AvailableDocuments[1].IsSelected = true;
+        await viewModel.CompareDocumentsCommand.ExecuteAsync(null);
+        return viewModel;
+    }
+
+    [Fact]
+    public async Task ExportReportAsync_hands_the_markdown_to_the_save_handler_and_names_the_file()
+    {
+        var viewModel = await CreateViewModelWithReportAsync();
+        ComparisonReportExportRequest? saved = null;
+        viewModel.SaveReportExportAsync = request =>
+        {
+            saved = request;
+            return Task.FromResult(ComparisonReportExportResult.Saved("/home/me/report.md"));
+        };
+
+        await viewModel.ExportReportCommand.ExecuteAsync(null);
+
+        saved.Should().NotBeNull();
+        saved!.Markdown.Should().Be("# Comparative Analysis Report");
+        saved.SuggestedFileName.Should().EndWith(".md");
+        viewModel.StatusMessage.Should().Be("Comparison report saved to report.md");
+    }
+
+    [Fact]
+    public async Task ExportReportAsync_reports_a_cancelled_save_as_cancelled()
+    {
+        var viewModel = await CreateViewModelWithReportAsync();
+        viewModel.SaveReportExportAsync = _ => Task.FromResult(ComparisonReportExportResult.Cancelled());
+
+        await viewModel.ExportReportCommand.ExecuteAsync(null);
+
+        viewModel.StatusMessage.Should().Be("Export cancelled");
+    }
+
+    [Fact]
+    public async Task ExportReportAsync_does_not_claim_an_export_without_a_save_handler()
+    {
+        var viewModel = await CreateViewModelWithReportAsync();
+
+        await viewModel.ExportReportCommand.ExecuteAsync(null);
+
+        viewModel.StatusMessage.Should().Be("Export unavailable");
     }
 
     private static DocumentEntity CreateDocument(long id, string fileName)

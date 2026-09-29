@@ -66,11 +66,11 @@ public sealed partial class MainWindow : Window
     {
         InitializeComponent();
 
-        // Footer version label — single source (assembly version via AppVersionInfo) so it
+        // Footer version label - single source (assembly version via AppVersionInfo) so it
         // never drifts from the shipped build (AX-QA-014).
         AppVersionText.Text = $"Agent-X v{AgentX.Core.AppVersionInfo.Display}";
 
-        // A1 — Bind root FlowDirection to the current UI culture
+        // A1 - Bind root FlowDirection to the current UI culture
         RootGrid.FlowDirection = FlowDirectionHelper.Current();
 
         // Resolve services from DI
@@ -85,12 +85,20 @@ public sealed partial class MainWindow : Window
 
         _navItemMap = BuildNavItemMap();
 
+        // A failed navigation leaves the previous page on screen and the app running, so
+        // it is an error, not a shutdown: never CloseAndFlush here. That call disposes the
+        // logger DI captured at startup and silences logging for the rest of the session.
+        // The logger is flushed once, at real shutdown (App.ShutdownCoreServicesAsync).
         ContentFrame.NavigationFailed += (_, args) =>
         {
-            Log.Fatal(args.Exception, "Navigation failed for source page {SourcePageType}", args.SourcePageType);
-            Log.CloseAndFlush();
+            Log.Error(args.Exception, "Navigation failed for source page {SourcePageType}", args.SourcePageType);
             args.Handled = true;
         };
+
+        // Every route off the onboarding wizard (shortcut, palette, Jump-To, tray, lamp)
+        // ends up here, so this is the one place that hands the shell back to the rail.
+        ContentFrame.Navigated += (_, args) =>
+            _ = _onboardingService.OnNavigatedAsync(args.Content is OnboardingPage);
 
         // Initialize navigation service with XAML control references
         _navigationService.Initialize(PageMap, _navItemMap, ContentFrame, NavView);
@@ -123,9 +131,9 @@ public sealed partial class MainWindow : Window
         QueueInitialNavigation();
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  KEYBOARD SHORTCUTS
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>
     /// Clips the content host to its own bounds. WinUI panels do not clip
@@ -266,8 +274,8 @@ public sealed partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            Log.Fatal(ex, "Startup navigation to {PageName} failed", pageName);
-            Log.CloseAndFlush();
+            // The window stays up, so keep the logger alive (see the NavigationFailed note).
+            Log.Error(ex, "Startup navigation to {PageName} failed", pageName);
         }
     }
 
@@ -283,7 +291,10 @@ public sealed partial class MainWindow : Window
 
     private async Task ShowCheatsheetDialogAsync()
     {
-        var dialog = new CheatsheetDialog(new CheatsheetViewModel(_shortcutRegistry, ContentFrame.CurrentSourcePageType?.Name))
+        var dialog = new CheatsheetDialog(new CheatsheetViewModel(
+            _shortcutRegistry,
+            ContentFrame.CurrentSourcePageType?.Name,
+            App.GetService<AgentX.Core.Services.Localization.ILocalizationService>()))
         {
             XamlRoot = Content.XamlRoot,
             RequestedTheme = GetDialogTheme()

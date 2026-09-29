@@ -1,0 +1,87 @@
+{
+  "_comment": "2026-09 workspace profile accuracy pass. Workspace profiles are saved presets: selecting a profile or marking it as the default does not switch the model or collections, and nothing loads a profile at startup. The editor captions and the in-app guide section claimed otherwise (one-click context switching, color tags, collection scoping, per-profile themes and feature flags, a title-bar switcher). Apply with: python scripts/apply-guide-accuracy.py scripts/translations/workspace-accuracy-2026-09.json",
+  "removePrefixes": [],
+  "update": {
+    "Workspace_TheOllamaModelIdentifier.Text": {
+      "en-US": "The Ollama model identifier saved with this profile. Selecting the profile does not switch models.",
+      "de": "Die mit diesem Profil gespeicherte Ollama-Modellkennung. Das Auswählen des Profils wechselt das Modell nicht.",
+      "es": "El identificador del modelo de Ollama guardado con este perfil. Seleccionar el perfil no cambia de modelo.",
+      "fr": "L'identifiant du modèle Ollama enregistré avec ce profil. Sélectionner le profil ne change pas de modèle.",
+      "ja": "このプロファイルに保存される Ollama モデルの識別子。プロファイルを選択してもモデルは切り替わりません。",
+      "zh-CN": "随此配置文件保存的 Ollama 模型标识符。选择此配置文件不会切换模型。"
+    },
+    "Workspace_CommaSeparatedListOf.Text": {
+      "en-US": "Comma-separated list of collection IDs saved with this profile. Selecting the profile does not change collections.",
+      "de": "Kommagetrennte Liste der mit diesem Profil gespeicherten Sammlungs-IDs. Das Auswählen des Profils ändert die Sammlungen nicht.",
+      "es": "Lista separada por comas de los ID de colecciones guardados con este perfil. Seleccionar el perfil no cambia las colecciones.",
+      "fr": "Liste, séparée par des virgules, des ID de collections enregistrés avec ce profil. Sélectionner le profil ne modifie pas les collections.",
+      "ja": "このプロファイルに保存されるコレクション ID のカンマ区切りリスト。プロファイルを選択してもコレクションは変わりません。",
+      "zh-CN": "随此配置文件保存的合集 ID 列表(逗号分隔)。选择此配置文件不会更改合集。"
+    },
+    "Workspace_ThisProfileWillBe.Text": {
+      "en-US": "Marks this profile as your default. Profiles are saved presets; Agent-X does not apply them automatically.",
+      "de": "Markiert dieses Profil als Standard. Profile sind gespeicherte Voreinstellungen; Agent-X wendet sie nicht automatisch an.",
+      "es": "Marca este perfil como predeterminado. Los perfiles son preajustes guardados; Agent-X no los aplica automáticamente.",
+      "fr": "Définit ce profil comme profil par défaut. Les profils sont des préréglages enregistrés ; Agent-X ne les applique pas automatiquement.",
+      "ja": "このプロファイルを既定として設定します。プロファイルは保存されたプリセットで、Agent-X が自動的に適用することはありません。",
+      "zh-CN": "将此配置文件设为默认。配置文件是已保存的预设，Agent-X 不会自动应用它们。"
+    },
+    "UserGuide_WorkspaceProfiles_Description.Text": {
+      "en-US": "Workspace Profiles are saved presets. Each profile stores a name, a description, an Ollama model identifier, a comma-separated list of collection IDs, and free-form custom settings. Profiles are records only: selecting a profile or marking it as the default does not switch the model, change the collections in scope, or change any setting. All profiles share the same documents, conversations, and settings.",
+      "de": "Workspace-Profile sind gespeicherte Voreinstellungen. Jedes Profil speichert einen Namen, eine Beschreibung, eine Ollama-Modellkennung, eine kommagetrennte Liste von Sammlungs-IDs und frei definierbare benutzerdefinierte Einstellungen. Profile sind reine Datensätze: Das Auswählen eines Profils oder das Festlegen als Standard wechselt weder das Modell noch die verwendeten Sammlungen und ändert keine Einstellung. Alle Profile teilen sich dieselben Dokumente, Unterhaltungen und Einstellungen.",
+      "es": "Los perfiles de espacio de trabajo son preajustes guardados. Cada perfil almacena un nombre, una descripción, un identificador de modelo de Ollama, una lista de ID de colecciones separados por comas y una configuración personalizada de formato libre. Los perfiles son solo registros: seleccionar un perfil o marcarlo como predeterminado no cambia el modelo, ni las colecciones en uso, ni ninguna configuración. Todos los perfiles comparten los mismos documentos, conversaciones y configuración.",
+      "fr": "Les profils d’espace de travail sont des préréglages enregistrés. Chaque profil enregistre un nom, une description, un identifiant de modèle Ollama, une liste d’ID de collections séparés par des virgules et des paramètres personnalisés en texte libre. Les profils ne sont que des enregistrements : sélectionner un profil ou le définir par défaut ne change ni le modèle, ni les collections utilisées, ni aucun paramètre. Tous les profils partagent les mêmes documents, conversations et paramètres.",
+      "ja": "ワークスペース プロファイルは保存されたプリセットです。各プロファイルには、名前、説明、Ollama モデルの識別子、カンマ区切りのコレクション ID のリスト、自由形式のカスタム設定が保存されます。プロファイルは記録にすぎません。プロファイルを選択したり既定に設定したりしても、モデル、使用するコレクション、設定は変わりません。すべてのプロファイルは同じドキュメント、会話、設定を共有します。",
+      "zh-CN": "工作区配置文件是已保存的预设。每个配置文件保存名称、描述、Ollama 模型标识符、以逗号分隔的合集 ID 列表以及自由格式的自定义设置。配置文件只是记录：选择配置文件或将其设为默认不会切换模型、不会更改所用的合集，也不会更改任何设置。所有配置文件共享相同的文档、对话和设置。"
+    },
+    "UserGuide_WorkspaceProfiles_Create1.Text": {
+      "en-US": "Open Workspace Profiles from the sidebar, enter a name and an optional description in the left panel, and click Create Profile. The new profile opens in the editor.",
+      "de": "Öffnen Sie „Workspace-Profile“ in der Seitenleiste, geben Sie im linken Bereich einen Namen und optional eine Beschreibung ein und klicken Sie auf „Profil erstellen“. Das neue Profil wird im Editor geöffnet.",
+      "es": "Abre «Perfiles de espacio de trabajo» en la barra lateral, escribe un nombre y, si quieres, una descripción en el panel izquierdo y haz clic en «Crear perfil». El nuevo perfil se abre en el editor.",
+      "fr": "Ouvrez « Profils d’espace de travail » dans la barre latérale, saisissez un nom et, si vous le souhaitez, une description dans le volet de gauche, puis cliquez sur « Créer un profil ». Le nouveau profil s’ouvre dans l’éditeur.",
+      "ja": "サイドバーから「ワークスペース プロファイル」を開き、左側のパネルに名前と説明 (省略可) を入力して「プロファイルを作成」をクリックします。新しいプロファイルがエディターに表示されます。",
+      "zh-CN": "从侧边栏打开“工作区配置文件”，在左侧面板中输入名称和可选的描述，然后单击“创建配置文件”。新配置文件会在编辑器中打开。"
+    },
+    "UserGuide_WorkspaceProfiles_Create2.Text": {
+      "en-US": "Enter the details you want to keep with the profile: an Ollama model identifier (for example llama3.2), collection IDs separated by commas, and any custom settings text. Click Save Profile to store them.",
+      "de": "Geben Sie die Angaben ein, die Sie mit dem Profil aufbewahren möchten: eine Ollama-Modellkennung (zum Beispiel llama3.2), kommagetrennte Sammlungs-IDs und beliebigen Text für benutzerdefinierte Einstellungen. Klicken Sie auf „Profil speichern“, um sie zu speichern.",
+      "es": "Escribe los datos que quieras guardar con el perfil: un identificador de modelo de Ollama (por ejemplo, llama3.2), ID de colecciones separados por comas y cualquier texto de configuración personalizada. Haz clic en «Guardar perfil» para almacenarlos.",
+      "fr": "Saisissez les informations à conserver avec le profil : un identifiant de modèle Ollama (par exemple llama3.2), des ID de collections séparés par des virgules et tout texte de paramètres personnalisés. Cliquez sur « Enregistrer le profil » pour les enregistrer.",
+      "ja": "プロファイルに保存したい内容を入力します。Ollama モデルの識別子 (例: llama3.2)、カンマ区切りのコレクション ID、任意のカスタム設定テキストです。「プロファイルを保存」をクリックすると保存されます。",
+      "zh-CN": "输入要随配置文件保存的内容：Ollama 模型标识符（例如 llama3.2）、以逗号分隔的合集 ID，以及任意自定义设置文本。单击“保存配置文件”进行保存。"
+    },
+    "UserGuide_WorkspaceProfiles_Create3.Text": {
+      "en-US": "Set as Default marks one profile as your default and removes the mark from the others. Turning the Default Profile switch off and saving removes the mark. Duplicate copies a profile, and Delete Profile removes only the profile. Agent-X does not load any profile at startup.",
+      "de": "„Als Standard festlegen“ markiert ein Profil als Standard und entfernt die Markierung von allen anderen. Wenn Sie den Schalter „Standardprofil“ ausschalten und speichern, wird die Markierung entfernt. „Duplizieren“ kopiert ein Profil, und „Profil löschen“ entfernt nur das Profil. Agent-X lädt beim Start kein Profil.",
+      "es": "«Establecer como predeterminado» marca un perfil como predeterminado y quita la marca de los demás. Si desactivas el interruptor «Perfil predeterminado» y guardas, la marca se quita. «Duplicar» copia un perfil y «Eliminar perfil» elimina solo el perfil. Agent-X no carga ningún perfil al iniciarse.",
+      "fr": "« Définir par défaut » marque un profil comme profil par défaut et retire la marque des autres. Désactiver l’interrupteur « Profil par défaut » puis enregistrer retire la marque. « Dupliquer » copie un profil et « Supprimer le profil » ne supprime que le profil. Agent-X ne charge aucun profil au démarrage.",
+      "ja": "「既定に設定」は 1 つのプロファイルを既定としてマークし、他のプロファイルからマークを外します。「既定のプロファイル」スイッチをオフにして保存すると、マークが外れます。「複製」はプロファイルをコピーし、「プロファイルを削除」はプロファイルのみを削除します。Agent-X は起動時にプロファイルを読み込みません。",
+      "zh-CN": "“设为默认”会将一个配置文件标记为默认，并移除其他配置文件的标记。关闭“默认配置文件”开关并保存即可移除标记。“复制”会复制配置文件，“删除配置文件”只删除该配置文件。Agent-X 启动时不会加载任何配置文件。"
+    },
+    "UserGuide_WorkspaceProfiles_UseCase1.Text": {
+      "en-US": "Model notes: record which Ollama model suits each project, then choose that model yourself in Settings when you switch projects.",
+      "de": "Modellnotizen: Halten Sie fest, welches Ollama-Modell zu welchem Projekt passt, und wählen Sie dieses Modell beim Projektwechsel selbst in den Einstellungen aus.",
+      "es": "Notas de modelos: anota qué modelo de Ollama conviene a cada proyecto y selecciónalo tú mismo en Configuración cuando cambies de proyecto.",
+      "fr": "Notes de modèles : notez le modèle Ollama adapté à chaque projet, puis sélectionnez-le vous-même dans Paramètres lorsque vous changez de projet.",
+      "ja": "モデルのメモ: プロジェクトごとに適した Ollama モデルを記録しておき、プロジェクトを切り替えるときに「設定」でそのモデルを自分で選択します。",
+      "zh-CN": "模型备注：记录每个项目适用的 Ollama 模型，切换项目时在“设置”中自行选择该模型。"
+    },
+    "UserGuide_WorkspaceProfiles_UseCase2.Text": {
+      "en-US": "Project references: keep the collection IDs and notes that belong to a client or project in one place, so they are at hand when you pick that work up again.",
+      "de": "Projektreferenzen: Bewahren Sie die Sammlungs-IDs und Notizen eines Kunden oder Projekts an einem Ort auf, damit Sie sie griffbereit haben, wenn Sie diese Arbeit wieder aufnehmen.",
+      "es": "Referencias de proyecto: reúne en un solo lugar los ID de colecciones y las notas de un cliente o proyecto para tenerlos a mano cuando retomes ese trabajo.",
+      "fr": "Références de projet : regroupez au même endroit les ID de collections et les notes d’un client ou d’un projet pour les avoir sous la main lorsque vous reprenez ce travail.",
+      "ja": "プロジェクトの参照情報: クライアントやプロジェクトに属するコレクション ID やメモを 1 か所にまとめ、その作業を再開するときにすぐ参照できるようにします。",
+      "zh-CN": "项目参考：将某个客户或项目的合集 ID 和备注集中保存，以便重新开展该工作时随时查阅。"
+    },
+    "UserGuide_WorkspaceProfiles_UseCase3.Text": {
+      "en-US": "Variations: duplicate a profile to record a variation without changing the original.",
+      "de": "Varianten: Duplizieren Sie ein Profil, um eine Variante festzuhalten, ohne das Original zu ändern.",
+      "es": "Variantes: duplica un perfil para registrar una variante sin modificar el original.",
+      "fr": "Variantes : dupliquez un profil pour enregistrer une variante sans modifier l’original.",
+      "ja": "バリエーション: プロファイルを複製して、元のプロファイルを変更せずにバリエーションを記録します。",
+      "zh-CN": "变体：复制配置文件以记录一个变体，而不修改原始配置文件。"
+    }
+  },
+  "add": {}
+}

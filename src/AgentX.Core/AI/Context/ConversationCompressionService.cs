@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using System.Text;
 using AgentX.Core.AI.Models;
 using AgentX.Core.Constants;
@@ -5,6 +6,15 @@ using Serilog;
 
 namespace AgentX.Core.AI.Context;
 
+/// <summary>
+/// Condenses conversation messages that no longer fit the context window into a short summary.
+/// </summary>
+/// <remarks>
+/// The summary covers the most recent overflow messages that fit the transcript window (older
+/// ones are dropped first), and it does not depend on the latest question. That makes it
+/// reusable: the same overflow is summarized once and then served from a small cache, instead
+/// of costing an extra model call before every answer.
+/// </remarks>
 public sealed class ConversationCompressionService : IConversationCompressionService
 {
     private readonly IAiService _aiService;
@@ -14,6 +24,11 @@ public sealed class ConversationCompressionService : IConversationCompressionSer
     private const int MinOverflowMessages = 2;
     private const int MinOverflowTokens = 48;
     private const int MaxOverflowChars = 3200;
+    private const int MaxCachedSummaries = 32;
+
+    private readonly object _cacheLock = new();
+    private readonly Dictionary<string, LinkedListNode<KeyValuePair<string, string>>> _summaryCache = new(StringComparer.Ordinal);
+    private readonly LinkedList<KeyValuePair<string, string>> _summaryOrder = new();
 
     public ConversationCompressionService(
         IAiService aiService,
@@ -24,6 +39,18 @@ public sealed class ConversationCompressionService : IConversationCompressionSer
         _contextWindowManager = contextWindowManager ?? throw new ArgumentNullException(nameof(contextWindowManager));
         _logger = logger?.ForContext<ConversationCompressionService>()
                   ?? throw new ArgumentNullException(nameof(logger));
+    }
+
+    /// <summary>Number of summaries currently cached (for tests).</summary>
+    internal int CachedSummaryCount
+    {
+        get
+        {
+            lock (_cacheLock)
+            {
+                return _summaryCache.Count;
+            }
+        }
     }
 
     public async Task<ConversationCompressionResult> CompressAsync(
@@ -55,32 +82,44 @@ public sealed class ConversationCompressionService : IConversationCompressionSer
             return ConversationCompressionResult.Skip("overflow_empty_after_normalization", request.OverflowMessages.Count);
         }
 
-        var prompt = $$"""
-                       Summarize the older conversation context that is still relevant to the user's latest request.
+        var cacheKey = Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(transcript)));
+        var rawSummary = TryGetCachedSummary(cacheKey);
+        if (rawSummary is not null)
+        {
+            _logger.Debug("Reusing the cached summary of {MessageCount} overflow messages", request.OverflowMessages.Count);
+        }
+        else
+        {
+            var prompt = $$"""
+                           Summarize the earlier part of this conversation so the summary can stand in for the original messages.
 
-                       Latest request:
-                       {{request.CurrentQuery}}
+                           Requirements:
+                           - Keep decisions, constraints, facts, unresolved issues, and named entities.
+                           - Omit pleasantries, filler, and low-value back-and-forth.
+                           - Keep the summary concise and factual.
+                           - Return plain text only.
 
-                       Requirements:
-                       - Focus on decisions, constraints, unresolved issues, and named entities that would help answer the latest request.
-                       - Omit pleasantries, filler, and low-value back-and-forth.
-                       - Keep the summary concise and factual.
-                       - Return plain text only.
+                           Earlier conversation transcript:
+                           {{transcript}}
+                           """;
 
-                       Older conversation transcript:
-                       {{transcript}}
-                       """;
+            var response = await _aiService.ChatAsync(
+                [ChatMessage.User(prompt)],
+                options: new ChatOptions
+                {
+                    Temperature = 0.2,
+                    MaxTokens = Math.Min(request.MaxSummaryTokens, AppConstants.CompressionMaxTokens)
+                },
+                ct: ct).ConfigureAwait(false);
 
-        var summary = await _aiService.ChatAsync(
-            [ChatMessage.User(prompt)],
-            options: new ChatOptions
+            rawSummary = CleanSummary(response);
+            if (!string.IsNullOrWhiteSpace(rawSummary))
             {
-                Temperature = 0.2,
-                MaxTokens = Math.Min(request.MaxSummaryTokens, AppConstants.CompressionMaxTokens)
-            },
-            ct: ct).ConfigureAwait(false);
+                StoreSummary(cacheKey, rawSummary);
+            }
+        }
 
-        summary = NormalizeSummary(summary, request.MaxSummaryTokens);
+        var summary = NormalizeSummary(rawSummary, request.MaxSummaryTokens);
         if (string.IsNullOrWhiteSpace(summary))
         {
             return ConversationCompressionResult.Skip("summary_empty", request.OverflowMessages.Count);
@@ -111,12 +150,19 @@ public sealed class ConversationCompressionService : IConversationCompressionSer
         };
     }
 
-    private static string BuildTranscript(IReadOnlyList<IndexedChatMessage> messages)
+    /// <summary>
+    /// Builds the transcript from the newest overflow messages that fit
+    /// <see cref="MaxOverflowChars"/> (older ones are dropped first), in chronological order.
+    /// </summary>
+    internal static string BuildTranscript(IReadOnlyList<IndexedChatMessage> messages)
     {
-        var builder = new StringBuilder(Math.Min(MaxOverflowChars, 2048));
-        foreach (var item in messages)
+        var lines = new List<string>();
+        var used = 0;
+
+        foreach (var item in messages.OrderByDescending(x => x.Index))
         {
-            if (builder.Length >= MaxOverflowChars)
+            var remaining = MaxOverflowChars - used;
+            if (remaining <= 0)
             {
                 break;
             }
@@ -128,18 +174,59 @@ public sealed class ConversationCompressionService : IConversationCompressionSer
                 continue;
             }
 
-            var remaining = MaxOverflowChars - builder.Length;
             var line = $"{role}: {content}";
             if (line.Length > remaining)
             {
                 line = line[..remaining];
             }
 
-            builder.AppendLine(line);
+            lines.Add(line);
+            used += line.Length + 1;
         }
 
-        return builder.ToString().Trim();
+        lines.Reverse();
+        return string.Join('\n', lines).Trim();
     }
+
+    private string? TryGetCachedSummary(string key)
+    {
+        lock (_cacheLock)
+        {
+            if (!_summaryCache.TryGetValue(key, out var node))
+            {
+                return null;
+            }
+
+            _summaryOrder.Remove(node);
+            _summaryOrder.AddFirst(node);
+            return node.Value.Value;
+        }
+    }
+
+    private void StoreSummary(string key, string summary)
+    {
+        lock (_cacheLock)
+        {
+            if (_summaryCache.TryGetValue(key, out var existing))
+            {
+                _summaryOrder.Remove(existing);
+            }
+
+            var node = _summaryOrder.AddFirst(new KeyValuePair<string, string>(key, summary));
+            _summaryCache[key] = node;
+
+            while (_summaryCache.Count > MaxCachedSummaries && _summaryOrder.Last is { } oldest)
+            {
+                _summaryOrder.RemoveLast();
+                _summaryCache.Remove(oldest.Value.Key);
+            }
+        }
+    }
+
+    private static string CleanSummary(string? value) =>
+        string.IsNullOrWhiteSpace(value)
+            ? string.Empty
+            : value.Replace("```", string.Empty, StringComparison.Ordinal).Trim();
 
     private static string NormalizeSummary(string value, int maxSummaryTokens)
     {
@@ -148,9 +235,7 @@ public sealed class ConversationCompressionService : IConversationCompressionSer
             return string.Empty;
         }
 
-        var normalized = value
-            .Replace("```", string.Empty, StringComparison.Ordinal)
-            .Trim();
+        var normalized = CleanSummary(value);
 
         var maxChars = Math.Max(64, maxSummaryTokens * AppConstants.CharsPerToken);
         if (normalized.Length > maxChars)

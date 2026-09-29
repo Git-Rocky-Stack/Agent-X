@@ -1,3 +1,4 @@
+using AgentX.App.Helpers;
 using AgentX.App.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -26,7 +27,7 @@ public sealed partial class SyncSettingsPage : Page
 
     public SyncSettingsPage()
     {
-        ViewModel = App.GetService<SyncSettingsViewModel>();
+        ViewModel = PageViewModelFactory.Create<SyncSettingsViewModel>();
         InitializeComponent();
         Loaded += OnPageLoaded;
     }

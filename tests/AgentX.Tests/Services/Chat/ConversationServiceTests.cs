@@ -11,7 +11,7 @@ using Xunit;
 namespace AgentX.Tests.Services.Chat;
 
 /// <summary>
-/// Behavioural coverage for <see cref="ConversationService"/> — the EF-Core CRUD surface for chat
+/// Behavioural coverage for <see cref="ConversationService"/> - the EF-Core CRUD surface for chat
 /// conversations and their messages: create / query / search / rename / pin / archive / delete,
 /// message add / delete / edit / truncate (with conversation-metadata bookkeeping), token + count
 /// stats, and folder / tag organization.
@@ -20,7 +20,7 @@ namespace AgentX.Tests.Services.Chat;
 /// <see cref="AgentXDbContext"/> (in-memory SQLite via <see cref="TestDbContextFactory"/>). Two
 /// collaborators are optional best-effort hooks invoked after message mutations:
 /// <see cref="IConversationRecallService"/> (embedding refresh) and
-/// <see cref="IConversationSummaryService"/> (summary-staleness) — both mocked so the post-write
+/// <see cref="IConversationSummaryService"/> (summary-staleness) - both mocked so the post-write
 /// hooks, their null-skip paths, and their swallowed-failure paths are all exercised. The logger is
 /// consumed through <c>ILogger.ForContext&lt;T&gt;()</c>, so the harness supplies a real silent Serilog
 /// logger (a loose mock's <c>ForContext</c> returns null, which the constructor treats as a missing
@@ -45,7 +45,7 @@ public sealed class ConversationServiceTests : IDisposable
         }
     }
 
-    // ─── Harness ──────────────────────────────────────────────────────────────
+    // --- Harness --------------------------------------------------------------
 
     private sealed class ConvHarness : IDisposable
     {
@@ -83,7 +83,7 @@ public sealed class ConversationServiceTests : IDisposable
         }
     }
 
-    // ─── Seed helpers ─────────────────────────────────────────────────────────
+    // --- Seed helpers ---------------------------------------------------------
 
     private static ConversationEntity NewConv(
         string title = "Conversation",
@@ -134,9 +134,9 @@ public sealed class ConversationServiceTests : IDisposable
         return conv.Id;
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  Constructor guards
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public void Ctor_NullDb_Throws()
@@ -155,9 +155,9 @@ public sealed class ConversationServiceTests : IDisposable
         act.Should().Throw<ArgumentNullException>().WithParameterName("logger");
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  CreateConversationAsync
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task CreateConversationAsync_Defaults_AutoTitlesAndPersists()
@@ -190,9 +190,9 @@ public sealed class ConversationServiceTests : IDisposable
         conv.ModelId.Should().Be("llama3");
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  GetConversationAsync
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task GetConversationAsync_Existing_ReturnsWithOrderedMessages()
@@ -223,9 +223,9 @@ public sealed class ConversationServiceTests : IDisposable
         (await h.Service.GetConversationAsync(404)).Should().BeNull();
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  GetAllConversationsAsync / GetRecentConversationsAsync
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task GetAllConversationsAsync_ExcludesArchived_PinnedFirst()
@@ -307,9 +307,9 @@ public sealed class ConversationServiceTests : IDisposable
         result.Should().ContainSingle();
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  SearchConversationsAsync
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task SearchConversationsAsync_EmptyQuery_ReturnsAll()
@@ -377,9 +377,9 @@ public sealed class ConversationServiceTests : IDisposable
         result.Should().BeEmpty(); // the only title match is archived
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  Title / pin / archive / delete
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task UpdateConversationTitleAsync_Existing_Updates()
@@ -467,6 +467,159 @@ public sealed class ConversationServiceTests : IDisposable
         (await fresh.Messages.CountAsync()).Should().Be(0); // cascade
     }
 
+    // Branches reference their parent through a Restrict foreign key. Deleting a conversation
+    // whose branches the context had not loaded (the sidebar path after a restart) failed in
+    // the database, and the failed DELETE stayed queued in the shared tracker, so every later
+    // save anywhere in the app replayed it.
+
+    [Fact]
+    public async Task DeleteConversationAsync_WithBranches_PromotesThemAndDeletesOnlyTheConversation()
+    {
+        var h = NewHarness();
+        long parentId = 0, branchId = 0, branchPointId = 0;
+        h.Seed(ctx =>
+        {
+            var parent = NewConv("Parent");
+            ctx.Conversations.Add(parent);
+            ctx.SaveChanges();
+            parentId = parent.Id;
+            var point = NewMsg(parentId, "user", "shared question", sortOrder: 0);
+            ctx.Messages.Add(point);
+            ctx.SaveChanges();
+            branchPointId = point.Id;
+
+            var branch = NewConv("Branch");
+            branch.ParentConversationId = parentId;
+            branch.BranchPointMessageId = branchPointId;
+            ctx.Conversations.Add(branch);
+            ctx.SaveChanges();
+            branchId = branch.Id;
+            ctx.Messages.Add(NewMsg(branchId, "user", "shared question", sortOrder: 0));
+        });
+
+        await h.Service.DeleteConversationAsync(parentId);
+
+        using var fresh = h.Fresh();
+        (await fresh.Conversations.AnyAsync(c => c.Id == parentId)).Should().BeFalse();
+        var promoted = await fresh.Conversations.SingleAsync(c => c.Id == branchId);
+        promoted.ParentConversationId.Should().BeNull();
+        promoted.BranchPointMessageId.Should().BeNull("its branch point was a message of the deleted conversation");
+        (await fresh.Messages.CountAsync(m => m.ConversationId == branchId)).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task DeleteConversationAsync_OfABranchWithSubBranches_ReattachesThemToItsParent()
+    {
+        var h = NewHarness();
+        long rootId = 0, middleId = 0, leafId = 0;
+        h.Seed(ctx =>
+        {
+            var root = NewConv("Root");
+            ctx.Conversations.Add(root);
+            ctx.SaveChanges();
+            rootId = root.Id;
+
+            var middle = NewConv("Middle");
+            middle.ParentConversationId = rootId;
+            middle.BranchPointMessageId = 7;
+            ctx.Conversations.Add(middle);
+            ctx.SaveChanges();
+            middleId = middle.Id;
+
+            var leaf = NewConv("Leaf");
+            leaf.ParentConversationId = middleId;
+            leaf.BranchPointMessageId = 9;
+            ctx.Conversations.Add(leaf);
+            ctx.SaveChanges();
+            leafId = leaf.Id;
+        });
+
+        await h.Service.DeleteConversationAsync(middleId);
+
+        using var fresh = h.Fresh();
+        var leaf = await fresh.Conversations.SingleAsync(c => c.Id == leafId);
+        leaf.ParentConversationId.Should().Be(rootId);
+        leaf.BranchPointMessageId.Should().Be(7, "it now diverges from the root where the deleted branch did");
+    }
+
+    [Fact]
+    public async Task DeleteConversationAsync_WithADurableSummary_DeletesItWithTheConversation()
+    {
+        var h = NewHarness();
+        long id = 0;
+        h.Seed(ctx =>
+        {
+            var c = NewConv();
+            ctx.Conversations.Add(c);
+            ctx.SaveChanges();
+            id = c.Id;
+            var snapshot = new ConversationSummarySnapshotEntity
+            {
+                ConversationId = id,
+                SnapshotVersion = 1,
+                SummaryText = "summary",
+                PreviewText = "preview",
+                GeneratedAt = DateTime.UtcNow,
+                SourceConversationUpdatedAt = DateTime.UtcNow
+            };
+            ctx.ConversationSummarySnapshots.Add(snapshot);
+            ctx.SaveChanges();
+            ctx.ConversationSummaryStates.Add(new ConversationSummaryStateEntity
+            {
+                ConversationId = id,
+                LatestSnapshotId = snapshot.Id,
+                LatestSnapshotVersion = 1
+            });
+        });
+
+        await h.Service.DeleteConversationAsync(id);
+
+        using var fresh = h.Fresh();
+        (await fresh.Conversations.CountAsync()).Should().Be(0);
+        (await fresh.ConversationSummarySnapshots.CountAsync()).Should().Be(0);
+        (await fresh.ConversationSummaryStates.CountAsync()).Should().Be(0);
+    }
+
+    [Fact]
+    public async Task DeleteConversationAsync_WhenTheSaveFails_ThrowsAndLeavesNothingQueuedForLaterSaves()
+    {
+        var h = NewHarness();
+        long doomedId = 0, otherId = 0;
+        h.Seed(ctx =>
+        {
+            var doomed = NewConv("Doomed");
+            var other = NewConv("Other");
+            ctx.Conversations.AddRange(doomed, other);
+            ctx.SaveChanges();
+            doomedId = doomed.Id;
+            otherId = other.Id;
+            ctx.Messages.Add(NewMsg(doomedId, sortOrder: 0));
+        });
+        await h.Db.Messages.Where(m => m.ConversationId == doomedId).LoadAsync();
+
+        using (var ddl = h.Fresh())
+        {
+            await ddl.Database.ExecuteSqlRawAsync(
+                "CREATE TRIGGER block_delete BEFORE DELETE ON conversations BEGIN SELECT RAISE(ABORT, 'blocked'); END;");
+        }
+
+        await h.Service.Invoking(s => s.DeleteConversationAsync(doomedId)).Should().ThrowAsync<Exception>();
+
+        using (var ddl = h.Fresh())
+        {
+            await ddl.Database.ExecuteSqlRawAsync("DROP TRIGGER block_delete;");
+        }
+
+        // An unrelated save on the same shared context must not replay the failed delete.
+        await h.Service.TogglePinAsync(otherId);
+
+        using var fresh = h.Fresh();
+        (await fresh.Conversations.AnyAsync(c => c.Id == doomedId)).Should().BeTrue();
+        (await fresh.Messages.CountAsync(m => m.ConversationId == doomedId)).Should().Be(1);
+        (await fresh.Conversations.SingleAsync(c => c.Id == otherId)).IsPinned.Should().BeTrue();
+        h.Db.ChangeTracker.HasChanges().Should().BeFalse();
+    }
+
     [Fact]
     public async Task DeleteConversationAsync_Missing_NoThrow()
     {
@@ -474,9 +627,9 @@ public sealed class ConversationServiceTests : IDisposable
         await h.Service.Invoking(s => s.DeleteConversationAsync(404)).Should().NotThrowAsync();
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  Messages: get / add
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task GetMessagesAsync_ReturnsOrderedBySortOrder()
@@ -525,6 +678,28 @@ public sealed class ConversationServiceTests : IDisposable
 
         h.Recall.Verify(r => r.RefreshMessageEmbeddingAsync(msg.Id, false, It.IsAny<CancellationToken>()), Times.Once);
         h.Summary.Verify(s => s.MarkConversationStaleAsync(id, false, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task AddMessageAsync_SavesTheModelAndTheSourcesOfAnAnswer()
+    {
+        var h = NewHarness();
+        var id = SeedConv(h, NewConv());
+
+        await h.Service.AddMessageAsync(
+            id,
+            "assistant",
+            "Version 2 shipped [1].",
+            modelId: "llama3.2:3b",
+            citationsJson: "[{\"kind\":\"web\",\"title\":\"Notes\",\"url\":\"https://example.org/notes\"}]");
+        await h.Service.AddMessageAsync(id, "user", "Thanks", modelId: " ", citationsJson: "");
+
+        using var fresh = h.Fresh();
+        var messages = await fresh.Messages.OrderBy(m => m.SortOrder).ToListAsync();
+        messages[0].ModelId.Should().Be("llama3.2:3b");
+        messages[0].CitationsJson.Should().Contain("https://example.org/notes");
+        messages[1].ModelId.Should().BeNull();
+        messages[1].CitationsJson.Should().BeNull();
     }
 
     [Fact]
@@ -599,53 +774,66 @@ public sealed class ConversationServiceTests : IDisposable
         (await fresh.Messages.CountAsync()).Should().Be(1);
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    //  Messages: delete-last-assistant / delete / edit / truncate
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
+    //  Messages: delete / edit / truncate
+    // ===========================================================================
 
     [Fact]
-    public async Task DeleteLastAssistantMessageAsync_RemovesNewestAssistant()
+    public async Task DeleteMessageAndFollowingAsync_DeletesTheMessageAndEverythingAfterIt()
     {
         var h = NewHarness();
         long id = 0;
+        var ids = new List<long>();
         h.Seed(ctx =>
         {
-            var c = NewConv(messageCount: 3, tokensUsed: 30);
+            var c = NewConv(messageCount: 4, tokensUsed: 40);
             ctx.Conversations.Add(c);
             ctx.SaveChanges();
             id = c.Id;
-            ctx.Messages.Add(NewMsg(id, "user", "q", sortOrder: 0, tokenCount: 10));
-            ctx.Messages.Add(NewMsg(id, "assistant", "old answer", sortOrder: 1, tokenCount: 10));
-            ctx.Messages.Add(NewMsg(id, "assistant", "new answer", sortOrder: 2, tokenCount: 10));
+            for (var i = 0; i < 4; i++)
+            {
+                var m = NewMsg(id, i % 2 == 0 ? "user" : "assistant", $"m{i}", sortOrder: i, tokenCount: 10);
+                ctx.Messages.Add(m);
+                ctx.SaveChanges();
+                ids.Add(m.Id);
+            }
         });
 
-        await h.Service.DeleteLastAssistantMessageAsync(id);
+        var deleted = await h.Service.DeleteMessageAndFollowingAsync(id, ids[2]);
 
+        deleted.Should().Be(2);
         using var fresh = h.Fresh();
-        (await fresh.Messages.AnyAsync(m => m.Content == "new answer")).Should().BeFalse();
+        (await fresh.Messages.Select(m => m.Content).ToListAsync()).Should().BeEquivalentTo("m0", "m1");
         var conv = await fresh.Conversations.FindAsync(id);
         conv!.MessageCount.Should().Be(2);
         conv.TokensUsed.Should().Be(20);
     }
 
     [Fact]
-    public async Task DeleteLastAssistantMessageAsync_NoAssistant_NoOp()
+    public async Task DeleteMessageAndFollowingAsync_ForAMessageOfAnotherConversation_DeletesNothing()
     {
         var h = NewHarness();
-        long id = 0;
+        long firstId = 0, secondId = 0, foreignMessageId = 0;
         h.Seed(ctx =>
         {
-            var c = NewConv(messageCount: 1);
-            ctx.Conversations.Add(c);
+            var first = NewConv("First");
+            var second = NewConv("Second");
+            ctx.Conversations.AddRange(first, second);
             ctx.SaveChanges();
-            id = c.Id;
-            ctx.Messages.Add(NewMsg(id, "user", "only question", sortOrder: 0));
+            firstId = first.Id;
+            secondId = second.Id;
+            ctx.Messages.Add(NewMsg(firstId, sortOrder: 0));
+            var foreign = NewMsg(secondId, sortOrder: 0);
+            ctx.Messages.Add(foreign);
+            ctx.SaveChanges();
+            foreignMessageId = foreign.Id;
         });
 
-        await h.Service.DeleteLastAssistantMessageAsync(id);
+        var deleted = await h.Service.DeleteMessageAndFollowingAsync(firstId, foreignMessageId);
 
+        deleted.Should().Be(0);
         using var fresh = h.Fresh();
-        (await fresh.Messages.CountAsync()).Should().Be(1);
+        (await fresh.Messages.CountAsync()).Should().Be(2);
     }
 
     [Fact]
@@ -721,55 +909,9 @@ public sealed class ConversationServiceTests : IDisposable
         await h.Service.Invoking(s => s.UpdateMessageContentAsync(404, "x")).Should().NotThrowAsync();
     }
 
-    [Fact]
-    public async Task DeleteMessagesAfterAsync_RemovesTailAndAdjustsMetadata()
-    {
-        var h = NewHarness();
-        long id = 0;
-        h.Seed(ctx =>
-        {
-            var c = NewConv(messageCount: 4, tokensUsed: 40);
-            ctx.Conversations.Add(c);
-            ctx.SaveChanges();
-            id = c.Id;
-            for (int i = 0; i < 4; i++)
-            {
-                ctx.Messages.Add(NewMsg(id, content: $"m{i}", sortOrder: i, tokenCount: 10));
-            }
-        });
-
-        await h.Service.DeleteMessagesAfterAsync(id, sortOrder: 1);
-
-        using var fresh = h.Fresh();
-        (await fresh.Messages.CountAsync()).Should().Be(2); // SortOrder 0 and 1 remain
-        var conv = await fresh.Conversations.FindAsync(id);
-        conv!.MessageCount.Should().Be(2);
-        conv.TokensUsed.Should().Be(20);
-    }
-
-    [Fact]
-    public async Task DeleteMessagesAfterAsync_NothingToDelete_NoOp()
-    {
-        var h = NewHarness();
-        long id = 0;
-        h.Seed(ctx =>
-        {
-            var c = NewConv(messageCount: 1);
-            ctx.Conversations.Add(c);
-            ctx.SaveChanges();
-            id = c.Id;
-            ctx.Messages.Add(NewMsg(id, sortOrder: 0));
-        });
-
-        await h.Service.DeleteMessagesAfterAsync(id, sortOrder: 5);
-
-        using var fresh = h.Fresh();
-        (await fresh.Messages.CountAsync()).Should().Be(1);
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  Stats
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task GetConversationCountAsync_CountsNonArchived()
@@ -805,9 +947,9 @@ public sealed class ConversationServiceTests : IDisposable
         (await h.Service.GetTotalTokensUsedAsync()).Should().Be(0);
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  Folders
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task SetConversationFolderAsync_SetsTrimmedFolder()
@@ -878,9 +1020,9 @@ public sealed class ConversationServiceTests : IDisposable
         result[1].Title.Should().Be("recent");
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  Tags
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task AddTagToConversationAsync_NewAssignment_Creates()
@@ -961,15 +1103,15 @@ public sealed class ConversationServiceTests : IDisposable
         await h.Service.Invoking(s => s.RemoveTagFromConversationAsync(1, 2)).Should().NotThrowAsync();
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    //  Catch arms — every method rethrows on a disposed context
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
+    //  Catch arms - every method rethrows on a disposed context
+    // ===========================================================================
 
     [Fact]
     public async Task AllMethods_DbDisposed_RethrowFromCatch()
     {
         var h = NewHarness();
-        h.Db.Dispose(); // every query/command now faults inside its try → logged + rethrown
+        h.Db.Dispose(); // every query/command now faults inside its try -> logged + rethrown
 
         var calls = new List<Func<Task>>
         {
@@ -984,10 +1126,9 @@ public sealed class ConversationServiceTests : IDisposable
             () => h.Service.DeleteConversationAsync(1),
             () => h.Service.GetMessagesAsync(1),
             () => h.Service.AddMessageAsync(1, "user", "c"),
-            () => h.Service.DeleteLastAssistantMessageAsync(1),
             () => h.Service.DeleteMessageAsync(1),
             () => h.Service.UpdateMessageContentAsync(1, "c"),
-            () => h.Service.DeleteMessagesAfterAsync(1, 0),
+            () => h.Service.DeleteMessageAndFollowingAsync(1, 1),
             () => h.Service.GetConversationCountAsync(),
             () => h.Service.GetTotalTokensUsedAsync(),
             () => h.Service.SetConversationFolderAsync(1, "f"),

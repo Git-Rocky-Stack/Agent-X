@@ -24,7 +24,7 @@ namespace AgentX.Core.Services.Sync.Codec;
 /// </summary>
 public sealed class SyncPackageCodec : ISyncPackageCodec
 {
-    // ── Constants ─────────────────────────────────────────────────────────────
+    // -- Constants -------------------------------------------------------------
 
     /// <summary>Monotonically increasing wire-format version written into every .axs header.</summary>
     private const ushort FormatVersion = 1;
@@ -52,11 +52,11 @@ public sealed class SyncPackageCodec : ISyncPackageCodec
         DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
     };
 
-    // ── Fields ────────────────────────────────────────────────────────────────
+    // -- Fields ----------------------------------------------------------------
 
     private readonly ILogger _log;
 
-    // ── Constructor ───────────────────────────────────────────────────────────
+    // -- Constructor -----------------------------------------------------------
 
     /// <summary>
     /// Initialises a new <see cref="SyncPackageCodec"/>.
@@ -70,7 +70,7 @@ public sealed class SyncPackageCodec : ISyncPackageCodec
         _log.Debug("SyncPackageCodec initialised");
     }
 
-    // ── ISyncPackageCodec: Serialise ─────────────────────────────────────────
+    // -- ISyncPackageCodec: Serialise -----------------------------------------
 
     /// <inheritdoc />
     public byte[] Serialise(SyncChangeSet changeSet)
@@ -79,7 +79,7 @@ public sealed class SyncPackageCodec : ISyncPackageCodec
         return Encoding.UTF8.GetBytes(JsonSerializer.Serialize(changeSet, JsonOptions));
     }
 
-    // ── ISyncPackageCodec: Deserialise ───────────────────────────────────────
+    // -- ISyncPackageCodec: Deserialise ---------------------------------------
 
     /// <inheritdoc />
     public SyncChangeSet Deserialise(byte[] jsonBytes)
@@ -90,12 +90,12 @@ public sealed class SyncPackageCodec : ISyncPackageCodec
         var result = JsonSerializer.Deserialize<SyncChangeSet>(json, JsonOptions);
 
         if (result is null)
-            throw new InvalidOperationException("Deserialisation returned null — invalid SyncChangeSet payload.");
+            throw new InvalidOperationException("Deserialisation returned null - invalid SyncChangeSet payload.");
 
         return result;
     }
 
-    // ── ISyncPackageCodec: Encrypt ────────────────────────────────────────────
+    // -- ISyncPackageCodec: Encrypt --------------------------------------------
 
     /// <inheritdoc />
     public byte[] Encrypt(byte[] plaintext, string passphrase)
@@ -136,13 +136,13 @@ public sealed class SyncPackageCodec : ISyncPackageCodec
         ciphertext.CopyTo(span[offset..]);
 
         _log.Debug(
-            "SyncPackageCodec.Encrypt: encrypted {PlainBytes} bytes → {CipherBytes} bytes",
+            "SyncPackageCodec.Encrypt: encrypted {PlainBytes} bytes -> {CipherBytes} bytes",
             plaintext.Length, result.Length);
 
         return result;
     }
 
-    // ── ISyncPackageCodec: Decrypt ────────────────────────────────────────────
+    // -- ISyncPackageCodec: Decrypt --------------------------------------------
 
     /// <inheritdoc />
     public byte[] Decrypt(byte[] cipherData, string passphrase)
@@ -155,7 +155,7 @@ public sealed class SyncPackageCodec : ISyncPackageCodec
                 "Data is too short to be a valid .axs sync file.");
 
         // Parse header fields using index ranges for zero-copy slicing.
-        var offset = MagicLen + VersionLen; // skip magic and version — already validated
+        var offset = MagicLen + VersionLen; // skip magic and version - already validated
         var salt = cipherData[offset..(offset + SaltBytes)];
         offset += SaltBytes;
         var nonce = cipherData[offset..(offset + GcmNonceBytes)];
@@ -171,13 +171,13 @@ public sealed class SyncPackageCodec : ISyncPackageCodec
         gcm.Decrypt(nonce, ciphertext, tag, plaintext);
 
         _log.Debug(
-            "SyncPackageCodec.Decrypt: decrypted {CipherBytes} → {PlainBytes} bytes",
+            "SyncPackageCodec.Decrypt: decrypted {CipherBytes} -> {PlainBytes} bytes",
             cipherData.Length, plaintext.Length);
 
         return plaintext;
     }
 
-    // ── ISyncPackageCodec: IsValidHeader ──────────────────────────────────────
+    // -- ISyncPackageCodec: IsValidHeader --------------------------------------
 
     /// <inheritdoc />
     public bool IsValidHeader(byte[] data)
@@ -190,7 +190,7 @@ public sealed class SyncPackageCodec : ISyncPackageCodec
         return data[..MagicLen].SequenceEqual(SyncMagic);
     }
 
-    // ── Private: PBKDF2 key derivation ────────────────────────────────────────
+    // -- Private: PBKDF2 key derivation ----------------------------------------
 
     /// <summary>
     /// Derives a 256-bit AES key from <paramref name="passphrase"/> and

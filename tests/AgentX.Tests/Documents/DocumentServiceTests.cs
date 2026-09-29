@@ -5,6 +5,9 @@ using AgentX.Core.Data.VectorDb;
 using AgentX.Core.Documents;
 using AgentX.Core.Documents.Models;
 using AgentX.Core.Helpers;
+using AgentX.Core.Search;
+using AgentX.Core.Services.Plugins;
+using AgentX.Core.Services.Search;
 using AgentX.Core.Services.Settings;
 using AgentX.Tests.Helpers;
 using FluentAssertions;
@@ -16,7 +19,7 @@ using Xunit;
 namespace AgentX.Tests.Documents;
 
 /// <summary>
-/// Behavioural coverage for <see cref="DocumentService"/> — the full import / query / delete /
+/// Behavioural coverage for <see cref="DocumentService"/> - the full import / query / delete /
 /// reindex / duplicate-detection / bulk-operation surface of the knowledge-vault ingestion pipeline.
 ///
 /// <para><b>Harness design.</b> The service is a straight EF-Core orchestrator over the shared
@@ -49,7 +52,7 @@ public sealed class DocumentServiceTests : IDisposable
         }
     }
 
-    // ─── Harness ──────────────────────────────────────────────────────────────
+    // --- Harness --------------------------------------------------------------
 
     private sealed class DocHarness : IDisposable
     {
@@ -57,6 +60,8 @@ public sealed class DocumentServiceTests : IDisposable
         public AgentXDbContext Db { get; }
         public StubProcessor Processor { get; }
         public Mock<IVectorStore> VectorStore { get; } = new();
+        public Mock<IKeywordSearchService> KeywordSearch { get; } = new();
+        public Mock<ISearchCacheService> SearchCache { get; } = new();
         public Mock<ISettingsService> Settings { get; } = new();
         public Mock<ILogger> Logger { get; } = new();
         public DocumentService Service { get; }
@@ -76,7 +81,9 @@ public sealed class DocumentServiceTests : IDisposable
                 procList,
                 Settings.Object,
                 Logger.Object,
-                withVectorStore ? VectorStore.Object : null);
+                withVectorStore ? VectorStore.Object : null,
+                KeywordSearch.Object,
+                SearchCache.Object);
         }
 
         /// <summary>Writes a real file into the per-test temp directory and returns its full path.</summary>
@@ -164,7 +171,7 @@ public sealed class DocumentServiceTests : IDisposable
         }
     }
 
-    // ─── Seed helpers ─────────────────────────────────────────────────────────
+    // --- Seed helpers ---------------------------------------------------------
 
     private static DocumentEntity NewDoc(
         string fileName = "doc.txt",
@@ -188,9 +195,9 @@ public sealed class DocumentServiceTests : IDisposable
         };
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  Constructor guards
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public void Ctor_NullDb_Throws()
@@ -237,9 +244,9 @@ public sealed class DocumentServiceTests : IDisposable
         act.Should().Throw<ArgumentNullException>().WithParameterName("logger");
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  ImportFileAsync
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task ImportFileAsync_FileMissing_ThrowsFileNotFound()
@@ -277,6 +284,36 @@ public sealed class DocumentServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task ImportFileAsync_FormatOnlyAnActivePluginHandles_UsesThePluginProcessor()
+    {
+        // Plugins that implement IDocumentProcessorPlugin contribute processors through
+        // IPluginDocumentProcessorSource; they cover formats no built-in processor accepts.
+        var h = NewHarness(new StubProcessor(new[] { ".txt" }));
+        var pluginProcessor = new StubProcessor(new[] { ".zzz", ".txt" });
+        var plugins = new Mock<IPluginDocumentProcessorSource>();
+        plugins.Setup(p => p.GetDocumentProcessors()).Returns(new IDocumentProcessor[] { pluginProcessor });
+        var service = new DocumentService(
+            h.Db,
+            new IDocumentProcessor[] { h.Processor },
+            h.Settings.Object,
+            h.Logger.Object,
+            vectorStore: null,
+            h.KeywordSearch.Object,
+            h.SearchCache.Object,
+            plugins.Object);
+
+        service.CanProcess("report.zzz").Should().BeTrue();
+        service.GetSupportedExtensions().Should().Contain(new[] { ".txt", ".zzz" });
+
+        await service.ImportFileAsync(h.WriteFile("data.zzz", "plugin format"));
+        await service.ImportFileAsync(h.WriteFile("notes.txt", "built-in format"));
+
+        pluginProcessor.ProcessedPaths.Should().ContainSingle().Which.Should().EndWith("data.zzz");
+        h.Processor.ProcessedPaths.Should().ContainSingle().Which.Should().EndWith("notes.txt",
+            "a built-in processor keeps the formats it handles");
+    }
+
+    [Fact]
     public async Task ImportFileAsync_Valid_PersistsPendingDocument()
     {
         var h = NewHarness();
@@ -299,6 +336,93 @@ public sealed class DocumentServiceTests : IDisposable
 
         using var fresh = h.Fresh();
         (await fresh.Documents.CountAsync()).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task ImportFileAsync_Valid_QueuesTheDocumentForIndexing()
+    {
+        // Imports used to create "pending" rows that nothing picked up until the next start.
+        var h = NewHarness();
+        var path = h.WriteFile("queued.txt", "alpha beta gamma");
+        var raised = new List<DocumentPendingIndexingEventArgs>();
+        h.Service.DocumentPendingIndexing += (_, e) => raised.Add(e);
+
+        var entity = await h.Service.ImportFileAsync(path);
+
+        raised.Should().ContainSingle();
+        raised[0].DocumentId.Should().Be(entity.Id);
+        raised[0].Extracted!.ExtractedText.Should().Be("stub extracted text");
+    }
+
+    [Fact]
+    public async Task ImportExternalContentAsync_QueuesTheDocumentForIndexing()
+    {
+        var h = NewHarness();
+        var path = h.WriteFile("event.txt", "calendar body");
+        var raised = new List<long>();
+        h.Service.DocumentPendingIndexing += (_, e) => raised.Add(e.DocumentId);
+
+        var entity = await h.Service.ImportExternalContentAsync(path, "CalendarEvent", "Standup");
+
+        raised.Should().Equal(entity.Id);
+    }
+
+    [Fact]
+    public async Task ImportFileAsync_ExtractionFails_RecordsAFailedDocumentWithTheReason()
+    {
+        // An encrypted or corrupt file used to import as a "successful" zero-word document.
+        // It is now kept as a failed document that says why, and is not queued for indexing.
+        var h = NewHarness();
+        h.Processor.ThrowOnProcess = new DocumentExtractionException("'locked.pdf' is password protected.");
+        var raised = 0;
+        h.Service.DocumentPendingIndexing += (_, _) => raised++;
+
+        var entity = await h.Service.ImportFileAsync(h.WriteFile("locked.pdf", "%PDF-encrypted"));
+
+        entity.IndexingStatus.Should().Be("failed");
+        entity.IndexingError.Should().Be("'locked.pdf' is password protected.");
+        entity.WordCount.Should().Be(0);
+        raised.Should().Be(0);
+
+        using var fresh = h.Fresh();
+        (await fresh.Documents.SingleAsync()).IndexingStatus.Should().Be("failed");
+    }
+
+    [Fact]
+    public async Task ImportFileAsync_UnexpectedProcessorError_IsRecordedWithAPrefix()
+    {
+        var h = NewHarness();
+        h.Processor.ThrowOnProcess = new IOException("sharing violation");
+
+        var entity = await h.Service.ImportFileAsync(h.WriteFile("busy.txt", "content"));
+
+        entity.IndexingStatus.Should().Be("failed");
+        entity.IndexingError.Should().Be("Text extraction failed: sharing violation");
+    }
+
+    [Fact]
+    public async Task ImportExternalContentAsync_ExtractionFails_RecordsAFailedDocument()
+    {
+        var h = NewHarness();
+        h.Processor.ThrowOnProcess = new DocumentExtractionException("unreadable");
+
+        var entity = await h.Service.ImportExternalContentAsync(
+            h.WriteFile("mail.txt", "body"), "EmailMessage", "Weekly update", sourceUrl: "https://mail.example.com/1");
+
+        entity.IndexingStatus.Should().Be("failed");
+        entity.IndexingError.Should().Be("unreadable");
+        entity.MetadataJson.Should().Contain("mail.example.com");
+    }
+
+    [Fact]
+    public async Task ImportFileAsync_FailingIndexingSubscriber_DoesNotFailTheImport()
+    {
+        var h = NewHarness();
+        h.Service.DocumentPendingIndexing += (_, _) => throw new InvalidOperationException("subscriber bug");
+
+        var entity = await h.Service.ImportFileAsync(h.WriteFile("safe.txt", "content"));
+
+        entity.Id.Should().BeGreaterThan(0);
     }
 
     [Fact]
@@ -341,7 +465,7 @@ public sealed class DocumentServiceTests : IDisposable
     [Fact]
     public async Task ImportFileAsync_EmptyMetadata_LeavesMetadataJsonNull()
     {
-        var h = NewHarness(); // default processor → empty DocumentMetadata
+        var h = NewHarness(); // default processor -> empty DocumentMetadata
         var path = h.WriteFile("plain.txt");
 
         var entity = await h.Service.ImportFileAsync(path);
@@ -397,9 +521,73 @@ public sealed class DocumentServiceTests : IDisposable
         entity.Id.Should().BeGreaterThan(0);
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // --- ImportPreparedDocumentAsync (web import) ---
+
+    [Fact]
+    public async Task ImportPreparedDocumentAsync_SavesTheDocumentWithItsCollectionLinkAndQueuesIt()
+    {
+        var h = NewHarness();
+        long collectionId = 0;
+        h.Seed(ctx =>
+        {
+            var collection = new CollectionEntity { Name = "Reading", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+            ctx.Collections.Add(collection);
+            ctx.SaveChanges();
+            collectionId = collection.Id;
+        });
+        var raised = new List<DocumentPendingIndexingEventArgs>();
+        h.Service.DocumentPendingIndexing += (_, e) => raised.Add(e);
+
+        var document = await h.Service.ImportPreparedDocumentAsync(
+            NewDoc(fileName: "page.md", fileType: "web", hash: "page-hash", status: "pending"), collectionId);
+
+        raised.Should().ContainSingle().Which.DocumentId.Should().Be(document.Id);
+        raised[0].Extracted.Should().BeNull("the indexer reads the saved file itself");
+        using var fresh = h.Fresh();
+        fresh.Documents.Should().ContainSingle(d => d.Id == document.Id && d.FileType == "web");
+        fresh.DocumentCollections.Should().ContainSingle(l => l.DocumentId == document.Id && l.CollectionId == collectionId);
+        (await fresh.Collections.SingleAsync(c => c.Id == collectionId)).DocumentCount.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task ImportPreparedDocumentAsync_DuplicateContent_ThrowsTheVaultsDuplicateError()
+    {
+        var h = NewHarness();
+        long existingId = 0;
+        h.Seed(ctx =>
+        {
+            var existing = NewDoc(fileName: "saved.pdf", hash: "same-hash");
+            ctx.Documents.Add(existing);
+            ctx.SaveChanges();
+            existingId = existing.Id;
+        });
+
+        var act = () => h.Service.ImportPreparedDocumentAsync(NewDoc(fileName: "page.md", hash: "same-hash", status: "pending"));
+
+        (await act.Should().ThrowAsync<DuplicateDocumentException>()).Which.ExistingDocumentId.Should().Be(existingId);
+        using var fresh = h.Fresh();
+        fresh.Documents.Should().ContainSingle();
+    }
+
+    [Fact]
+    public async Task ImportPreparedDocumentAsync_MissingCollection_SavesNothing()
+    {
+        var h = NewHarness();
+        var raised = 0;
+        h.Service.DocumentPendingIndexing += (_, _) => raised++;
+
+        var act = () => h.Service.ImportPreparedDocumentAsync(NewDoc(fileName: "page.md", status: "pending"), collectionId: 404);
+
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*Collection 404 was not found*");
+        raised.Should().Be(0);
+        using var fresh = h.Fresh();
+        fresh.Documents.Should().BeEmpty();
+        h.Db.ChangeTracker.Entries().Should().BeEmpty();
+    }
+
+    // ===========================================================================
     //  ImportExternalContentAsync
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Theory]
     [InlineData("", "CalendarEvent", "My Event")]
@@ -509,9 +697,9 @@ public sealed class DocumentServiceTests : IDisposable
         (await fresh.DocumentCollections.CountAsync()).Should().Be(0);
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  ImportFilesAsync (batch)
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task ImportFilesAsync_NullList_ReturnsEmpty()
@@ -578,9 +766,87 @@ public sealed class DocumentServiceTests : IDisposable
         await act.Should().ThrowAsync<OperationCanceledException>();
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // The vault reported "Successfully imported N file(s)" for any batch, although files
+    // that failed were only logged and duplicates were silently dropped. The report says
+    // what actually happened to each file.
+
+    [Fact]
+    public async Task ImportFilesWithReportAsync_ReportsImportedUnreadableDuplicateAndFailedFiles()
+    {
+        var processor = new StubProcessor(new[] { ".txt", ".pdf" }, path =>
+            path.EndsWith("locked.pdf", StringComparison.Ordinal)
+                ? throw new DocumentExtractionException("The PDF is password protected.")
+                : new ProcessedDocument
+                {
+                    FilePath = path,
+                    FileName = Path.GetFileName(path),
+                    ExtractedText = "text",
+                    WordCount = 1,
+                    Metadata = new DocumentMetadata()
+                });
+        var h = NewHarness(processor);
+        var existing = h.WriteFile("existing.txt", "already in the vault");
+        var existingDocument = await h.Service.ImportFileAsync(existing);
+
+        var fresh = h.WriteFile("fresh.txt", "new content");
+        var copy = h.WriteFile("copy.txt", "already in the vault");
+        var locked = h.WriteFile("locked.pdf", "encrypted bytes");
+        var unsupported = h.WriteFile("notes.zzz", "no processor");
+        var missing = Path.Combine(h.TempDir, "gone.txt");
+        var progress = new List<int>();
+
+        var report = await h.Service.ImportFilesWithReportAsync(
+            new[] { fresh, copy, locked, unsupported, missing },
+            progress: new SyncProgress<int>(progress.Add));
+
+        report.Imported.Select(d => d.FileName).Should().BeEquivalentTo(new[] { "fresh.txt", "locked.pdf" });
+        report.ExtractionFailedCount.Should().Be(1);
+        report.Imported.Single(d => d.FileName == "locked.pdf").IndexingError.Should().Be("The PDF is password protected.");
+        // The duplicate names the document it matched, so a caller can use that document
+        // (Collections adds it to the collection instead of skipping the file).
+        report.Duplicates.Should().Equal(new DocumentImportDuplicate(copy, existingDocument.Id, "existing.txt"));
+        report.Failed.Select(f => f.FilePath).Should().BeEquivalentTo(new[] { unsupported, missing });
+        report.Failed.Single(f => f.FilePath == unsupported).Reason.Should().Contain("No processor found");
+        progress.Should().Equal(1, 2, 3, 4, 5);
+    }
+
+    [Fact]
+    public async Task ImportFilesWithReportAsync_AllowDuplicates_ImportsTheCopyAsASeparateDocument()
+    {
+        // "Import all anyway" re-submitted the duplicates through the normal import, which
+        // rejected them again, so they could never be imported.
+        var h = NewHarness();
+        var original = h.WriteFile("original.txt", "same bytes");
+        var copy = h.WriteFile("copy.txt", "same bytes");
+        var first = await h.Service.ImportFileAsync(original);
+
+        var report = await h.Service.ImportFilesWithReportAsync(new[] { copy }, allowDuplicates: true);
+
+        report.Duplicates.Should().BeEmpty();
+        report.Imported.Should().ContainSingle();
+        report.Imported[0].Id.Should().NotBe(first.Id);
+        report.Imported[0].ContentHash.Should().Be(first.ContentHash);
+
+        using var fresh = h.Fresh();
+        (await fresh.Documents.CountAsync()).Should().Be(2);
+    }
+
+    [Fact]
+    public async Task ImportFileAsync_DuplicateContent_ThrowsATypedExceptionNamingTheExistingDocument()
+    {
+        var h = NewHarness();
+        var first = await h.Service.ImportFileAsync(h.WriteFile("first.txt", "twin"));
+
+        var act = () => h.Service.ImportFileAsync(h.WriteFile("second.txt", "twin"));
+
+        var thrown = (await act.Should().ThrowAsync<DuplicateDocumentException>()).Which;
+        thrown.ExistingDocumentId.Should().Be(first.Id);
+        thrown.ExistingFileName.Should().Be("first.txt");
+    }
+
+    // ===========================================================================
     //  GetDocumentAsync / GetDocumentByHashAsync
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task GetDocumentAsync_Existing_ReturnsWithIncludes()
@@ -636,9 +902,9 @@ public sealed class DocumentServiceTests : IDisposable
         (await h.Service.GetDocumentByHashAsync("nomatch")).Should().BeNull();
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  GetDocumentPreviewTextAsync
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task GetDocumentPreviewTextAsync_ShortSummary_ReturnsTrimmed()
@@ -693,7 +959,7 @@ public sealed class DocumentServiceTests : IDisposable
             id = d.Id;
         });
 
-        // maxChars below the 200 floor → clamped up to 200.
+        // maxChars below the 200 floor -> clamped up to 200.
         var preview = await h.Service.GetDocumentPreviewTextAsync(id, maxChars: 5);
 
         preview!.Length.Should().Be(203);
@@ -758,9 +1024,9 @@ public sealed class DocumentServiceTests : IDisposable
         (await h.Service.GetDocumentPreviewTextAsync(id)).Should().BeNull();
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  GetAllDocumentsAsync (filters + sorting)
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task GetAllDocumentsAsync_NoFilters_ReturnsAllNewestFirst()
@@ -797,6 +1063,33 @@ public sealed class DocumentServiceTests : IDisposable
 
         result.Should().ContainSingle();
         result[0].FileType.Should().Be("pdf");
+    }
+
+    [Theory]
+    [InlineData("code", new[] { "Program.cs", "script.py", "page.html" })]
+    [InlineData("image", new[] { "photo.jpg", "scan.png" })]
+    [InlineData("pdf", new[] { "report.pdf" })]
+    public async Task GetAllDocumentsAsync_FileTypeFilter_MatchesTheCategoryChipsByExtension(
+        string filter, string[] expected)
+    {
+        // The Code and Images chips filtered on FileType "code" and "image", but FileType is
+        // the extension without the dot, so both chips always showed an empty vault.
+        var h = NewHarness();
+        h.Seed(ctx =>
+        {
+            ctx.Documents.Add(NewDoc(fileName: "Program.cs", fileType: "cs"));
+            ctx.Documents.Add(NewDoc(fileName: "script.py", fileType: "py"));
+            ctx.Documents.Add(NewDoc(fileName: "page.html", fileType: "html"));
+            ctx.Documents.Add(NewDoc(fileName: "photo.jpg", fileType: "jpg"));
+            ctx.Documents.Add(NewDoc(fileName: "scan.png", fileType: "png"));
+            ctx.Documents.Add(NewDoc(fileName: "report.pdf", fileType: "pdf"));
+            ctx.Documents.Add(NewDoc(fileName: "notes.md", fileType: "md"));
+            ctx.SaveChanges();
+        });
+
+        var result = await h.Service.GetAllDocumentsAsync(fileTypeFilter: filter, sortBy: null);
+
+        result.Select(d => d.FileName).Should().BeEquivalentTo(expected);
     }
 
     [Fact]
@@ -891,8 +1184,8 @@ public sealed class DocumentServiceTests : IDisposable
     //   delta.txt  type aaa  size    5  imported t0+3
     //   mid.txt    type mmm  size   50  imported t0+2
     //   zeta.txt   type zzz  size 9999  imported t0+4 (newest & biggest)
-    // name → alpha (first alphabetically); size → zeta (largest); type → delta
-    //   (aaa group, then ImportedAt desc → delta before alpha); date/unknown → zeta (newest).
+    // name -> alpha (first alphabetically); size -> zeta (largest); type -> delta
+    //   (aaa group, then ImportedAt desc -> delta before alpha); date/unknown -> zeta (newest).
     [Theory]
     [InlineData("name", "alpha.txt")]
     [InlineData("size", "zeta.txt")]
@@ -917,42 +1210,9 @@ public sealed class DocumentServiceTests : IDisposable
         result[0].FileName.Should().Be(expectedFirst);
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    //  GetDocumentsByCollectionAsync / GetRecentDocumentsAsync
-    // ═══════════════════════════════════════════════════════════════════════════
-
-    [Fact]
-    public async Task GetDocumentsByCollectionAsync_ReturnsMembersNewestFirst()
-    {
-        var h = NewHarness();
-        long collId = 0;
-        var t0 = new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc);
-        h.Seed(ctx =>
-        {
-            var d1 = NewDoc(fileName: "first.txt", importedAt: t0);
-            var d2 = NewDoc(fileName: "second.txt", importedAt: t0.AddHours(1));
-            ctx.Documents.AddRange(d1, d2);
-            var c = new CollectionEntity { Name = "C", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
-            ctx.Collections.Add(c);
-            ctx.SaveChanges();
-            collId = c.Id;
-            ctx.DocumentCollections.Add(new DocumentCollectionEntity { DocumentId = d1.Id, CollectionId = c.Id, AddedAt = DateTime.UtcNow });
-            ctx.DocumentCollections.Add(new DocumentCollectionEntity { DocumentId = d2.Id, CollectionId = c.Id, AddedAt = DateTime.UtcNow });
-            ctx.SaveChanges();
-        });
-
-        var result = await h.Service.GetDocumentsByCollectionAsync(collId);
-
-        result.Should().HaveCount(2);
-        result[0].FileName.Should().Be("second.txt");
-    }
-
-    [Fact]
-    public async Task GetDocumentsByCollectionAsync_EmptyCollection_ReturnsEmpty()
-    {
-        var h = NewHarness();
-        (await h.Service.GetDocumentsByCollectionAsync(777)).Should().BeEmpty();
-    }
+    // ===========================================================================
+    //  GetRecentDocumentsAsync
+    // ===========================================================================
 
     [Fact]
     public async Task GetRecentDocumentsAsync_RespectsLimitAndOrder()
@@ -991,9 +1251,9 @@ public sealed class DocumentServiceTests : IDisposable
         result.Should().ContainSingle();
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  DeleteDocumentAsync
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task DeleteDocumentAsync_Missing_NoThrow()
@@ -1097,9 +1357,128 @@ public sealed class DocumentServiceTests : IDisposable
             Times.Never);
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    [Fact]
+    public async Task DeleteDocumentAsync_RemovesKeywordRowsAndInvalidatesCachedResults()
+    {
+        // Keyword hits carry their indexed text into RAG context, so a delete that leaves
+        // FTS rows (or cached result sets) behind keeps serving the deleted text.
+        var h = NewHarness();
+        long id = 0;
+        h.Seed(ctx =>
+        {
+            var d = NewDoc();
+            ctx.Documents.Add(d);
+            ctx.SaveChanges();
+            id = d.Id;
+        });
+
+        await h.Service.DeleteDocumentAsync(id);
+
+        h.KeywordSearch.Verify(k => k.RemoveDocumentFromFtsAsync(id, It.IsAny<CancellationToken>()), Times.Once);
+        h.SearchCache.Verify(c => c.InvalidateForDocument(id), Times.Once);
+    }
+
+    [Fact]
+    public async Task DeleteDocumentAsync_DecrementsTheCountOfEveryCollectionItBelongedTo()
+    {
+        var h = NewHarness();
+        long id = 0, first = 0, second = 0;
+        h.Seed(ctx =>
+        {
+            var d = NewDoc();
+            var a = new CollectionEntity { Name = "A", DocumentCount = 3, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+            var b = new CollectionEntity { Name = "B", DocumentCount = 1, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+            ctx.Documents.Add(d);
+            ctx.Collections.AddRange(a, b);
+            ctx.SaveChanges();
+            id = d.Id;
+            first = a.Id;
+            second = b.Id;
+            ctx.DocumentCollections.Add(new DocumentCollectionEntity { DocumentId = id, CollectionId = first, AddedAt = DateTime.UtcNow });
+            ctx.DocumentCollections.Add(new DocumentCollectionEntity { DocumentId = id, CollectionId = second, AddedAt = DateTime.UtcNow });
+        });
+
+        await h.Service.DeleteDocumentAsync(id);
+
+        using var fresh = h.Fresh();
+        (await fresh.Collections.SingleAsync(c => c.Id == first)).DocumentCount.Should().Be(2);
+        (await fresh.Collections.SingleAsync(c => c.Id == second)).DocumentCount.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task ImportFileAsync_IntoACollection_IncrementsItsDocumentCount()
+    {
+        var h = NewHarness();
+        long collectionId = 0;
+        h.Seed(ctx =>
+        {
+            var c = new CollectionEntity { Name = "Inbox", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+            ctx.Collections.Add(c);
+            ctx.SaveChanges();
+            collectionId = c.Id;
+        });
+
+        await h.Service.ImportFileAsync(h.WriteFile("counted.txt", "one"), collectionId);
+        await h.Service.BulkAssignToCollectionAsync(
+            new[] { (await h.Service.ImportFileAsync(h.WriteFile("later.txt", "two"))).Id }, collectionId);
+
+        using var fresh = h.Fresh();
+        (await fresh.Collections.SingleAsync(c => c.Id == collectionId)).DocumentCount.Should().Be(2);
+    }
+
+    [Fact]
+    public async Task DeleteDocumentAsync_KeywordIndexThrows_StillDeletes()
+    {
+        var h = NewHarness();
+        h.KeywordSearch
+            .Setup(k => k.RemoveDocumentFromFtsAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("fts down"));
+        long id = 0;
+        h.Seed(ctx =>
+        {
+            var d = NewDoc();
+            ctx.Documents.Add(d);
+            ctx.SaveChanges();
+            id = d.Id;
+        });
+
+        await h.Service.DeleteDocumentAsync(id);
+
+        using var fresh = h.Fresh();
+        (await fresh.Documents.CountAsync()).Should().Be(0);
+    }
+
+    [Fact]
+    public async Task DeleteDocumentAsync_RemovesChunksAndLinksEvenWhenTheDocumentWasLoadedWithoutThem()
+    {
+        var h = NewHarness();
+        long id = 0;
+        long collectionId = 0;
+        h.Seed(ctx =>
+        {
+            var d = NewDoc();
+            var c = new CollectionEntity { Name = "Research", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+            ctx.Documents.Add(d);
+            ctx.Collections.Add(c);
+            ctx.SaveChanges();
+            id = d.Id;
+            collectionId = c.Id;
+            ctx.DocumentChunks.Add(new DocumentChunkEntity { DocumentId = id, ChunkIndex = 0, Content = "c0" });
+            ctx.DocumentCollections.Add(new DocumentCollectionEntity { DocumentId = id, CollectionId = collectionId, AddedAt = DateTime.UtcNow });
+            ctx.SaveChanges();
+        });
+
+        await h.Service.DeleteDocumentAsync(id);
+
+        using var fresh = h.Fresh();
+        (await fresh.DocumentChunks.CountAsync()).Should().Be(0);
+        (await fresh.DocumentCollections.CountAsync()).Should().Be(0);
+        (await fresh.Collections.CountAsync()).Should().Be(1, "only the document goes, not the collection");
+    }
+
+    // ===========================================================================
     //  ReindexDocumentAsync
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task ReindexDocumentAsync_Missing_ThrowsInvalidOperation()
@@ -1188,6 +1567,72 @@ public sealed class DocumentServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task ReindexDocumentAsync_Valid_QueuesTheDocumentForIndexing()
+    {
+        // Every caller reports a re-index as "queued"; the document must actually reach the
+        // indexing pipeline instead of waiting in "pending" until the next startup.
+        var h = NewHarness();
+        var path = h.WriteFile("queued.txt", "content");
+        long id = 0;
+        h.Seed(ctx =>
+        {
+            var d = NewDoc(fileName: "queued.txt", filePath: path);
+            ctx.Documents.Add(d);
+            ctx.SaveChanges();
+            id = d.Id;
+        });
+        var raised = new List<DocumentPendingIndexingEventArgs>();
+        h.Service.DocumentPendingIndexing += (_, e) => raised.Add(e);
+
+        await h.Service.ReindexDocumentAsync(id);
+
+        raised.Should().ContainSingle();
+        raised[0].DocumentId.Should().Be(id);
+        raised[0].Extracted.Should().NotBeNull("the indexer reuses the extraction instead of running it again");
+        h.KeywordSearch.Verify(k => k.RemoveDocumentFromFtsAsync(id, It.IsAny<CancellationToken>()), Times.Once);
+        h.SearchCache.Verify(c => c.InvalidateForDocument(id), Times.Once);
+    }
+
+    [Fact]
+    public async Task ReindexDocumentAsync_ExtractionFails_KeepsTheExistingChunksAndMarksFailed()
+    {
+        // Chunks used to be removed before extraction ran, so a failing extraction left the
+        // deletes pending in the shared change tracker for the next SaveChanges to flush.
+        var h = NewHarness();
+        var path = h.WriteFile("broken.txt", "content");
+        long id = 0;
+        h.Seed(ctx =>
+        {
+            var d = NewDoc(fileName: "broken.txt", filePath: path, status: "completed");
+            ctx.Documents.Add(d);
+            ctx.SaveChanges();
+            id = d.Id;
+            ctx.DocumentChunks.Add(new DocumentChunkEntity { DocumentId = id, ChunkIndex = 0, Content = "kept", IsEmbedded = true, VectorRowId = 3 });
+            ctx.SaveChanges();
+        });
+        h.Processor.ThrowOnProcess = new InvalidDataException("corrupt file");
+        var raised = 0;
+        h.Service.DocumentPendingIndexing += (_, _) => raised++;
+
+        var act = () => h.Service.ReindexDocumentAsync(id);
+
+        await act.Should().ThrowAsync<InvalidDataException>();
+
+        // Nothing may be left pending in the shared context either.
+        await h.Db.SaveChangesAsync();
+
+        using var fresh = h.Fresh();
+        var doc = await fresh.Documents.FindAsync(id);
+        doc!.IndexingStatus.Should().Be("failed");
+        doc.IndexingError.Should().Contain("corrupt file");
+        (await fresh.DocumentChunks.CountAsync(c => c.DocumentId == id)).Should().Be(1);
+        h.VectorStore.Verify(
+            v => v.DeleteEmbeddingsForDocumentAsync(It.IsAny<long>(), It.IsAny<IReadOnlyList<long>>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+        raised.Should().Be(0);
+    }
+
+    [Fact]
     public async Task ReindexDocumentAsync_VectorStoreThrows_StillReindexes()
     {
         var h = NewHarness();
@@ -1212,9 +1657,9 @@ public sealed class DocumentServiceTests : IDisposable
         (await fresh.Documents.FindAsync(id))!.IndexingStatus.Should().Be("pending");
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  Statistics
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task GetTotalDocumentCountAsync_ReturnsCount()
@@ -1269,9 +1714,9 @@ public sealed class DocumentServiceTests : IDisposable
         dist["txt"].Should().Be(1);
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  CanProcess / GetSupportedExtensions
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Theory]
     [InlineData(null)]
@@ -1307,13 +1752,13 @@ public sealed class DocumentServiceTests : IDisposable
         var exts = h.Service.GetSupportedExtensions();
 
         exts.Should().Contain(new[] { ".txt", ".md", ".pdf" });
-        // Lazy union is memoized — second call returns the same instance.
+        // Lazy union is memoized - second call returns the same instance.
         h.Service.GetSupportedExtensions().Should().BeSameAs(exts);
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  CheckForDuplicateAsync
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task CheckForDuplicateAsync_FileMissing_NotDuplicate()
@@ -1371,9 +1816,9 @@ public sealed class DocumentServiceTests : IDisposable
         result.IsDuplicate.Should().BeFalse();
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  Bulk operations
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task BulkDeleteAsync_NullOrEmpty_NoOp()
@@ -1440,7 +1885,7 @@ public sealed class DocumentServiceTests : IDisposable
             goodId = d.Id;
         });
 
-        // 999 does not exist → ReindexDocumentAsync throws, caught by the bulk loop;
+        // 999 does not exist -> ReindexDocumentAsync throws, caught by the bulk loop;
         // goodId still gets reset to pending.
         await h.Service.BulkReindexAsync(new[] { 999L, goodId });
 
@@ -1536,6 +1981,115 @@ public sealed class DocumentServiceTests : IDisposable
         var act = () => h.Service.BulkAssignToCollectionAsync(new long[] { 1 }, collId, cts.Token);
 
         await act.Should().ThrowAsync<OperationCanceledException>();
+    }
+
+    // Audio waiting for the speech-to-text model
+
+    [Fact]
+    public async Task ImportFileAsync_AudioWithoutTheSpeechModel_IsRecordedFailedWithTheInstallReason()
+    {
+        // The audio processor used to hand back "[Audio transcript unavailable ...]" as the
+        // transcript, which was then chunked, embedded and keyword-indexed like real content.
+        var transcription = new Mock<AgentX.Core.Services.Audio.ITranscriptionService>();
+        transcription
+            .Setup(t => t.TranscribeFileAsync(
+                It.IsAny<string>(),
+                It.IsAny<AgentX.Core.Services.Audio.Models.TranscriptionOptions?>(),
+                It.IsAny<IProgress<AgentX.Core.Services.Audio.Models.TranscriptionProgress>?>(),
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new AgentX.Core.Services.Audio.TranscriptionModelMissingException("base", "/models/ggml-base.bin"));
+        var h = NewHarness(processors: new IDocumentProcessor[]
+        {
+            new AgentX.Core.Documents.Processors.AudioProcessor(transcription.Object),
+        });
+        var raised = 0;
+        h.Service.DocumentPendingIndexing += (_, _) => raised++;
+
+        var entity = await h.Service.ImportFileAsync(h.WriteFile("interview.mp3", "not really audio"));
+
+        entity.IndexingStatus.Should().Be("failed");
+        entity.IndexingError.Should().Be(AgentX.Core.Documents.Processors.AudioProcessor.SpeechModelMissingError);
+        entity.WordCount.Should().Be(0);
+        entity.MetadataJson.Should().BeNull();
+        raised.Should().Be(0, "nothing is handed to indexing, so no placeholder reaches the index");
+    }
+
+    [Fact]
+    public async Task RequeueAudioAwaitingSpeechModel_QueuesOnlyAudioThatWaitedForTheModel()
+    {
+        var h = NewHarness();
+        var missing = AgentX.Core.Documents.Processors.AudioProcessor.SpeechModelMissingError;
+        const string legacyPlaceholderMetadata =
+            "{\"custom\":{\"audioFormat\":\"m4a\",\"error\":\"Whisper model 'base' is not available\",\"errorType\":\"ModelNotDownloaded\"}}";
+        const string legacyFaultMetadata =
+            "{\"custom\":{\"error\":\"Failed to load Whisper model\",\"errorType\":\"InvalidOperationException\"}}";
+        const string transcriptMetadata =
+            "{\"custom\":{\"audioFormat\":\"mp3\",\"modelUsed\":\"base\",\"segmentCount\":\"12\"}}";
+
+        var ids = new Dictionary<string, long>();
+        h.Seed(ctx =>
+        {
+            void Add(string name, string type, string status, string? error = null, string? metadata = null)
+            {
+                var doc = NewDoc(fileName: name, fileType: type, status: status);
+                doc.IndexingError = error;
+                doc.MetadataJson = metadata;
+                ctx.Documents.Add(doc);
+                ctx.SaveChanges();
+                ids[name] = doc.Id;
+            }
+
+            // Queued: failed for want of the model, and placeholders left by earlier versions.
+            Add("waiting.mp3", "mp3", "failed", missing);
+            Add("legacy-placeholder.m4a", "m4a", "completed", metadata: legacyPlaceholderMetadata);
+            Add("legacy-fault.flac", "flac", "completed", metadata: legacyFaultMetadata);
+
+            // Left alone: another reason, another type, a real transcript, already in the pipeline.
+            Add("undecodable.wav", "wav", "failed", "The audio in 'undecodable.wav' could not be decoded.");
+            Add("report.pdf", "pdf", "failed", missing);
+            Add("transcribed.mp3", "mp3", "completed", metadata: transcriptMetadata);
+            Add("queued.ogg", "ogg", "pending", metadata: legacyPlaceholderMetadata);
+        });
+        var raised = new List<DocumentPendingIndexingEventArgs>();
+        h.Service.DocumentPendingIndexing += (_, e) => raised.Add(e);
+
+        var queued = await h.Service.RequeueAudioAwaitingSpeechModelAsync();
+
+        queued.Should().Be(3);
+        raised.Select(e => e.DocumentId).Should().BeEquivalentTo(
+            new[] { ids["waiting.mp3"], ids["legacy-placeholder.m4a"], ids["legacy-fault.flac"] });
+        raised.Should().OnlyContain(e => e.Extracted == null, "the pipeline extracts the file itself");
+
+        using var fresh = h.Fresh();
+        var docs = await fresh.Documents.AsNoTracking().ToDictionaryAsync(d => d.FileName);
+        foreach (var name in new[] { "waiting.mp3", "legacy-placeholder.m4a", "legacy-fault.flac" })
+        {
+            docs[name].IndexingStatus.Should().Be("pending", name);
+            docs[name].IndexingError.Should().BeNull(name);
+        }
+
+        docs["legacy-placeholder.m4a"].MetadataJson.Should().BeNull("the placeholder's error record is dropped");
+        docs["undecodable.wav"].IndexingStatus.Should().Be("failed");
+        docs["report.pdf"].IndexingStatus.Should().Be("failed");
+        docs["transcribed.mp3"].IndexingStatus.Should().Be("completed");
+        docs["transcribed.mp3"].MetadataJson.Should().Be(transcriptMetadata);
+        docs["queued.ogg"].IndexingStatus.Should().Be("pending");
+        docs["queued.ogg"].MetadataJson.Should().Be(legacyPlaceholderMetadata);
+
+        (await h.Service.RequeueAudioAwaitingSpeechModelAsync()).Should().Be(0, "nothing is waiting any more");
+    }
+
+    [Fact]
+    public async Task RequeueAudioAwaitingSpeechModel_WithNothingWaiting_ReturnsZeroAndRaisesNothing()
+    {
+        var h = NewHarness();
+        h.Seed(ctx => ctx.Documents.Add(NewDoc(fileName: "talk.mp3", fileType: "mp3", status: "completed")));
+        var raised = 0;
+        h.Service.DocumentPendingIndexing += (_, _) => raised++;
+
+        (await h.Service.RequeueAudioAwaitingSpeechModelAsync()).Should().Be(0);
+
+        raised.Should().Be(0);
     }
 }
 

@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Services.Annotations;
+using AgentX.Core.Services.Localization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Serilog;
@@ -10,43 +11,79 @@ namespace AgentX.App.ViewModels;
 public partial class AnnotationsViewModel : ObservableObject
 {
     private readonly IAnnotationService _annotationService;
+    private readonly ILocalizationService _localization;
 
-    // ── Page State ───────────────────────────────────────────
+    // -- Page State -------------------------------------------
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private string _statusMessage = string.Empty;
     [ObservableProperty] private string _searchQuery = string.Empty;
 
-    // ── Filters ──────────────────────────────────────────────
+    // -- Filters ----------------------------------------------
     [ObservableProperty] private string _selectedColorFilter = "All";
-    public List<string> ColorOptions { get; } = new() { "All", "yellow", "green", "blue", "red", "purple" };
+
+    /// <summary>
+    /// The FILTER BY COLOR list: the "All" sentinel and the five colors, each with the value
+    /// the filter uses and the name shown for it in the user's language.
+    /// </summary>
+    public IReadOnlyList<AnnotationColorOption> ColorOptions { get; }
 
     /// <summary>
     /// Colors an annotation can actually be. This is <see cref="ColorOptions"/> without
     /// the "All" filter sentinel, which is a query term rather than a color and must
     /// never be offered when editing.
     /// </summary>
-    public IReadOnlyList<string> EditColorOptions { get; } =
-        new[] { "yellow", "green", "blue", "red", "purple" };
+    public IReadOnlyList<AnnotationColorOption> EditColorOptions { get; }
 
-    // ── Annotation List ──────────────────────────────────────
+    // -- Annotation List --------------------------------------
     public ObservableCollection<AnnotationDisplayItem> Annotations { get; } = new();
     [ObservableProperty] private AnnotationDisplayItem? _selectedAnnotation;
     [ObservableProperty] private bool _hasAnnotations;
     [ObservableProperty] private int _totalCount;
 
-    // ── Stats ────────────────────────────────────────────────
+    // -- Stats ------------------------------------------------
     public ObservableCollection<ColorStatItem> ColorStats { get; } = new();
 
-    // ── Editor State ─────────────────────────────────────────
+    // -- Editor State -----------------------------------------
     [ObservableProperty] private bool _isEditing;
     [ObservableProperty] private string _editNoteText = string.Empty;
     [ObservableProperty] private string _editColor = "yellow";
 
+    /// <summary>
+    /// The edit picker's choice: the option for <see cref="EditColor"/>, which stays the stored
+    /// color value. Choosing an option sets <see cref="EditColor"/>; clearing the choice does not.
+    /// </summary>
+    public AnnotationColorOption? EditColorOption
+    {
+        get => EditColorOptions.FirstOrDefault(
+            option => string.Equals(option.Value, EditColor, StringComparison.OrdinalIgnoreCase));
+        set
+        {
+            if (value is not null)
+            {
+                EditColor = value.Value;
+            }
+        }
+    }
+
     public Func<AnnotationMarkdownExportRequest, Task<AnnotationMarkdownExportResult>>? SaveMarkdownExportAsync { get; set; }
 
-    public AnnotationsViewModel(IAnnotationService annotationService)
+    /// <summary>
+    /// Asks the user to confirm a delete and answers true when they do. The page supplies it (a
+    /// ContentDialog). While it is unset, Delete deletes nothing.
+    /// </summary>
+    public Func<ConfirmationRequest, Task<bool>>? ConfirmDestructiveActionAsync { get; set; }
+
+    public AnnotationsViewModel(IAnnotationService annotationService, ILocalizationService localization)
     {
         _annotationService = annotationService;
+        _localization = localization ?? throw new ArgumentNullException(nameof(localization));
+
+        EditColorOptions = new[] { "yellow", "green", "blue", "red", "purple" }
+            .Select(color => new AnnotationColorOption(color, DescribeColor(color)))
+            .ToList();
+        ColorOptions = EditColorOptions
+            .Prepend(new AnnotationColorOption("All", DescribeColor("All")))
+            .ToList();
     }
 
     public async Task InitializeAsync()
@@ -60,7 +97,7 @@ public partial class AnnotationsViewModel : ObservableObject
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to initialize AnnotationsViewModel");
-            StatusMessage = "Failed to load annotations";
+            StatusMessage = _localization.GetString("Annot_LoadFailed");
         }
         finally
         {
@@ -94,7 +131,7 @@ public partial class AnnotationsViewModel : ObservableObject
                 {
                     Id = a.Id,
                     DocumentId = a.DocumentId,
-                    DocumentName = a.Document?.FileName ?? "Unknown",
+                    DocumentName = a.Document?.FileName ?? _localization.GetString("Annot_UnknownDocument"),
                     HighlightedText = a.HighlightedText,
                     NoteText = a.NoteText ?? string.Empty,
                     Color = a.Color,
@@ -120,7 +157,7 @@ public partial class AnnotationsViewModel : ObservableObject
             ColorStats.Clear();
             foreach (var kvp in distribution)
             {
-                ColorStats.Add(new ColorStatItem { Color = kvp.Key, Count = kvp.Value });
+                ColorStats.Add(new ColorStatItem { Color = kvp.Key, ColorLabel = DescribeColor(kvp.Key), Count = kvp.Value });
             }
         }
         catch (Exception ex)
@@ -166,13 +203,13 @@ public partial class AnnotationsViewModel : ObservableObject
             SelectedAnnotation.NoteText = EditNoteText;
             SelectedAnnotation.Color = EditColor;
             IsEditing = false;
-            StatusMessage = "Annotation updated";
+            StatusMessage = _localization.GetString("Annot_Updated");
             await LoadColorStatsAsync();
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to update annotation");
-            StatusMessage = "Failed to update annotation";
+            StatusMessage = _localization.GetString("Annot_UpdateFailed");
         }
     }
 
@@ -182,9 +219,26 @@ public partial class AnnotationsViewModel : ObservableObject
         IsEditing = false;
     }
 
+    /// <summary>
+    /// Deletes an annotation, its highlight and note, once the user confirms. The document it
+    /// belongs to is not changed.
+    /// </summary>
     [RelayCommand]
     private async Task DeleteAnnotationAsync(long annotationId)
     {
+        var documentName = Annotations.FirstOrDefault(a => a.Id == annotationId)?.DocumentName
+            ?? _localization.GetString("Annot_UnknownDocument");
+        var confirmed = await IsConfirmedAsync(new ConfirmationRequest(
+            _localization.GetString("Annot_DeleteConfirmTitle"),
+            _localization.GetString("Annot_DeleteConfirmMessage", documentName),
+            _localization.GetString("Annot_DeleteConfirmButton"),
+            _localization.GetString("Annot_ConfirmCancelButton")));
+        if (!confirmed)
+        {
+            Log.Information("Delete of annotation {Id} was not confirmed", annotationId);
+            return;
+        }
+
         try
         {
             await _annotationService.DeleteAnnotationAsync(annotationId);
@@ -195,13 +249,13 @@ public partial class AnnotationsViewModel : ObservableObject
             }
             HasAnnotations = Annotations.Count > 0;
             TotalCount--;
-            StatusMessage = "Annotation deleted";
+            StatusMessage = _localization.GetString("Annot_Deleted");
             await LoadColorStatsAsync();
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to delete annotation {Id}", annotationId);
-            StatusMessage = "Failed to delete annotation";
+            StatusMessage = _localization.GetString("Annot_DeleteFailed");
         }
     }
 
@@ -214,7 +268,7 @@ public partial class AnnotationsViewModel : ObservableObject
 
             if (SaveMarkdownExportAsync is null)
             {
-                StatusMessage = "Export unavailable";
+                StatusMessage = _localization.GetString("Annot_ExportUnavailable");
                 return;
             }
 
@@ -224,19 +278,21 @@ public partial class AnnotationsViewModel : ObservableObject
 
             if (!result.IsSaved)
             {
-                StatusMessage = "Export cancelled";
+                StatusMessage = _localization.GetString("Annot_ExportCancelled");
                 return;
             }
 
             var fileName = string.IsNullOrWhiteSpace(result.FilePath)
-                ? "Markdown file"
+                ? _localization.GetString("Annot_MarkdownFile")
                 : Path.GetFileName(result.FilePath);
-            StatusMessage = $"Exported {TotalCount} annotations to {fileName}";
+            StatusMessage = TotalCount == 1
+                ? _localization.GetString("Annot_ExportedOne", fileName)
+                : _localization.GetString("Annot_ExportedMany", TotalCount, fileName);
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to export annotations");
-            StatusMessage = "Export failed";
+            StatusMessage = _localization.GetString("Annot_ExportFailed");
         }
     }
 
@@ -244,6 +300,53 @@ public partial class AnnotationsViewModel : ObservableObject
     {
         return $"agent-x-annotations-{DateTime.Now:yyyyMMdd-HHmmss}.md";
     }
+
+    /// <summary>
+    /// The name shown for an annotation color, or for the "All" filter, in the user's language.
+    /// Annotations keep the English color words they are stored and exported with; a color this
+    /// page does not know is shown as it is stored.
+    /// </summary>
+    internal string DescribeColor(string color) => color.ToLowerInvariant() switch
+    {
+        "all" => _localization.GetString("Annot_ColorAll"),
+        "yellow" => _localization.GetString("Annot_ColorYellow"),
+        "green" => _localization.GetString("Annot_ColorGreen"),
+        "blue" => _localization.GetString("Annot_ColorBlue"),
+        "red" => _localization.GetString("Annot_ColorRed"),
+        "purple" => _localization.GetString("Annot_ColorPurple"),
+        _ => color,
+    };
+
+    partial void OnEditColorChanged(string value) => OnPropertyChanged(nameof(EditColorOption));
+
+    /// <summary>
+    /// Asks <see cref="ConfirmDestructiveActionAsync"/>. No handler, or a dialog that fails to
+    /// open, counts as "not confirmed": nothing is deleted without an answer.
+    /// </summary>
+    private async Task<bool> IsConfirmedAsync(ConfirmationRequest request)
+    {
+        if (ConfirmDestructiveActionAsync is not { } confirm)
+        {
+            Log.Warning("No confirmation handler is attached; '{Title}' was not carried out", request.Title);
+            return false;
+        }
+
+        try
+        {
+            return await confirm(request);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "The confirmation '{Title}' could not be shown", request.Title);
+            return false;
+        }
+    }
+}
+
+/// <summary>An annotation color choice: the stored color value and the name shown for it.</summary>
+public sealed record AnnotationColorOption(string Value, string Label)
+{
+    public override string ToString() => Label;
 }
 
 public sealed record AnnotationMarkdownExportRequest(string SuggestedFileName, string Markdown);
@@ -269,5 +372,6 @@ public partial class AnnotationDisplayItem : ObservableObject
 public partial class ColorStatItem : ObservableObject
 {
     [ObservableProperty] private string _color = string.Empty;
+    [ObservableProperty] private string _colorLabel = string.Empty;
     [ObservableProperty] private int _count;
 }

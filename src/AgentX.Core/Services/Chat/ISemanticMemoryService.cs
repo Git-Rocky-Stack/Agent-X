@@ -10,7 +10,7 @@ public interface ISemanticMemoryService
 {
     /// <summary>
     /// Retrieves memories most relevant to the query using semantic similarity.
-    /// Results are ranked by effective importance (base importance × temporal decay).
+    /// Results are ranked by effective importance (base importance x temporal decay).
     /// </summary>
     Task<IReadOnlyList<MemoryEntity>> RetrieveRelevantMemoriesAsync(
         string query,
@@ -19,7 +19,7 @@ public interface ISemanticMemoryService
         CancellationToken ct = default);
 
     /// <summary>
-    /// Retrieves associative memories transitively (memory → linked memories).
+    /// Retrieves associative memories transitively (memory -> linked memories).
     /// Expands retrieval scope by following associative links.
     /// </summary>
     Task<IReadOnlyList<MemoryEntity>> RetrieveAssociativeMemoriesAsync(

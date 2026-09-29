@@ -1,6 +1,6 @@
 name: Build & Test
 
-# Builds AgentX.Core + AgentX.Tests and runs the full unit-test suite on Windows.
+# Builds AgentX.Core, AgentX.Tests and the WinUI app, and runs the full unit-test suite on Windows.
 # Installs the Playwright Chromium browser so the JS-rendering integration tests
 # (SkippableFacts) actually execute in CI instead of being skipped.
 #
@@ -50,6 +50,12 @@ jobs:
 
       - name: Build (Release, x64)
         run: dotnet build tests/AgentX.Tests/AgentX.Tests.csproj --configuration Release -p:Platform=x64 --no-restore
+
+      # The test project links only a subset of the App's sources (view models and pure
+      # services). Compile the WinUI app itself too, so XAML, code-behind and composition-root
+      # errors in the rest of src/AgentX.App cannot land on main unnoticed.
+      - name: Build WinUI app (Release, x64)
+        run: dotnet build src/AgentX.App/AgentX.App.csproj --configuration Release -p:Platform=x64
 
       - name: Install Playwright Chromium
         shell: pwsh

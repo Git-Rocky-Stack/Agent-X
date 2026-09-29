@@ -14,7 +14,7 @@ namespace AgentX.Tests.Services.Backup;
 /// </summary>
 public sealed class BackupServiceSecurityTests
 {
-    // ── Path traversal in document entries ───────────────────────────────────
+    // --- Path traversal in document entries ---
 
     [Fact]
     public void TryValidateDocumentEntries_AcceptsSafeNestedDocuments()
@@ -45,15 +45,86 @@ public sealed class BackupServiceSecurityTests
         reason.Should().NotBeNullOrEmpty();
     }
 
-    // ── AES-256-GCM authenticated encryption (V2) ────────────────────────────
+    // --- AES-256-GCM authenticated encryption (V3, streamed) ---
 
     [Fact]
-    public void EncryptBytes_ProducesV2AuthenticatedFormat()
+    public void EncryptBytes_ProducesV3FormatRecordingTheIterationCount()
     {
         var blob = BackupService.EncryptBytes(RandomNumberGenerator.GetBytes(1024), "correct horse");
 
-        blob.Take(8).Should().Equal(Encoding.ASCII.GetBytes("AGXENC2\0"),
-            "V2 archives must carry the authenticated-encryption magic header");
+        blob.Take(8).Should().Equal(Encoding.ASCII.GetBytes("AGXENC3\0"),
+            "V3 archives must carry the streamed authenticated-encryption magic header");
+        // SE19: the PBKDF2 count lives in the header (600k, matching the database key), so it can
+        // rise later without breaking existing archives.
+        System.Buffers.Binary.BinaryPrimitives.ReadUInt32LittleEndian(blob.AsSpan(8)).Should().Be(600_000);
+    }
+
+    [Fact]
+    public void DecryptBytes_LegacyV2GcmArchive_StillRestores()
+    {
+        var plaintext = RandomNumberGenerator.GetBytes(2048);
+        const string password = "v2-pass";
+
+        BackupService.DecryptBytes(EncryptLegacyGcm(plaintext, password), password).Should().Equal(plaintext);
+    }
+
+    [Fact]
+    public void DecryptBytes_LegacyV2GcmArchive_WrongPasswordThrows()
+    {
+        var blob = EncryptLegacyGcm(RandomNumberGenerator.GetBytes(64), "right");
+
+        var act = () => BackupService.DecryptBytes(blob, "wrong");
+
+        act.Should().Throw<InvalidOperationException>().WithMessage("*password is incorrect*");
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(4096)]      // exactly one chunk
+    [InlineData(4097)]      // one chunk plus one byte
+    [InlineData(3 * 4096)]  // exact multiple: the last full chunk is the final record
+    public void StreamedEncryption_RoundTripsAcrossChunkBoundaries(int length)
+    {
+        var plaintext = RandomNumberGenerator.GetBytes(length);
+
+        var blob = EncryptStreamed(plaintext, "pw", chunkSize: 4096);
+
+        BackupService.DecryptBytes(blob, "pw").Should().Equal(plaintext);
+    }
+
+    [Fact]
+    public void StreamedEncryption_TruncatedAtAChunkBoundary_FailsAuthentication()
+    {
+        var blob = EncryptStreamed(RandomNumberGenerator.GetBytes(3 * 4096), "pw", chunkSize: 4096);
+        // Header (39) + two full records: dropping the last record must not look like a shorter archive.
+        var truncated = blob.Take(39 + 2 * (4096 + 16)).ToArray();
+
+        var act = () => BackupService.DecryptBytes(truncated, "pw");
+
+        act.Should().Throw<InvalidOperationException>().WithMessage("*tampered*");
+    }
+
+    [Fact]
+    public void StreamedEncryption_AppendedData_FailsAuthentication()
+    {
+        var blob = EncryptStreamed(RandomNumberGenerator.GetBytes(5000), "pw", chunkSize: 4096);
+        var extended = blob.Concat(RandomNumberGenerator.GetBytes(4096 + 16)).ToArray();
+
+        var act = () => BackupService.DecryptBytes(extended, "pw");
+
+        act.Should().Throw<InvalidOperationException>();
+    }
+
+    [Fact]
+    public void StreamedEncryption_ModifiedHeader_FailsAuthentication()
+    {
+        var blob = EncryptStreamed(RandomNumberGenerator.GetBytes(100), "pw", chunkSize: 4096);
+        blob[12] ^= 0x01; // chunk size field: authenticated as associated data
+
+        var act = () => BackupService.DecryptBytes(blob, "pw");
+
+        act.Should().Throw<InvalidOperationException>();
     }
 
     [Fact]
@@ -72,7 +143,7 @@ public sealed class BackupServiceSecurityTests
     {
         var blob = BackupService.EncryptBytes(RandomNumberGenerator.GetBytes(2048), "pw");
 
-        // Flip a bit in the final ciphertext byte — GCM authentication must reject it.
+        // Flip a bit in the final ciphertext byte - GCM authentication must reject it.
         blob[^1] ^= 0xFF;
 
         var act = () => BackupService.DecryptBytes(blob, "pw");
@@ -100,7 +171,7 @@ public sealed class BackupServiceSecurityTests
         BackupService.DecryptBytes(legacy, password).Should().Equal(plaintext);
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
+    // --- Helpers ---
 
     private static ZipArchive BuildReadArchive(params (string name, byte[] data)[] entries)
     {
@@ -118,6 +189,40 @@ public sealed class BackupServiceSecurityTests
         ms.Position = 0;
         // Read archive takes ownership of the MemoryStream (disposed with the archive).
         return new ZipArchive(ms, ZipArchiveMode.Read, leaveOpen: false);
+    }
+
+    /// <summary>Encrypts with the streamed V3 writer using a small chunk size (and a fast KDF).</summary>
+    private static byte[] EncryptStreamed(byte[] plaintext, string password, int chunkSize)
+    {
+        using var output = new MemoryStream();
+        using (var encrypting = BackupArchiveCrypto.CreateEncryptingStream(output, password, iterations: 1_000, chunkSize: chunkSize))
+        {
+            // Uneven writes exercise the chunk buffering.
+            for (var offset = 0; offset < plaintext.Length; offset += 1000)
+                encrypting.Write(plaintext, offset, Math.Min(1000, plaintext.Length - offset));
+        }
+
+        return output.ToArray();
+    }
+
+    /// <summary>
+    /// Reproduces the V2 one-shot AES-256-GCM format (100,000 iterations, no iteration count in
+    /// the header) written by earlier builds.
+    /// </summary>
+    private static byte[] EncryptLegacyGcm(byte[] plaintext, string password)
+    {
+        var magic = Encoding.ASCII.GetBytes("AGXENC2\0");
+        var salt = RandomNumberGenerator.GetBytes(16);
+        var nonce = RandomNumberGenerator.GetBytes(12);
+        var key = Rfc2898DeriveBytes.Pbkdf2(password, salt, 100_000, HashAlgorithmName.SHA256, 32);
+        var ciphertext = new byte[plaintext.Length];
+        var tag = new byte[16];
+        using (var gcm = new AesGcm(key, 16))
+        {
+            gcm.Encrypt(nonce, plaintext, ciphertext, tag);
+        }
+
+        return magic.Concat(salt).Concat(nonce).Concat(tag).Concat(ciphertext).ToArray();
     }
 
     /// <summary>

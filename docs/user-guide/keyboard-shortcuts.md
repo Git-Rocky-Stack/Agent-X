@@ -2,6 +2,8 @@
 
 **Power user navigation guide**
 
+Every shortcut on this page is one Agent-X actually registers. Global shortcuts are seeded by `ShortcutCatalog` (`src/AgentX.App/Services/ShortcutCatalog.cs`); page shortcuts are registered by the page while it is open. Press `F1` anywhere for the live Keyboard Shortcuts dialog, which lists the global shortcuts plus the ones the current page registers.
+
 ---
 
 ## Table of Contents
@@ -10,10 +12,11 @@
 2. [Navigation Shortcuts](#navigation-shortcuts)
 3. [Chat Shortcuts](#chat-shortcuts)
 4. [Knowledge Vault Shortcuts](#knowledge-vault-shortcuts)
-5. [Search Shortcuts](#search-shortcuts)
-6. [Editing Shortcuts](#editing-shortcuts)
-7. [Accessibility Shortcuts](#accessibility-shortcuts)
-8. [Platform-Specific Notes](#platform-specific-notes)
+5. [Search and Other Pages](#search-and-other-pages)
+6. [Quick Chat](#quick-chat)
+7. [Editing Shortcuts](#editing-shortcuts)
+8. [Accessibility Shortcuts](#accessibility-shortcuts)
+9. [Platform-Specific Notes](#platform-specific-notes)
 
 ---
 
@@ -23,22 +26,42 @@
 
 | Shortcut | Action | Notes |
 |----------|--------|-------|
-| `Ctrl+K` | Open Command Palette | Quick access to all features |
-| `Ctrl+Q` | Quick Actions | Fast common tasks |
-| `Ctrl+,` | Open Settings | Configure preferences |
-| `F5` | Refresh Current View | Reload data |
-| `Alt+F4` | Close Application | Prompts to save |
-| `Ctrl+Shift+N` | New Window | Open second instance |
+| `Ctrl+K` | Open Command Palette | Every page on the navigation rail, three actions, and the current page's shortcuts |
+| `Ctrl+Shift+P` | Open Command Palette | Alternate chord |
+| `Ctrl+P` | Jump To | Open a page, a document, or a conversation by name |
+| `F1` | Keyboard Shortcuts | Global shortcuts plus the current page's |
+| `Ctrl+Shift+/` | Keyboard Shortcuts | Same as `F1`; the dialog shows it as `Ctrl+Shift+?` |
+| `Ctrl+,` | Open Settings | |
+| `Ctrl+N` | New Conversation | Opens AI Chat on a fresh conversation |
+| `Win+Shift+A` | Quick Chat | A system-wide hotkey: it works while Agent-X runs, also when its window is hidden in the notification area. If another program already uses it, Agent-X logs that and the hotkey does nothing |
 
-### AI & Search
+These work from the main window, also while a text box has the focus. They do not fire inside dialogs (Jump To, the Keyboard Shortcuts dialog, confirmations).
 
-| Shortcut | Action | Notes |
-|----------|--------|-------|
-| `Ctrl+I` | Open AI Chat | Focus input field |
-| `Ctrl+F` | Open Search | Focus search box |
-| `Ctrl+Shift+F` | Advanced Search | Open with filters |
-| `F3` | Find Next | Cycle through results |
-| `Shift+F3` | Find Previous | Reverse cycle |
+### Inside the Command Palette
+
+| Shortcut | Action |
+|----------|--------|
+| Type | Filter the list (fuzzy match: the letters in order, not necessarily adjacent, so "knv" finds Knowledge Vault) |
+| `Up` / `Down` | Move through results (`Tab` / `Shift+Tab` also work) |
+| `Enter` | Run the selected command or open the selected page |
+| `Esc` | Close the palette |
+
+The palette lists the rail's pages under their rail names and groups, then three actions (New Conversation, Import Files, Toggle Theme), then ON THIS PAGE with the shortcuts the current page registers.
+
+### Inside Jump To
+
+| Shortcut | Action |
+|----------|--------|
+| Type | Filter pages, documents and conversations |
+| `Up` / `Down` | Move through results |
+| `Enter` | Open the selected item |
+| `Esc` | Close Jump To |
+
+Jump To lists every page (including Onboarding, which is how you reopen the first-run wizard), up to 50 documents and up to 50 conversations. Pages appear under their internal names in English, which differ from the rail in places: for example "Chat" (AI Chat), "Search" (Semantic Search), "Digest" (Weekly Digest), "Inbox" (Smart Inbox) and "Sync Settings" (Collaborative Sync).
+
+### The Keyboard Shortcuts dialog
+
+`F1` (or `Ctrl+Shift+/`) lists the global shortcuts grouped as Navigation, Quick Access, Actions and Help, and adds the group of the page you are on, marked "Current page". It is a read-only list; there is no search box.
 
 ---
 
@@ -46,26 +69,38 @@
 
 ### Main Navigation
 
-| Shortcut | Page | Description |
-|----------|------|-------------|
-| `Ctrl+H` | Dashboard | Home screen with statistics |
-| `Ctrl+I` | AI Chat | Conversational interface |
-| `Ctrl+L` | Knowledge Vault | Document management |
-| `Ctrl+F` | Search | Semantic + keyword search |
-| `Ctrl+G` | Knowledge Graph | Visual relationships |
-| `Ctrl+W` | Workflows | Automation interface |
-| `Ctrl+A` | Analytics | Usage statistics |
-| `Ctrl+M` | Model Manager | AI model management |
+| Shortcut | Page |
+|----------|------|
+| `Ctrl+D` | Dashboard |
+| `Ctrl+I` | Knowledge Vault |
+| `Ctrl+F` | Semantic Search |
+| `Ctrl+Shift+F` | Semantic Search (alternate) |
+| `Ctrl+G` | Knowledge Graph |
+| `Ctrl+Shift+W` | Workflows |
+| `Ctrl+Shift+E` | Web Import |
+| `Ctrl+Shift+A` | Analytics |
+| `Ctrl+Shift+O` | Operations |
+| `Ctrl+,` | Settings |
 
-### Panel Navigation
+`Ctrl+I` only opens the Knowledge Vault. To open the file picker as well, use Import Files in the Command Palette.
 
-| Shortcut | Action |
-|----------|--------|
-| `Ctrl+Tab` | Next open panel |
-| `Ctrl+Shift+Tab` | Previous open panel |
-| `Ctrl+1` through `Ctrl+8` | Switch to specific panel |
-| `Ctrl+W` | Close current panel |
-| `Ctrl+Shift+W` | Close all panels |
+### Quick-Access Slots
+
+`Ctrl+1` through `Ctrl+9` open nine pages in this fixed order (it is not the order of the navigation rail):
+
+| Shortcut | Page |
+|----------|------|
+| `Ctrl+1` | Dashboard |
+| `Ctrl+2` | AI Chat |
+| `Ctrl+3` | Ask Your Files |
+| `Ctrl+4` | Semantic Search |
+| `Ctrl+5` | Knowledge Vault |
+| `Ctrl+6` | Collections |
+| `Ctrl+7` | Workflows |
+| `Ctrl+8` | Model Manager |
+| `Ctrl+9` | Settings |
+
+Every other page is one `Ctrl+K` (Command Palette) or `Ctrl+P` (Jump To) search away.
 
 ---
 
@@ -73,118 +108,69 @@
 
 ### Conversation Management
 
-| Shortcut | Action | Notes |
-|----------|--------|-------|
-| `Ctrl+N` | New Conversation | Clears current chat |
-| `Ctrl+Shift+N` | New Conversation from Template | Prompts for template |
-| `Ctrl+S` | Save Conversation | Exports to file |
-| `Ctrl+Shift+S` | Save with Options | Choose format |
-| `Ctrl+P` | Print Conversation | Opens print dialog |
-
-### Message Actions
-
-| Shortcut | Action | Notes |
-|----------|--------|-------|
-| `Enter` | Send Message | When input focused |
-| `Shift+Enter` | Insert Line Break | Add new line without sending |
-| `Ctrl+Enter` | Send Message | Alternative send |
-| `Ctrl+Z` | Delete Last Message | Remove user's last message |
-| `Esc` | Cancel Generation | Stop AI response |
-| `Ctrl+Shift+R` | Regenerate Response | Re-run last AI query |
-
-### Message Selection
+These are registered by the AI Chat page and work while it is open.
 
 | Shortcut | Action |
 |----------|--------|
-| `↑` / `↓` | Navigate message history |
-| `Home` | Jump to first message |
-| `End` | Jump to last message |
-| `Ctrl+A` | Select all messages |
-| `Ctrl+C` | Copy selected messages |
+| `Ctrl+Shift+N` | New conversation |
+| `Ctrl+B` | Show or hide the conversation pane |
+| `Ctrl+N` | New conversation (global; also works from any other page) |
 
-### In-Message Actions
+In the conversation list, `Enter` opens the focused conversation, and `Shift+F10` or the Menu key opens its menu (Pin or Unpin conversation, Delete conversation), like a right-click.
 
-| Shortcut | Action | Context |
-|----------|--------|---------|
-| `C` | Copy message | When message selected |
-| `R` | Regenerate response | When AI message selected |
-| `E` | Edit message | When user message selected |
-| `D` | Delete message | When message selected |
-| `↑` / `↓` | Thumbs up/down | Feedback on AI response |
+### Composer
+
+| Shortcut | Action |
+|----------|--------|
+| `Enter` | Send the message |
+| `Shift+Enter` | Insert a line break |
+
+Copy, regenerate, edit, delete, branch and the Good response / Poor response ratings are buttons on each message; they have no keyboard shortcuts. The microphone button records speech into the message box; right-click it to transcribe an audio file instead.
 
 ---
 
 ## Knowledge Vault Shortcuts
 
-### Document Selection
-
-| Shortcut | Action | Notes |
-|----------|--------|-------|
-| `↑` / `↓` | Navigate documents | Move selection |
-| `Home` | First document | Jump to top |
-| `End` | Last document | Jump to bottom |
-| `Page Up` | Previous page | Scroll by viewport |
-| `Page Down` | Next page | Scroll by viewport |
-| `Ctrl+A` | Select All | Select all documents |
-| `Ctrl+Space` | Multi-Select Mode | Toggle selection mode |
-
-### Document Actions
-
-| Shortcut | Action | Notes |
-|----------|--------|-------|
-| `Enter` | Open Document | Open in preview panel |
-| `Delete` | Delete Document | Prompts for confirmation |
-| `F2` | Rename Document | Edit title |
-| `Ctrl+R` | Re-index Document | Re-generate embedding |
-| `Ctrl+T` | Add Tag | Add tag to selected |
-| `Ctrl+Shift+T` | Remove Tag | Remove tag from selected |
-| `Ctrl+C` | Add to Collection | Add to existing collection |
-| `Ctrl+Shift+C` | Create Collection | Create new collection |
-| `Ctrl+E` | Export Document | Save to file |
-
-### Import Actions
+Registered by the Knowledge Vault page while it is open.
 
 | Shortcut | Action |
 |----------|--------|
-| `Ctrl+I` | Import Documents |
-| `Ctrl+Shift+I` | Import from Folder |
-| `Ctrl+D` | Import from Clipboard |
+| `F5` | Refresh the document list |
+| `Ctrl+I` | Open the Knowledge Vault (global) |
+
+Importing, deleting, re-indexing and collection assignment are done with the page's buttons and multi-select; they have no dedicated shortcuts.
 
 ---
 
-## Search Shortcuts
+## Search and Other Pages
 
-### Search Navigation
+| Page | Shortcut | Action |
+|------|----------|--------|
+| Semantic Search | `Ctrl+F` | Open the page (global) |
+| Semantic Search | `Enter` | Run the search in the search box |
+| Ask Your Files | `Enter` | Ask the question; `Shift+Enter` inserts a line break |
+| Dashboard | `Enter` | In the search box, open Semantic Search with the query |
+| Past Self | `Enter` | In the topic box, run Search Past Self |
+| Settings | `Ctrl+S` | Save settings (registered by the Settings page while it is open) |
 
-| Shortcut | Action |
-|----------|--------|
-| `Tab` | Next search result |
-| `Shift+Tab` | Previous search result |
-| `Enter` | Open selected result |
-| `Ctrl+Enter` | Open in new panel |
+The search mode (Semantic, Keyword, Hybrid) and filters are chosen on the page; they have no shortcuts.
 
-### Search Modes
+---
 
-| Shortcut | Action | Notes |
-|----------|--------|-------|
-| `Ctrl+1` | Semantic Search | Vector-based |
-| `Ctrl+2` | Keyword Search | FTS5 text search |
-| `Ctrl+3` | Hybrid Search | Combined RRF |
+## Quick Chat
 
-### Search Filters
+`Win+Shift+A`, or Quick Chat in the tray icon's menu, opens a small always-on-top window for a one-off question to the active AI provider.
 
 | Shortcut | Action |
 |----------|--------|
-| `Ctrl+F` | Focus search input |
-| `Ctrl+Shift+F` | Advanced filters |
-| `Alt+C` | Filter by collection |
-| `Alt+T` | Filter by tag |
-| `Alt+D` | Filter by date range |
-| `Alt+R` | Clear all filters |
+| `Enter` | Ask |
+| `Esc` | Stop the answer and close the window |
 
 ---
 
 ## Editing Shortcuts
+
+Text boxes throughout the app (the chat composer, search boxes, forms) use the standard Windows text editing keys.
 
 ### Text Editing
 
@@ -195,28 +181,29 @@
 | `Ctrl+V` | Paste |
 | `Ctrl+Z` | Undo |
 | `Ctrl+Y` | Redo |
-| `Ctrl+A` | Select All |
+| `Ctrl+A` | Select all text in the box |
 
 ### Cursor Movement
 
 | Shortcut | Action |
 |----------|--------|
-| `←` / `→` | Move cursor left/right |
-| `Ctrl+←` / `→` | Move by word |
+| `Left` / `Right` | Move cursor left/right |
+| `Ctrl+Left` / `Ctrl+Right` | Move by word |
 | `Home` | Start of line |
 | `End` | End of line |
-| `Ctrl+Home` | Start of document |
-| `Ctrl+End` | End of document |
+| `Ctrl+Home` | Start of text |
+| `Ctrl+End` | End of text |
 
 ### Text Selection
 
 | Shortcut | Action |
 |----------|--------|
-| `Shift+←` / `→` | Select characters |
-| `Ctrl+Shift+←` / `→` | Select words |
+| `Shift+Left` / `Shift+Right` | Select characters |
+| `Ctrl+Shift+Left` / `Ctrl+Shift+Right` | Select words |
 | `Shift+Home` | Select to line start |
 | `Shift+End` | Select to line end |
-| `Ctrl+Shift+A` | Select all |
+
+The global shortcuts take priority inside text boxes too: `Ctrl+F`, `Ctrl+I` or `Ctrl+D` in a text box opens that page.
 
 ---
 
@@ -224,22 +211,18 @@
 
 ### System Accessibility
 
+These are Windows shortcuts; they work in Agent-X like in any other app.
+
 | Shortcut | Action |
 |----------|--------|
 | `Windows+Ctrl+Enter` | Toggle Narrator |
-| `Windows+U` | Open Ease of Access Center |
-| `Windows++` / `-` | Open Magnifier |
-| `Windows+Enter` | Open Windows Speech Recognition |
+| `Windows+U` | Open Accessibility settings |
+| `Windows++` / `Windows+-` | Magnifier zoom in / out |
+| `Left Alt+Left Shift+Print Screen` | Toggle high contrast |
 
 ### Application Accessibility
 
-| Shortcut | Action |
-|----------|--------|
-| `Ctrl+Plus` | Zoom In | Increase text size |
-| `Ctrl+Minus` | Zoom Out | Decrease text size |
-| `Ctrl+0` | Reset Zoom | Restore default |
-| `F6` | Cycle Focus | Move between regions |
-| `Ctrl+F6` | Reverse Cycle | Opposite direction |
+Agent-X has no zoom shortcuts of its own; use Windows text size or display scaling instead. Every page is reachable from the keyboard: `Tab` moves between controls, and `Ctrl+K` or `Ctrl+P` reach any page. Under a Windows contrast theme the app switches to the system contrast colors.
 
 ---
 
@@ -249,34 +232,17 @@
 
 | Shortcut | Notes |
 |----------|-------|
-| `Windows+Ctrl+Enter` | Narrator may have slight delay |
-| `Windows+Shift+S` | System screenshot — works within Agent-X |
+| `Windows+Shift+S` | System screenshot, works within Agent-X |
 
 ### Keyboard Layouts
 
-Agent-X shortcuts are designed for US keyboard layouts. International layouts may require adjustment:
-
-| Language | Known Adjustments |
-|----------|-------------------|
-| **German (DE)** | `Ctrl+Y` replaced with `Ctrl+Shift+Z` (Redo) |
-| **French (FR)** | Some shortcuts may conflict with AZERTY layout |
+Agent-X shortcuts are defined for US keyboard layouts. On other layouts the punctuation chords (`Ctrl+,` and `Ctrl+Shift+/`) can sit on different physical keys; `F1` and the navigation rail work on every layout.
 
 ---
 
 ## Customization
 
-### Change Shortcuts
-
-1. Go to **Settings → Keyboard**
-2. Select shortcut to customize
-3. Press desired key combination
-4. Click **Assign**
-
-### Reset to Defaults
-
-1. Go to **Settings → Keyboard**
-2. Click **Reset to Defaults**
-3. Confirm reset
+Shortcuts are fixed in this release: there is no settings page for rebinding keys, adding chords, or resetting a shortcut map. The Keyboard Shortcuts dialog (`F1`) always shows exactly what is bound.
 
 ---
 
@@ -285,40 +251,33 @@ Agent-X shortcuts are designed for US keyboard layouts. International layouts ma
 Print this for quick reference:
 
 ```
-┌─────────────────────────────────────────────┐
-│  Agent-X Keyboard Shortcuts                 │
-├─────────────────────────────────────────────┤
-│  Navigation                                 │
-│  Ctrl+K  Command Palette                    │
-│  Ctrl+H  Dashboard                          │
-│  Ctrl+I  AI Chat                            │
-│  Ctrl+L  Knowledge Vault                    │
-│  Ctrl+F  Search                            │
-│  Ctrl+G  Knowledge Graph                    │
-│  Ctrl+W  Workflows                         │
-│  Ctrl+A  Analytics                         │
-│  Ctrl+M  Model Manager                     │
-├─────────────────────────────────────────────┤
-│  Chat                                       │
-│  Ctrl+N  New Conversation                  │
-│  Enter   Send Message                      │
-│  Esc     Cancel Generation                 │
-│  Ctrl+R  Regenerate Response               │
-├─────────────────────────────────────────────┤
-│  Knowledge Vault                            │
-│  Ctrl+I  Import Documents                  │
-│  Enter   Open Document                     │
-│  Delete  Delete Document                   │
-│  F2      Rename Document                   │
-│  Ctrl+T  Add Tag                          │
-├─────────────────────────────────────────────┤
-│  Search                                     │
-│  Tab     Next Result                       │
-│  Enter   Open Result                       │
-│  Ctrl+1  Semantic Search                   │
-│  Ctrl+2  Keyword Search                    │
-│  Ctrl+3  Hybrid Search                     │
-└─────────────────────────────────────────────┘
+Agent-X Keyboard Shortcuts
++-------------------------------------------+
+| Everywhere                                |
+|   Ctrl+K        Command Palette           |
+|   Ctrl+P        Jump To                   |
+|   F1            Keyboard Shortcuts        |
+|   Ctrl+N        New Conversation          |
+|   Ctrl+,        Settings                  |
+|   Win+Shift+A   Quick Chat                |
++-------------------------------------------+
+| Pages                                     |
+|   Ctrl+D        Dashboard                 |
+|   Ctrl+I        Knowledge Vault           |
+|   Ctrl+F        Semantic Search           |
+|   Ctrl+G        Knowledge Graph           |
+|   Ctrl+Shift+W  Workflows                 |
+|   Ctrl+Shift+E  Web Import                |
+|   Ctrl+Shift+A  Analytics                 |
+|   Ctrl+Shift+O  Operations                |
+|   Ctrl+1..9     Quick-access slots        |
++-------------------------------------------+
+| On the page                               |
+|   Chat:   Ctrl+Shift+N new, Ctrl+B pane   |
+|   Chat:   Enter send, Shift+Enter newline |
+|   Vault:  F5 refresh                      |
+|   Settings: Ctrl+S save                   |
++-------------------------------------------+
 ```
 
 ---
@@ -333,16 +292,14 @@ Print this for quick reference:
 
 2. **Use command palette**
    - `Ctrl+K` is faster than menu navigation
-   - Type descriptions, not exact commands
+   - Type a few letters in order; they need not be adjacent
 
-3. **Create custom shortcuts**
-   - Assign shortcuts for frequent actions
-   - Consider ergonomic placement
+3. **Jump straight to your material**
+   - `Ctrl+P` opens a specific document or conversation, not just a page
 
 4. **Use multi-select**
-   - `Ctrl+Space` enters multi-select mode
-   - Batch operations are faster
+   - Select several documents in the Knowledge Vault for batch operations
 
 ---
 
-*Last updated: 2026-05-03*
+*Last updated: 2026-09-27*

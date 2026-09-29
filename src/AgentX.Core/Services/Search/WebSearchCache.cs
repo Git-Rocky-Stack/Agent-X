@@ -16,9 +16,21 @@ public sealed class WebSearchCache
     /// <summary>Default TTL in minutes for cached entries.</summary>
     public const int DefaultTtlMinutes = 60;
 
+    private int _ttlMinutes = DefaultTtlMinutes;
+
     public WebSearchCache(ILogger? logger = null)
     {
         _logger = logger?.ForContext<WebSearchCache>() ?? Serilog.Log.Logger.ForContext<WebSearchCache>();
+    }
+
+    /// <summary>
+    /// Lifetime, in minutes, of entries stored without an explicit TTL. The settings-aware web
+    /// search service keeps it equal to the "Cache Duration (minutes)" setting. At least 1.
+    /// </summary>
+    public int TtlMinutes
+    {
+        get => Volatile.Read(ref _ttlMinutes);
+        set => Volatile.Write(ref _ttlMinutes, Math.Max(1, value));
     }
 
     /// <summary>
@@ -40,7 +52,7 @@ public sealed class WebSearchCache
                     return entry.Response with { FromCache = true };
                 }
 
-                // Entry has expired — remove it
+                // Entry has expired - remove it
                 _cache.Remove((query, provider));
                 _logger.Debug("WebSearchCache EXPIRED for query '{Query}' (provider={Provider})", query, provider);
             }
@@ -51,14 +63,14 @@ public sealed class WebSearchCache
 
     /// <summary>
     /// Stores a search response in the cache with an optional custom TTL.
-    /// If <paramref name="ttlMinutes"/> is null, <see cref="DefaultTtlMinutes"/> is used.
+    /// If <paramref name="ttlMinutes"/> is null, <see cref="TtlMinutes"/> is used.
     /// </summary>
     public void Set(string query, WebSearchProvider provider, WebSearchResponse response, int? ttlMinutes = null)
     {
         ArgumentNullException.ThrowIfNull(query);
         ArgumentNullException.ThrowIfNull(response);
 
-        var effectiveTtl = ttlMinutes ?? DefaultTtlMinutes;
+        var effectiveTtl = ttlMinutes ?? TtlMinutes;
         var expiresAt = DateTime.UtcNow.AddMinutes(effectiveTtl);
 
         lock (_lock)

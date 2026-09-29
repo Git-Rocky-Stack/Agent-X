@@ -412,6 +412,7 @@
                                     <TextBlock x:Uid="QuickAct_TargetLanguage" Text="Target Language" Style="{StaticResource LabelStyle}" />
                                     <ComboBox ItemsSource="{x:Bind ViewModel.AvailableLanguages, Mode=OneWay}"
                                               SelectedItem="{x:Bind ViewModel.SelectedLanguage, Mode=TwoWay}"
+                                              DisplayMemberPath="DisplayName"
                                               HorizontalAlignment="Stretch"
                                               CornerRadius="{StaticResource RControl}" />
                                 </StackPanel>
@@ -577,7 +578,7 @@
                                                                                    TextTrimming="CharacterEllipsis" />
                                                                         <TextBlock Style="{StaticResource CaptionStyle}">
                                                                             <Run Text="{x:Bind FileSize}" />
-                                                                            <Run x:Uid="QuickAct_Imported" Text=" · Imported " />
+                                                                            <Run x:Uid="QuickAct_Imported" Text=" | Imported " />
                                                                             <Run Text="{x:Bind ImportedAt}" />
                                                                         </TextBlock>
                                                                         <TextBlock Text="{x:Bind EvidenceLabel}"

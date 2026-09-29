@@ -13,8 +13,12 @@ public sealed class ModelManager : IModelManager
     private readonly IAiService _aiService;
     private readonly ILogger _logger;
 
-    private IReadOnlyList<AiModel>? _cachedModels;
-    private DateTime _cacheExpiry = DateTime.MinValue;
+    // The list belongs to the provider that produced it: after a provider switch (or an AI
+    // re-initialization that replaced the provider) the cached list of the previous provider
+    // must not be shown or offered for selection.
+    private sealed record ModelListCache(IAiProvider Provider, IReadOnlyList<AiModel> Models, DateTime ExpiresUtc);
+
+    private volatile ModelListCache? _cache;
     private static readonly TimeSpan CacheDuration = TimeSpan.FromSeconds(30);
 
     /// <inheritdoc />
@@ -42,20 +46,20 @@ public sealed class ModelManager : IModelManager
     /// <inheritdoc />
     public async Task<IReadOnlyList<AiModel>> GetInstalledModelsAsync(CancellationToken ct = default)
     {
-        if (_cachedModels is not null && DateTime.UtcNow < _cacheExpiry)
+        var provider = _aiService.ActiveProvider;
+        var cache = _cache;
+        if (cache is not null && ReferenceEquals(cache.Provider, provider) && DateTime.UtcNow < cache.ExpiresUtc)
         {
-            _logger.Debug("Returning cached model list ({Count} models)", _cachedModels.Count);
-            return _cachedModels;
+            _logger.Debug("Returning cached model list ({Count} models)", cache.Models.Count);
+            return cache.Models;
         }
 
         try
         {
-            _logger.Debug("Fetching installed models from active provider...");
-            var provider = _aiService.ActiveProvider;
+            _logger.Debug("Fetching installed models from active provider {Provider}...", provider.ProviderId);
             var models = await provider.ListModelsAsync(ct).ConfigureAwait(false);
 
-            _cachedModels = models;
-            _cacheExpiry = DateTime.UtcNow + CacheDuration;
+            _cache = new ModelListCache(provider, models, DateTime.UtcNow + CacheDuration);
 
             _logger.Information("Cached {Count} installed models (expires in {Seconds}s)",
                 models.Count, CacheDuration.TotalSeconds);
@@ -167,12 +171,11 @@ public sealed class ModelManager : IModelManager
         return model is not null;
     }
 
-    // ── Private Helpers ─────────────────────────────────────────────
+    // -- Private Helpers ---------------------------------------------
 
     private void InvalidateCache()
     {
-        _cachedModels = null;
-        _cacheExpiry = DateTime.MinValue;
+        _cache = null;
         _logger.Debug("Model cache invalidated");
     }
 

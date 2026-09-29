@@ -1,8 +1,10 @@
 using System.Text.RegularExpressions;
 using AgentX.App.Helpers;
+using AgentX.Core.Services.Localization;
 using Microsoft.UI;
 using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media;
@@ -19,13 +21,13 @@ namespace AgentX.App.Controls;
 /// </summary>
 public sealed partial class MarkdownMessageControl : UserControl
 {
-    // ── Inline formatting regex ──────────────────────────────────────
+    // -- Inline formatting regex --------------------------------------
     // Matches **bold** and `inline code` patterns for rich text rendering.
     private static readonly Regex InlineFormattingRegex = new(
         @"(\*\*(.+?)\*\*)|(`([^`]+)`)",
         RegexOptions.Compiled);
 
-    // ── Dependency Property ──────────────────────────────────────────
+    // -- Dependency Property ------------------------------------------
 
     public static readonly DependencyProperty SegmentsProperty =
         DependencyProperty.Register(
@@ -45,9 +47,9 @@ public sealed partial class MarkdownMessageControl : UserControl
         InitializeComponent();
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     // PROPERTY CHANGE CALLBACK
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     private static void OnSegmentsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
@@ -57,9 +59,9 @@ public sealed partial class MarkdownMessageControl : UserControl
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     // SEGMENT RENDERING
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     private void RenderSegments()
     {
@@ -82,9 +84,9 @@ public sealed partial class MarkdownMessageControl : UserControl
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     // CODE BLOCK RENDERING
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>
     /// Creates a complete code block element with:
@@ -97,7 +99,7 @@ public sealed partial class MarkdownMessageControl : UserControl
         grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
-        // ── Header: language label + copy button ──────────────────
+        // -- Header: language label + copy button ------------------
         var headerBorder = new Border
         {
             Background = ThemeResources.Brush("WellBrush"),
@@ -123,7 +125,8 @@ public sealed partial class MarkdownMessageControl : UserControl
         Grid.SetColumn(languageLabel, 0);
         headerGrid.Children.Add(languageLabel);
 
-        // Copy button with icon and label
+        // Copy button with icon and label, in the user's language
+        var (copyText, copiedText) = CopyButtonTexts();
         var copyButtonContent = new StackPanel
         {
             Orientation = Orientation.Horizontal,
@@ -137,7 +140,7 @@ public sealed partial class MarkdownMessageControl : UserControl
         });
         copyButtonContent.Children.Add(new TextBlock
         {
-            Text = "Copy",
+            Text = copyText,
             FontSize = 11,
             Foreground = ThemeResources.Brush("WellTextSecondaryBrush")
         });
@@ -151,6 +154,9 @@ public sealed partial class MarkdownMessageControl : UserControl
             VerticalAlignment = VerticalAlignment.Center
         };
 
+        // The content is a panel, so the button has no name for a screen reader unless given one.
+        AutomationProperties.SetName(copyButton, copyText);
+
         // Capture content for the closure to avoid capturing the segment reference
         var codeContent = segment.Content;
         copyButton.Click += async (s, e) =>
@@ -161,13 +167,13 @@ public sealed partial class MarkdownMessageControl : UserControl
                 dataPackage.SetText(codeContent);
                 Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
 
-                // Provide visual feedback: briefly change the button text to "Copied!"
+                // Provide visual feedback: briefly change the button text to say it was copied
                 if (s is Button btn && btn.Content is StackPanel sp && sp.Children.Count >= 2)
                 {
                     if (sp.Children[1] is TextBlock tb)
                     {
                         var originalText = tb.Text;
-                        tb.Text = "Copied!";
+                        tb.Text = copiedText;
                         await System.Threading.Tasks.Task.Delay(1500);
                         tb.Text = originalText;
                     }
@@ -185,7 +191,7 @@ public sealed partial class MarkdownMessageControl : UserControl
         Grid.SetRow(headerBorder, 0);
         grid.Children.Add(headerBorder);
 
-        // ── Code content area (with syntax highlighting) ──────────
+        // -- Code content area (with syntax highlighting) ----------
         var codeBorder = new Border
         {
             Background = ThemeResources.Brush("VoidBrush"),
@@ -244,9 +250,26 @@ public sealed partial class MarkdownMessageControl : UserControl
         return grid;
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    /// <summary>
+    /// The copy button's label and the feedback shown after a copy, from the app's localization
+    /// service. English when the service is not available (the designer, before startup).
+    /// </summary>
+    private static (string Copy, string Copied) CopyButtonTexts()
+    {
+        try
+        {
+            var localization = App.GetService<ILocalizationService>();
+            return (localization.GetString("Chat_CodeCopy"), localization.GetString("Chat_CodeCopied"));
+        }
+        catch (InvalidOperationException)
+        {
+            return ("Copy", "Copied!");
+        }
+    }
+
+    // ===================================================================
     // HEADING RENDERING
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     private static UIElement CreateHeading(MarkdownSegment segment)
     {
@@ -261,9 +284,9 @@ public sealed partial class MarkdownMessageControl : UserControl
         };
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     // LIST ITEM RENDERING
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     private static UIElement CreateListItem(MarkdownSegment segment)
     {
@@ -289,18 +312,18 @@ public sealed partial class MarkdownMessageControl : UserControl
         return panel;
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     // PLAIN TEXT RENDERING
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     private static UIElement CreateTextBlock(MarkdownSegment segment)
     {
         return CreateInlineFormattedText(segment.Content);
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     // INLINE FORMATTING (bold + inline code)
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>
     /// Creates a TextBlock that renders inline formatting:

@@ -16,9 +16,10 @@ namespace AgentX.Core.Services.Plugins;
 ///     is a dedicated child scope containing only the services that are safe for plugin use.
 ///   </item>
 ///   <item>
-///     File-system access is constrained to <see cref="PluginDataPath"/>. Plugins that need
-///     access beyond their sandbox must declare the "FileSystem" permission in their manifest
-///     and receive explicit user consent.
+///     <see cref="PluginDataPath"/> is where a plugin should keep its own files. It is a
+///     convention, not a sandbox: plugins run in-process with the user's rights, and the
+///     host does not restrict file-system or network access. Manifest permissions are
+///     informational only.
 ///   </item>
 ///   <item>
 ///     The <see cref="Logger"/> is pre-enriched with the plugin identifier so that all log
@@ -34,9 +35,11 @@ public interface IPluginContext
     /// this provider rather than storing direct references to host objects, so that
     /// the host can revoke access cleanly when the plugin is deactivated.
     /// <para>
-    /// <see cref="AgentX.Core.Services.OAuth.IOAuthService"/> is available through
-    /// this provider for <see cref="PluginType.DataConnector"/> plugins that need
-    /// to authenticate with external data sources.
+    /// Currently the only service offered is
+    /// <see cref="AgentX.Core.Services.Inbox.IInboxService"/>, for
+    /// <see cref="PluginType.DataConnector"/> plugins that push items into the Smart Inbox.
+    /// The host's OAuth service is deliberately not offered: it can return the user's stored
+    /// Google and Microsoft refresh tokens.
     /// </para>
     /// </summary>
     IServiceProvider Services { get; }
@@ -47,7 +50,7 @@ public interface IPluginContext
     /// The directory is created by the host before <see cref="IPlugin.InitializeAsync"/>
     /// is called, so plugins can assume it exists.
     /// </summary>
-    /// <example><c>%LocalAppData%\AgentX\Plugins\com.vendor.myplugin\</c></example>
+    /// <example><c>%LocalAppData%\AgentX\Plugins\com.vendor.myplugin\data\</c></example>
     string PluginDataPath { get; }
 
     /// <summary>

@@ -13,7 +13,6 @@
     NavigationCacheMode="Enabled">
 
     <Page.Resources>
-        <converters:InverseVisibilityConverter x:Key="InverseVisibilityConverter"/>
         <converters:StringEmptyToVisibilityConverter x:Key="StringEmptyToVisibilityConverter"/>
         <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
         <converters:InverseBoolConverter x:Key="InverseBoolConverter"/>
@@ -163,34 +162,47 @@
                  ROW 5: RESULTS
                  ========================================================== -->
             <controls:Faceplate Grid.Row="5" x:Name="ResultsPanel" Padding="0" Visibility="{x:Bind ViewModel.CurrentResult, Mode=OneWay, Converter={StaticResource NullToVisibilityConverter}}" Kicker="MOD - PAST - 04">
+                <!-- Each section below the header draws the hairline above it, so a section
+                     that is hidden leaves neither a doubled nor a trailing line. -->
                 <StackPanel Spacing="0">
                     <!-- Result Header -->
-                    <Border BorderBrush="{ThemeResource BorderSubtleBrush}"
-                            BorderThickness="0,0,0,1"
-                            Padding="20,16,20,16">
+                    <Border Padding="20,16,20,16">
                         <TextBlock Text="{x:Bind ViewModel.CurrentResult.Message, Mode=OneWay}"
                                    Style="{StaticResource BodyStrongStyle}"/>
                     </Border>
 
-                    <!-- Stance/Content -->
+                    <!-- Stance/Content: only for a stance that was found. A result that is
+                         only a message (nothing recorded, insights only) has no stance and no
+                         confidence to show. -->
                     <Border BorderBrush="{ThemeResource BorderSubtleBrush}"
-                            BorderThickness="0,0,0,1"
-                            Padding="20">
+                            BorderThickness="0,1,0,0"
+                            Padding="20"
+                            Visibility="{x:Bind ViewModel.CurrentResult.HasStance, Mode=OneWay}">
                         <StackPanel Spacing="12">
-                            <!-- Evolution Badge -->
+                            <!-- Evolution Badge: the view changed after the chosen time. A
+                                 neutral tag: armed red is for live states and commands. -->
                             <Border x:Name="EvolutionBadge"
-                                    Style="{StaticResource BadgeAccentStyle}"
+                                    Style="{StaticResource BadgeDefaultStyle}"
                                     HorizontalAlignment="Left"
-                                    Visibility="Collapsed">
+                                    Visibility="{x:Bind ViewModel.CurrentResult.ShowsEvolution, Mode=OneWay}">
                                 <TextBlock x:Uid="PastSelf_YourViewHasEvolved" Text="Your view has evolved"
-                                           Style="{StaticResource BadgeStyle}"
-                                           Foreground="{ThemeResource TextAccentBrush}"/>
+                                           Style="{StaticResource BadgeStyle}"/>
                             </Border>
 
                             <TextBlock x:Name="StanceText"
                                        Text="{x:Bind ViewModel.CurrentResult.Stance, Mode=OneWay}"
                                        Style="{StaticResource BodyStyle}"
                                        TextWrapping="Wrap"/>
+
+                            <!-- Today's view, and since when it has been held -->
+                            <StackPanel Spacing="4"
+                                        Visibility="{x:Bind ViewModel.CurrentResult.ShowsEvolution, Mode=OneWay}">
+                                <TextBlock Text="{x:Bind ViewModel.CurrentResult.CurrentStanceLabel, Mode=OneWay}"
+                                           Style="{StaticResource LabelStyle}"/>
+                                <TextBlock Text="{x:Bind ViewModel.CurrentResult.CurrentStance, Mode=OneWay}"
+                                           Style="{StaticResource BodyStyle}"
+                                           TextWrapping="Wrap"/>
+                            </StackPanel>
 
                             <!-- Confidence Bar -->
                             <StackPanel Spacing="4">
@@ -205,7 +217,7 @@
 
                     <!-- Evidence Excerpts -->
                     <Border BorderBrush="{ThemeResource BorderSubtleBrush}"
-                            BorderThickness="0,0,0,1"
+                            BorderThickness="0,1,0,0"
                             Padding="20"
                             Visibility="{x:Bind HasEvidence, Mode=OneWay}">
                         <StackPanel Spacing="8">
@@ -226,8 +238,11 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- Related Content -->
-                    <Grid ColumnSpacing="12" Padding="20">
+                    <!-- Related Content: hidden when there is none to list -->
+                    <Grid ColumnSpacing="12" Padding="20"
+                          BorderBrush="{ThemeResource BorderSubtleBrush}"
+                          BorderThickness="0,1,0,0"
+                          Visibility="{x:Bind ViewModel.CurrentResult.HasRelatedItems, Mode=OneWay}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="*"/>
@@ -301,21 +316,32 @@
             </controls:Faceplate>
 
             <!-- ==========================================================
-                 ROW 6: ACTIVE TOPICS (filled dynamically)
+                 ROW 6: ACTIVE TOPICS (shown once Get Active Topics has run)
                  ========================================================== -->
-            <controls:Faceplate Grid.Row="6" x:Name="ActiveTopicsPanel" Visibility="Collapsed" Kicker="MOD - PAST - 05">
+            <controls:Faceplate Grid.Row="6" x:Name="ActiveTopicsPanel"
+                                Visibility="{x:Bind ViewModel.ActiveTopicsStatus, Mode=OneWay, Converter={StaticResource StringEmptyToVisibilityConverter}}"
+                                Kicker="MOD - PAST - 05">
                 <StackPanel Spacing="12">
                     <TextBlock x:Uid="PastSelf_TopicsYouVeBeen" Text="Topics You've Been Exploring"
                                Style="{StaticResource HeadingSmallStyle}"
                                AutomationProperties.HeadingLevel="Level2"/>
-                    <ItemsControl x:Name="ActiveTopicsList">
+                    <TextBlock Text="{x:Bind ViewModel.ActiveTopicsStatus, Mode=OneWay}"
+                               Style="{StaticResource BodySecondaryStyle}"
+                               TextWrapping="Wrap"/>
+                    <!-- Each topic in the wording it was recorded under, which is what Search
+                         Past Self looks up, with when it was recorded -->
+                    <ItemsControl ItemsSource="{x:Bind ViewModel.ActiveTopics, Mode=OneWay}">
                         <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="x:String">
-                                <Border Style="{StaticResource BadgeDefaultStyle}"
-                                        Margin="0,0,8,8">
-                                    <TextBlock Text="{x:Bind}"
-                                               Style="{StaticResource BodySmallStyle}"
-                                               Foreground="{ThemeResource TextPrimaryBrush}"/>
+                            <DataTemplate x:DataType="viewmodels:ActiveTopicDisplay">
+                                <Border Style="{StaticResource CardInsetStyle}"
+                                        Margin="0,0,0,8">
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="{x:Bind Topic}"
+                                                   Style="{StaticResource BodyStyle}"
+                                                   TextWrapping="Wrap"/>
+                                        <TextBlock Text="{x:Bind Recorded}"
+                                                   Style="{StaticResource CaptionStyle}"/>
+                                    </StackPanel>
                                 </Border>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
@@ -324,7 +350,7 @@
             </controls:Faceplate>
 
             <!-- ==========================================================
-                 ROW 7: GENERATIVE IDENTITY — "DRAFT AS ME"
+                 ROW 7: GENERATIVE IDENTITY - "DRAFT AS ME"
                  ========================================================== -->
             <controls:Faceplate Grid.Row="7" Kicker="MOD - PAST - 06">
                 <StackPanel Spacing="16">
@@ -339,8 +365,9 @@
                             <TextBlock x:Uid="PastSelf_DraftAsMe" Text="Draft as Me"
                                        Style="{StaticResource HeadingSmallStyle}"
                                        AutomationProperties.HeadingLevel="Level2"/>
-                            <TextBlock x:Uid="PastSelf_GenerateTextInYour" Text="Generate text in your voice using AI analysis of your writing patterns."
-                                       Style="{StaticResource BodySecondaryStyle}"/>
+                            <TextBlock x:Uid="PastSelf_GenerateTextInYour" Text="Your AI provider writes the draft in the writing style measured from your chat messages, following the views you had recorded by the time period chosen above."
+                                       Style="{StaticResource BodySecondaryStyle}"
+                                       TextWrapping="Wrap"/>
                         </StackPanel>
 
                         <Button Grid.Column="1"
@@ -372,7 +399,7 @@
                                 <TextBlock x:Uid="PastSelf_AvgSentenceLength" Text="Avg Sentence Length"
                                            Style="{StaticResource LabelStyle}"/>
                                 <TextBlock Style="{StaticResource MetricSmallStyle}">
-                                    <Run Text="{x:Bind ViewModel.VoiceProfile.AvgSentenceLength, Mode=OneWay}"/>
+                                    <Run Text="{x:Bind ViewModel.VoiceProfile.AvgSentenceLengthText, Mode=OneWay}"/>
                                     <Run x:Uid="PastSelf_Words" Text=" words" FontSize="14" Foreground="{ThemeResource TextTertiaryBrush}"/>
                                 </TextBlock>
                             </StackPanel>
@@ -392,12 +419,14 @@
                         <StackPanel Spacing="4">
                             <TextBlock x:Uid="PastSelf_Context" Text="Context"
                                        Style="{StaticResource LabelStyle}"/>
+                            <!-- MaxLength matches VoiceDraftService.MaxContextLength. -->
                             <TextBox x:Name="DraftContextBox"
                                      Style="{StaticResource InputTextBoxStyle}"
                                      x:Uid="PastSelf_DescribeWhatYouRePh" PlaceholderText="Describe what you're writing about (e.g., 'An email to the team about the Q4 roadmap')"
                                      Text="{x:Bind ViewModel.DraftContext, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                      TextWrapping="Wrap"
                                      AcceptsReturn="True"
+                                     MaxLength="6000"
                                      Height="60"/>
                         </StackPanel>
 
@@ -411,16 +440,46 @@
                                      Text="{x:Bind ViewModel.DraftGoal, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                         </StackPanel>
 
-                        <!-- Generate Button -->
-                        <Button x:Uid="PastSelf_GenerateDraft" Content="Generate Draft"
-                                Click="GenerateDraftButton_Click"
-                                Style="{StaticResource AccentButtonStyle}"
-                                HorizontalAlignment="Left"
-                                IsEnabled="{x:Bind ViewModel.IsGeneratingDraft, Mode=OneWay, Converter={StaticResource InverseBoolConverter}}"
-                                MinWidth="140"/>
+                        <!-- Generate / Cancel, with the progress state while the provider writes -->
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <Button x:Uid="PastSelf_GenerateDraft" Content="Generate Draft"
+                                    Click="GenerateDraftButton_Click"
+                                    Style="{StaticResource AccentButtonStyle}"
+                                    IsEnabled="{x:Bind ViewModel.IsGeneratingDraft, Mode=OneWay, Converter={StaticResource InverseBoolConverter}}"
+                                    MinWidth="140"/>
+                            <Button x:Uid="PastSelf_CancelDraft" Content="Cancel"
+                                    Click="CancelDraftButton_Click"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Visibility="{x:Bind ViewModel.IsGeneratingDraft, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                            <ProgressRing IsActive="{x:Bind ViewModel.IsGeneratingDraft, Mode=OneWay}"
+                                          Width="24"
+                                          Height="24"
+                                          Foreground="{ThemeResource AccentPrimaryBrush}"
+                                          VerticalAlignment="Center"
+                                          Visibility="{x:Bind ViewModel.IsGeneratingDraft, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                            <TextBlock x:Uid="PastSelf_DraftWriting" Text="Writing the draft..."
+                                       Style="{StaticResource BodySecondaryStyle}"
+                                       VerticalAlignment="Center"
+                                       Visibility="{x:Bind ViewModel.IsGeneratingDraft, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                        </StackPanel>
+
+                        <!-- Why no draft was written: no context, no AI provider, a provider error -->
+                        <Border Style="{StaticResource InlineErrorBarStyle}"
+                                Visibility="{x:Bind ViewModel.DraftErrorMessage, Mode=OneWay, Converter={StaticResource NullToVisibilityConverter}}">
+                            <TextBlock Text="{x:Bind ViewModel.DraftErrorMessage, Mode=OneWay}"
+                                       Style="{StaticResource BodyStyle}"
+                                       Foreground="{ThemeResource ErrorBrush}"
+                                       TextWrapping="Wrap"/>
+                        </Border>
+
+                        <!-- A neutral note, such as that the draft was cancelled -->
+                        <TextBlock Text="{x:Bind ViewModel.DraftStatus, Mode=OneWay}"
+                                   Style="{StaticResource BodySecondaryStyle}"
+                                   TextWrapping="Wrap"
+                                   Visibility="{x:Bind ViewModel.DraftStatus, Mode=OneWay, Converter={StaticResource StringEmptyToVisibilityConverter}}"/>
                     </StackPanel>
 
-                    <!-- Generated Output -->
+                    <!-- Generated Output: streams in while the provider writes -->
                     <Border x:Name="GeneratedDraftPanel"
                             Style="{StaticResource CardInsetStyle}"
                             Visibility="{x:Bind ViewModel.DraftContent, Mode=OneWay, Converter={StaticResource StringEmptyToVisibilityConverter}}">
@@ -437,30 +496,26 @@
                                            AutomationProperties.HeadingLevel="Level3"
                                            VerticalAlignment="Center"/>
 
+                                <!-- Copying waits for the finished draft. -->
                                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
                                     <Button x:Uid="PastSelf_Copy" Content="Copy"
                                             Click="CopyDraftButton_Click"
-                                            Style="{StaticResource SecondaryButtonStyle}"/>
-                                    <Button x:Uid="PastSelf_CopyForChat" Content="Copy for Chat"
-                                            Click="UseInChatButton_Click"
-                                            Style="{StaticResource AccentButtonStyle}"/>
+                                            Style="{StaticResource SecondaryButtonStyle}"
+                                            IsEnabled="{x:Bind ViewModel.IsGeneratingDraft, Mode=OneWay, Converter={StaticResource InverseBoolConverter}}"/>
                                 </StackPanel>
                             </Grid>
-
-                            <!-- Loading State -->
-                            <ProgressRing IsActive="{x:Bind ViewModel.IsGeneratingDraft, Mode=OneWay}"
-                                         Width="24"
-                                         Height="24"
-                                         Foreground="{ThemeResource AccentPrimaryBrush}"
-                                         HorizontalAlignment="Left"
-                                         Visibility="{x:Bind ViewModel.IsGeneratingDraft, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"/>
 
                             <!-- Generated Content -->
                             <TextBlock x:Name="DraftOutputText"
                                        Text="{x:Bind ViewModel.DraftContent, Mode=OneWay}"
                                        TextWrapping="Wrap"
-                                       Style="{StaticResource BodyStyle}"
-                                       Visibility="{x:Bind ViewModel.IsGeneratingDraft, Mode=OneWay, Converter={StaticResource InverseVisibilityConverter}}"/>
+                                       Style="{StaticResource BodyStyle}"/>
+
+                            <!-- What the draft was written from: model, voice, views -->
+                            <TextBlock Text="{x:Bind ViewModel.DraftBasis, Mode=OneWay}"
+                                       Style="{StaticResource CaptionStyle}"
+                                       TextWrapping="Wrap"
+                                       Visibility="{x:Bind ViewModel.DraftBasis, Mode=OneWay, Converter={StaticResource StringEmptyToVisibilityConverter}}"/>
                         </StackPanel>
                     </Border>
                 </StackPanel>

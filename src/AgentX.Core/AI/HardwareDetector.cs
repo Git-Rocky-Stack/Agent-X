@@ -64,7 +64,7 @@ public sealed class HardwareDetector : IHardwareDetector
         }
     }
 
-    // ── GPU Detection via Win32_VideoController ─────────────────────
+    // -- GPU Detection via Win32_VideoController ---------------------
 
     private void DetectGpu(HardwareCapability capability)
     {
@@ -72,46 +72,20 @@ public sealed class HardwareDetector : IHardwareDetector
         {
             _logger.Debug("Querying GPU information via WMI...");
 
-            using var searcher = new ManagementObjectSearcher(
-                "SELECT Name, AdapterRAM FROM Win32_VideoController");
-
-            using var results = searcher.Get();
-
             string bestGpuName = "Unknown";
             long bestVram = 0;
 
-            foreach (ManagementObject gpu in results)
+            // WMI AdapterRAM is a uint32 that saturates at 4 GB; the reader prefers the driver's
+            // 64-bit qwMemorySize from the registry and falls back to AdapterRAM.
+            foreach (var adapter in GpuMemoryReader.ReadAdapters(_logger))
             {
-                try
+                _logger.Debug("GPU found: {Name}, VRAM: {Vram} bytes", adapter.Name, adapter.VramBytes);
+
+                // Pick the GPU with the most VRAM (skip integrated GPUs if a dedicated one exists)
+                if (adapter.VramBytes > bestVram || (bestVram == 0 && !IsIntegratedGpu(adapter.Name)))
                 {
-                    var name = gpu["Name"]?.ToString() ?? "Unknown GPU";
-                    var adapterRam = gpu["AdapterRAM"];
-
-                    // AdapterRAM is a uint32 in WMI, which caps at ~4GB.
-                    // For GPUs with more VRAM, we detect from the name as a heuristic.
-                    long vramBytes = 0;
-                    if (adapterRam is not null)
-                    {
-                        vramBytes = Convert.ToInt64(adapterRam);
-
-                        // Handle uint32 overflow: if the value is suspiciously low
-                        // for a known high-VRAM GPU, apply a correction heuristic.
-                        if (vramBytes < 0)
-                            vramBytes += 4_294_967_296L; // Convert from signed to unsigned interpretation
-                    }
-
-                    _logger.Debug("GPU found: {Name}, VRAM: {Vram} bytes", name, vramBytes);
-
-                    // Pick the GPU with the most VRAM (skip integrated GPUs if a dedicated one exists)
-                    if (vramBytes > bestVram || (bestVram == 0 && !IsIntegratedGpu(name)))
-                    {
-                        bestGpuName = name;
-                        bestVram = vramBytes;
-                    }
-                }
-                finally
-                {
-                    gpu.Dispose();
+                    bestGpuName = adapter.Name;
+                    bestVram = adapter.VramBytes;
                 }
             }
 
@@ -126,7 +100,7 @@ public sealed class HardwareDetector : IHardwareDetector
         }
     }
 
-    // ── CPU Detection via Win32_Processor ───────────────────────────
+    // -- CPU Detection via Win32_Processor ---------------------------
 
     private void DetectCpu(HardwareCapability capability)
     {
@@ -176,7 +150,7 @@ public sealed class HardwareDetector : IHardwareDetector
         }
     }
 
-    // ── Memory Detection ────────────────────────────────────────────
+    // -- Memory Detection --------------------------------------------
 
     private void DetectMemory(HardwareCapability capability)
     {
@@ -232,7 +206,7 @@ public sealed class HardwareDetector : IHardwareDetector
         }
     }
 
-    // ── NPU Detection ───────────────────────────────────────────────
+    // -- NPU Detection -----------------------------------------------
 
     private void DetectNpu(HardwareCapability capability)
     {
@@ -280,7 +254,7 @@ public sealed class HardwareDetector : IHardwareDetector
         }
     }
 
-    // ── Helpers ─────────────────────────────────────────────────────
+    // -- Helpers -----------------------------------------------------
 
     /// <summary>
     /// Heuristic to detect integrated GPUs by name pattern.

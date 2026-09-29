@@ -2,6 +2,7 @@ using AgentX.Core.Data;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Services.OAuth;
 using AgentX.Core.Services.Security;
+using AgentX.Core.Services.Settings;
 using AgentX.Tests.Helpers;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
@@ -34,7 +35,7 @@ public sealed class OAuthServiceTests : IDisposable
 
     /// <summary>
     /// Creates an OAuthService with a fresh database context and the mocked encryption service.
-    /// Provider configs are NOT registered by default — tests that need them must call
+    /// Provider configs are NOT registered by default - tests that need them must call
     /// <see cref="OAuthService.RegisterProvider"/> explicitly.
     /// </summary>
     private OAuthService CreateService(AgentXDbContext? db = null)
@@ -63,9 +64,9 @@ public sealed class OAuthServiceTests : IDisposable
         });
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Constructor argument guards
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Constructor_Throws_WhenDbIsNull()
@@ -95,9 +96,9 @@ public sealed class OAuthServiceTests : IDisposable
         act.Should().Throw<ArgumentNullException>().WithParameterName("logger");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  GetCredentialAsync
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task GetCredentialAsync_ReturnsNull_WhenNoCredentialExists()
@@ -182,9 +183,9 @@ public sealed class OAuthServiceTests : IDisposable
         await act.Should().ThrowAsync<ArgumentException>();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  GetAccessTokenAsync
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task GetAccessTokenAsync_ThrowsInvalidOperationException_WhenNoCredentialExists()
@@ -233,7 +234,7 @@ public sealed class OAuthServiceTests : IDisposable
     [Fact]
     public async Task GetAccessTokenAsync_AutoRefreshes_WhenTokenIsWithinFiveMinuteBuffer()
     {
-        // Arrange — token expires in 3 minutes, which is within the 5-minute refresh buffer.
+        // Arrange - token expires in 3 minutes, which is within the 5-minute refresh buffer.
         // Auto-refresh will attempt to call the token endpoint, which will fail (no HTTP server).
         // However, GetAccessTokenAsync should at least attempt the refresh before throwing.
         var db = _factory.CreateContext();
@@ -258,16 +259,16 @@ public sealed class OAuthServiceTests : IDisposable
         using var service = CreateService(db);
         RegisterGoogleProvider(service);
 
-        // Act & Assert — The refresh will fail (no HTTP server), so GetAccessTokenAsync
+        // Act & Assert - The refresh will fail (no HTTP server), so GetAccessTokenAsync
         // should throw an InvalidOperationException indicating refresh failure.
         var act = () => service.GetAccessTokenAsync("google");
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("*Failed to refresh*");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  RefreshTokenAsync
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task RefreshTokenAsync_ReturnsFalse_WhenNoCredentialExists()
@@ -286,7 +287,7 @@ public sealed class OAuthServiceTests : IDisposable
     [Fact]
     public async Task RefreshTokenAsync_ReturnsFalse_WhenNoProviderConfigRegistered()
     {
-        // Arrange — insert a credential but don't register a provider config
+        // Arrange - insert a credential but don't register a provider config
         var db = _factory.CreateContext();
         db.OAuthCredentials.Add(new OAuthCredentialEntity
         {
@@ -305,7 +306,7 @@ public sealed class OAuthServiceTests : IDisposable
         _mockEncryption.Setup(e => e.Decrypt("DPAPI:refresh")).Returns("refresh-token");
 
         using var service = CreateService(db);
-        // NOT registering provider — this should make refresh fail gracefully
+        // NOT registering provider - this should make refresh fail gracefully
 
         // Act
         var result = await service.RefreshTokenAsync("google");
@@ -328,14 +329,14 @@ public sealed class OAuthServiceTests : IDisposable
             .WithParameterName("provider");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  RevokeAsync
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task RevokeAsync_RemovesCredentialFromDatabase_EvenIfServerRevocationFails()
     {
-        // Arrange — insert a credential
+        // Arrange - insert a credential
         var db = _factory.CreateContext();
         db.OAuthCredentials.Add(new OAuthCredentialEntity
         {
@@ -360,11 +361,11 @@ public sealed class OAuthServiceTests : IDisposable
         using var service = CreateService(_factory.CreateContext());
         RegisterGoogleProvider(service);
 
-        // Act — RevokeAsync will try server-side revocation (which will fail because
+        // Act - RevokeAsync will try server-side revocation (which will fail because
         // there's no HTTP server), but it should still remove the local credential.
         await service.RevokeAsync("google");
 
-        // Assert — credential should be removed from the database
+        // Assert - credential should be removed from the database
         var verificationDb = _factory.CreateContext();
         var after = await verificationDb.OAuthCredentials.FirstOrDefaultAsync(c => c.ProviderId == "google");
         after.Should().BeNull("the local credential should be deleted even if server-side revocation fails");
@@ -379,7 +380,7 @@ public sealed class OAuthServiceTests : IDisposable
         // Act
         var act = () => service.RevokeAsync("google");
 
-        // Assert — should not throw even with no credential in the database
+        // Assert - should not throw even with no credential in the database
         await act.Should().NotThrowAsync();
     }
 
@@ -397,9 +398,9 @@ public sealed class OAuthServiceTests : IDisposable
             .WithParameterName("provider");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  RegisterProvider / GetRegisteredProviders
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void RegisterProvider_AddsProviderToRegistry()
@@ -477,9 +478,155 @@ public sealed class OAuthServiceTests : IDisposable
         service.RegisterProvider(config1);
         service.RegisterProvider(config2);
 
-        // Assert — second registration should overwrite the first
+        // Assert - second registration should overwrite the first
         var providers = service.GetRegisteredProviders();
         providers["google"].DisplayName.Should().Be("Google New");
         providers["google"].ClientId.Should().Be("new-client-id");
+    }
+
+    // -- UnregisterProvider / ApplyProviderSettings (credentials saved at runtime) ---------
+
+    private const string GoogleClientId = "123456789012-abc.apps.googleusercontent.com";
+    private const string MicrosoftClientId = "11111111-2222-3333-4444-555555555555";
+
+    private static OAuthSettings ClientSettings(
+        string googleId = "", string googleSecret = "", string microsoftId = "", string microsoftSecret = "") => new()
+        {
+            Google = new GoogleOAuthSettings { ClientId = googleId, ClientSecret = googleSecret },
+            Microsoft = new MicrosoftOAuthSettings { ClientId = microsoftId, ClientSecret = microsoftSecret },
+        };
+
+    [Fact]
+    public void UnregisterProvider_RemovesTheConfiguration_AndReportsWhetherOneWasRegistered()
+    {
+        using var service = CreateService();
+        RegisterGoogleProvider(service);
+
+        service.UnregisterProvider("google").Should().BeTrue();
+        service.UnregisterProvider("google").Should().BeFalse();
+        service.GetRegisteredProviders().Should().BeEmpty();
+    }
+
+    [Fact]
+    public void ApplyProviderSettings_RegistersEachProviderWhoseClientIdIsSet()
+    {
+        using var service = CreateService();
+
+        // Values from a hand-edited settings.json may carry stray whitespace.
+        service.ApplyProviderSettings(ClientSettings(
+            googleId: $" {GoogleClientId} ", googleSecret: " GOCSPX-secret\n", microsoftId: MicrosoftClientId));
+
+        var providers = service.GetRegisteredProviders();
+        providers.Keys.Should().BeEquivalentTo("google", "microsoft");
+        providers["google"].ClientId.Should().Be(GoogleClientId);
+        providers["google"].ClientSecret.Should().Be("GOCSPX-secret");
+        providers["google"].RedirectUri.Should().Be(new GoogleOAuthSettings().RedirectUri);
+        providers["google"].TokenEndpoint.Should().Be("https://oauth2.googleapis.com/token");
+        providers["microsoft"].ClientId.Should().Be(MicrosoftClientId);
+        providers["microsoft"].ClientSecret.Should().BeEmpty("the connector pages set up a public client");
+        providers["microsoft"].RedirectUri.Should().Be(new MicrosoftOAuthSettings().RedirectUri);
+        providers["microsoft"].TokenEndpoint.Should().Be("https://login.microsoftonline.com/common/oauth2/v2.0/token");
+    }
+
+    [Fact]
+    public void ApplyProviderSettings_WithABlankTenantOrRedirectUri_UsesTheDefaults()
+    {
+        using var service = CreateService();
+        var settings = ClientSettings(googleId: GoogleClientId, googleSecret: "GOCSPX-secret", microsoftId: MicrosoftClientId);
+        settings.Google.RedirectUri = " ";
+        settings.Microsoft.TenantId = "";
+        settings.Microsoft.RedirectUri = null!;
+
+        service.ApplyProviderSettings(settings);
+
+        var providers = service.GetRegisteredProviders();
+        providers["microsoft"].AuthorizationEndpoint.Should().Be(
+            "https://login.microsoftonline.com/common/oauth2/v2.0/authorize");
+        providers["microsoft"].RedirectUri.Should().Be(new MicrosoftOAuthSettings().RedirectUri);
+        providers["google"].RedirectUri.Should().Be(new GoogleOAuthSettings().RedirectUri);
+    }
+
+    [Fact]
+    public void ApplyProviderSettings_ReplacesTheConfigurationOfAChangedProvider()
+    {
+        using var service = CreateService();
+        service.ApplyProviderSettings(ClientSettings(googleId: "old.apps.googleusercontent.com", googleSecret: "old-secret"));
+
+        service.ApplyProviderSettings(ClientSettings(googleId: GoogleClientId, googleSecret: "new-secret"));
+
+        var google = service.GetRegisteredProviders()["google"];
+        google.ClientId.Should().Be(GoogleClientId);
+        google.ClientSecret.Should().Be("new-secret");
+    }
+
+    [Fact]
+    public async Task ApplyProviderSettings_RemovesAProviderWhoseClientIdIsCleared()
+    {
+        using var service = CreateService();
+        service.ApplyProviderSettings(ClientSettings(googleId: GoogleClientId, googleSecret: "secret", microsoftId: MicrosoftClientId));
+
+        service.ApplyProviderSettings(ClientSettings(microsoftId: MicrosoftClientId));
+
+        service.GetRegisteredProviders().Keys.Should().Equal("microsoft");
+        var connect = () => service.AuthorizeAsync("google");
+        (await connect.Should().ThrowAsync<OAuthProviderNotConfiguredException>())
+            .Which.Provider.Should().Be("google");
+    }
+
+    [Fact]
+    public async Task ApplyProviderSettings_KeepsStoredCredentialsAndOtherProviders()
+    {
+        // Saving the same credentials again must not sign a connected account out.
+        using (var db = _factory.CreateContext())
+        {
+            db.OAuthCredentials.Add(new OAuthCredentialEntity
+            {
+                ProviderId = "google",
+                AccessToken = "DPAPI:encrypted-access",
+                RefreshToken = "DPAPI:encrypted-refresh",
+                TokenExpiry = DateTime.UtcNow.AddHours(1),
+                Scopes = "openid",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            });
+            await db.SaveChangesAsync();
+        }
+
+        using var service = CreateService();
+        service.RegisterProvider(new OAuthProviderConfig { ProviderId = "contoso", DisplayName = "Contoso" });
+        var settings = ClientSettings(googleId: GoogleClientId, googleSecret: "secret");
+
+        service.ApplyProviderSettings(settings);
+        service.ApplyProviderSettings(settings);
+        service.ApplyProviderSettings(ClientSettings());
+
+        using var verify = _factory.CreateContext();
+        (await verify.OAuthCredentials.CountAsync(c => c.ProviderId == "google")).Should().Be(1);
+        service.GetRegisteredProviders().Keys.Should().Equal("contoso");
+    }
+
+    [Fact]
+    public async Task ApplyProviderSettings_AppliesEachSaveAsAWhole_WhenSavesRace()
+    {
+        using var service = CreateService();
+        var first = ClientSettings(googleId: "a.apps.googleusercontent.com", googleSecret: "a", microsoftId: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+        var second = ClientSettings(googleId: "b.apps.googleusercontent.com", googleSecret: "b", microsoftId: "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
+
+        await Task.WhenAll(Enumerable.Range(0, 200)
+            .Select(i => Task.Run(() => service.ApplyProviderSettings(i % 2 == 0 ? first : second))));
+
+        var providers = service.GetRegisteredProviders();
+        providers["microsoft"].ClientId.Should().StartWith(
+            providers["google"].ClientSecret, "Google and Microsoft must come from the same save");
+    }
+
+    [Fact]
+    public void ApplyProviderSettings_ThrowsArgumentNullException_WhenSettingsIsNull()
+    {
+        using var service = CreateService();
+
+        var act = () => service.ApplyProviderSettings(null!);
+
+        act.Should().Throw<ArgumentNullException>();
     }
 }

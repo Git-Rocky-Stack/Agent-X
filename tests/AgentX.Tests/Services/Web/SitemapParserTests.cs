@@ -18,7 +18,7 @@ public class SitemapParserTests
         _logger = loggerMock.Object;
     }
 
-    // ─── Sample Sitemap XML ─────────────────────────────────────────────────
+    // --- Sample Sitemap XML -------------------------------------------------
 
     private const string SampleRegularSitemapXml = @"<?xml version=""1.0"" encoding=""UTF-8""?>
 <urlset xmlns=""http://www.sitemaps.org/schemas/sitemap/0.9"">
@@ -110,7 +110,7 @@ public class SitemapParserTests
   </url>
 </urlset>";
 
-    // ─── Constructor / Interface Tests ───────────────────────────────────────
+    // --- Constructor / Interface Tests ---------------------------------------
 
     [Fact]
     public void SitemapParser_Implements_ISitemapParser()
@@ -133,7 +133,7 @@ public class SitemapParserTests
         act.Should().Throw<ArgumentNullException>();
     }
 
-    // ─── ParseFromXml - Regular Sitemap Tests ────────────────────────────────
+    // --- ParseFromXml - Regular Sitemap Tests --------------------------------
 
     [Fact]
     public void ParseFromXml_RegularSitemap_ReturnsUrls()
@@ -176,7 +176,7 @@ public class SitemapParserTests
         urls.Should().Contain("https://example.com/post-2");
     }
 
-    // ─── ParseFromXml - Sitemap Index Tests ─────────────────────────────────
+    // --- ParseFromXml - Sitemap Index Tests ---------------------------------
 
     [Fact]
     public void ParseFromXml_SitemapIndex_ReturnsChildSitemapUrls()
@@ -205,7 +205,7 @@ public class SitemapParserTests
         urls.Should().Contain("https://example.com/sitemap-pages.xml");
     }
 
-    // ─── ParseUrlset Tests ──────────────────────────────────────────────────
+    // --- ParseUrlset Tests --------------------------------------------------
 
     [Fact]
     public void ParseUrlset_ValidSitemap_ReturnsAllLocs()
@@ -246,7 +246,7 @@ public class SitemapParserTests
         urls.Should().Contain("https://example.com/contact");
     }
 
-    // ─── ParseSitemapIndex Tests ─────────────────────────────────────────────
+    // --- ParseSitemapIndex Tests ---------------------------------------------
 
     [Fact]
     public void ParseSitemapIndex_ValidIndex_ReturnsChildSitemapUrls()
@@ -273,7 +273,7 @@ public class SitemapParserTests
         urls.Should().BeEmpty();
     }
 
-    // ─── ParseFromXml Edge Case Tests ────────────────────────────────────────
+    // --- ParseFromXml Edge Case Tests ----------------------------------------
 
     [Fact]
     public void ParseFromXml_MalformedXml_ReturnsEmptyList()
@@ -323,7 +323,7 @@ public class SitemapParserTests
         urls.Should().Contain("https://example.com/contact");
     }
 
-    // ─── Depth Limiting Tests ────────────────────────────────────────────────
+    // --- Depth Limiting Tests ------------------------------------------------
 
     [Fact]
     public void MaxDepth_Is10()
@@ -337,7 +337,7 @@ public class SitemapParserTests
         SitemapParser.MaxChildSitemapsPerIndex.Should().Be(100);
     }
 
-    // ─── Namespace Handling Tests ─────────────────────────────────────────────
+    // --- Namespace Handling Tests ---------------------------------------------
 
     [Fact]
     public void ParseUrlset_WithStandardNamespace_ExtractsUrls()
@@ -371,7 +371,7 @@ public class SitemapParserTests
         urls.Should().HaveCount(2);
     }
 
-    // ─── URL Validation Tests ────────────────────────────────────────────────
+    // --- URL Validation Tests ------------------------------------------------
 
     [Fact]
     public void ParseUrlset_TrimsWhitespaceFromLocs()
@@ -404,7 +404,7 @@ public class SitemapParserTests
         urls[0].Should().Be("https://example.com/only-page");
     }
 
-    // ─── Helper ─────────────────────────────────────────────────────────────
+    // --- Helper -------------------------------------------------------------
 
     private SitemapParser CreateParser()
     {

@@ -114,7 +114,7 @@ public sealed class VerifySweepSuppressionsTests
             + "dismissal was wrong. Unproven:\n  " + string.Join("\n  ", unproven));
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
+    // -- Helpers --------------------------------------------------------------
 
     /// <summary>
     /// Heading of the group whose members are dismissed purely because the sweep does not

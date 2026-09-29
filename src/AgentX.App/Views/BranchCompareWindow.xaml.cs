@@ -1,40 +1,56 @@
+using AgentX.App.Helpers;
 using AgentX.Core.Services.Chat.Models;
-using Microsoft.UI;
+using AgentX.Core.Services.Localization;
 using Microsoft.UI.Text;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Windows.Graphics;
-using Windows.UI;
 
 namespace AgentX.App.Views;
 
 /// <summary>
 /// Side-by-side branch comparison window. Built programmatically (no XAML)
 /// to avoid the WinUI 3 XAML compiler crash that occurs when a secondary
-/// Window class has its own XAML file.
+/// Window class has its own XAML file. Without XAML there is no x:Uid, so
+/// every text it shows comes from the string resources here, and every color
+/// from the theme tokens (DESIGN.md): the chassis behind, inset content cards,
+/// hairline dividers and secondary text, which HighContrast binds to the
+/// system colors.
 /// </summary>
 public sealed class BranchCompareWindow : Window
 {
+    private readonly ILocalizationService _localization;
+
+    // The operator's shift. ThemeService sets it on the main window's root only, so this
+    // window takes the same one, and its own text and the brushes below match.
+    private readonly ElementTheme _shift;
+
     public BranchCompareWindow(
         ConversationBranchTree mainBranch,
         ConversationBranchTree compareBranch,
         string mainTitle,
         string compareTitle)
     {
-        Title = "Branch Comparison";
+        _localization = App.GetService<ILocalizationService>();
+        _shift = App.MainWindow.Content is FrameworkElement mainRoot
+            ? mainRoot.ActualTheme
+            : ElementTheme.Dark;
+        Title = _localization.GetString("BranchCompare_WindowTitle");
 
         // Size and position the window
         var appWindow = this.AppWindow;
         appWindow.Resize(new SizeInt32(1000, 600));
 
-        // Build the root content
+        // Build the root content: the chassis fills the window, the content sits 16 in.
         var root = new Grid
         {
             ColumnSpacing = 0,
-            Margin = new Thickness(16),
-            RowSpacing = 8
+            Padding = new Thickness(16),
+            RowSpacing = 8,
+            RequestedTheme = _shift,
+            Background = ThemeBrush("WindowBackgroundBrush")
         };
         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
@@ -52,7 +68,7 @@ public sealed class BranchCompareWindow : Window
         var divider = new Border
         {
             Width = 1,
-            Background = new SolidColorBrush(Colors.Gray),
+            Background = ThemeBrush("BorderSubtleBrush"),
             HorizontalAlignment = HorizontalAlignment.Center
         };
         Grid.SetColumn(divider, 1);
@@ -85,7 +101,7 @@ public sealed class BranchCompareWindow : Window
         var contentDivider = new Border
         {
             Width = 1,
-            Background = new SolidColorBrush(Colors.Gray),
+            Background = ThemeBrush("BorderSubtleBrush"),
             HorizontalAlignment = HorizontalAlignment.Center
         };
         Grid.SetColumn(contentDivider, 1);
@@ -108,7 +124,12 @@ public sealed class BranchCompareWindow : Window
         this.Content = root;
     }
 
-    private static StackPanel BuildHeaderPanel(string title, ConversationBranchTree branch)
+    /// <summary>
+    /// A theme token for the operator's shift, or its HighContrast system brush.
+    /// </summary>
+    private Brush? ThemeBrush(string key) => ThemeResources.Get(key, _shift) as Brush;
+
+    private StackPanel BuildHeaderPanel(string title, ConversationBranchTree branch)
     {
         var panel = new StackPanel { Spacing = 4 };
 
@@ -120,36 +141,41 @@ public sealed class BranchCompareWindow : Window
         });
 
         var label = !string.IsNullOrEmpty(branch.BranchLabel)
-            ? $"Branch: {branch.BranchLabel}"
-            : "Main Thread";
+            ? _localization.GetString("BranchCompare_BranchLabel", branch.BranchLabel)
+            : _localization.GetString("Chat_MainThread");
         panel.Children.Add(new TextBlock
         {
             Text = label,
-            Foreground = new SolidColorBrush(Colors.Gray),
+            Foreground = ThemeBrush("TextSecondaryBrush"),
             FontSize = 12
         });
 
-        var subLabel = branch.Conversation?.Title ?? "Untitled";
+        var subLabel = branch.Conversation?.Title ?? _localization.GetString("BranchCompare_Untitled");
+        var summary = branch.Children.Count == 1
+            ? _localization.GetString("BranchCompare_HeaderSummaryOne", subLabel, branch.Children.Count)
+            : _localization.GetString("BranchCompare_HeaderSummaryMany", subLabel, branch.Children.Count);
         panel.Children.Add(new TextBlock
         {
-            Text = $"{subLabel} \u2014 {branch.Children.Count} sub-branches",
+            Text = summary,
             FontSize = 12,
-            Foreground = new SolidColorBrush(Colors.Gray)
+            Foreground = ThemeBrush("TextSecondaryBrush")
         });
 
         return panel;
     }
 
-    private static StackPanel BuildBranchContentPanel(ConversationBranchTree branch)
+    private StackPanel BuildBranchContentPanel(ConversationBranchTree branch)
     {
         var panel = new StackPanel { Spacing = 8 };
 
-        // Show branch metadata
+        // Show branch metadata: an inset content card (CardInsetStyle's recipe)
         if (branch.Conversation is not null)
         {
             var metaBorder = new Border
             {
-                Background = new SolidColorBrush(Color.FromArgb(30, 255, 255, 255)),
+                Background = ThemeBrush("CardBrush"),
+                BorderBrush = ThemeBrush("BorderSubtleBrush"),
+                BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(4),
                 Padding = new Thickness(12),
                 Margin = new Thickness(0, 0, 0, 4)
@@ -158,7 +184,7 @@ public sealed class BranchCompareWindow : Window
 
             metaPanel.Children.Add(new TextBlock
             {
-                Text = branch.Conversation.Title ?? "Untitled Conversation",
+                Text = branch.Conversation.Title ?? _localization.GetString("BranchCompare_UntitledConversation"),
                 FontWeight = FontWeights.SemiBold,
                 FontSize = 14
             });
@@ -167,9 +193,9 @@ public sealed class BranchCompareWindow : Window
             {
                 metaPanel.Children.Add(new TextBlock
                 {
-                    Text = $"Label: {branch.BranchLabel}",
+                    Text = _localization.GetString("BranchCompare_Label", branch.BranchLabel),
                     FontSize = 12,
-                    Foreground = new SolidColorBrush(Colors.Gray)
+                    Foreground = ThemeBrush("TextSecondaryBrush")
                 });
             }
 
@@ -177,32 +203,34 @@ public sealed class BranchCompareWindow : Window
             {
                 metaPanel.Children.Add(new TextBlock
                 {
-                    Text = $"Branched from message #{branch.BranchPointMessageId}",
+                    Text = _localization.GetString("BranchCompare_BranchedFrom", branch.BranchPointMessageId),
                     FontSize = 11,
-                    Foreground = new SolidColorBrush(Colors.Gray)
+                    Foreground = ThemeBrush("TextSecondaryBrush")
                 });
             }
 
             metaPanel.Children.Add(new TextBlock
             {
-                Text = $"{branch.Children.Count} sub-branch(es)",
+                Text = branch.Children.Count == 1
+                    ? _localization.GetString("BranchCompare_SubBranchesOne", branch.Children.Count)
+                    : _localization.GetString("BranchCompare_SubBranchesMany", branch.Children.Count),
                 FontSize = 11,
-                Foreground = new SolidColorBrush(Colors.Gray)
+                Foreground = ThemeBrush("TextSecondaryBrush")
             });
 
             metaBorder.Child = metaPanel;
             panel.Children.Add(metaBorder);
         }
 
-        // Show child branches summary
+        // Show child branches summary: inset cards with the medium hairline outline
         foreach (var child in branch.Children)
         {
             var childBorder = new Border
             {
-                Background = new SolidColorBrush(Color.FromArgb(20, 255, 255, 255)),
+                Background = ThemeBrush("CardBrush"),
                 CornerRadius = new CornerRadius(4),
                 Padding = new Thickness(8),
-                BorderBrush = new SolidColorBrush(Color.FromArgb(40, 255, 255, 255)),
+                BorderBrush = ThemeBrush("BorderMediumBrush"),
                 BorderThickness = new Thickness(1)
             };
 
@@ -210,7 +238,9 @@ public sealed class BranchCompareWindow : Window
 
             var childLabel = !string.IsNullOrEmpty(child.BranchLabel)
                 ? child.BranchLabel
-                : $"Branch at msg #{child.BranchPointMessageId}";
+                : _localization.GetString(
+                    "BranchCompare_BranchAtMessage",
+                    child.BranchPointMessageId?.ToString() ?? string.Empty);
             childPanel.Children.Add(new TextBlock
             {
                 Text = childLabel,
@@ -222,9 +252,9 @@ public sealed class BranchCompareWindow : Window
             {
                 childPanel.Children.Add(new TextBlock
                 {
-                    Text = child.Conversation.Title ?? "Untitled",
+                    Text = child.Conversation.Title ?? _localization.GetString("BranchCompare_Untitled"),
                     FontSize = 12,
-                    Foreground = new SolidColorBrush(Colors.Gray)
+                    Foreground = ThemeBrush("TextSecondaryBrush")
                 });
             }
 

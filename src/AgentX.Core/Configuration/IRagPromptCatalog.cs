@@ -12,37 +12,37 @@ public interface IRagPromptCatalog
 {
     /// <summary>
     /// Static instruction prefix for the main RAG answering pipeline. Long,
-    /// stable, and identical across every RAG turn — designed to be cacheable
+    /// stable, and identical across every RAG turn - designed to be cacheable
     /// on Anthropic via the multi-block system prompt path.
     /// </summary>
     string RagSystemPrefix { get; }
 
     /// <summary>
-    /// LLM-as-judge evaluator system prompt — scores context relevance,
+    /// LLM-as-judge evaluator system prompt - scores context relevance,
     /// faithfulness, and answer relevance.
     /// </summary>
     string EvalSystem { get; }
 
     /// <summary>
-    /// Cross-encoder reranker system prompt — assigns 0-10 relevance scores
+    /// Cross-encoder reranker system prompt - assigns 0-10 relevance scores
     /// to retrieved passages.
     /// </summary>
     string RerankerSystem { get; }
 
     /// <summary>
-    /// Contextual compressor system prompt — extracts only the sentences
+    /// Contextual compressor system prompt - extracts only the sentences
     /// from a passage that directly answer the user's question.
     /// </summary>
     string CompressorSystem { get; }
 
     /// <summary>
-    /// Multi-query generator system prompt — produces alternative phrasings
+    /// Multi-query generator system prompt - produces alternative phrasings
     /// of the user's query for parallel search.
     /// </summary>
     string MultiQuerySystem { get; }
 
     /// <summary>
-    /// HyDE (Hypothetical Document Embeddings) system prompt — generates a
+    /// HyDE (Hypothetical Document Embeddings) system prompt - generates a
     /// plausible answer passage that is then embedded for retrieval.
     /// </summary>
     string HydeSystem { get; }

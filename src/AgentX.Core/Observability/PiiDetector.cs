@@ -33,6 +33,16 @@ public sealed class PiiDetector : IPiiDetector
         @"\b(AIza[A-Za-z0-9_-]{35}|(?:sk_|pk_|sk_live_|sk_test_)[A-Za-z0-9]{20,60}|Bearer\s+[A-Za-z0-9_-]{20,60})\b",
         RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
+    /// <summary>
+    /// Current provider key formats, matched case-sensitively because their prefixes are:
+    /// OpenAI ("sk-", "sk-proj-", "sk-svcacct-", "sk-admin-") and Anthropic ("sk-ant-") keys,
+    /// GitHub tokens ("ghp_", "gho_", "ghu_", "ghs_", "ghr_", "github_pat_") and AWS access
+    /// key ids ("AKIA", "ASIA").
+    /// </summary>
+    private static readonly Regex ProviderKeyRegex = new(
+        @"\b(?:sk-[A-Za-z0-9_-]{32,}|gh[pousr]_[A-Za-z0-9]{36,255}|github_pat_[A-Za-z0-9_]{22,255}|(?:AKIA|ASIA)[0-9A-Z]{16})\b",
+        RegexOptions.Compiled);
+
     private static readonly Regex IpAddressRegex = new(
         @"\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b",
         RegexOptions.Compiled);
@@ -54,6 +64,7 @@ public sealed class PiiDetector : IPiiDetector
                SsnRegex.IsMatch(text) ||
                CreditCardRegex.IsMatch(text) ||
                ApiKeyRegex.IsMatch(text) ||
+               ProviderKeyRegex.IsMatch(text) ||
                IpAddressRegex.IsMatch(text) ||
                _patterns.Any(p => p.Regex.IsMatch(text));
     }
@@ -72,6 +83,7 @@ public sealed class PiiDetector : IPiiDetector
         AddMatches(matches, SsnRegex.Matches(text), PiiType.Ssn);
         AddMatches(matches, CreditCardRegex.Matches(text), PiiType.CreditCard);
         AddMatches(matches, ApiKeyRegex.Matches(text), PiiType.ApiKey);
+        AddMatches(matches, ProviderKeyRegex.Matches(text), PiiType.ApiKey);
         AddMatches(matches, IpAddressRegex.Matches(text), PiiType.IpAddress);
 
         // Check custom patterns
@@ -141,9 +153,9 @@ public sealed class PiiDetector : IPiiDetector
         return stats;
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Private helpers
-    //════════════════════════════════════════════════════════════════════
+    //====================================================================
 
     private static void AddMatches(ICollection<PiiMatch> matches, MatchCollection regexMatches, PiiType type)
     {

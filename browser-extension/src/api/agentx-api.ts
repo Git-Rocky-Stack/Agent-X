@@ -7,7 +7,7 @@
 
 const API_BASE = 'http://localhost:9846';
 
-// ── Types (mirrors ApiClipModels.cs) ────────────────────────────────────────
+// -- Types (mirrors ApiClipModels.cs) ----------------------------------------
 
 export interface ClipRequest {
   title: string;
@@ -32,6 +32,9 @@ export interface ExtensionHealthResponse {
   inboxEnabled: boolean;
   provider: string;
 }
+
+/** Outcome of validating a token against the authenticated GET /api/auth/check route. */
+export type AuthCheckResult = 'valid' | 'rejected';
 
 /** Generic API envelope matching AgentX's ApiResponse<T> */
 interface ApiResponse<T> {
@@ -83,7 +86,7 @@ function parseApiResponse<T>(
   };
 }
 
-// ── Client ──────────────────────────────────────────────────────────────────
+// -- Client ------------------------------------------------------------------
 
 export class AgentXApi {
   private readonly baseUrl: string;
@@ -106,6 +109,26 @@ export class AgentXApi {
       headers['Authorization'] = `Bearer ${this.token}`;
     }
     return headers;
+  }
+
+  /**
+   * Validates a token (the current one by default) against GET /api/auth/check, which, unlike the
+   * public health probe, rejects a missing or wrong token with 401. Throws when AgentX cannot be
+   * reached or answers with anything other than success or 401.
+   */
+  async checkAuth(token: string | null = this.token): Promise<AuthCheckResult> {
+    if (!token) return 'rejected';
+
+    const response = await fetch(`${this.baseUrl}/api/auth/check`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (response.status === 401) return 'rejected';
+    if (!response.ok) {
+      throw new Error(`Token check failed: ${response.status} ${response.statusText}`);
+    }
+
+    return 'valid';
   }
 
   /** Check if AgentX is running and the inbox is available. */
@@ -137,14 +160,14 @@ export class AgentXApi {
 
     if (response.status === 401) {
       throw new Error(
-        'Not paired with AgentX. Open the extension popup and paste the API token from ' +
-        'AgentX → Settings → Connections.'
+        'Not paired with AgentX, or the token was regenerated. Open the extension popup and paste ' +
+        'the API token from AgentX > Settings > Connections.'
       );
     }
 
     if (!response.ok) {
       const errorBody = await response.text().catch(() => '');
-      throw new Error(`Clip failed: ${response.status} ${response.statusText}${errorBody ? ` — ${errorBody}` : ''}`);
+      throw new Error(`Clip failed: ${response.status} ${response.statusText}${errorBody ? ` - ${errorBody}` : ''}`);
     }
 
     const envelope = parseApiResponse(

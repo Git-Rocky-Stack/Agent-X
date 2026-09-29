@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Security.Cryptography;
@@ -17,15 +18,21 @@ namespace AgentX.Mobile.Services;
 /// Usage: register as a singleton via DI and inject wherever needed.
 /// Call <see cref="SetBaseUrl"/> when the user changes the API URL in
 /// Settings, or construct with a custom <c>baseUrl</c>.
+///
+/// Every call returns an <see cref="ApiResult{T}"/>: an unpaired app, a revoked token, an
+/// unreachable desktop and a server error are reported as such instead of as empty data.
 /// </summary>
 public sealed class AgentXApiClient : IDisposable
 {
-    // ── Constants ─────────────────────────────────────────────────────────────
+    // -- Constants -------------------------------------------------------------
 
     private const string DefaultBaseUrl = "http://localhost:9846";
     private const int DefaultTimeoutSeconds = 15;
 
-    // ── JSON options ──────────────────────────────────────────────────────────
+    /// <summary>The Android emulator's alias for the host machine's loopback interface.</summary>
+    private const string EmulatorHostAlias = "10.0.2.2";
+
+    // -- JSON options ----------------------------------------------------------
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -33,11 +40,19 @@ public sealed class AgentXApiClient : IDisposable
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
 
-    // ── State ─────────────────────────────────────────────────────────────────
+    // -- State -----------------------------------------------------------------
 
     private HttpClient _http;
     private string _baseUrl;
+
+    // Token state is read on request threads and written from the UI, so it is guarded by a lock.
+    // The Authorization header is set per request; the shared client's default headers are never
+    // mutated, so a token change cannot race an in-flight request.
+    private readonly object _tokenLock = new();
     private string? _token;
+    private bool _tokenSetExplicitly;
+    private Task? _persistedTokenLoad;
+    private readonly Func<Task<string?>>? _persistedTokenLoader;
 
     // Optional pairing-established server-certificate pin (SPKI SHA-256, base64). When set,
     // HTTPS connections must present a leaf cert whose public-key SPKI hash matches it; when
@@ -45,7 +60,7 @@ public sealed class AgentXApiClient : IDisposable
     // certificates (AX-QA-005).
     private string? _pinnedSpkiSha256;
 
-    // ── Constructor ───────────────────────────────────────────────────────────
+    // -- Constructor -----------------------------------------------------------
 
     /// <param name="baseUrl">
     /// Optional base URL override. Plaintext HTTP is accepted only for loopback
@@ -62,20 +77,30 @@ public sealed class AgentXApiClient : IDisposable
     /// HTTPS connections must present a matching leaf certificate; see
     /// <see cref="SetPinnedServerCertificate"/>.
     /// </param>
-    public AgentXApiClient(string? baseUrl = null, string? token = null, string? pinnedServerCertSpkiSha256 = null)
+    /// <param name="persistedTokenLoader">
+    /// Optional loader for the token saved at pairing (secure storage). The first request awaits
+    /// it, so a request made while the app is still starting is never sent without the token.
+    /// A token passed to the constructor or to <see cref="SetToken"/> takes precedence.
+    /// </param>
+    public AgentXApiClient(
+        string? baseUrl = null,
+        string? token = null,
+        string? pinnedServerCertSpkiSha256 = null,
+        Func<Task<string?>>? persistedTokenLoader = null)
     {
         _token = NormalizeToken(token);
+        _tokenSetExplicitly = _token is not null;
+        _persistedTokenLoader = persistedTokenLoader;
         _pinnedSpkiSha256 = NormalizeToken(pinnedServerCertSpkiSha256);
         _baseUrl = NormalizeBaseUrl(baseUrl ?? DefaultBaseUrl);
         _http = BuildHttpClient(_baseUrl, _pinnedSpkiSha256);
-        ApplyAuth(_http, _token);
     }
 
-    // ── Configuration ──────────────────────────────────────────────────────────
+    // -- Configuration ----------------------------------------------------------
 
     /// <summary>
     /// Updates the base URL at runtime (e.g., after the user saves Settings).
-    /// Replaces the underlying <see cref="HttpClient"/> instance, re-applying the token.
+    /// Replaces the underlying <see cref="HttpClient"/> instance.
     /// </summary>
     public void SetBaseUrl(string baseUrl)
     {
@@ -86,19 +111,21 @@ public sealed class AgentXApiClient : IDisposable
         var old = _http;
         _baseUrl = normalized;
         _http = BuildHttpClient(_baseUrl, _pinnedSpkiSha256);
-        ApplyAuth(_http, _token);
         old.Dispose();
     }
 
     /// <summary>
     /// Sets (or clears) the bearer token sent with every request. The desktop API requires this
-    /// token on all data routes — pair by entering the token shown in
-    /// AgentX → Settings → Connections. Pass null/empty to unpair.
+    /// token on all data routes: pair by entering the token shown in
+    /// AgentX > Settings > Connections. Pass null/empty to unpair.
     /// </summary>
     public void SetToken(string? token)
     {
-        _token = NormalizeToken(token);
-        ApplyAuth(_http, _token);
+        lock (_tokenLock)
+        {
+            _token = NormalizeToken(token);
+            _tokenSetExplicitly = true;
+        }
     }
 
     /// <summary>
@@ -113,7 +140,6 @@ public sealed class AgentXApiClient : IDisposable
 
         var old = _http;
         _http = BuildHttpClient(_baseUrl, _pinnedSpkiSha256);
-        ApplyAuth(_http, _token);
         old.Dispose();
     }
 
@@ -121,214 +147,226 @@ public sealed class AgentXApiClient : IDisposable
     public string BaseUrl => _baseUrl;
 
     /// <summary>True when a bearer token has been configured (the client is paired).</summary>
-    public bool IsPaired => !string.IsNullOrEmpty(_token);
+    public bool IsPaired
+    {
+        get
+        {
+            lock (_tokenLock)
+                return !string.IsNullOrEmpty(_token);
+        }
+    }
 
-    // ── API Methods ───────────────────────────────────────────────────────────
+    // -- API Methods -----------------------------------------------------------
 
     /// <summary>
-    /// GET /api/health — checks whether the desktop app is reachable and
+    /// GET /api/health: checks whether the desktop app is reachable, accepts the token, and
     /// returns basic statistics.
     /// </summary>
-    /// <param name="ct">Cancellation token.</param>
-    /// <returns>The health payload, or null when the host is unreachable.</returns>
-    public async Task<HealthDto?> GetHealthAsync(CancellationToken ct = default)
-    {
-        try
-        {
-            var response = await _http.GetAsync("/api/health", ct).ConfigureAwait(false);
-            response.EnsureSuccessStatusCode();
+    public Task<ApiResult<HealthDto>> GetHealthAsync(CancellationToken ct = default) =>
+        SendAsync<HealthDto>(HttpMethod.Get, "/api/health", null, ct);
 
-            var envelope = await response.Content
-                .ReadFromJsonAsync<ApiResponse<HealthDto>>(JsonOptions, ct)
-                .ConfigureAwait(false);
+    /// <summary>GET /api/documents: all documents in the knowledge vault.</summary>
+    public Task<ApiResult<IReadOnlyList<DocumentDto>>> GetDocumentsAsync(CancellationToken ct = default) =>
+        SendListAsync<DocumentDto>(HttpMethod.Get, "/api/documents", null, ct);
 
-            return envelope?.Data;
-        }
-        catch (Exception ex) when (IsNetworkException(ex))
-        {
-            return null;
-        }
-    }
+    /// <summary>GET /api/documents/{id}: a single document; <see cref="ApiStatus.NotFound"/> when absent.</summary>
+    public Task<ApiResult<DocumentDto>> GetDocumentAsync(long id, CancellationToken ct = default) =>
+        SendAsync<DocumentDto>(HttpMethod.Get, $"/api/documents/{id}", null, ct);
 
-    /// <summary>
-    /// GET /api/documents — returns all documents in the knowledge vault.
-    /// </summary>
-    /// <param name="ct">Cancellation token.</param>
-    /// <returns>List of documents, or empty list on error.</returns>
-    public async Task<IReadOnlyList<DocumentDto>> GetDocumentsAsync(CancellationToken ct = default)
-    {
-        try
-        {
-            var response = await _http.GetAsync("/api/documents", ct).ConfigureAwait(false);
-            response.EnsureSuccessStatusCode();
+    /// <summary>GET /api/conversations: all non-archived conversations.</summary>
+    public Task<ApiResult<IReadOnlyList<ConversationDto>>> GetConversationsAsync(CancellationToken ct = default) =>
+        SendListAsync<ConversationDto>(HttpMethod.Get, "/api/conversations", null, ct);
 
-            var envelope = await response.Content
-                .ReadFromJsonAsync<ApiResponse<List<DocumentDto>>>(JsonOptions, ct)
-                .ConfigureAwait(false);
+    /// <summary>GET /api/conversations/{id}: a single conversation; <see cref="ApiStatus.NotFound"/> when absent.</summary>
+    public Task<ApiResult<ConversationDto>> GetConversationAsync(long id, CancellationToken ct = default) =>
+        SendAsync<ConversationDto>(HttpMethod.Get, $"/api/conversations/{id}", null, ct);
 
-            return envelope?.Data ?? [];
-        }
-        catch (Exception ex) when (IsNetworkException(ex))
-        {
-            return [];
-        }
-    }
+    /// <summary>GET /api/collections: all document collections.</summary>
+    public Task<ApiResult<IReadOnlyList<CollectionDto>>> GetCollectionsAsync(CancellationToken ct = default) =>
+        SendListAsync<CollectionDto>(HttpMethod.Get, "/api/collections", null, ct);
 
     /// <summary>
-    /// GET /api/documents/{id} — returns a single document by ID.
-    /// </summary>
-    /// <param name="id">The document primary key.</param>
-    /// <param name="ct">Cancellation token.</param>
-    /// <returns>The document DTO, or null when not found or unreachable.</returns>
-    public async Task<DocumentDto?> GetDocumentAsync(long id, CancellationToken ct = default)
-    {
-        try
-        {
-            var response = await _http.GetAsync($"/api/documents/{id}", ct).ConfigureAwait(false);
-            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-                return null;
-
-            response.EnsureSuccessStatusCode();
-
-            var envelope = await response.Content
-                .ReadFromJsonAsync<ApiResponse<DocumentDto>>(JsonOptions, ct)
-                .ConfigureAwait(false);
-
-            return envelope?.Data;
-        }
-        catch (Exception ex) when (IsNetworkException(ex))
-        {
-            return null;
-        }
-    }
-
-    /// <summary>
-    /// GET /api/conversations — returns all non-archived conversations.
-    /// </summary>
-    /// <param name="ct">Cancellation token.</param>
-    /// <returns>List of conversations, or empty list on error.</returns>
-    public async Task<IReadOnlyList<ConversationDto>> GetConversationsAsync(CancellationToken ct = default)
-    {
-        try
-        {
-            var response = await _http.GetAsync("/api/conversations", ct).ConfigureAwait(false);
-            response.EnsureSuccessStatusCode();
-
-            var envelope = await response.Content
-                .ReadFromJsonAsync<ApiResponse<List<ConversationDto>>>(JsonOptions, ct)
-                .ConfigureAwait(false);
-
-            return envelope?.Data ?? [];
-        }
-        catch (Exception ex) when (IsNetworkException(ex))
-        {
-            return [];
-        }
-    }
-
-    /// <summary>
-    /// GET /api/conversations/{id} — returns a single conversation by ID.
-    /// </summary>
-    /// <param name="id">The conversation primary key.</param>
-    /// <param name="ct">Cancellation token.</param>
-    /// <returns>The conversation DTO, or null when not found or unreachable.</returns>
-    public async Task<ConversationDto?> GetConversationAsync(long id, CancellationToken ct = default)
-    {
-        try
-        {
-            var response = await _http.GetAsync($"/api/conversations/{id}", ct).ConfigureAwait(false);
-            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-                return null;
-
-            response.EnsureSuccessStatusCode();
-
-            var envelope = await response.Content
-                .ReadFromJsonAsync<ApiResponse<ConversationDto>>(JsonOptions, ct)
-                .ConfigureAwait(false);
-
-            return envelope?.Data;
-        }
-        catch (Exception ex) when (IsNetworkException(ex))
-        {
-            return null;
-        }
-    }
-
-    /// <summary>
-    /// GET /api/collections — returns all document collections.
-    /// </summary>
-    /// <param name="ct">Cancellation token.</param>
-    /// <returns>List of collections, or empty list on error.</returns>
-    public async Task<IReadOnlyList<CollectionDto>> GetCollectionsAsync(CancellationToken ct = default)
-    {
-        try
-        {
-            var response = await _http.GetAsync("/api/collections", ct).ConfigureAwait(false);
-            response.EnsureSuccessStatusCode();
-
-            var envelope = await response.Content
-                .ReadFromJsonAsync<ApiResponse<List<CollectionDto>>>(JsonOptions, ct)
-                .ConfigureAwait(false);
-
-            return envelope?.Data ?? [];
-        }
-        catch (Exception ex) when (IsNetworkException(ex))
-        {
-            return [];
-        }
-    }
-
-    /// <summary>
-    /// POST /api/search — executes a semantic search against indexed documents.
+    /// POST /api/search: executes a semantic search against indexed documents.
     /// </summary>
     /// <param name="query">The natural language search query.</param>
     /// <param name="topK">Maximum number of results to return (1-50).</param>
-    /// <param name="minScore">Minimum relevance score threshold (0.0 – 1.0).</param>
+    /// <param name="minScore">Minimum relevance score threshold (0.0 to 1.0).</param>
     /// <param name="ct">Cancellation token.</param>
-    /// <returns>Ordered list of search results (highest relevance first), or empty on error.</returns>
-    public async Task<IReadOnlyList<SearchResultDto>> SearchAsync(
+    /// <returns>Ordered results (highest relevance first).</returns>
+    public Task<ApiResult<IReadOnlyList<SearchResultDto>>> SearchAsync(
         string query,
         int topK = 10,
         float minScore = 0.3f,
         CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(query))
-            return [];
+            return Task.FromResult(ApiResult<IReadOnlyList<SearchResultDto>>.Ok(Array.Empty<SearchResultDto>()));
 
+        var body = new
+        {
+            query,
+            topK = Math.Clamp(topK, 1, 50),
+            minScore = Math.Clamp(minScore, 0f, 1f)
+        };
+
+        var content = new StringContent(JsonSerializer.Serialize(body, JsonOptions), Encoding.UTF8, "application/json");
+        return SendListAsync<SearchResultDto>(HttpMethod.Post, "/api/search", content, ct);
+    }
+
+    // --- Request pipeline ---
+
+    private async Task<ApiResult<IReadOnlyList<TItem>>> SendListAsync<TItem>(
+        HttpMethod method, string path, HttpContent? content, CancellationToken ct)
+    {
+        var result = await SendAsync<List<TItem>>(method, path, content, ct).ConfigureAwait(false);
+        return result.IsSuccess
+            ? ApiResult<IReadOnlyList<TItem>>.Ok(result.Data!)
+            : ApiResult<IReadOnlyList<TItem>>.Failure(result.Status, result.ErrorMessage);
+    }
+
+    /// <summary>
+    /// Sends one request and classifies the outcome. Cancellation by the caller propagates as
+    /// <see cref="OperationCanceledException"/>; everything else becomes an <see cref="ApiResult{T}"/>.
+    /// </summary>
+    private async Task<ApiResult<T>> SendAsync<T>(
+        HttpMethod method, string path, HttpContent? content, CancellationToken ct)
+    {
+        await EnsurePersistedTokenLoadedAsync().ConfigureAwait(false);
+
+        // Snapshot the mutable state once, so a concurrent Settings change cannot mix URLs.
+        var http = _http;
+        var baseUrl = _baseUrl;
+        string? token;
+        lock (_tokenLock)
+            token = _token;
+
+        using var request = new HttpRequestMessage(method, path) { Content = content };
+        if (!string.IsNullOrEmpty(token))
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        ApplyEmulatorHostHeader(request, baseUrl);
+
+        HttpResponseMessage response;
         try
         {
-            var body = new
-            {
-                query,
-                topK = Math.Clamp(topK, 1, 50),
-                minScore = Math.Clamp(minScore, 0f, 1f)
-            };
-
-            var json = JsonSerializer.Serialize(body, JsonOptions);
-            using var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            var response = await _http.PostAsync("/api/search", content, ct).ConfigureAwait(false);
-            response.EnsureSuccessStatusCode();
-
-            var envelope = await response.Content
-                .ReadFromJsonAsync<ApiResponse<List<SearchResultDto>>>(JsonOptions, ct)
-                .ConfigureAwait(false);
-
-            return envelope?.Data ?? [];
+            response = await http.SendAsync(request, ct).ConfigureAwait(false);
         }
-        catch (Exception ex) when (IsNetworkException(ex))
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
-            return [];
+            throw;
+        }
+        catch (OperationCanceledException)
+        {
+            return ApiResult<T>.Failure(ApiStatus.Unreachable,
+                $"Agent-X at {baseUrl} did not answer within {DefaultTimeoutSeconds} seconds.");
+        }
+        catch (Exception ex)
+        {
+            // No HTTP answer at all: refused, unresolvable, blocked by the platform, or TLS failure.
+            return ApiResult<T>.Failure(ApiStatus.Unreachable,
+                $"Cannot reach Agent-X at {baseUrl}. Make sure the desktop app is running with the Local API enabled, and see docs/MOBILE-TRANSPORT.md. ({ex.Message})");
+        }
+
+        using (response)
+        {
+            if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+            {
+                return ApiResult<T>.Failure(ApiStatus.Unauthorized,
+                    "Not paired: Agent-X rejected the API token (missing, mistyped, or regenerated). Paste the current token from AgentX > Settings > Connections in Settings.");
+            }
+
+            ApiResponse<T>? envelope = null;
+            try
+            {
+                envelope = await response.Content
+                    .ReadFromJsonAsync<ApiResponse<T>>(JsonOptions, ct)
+                    .ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    return ApiResult<T>.Failure(ApiStatus.Error,
+                        $"Agent-X sent a response this app cannot read ({ex.Message}).");
+                }
+
+                // An error response without a readable body: the status code is reported below.
+            }
+
+            if (response.StatusCode == HttpStatusCode.NotFound)
+                return ApiResult<T>.Failure(ApiStatus.NotFound, envelope?.Error ?? "Not found.");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var detail = string.IsNullOrWhiteSpace(envelope?.Error) ? string.Empty : $": {envelope!.Error}";
+                return ApiResult<T>.Failure(ApiStatus.Error,
+                    $"Agent-X returned HTTP {(int)response.StatusCode}{detail}");
+            }
+
+            if (envelope is not null && envelope.Data is { } data)
+                return ApiResult<T>.Ok(data);
+
+            return ApiResult<T>.Failure(ApiStatus.Error, "Agent-X returned an empty response.");
         }
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
+    /// <summary>
+    /// Applies the token saved at pairing before the first request. Runs the loader once; a token
+    /// set explicitly in the meantime (pairing in Settings) wins over the stored one.
+    /// </summary>
+    private Task EnsurePersistedTokenLoadedAsync()
+    {
+        if (_persistedTokenLoader is null)
+            return Task.CompletedTask;
+
+        lock (_tokenLock)
+            return _persistedTokenLoad ??= LoadPersistedTokenAsync(_persistedTokenLoader);
+    }
+
+    private async Task LoadPersistedTokenAsync(Func<Task<string?>> loader)
+    {
+        string? persisted;
+        try
+        {
+            persisted = await loader().ConfigureAwait(false);
+        }
+        catch (Exception)
+        {
+            // Secure storage can fail on some devices and emulators; the app is then unpaired
+            // and every call reports Unauthorized, which tells the user to pair again.
+            persisted = null;
+        }
+
+        lock (_tokenLock)
+        {
+            if (!_tokenSetExplicitly)
+                _token = NormalizeToken(persisted);
+        }
+    }
+
+    /// <summary>
+    /// The desktop listener is HTTP.sys bound to the http://localhost:9846/ prefix, and HTTP.sys
+    /// matches the Host header against that prefix: a request that says Host: 10.0.2.2:9846 is
+    /// answered with 400 "Invalid Hostname". The emulator reaches the host's loopback through the
+    /// 10.0.2.2 alias, so requests sent there must still name localhost.
+    /// </summary>
+    private static void ApplyEmulatorHostHeader(HttpRequestMessage request, string baseUrl)
+    {
+        var uri = new Uri(baseUrl);
+        if (string.Equals(uri.Host, EmulatorHostAlias, StringComparison.Ordinal))
+            request.Headers.Host = $"localhost:{uri.Port}";
+    }
+
+    // -- Helpers ---------------------------------------------------------------
 
     private static HttpClient BuildHttpClient(string baseUrl, string? pinnedSpkiSha256)
     {
         var handler = new HttpClientHandler();
 
-        // Never blanket-accept certificates — the previous DangerousAcceptAnyServerCertificateValidator
+        // Never blanket-accept certificates. The previous DangerousAcceptAnyServerCertificateValidator
         // permitted trivial interception. When a pairing-established SPKI pin is configured, the leaf
         // certificate must match it; otherwise defer to the platform's default chain validation.
         // Loopback connections are HTTP and never reach this callback (AX-QA-005).
@@ -374,7 +412,7 @@ public sealed class AgentXApiClient : IDisposable
 
     /// <summary>True for loopback hosts and the Android emulator host-loopback alias (10.0.2.2).</summary>
     private static bool IsLocalLoopback(Uri uri) =>
-        uri.IsLoopback || string.Equals(uri.Host, "10.0.2.2", StringComparison.Ordinal);
+        uri.IsLoopback || string.Equals(uri.Host, EmulatorHostAlias, StringComparison.Ordinal);
 
     /// <summary>
     /// Constant-time comparison of the certificate's SubjectPublicKeyInfo SHA-256 (base64) against
@@ -392,26 +430,7 @@ public sealed class AgentXApiClient : IDisposable
     private static string? NormalizeToken(string? token) =>
         string.IsNullOrWhiteSpace(token) ? null : token.Trim();
 
-    /// <summary>Applies (or clears) the bearer Authorization header on the given client.</summary>
-    private static void ApplyAuth(HttpClient http, string? token)
-    {
-        http.DefaultRequestHeaders.Authorization = string.IsNullOrEmpty(token)
-            ? null
-            : new AuthenticationHeaderValue("Bearer", token);
-    }
-
-    /// <summary>
-    /// Returns true for transient network errors that should surface as an empty
-    /// result rather than an unhandled exception.
-    /// </summary>
-    private static bool IsNetworkException(Exception ex) =>
-        ex is HttpRequestException
-            or TaskCanceledException
-            or OperationCanceledException
-            or JsonException
-            or InvalidOperationException;
-
-    // ── IDisposable ───────────────────────────────────────────────────────────
+    // -- IDisposable -----------------------------------------------------------
 
     public void Dispose() => _http.Dispose();
 }

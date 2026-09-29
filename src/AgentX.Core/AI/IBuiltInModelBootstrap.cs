@@ -8,7 +8,7 @@ namespace AgentX.Core.AI;
 /// limit, so on first run the app fetches it once from a public source. The OFFLINE installer
 /// pre-places the same file, in which case <see cref="IsInstalled"/> short-circuits the download.
 /// <para>
-/// Cloud providers (OpenAI/Anthropic/Ollama) never require this model — it powers only the
+/// Cloud providers (OpenAI/Anthropic/Ollama) never require this model - it powers only the
 /// fully-offline built-in provider.
 /// </para>
 /// </summary>

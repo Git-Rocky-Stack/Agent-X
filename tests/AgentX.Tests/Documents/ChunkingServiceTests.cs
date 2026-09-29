@@ -20,7 +20,7 @@ public sealed class ChunkingServiceTests
 
     private static ChunkingService Service() => new(Silent);
 
-    // ── Parameter validation ─────────────────────────────────────────────────
+    // -- Parameter validation -------------------------------------------------
 
     [Theory]
     [InlineData(0)]
@@ -52,7 +52,7 @@ public sealed class ChunkingServiceTests
         act.Should().Throw<ArgumentOutOfRangeException>().WithParameterName("chunkOverlap");
     }
 
-    // ── Empty and trivial input ──────────────────────────────────────────────
+    // -- Empty and trivial input ----------------------------------------------
 
     [Theory]
     [InlineData("")]
@@ -93,7 +93,7 @@ public sealed class ChunkingServiceTests
         chunks.Select(c => c.Index).Should().Equal(Enumerable.Range(0, chunks.Count));
     }
 
-    // ── Paragraph / sentence / word splitting ────────────────────────────────
+    // -- Paragraph / sentence / word splitting --------------------------------
 
     [Fact]
     public void ChunkText_SplitsOnParagraphBoundariesBeforeAnythingElse()
@@ -169,7 +169,7 @@ public sealed class ChunkingServiceTests
             .Should().Equal(source.Split(' ', StringSplitOptions.RemoveEmptyEntries));
     }
 
-    // ── Offsets ──────────────────────────────────────────────────────────────
+    // -- Offsets --------------------------------------------------------------
 
     [Fact]
     public void ChunkText_FirstChunkStartsAtTheStartOfTheSource()
@@ -191,7 +191,7 @@ public sealed class ChunkingServiceTests
         chunks.Should().OnlyContain(c => c.StartCharOffset < c.EndCharOffset);
     }
 
-    // ── Overlap ──────────────────────────────────────────────────────────────
+    // -- Overlap --------------------------------------------------------------
 
     [Fact]
     public void ChunkText_WithOverlap_RepeatsTheTailOfThePreviousChunk()
@@ -204,11 +204,49 @@ public sealed class ChunkingServiceTests
         overlapped.Count.Should().BeGreaterThan(plain.Count,
             "carrying tokens forward means fewer new tokens fit per chunk");
 
-        // Overlap carries whole trailing segments, not a token slice: the walk back stops
-        // as soon as it has collected chunkOverlap tokens, so chunk 1 opens with the last
-        // segment of chunk 0 verbatim.
+        // The overlap is the last chunkOverlap tokens of chunk 0; here that is exactly its
+        // last two-word segment, so chunk 1 opens with it.
         overlapped[0].Content.Should().EndWith("charlie delta.");
         overlapped[1].Content.Should().StartWith("charlie delta.");
+    }
+
+    [Fact]
+    public void ChunkText_Overlap_IsATokenSliceNotWholeParagraphs()
+    {
+        // Three 300-token paragraphs, size 512, overlap 50: whole-paragraph overlap produced
+        // chunks of 300, 600 and 600 tokens, embedding every paragraph twice.
+        var text = string.Join("\n\n", Enumerable.Range(0, 3).Select(p => Words(300, prefix: $"p{p}w")));
+
+        var chunks = Service().ChunkText(text, chunkSize: 512, chunkOverlap: 50);
+
+        chunks.Should().OnlyContain(c => c.TokenCount <= 512);
+        chunks.Select(c => c.TokenCount).Should().Equal(300, 350, 350);
+        chunks[1].Content.Should().StartWith("p0w250 ").And.Contain("p1w0");
+        chunks[1].Content.Should().NotContain("p0w249 ");
+    }
+
+    [Fact]
+    public void ChunkText_Overlap_NeverPushesAChunkPastTheSizeLimit()
+    {
+        // Size 10, overlap 5, eight-word segments: the next segment leaves room for only two
+        // overlap words, so only two are carried.
+        var text = Words(8, prefix: "a") + ".\n\n" + Words(8, prefix: "b") + ".";
+
+        var chunks = Service().ChunkText(text, chunkSize: 10, chunkOverlap: 5);
+
+        chunks.Should().OnlyContain(c => c.TokenCount <= 10);
+        chunks[1].Content.Should().StartWith("a6 a7.");
+    }
+
+    [Fact]
+    public void ChunkText_PartialOverlap_KeepsSourceOffsets()
+    {
+        var source = "one two three four five six seven eight.\n\nnine ten eleven twelve thirteen fourteen fifteen sixteen.";
+
+        var chunks = Service().ChunkText(source, chunkSize: 10, chunkOverlap: 2);
+
+        chunks[1].Content.Should().StartWith("seven eight.");
+        chunks[1].StartCharOffset.Should().Be(source.IndexOf("seven", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -221,7 +259,7 @@ public sealed class ChunkingServiceTests
         chunks[1].Content.Should().NotContain("bravo");
     }
 
-    // ── Token counting ───────────────────────────────────────────────────────
+    // -- Token counting -------------------------------------------------------
 
     [Fact]
     public void ChunkText_WithoutATokenCounter_ApproximatesTokensAsWords()
@@ -244,7 +282,7 @@ public sealed class ChunkingServiceTests
         counter.Verify(c => c.CountTokens(It.IsAny<string>(), It.IsAny<string?>()), Times.AtLeastOnce);
     }
 
-    // ── ChunkDocument ────────────────────────────────────────────────────────
+    // -- ChunkDocument --------------------------------------------------------
 
     [Fact]
     public void ChunkDocument_NullDocument_Throws()
@@ -313,7 +351,7 @@ public sealed class ChunkingServiceTests
         Service().ChunkDocument(doc, 512, 50).Should().OnlyContain(c => c.PageNumber == null);
     }
 
-    // ── Adaptive override ────────────────────────────────────────────────────
+    // -- Adaptive override ----------------------------------------------------
 
     [Theory]
     [InlineData(ContentType.Code)]
@@ -345,6 +383,20 @@ public sealed class ChunkingServiceTests
     }
 
     [Fact]
+    public void ChunkDocument_AdaptiveSizeBelowTheCallersOverlap_ClampsTheOverlapInsteadOfThrowing()
+    {
+        // A saved overlap of 10 is valid for a chunk size of 40, but not for the analyzer's
+        // recommended 4; the document must still be chunked.
+        var adaptive = Analyzer(ContentType.Code, recommended: 4);
+
+        var chunks = new ChunkingService(null, adaptive.Object, Silent)
+            .ChunkDocument(Doc(Words(40)), chunkSize: 40, chunkOverlap: 10);
+
+        chunks.Should().HaveCountGreaterThan(1);
+        chunks.Should().OnlyContain(c => c.TokenCount <= 4);
+    }
+
+    [Fact]
     public void ChunkDocument_AdaptiveRecommendationMatchesTheCaller_ChangesNothing()
     {
         var adaptive = Analyzer(ContentType.Code, recommended: 40);
@@ -368,7 +420,7 @@ public sealed class ChunkingServiceTests
         chunks.Should().ContainSingle("a broken analyzer must not lose the document");
     }
 
-    // ── Constructors ─────────────────────────────────────────────────────────
+    // -- Constructors ---------------------------------------------------------
 
     [Fact]
     public void ParameterlessConstructor_Works()
@@ -382,7 +434,7 @@ public sealed class ChunkingServiceTests
         new ChunkingService(null!).ChunkText("alpha bravo").Should().ContainSingle();
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
+    // -- Helpers --------------------------------------------------------------
 
     private static Mock<IAdaptiveChunkingService> Analyzer(ContentType type, int recommended)
     {
@@ -403,6 +455,6 @@ public sealed class ChunkingServiceTests
     };
 
     /// <summary>A single sentence of <paramref name="count"/> distinct words, no punctuation.</summary>
-    private static string Words(int count) =>
-        string.Join(' ', Enumerable.Range(0, count).Select(i => $"w{i}"));
+    private static string Words(int count, string prefix = "w") =>
+        string.Join(' ', Enumerable.Range(0, count).Select(i => $"{prefix}{i}"));
 }

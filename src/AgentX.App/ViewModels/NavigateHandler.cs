@@ -6,7 +6,7 @@ namespace AgentX.App.ViewModels;
 /// <para>
 /// The optional <paramref name="parameter"/> is what separates "go to Search" from "go to
 /// Search for <c>quarterly revenue</c>". Without it a view model can only name a
-/// destination, so any identity the user selected — a query, a document, a conversation —
+/// destination, so any identity the user selected - a query, a document, a conversation -
 /// is dropped at the page boundary and they arrive at an empty list.
 /// </para>
 /// <para>

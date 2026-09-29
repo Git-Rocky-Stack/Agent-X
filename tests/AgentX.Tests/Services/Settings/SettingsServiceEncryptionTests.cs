@@ -151,7 +151,7 @@ public sealed class SettingsServiceEncryptionTests : IDisposable
         var rawJson = JsonSerializer.Serialize(plaintextSettings, jsonOptions);
         await File.WriteAllTextAsync(_settingsPath, rawJson);
 
-        // Act: load settings via the service — this should detect plaintext
+        // Act: load settings via the service - this should detect plaintext
         // keys, keep them in memory as-is, and trigger a re-save with encryption
         var sut = CreateSut();
         var loaded = await sut.GetSettingsAsync();
@@ -196,7 +196,7 @@ public sealed class SettingsServiceEncryptionTests : IDisposable
         await sut.SaveSettingsAsync(settings);
 
         // Assert: the web search key must be DPAPI-encrypted on disk, like the
-        // other provider secrets — never plaintext.
+        // other provider secrets - never plaintext.
         var rawJson = await File.ReadAllTextAsync(_settingsPath);
         var doc = JsonDocument.Parse(rawJson);
         var webSearchKey = doc.RootElement.GetProperty("webSearchApiKey").GetString()!;

@@ -1,5 +1,6 @@
 using AgentX.Core.Services.Audio;
 using AgentX.Core.Services.Audio.Models;
+using AgentX.Core.Services.Localization;
 using NAudio.Wave;
 using Serilog;
 
@@ -7,20 +8,23 @@ namespace AgentX.App.ViewModels.Coordinators;
 
 /// <summary>
 /// Orchestrates voice recording (via NAudio) and transcription (via ITranscriptionService).
-/// Raises events for the ChatViewModel to synchronize UI state.
+/// Raises events for the ChatViewModel to synchronize UI state. Status and notification text
+/// come from the string resources; a missing speech-to-text model points the user at the Model
+/// Manager page, where it is installed.
 /// </summary>
 public sealed class VoiceCoordinator : IVoiceCoordinator, IDisposable
 {
     private readonly ITranscriptionService _transcriptionService;
+    private readonly ILocalizationService _localization;
 
-    // ── NAudio recording resources ──────────────────────────────
+    // -- NAudio recording resources ------------------------------
     private WaveInEvent? _waveIn;
     private WaveFileWriter? _waveWriter;
     private string? _currentRecordingPath;
     private TaskCompletionSource? _recordingStopTcs;
     private bool _disposed;
 
-    // ── State ────────────────────────────────────────────────────
+    // -- State ----------------------------------------------------
     private bool _isRecording;
     private bool _isTranscribing;
     private string _statusMessage = string.Empty;
@@ -36,9 +40,10 @@ public sealed class VoiceCoordinator : IVoiceCoordinator, IDisposable
     public event EventHandler<string>? StatusChanged;
     public event EventHandler<NotificationRequestEventArgs>? NotificationRequested;
 
-    public VoiceCoordinator(ITranscriptionService transcriptionService)
+    public VoiceCoordinator(ITranscriptionService transcriptionService, ILocalizationService localization)
     {
         _transcriptionService = transcriptionService;
+        _localization = localization;
     }
 
     /// <inheritdoc />
@@ -59,14 +64,14 @@ public sealed class VoiceCoordinator : IVoiceCoordinator, IDisposable
     public async Task<string?> TranscribeFileAsync(string filePath)
     {
         SetTranscribing(true);
-        SetStatus("Transcribing...");
+        SetStatus(_localization.GetString("Voice_Transcribing"));
 
         try
         {
             var result = await _transcriptionService.TranscribeFileAsync(
                 filePath,
                 new TranscriptionOptions { ModelSize = "base" },
-                progress: new Progress<TranscriptionProgress>(p => SetStatus(p.CurrentPhase)),
+                progress: new Progress<TranscriptionProgress>(p => SetStatus(DescribePhase(p.CurrentPhase))),
                 CancellationToken.None);
 
             if (!string.IsNullOrWhiteSpace(result.FullText))
@@ -76,15 +81,10 @@ public sealed class VoiceCoordinator : IVoiceCoordinator, IDisposable
 
             return null;
         }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("model", StringComparison.OrdinalIgnoreCase))
+        catch (TranscriptionModelMissingException ex)
         {
             Log.Warning(ex, "Whisper model not available for file transcription");
-            NotificationRequested?.Invoke(this, new NotificationRequestEventArgs
-            {
-                Level = "error",
-                Title = "Model Required",
-                Message = "Download a Whisper model first. Go to Settings > Voice to download one."
-            });
+            NotifyModelRequired();
             return null;
         }
         catch (Exception ex)
@@ -93,8 +93,8 @@ public sealed class VoiceCoordinator : IVoiceCoordinator, IDisposable
             NotificationRequested?.Invoke(this, new NotificationRequestEventArgs
             {
                 Level = "error",
-                Title = "Transcription Failed",
-                Message = $"Could not transcribe the selected file: {ex.Message}"
+                Title = _localization.GetString("Voice_TranscriptionFailedTitle"),
+                Message = _localization.GetString("Voice_FileTranscriptionFailed", ex.Message)
             });
             return null;
         }
@@ -105,7 +105,7 @@ public sealed class VoiceCoordinator : IVoiceCoordinator, IDisposable
         }
     }
 
-    // ── Recording ────────────────────────────────────────────────
+    // -- Recording ------------------------------------------------
 
     private void StartRecording()
     {
@@ -130,7 +130,7 @@ public sealed class VoiceCoordinator : IVoiceCoordinator, IDisposable
 
             _waveIn.StartRecording();
             SetRecording(true);
-            SetStatus("Recording...");
+            SetStatus(_localization.GetString("Voice_Recording"));
 
             Log.Debug("Voice recording started: {Path}", _currentRecordingPath);
         }
@@ -141,8 +141,8 @@ public sealed class VoiceCoordinator : IVoiceCoordinator, IDisposable
             NotificationRequested?.Invoke(this, new NotificationRequestEventArgs
             {
                 Level = "error",
-                Title = "Recording Failed",
-                Message = "Could not start voice recording. Ensure a microphone is connected and permissions are granted."
+                Title = _localization.GetString("Voice_RecordingFailedTitle"),
+                Message = _localization.GetString("Voice_RecordingFailedMessage")
             });
         }
     }
@@ -156,7 +156,7 @@ public sealed class VoiceCoordinator : IVoiceCoordinator, IDisposable
         _waveIn.StopRecording();
         SetRecording(false);
         SetTranscribing(true);
-        SetStatus("Transcribing...");
+        SetStatus(_localization.GetString("Voice_Transcribing"));
 
         if (_recordingStopTcs is not null)
             await _recordingStopTcs.Task;
@@ -171,7 +171,7 @@ public sealed class VoiceCoordinator : IVoiceCoordinator, IDisposable
                     var result = await _transcriptionService.TranscribeFileAsync(
                         _currentRecordingPath,
                         new TranscriptionOptions { ModelSize = "base" },
-                        progress: new Progress<TranscriptionProgress>(p => SetStatus(p.CurrentPhase)),
+                        progress: new Progress<TranscriptionProgress>(p => SetStatus(DescribePhase(p.CurrentPhase))),
                         CancellationToken.None);
 
                     if (!string.IsNullOrWhiteSpace(result.FullText))
@@ -185,8 +185,8 @@ public sealed class VoiceCoordinator : IVoiceCoordinator, IDisposable
                         NotificationRequested?.Invoke(this, new NotificationRequestEventArgs
                         {
                             Level = "info",
-                            Title = "No Speech Detected",
-                            Message = "Could not detect speech in the recording. Try again in a quieter environment."
+                            Title = _localization.GetString("Voice_NoSpeechTitle"),
+                            Message = _localization.GetString("Voice_NoSpeechMessage")
                         });
                     }
                 }
@@ -195,23 +195,18 @@ public sealed class VoiceCoordinator : IVoiceCoordinator, IDisposable
                     NotificationRequested?.Invoke(this, new NotificationRequestEventArgs
                     {
                         Level = "info",
-                        Title = "Recording Too Short",
-                        Message = "The recording was too short to transcribe. Hold the button longer while speaking."
+                        Title = _localization.GetString("Voice_TooShortTitle"),
+                        Message = _localization.GetString("Voice_TooShortMessage")
                     });
                 }
             }
 
             return null;
         }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("model", StringComparison.OrdinalIgnoreCase))
+        catch (TranscriptionModelMissingException ex)
         {
             Log.Warning(ex, "Whisper model not available");
-            NotificationRequested?.Invoke(this, new NotificationRequestEventArgs
-            {
-                Level = "error",
-                Title = "Model Required",
-                Message = "Download a Whisper model first. Go to Settings > Voice to download one."
-            });
+            NotifyModelRequired();
             return null;
         }
         catch (Exception ex)
@@ -220,8 +215,8 @@ public sealed class VoiceCoordinator : IVoiceCoordinator, IDisposable
             NotificationRequested?.Invoke(this, new NotificationRequestEventArgs
             {
                 Level = "error",
-                Title = "Transcription Failed",
-                Message = $"Could not transcribe the recording: {ex.Message}"
+                Title = _localization.GetString("Voice_TranscriptionFailedTitle"),
+                Message = _localization.GetString("Voice_RecordingTranscriptionFailed", ex.Message)
             });
             return null;
         }
@@ -233,7 +228,7 @@ public sealed class VoiceCoordinator : IVoiceCoordinator, IDisposable
         }
     }
 
-    // ── NAudio event handlers ────────────────────────────────────
+    // -- NAudio event handlers ------------------------------------
 
     private void OnRecordingDataAvailable(object? sender, WaveInEventArgs e)
     {
@@ -258,7 +253,20 @@ public sealed class VoiceCoordinator : IVoiceCoordinator, IDisposable
         }
     }
 
-    // ── State helpers ────────────────────────────────────────────
+    // -- State helpers --------------------------------------------
+
+    /// <summary>
+    /// The speech-to-text model is not installed: say where to install it (the Model Manager page).
+    /// </summary>
+    private void NotifyModelRequired()
+    {
+        NotificationRequested?.Invoke(this, new NotificationRequestEventArgs
+        {
+            Level = "error",
+            Title = _localization.GetString("Voice_ModelRequiredTitle"),
+            Message = _localization.GetString("Voice_ModelRequiredMessage")
+        });
+    }
 
     private void SetRecording(bool value)
     {
@@ -278,7 +286,23 @@ public sealed class VoiceCoordinator : IVoiceCoordinator, IDisposable
         StatusChanged?.Invoke(this, message);
     }
 
-    // ── Cleanup ──────────────────────────────────────────────────
+    /// <summary>
+    /// The transcription service names its progress phases in English. The phases it reports are
+    /// shown in the user's language; any other phase is shown as it came.
+    /// </summary>
+    internal string DescribePhase(string phase) => phase switch
+    {
+        "Validating file..." => _localization.GetString("Voice_PhaseValidatingFile"),
+        "Checking model..." => _localization.GetString("Voice_PhaseCheckingModel"),
+        "Preparing audio..." => _localization.GetString("Voice_PhasePreparingAudio"),
+        "Loading model..." => _localization.GetString("Voice_PhaseLoadingModel"),
+        "Transcribing..." => _localization.GetString("Voice_Transcribing"),
+        "Finalizing..." => _localization.GetString("Voice_PhaseFinalizing"),
+        "Complete" => _localization.GetString("Voice_PhaseComplete"),
+        _ => phase
+    };
+
+    // -- Cleanup --------------------------------------------------
 
     private void CleanupRecording()
     {

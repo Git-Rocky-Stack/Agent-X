@@ -18,11 +18,19 @@ public interface IEncryptionStateFile
     /// <summary>
     /// Writes the given <see cref="EncryptionStateInfo"/> record. Overwrites any
     /// existing marker. Call this LAST in the enable-encryption flow, after
-    /// MigrateToEncryptedAsync succeeds — so a failed conversion does not leave a
+    /// MigrateToEncryptedAsync succeeds - so a failed conversion does not leave a
     /// stale marker claiming encryption is on when it is not.
     /// </summary>
     Task WriteAsync(EncryptionStateInfo info);
 
     /// <summary>Removes the marker. Used by the disable-encryption flow (future feature).</summary>
     void Delete();
+
+    /// <summary>
+    /// Renames the marker to <c>encryption.info.json.stale-&lt;UTC timestamp&gt;</c> so it no
+    /// longer drives startup, keeping the file for diagnosis. Used when the marker claims
+    /// encryption but the database on disk is plaintext. Returns the new path, or null when there
+    /// was no marker.
+    /// </summary>
+    string? MoveAside();
 }

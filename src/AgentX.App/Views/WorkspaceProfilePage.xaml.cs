@@ -1,3 +1,4 @@
+using AgentX.App.Helpers;
 using AgentX.App.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -16,7 +17,7 @@ public sealed partial class WorkspaceProfilePage : Page
 
     public WorkspaceProfilePage()
     {
-        ViewModel = App.GetService<WorkspaceProfileViewModel>();
+        ViewModel = PageViewModelFactory.Create<WorkspaceProfileViewModel>();
         InitializeComponent();
         Loaded += OnPageLoaded;
     }

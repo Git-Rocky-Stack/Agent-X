@@ -1,5 +1,6 @@
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Documents;
+using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Export.Models;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
@@ -157,7 +158,6 @@ public sealed class PdfExport : IExportFormat
 
                     // Messages
                     var messages = conversation.Messages.OrderBy(m => m.SortOrder).ToList();
-                    var citationsList = new List<string>();
 
                     foreach (var message in messages)
                     {
@@ -179,6 +179,9 @@ public sealed class PdfExport : IExportFormat
 
                             msgCol.Item().PaddingTop(4).Text(message.Content).FontSize(9.5f);
 
+                            if (options.IncludeCitations)
+                                AddCitations(msgCol, message.CitationsJson);
+
                             if (options.IncludeModelInfo && !string.IsNullOrWhiteSpace(message.ModelId))
                                 msgCol.Item().PaddingTop(4).Text($"Model: {message.ModelId}").FontSize(7).Italic().FontColor("#adb5bd");
 
@@ -190,24 +193,6 @@ public sealed class PdfExport : IExportFormat
                                 if (metaParts.Count > 0)
                                     msgCol.Item().PaddingTop(2).Text(string.Join("  |  ", metaParts)).FontSize(7).FontColor("#adb5bd");
                             }
-                        });
-
-                        if (options.IncludeCitations && !string.IsNullOrWhiteSpace(message.CitationsJson))
-                        {
-                            var citations = TryParseCitations(message.CitationsJson);
-                            citationsList.AddRange(citations);
-                        }
-                    }
-
-                    // Citations
-                    if (citationsList.Count > 0)
-                    {
-                        contentCol.Item().PaddingTop(12);
-                        contentCol.Item().Text("Citations").Bold().FontSize(10).FontColor("#6c757d");
-                        contentCol.Item().PaddingTop(4).Column(citCol =>
-                        {
-                            for (var i = 0; i < citationsList.Count; i++)
-                                citCol.Item().Text($"{i + 1}. {citationsList[i]}").FontSize(8).FontColor("#6c757d");
                         });
                     }
                 });
@@ -300,7 +285,6 @@ public sealed class PdfExport : IExportFormat
 
                         // Messages
                         var messages = conversation.Messages.OrderBy(m => m.SortOrder).ToList();
-                        var citationsList = new List<string>();
 
                         foreach (var message in messages)
                         {
@@ -322,6 +306,9 @@ public sealed class PdfExport : IExportFormat
 
                                 msgCol.Item().PaddingTop(4).Text(message.Content).FontSize(9.5f);
 
+                                if (options.IncludeCitations)
+                                    AddCitations(msgCol, message.CitationsJson);
+
                                 if (options.IncludeModelInfo && !string.IsNullOrWhiteSpace(message.ModelId))
                                     msgCol.Item().PaddingTop(4).Text($"Model: {message.ModelId}").FontSize(7).Italic().FontColor("#adb5bd");
 
@@ -333,24 +320,6 @@ public sealed class PdfExport : IExportFormat
                                     if (metaParts.Count > 0)
                                         msgCol.Item().PaddingTop(2).Text(string.Join("  |  ", metaParts)).FontSize(7).FontColor("#adb5bd");
                                 }
-                            });
-
-                            if (options.IncludeCitations && !string.IsNullOrWhiteSpace(message.CitationsJson))
-                            {
-                                var citations = TryParseCitations(message.CitationsJson);
-                                citationsList.AddRange(citations);
-                            }
-                        }
-
-                        // Citations
-                        if (citationsList.Count > 0)
-                        {
-                            contentCol.Item().PaddingTop(12);
-                            contentCol.Item().Text("Citations").Bold().FontSize(10).FontColor("#6c757d");
-                            contentCol.Item().PaddingTop(4).Column(citCol =>
-                            {
-                                for (var i = 0; i < citationsList.Count; i++)
-                                    citCol.Item().Text($"{i + 1}. {citationsList[i]}").FontSize(8).FontColor("#6c757d");
                             });
                         }
                     }
@@ -468,34 +437,23 @@ public sealed class PdfExport : IExportFormat
         _ => role
     };
 
-    private static List<string> TryParseCitations(string citationsJson)
+    /// <summary>
+    /// Lists a message's sources with it, numbered as the message's own [n] markers number
+    /// them. Each answer numbers its own sources from 1, so one list for the whole export
+    /// would not match the markers of any answer after the first.
+    /// </summary>
+    private static void AddCitations(ColumnDescriptor column, string? citationsJson)
     {
-        var result = new List<string>();
-        try
+        var citations = MessageCitations.Describe(citationsJson);
+        if (citations.Count == 0)
         {
-            using var doc = System.Text.Json.JsonDocument.Parse(citationsJson);
-            if (doc.RootElement.ValueKind != System.Text.Json.JsonValueKind.Array) return result;
-
-            foreach (var element in doc.RootElement.EnumerateArray())
-            {
-                var fileName = element.TryGetProperty("fileName", out var fn) ? fn.GetString() ?? "Unknown" : "Unknown";
-                var pageNumber = element.TryGetProperty("pageNumber", out var pn) && pn.ValueKind == System.Text.Json.JsonValueKind.Number ? pn.GetInt32() : (int?)null;
-                var excerpt = element.TryGetProperty("excerpt", out var ex) ? ex.GetString() : null;
-
-                var description = pageNumber.HasValue ? $"{fileName}, page {pageNumber.Value}" : fileName;
-                if (!string.IsNullOrWhiteSpace(excerpt))
-                {
-                    var shortExcerpt = excerpt.Length > 80 ? excerpt[..80] + "..." : excerpt;
-                    description += $" - \"{shortExcerpt}\"";
-                }
-                result.Add(description);
-            }
+            return;
         }
-        catch (System.Text.Json.JsonException)
+
+        column.Item().PaddingTop(6).Text("Citations").Bold().FontSize(7.5f).FontColor("#6c757d");
+        for (var i = 0; i < citations.Count; i++)
         {
-            // Citation metadata is optional and decorative; malformed or partial
-            // JSON must not fail the export. Return whatever parsed successfully.
+            column.Item().Text($"{i + 1}. {citations[i]}").FontSize(8).FontColor("#6c757d");
         }
-        return result;
     }
 }

@@ -3,7 +3,7 @@ using AgentX.Core.Services.TemporalIdentity.Models;
 namespace AgentX.Core.Services.TemporalIdentity;
 
 /// <summary>
-/// Temporal Identity Service — mines user's past to enable "Past Self" mode.
+/// Temporal Identity Service - mines user's past to enable "Past Self" mode.
 ///
 /// Core capabilities:
 /// - Track belief/opinion evolution over time
@@ -14,11 +14,14 @@ namespace AgentX.Core.Services.TemporalIdentity;
 /// </summary>
 public interface ITemporalIdentityService
 {
-    // ─── Belief Tracking ────────────────────────────────────────────────────────
+    // --- Belief Tracking --------------------------------------------------------
 
     /// <summary>
     /// Analyze a new message for beliefs and update temporal tracking.
-    /// Should be called after each user message in conversations.
+    /// Should be called after each user message in conversations. A significant sentiment
+    /// shift on a known topic marks the belief as evolved and records a
+    /// <see cref="BeliefConflictEntity"/> (previous and new stance), which feeds
+    /// <see cref="GetBeliefConflictsAsync"/> and <see cref="GetPastSelfAsync"/>.
     /// </summary>
     Task ProcessMessageAsync(long messageId, CancellationToken ct = default);
 
@@ -30,7 +33,14 @@ public interface ITemporalIdentityService
 
     /// <summary>
     /// Get what the user believed about a topic at a specific point in time.
-    /// Core of "Past Self" mode.
+    /// Core of "Past Self" mode. <see cref="PastSelfResponse.Stance"/> is the stance held at
+    /// <paramref name="at"/> (the earliest recorded stance when <paramref name="at"/> is null);
+    /// when the stance changed after that time, <see cref="PastSelfResponse.HasEvolved"/> is set
+    /// and <see cref="PastSelfResponse.CurrentStance"/> and
+    /// <see cref="PastSelfResponse.StanceChangedAt"/> give today's stance and when it changed.
+    /// Returns null when the topic is unknown, or was first recorded after <paramref name="at"/>.
+    /// The topic matches regardless of case and surrounding spaces; related conversations and
+    /// documents are those whose title or file name contains it, also regardless of case.
     /// </summary>
     Task<PastSelfResponse?> GetPastSelfAsync(
         string topic,
@@ -40,6 +50,7 @@ public interface ITemporalIdentityService
     /// <summary>
     /// Get belief evolution for a topic across all time.
     /// Shows the journey from "believed X" to "now believes Y".
+    /// The topic matches regardless of case and surrounding spaces.
     /// </summary>
     Task<TemporalBeliefEntity?> GetBeliefEvolutionAsync(
         string topic,
@@ -62,7 +73,7 @@ public interface ITemporalIdentityService
     /// <returns><c>true</c> if the conflict existed and is now acknowledged; <c>false</c> if no such conflict was found.</returns>
     Task<bool> AcknowledgeConflictAsync(long conflictId, CancellationToken ct = default);
 
-    // ─── Insight Harvesting ─────────────────────────────────────────────────────
+    // --- Insight Harvesting -----------------------------------------------------
 
     /// <summary>
     /// Manually capture an insight moment.
@@ -80,7 +91,8 @@ public interface ITemporalIdentityService
 
     /// <summary>
     /// Auto-detect insight moments from message spikes.
-    /// Looks for breakthrough language, excitement markers, etc.
+    /// Looks for breakthrough language, excitement markers, etc. Messages already captured
+    /// are skipped, so this can be called after every turn of a conversation.
     /// </summary>
     Task DetectInsightsAsync(long conversationId, CancellationToken ct = default);
 
@@ -100,7 +112,7 @@ public interface ITemporalIdentityService
         int count = 10,
         CancellationToken ct = default);
 
-    // ─── Engagement Tracking ───────────────────────────────────────────────────
+    // --- Engagement Tracking ---------------------------------------------------
 
     /// <summary>
     /// Record engagement with a piece of content.
@@ -130,11 +142,12 @@ public interface ITemporalIdentityService
         string topic,
         CancellationToken ct = default);
 
-    // ─── Voice Learning ─────────────────────────────────────────────────────────
+    // --- Voice Learning ---------------------------------------------------------
 
     /// <summary>
     /// Analyze a message to learn the user's communication patterns.
-    /// Builds the voice profile for "draft as me" generation.
+    /// Builds the voice profile that <see cref="IVoiceDraftService"/> ("draft as me") describes
+    /// to the AI provider.
     /// </summary>
     Task LearnFromMessageAsync(long messageId, CancellationToken ct = default);
 
@@ -144,16 +157,7 @@ public interface ITemporalIdentityService
     /// </summary>
     Task<VoiceProfileEntity?> GetVoiceProfileAsync(CancellationToken ct = default);
 
-    /// <summary>
-    /// Generate text in the user's voice.
-    /// "Draft as me" — write a response AS the user would.
-    /// </summary>
-    Task<string> GenerateAsUserAsync(
-        string context,
-        string goal,
-        CancellationToken ct = default);
-
-    // ─── Pattern Recognition ─────────────────────────────────────────────────────
+    // --- Pattern Recognition -----------------------------------------------------
 
     /// <summary>
     /// Find similar problems the user has solved before.
@@ -176,6 +180,14 @@ public interface ITemporalIdentityService
     /// Shows active curiosity areas.
     /// </summary>
     Task<List<string>> GetActiveTopicsAsync(
+        int days = 30,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// The topics <see cref="GetActiveTopicsAsync"/> lists, in the same order, each with when it
+    /// was first and most recently recorded.
+    /// </summary>
+    Task<List<ActiveTopic>> GetActiveTopicDetailsAsync(
         int days = 30,
         CancellationToken ct = default);
 }

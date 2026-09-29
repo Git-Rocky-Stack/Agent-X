@@ -34,7 +34,7 @@ public sealed class RoutingProfile
     /// </summary>
     public Dictionary<string, string> TaskOverrides { get; init; } = new(StringComparer.OrdinalIgnoreCase);
 
-    // ── Default Profiles ───────────────────────────────────────────
+    // -- Default Profiles -------------------------------------------
 
     /// <summary>
     /// Cost-optimized profile: prefers local providers for everything to minimize API spend.
@@ -89,7 +89,7 @@ public sealed class RoutingProfile
         }
     };
 
-    // ── Lookup ─────────────────────────────────────────────────────
+    // -- Lookup -----------------------------------------------------
 
     private static readonly Dictionary<string, RoutingProfile> _defaults = new(StringComparer.OrdinalIgnoreCase)
     {

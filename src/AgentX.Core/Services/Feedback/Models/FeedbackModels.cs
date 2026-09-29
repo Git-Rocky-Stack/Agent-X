@@ -29,7 +29,7 @@ public sealed class FeedbackSummary
 
     /// <summary>
     /// Number of feedback entries that contain a user-supplied
-    /// <c>PreferredResponse</c> — i.e., explicit correction examples.
+    /// <c>PreferredResponse</c> - i.e., explicit correction examples.
     /// </summary>
     public int PreferredResponseCount { get; init; }
 }

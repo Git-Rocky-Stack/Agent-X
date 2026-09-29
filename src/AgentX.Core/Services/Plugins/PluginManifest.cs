@@ -49,15 +49,17 @@ public sealed class PluginManifest
 
     /// <summary>
     /// Minimum AgentX application version required to run this plugin (e.g. <c>1.2.0</c>).
-    /// The host rejects installation if its own version is lower than this value.
+    /// The host refuses to install, or to enable, the plugin when its own version is lower
+    /// than this value or the value is not a version.
     /// </summary>
     [JsonPropertyName("minAppVersion")]
     public string MinAppVersion { get; set; } = "1.0.0";
 
     /// <summary>
-    /// List of other plugin IDs that must be installed and enabled before this plugin
-    /// can be activated. The host validates these at activation time and surfaces a
-    /// descriptive error if any dependency is missing.
+    /// List of other plugin IDs that must be installed before this plugin can be installed,
+    /// and enabled before it can be activated. The host checks both and surfaces a
+    /// descriptive error naming any missing dependency; at application start dependencies
+    /// are activated first.
     /// </summary>
     /// <example><c>["com.agentx.core-utils", "com.vendor.shared-models"]</c></example>
     [JsonPropertyName("dependencies")]
@@ -80,18 +82,18 @@ public sealed class PluginManifest
     public string? Readme { get; set; }
 
     /// <summary>
-    /// Declared permissions this plugin requires. The host validates these against
-    /// the user's consent record before activation. Unknown permission strings are
-    /// silently ignored to maintain forward compatibility.
+    /// Permissions the plugin says it needs. Informational only: the host records nothing,
+    /// asks for no consent, and enforces nothing, because plugins run in-process with the
+    /// user's rights. Treat installing a plugin like running any other program.
     /// </summary>
     /// <remarks>
-    /// Well-known permission tokens:
+    /// Conventional permission tokens, for documentation purposes:
     /// <list type="bullet">
-    ///   <item><c>"FileSystem"</c> — read/write access outside the plugin data directory.</item>
-    ///   <item><c>"Network"</c> — outbound HTTP/HTTPS connections.</item>
-    ///   <item><c>"AI"</c> — access to the host AI inference services.</item>
-    ///   <item><c>"Documents"</c> — read access to the user's document library.</item>
-    ///   <item><c>"Clipboard"</c> — access to the system clipboard.</item>
+    ///   <item><c>"FileSystem"</c> - read/write access outside the plugin data directory.</item>
+    ///   <item><c>"Network"</c> - outbound HTTP/HTTPS connections.</item>
+    ///   <item><c>"AI"</c> - access to the host AI inference services.</item>
+    ///   <item><c>"Documents"</c> - read access to the user's document library.</item>
+    ///   <item><c>"Clipboard"</c> - access to the system clipboard.</item>
     /// </list>
     /// </remarks>
     [JsonPropertyName("permissions")]

@@ -1,3 +1,4 @@
+using System.Globalization;
 using AgentX.Core.Services.Plugins.Email;
 using AgentX.Core.Services.Plugins.Email.Models;
 using FluentAssertions;
@@ -12,7 +13,7 @@ namespace AgentX.Tests.Services.Email;
 /// </summary>
 public sealed class EmailModelsTests
 {
-    // ── EmailMessage ─────────────────────────────────────────────────────────
+    // -- EmailMessage ---------------------------------------------------------
 
     [Fact]
     public void EmailMessage_Defaults_AreSet()
@@ -60,7 +61,7 @@ public sealed class EmailModelsTests
         msg.To.Should().HaveCount(1);
     }
 
-    // ── EmailContact ────────────────────────────────────────────────────────
+    // -- EmailContact --------------------------------------------------------
 
     [Fact]
     public void EmailContact_Defaults_AreSet()
@@ -71,7 +72,7 @@ public sealed class EmailModelsTests
         contact.IsMe.Should().BeFalse();
     }
 
-    // ── EmailFolderInfo ──────────────────────────────────────────────────────
+    // -- EmailFolderInfo ------------------------------------------------------
 
     [Fact]
     public void EmailFolderInfo_Defaults_AreSet()
@@ -84,7 +85,7 @@ public sealed class EmailModelsTests
         folder.SourceProvider.Should().BeEmpty();
     }
 
-    // ── EmailSyncSettings ────────────────────────────────────────────────────
+    // -- EmailSyncSettings ----------------------------------------------------
 
     [Fact]
     public void EmailSyncSettings_Defaults_AreSet()
@@ -95,7 +96,7 @@ public sealed class EmailModelsTests
         settings.SyncDaysBack.Should().Be(30);
         settings.EnableAiCategorization.Should().BeTrue();
         settings.CategorizationPrompt.Should().BeNull();
-        settings.IncludeHtmlBody.Should().BeFalse();
+        settings.IncludeHtmlBody.Should().BeTrue();
         settings.IncludeAttachmentNames.Should().BeTrue();
         settings.EnabledFolders.Should().ContainKey("INBOX");
         settings.EnabledFolders["INBOX"].Should().BeTrue();
@@ -140,11 +141,100 @@ public sealed class EmailModelsTests
         }
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void EmailSyncSettings_IncludeHtmlBody_RoundTripsUnderItsNewKey(bool value)
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), $"agentx-email-settings-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(tempDir);
+        try
+        {
+            var path = Path.Combine(tempDir, "email-sync-settings.json");
+            new EmailSyncSettings { IncludeHtmlBody = value }.Save(path);
+
+            File.ReadAllText(path).Should().Contain("\"includeHtmlBodyText\"").And.NotContain("\"includeHtmlBody\"");
+            EmailSyncSettings.Load(path).IncludeHtmlBody.Should().Be(value);
+        }
+        finally
+        {
+            if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true);
+        }
+    }
+
+    [Fact]
+    public void EmailSyncSettings_Load_IgnoresTheOldKeyWrittenWhileTheOptionDidNothing()
+    {
+        // Every settings file saved before carries "includeHtmlBody": false, the old default of
+        // an option nothing read. It must not switch HTML-only bodies off now that it is applied.
+        var tempDir = Path.Combine(Path.GetTempPath(), $"agentx-email-settings-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(tempDir);
+        try
+        {
+            var path = Path.Combine(tempDir, "email-sync-settings.json");
+            File.WriteAllText(path, "{ \"syncIntervalMinutes\": 20, \"includeHtmlBody\": false }");
+
+            var loaded = EmailSyncSettings.Load(path);
+
+            loaded.SyncIntervalMinutes.Should().Be(20);
+            loaded.IncludeHtmlBody.Should().BeTrue();
+        }
+        finally
+        {
+            if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true);
+        }
+    }
+
     [Fact]
     public void EmailSyncSettings_Load_NonExistentPath_ReturnsDefaults()
     {
         var settings = EmailSyncSettings.Load("/non/existent/path.json");
         settings.SyncIntervalMinutes.Should().Be(10);
+    }
+
+    [Fact]
+    public void EmailSyncSettings_Load_CorruptFile_GivesDefaults_AndKeepsTheFileAside()
+    {
+        // A corrupt file used to throw out of Load, aborting connector startup (and the
+        // calendar connector initialized after it).
+        var tempDir = Path.Combine(Path.GetTempPath(), $"agentx-email-settings-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(tempDir);
+        try
+        {
+            var path = Path.Combine(tempDir, "email-sync-settings.json");
+            File.WriteAllText(path, """{ "syncIntervalMinutes": 20, "enabledFolders": """);
+
+            var settings = EmailSyncSettings.Load(path);
+
+            settings.SyncIntervalMinutes.Should().Be(10);
+            settings.EnabledFolders.Should().ContainKey("INBOX");
+            File.Exists(path + ".corrupt").Should().BeTrue("the broken file is kept for inspection");
+        }
+        finally
+        {
+            if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true);
+        }
+    }
+
+    [Fact]
+    public void EmailSyncSettings_Save_ReplacesTheFileAtomically()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), $"agentx-email-settings-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(tempDir);
+        try
+        {
+            var path = Path.Combine(tempDir, "email-sync-settings.json");
+            new EmailSyncSettings { SyncIntervalMinutes = 15 }.Save(path);
+            new EmailSyncSettings { SyncIntervalMinutes = 30 }.Save(path);
+
+            EmailSyncSettings.Load(path).SyncIntervalMinutes.Should().Be(30);
+            Directory.GetFiles(tempDir).Select(Path.GetFileName)
+                .Should().Equal("email-sync-settings.json"); // no temporary file left behind
+        }
+        finally
+        {
+            if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true);
+        }
     }
 }
 
@@ -255,11 +345,132 @@ public sealed class EmailTriageProcessorTests
         content.Should().NotContain("<p>");
     }
 
+    // IncludeHtmlBody was documented as applied, but nothing read it: an HTML-only message was
+    // always indexed with its tags cut out character by character, which kept the CSS of <style>
+    // blocks and the code of scripts as text and ran paragraphs together.
+
+    private const string HtmlOnlyBody =
+        "<html><head><title>Weekly roundup</title><style>.x { color: red; }</style></head>" +
+        "<body><div style=\"display:none\">hidden preheader</div>" +
+        "<p>Invoice&nbsp;#42 is &lt;due&gt; &amp; payable.</p><p>Thanks,<br>Dana</p>" +
+        "<script>track();</script></body></html>";
+
+    [Fact]
+    public void ExtractSearchableContent_HtmlOnlyMessage_StoresItsHtmlAsReadableText()
+    {
+        var msg = CreateSampleMessage(bodyText: "", bodyHtml: HtmlOnlyBody);
+
+        var content = _processor.ExtractSearchableContent(msg, new EmailSyncSettings { IncludeHtmlBody = true });
+
+        content.Should().EndWith("Invoice #42 is <due> & payable.\n\nThanks,\nDana");
+        content.Should().NotContain("color: red").And.NotContain("track()")
+            .And.NotContain("hidden preheader").And.NotContain("Weekly roundup").And.NotContain("<p>");
+    }
+
+    [Fact]
+    public void ExtractSearchableContent_HtmlOnlyMessage_WithIncludeHtmlBodyOff_LeavesTheBodyOut()
+    {
+        var msg = CreateSampleMessage(bodyText: "", bodyHtml: HtmlOnlyBody);
+
+        var content = _processor.ExtractSearchableContent(msg, new EmailSyncSettings { IncludeHtmlBody = false });
+
+        content.Should().NotContain("Invoice").And.NotContain("Dana");
+        content.Should().Contain("Subject: Test Email");
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void ExtractSearchableContent_APlainTextPart_IsAlwaysStoredAndTheHtmlNever(bool includeHtmlBody)
+    {
+        var msg = CreateSampleMessage(bodyText: "Plain body", bodyHtml: "<p>Html body</p>");
+
+        var content = _processor.ExtractSearchableContent(msg, new EmailSyncSettings { IncludeHtmlBody = includeHtmlBody });
+
+        content.Should().Contain("Plain body").And.NotContain("Html body");
+    }
+
+    [Fact]
+    public void ConvertToInboxParameters_HtmlOnlyMessage_TakesThePreviewFromTheReadableText()
+    {
+        // An HTML-only Gmail message has no plain-text preview, so the inbox showed none.
+        var msg = CreateSampleMessage(bodyText: "", bodyHtml: HtmlOnlyBody);
+
+        var (_, _, _, _, _, _, _, preview, contentText) =
+            _processor.ConvertToInboxParameters(msg, new EmailSyncSettings());
+
+        preview.Should().Be("Invoice #42 is <due> & payable.\n\nThanks,\nDana");
+        contentText.Should().Contain("Invoice #42");
+    }
+
+    [Fact]
+    public void ConvertToInboxParameters_HtmlOnlyMessage_WithIncludeHtmlBodyOff_HasNoBodyOrPreview()
+    {
+        var msg = CreateSampleMessage(bodyText: "", bodyHtml: HtmlOnlyBody);
+
+        var (_, _, _, _, _, _, _, preview, contentText) =
+            _processor.ConvertToInboxParameters(msg, new EmailSyncSettings { IncludeHtmlBody = false });
+
+        preview.Should().BeEmpty();
+        contentText.Should().NotContain("Invoice");
+    }
+
+    [Fact]
+    public void ConvertToInboxParameters_ALongHtmlBody_GivesAPreviewOfThreeHundredCharacters()
+    {
+        var msg = CreateSampleMessage(bodyText: "", bodyHtml: "<p>" + new string('a', 1000) + "</p>");
+
+        var (_, _, _, _, _, _, _, preview, _) = _processor.ConvertToInboxParameters(msg);
+
+        preview.Should().HaveLength(300);
+    }
+
+    [Fact]
+    public void ExtractSearchableContent_AttachmentNamesSettingOff_LeavesThemOut()
+    {
+        var msg = CreateSampleMessage(hasAttachments: true);
+        msg.AttachmentNames.Add("salaries-2026.xlsx");
+        var off = new EmailSyncSettings { IncludeAttachmentNames = false };
+
+        var content = _processor.ExtractSearchableContent(msg, off);
+        var (_, _, _, _, _, _, _, _, contentText) = _processor.ConvertToInboxParameters(msg, off);
+
+        content.Should().NotContain("salaries-2026.xlsx");
+        contentText.Should().NotContain("salaries-2026.xlsx");
+        _processor.ExtractSearchableContent(msg, new EmailSyncSettings()).Should().Contain("salaries-2026.xlsx");
+    }
+
+    [Theory]
+    [InlineData("th-TH")]
+    [InlineData("ar-SA")]
+    public void ExtractSearchableContent_DateIsGregorianIso_WhateverTheUserCulture(string cultureName)
+    {
+        var previous = CultureInfo.CurrentCulture;
+        try
+        {
+            CultureInfo.CurrentCulture = new CultureInfo(cultureName);
+            var msg = new EmailMessage
+            {
+                Id = "m1",
+                Subject = "Hello",
+                ReceivedAt = new DateTime(2026, 4, 15, 9, 30, 0, DateTimeKind.Utc),
+                SourceProvider = "google",
+            };
+
+            _processor.ExtractSearchableContent(msg).Should().Contain("Date: 2026-04-15 09:30 UTC");
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = previous;
+        }
+    }
+
     [Fact]
     public void ConvertToInboxParameters_NullMessage_Throws()
     {
         Assert.Throws<ArgumentNullException>(() => _processor.ConvertToInboxParameters(null!));
     }
+
 
     [Fact]
     public void ExtractSearchableContent_NullMessage_Throws()
@@ -267,7 +478,7 @@ public sealed class EmailTriageProcessorTests
         Assert.Throws<ArgumentNullException>(() => _processor.ExtractSearchableContent(null!));
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
+    // -- Helpers --------------------------------------------------------------
 
     private static EmailMessage CreateSampleMessage(
         string id = "msg-1",

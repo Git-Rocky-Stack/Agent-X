@@ -167,7 +167,7 @@ public class DatabaseEncryptionMigratorTests
                 tableCmd.CommandText = "CREATE TABLE t(id INTEGER PRIMARY KEY, v TEXT); INSERT INTO t VALUES(1,'wal-data')";
                 await tableCmd.ExecuteNonQueryAsync();
 
-                // Do NOT checkpoint — data sits in WAL.
+                // Do NOT checkpoint - data sits in WAL.
             }
 
             SqliteConnection.ClearAllPools();
@@ -266,5 +266,187 @@ public class DatabaseEncryptionMigratorTests
         migrator.RecoverIfNeeded(dbPath);
 
         Assert.Equal("normal-content", File.ReadAllText(dbPath));
+    }
+
+    // SE3: the marker is the commit record of a migration, and startup reconciles it with the file.
+
+    [Fact]
+    public async Task MigrateToEncryptedAsync_failed_commit_restores_the_plaintext_database()
+    {
+        using var dir = new TempDirectory();
+        var dbPath = Path.Combine(dir.Path, "agentx.db");
+        CreatePlaintextDatabase(dbPath, rows: 3);
+        var key = DatabaseKeyMaterial.FromBytes(RandomNumberGenerator.GetBytes(32), KeyStorageMode.DpapiWrapped);
+        var sut = new DatabaseEncryptionMigrator();
+
+        var act = () => sut.MigrateToEncryptedAsync(dbPath, key, () => throw new IOException("marker write failed"));
+
+        await act.Should().ThrowAsync<IOException>().WithMessage("marker write failed");
+        SqliteFileInspectorProbe.HasPlaintextHeader(dbPath).Should().BeTrue();
+        CountRows(dbPath, hexKey: null).Should().Be(3);
+        File.Exists(dbPath + ".plain.bak").Should().BeFalse();
+        File.Exists(dbPath + ".enc.tmp").Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task MigrateToEncryptedAsync_runs_the_commit_after_the_encrypted_file_is_verified()
+    {
+        using var dir = new TempDirectory();
+        var dbPath = Path.Combine(dir.Path, "agentx.db");
+        CreatePlaintextDatabase(dbPath, rows: 2);
+        var key = DatabaseKeyMaterial.FromBytes(RandomNumberGenerator.GetBytes(32), KeyStorageMode.DpapiWrapped);
+        bool? encryptedAtCommit = null;
+        bool? plaintextBackupAtCommit = null;
+
+        await new DatabaseEncryptionMigrator().MigrateToEncryptedAsync(dbPath, key, () =>
+        {
+            encryptedAtCommit = CountRows(dbPath, key.HexKey) == 2;
+            plaintextBackupAtCommit = File.Exists(dbPath + ".plain.bak");
+            return Task.CompletedTask;
+        });
+
+        encryptedAtCommit.Should().BeTrue("the commit must only run once the encrypted file opens with the key");
+        plaintextBackupAtCommit.Should().BeTrue("the rollback copy must still exist while the commit runs");
+        File.Exists(dbPath + ".plain.bak").Should().BeFalse("a committed migration removes its plaintext copy");
+    }
+
+    [Fact]
+    public async Task MigrateToEncryptedAsync_refuses_an_already_encrypted_database()
+    {
+        using var dir = new TempDirectory();
+        var dbPath = Path.Combine(dir.Path, "agentx.db");
+        CreatePlaintextDatabase(dbPath, rows: 1);
+        var key = DatabaseKeyMaterial.FromBytes(RandomNumberGenerator.GetBytes(32), KeyStorageMode.DpapiWrapped);
+        var sut = new DatabaseEncryptionMigrator();
+        await sut.MigrateToEncryptedAsync(dbPath, key);
+        var encryptedBytes = File.ReadAllBytes(dbPath);
+
+        var act = () => sut.MigrateToEncryptedAsync(dbPath, key);
+
+        await act.Should().ThrowAsync<InvalidOperationException>();
+        File.ReadAllBytes(dbPath).Should().Equal(encryptedBytes);
+    }
+
+    [Fact]
+    public async Task RecoverIfNeeded_retires_a_marker_whose_database_is_plaintext()
+    {
+        using var dir = new TempDirectory();
+        var dbPath = Path.Combine(dir.Path, "agentx.db");
+        CreatePlaintextDatabase(dbPath, rows: 1);
+        var stateFile = new EncryptionStateFile(Path.Combine(dir.Path, "encryption.info.json"));
+        await stateFile.WriteAsync(NewMarker());
+
+        new DatabaseEncryptionMigrator(stateFile).RecoverIfNeeded(dbPath);
+
+        // A marker over a plaintext file made every start apply a key and fail with SQLite
+        // error 26; the stale marker is moved aside and the plaintext database opens again.
+        stateFile.Exists().Should().BeFalse();
+        Directory.GetFiles(dir.Path, "encryption.info.json.stale-*").Should().ContainSingle();
+        CountRows(dbPath, hexKey: null).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task RecoverIfNeeded_keeps_the_marker_of_an_encrypted_database()
+    {
+        using var dir = new TempDirectory();
+        var dbPath = Path.Combine(dir.Path, "agentx.db");
+        CreatePlaintextDatabase(dbPath, rows: 1);
+        var key = DatabaseKeyMaterial.FromBytes(RandomNumberGenerator.GetBytes(32), KeyStorageMode.DpapiWrapped);
+        await new DatabaseEncryptionMigrator().MigrateToEncryptedAsync(dbPath, key);
+        var stateFile = new EncryptionStateFile(Path.Combine(dir.Path, "encryption.info.json"));
+        await stateFile.WriteAsync(NewMarker());
+
+        new DatabaseEncryptionMigrator(stateFile).RecoverIfNeeded(dbPath);
+
+        stateFile.Exists().Should().BeTrue();
+        CountRows(dbPath, key.HexKey).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task RecoverIfNeeded_rolls_back_a_swap_that_was_never_committed()
+    {
+        using var dir = new TempDirectory();
+        var dbPath = Path.Combine(dir.Path, "agentx.db");
+        var key = DatabaseKeyMaterial.FromBytes(RandomNumberGenerator.GetBytes(32), KeyStorageMode.DpapiWrapped);
+        // Crash window: the encrypted file is installed and the plaintext copy still exists, but
+        // the marker was never written.
+        CreatePlaintextDatabase(dbPath, rows: 4);
+        await new DatabaseEncryptionMigrator().MigrateToEncryptedAsync(dbPath, key);
+        CreatePlaintextDatabase(dbPath + ".plain.bak", rows: 4);
+        var stateFile = new EncryptionStateFile(Path.Combine(dir.Path, "encryption.info.json"));
+
+        new DatabaseEncryptionMigrator(stateFile).RecoverIfNeeded(dbPath);
+
+        SqliteFileInspectorProbe.HasPlaintextHeader(dbPath).Should().BeTrue();
+        CountRows(dbPath, hexKey: null).Should().Be(4);
+        File.Exists(dbPath + ".plain.bak").Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task RecoverIfNeeded_removes_the_plaintext_copy_of_a_committed_swap()
+    {
+        using var dir = new TempDirectory();
+        var dbPath = Path.Combine(dir.Path, "agentx.db");
+        var key = DatabaseKeyMaterial.FromBytes(RandomNumberGenerator.GetBytes(32), KeyStorageMode.DpapiWrapped);
+        CreatePlaintextDatabase(dbPath, rows: 2);
+        await new DatabaseEncryptionMigrator().MigrateToEncryptedAsync(dbPath, key);
+        // Crash window after the commit: the marker exists and the plaintext copy was not yet removed.
+        CreatePlaintextDatabase(dbPath + ".plain.bak", rows: 2);
+        var stateFile = new EncryptionStateFile(Path.Combine(dir.Path, "encryption.info.json"));
+        await stateFile.WriteAsync(NewMarker());
+
+        new DatabaseEncryptionMigrator(stateFile).RecoverIfNeeded(dbPath);
+
+        File.Exists(dbPath + ".plain.bak").Should().BeFalse("a plaintext copy of an encrypted vault must not linger");
+        stateFile.Exists().Should().BeTrue();
+        CountRows(dbPath, key.HexKey).Should().Be(2);
+    }
+
+    private static EncryptionStateInfo NewMarker() =>
+        new(EncryptionStateFile.CurrentVersion, KeyStorageMode.DpapiWrapped, DateTimeOffset.UtcNow, "DPAPI:AAAA", null);
+
+    private static void CreatePlaintextDatabase(string path, int rows)
+    {
+        using (var conn = new SqliteConnection($"Data Source={path};Pooling=False"))
+        {
+            conn.Open();
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "CREATE TABLE docs (id INTEGER PRIMARY KEY, title TEXT);";
+            cmd.ExecuteNonQuery();
+            for (var i = 0; i < rows; i++)
+            {
+                cmd.CommandText = $"INSERT INTO docs (title) VALUES ('row {i}');";
+                cmd.ExecuteNonQuery();
+            }
+        }
+        SqliteConnection.ClearAllPools();
+    }
+
+    private static long CountRows(string path, string? hexKey)
+    {
+        using var conn = new SqliteConnection($"Data Source={path};Pooling=False");
+        conn.Open();
+        if (hexKey is not null)
+        {
+            using var keyCmd = conn.CreateCommand();
+            keyCmd.CommandText = $@"PRAGMA key = ""x'{hexKey}'"";";
+            keyCmd.ExecuteNonQuery();
+        }
+
+        using var count = conn.CreateCommand();
+        count.CommandText = "SELECT COUNT(*) FROM docs";
+        return Convert.ToInt64(count.ExecuteScalar());
+    }
+
+    /// <summary>Reads the 16-byte plaintext SQLite magic directly from the file.</summary>
+    private static class SqliteFileInspectorProbe
+    {
+        public static bool HasPlaintextHeader(string path)
+        {
+            var header = new byte[16];
+            using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            return stream.Read(header, 0, 16) == 16
+                && System.Text.Encoding.ASCII.GetString(header) == "SQLite format 3\0";
+        }
     }
 }

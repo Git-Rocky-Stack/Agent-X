@@ -294,12 +294,30 @@ public class ConversationService : IConversationService
                 return;
             }
 
-            _db.Conversations.Remove(conversation);
-            await _db.SaveChangesAsync();
+            // Branches reference their parent through a Restrict foreign key, so the database
+            // refuses to delete a conversation that still has branches. Each branch already
+            // holds a full copy of the history it was forked from, so it is promoted into the
+            // deleted conversation's place in the tree instead of being deleted with it.
+            var branches = await _db.Conversations
+                .Where(c => c.ParentConversationId == conversationId)
+                .ToListAsync();
+
+            await SaveStagedChangesAsync(() =>
+            {
+                foreach (var branch in branches)
+                {
+                    branch.ParentConversationId = conversation.ParentConversationId;
+                    branch.BranchPointMessageId = conversation.ParentConversationId is null
+                        ? null
+                        : conversation.BranchPointMessageId;
+                }
+
+                _db.Conversations.Remove(conversation);
+            });
 
             _log.Information(
-                "Deleted conversation {ConversationId} (cascade deletes messages)",
-                conversationId);
+                "Deleted conversation {ConversationId} (cascade deletes messages, {BranchCount} branches promoted)",
+                conversationId, branches.Count);
         }
         catch (Exception ex)
         {
@@ -339,7 +357,9 @@ public class ConversationService : IConversationService
         string role,
         string content,
         int? tokenCount = null,
-        double? generationTimeMs = null)
+        double? generationTimeMs = null,
+        string? modelId = null,
+        string? citationsJson = null)
     {
         try
         {
@@ -366,6 +386,8 @@ public class ConversationService : IConversationService
                 Timestamp = DateTime.UtcNow,
                 TokenCount = tokenCount ?? 0,
                 GenerationTimeMs = generationTimeMs,
+                ModelId = string.IsNullOrWhiteSpace(modelId) ? null : modelId,
+                CitationsJson = string.IsNullOrWhiteSpace(citationsJson) ? null : citationsJson,
                 SortOrder = maxSortOrder + 1,
             };
 
@@ -402,49 +424,6 @@ public class ConversationService : IConversationService
     }
 
     /// <inheritdoc />
-    public async Task DeleteLastAssistantMessageAsync(long conversationId)
-    {
-        try
-        {
-            var lastAssistantMessage = await _db.Messages
-                .Where(m => m.ConversationId == conversationId && m.Role == "assistant")
-                .OrderByDescending(m => m.SortOrder)
-                .FirstOrDefaultAsync();
-
-            if (lastAssistantMessage is null)
-            {
-                _log.Warning(
-                    "No assistant message found to delete in conversation {ConversationId}",
-                    conversationId);
-                return;
-            }
-
-            var conversation = await _db.Conversations.FindAsync(conversationId);
-            if (conversation is not null)
-            {
-                conversation.MessageCount = Math.Max(0, conversation.MessageCount - 1);
-                conversation.TokensUsed = Math.Max(0, conversation.TokensUsed - lastAssistantMessage.TokenCount);
-                conversation.UpdatedAt = DateTime.UtcNow;
-            }
-
-            _db.Messages.Remove(lastAssistantMessage);
-            await _db.SaveChangesAsync();
-            await TryMarkSummaryStaleAsync(conversationId, forceFullRefresh: true);
-
-            _log.Information(
-                "Deleted last assistant message (Id={MessageId}) from conversation {ConversationId}",
-                lastAssistantMessage.Id, conversationId);
-        }
-        catch (Exception ex)
-        {
-            _log.Error(
-                ex, "Failed to delete last assistant message from conversation {ConversationId}",
-                conversationId);
-            throw;
-        }
-    }
-
-    /// <inheritdoc />
     public async Task DeleteMessageAsync(long messageId)
     {
         try
@@ -457,15 +436,18 @@ public class ConversationService : IConversationService
             }
 
             var conversation = await _db.Conversations.FindAsync(message.ConversationId);
-            if (conversation is not null)
-            {
-                conversation.MessageCount = Math.Max(0, conversation.MessageCount - 1);
-                conversation.TokensUsed = Math.Max(0, conversation.TokensUsed - message.TokenCount);
-                conversation.UpdatedAt = DateTime.UtcNow;
-            }
 
-            _db.Messages.Remove(message);
-            await _db.SaveChangesAsync();
+            await SaveStagedChangesAsync(() =>
+            {
+                if (conversation is not null)
+                {
+                    conversation.MessageCount = Math.Max(0, conversation.MessageCount - 1);
+                    conversation.TokensUsed = Math.Max(0, conversation.TokensUsed - message.TokenCount);
+                    conversation.UpdatedAt = DateTime.UtcNow;
+                }
+
+                _db.Messages.Remove(message);
+            });
             await TryMarkSummaryStaleAsync(message.ConversationId, forceFullRefresh: true);
 
             _log.Information("Deleted message {MessageId} from conversation {ConversationId}",
@@ -509,37 +491,52 @@ public class ConversationService : IConversationService
     }
 
     /// <inheritdoc />
-    public async Task DeleteMessagesAfterAsync(long conversationId, int sortOrder)
+    public async Task<int> DeleteMessageAndFollowingAsync(long conversationId, long messageId)
     {
         try
         {
-            var toDelete = await _db.Messages
-                .Where(m => m.ConversationId == conversationId && m.SortOrder > sortOrder)
-                .ToListAsync();
+            var anchor = await _db.Messages
+                .Where(m => m.Id == messageId && m.ConversationId == conversationId)
+                .Select(m => new { m.SortOrder })
+                .FirstOrDefaultAsync();
 
-            if (toDelete.Count == 0) return;
-
-            var conversation = await _db.Conversations.FindAsync(conversationId);
-            if (conversation is not null)
+            if (anchor is null)
             {
-                var tokenSum = toDelete.Sum(m => m.TokenCount);
-                conversation.MessageCount = Math.Max(0, conversation.MessageCount - toDelete.Count);
-                conversation.TokensUsed = Math.Max(0, conversation.TokensUsed - tokenSum);
-                conversation.UpdatedAt = DateTime.UtcNow;
+                _log.Warning(
+                    "Cannot truncate: message {MessageId} is not in conversation {ConversationId}",
+                    messageId, conversationId);
+                return 0;
             }
 
-            _db.Messages.RemoveRange(toDelete);
-            await _db.SaveChangesAsync();
+            var toDelete = await _db.Messages
+                .Where(m => m.ConversationId == conversationId && m.SortOrder >= anchor.SortOrder)
+                .ToListAsync();
+
+            var conversation = await _db.Conversations.FindAsync(conversationId);
+
+            await SaveStagedChangesAsync(() =>
+            {
+                if (conversation is not null)
+                {
+                    conversation.MessageCount = Math.Max(0, conversation.MessageCount - toDelete.Count);
+                    conversation.TokensUsed = Math.Max(0, conversation.TokensUsed - toDelete.Sum(m => m.TokenCount));
+                    conversation.UpdatedAt = DateTime.UtcNow;
+                }
+
+                _db.Messages.RemoveRange(toDelete);
+            });
             await TryMarkSummaryStaleAsync(conversationId, forceFullRefresh: true);
 
             _log.Information(
-                "Deleted {Count} messages after SortOrder {SortOrder} in conversation {ConversationId}",
-                toDelete.Count, sortOrder, conversationId);
+                "Deleted message {MessageId} and {FollowingCount} following messages in conversation {ConversationId}",
+                messageId, toDelete.Count - 1, conversationId);
+
+            return toDelete.Count;
         }
         catch (Exception ex)
         {
-            _log.Error(ex, "Failed to delete messages after SortOrder {SortOrder} in conversation {ConversationId}",
-                sortOrder, conversationId);
+            _log.Error(ex, "Failed to delete message {MessageId} and the messages after it in conversation {ConversationId}",
+                messageId, conversationId);
             throw;
         }
     }
@@ -574,7 +571,7 @@ public class ConversationService : IConversationService
         }
     }
 
-    // ── Folder / Tag Organization ────────────────────────────────
+    // -- Folder / Tag Organization --------------------------------
 
     /// <inheritdoc />
     public async Task SetConversationFolderAsync(long conversationId, string? folderName)
@@ -717,6 +714,52 @@ public class ConversationService : IConversationService
         {
             _log.Error(ex, "Failed to get conversations for folder '{FolderName}'", folderName);
             throw;
+        }
+    }
+
+    /// <summary>
+    /// Applies <paramref name="stage"/> to the tracker and saves it. The context is shared by the
+    /// whole app, so a failed save must not leave its deletes and edits queued: the next save
+    /// anywhere would replay the failing statements. On failure every entry the stage made
+    /// pending is detached (the next read reloads it) before the exception propagates; changes
+    /// that were already pending beforehand belong to other flows and are left alone.
+    /// </summary>
+    private async Task SaveStagedChangesAsync(Action stage)
+    {
+        var alreadyPending = _db.ChangeTracker.Entries()
+            .Where(entry => entry.State is EntityState.Added or EntityState.Modified or EntityState.Deleted)
+            .Select(entry => entry.Entity)
+            .ToHashSet(ReferenceEqualityComparer.Instance);
+
+        stage();
+
+        try
+        {
+            await _db.SaveChangesAsync();
+        }
+        catch
+        {
+            DiscardStagedChanges(alreadyPending);
+            throw;
+        }
+    }
+
+    private void DiscardStagedChanges(HashSet<object> alreadyPending)
+    {
+        try
+        {
+            foreach (var entry in _db.ChangeTracker.Entries().ToList())
+            {
+                if (entry.State is EntityState.Added or EntityState.Modified or EntityState.Deleted &&
+                    !alreadyPending.Contains(entry.Entity))
+                {
+                    entry.State = EntityState.Detached;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _log.Warning(ex, "Failed to discard the changes of a failed save");
         }
     }
 

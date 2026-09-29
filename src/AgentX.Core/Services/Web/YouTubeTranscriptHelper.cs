@@ -18,28 +18,79 @@ namespace AgentX.Core.Services.Web;
 internal static class YouTubeTranscriptHelper
 {
     /// <summary>
-    /// Regex to match YouTube video URLs and extract the video ID.
-    /// Supports youtube.com/watch?v=, youtu.be/, youtube.com/embed/, and youtube.com/shorts/.
+    /// A YouTube video ID: exactly 11 characters from the URL-safe base64 alphabet.
     /// </summary>
-    public static readonly Regex YouTubeUrlRegex = new(
-        @"(?:https?://)?(?:www\.)?(?:youtube\.com/(?:watch\?.*?v=|embed/|shorts/)|youtu\.be/)(?<id>[\w-]{11})",
-        RegexOptions.Compiled | RegexOptions.IgnoreCase);
+    private static readonly Regex VideoIdPattern = new(
+        @"^[A-Za-z0-9_-]{11}$",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
     /// <summary>
     /// Determines whether the given URL points to a YouTube video.
     /// </summary>
-    public static bool IsYouTubeUrl(string? url)
+    public static bool IsYouTubeUrl(string? url) => ExtractVideoId(url) is not null;
+
+    /// <summary>
+    /// Extracts the YouTube video ID from youtube.com/watch?v=, youtu.be/, youtube.com/embed/,
+    /// youtube.com/shorts/ and youtube.com/live/ URLs. The URL is parsed and its host compared
+    /// exactly, so look-alike hosts (notyoutube.com) and YouTube links embedded in another
+    /// site's query string are not treated as YouTube videos.
+    /// </summary>
+    public static string? ExtractVideoId(string? url)
     {
-        return !string.IsNullOrWhiteSpace(url) && YouTubeUrlRegex.IsMatch(url);
+        if (string.IsNullOrWhiteSpace(url))
+            return null;
+
+        var candidate = url.Trim();
+        if (!candidate.Contains("://", StringComparison.Ordinal))
+            candidate = "https://" + candidate;
+
+        if (!Uri.TryCreate(candidate, UriKind.Absolute, out var uri)
+            || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+        {
+            return null;
+        }
+
+        var host = uri.Host.ToLowerInvariant();
+        var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        string? id = null;
+
+        if (host is "youtu.be" or "www.youtu.be")
+        {
+            id = segments.Length == 1 ? segments[0] : null;
+        }
+        else if (host is "youtube.com" or "www.youtube.com" or "m.youtube.com" or "music.youtube.com")
+        {
+            if (segments.Length == 1 && segments[0].Equals("watch", StringComparison.OrdinalIgnoreCase))
+            {
+                id = GetQueryValue(uri.Query, "v");
+            }
+            else if (segments.Length >= 2
+                     && segments[0].ToLowerInvariant() is "embed" or "shorts" or "live")
+            {
+                id = segments[1];
+            }
+        }
+
+        return id is not null && VideoIdPattern.IsMatch(id) ? id : null;
     }
 
     /// <summary>
-    /// Extracts the YouTube video ID from various URL formats.
+    /// Returns the unescaped value of the first query parameter named <paramref name="name"/>,
+    /// or null when the query does not contain it.
     /// </summary>
-    public static string? ExtractVideoId(string url)
+    private static string? GetQueryValue(string query, string name)
     {
-        var match = YouTubeUrlRegex.Match(url);
-        return match.Success ? match.Groups["id"].Value : null;
+        foreach (var pair in query.TrimStart('?').Split('&', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var separator = pair.IndexOf('=');
+            var key = separator < 0 ? pair : pair[..separator];
+            if (key.Equals(name, StringComparison.Ordinal))
+            {
+                return separator < 0 ? string.Empty : Uri.UnescapeDataString(pair[(separator + 1)..]);
+            }
+        }
+
+        return null;
     }
 
     /// <summary>

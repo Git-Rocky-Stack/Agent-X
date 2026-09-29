@@ -31,7 +31,7 @@ public interface IWebContentFetcher
 /// Result of an HTTP content fetch operation.
 /// </summary>
 /// <param name="Html">The HTML content of the page, or an empty string if the fetch failed.</param>
-/// <param name="FinalUrl">The final URL after following any redirects. Null if the URL could not be determined.</param>
+/// <param name="FinalUrl">The final URL after following any redirects; the requested URL, as given, when there were none.</param>
 /// <param name="Elapsed">The total elapsed time for the fetch operation, including any JS rendering fallback.</param>
 /// <param name="UsedJsRendering">Whether JavaScript rendering (headless browser) was used to obtain the content.</param>
 public record FetchResult(string Html, string? FinalUrl, TimeSpan Elapsed, bool UsedJsRendering);

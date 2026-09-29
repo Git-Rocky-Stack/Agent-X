@@ -1,6 +1,7 @@
 using System.Text;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
+using AgentX.Core.Services.Localization;
 using AgentX.Core.Services.Screen;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -18,9 +19,10 @@ public partial class QuickChatViewModel : ObservableObject
 {
     private readonly IAiService _aiService;
     private readonly IScreenCaptureService? _screenCaptureService;
+    private readonly ILocalizationService _localization;
     private CancellationTokenSource? _queryCts;
 
-    // ── Observable Properties ─────────────────────────────────────
+    // -- Observable Properties -------------------------------------
 
     [ObservableProperty]
     private string _queryText = string.Empty;
@@ -31,24 +33,37 @@ public partial class QuickChatViewModel : ObservableObject
     [ObservableProperty]
     private bool _isProcessing;
 
+    // "Ready" in the user's language, set by the constructor.
     [ObservableProperty]
-    private string _statusMessage = "Ready";
+    private string _statusMessage;
 
     [ObservableProperty]
     private bool _screenContextCaptured;
 
-    public QuickChatViewModel(IAiService aiService)
+    /// <summary>
+    /// The window that was in front when Quick Chat was summoned; screen context is read from
+    /// it. It has to be recorded then: by the time a query runs, the foreground window is
+    /// Quick Chat itself. Zero when none was recorded.
+    /// </summary>
+    public IntPtr TargetWindowHandle { get; set; }
+
+    public QuickChatViewModel(IAiService aiService, ILocalizationService localization)
     {
         _aiService = aiService ?? throw new ArgumentNullException(nameof(aiService));
+        _localization = localization ?? throw new ArgumentNullException(nameof(localization));
+        _statusMessage = _localization.GetString("QuickChat_Ready");
     }
 
-    public QuickChatViewModel(IAiService aiService, IScreenCaptureService screenCaptureService)
+    public QuickChatViewModel(
+        IAiService aiService,
+        IScreenCaptureService screenCaptureService,
+        ILocalizationService localization)
+        : this(aiService, localization)
     {
-        _aiService = aiService ?? throw new ArgumentNullException(nameof(aiService));
         _screenCaptureService = screenCaptureService;
     }
 
-    // ── Commands ─────────────────────────────────────────────────
+    // -- Commands -------------------------------------------------
 
     /// <summary>
     /// Submits the query to the AI service and streams the response token-by-token.
@@ -62,7 +77,7 @@ public partial class QuickChatViewModel : ObservableObject
         if (string.IsNullOrWhiteSpace(query)) return;
 
         IsProcessing = true;
-        StatusMessage = "Thinking...";
+        StatusMessage = _localization.GetString("QuickChat_Thinking");
         ResponseText = string.Empty;
         ScreenContextCaptured = false;
 
@@ -78,7 +93,9 @@ public partial class QuickChatViewModel : ObservableObject
             {
                 try
                 {
-                    screenContext = await _screenCaptureService.CaptureActiveWindowAndOcrAsync(ct).ConfigureAwait(false);
+                    screenContext = TargetWindowHandle != IntPtr.Zero
+                        ? await _screenCaptureService.CaptureWindowAndOcrAsync(TargetWindowHandle, ct).ConfigureAwait(false)
+                        : await _screenCaptureService.CaptureActiveWindowAndOcrAsync(ct).ConfigureAwait(false);
                     ScreenContextCaptured = !screenContext.IsEmpty;
                 }
                 catch (Exception ex)
@@ -92,8 +109,11 @@ public partial class QuickChatViewModel : ObservableObject
                 new() { Role = "user", Content = query }
             };
 
+            // Quick Chat retrieves nothing from the vault; claiming otherwise invited answers that
+            // pretend to quote the user's documents.
             var systemPrompt = "You are Agent-X Quick Chat, a fast assistant that answers questions " +
-                               "concisely based on the user's knowledge vault. Be brief, accurate, and helpful. " +
+                               "concisely from general knowledge and any screen or IDE context given below. " +
+                               "You cannot see the user's documents here. Be brief, accurate, and helpful. " +
                                "If you don't know the answer, say so clearly.";
 
             // Append IDE context and screen context to the system prompt if available.
@@ -103,7 +123,7 @@ public partial class QuickChatViewModel : ObservableObject
                 contextSection.AppendLine();
                 contextSection.AppendLine();
 
-                // IDE context comes first — it's structured and more precise than OCR
+                // IDE context comes first - it's structured and more precise than OCR
                 if (screenContext.IdeContext is not null)
                 {
                     contextSection.AppendLine("--- IDE CONTEXT ---");
@@ -144,17 +164,19 @@ public partial class QuickChatViewModel : ObservableObject
                 ResponseText = sb.ToString();
             }
 
-            StatusMessage = string.IsNullOrEmpty(ResponseText) ? "No response received" : "Done";
+            StatusMessage = string.IsNullOrEmpty(ResponseText)
+                ? _localization.GetString("QuickChat_NoResponse")
+                : _localization.GetString("QuickChat_Done");
         }
         catch (OperationCanceledException)
         {
-            StatusMessage = "Cancelled";
+            StatusMessage = _localization.GetString("QuickChat_Cancelled");
             Log.Debug("Quick Chat query cancelled");
         }
         catch (Exception ex)
         {
-            StatusMessage = "Error";
-            ResponseText = $"Failed to get response: {ex.Message}";
+            StatusMessage = _localization.GetString("QuickChat_Error");
+            ResponseText = _localization.GetString("QuickChat_ResponseFailed", ex.Message);
             Log.Warning(ex, "Quick Chat query failed");
         }
         finally
@@ -176,7 +198,7 @@ public partial class QuickChatViewModel : ObservableObject
         _queryCts?.Cancel();
         QueryText = string.Empty;
         ResponseText = string.Empty;
-        StatusMessage = "Ready";
+        StatusMessage = _localization.GetString("QuickChat_Ready");
         IsProcessing = false;
         ScreenContextCaptured = false;
     }

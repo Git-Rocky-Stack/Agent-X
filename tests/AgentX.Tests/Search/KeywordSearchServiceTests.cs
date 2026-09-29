@@ -13,7 +13,7 @@ using Xunit;
 namespace AgentX.Tests.Search;
 
 /// <summary>
-/// Behavioural coverage for <see cref="KeywordSearchService"/> — the SQLite FTS5 full-text
+/// Behavioural coverage for <see cref="KeywordSearchService"/> - the SQLite FTS5 full-text
 /// pipeline (porter/unicode61 virtual table init -> chunk indexing in a transaction -> MATCH
 /// query with BM25-rank normalisation -> post-query metadata filters -> excerpt building ->
 /// TopK) plus removal and full-index rebuild.
@@ -45,7 +45,7 @@ public sealed class KeywordSearchServiceTests : IDisposable
         _logger.Dispose();
     }
 
-    // ─── Seed / raw-SQL helpers ─────────────────────────────────────────────────
+    // --- Seed / raw-SQL helpers -------------------------------------------------
 
     private DocumentEntity SeedDocument(
         string fileName,
@@ -123,7 +123,7 @@ public sealed class KeywordSearchServiceTests : IDisposable
             CreatedBefore = createdBefore,
         };
 
-    // ─── Construction ────────────────────────────────────────────────────────────
+    // --- Construction ------------------------------------------------------------
 
     [Fact]
     public void Ctor_guards_null_dependencies()
@@ -134,7 +134,7 @@ public sealed class KeywordSearchServiceTests : IDisposable
             .Should().Throw<ArgumentNullException>().WithParameterName("logger");
     }
 
-    // ─── InitializeFtsAsync ──────────────────────────────────────────────────────
+    // --- InitializeFtsAsync ------------------------------------------------------
 
     [Fact]
     public async Task InitializeFts_creates_fts5_table_and_is_idempotent()
@@ -142,7 +142,7 @@ public sealed class KeywordSearchServiceTests : IDisposable
         // This test doubles as the FTS5-availability probe for the SQLCipher bundle.
         // If it fails with "no such module: fts5" STOP THE TASK and report.
         await _service.InitializeFtsAsync();
-        await _service.InitializeFtsAsync(); // IF NOT EXISTS — second call must not throw
+        await _service.InitializeFtsAsync(); // IF NOT EXISTS - second call must not throw
 
         var conn = _db.Database.GetDbConnection();
         using var cmd = conn.CreateCommand();
@@ -150,7 +150,7 @@ public sealed class KeywordSearchServiceTests : IDisposable
         ((long)(await cmd.ExecuteScalarAsync())!).Should().Be(1);
     }
 
-    // ─── IndexDocumentChunksAsync ────────────────────────────────────────────────
+    // --- IndexDocumentChunksAsync ------------------------------------------------
 
     [Fact]
     public async Task Index_missing_document_is_a_noop()
@@ -200,6 +200,54 @@ public sealed class KeywordSearchServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Index_twice_replaces_the_rows_instead_of_duplicating_them()
+    {
+        // A re-index (or retry) must not leave a second copy of the text in the index:
+        // duplicate rows mean duplicate keyword hits for the same chunk.
+        await _service.InitializeFtsAsync();
+        var doc = SeedDocument("twice.pdf", chunkContents: new[] { "alpha content", "bravo content" });
+
+        await _service.IndexDocumentChunksAsync(doc.Id);
+        await _service.IndexDocumentChunksAsync(doc.Id);
+
+        (await CountFtsRowsAsync(doc.Id)).Should().Be(2);
+    }
+
+    [Fact]
+    public async Task Index_after_chunks_are_replaced_drops_the_previous_versions_text()
+    {
+        await _service.InitializeFtsAsync();
+        var doc = SeedDocument("versioned.pdf", chunkContents: new[] { "obsolete wording here" });
+        await _service.IndexDocumentChunksAsync(doc.Id);
+
+        // Simulate a re-index: the old chunks are deleted and new ones written.
+        _db.DocumentChunks.RemoveRange(_db.DocumentChunks.Where(c => c.DocumentId == doc.Id));
+        _db.DocumentChunks.Add(new DocumentChunkEntity { DocumentId = doc.Id, ChunkIndex = 0, Content = "current wording" });
+        _db.SaveChanges();
+
+        await _service.IndexDocumentChunksAsync(doc.Id);
+
+        (await CountFtsRowsAsync(doc.Id)).Should().Be(1);
+        (await _service.SearchAsync(Q("obsolete"))).Should().BeEmpty();
+        (await _service.SearchAsync(Q("current"))).Should().ContainSingle();
+    }
+
+    [Fact]
+    public async Task Index_document_that_now_has_no_chunks_clears_its_old_rows()
+    {
+        await _service.InitializeFtsAsync();
+        var doc = SeedDocument("emptied.pdf", chunkContents: new[] { "text that goes away" });
+        await _service.IndexDocumentChunksAsync(doc.Id);
+
+        _db.DocumentChunks.RemoveRange(_db.DocumentChunks.Where(c => c.DocumentId == doc.Id));
+        _db.SaveChanges();
+
+        await _service.IndexDocumentChunksAsync(doc.Id);
+
+        (await CountFtsRowsAsync(doc.Id)).Should().Be(0);
+    }
+
+    [Fact]
     public async Task Index_precanceled_token_throws_OCE_and_persists_nothing()
     {
         await _service.InitializeFtsAsync();
@@ -226,7 +274,7 @@ public sealed class KeywordSearchServiceTests : IDisposable
             .Should().ThrowAsync<SqliteException>();
     }
 
-    // ─── RemoveDocumentFromFtsAsync ──────────────────────────────────────────────
+    // --- RemoveDocumentFromFtsAsync ----------------------------------------------
 
     [Fact]
     public async Task Remove_deletes_only_that_documents_rows()
@@ -243,7 +291,7 @@ public sealed class KeywordSearchServiceTests : IDisposable
         (await CountFtsRowsAsync(keep.Id)).Should().Be(1);
     }
 
-    // ─── SearchAsync: guards ─────────────────────────────────────────────────────
+    // --- SearchAsync: guards -----------------------------------------------------
 
     [Fact]
     public async Task Search_null_query_throws()
@@ -269,11 +317,11 @@ public sealed class KeywordSearchServiceTests : IDisposable
     [Fact]
     public async Task Search_without_initialized_fts_table_returns_empty_not_throw()
     {
-        // Deliberately no InitializeFtsAsync — hits the "no such table" catch arm.
+        // Deliberately no InitializeFtsAsync - hits the "no such table" catch arm.
         (await _service.SearchAsync(Q("anything"))).Should().BeEmpty();
     }
 
-    // ─── SearchAsync: pipeline ───────────────────────────────────────────────────
+    // --- SearchAsync: pipeline ---------------------------------------------------
 
     [Fact]
     public async Task Search_returns_stemmed_matches_with_normalized_scores_and_mapped_metadata()
@@ -297,7 +345,7 @@ public sealed class KeywordSearchServiceTests : IDisposable
         r.PageNumber.Should().Be(1);
         r.ChunkIndex.Should().Be(0);
         r.MatchedText.Should().Contain("quarterly revenue projections");
-        r.Score.Should().BeGreaterThan(0f).And.BeLessThan(1f); // |bm25| / (1+|bm25|)
+        r.Score.Should().Be(1f); // the best keyword hit anchors the relative scale
         r.CollectionNames.Should().BeEmpty();
     }
 
@@ -312,13 +360,129 @@ public sealed class KeywordSearchServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task Search_min_score_filters_out_all_bm25_scores()
+    public async Task Search_min_score_is_relative_to_the_best_keyword_hit()
     {
         await _service.InitializeFtsAsync();
-        var doc = SeedDocument("a.pdf", chunkContents: new[] { "alpha bravo charlie" });
+        var strong = SeedDocument("strong.pdf", chunkContents: new[] { "alpha alpha alpha bravo" });
+        var weak = SeedDocument("weak.pdf", chunkContents: new[] { "alpha bravo charlie delta echo foxtrot golf hotel" });
+        await _service.IndexDocumentChunksAsync(strong.Id);
+        await _service.IndexDocumentChunksAsync(weak.Id);
+
+        var results = await _service.SearchAsync(Q("alpha", minScore: 0.99f));
+
+        results.Should().ContainSingle().Which.DocumentId.Should().Be(strong.Id);
+    }
+
+    [Fact]
+    public async Task Search_term_present_in_every_document_is_not_dropped_by_min_score()
+    {
+        // A term that appears everywhere has a near-zero BM25 magnitude. Mapped onto an
+        // absolute scale it fell below MinScore 0.3 and every hit was discarded.
+        await _service.InitializeFtsAsync();
+        foreach (var name in new[] { "q1.pdf", "q2.pdf", "q3.pdf" })
+        {
+            var doc = SeedDocument(name, chunkContents: new[] { $"quarterly report {name}" });
+            await _service.IndexDocumentChunksAsync(doc.Id);
+        }
+
+        var results = await _service.SearchAsync(Q("report", minScore: 0.3f));
+
+        results.Should().HaveCount(3);
+    }
+
+    [Fact]
+    public async Task Search_natural_language_question_matches_on_its_content_words()
+    {
+        // Every word used to be quoted and ANDed, stop words included, so this question
+        // matched nothing: no passage contains "what", "did", "say" and "about" as well.
+        await _service.InitializeFtsAsync();
+        var contract = SeedDocument("contract.pdf", chunkContents: new[]
+            { "Early termination fees are set at five percent of the remaining contract value." });
+        var other = SeedDocument("menu.pdf", chunkContents: new[] { "Lunch menu for the week." });
+        await _service.IndexDocumentChunksAsync(contract.Id);
+        await _service.IndexDocumentChunksAsync(other.Id);
+
+        var results = await _service.SearchAsync(Q("What did the contract say about termination fees?", minScore: 0.3f));
+
+        results.Should().ContainSingle().Which.DocumentId.Should().Be(contract.Id);
+    }
+
+    [Theory]
+    [InlineData("What did the contract say about termination fees?", "\"contract\" OR \"say\" OR \"termination\" OR \"fees\"")]
+    [InlineData("alpha AND beta", "\"alpha\" OR \"beta\"")]
+    [InlineData("alpha NEAR(beta gamma)", "\"alpha\" OR \"NEAR\" OR \"beta\" OR \"gamma\"")]
+    [InlineData("prefix* col:value", "\"prefix*\" OR \"col\" OR \"value\"")]
+    [InlineData("to be or not to be", "\"to\" \"be\" \"or\" \"not\"")]
+    [InlineData("+++ --- ...", "")]
+    [InlineData("Revenue revenue REVENUE", "\"Revenue\"")]
+    public void SanitizeFtsQuery_quotes_every_term_drops_stop_words_and_ors_the_rest(string input, string expected)
+    {
+        KeywordSearchService.SanitizeFtsQuery(input).Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData("\"quoted\" OR (grouped) AND NOT excluded*")]
+    [InlineData("content: title:x ^start")]
+    [InlineData("NEAR/3 \"unbalanced")]
+    public async Task Search_operator_and_punctuation_input_never_raises_a_syntax_error(string input)
+    {
+        await _service.InitializeFtsAsync();
+        var doc = SeedDocument("ops.pdf", chunkContents: new[] { "quoted grouped excluded content title start unbalanced" });
         await _service.IndexDocumentChunksAsync(doc.Id);
 
-        (await _service.SearchAsync(Q("alpha", minScore: 0.99f))).Should().BeEmpty();
+        var act = () => _service.SearchAsync(Q(input));
+
+        await act.Should().NotThrowAsync();
+        (await _service.SearchAsync(Q(input))).Should().NotBeEmpty();
+    }
+
+    [Fact]
+    public async Task Search_collection_filter_finds_members_that_rank_below_the_global_top()
+    {
+        // The filter used to run after LIMIT (TopK * 3), so a collection whose matches ranked
+        // below that cut returned nothing even though matches existed.
+        await _service.InitializeFtsAsync();
+        for (var i = 0; i < 20; i++)
+        {
+            var noise = SeedDocument($"noise{i}.pdf", chunkContents: new[] { "budget budget budget budget" });
+            await _service.IndexDocumentChunksAsync(noise.Id);
+        }
+
+        var member = SeedDocument("member.pdf", chunkContents: new[]
+            { "The budget appears once in this much longer passage about planning and other topics entirely." });
+        var collection = new CollectionEntity { Name = "Finance" };
+        _db.Set<CollectionEntity>().Add(collection);
+        _db.SaveChanges();
+        _db.Set<DocumentCollectionEntity>().Add(new DocumentCollectionEntity { DocumentId = member.Id, CollectionId = collection.Id });
+        _db.SaveChanges();
+        await _service.IndexDocumentChunksAsync(member.Id);
+
+        var results = await _service.SearchAsync(Q("budget", topK: 2, collectionId: collection.Id));
+
+        results.Should().ContainSingle().Which.DocumentId.Should().Be(member.Id);
+    }
+
+    [Fact]
+    public async Task Search_file_type_and_date_filters_find_matches_below_the_global_top()
+    {
+        await _service.InitializeFtsAsync();
+        for (var i = 0; i < 20; i++)
+        {
+            var noise = SeedDocument($"n{i}.pdf", fileType: "pdf", chunkContents: new[] { "forecast forecast forecast" });
+            await _service.IndexDocumentChunksAsync(noise.Id);
+        }
+
+        var old = DateTime.UtcNow.AddDays(-30);
+        var target = SeedDocument("plan.md", fileType: "md", importedAt: old, chunkContents: new[]
+            { "A single forecast sits in this long markdown note about many other planning matters." });
+        await _service.IndexDocumentChunksAsync(target.Id);
+
+        var byType = await _service.SearchAsync(Q("forecast", topK: 2, fileType: "MD"));
+        var byDate = await _service.SearchAsync(Q("forecast", topK: 2,
+            createdAfter: old.AddDays(-1), createdBefore: old.AddDays(1)));
+
+        byType.Should().ContainSingle().Which.DocumentId.Should().Be(target.Id);
+        byDate.Should().ContainSingle().Which.DocumentId.Should().Be(target.Id);
     }
 
     [Fact]
@@ -404,7 +568,7 @@ public sealed class KeywordSearchServiceTests : IDisposable
         results[0].DocumentId.Should().Be(strong.Id);
     }
 
-    // ─── Excerpt building ────────────────────────────────────────────────────────
+    // --- Excerpt building --------------------------------------------------------
 
     [Fact]
     public async Task Search_short_content_excerpt_is_full_text_with_whitespace_normalized()
@@ -457,73 +621,48 @@ public sealed class KeywordSearchServiceTests : IDisposable
         results[0].Excerpt.Should().EndWith("...");
     }
 
-    // ─── RebuildFtsIndexAsync ────────────────────────────────────────────────────
+    // --- Shared connection: raw SQL vs EF on one context ---
 
     [Fact]
-    public async Task Rebuild_reindexes_completed_docs_with_chunks_and_reports_progress()
+    public async Task IndexingAndSearch_OverlappingEfWorkOnTheSameContext_AllSucceed()
     {
+        // The app's indexer writes FTS rows in a raw transaction on the shared context's
+        // connection while the UI and the local API query through EF on the same context. An EF
+        // command issued while that transaction was open failed because it was not enlisted in
+        // it, and raw commands raced EF commands on the one SqliteConnection.
         await _service.InitializeFtsAsync();
-        var done1 = SeedDocument("d1.pdf", chunkContents: new[] { "first done content" });
-        var done2 = SeedDocument("d2.pdf", chunkContents: new[] { "second done content" });
-        var pending = SeedDocument("p.pdf", status: "pending", chunkContents: new[] { "pending content" });
-        var noChunks = SeedDocument("n.pdf"); // completed but ChunkCount 0
+        var documents = Enumerable.Range(0, 4)
+            .Select(d => SeedDocument(
+                $"doc{d}.pdf",
+                chunkContents: Enumerable.Range(0, 20).Select(c => $"alpha beta gamma {d} {c}").ToArray()))
+            .ToList();
+        _ = await _db.Documents.CountAsync(); // EF's lazy first-use setup is not what this is about
 
-        // Stale row that must be cleared by the rebuild.
-        await _service.IndexDocumentChunksAsync(pending.Id);
-
-        var reports = new List<(int Processed, int Total)>();
-        var progress = new Progress<(int, int)>(t => { lock (reports) reports.Add(t); });
-
-        await _service.RebuildFtsIndexAsync(progress);
-
-        (await CountFtsRowsAsync(done1.Id)).Should().Be(1);
-        (await CountFtsRowsAsync(done2.Id)).Should().Be(1);
-        (await CountFtsRowsAsync(pending.Id)).Should().Be(0);
-        (await CountFtsRowsAsync(noChunks.Id)).Should().Be(0);
-
-        // Progress<T> posts asynchronously; poll briefly for both reports.
-        for (int i = 0; i < 50 && reports.Count < 2; i++) await Task.Delay(20);
-        reports.Should().BeEquivalentTo(new[] { (1, 2), (2, 2) });
-    }
-
-    [Fact]
-    public async Task Rebuild_continues_past_a_document_that_fails_to_index()
-    {
-        await _service.InitializeFtsAsync();
-        SeedDocument("ok.pdf", chunkContents: new[] { "fine content" });
-        SeedDocument("ok2.pdf", chunkContents: new[] { "fine content too" });
-
-        // Sabotage from the progress callback fired after doc 1: dropping the FTS table
-        // makes doc 2's IndexDocumentChunksAsync throw, exercising the warn-and-continue arm.
-        var completed = new TaskCompletionSource();
-        int calls = 0;
-        var progress = new SynchronousProgress(t =>
+        var indexers = documents.Select(document => Task.Run(async () =>
         {
-            if (Interlocked.Increment(ref calls) == 1)
+            for (var round = 0; round < 10; round++)
             {
-                ExecuteRawAsync("DROP TABLE fts_chunks;").GetAwaiter().GetResult();
+                await _service.IndexDocumentChunksAsync(document.Id);
             }
-            if (t.Processed == t.Total) completed.TrySetResult();
-        });
+        }));
+        var efWork = Enumerable.Range(0, 4).Select(worker => Task.Run(async () =>
+        {
+            for (var round = 0; round < 25; round++)
+            {
+                _ = await _db.Documents.AsNoTracking().CountAsync();
+                await _db.Database.ExecuteSqlRawAsync(
+                    "INSERT INTO tags (Name, IsAutoGenerated, CreatedAt) VALUES ({0}, 0, {1})",
+                    $"tag-{worker}-{round}",
+                    DateTime.UtcNow);
+                _ = await _service.SearchAsync(Q("alpha", topK: 5));
+            }
+        }));
 
-        await _service.RebuildFtsIndexAsync(progress);
+        var act = () => Task.WhenAll(indexers.Concat(efWork));
 
-        await completed.Task.WaitAsync(TimeSpan.FromSeconds(5));
-        calls.Should().Be(2); // both docs processed despite the second failing
-    }
-
-    [Fact]
-    public async Task Rebuild_honors_cancellation_between_documents()
-    {
-        await _service.InitializeFtsAsync();
-        SeedDocument("c1.pdf", chunkContents: new[] { "cancel content one" });
-        SeedDocument("c2.pdf", chunkContents: new[] { "cancel content two" });
-
-        using var cts = new CancellationTokenSource();
-        var progress = new SynchronousProgress(_ => cts.Cancel());
-
-        await FluentActions.Awaiting(() => _service.RebuildFtsIndexAsync(progress, cts.Token))
-            .Should().ThrowAsync<OperationCanceledException>();
+        await act.Should().NotThrowAsync();
+        (await CountFtsRowsAsync()).Should().Be(4 * 20);
+        (await _db.Tags.CountAsync()).Should().Be(4 * 25);
     }
 
     [Fact]
@@ -538,14 +677,5 @@ public sealed class KeywordSearchServiceTests : IDisposable
         var service = new KeywordSearchService(db, _logger);
 
         await service.InitializeFtsAsync(); // must open the connection itself, then succeed
-    }
-
-    /// <summary>Synchronous IProgress: Rebuild's sabotage/cancel hooks must run inline,
-    /// not on a captured SynchronizationContext like <see cref="Progress{T}"/>.</summary>
-    private sealed class SynchronousProgress : IProgress<(int Processed, int Total)>
-    {
-        private readonly Action<(int Processed, int Total)> _handler;
-        public SynchronousProgress(Action<(int Processed, int Total)> handler) => _handler = handler;
-        public void Report((int Processed, int Total) value) => _handler(value);
     }
 }

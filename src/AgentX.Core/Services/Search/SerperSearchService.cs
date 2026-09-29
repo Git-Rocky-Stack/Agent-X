@@ -38,7 +38,7 @@ public sealed class SerperSearchService : IWebSearchService
     {
         _apiKey = apiKey?.Trim();
         _cache = cache ?? new WebSearchCache(logger);
-        _httpClient = httpClient ?? new HttpClient();
+        _httpClient = httpClient ?? WebSearchHttp.CreateClient();
         _logger = logger?.ForContext<SerperSearchService>() ?? Serilog.Log.Logger.ForContext<SerperSearchService>();
     }
 
@@ -87,7 +87,11 @@ public sealed class SerperSearchService : IWebSearchService
                 FromCache = false
             };
 
-            _cache.Set(query, WebSearchProvider.Serper, webResponse);
+            // Only real results are cached; an empty answer is retried on the next search
+            if (results.Count > 0)
+            {
+                _cache.Set(query, WebSearchProvider.Serper, webResponse);
+            }
 
             _logger.Information(
                 "Serper search completed: {ResultCount} results for '{Query}' in {ElapsedMs:F0}ms",
@@ -121,59 +125,54 @@ public sealed class SerperSearchService : IWebSearchService
         FromCache = false
     };
 
+    /// <summary>
+    /// Parses a Serper response. A body that is not JSON throws, so the search is reported as
+    /// failed (and not cached) instead of as a search that found nothing.
+    /// </summary>
     private static List<WebSearchResult> ParseSerperResults(string json)
     {
         var results = new List<WebSearchResult>();
 
-        try
-        {
-            using var doc = JsonDocument.Parse(json);
-            var root = doc.RootElement;
+        using var doc = JsonDocument.Parse(json);
+        var root = doc.RootElement;
 
-            // Parse organic results
-            if (root.TryGetProperty("organic", out var organic))
+        // Parse organic results
+        if (root.ValueKind == JsonValueKind.Object
+            && root.TryGetProperty("organic", out var organic)
+            && organic.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in organic.EnumerateArray())
             {
-                foreach (var item in organic.EnumerateArray())
+                var title = item.TryGetProperty("title", out var titleEl) ? titleEl.GetString() ?? string.Empty : string.Empty;
+                var link = item.TryGetProperty("link", out var linkEl) ? linkEl.GetString() ?? string.Empty : string.Empty;
+                var snippet = item.TryGetProperty("snippet", out var snippetEl) ? snippetEl.GetString() ?? string.Empty : string.Empty;
+
+                string? domain = null;
+                if (Uri.TryCreate(link, UriKind.Absolute, out var uri))
                 {
-                    var title = item.TryGetProperty("title", out var titleEl) ? titleEl.GetString() ?? string.Empty : string.Empty;
-                    var link = item.TryGetProperty("link", out var linkEl) ? linkEl.GetString() ?? string.Empty : string.Empty;
-                    var snippet = item.TryGetProperty("snippet", out var snippetEl) ? snippetEl.GetString() ?? string.Empty : string.Empty;
-
-                    string? domain = null;
-                    if (Uri.TryCreate(link, UriKind.Absolute, out var uri))
-                    {
-                        domain = uri.Host;
-                    }
-
-                    DateTime? publishedDate = null;
-                    if (item.TryGetProperty("date", out var dateEl) && dateEl.ValueKind == JsonValueKind.String)
-                    {
-                        _ = DateTime.TryParse(dateEl.GetString(), out var parsed);
-                        publishedDate = parsed != default ? parsed : null;
-                    }
-
-                    results.Add(new WebSearchResult
-                    {
-                        Title = title,
-                        Url = link,
-                        Snippet = snippet,
-                        SourceDomain = domain ?? string.Empty,
-                        PublishedDate = publishedDate
-                    });
+                    domain = uri.Host;
                 }
-            }
 
-            // Also parse knowledge graph if present (often has high-quality results)
-            if (root.TryGetProperty("knowledgeGraph", out var kg))
-            {
-                // Knowledge graph is a single summary object, not a list of linkable
-                // sources, so it is intentionally not surfaced as a web result.
+                DateTime? publishedDate = null;
+                if (item.TryGetProperty("date", out var dateEl) && dateEl.ValueKind == JsonValueKind.String)
+                {
+                    _ = DateTime.TryParse(dateEl.GetString(), out var parsed);
+                    publishedDate = parsed != default ? parsed : null;
+                }
+
+                results.Add(new WebSearchResult
+                {
+                    Title = title,
+                    Url = link,
+                    Snippet = snippet,
+                    SourceDomain = domain ?? string.Empty,
+                    PublishedDate = publishedDate
+                });
             }
         }
-        catch (JsonException)
-        {
-            // Return whatever we have; malformed JSON shouldn't crash the pipeline
-        }
+
+        // A "knowledgeGraph" object, when present, is a single summary rather than a list of
+        // linkable sources, so it is intentionally not surfaced as a web result.
 
         return results;
     }

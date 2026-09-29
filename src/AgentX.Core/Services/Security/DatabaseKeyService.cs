@@ -8,7 +8,7 @@ namespace AgentX.Core.Services.Security;
 /// <summary>
 /// Provisions, wraps/derives, and unwraps/re-derives the 32-byte SQLCipher database key.
 /// All persistent state (mode, DPAPI-wrapped key, PBKDF2 salt, enabledAt) lives in the
-/// sibling <see cref="IEncryptionStateFile"/> marker — OUTSIDE the encrypted database —
+/// sibling <see cref="IEncryptionStateFile"/> marker - OUTSIDE the encrypted database -
 /// because the encrypted DB cannot be opened until we already have the key.
 /// </summary>
 /// <remarks>
@@ -53,7 +53,7 @@ public sealed class DatabaseKeyService : IDatabaseKeyService
             };
         }
 
-        // First-time provisioning — marker does not yet exist.
+        // First-time provisioning - marker does not yet exist.
         return mode switch
         {
             KeyStorageMode.DpapiWrapped => await ProvisionDpapiWrappedAsync(),
@@ -78,12 +78,44 @@ public sealed class DatabaseKeyService : IDatabaseKeyService
         return Task.FromResult(DerivePassphraseKey(passphrase, salt));
     }
 
+    public Task<ProvisionedDatabaseKey> CreateUncommittedKeyAsync(KeyStorageMode mode, string? passphrase = null)
+    {
+        if (mode == KeyStorageMode.UserPassphrase && string.IsNullOrEmpty(passphrase))
+            throw new ArgumentException("Passphrase required for UserPassphrase mode.", nameof(passphrase));
+
+        if (_stateFile.Exists())
+            throw new InvalidOperationException("Database encryption is already provisioned.");
+
+        var provisioned = mode switch
+        {
+            KeyStorageMode.DpapiWrapped => CreateDpapiWrapped(),
+            KeyStorageMode.UserPassphrase => CreatePassphrase(passphrase!),
+            _ => throw new InvalidOperationException($"Unknown mode: {mode}")
+        };
+
+        return Task.FromResult(provisioned);
+    }
+
     public Task<bool> IsProvisionedAsync() => Task.FromResult(_stateFile.Exists());
 
     public Task<KeyStorageMode?> GetProvisionedModeAsync() =>
         Task.FromResult<KeyStorageMode?>(_stateFile.Read()?.StorageMode);
 
     private async Task<DatabaseKeyMaterial> ProvisionDpapiWrappedAsync()
+    {
+        var provisioned = CreateDpapiWrapped();
+        await _stateFile.WriteAsync(provisioned.Marker);
+        return provisioned.Key;
+    }
+
+    private async Task<DatabaseKeyMaterial> ProvisionPassphraseAsync(string passphrase)
+    {
+        var provisioned = CreatePassphrase(passphrase);
+        await _stateFile.WriteAsync(provisioned.Marker);
+        return provisioned.Key;
+    }
+
+    private ProvisionedDatabaseKey CreateDpapiWrapped()
     {
         var keyBytes = RandomNumberGenerator.GetBytes(KeyLengthBytes);
         var hexKey = Convert.ToHexString(keyBytes);
@@ -95,12 +127,11 @@ public sealed class DatabaseKeyService : IDatabaseKeyService
             EnabledAt: DateTimeOffset.UtcNow,
             DpapiWrappedKey: wrapped,
             SaltBase64: null);
-        await _stateFile.WriteAsync(info);
 
-        return DatabaseKeyMaterial.FromBytes(keyBytes, KeyStorageMode.DpapiWrapped);
+        return new ProvisionedDatabaseKey(DatabaseKeyMaterial.FromBytes(keyBytes, KeyStorageMode.DpapiWrapped), info);
     }
 
-    private async Task<DatabaseKeyMaterial> ProvisionPassphraseAsync(string passphrase)
+    private static ProvisionedDatabaseKey CreatePassphrase(string passphrase)
     {
         var salt = RandomNumberGenerator.GetBytes(SaltLengthBytes);
 
@@ -110,9 +141,8 @@ public sealed class DatabaseKeyService : IDatabaseKeyService
             EnabledAt: DateTimeOffset.UtcNow,
             DpapiWrappedKey: null,
             SaltBase64: Convert.ToBase64String(salt));
-        await _stateFile.WriteAsync(info);
 
-        return DerivePassphraseKey(passphrase, salt);
+        return new ProvisionedDatabaseKey(DerivePassphraseKey(passphrase, salt), info);
     }
 
     private DatabaseKeyMaterial UnwrapDpapiKey(string wrappedHexKey)

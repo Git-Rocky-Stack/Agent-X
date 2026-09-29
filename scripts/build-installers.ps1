@@ -7,7 +7,7 @@
       SLIM     -> installer-output\AgentX-Setup-<ver>-x64.exe          (~180 MB, GitHub asset)
       OFFLINE  -> installer-output\AgentX-Setup-<ver>-x64-offline.exe   (~2 GB, hosted on R2)
 
-    The SLIM installer omits the model (the app downloads it on first run). The OFFLINE installer
+    The SLIM installer omits the model (the setup wizard offers to download it on first run). The OFFLINE installer
     bundles models\llama-3.2-3b-instruct-q4_k_m.gguf; run scripts/download-model.ps1 first if it
     is missing.
 
@@ -31,7 +31,7 @@ param(
 
     # --- Code signing (AX-QA-001 / AX-QA-007) ---
     # Authenticode-sign the app binaries and installers. Supply EITHER a cert-store thumbprint
-    # (preferred — no secret on the command line) OR a PFX path + password. With neither, the
+    # (preferred - no secret on the command line) OR a PFX path + password. With neither, the
     # build is UNSIGNED and prints a loud warning; pass -RequireSign to make that a hard error
     # (use this in the real release pipeline so an unsigned asset can never be produced).
     [string]$CertificateThumbprint,
@@ -61,7 +61,7 @@ function Find-Iscc {
     throw "ISCC.exe (Inno Setup 6) not found. Install Inno Setup 6 or add ISCC.exe to PATH."
 }
 
-# ── Code signing (AX-QA-001 / AX-QA-007) ───────────────────────────────────────────────────
+# -- Code signing (AX-QA-001 / AX-QA-007) ---------------------------------------------------
 $signingConfigured = -not [string]::IsNullOrWhiteSpace($CertificateThumbprint) -or
                      -not [string]::IsNullOrWhiteSpace($CertificatePath)
 
@@ -117,18 +117,22 @@ if (-not $SkipPublish) {
 # remediation. The public v2.1.1 asset was built from stale source and shipped without it; this
 # check fails the build if the security types are absent from the freshly published Core DLL.
 $coreDll = Join-Path $publishDir "AgentX.Core.dll"
-if (-not (Test-Path $coreDll)) { throw "Provenance check: $coreDll not found — publish incomplete." }
+if (-not (Test-Path $coreDll)) { throw "Provenance check: $coreDll not found - publish incomplete." }
 $dllText = [IO.File]::ReadAllText($coreDll, [Text.Encoding]::Latin1)
 foreach ($type in @('LocalApiSecurity', 'ResolveContainedPath')) {
     if (-not $dllText.Contains($type)) {
-        throw "Provenance check FAILED: '$type' absent from published AgentX.Core.dll. This build does not contain the security remediation (AX-QA-001) — do not ship it."
+        throw "Provenance check FAILED: '$type' absent from published AgentX.Core.dll. This build does not contain the security remediation (AX-QA-001) - do not ship it."
     }
 }
 $headCommit = (& git -C $projectRoot rev-parse HEAD 2>$null)
 Write-Host "Provenance OK: security types present in published Core DLL (commit $headCommit)."
 
 # 1c. Sign the application binaries before packaging (AX-QA-007).
-$appExe = Join-Path $publishDir "AgentX.exe"
+# The executable takes the project's assembly name (AgentX.App.csproj sets no AssemblyName), and
+# installer\AgentX-Setup.iss ships it as MyAppExeName; "AgentX.exe" never existed, so signing
+# failed on a missing file. Fail early with a clear message if the publish layout changes again.
+$appExe = Join-Path $publishDir "AgentX.App.exe"
+if (-not (Test-Path $appExe)) { throw "Application executable not found: $appExe. Check the publish output." }
 if ($signingConfigured) {
     Write-Host "`nSigning application binaries..."
     Invoke-Sign -Files @($appExe)

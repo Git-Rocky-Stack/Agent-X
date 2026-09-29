@@ -1,9 +1,9 @@
 namespace AgentX.Core.Data.Entities;
 
 /// <summary>
-/// Represents a saved workspace profile that captures a user-defined operating
-/// context: which Ollama model is active, which document collections are in scope,
-/// and any bespoke UI preferences (font size, theme overrides, panel layout, etc.).
+/// Represents a saved workspace profile: a named preset recording an Ollama model
+/// identifier, a list of collection IDs, and free-form custom settings. Profiles are
+/// stored for reference only; nothing applies them to the running application.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -21,7 +21,7 @@ namespace AgentX.Core.Data.Entities;
 /// <para>
 /// Only one profile should have <see cref="IsDefault"/> set to <c>true</c> at any
 /// given time.  <see cref="Services.Workspace.WorkspaceProfileService.SetDefaultProfileAsync"/>
-/// atomically clears all other profiles before promoting the target profile.
+/// promotes the target and clears every other profile in a single UPDATE statement.
 /// </para>
 /// </remarks>
 public class WorkspaceProfileEntity
@@ -41,29 +41,29 @@ public class WorkspaceProfileEntity
     public string? Description { get; set; }
 
     /// <summary>
-    /// Gets or sets the Ollama model identifier this profile activates on load
-    /// (e.g. <c>"llama3.1:8b"</c>, <c>"mistral:latest"</c>).
-    /// <c>null</c> means the application's global default model is used.
+    /// Gets or sets the Ollama model identifier saved with this profile
+    /// (e.g. <c>"llama3.1:8b"</c>, <c>"mistral:latest"</c>), or <c>null</c> for none.
+    /// Stored only; selecting the profile does not switch models.
     /// </summary>
     public string? ActiveModelId { get; set; }
 
     /// <summary>
     /// Gets or sets a comma-separated list of <see cref="CollectionEntity.Id"/> values
-    /// that are in scope when this profile is loaded (e.g. <c>"1,4,12"</c>).
-    /// <c>null</c> or empty means no specific collections are pre-selected.
+    /// saved with this profile (e.g. <c>"1,4,12"</c>), or <c>null</c> for none.
+    /// Stored only; selecting the profile does not change the collections in scope.
     /// </summary>
     public string? ActiveCollectionIds { get; set; }
 
     /// <summary>
-    /// Gets or sets an opaque JSON blob holding UI-level preferences specific to
-    /// this profile (e.g. font size, sidebar width, accent colour override).
-    /// The structure is defined and interpreted by the ViewModel / settings layer.
+    /// Gets or sets free-form text (typically JSON) saved with this profile.
+    /// Nothing in the application reads or interprets it.
     /// </summary>
     public string? CustomSettings { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether this profile is loaded automatically
-    /// on application start.  Exactly one profile should carry this flag at a time.
+    /// Gets or sets a value indicating whether the user marked this profile as the
+    /// default. At most one profile carries this flag. The mark is informational:
+    /// nothing loads the default profile at application start.
     /// </summary>
     public bool IsDefault { get; set; }
 

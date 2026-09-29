@@ -6,6 +6,7 @@ using AgentX.Core.Helpers;
 using AgentX.Core.Search;
 using AgentX.Core.Search.Models;
 using AgentX.Core.Services.Collections;
+using AgentX.Core.Services.Localization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Serilog;
@@ -27,9 +28,10 @@ public partial class SearchViewModel : ObservableObject
     private readonly IDocumentService _documentService;
     private readonly ICollectionService _collectionService;
     private readonly ILogger _logger;
+    private readonly ILocalizationService _localization;
     private readonly IWorkflowLaunchService? _workflowLaunchService;
 
-    // ── Search Input & State ─────────────────────────────────────
+    // -- Search Input & State -------------------------------------
     [ObservableProperty] private string _queryText = string.Empty;
     [ObservableProperty] private bool _isSearching;
     [ObservableProperty] private bool _hasResults;
@@ -38,10 +40,10 @@ public partial class SearchViewModel : ObservableObject
     [ObservableProperty] private double _searchLatencyMs;
     [ObservableProperty] private string? _selectedFileTypeFilter;
     [ObservableProperty] private long? _selectedCollectionId;
-    [ObservableProperty] private string _statusMessage = "Ready to search";
+    [ObservableProperty] private string _statusMessage = string.Empty;
     [ObservableProperty] private SearchMode _searchMode = SearchMode.Semantic;
 
-    // ── Advanced Filters ─────────────────────────────────────────
+    // -- Advanced Filters -----------------------------------------
     [ObservableProperty] private bool _isAdvancedFiltersOpen;
     [ObservableProperty] private double _minScoreFilter = 30;
     [ObservableProperty] private int _topKFilter = 20;
@@ -49,21 +51,26 @@ public partial class SearchViewModel : ObservableObject
     [ObservableProperty] private DateTimeOffset? _createdBeforeDate;
     [ObservableProperty] private long _selectedCollectionFilterId;
 
-    // ── Sort ─────────────────────────────────────────────────────
+    // -- Sort -----------------------------------------------------
     [ObservableProperty] private int _selectedSortIndex;
 
-    // ── Saved Filters ────────────────────────────────────────────
+    // -- Saved Filters --------------------------------------------
     [ObservableProperty] private bool _hasSavedFilters;
 
-    // ── Observable Collections ────────────────────────────────────
+    // -- Observable Collections ------------------------------------
     public ObservableCollection<SearchResultItem> Results { get; } = new();
     public ObservableCollection<SearchHistoryItem> SearchHistory { get; } = new();
     public ObservableCollection<SavedFilterItem> SavedFilters { get; } = new();
     public ObservableCollection<CollectionFilterItem> CollectionFilters { get; } = new();
 
-    // ── Internal history storage ─────────────────────────────────
+    // -- Internal history storage ---------------------------------
     private readonly List<SearchHistoryItem> _historyStore = new();
     private long _historyIdCounter;
+
+    // Concurrent searches
+    // Each search claims the next generation; only the newest may update the results.
+    private int _searchGeneration;
+    private CancellationTokenSource? _searchCts;
     public NavigateHandler? NavigateRequested { get; set; }
 
     /// <summary>True when the current search mode is Semantic.</summary>
@@ -81,6 +88,7 @@ public partial class SearchViewModel : ObservableObject
         IDocumentService documentService,
         ICollectionService collectionService,
         ILogger logger,
+        ILocalizationService localization,
         IWorkflowLaunchService? workflowLaunchService = null)
     {
         _searchService = searchService;
@@ -88,7 +96,9 @@ public partial class SearchViewModel : ObservableObject
         _documentService = documentService;
         _collectionService = collectionService;
         _logger = logger;
+        _localization = localization;
         _workflowLaunchService = workflowLaunchService;
+        StatusMessage = _localization.GetString("Search_ReadyToSearch");
         _logger.Debug("SearchViewModel created with services");
     }
 
@@ -116,12 +126,12 @@ public partial class SearchViewModel : ObservableObject
             await LoadSearchHistoryAsync();
             await LoadSavedFiltersAsync();
             await LoadCollectionFiltersAsync();
-            StatusMessage = "Ready to search";
+            StatusMessage = _localization.GetString("Search_ReadyToSearch");
         }
         catch (Exception ex)
         {
             _logger.Warning(ex, "Failed to initialize SearchViewModel");
-            StatusMessage = "Ready to search";
+            StatusMessage = _localization.GetString("Search_ReadyToSearch");
         }
     }
 
@@ -185,10 +195,18 @@ public partial class SearchViewModel : ObservableObject
         if (string.IsNullOrWhiteSpace(query))
             return;
 
+        // A newer search supersedes one still running (a history click or a filter change
+        // while results load). The older one is cancelled, and the generation check keeps
+        // it from writing its results over the newer ones if it finishes anyway.
+        var generation = Interlocked.Increment(ref _searchGeneration);
+        var cts = new CancellationTokenSource();
+        var previous = Interlocked.Exchange(ref _searchCts, cts);
+        CancelQuietly(previous);
+
         IsSearching = true;
         ShowNoResults = false;
         HasResults = false;
-        StatusMessage = "Searching...";
+        StatusMessage = _localization.GetString("Search_Searching");
 
         try
         {
@@ -199,27 +217,32 @@ public partial class SearchViewModel : ObservableObject
                 ? SelectedCollectionFilterId
                 : SelectedCollectionId;
 
+            // The date pickers yield local calendar days while ImportedAt is stored in UTC;
+            // the "before" day is inclusive, so its bound is the end of that day.
             var searchQuery = new SearchQuery
             {
                 QueryText = query,
                 TopK = TopKFilter,
                 MinScore = (float)(MinScoreFilter / 100.0),
                 CollectionId = effectiveCollectionId,
-                FileTypeFilter = SelectedFileTypeFilter,
-                CreatedAfter = CreatedAfterDate?.DateTime,
-                CreatedBefore = CreatedBeforeDate?.DateTime,
+                FileTypeFilter = ToServiceFileTypeFilter(SelectedFileTypeFilter),
+                CreatedAfter = CreatedAfterDate.HasValue ? LocalDayRange.StartUtc(CreatedAfterDate.Value.DateTime) : null,
+                CreatedBefore = CreatedBeforeDate.HasValue ? LocalDayRange.EndUtc(CreatedBeforeDate.Value.DateTime) : null,
                 Mode = SearchMode
             };
-            var rawResults = await _hybridSearchOrchestrator.SearchAsync(searchQuery);
+            var rawResults = await _hybridSearchOrchestrator.SearchAsync(searchQuery, cts.Token);
 
             stopwatch.Stop();
-            SearchLatencyMs = stopwatch.Elapsed.TotalMilliseconds;
 
             // Map raw results to display items, applying file type filter
             var displayResults = new List<SearchResultItem>();
             foreach (var r in rawResults)
             {
-                var fileType = ExtractFileType(r.FileName);
+                // Prefer the stored type: connector items (calendar events, email) carry a
+                // display name rather than a file name with an extension.
+                var fileType = !string.IsNullOrWhiteSpace(r.FileType)
+                    ? r.FileType.Trim().ToLowerInvariant()
+                    : ExtractFileType(r.FileName);
 
                 // Apply file type filter if active
                 if (!string.IsNullOrEmpty(SelectedFileTypeFilter) &&
@@ -261,31 +284,67 @@ public partial class SearchViewModel : ObservableObject
                 });
             }
 
-            // Update observable collection
+            if (generation != Volatile.Read(ref _searchGeneration))
+            {
+                return; // superseded while the results were being prepared
+            }
+
+            SearchLatencyMs = stopwatch.Elapsed.TotalMilliseconds;
+
+            // Update observable collection, in the sort order the user picked
             Results.Clear();
-            foreach (var item in displayResults)
+            foreach (var item in ApplySort(displayResults))
                 Results.Add(item);
 
             TotalResults = Results.Count;
             HasResults = Results.Count > 0;
             ShowNoResults = Results.Count == 0;
 
-            StatusMessage = Results.Count > 0
-                ? $"Found {Results.Count} result{(Results.Count != 1 ? "s" : "")} in {SearchLatencyMs:F0}ms"
-                : $"No results found in {SearchLatencyMs:F0}ms";
+            var latency = SearchLatencyMs.ToString("F0");
+            StatusMessage = Results.Count switch
+            {
+                0 => _localization.GetString("Search_NoResultsIn", latency),
+                1 => _localization.GetString("Search_FoundResultsOne", Results.Count, latency),
+                _ => _localization.GetString("Search_FoundResultsMany", Results.Count, latency)
+            };
 
             // Save to history
             AddToHistory(query, Results.Count);
         }
+        catch (OperationCanceledException) when (cts.IsCancellationRequested)
+        {
+            // Superseded by a newer search, which owns the page state now.
+        }
         catch (Exception ex)
         {
-            _logger.Error(ex, "{SearchMode} search failed for query: {Query}", SearchMode, query);
-            StatusMessage = "Search failed. Please try again.";
-            ShowNoResults = true;
+            if (generation == Volatile.Read(ref _searchGeneration))
+            {
+                _logger.Error(ex, "{SearchMode} search failed for query: {Query}", SearchMode, query);
+                StatusMessage = _localization.GetString("Search_SearchFailed");
+                ShowNoResults = true;
+            }
         }
         finally
         {
-            IsSearching = false;
+            if (generation == Volatile.Read(ref _searchGeneration))
+            {
+                IsSearching = false;
+            }
+
+            Interlocked.CompareExchange(ref _searchCts, null, cts);
+            cts.Dispose();
+        }
+    }
+
+    private static void CancelQuietly(CancellationTokenSource? cts)
+    {
+        try
+        {
+            cts?.Cancel();
+        }
+        catch (ObjectDisposedException)
+        {
+            // That search already finished and released its token source.
         }
     }
 
@@ -301,7 +360,7 @@ public partial class SearchViewModel : ObservableObject
         ShowNoResults = false;
         TotalResults = 0;
         SearchLatencyMs = 0;
-        StatusMessage = "Ready to search";
+        StatusMessage = _localization.GetString("Search_ReadyToSearch");
     }
 
     /// <summary>
@@ -384,7 +443,8 @@ public partial class SearchViewModel : ObservableObject
                 maxResults: TopKFilter,
                 dateAfter: CreatedAfterDate?.DateTime,
                 dateBefore: CreatedBeforeDate?.DateTime,
-                sortOrder: sortOrder);
+                sortOrder: sortOrder,
+                searchType: SearchTypeName(SearchMode));
 
             var history = await _searchService.GetSearchHistoryAsync(50);
             var entry = history.FirstOrDefault(h =>
@@ -394,14 +454,14 @@ public partial class SearchViewModel : ObservableObject
             {
                 await _searchService.SaveSearchFilterAsync(entry.Id);
                 await LoadSavedFiltersAsync();
-                StatusMessage = "Filter saved";
+                StatusMessage = _localization.GetString("Search_FilterSaved");
                 _logger.Information("Search filter saved: Query={Query}", query);
             }
         }
         catch (Exception ex)
         {
             _logger.Error(ex, "Failed to save current filter");
-            StatusMessage = "Failed to save filter";
+            StatusMessage = _localization.GetString("Search_FilterSaveFailed");
         }
     }
 
@@ -415,12 +475,12 @@ public partial class SearchViewModel : ObservableObject
         {
             await _searchService.UnsaveSearchFilterAsync(filterId);
             await LoadSavedFiltersAsync();
-            StatusMessage = "Filter removed";
+            StatusMessage = _localization.GetString("Search_FilterRemoved");
         }
         catch (Exception ex)
         {
             _logger.Error(ex, "Failed to remove saved filter {Id}", filterId);
-            StatusMessage = "Failed to remove filter";
+            StatusMessage = _localization.GetString("Search_FilterRemoveFailed");
         }
     }
 
@@ -435,12 +495,7 @@ public partial class SearchViewModel : ObservableObject
 
         // Restore query text and search mode
         QueryText = filter.QueryText;
-        SearchMode = filter.SearchType?.ToLowerInvariant() switch
-        {
-            "keyword" => SearchMode.Keyword,
-            "hybrid" => SearchMode.Hybrid,
-            _ => SearchMode.Semantic
-        };
+        SearchMode = filter.Mode;
 
         // Restore advanced filter settings
         MinScoreFilter = filter.MinScore ?? 30;
@@ -504,18 +559,24 @@ public partial class SearchViewModel : ObservableObject
     {
         if (Results.Count == 0) return;
 
-        var sorted = SelectedSortIndex switch
-        {
-            1 => Results.OrderByDescending(r => r.DocumentId).ToList(),
-            2 => Results.OrderBy(r => r.DocumentId).ToList(),
-            3 => Results.OrderBy(r => r.FileName).ToList(),
-            _ => Results.OrderByDescending(r => r.RelevancePercent).ToList(),
-        };
+        var sorted = ApplySort(Results);
 
         Results.Clear();
         foreach (var item in sorted)
             Results.Add(item);
     }
+
+    /// <summary>
+    /// Orders results by the selected sort option. Used both when new results arrive and
+    /// when the user changes the sort, so a fresh search honors the current choice.
+    /// </summary>
+    private List<SearchResultItem> ApplySort(IEnumerable<SearchResultItem> items) => SelectedSortIndex switch
+    {
+        1 => items.OrderByDescending(r => r.DocumentId).ToList(),
+        2 => items.OrderBy(r => r.DocumentId).ToList(),
+        3 => items.OrderBy(r => r.FileName).ToList(),
+        _ => items.OrderByDescending(r => r.RelevancePercent).ToList(),
+    };
 
     // =================================================================
     // DOCUMENT ACTIONS
@@ -564,35 +625,37 @@ public partial class SearchViewModel : ObservableObject
             return;
         }
 
+        // The input lands in the workflow page's input box, so its labels are in the UI language.
         var lines = new List<string>
         {
-            "Source: Search result"
+            _localization.GetString("Search_WorkflowInputSource")
         };
 
         if (!string.IsNullOrWhiteSpace(QueryText))
         {
-            lines.Add($"Query: {QueryText.Trim()}");
+            lines.Add(_localization.GetString("Search_WorkflowInputQuery", QueryText.Trim()));
         }
 
-        lines.Add($"Document: {result.FileName}");
-        lines.Add($"Relevance: {result.RelevancePercent}%");
+        lines.Add(_localization.GetString("Search_WorkflowInputDocument", result.FileName));
+        lines.Add(_localization.GetString("Search_WorkflowInputRelevance", result.RelevancePercent));
 
         if (result.PageNumber.HasValue)
         {
-            lines.Add($"Page: {result.PageNumber.Value}");
+            lines.Add(_localization.GetString("Search_WorkflowInputPage", result.PageNumber.Value));
         }
 
+        var excerptHeading = _localization.GetString("Search_WorkflowInputExcerpt");
         lines.Add(string.Empty);
-        lines.Add("Excerpt");
-        lines.Add("-------");
+        lines.Add(excerptHeading);
+        lines.Add(new string('-', excerptHeading.Length));
         lines.Add(string.IsNullOrWhiteSpace(result.Excerpt)
-            ? "No excerpt available."
+            ? _localization.GetString("Search_WorkflowInputNoExcerpt")
             : result.Excerpt.Trim());
 
         _workflowLaunchService.StageRequest(new WorkflowLaunchRequest
         {
             InputText = string.Join(Environment.NewLine, lines),
-            SourceLabel = $"Loaded search context from \"{result.FileName}\"",
+            SourceLabel = _localization.GetString("Search_WorkflowSourceLabel", result.FileName),
             RecommendedWorkflowName = "Research Brief"
         });
 
@@ -602,6 +665,49 @@ public partial class SearchViewModel : ObservableObject
     // =================================================================
     // PRIVATE HELPERS
     // =================================================================
+
+    /// <summary>
+    /// The name stored with history entries and saved filters, which
+    /// <see cref="ToSearchMode"/> maps back to a <see cref="SearchMode"/>.
+    /// </summary>
+    private static string SearchTypeName(SearchMode mode) => mode switch
+    {
+        SearchMode.Keyword => "keyword",
+        SearchMode.Hybrid => "hybrid",
+        _ => "semantic"
+    };
+
+    /// <summary>The <see cref="SearchMode"/> a stored search type name stands for.</summary>
+    private static SearchMode ToSearchMode(string? searchType) => searchType?.ToLowerInvariant() switch
+    {
+        "keyword" => SearchMode.Keyword,
+        "hybrid" => SearchMode.Hybrid,
+        _ => SearchMode.Semantic
+    };
+
+    /// <summary>The mode's name as a saved filter's badge shows it.</summary>
+    private string SearchModeLabel(SearchMode mode) => mode switch
+    {
+        SearchMode.Keyword => _localization.GetString("Search_SavedFilterModeKeyword"),
+        SearchMode.Hybrid => _localization.GetString("Search_SavedFilterModeHybrid"),
+        _ => _localization.GetString("Search_SavedFilterModeSemantic")
+    };
+
+    /// <summary>
+    /// The file type the search services filter on before the top-K cut. A chip that stands
+    /// for one stored file type is passed through; a category chip such as "code" spans
+    /// several stored types, so it is not sent (an exact match on "code" finds nothing) and
+    /// <see cref="MatchesFileTypeFilter"/> applies it to the results instead.
+    /// </summary>
+    internal static string? ToServiceFileTypeFilter(string? chip)
+    {
+        if (string.IsNullOrWhiteSpace(chip))
+        {
+            return null;
+        }
+
+        return chip.Equals("code", StringComparison.OrdinalIgnoreCase) ? null : chip;
+    }
 
     private static string ExtractFileType(string fileName)
     {
@@ -650,6 +756,8 @@ public partial class SearchViewModel : ObservableObject
 
     private void AddToHistory(string query, int resultCount)
     {
+        var searchType = SearchTypeName(SearchMode);
+
         // Remove duplicate if exists
         _historyStore.RemoveAll(h =>
             h.QueryText.Equals(query, StringComparison.OrdinalIgnoreCase));
@@ -660,7 +768,7 @@ public partial class SearchViewModel : ObservableObject
             Id = _historyIdCounter,
             QueryText = query,
             ResultCount = resultCount,
-            SearchedAgo = "just now"
+            SearchedAgo = _localization.GetString("Search_HistoryJustNow")
         });
 
         // Keep only the most recent 20 entries
@@ -674,7 +782,7 @@ public partial class SearchViewModel : ObservableObject
         {
             try
             {
-                await _searchService.SaveSearchHistoryAsync(query, resultCount);
+                await _searchService.SaveSearchHistoryAsync(query, resultCount, searchType: searchType);
             }
             catch (Exception ex)
             {
@@ -699,11 +807,13 @@ public partial class SearchViewModel : ObservableObject
             SavedFilters.Clear();
             foreach (var entry in entries)
             {
+                var mode = ToSearchMode(entry.SearchType);
                 SavedFilters.Add(new SavedFilterItem
                 {
                     Id = entry.Id,
                     QueryText = entry.QueryText,
-                    SearchType = entry.SearchType,
+                    Mode = mode,
+                    SearchType = SearchModeLabel(mode),
                     SavedAt = FormatHelper.TimeAgoWithMonths(entry.SearchedAt),
                     MinScore = entry.MinScore,
                     MaxResults = entry.MaxResults,
@@ -728,7 +838,7 @@ public partial class SearchViewModel : ObservableObject
             var collections = await _collectionService.GetAllCollectionsAsync();
 
             CollectionFilters.Clear();
-            CollectionFilters.Add(new CollectionFilterItem { Id = 0, Name = "All Collections", DocumentCount = 0 });
+            CollectionFilters.Add(new CollectionFilterItem { Id = 0, Name = _localization.GetString("Search_AllCollections"), DocumentCount = 0 });
             foreach (var col in collections.OrderBy(c => c.Name))
             {
                 CollectionFilters.Add(new CollectionFilterItem { Id = col.Id, Name = col.Name, DocumentCount = col.DocumentCount });
@@ -742,7 +852,7 @@ public partial class SearchViewModel : ObservableObject
 }
 
 // =============================================================================
-// SEARCH RESULT ITEM — Display model for a single search result
+// SEARCH RESULT ITEM - Display model for a single search result
 // =============================================================================
 
 public partial class SearchResultItem : ObservableObject
@@ -775,7 +885,7 @@ public partial class SearchResultItem : ObservableObject
 }
 
 // =============================================================================
-// SEARCH HISTORY ITEM — Display model for a recent search entry
+// SEARCH HISTORY ITEM - Display model for a recent search entry
 // =============================================================================
 
 public class SearchHistoryItem
@@ -787,17 +897,23 @@ public class SearchHistoryItem
 }
 
 // =============================================================================
-// SAVED FILTER ITEM — Display model for a bookmarked search filter
+// SAVED FILTER ITEM - Display model for a bookmarked search filter
 // =============================================================================
 
 public class SavedFilterItem
 {
     public long Id { get; init; }
     public string QueryText { get; init; } = string.Empty;
-    public string SearchType { get; init; } = "semantic";
+
+    /// <summary>The search mode the filter restores.</summary>
+    public SearchMode Mode { get; init; } = SearchMode.Semantic;
+
+    /// <summary>The name of <see cref="Mode"/> shown on the filter's badge, in the UI language.</summary>
+    public string SearchType { get; init; } = string.Empty;
+
     public string SavedAt { get; init; } = string.Empty;
 
-    // ── Advanced filter settings ─────────────────────────────────
+    // -- Advanced filter settings ---------------------------------
     public double? MinScore { get; init; }
     public int? MaxResults { get; init; }
     public DateTime? DateAfter { get; init; }

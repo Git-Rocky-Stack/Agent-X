@@ -21,8 +21,8 @@
 
   Excluding the generated scaffolding yields an honest denominator so the gate reflects code the
   team actually writes and can test. IncludeTestAssembly stays false (the default) so the
-  AgentX.Tests.dll assembly — which also
-  hosts the linked WinUI ViewModels — is not self-counted; the gate scopes to AgentX.Core, exactly
+  AgentX.Tests.dll assembly - which also
+  hosts the linked WinUI ViewModels - is not self-counted; the gate scopes to AgentX.Core, exactly
   as AX-QA-009 frames it ("Core coverage").
 -->
 <RunSettings>

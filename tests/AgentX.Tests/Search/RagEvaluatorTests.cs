@@ -395,10 +395,33 @@ public sealed class RagEvaluatorTests
         var result = await _evaluator.EvaluateAsync(question, answer, contextChunks);
 
         // Assert
-        // Missing fields deserialize to 0, then 0/10 = 0.0
+        // The scores that were given are kept; the missing one is neutral, and the result is
+        // marked default so metric aggregation does not record a made-up judgement (a
+        // missing key used to be recorded as a real 0).
         result.ContextRelevance.Should().Be(0.7);
         result.Faithfulness.Should().Be(0.8);
-        result.AnswerRelevance.Should().Be(0.0); // Missing field defaults to 0
+        result.AnswerRelevance.Should().Be(0.5);
+        result.IsDefault.Should().BeTrue();
+        result.DefaultReason.Should().Be("MissingKeys");
+    }
+
+    [Fact]
+    public async Task EvaluateAsync_JsonWithoutAnyScoreKeys_IsMarkedDefaultNotZero()
+    {
+        _aiService
+            .Setup(s => s.ChatAsync(
+                It.IsAny<IReadOnlyList<ChatMessage>>(),
+                It.IsAny<string>(),
+                It.IsAny<ChatOptions>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync("""{"verdict":"looks fine"}""");
+
+        var result = await _evaluator.EvaluateAsync(
+            "Question", "Answer", new List<RagContextChunk> { new() { ChunkId = 1, ChunkText = "Context" } });
+
+        result.IsDefault.Should().BeTrue();
+        result.DefaultReason.Should().Be("MissingKeys");
+        result.ContextRelevance.Should().Be(0.5);
     }
 
     [Fact]
@@ -423,7 +446,7 @@ public sealed class RagEvaluatorTests
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(new OperationCanceledException());
 
-        // Act + Assert — cancellation must propagate so callers can abort.
+        // Act + Assert - cancellation must propagate so callers can abort.
         // Returning a placeholder 0.5 score on cancel hides caller intent and
         // pollutes downstream metrics.
         await Assert.ThrowsAsync<OperationCanceledException>(() =>
@@ -452,7 +475,7 @@ public sealed class RagEvaluatorTests
         // Act
         var result = await _evaluator.EvaluateAsync(question, answer, contextChunks);
 
-        // Assert — defaults are returned but flagged so aggregators can exclude them
+        // Assert - defaults are returned but flagged so aggregators can exclude them
         result.ContextRelevance.Should().Be(0.5);
         result.IsDefault.Should().BeTrue();
         result.DefaultReason.Should().Be("LlmCallFailure");

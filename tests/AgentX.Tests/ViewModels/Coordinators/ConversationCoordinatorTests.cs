@@ -1,5 +1,6 @@
 using AgentX.App.ViewModels.Coordinators;
 using AgentX.Core.Data.Entities;
+using AgentX.Core.Search.Models;
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Feedback;
 using FluentAssertions;
@@ -23,7 +24,7 @@ public class ConversationCoordinatorTests
             _feedbackService.Object);
     }
 
-    // ── CreateConversationAsync ────────────────────────────────────
+    // -- CreateConversationAsync ------------------------------------
 
     [Fact]
     public async Task CreateConversationAsync_ReturnsSummary_OnSuccess()
@@ -64,7 +65,7 @@ public class ConversationCoordinatorTests
         result.Should().BeNull();
     }
 
-    // ── DeleteConversationAsync ────────────────────────────────────
+    // -- DeleteConversationAsync ------------------------------------
 
     [Fact]
     public async Task DeleteConversationAsync_CallsService_And_RaisesEvent()
@@ -90,7 +91,7 @@ public class ConversationCoordinatorTests
         }
     }
 
-    // ── LoadConversationsAsync ─────────────────────────────────────
+    // -- LoadConversationsAsync -------------------------------------
 
     [Fact]
     public async Task LoadConversationsAsync_ReturnsSummaries()
@@ -147,7 +148,7 @@ public class ConversationCoordinatorTests
         result.Should().BeEmpty();
     }
 
-    // ── TogglePinAsync ─────────────────────────────────────────────
+    // -- TogglePinAsync ---------------------------------------------
 
     [Fact]
     public async Task TogglePinAsync_CallsService_And_RaisesEvent()
@@ -173,7 +174,7 @@ public class ConversationCoordinatorTests
         }
     }
 
-    // ── SetConversationFolderAsync ─────────────────────────────────
+    // -- SetConversationFolderAsync ---------------------------------
 
     [Fact]
     public async Task SetConversationFolderAsync_CallsService_And_RaisesBothEvents()
@@ -206,7 +207,7 @@ public class ConversationCoordinatorTests
         }
     }
 
-    // ── LoadConversationsByFolderAsync ─────────────────────────────
+    // -- LoadConversationsByFolderAsync -----------------------------
 
     [Fact]
     public async Task LoadConversationsByFolderAsync_ReturnsFiltered()
@@ -234,7 +235,7 @@ public class ConversationCoordinatorTests
         result[0].FolderName.Should().Be("Work");
     }
 
-    // ── LoadFolderNamesAsync ───────────────────────────────────────
+    // -- LoadFolderNamesAsync ---------------------------------------
 
     [Fact]
     public async Task LoadFolderNamesAsync_ReturnsNames()
@@ -268,7 +269,7 @@ public class ConversationCoordinatorTests
         result.Should().BeEmpty();
     }
 
-    // ── SearchConversationsAsync ───────────────────────────────────
+    // -- SearchConversationsAsync -----------------------------------
 
     [Fact]
     public async Task SearchConversationsAsync_ReturnsMatching()
@@ -295,7 +296,7 @@ public class ConversationCoordinatorTests
         result[0].Title.Should().Be("Agent-X Discussion");
     }
 
-    // ── LoadMessagesAsync ──────────────────────────────────────────
+    // -- LoadMessagesAsync ------------------------------------------
 
     [Fact]
     public async Task LoadMessagesAsync_ReturnsMessageSummaries()
@@ -343,6 +344,27 @@ public class ConversationCoordinatorTests
     }
 
     [Fact]
+    public async Task LoadMessagesAsync_BringsBackTheWebSourcesSavedWithAnAnswer()
+    {
+        var sources = MessageCitations.Serialize(
+            [new WebCitation { Title = "Release notes", Url = "https://example.org/notes", Source = WebCitationSource.Web }]);
+        _conversationService
+            .Setup(s => s.GetMessagesAsync(1))
+            .ReturnsAsync(new List<MessageEntity>
+            {
+                new() { Id = 100, ConversationId = 1, SortOrder = 0, Role = "user", Content = "What changed?" },
+                new() { Id = 101, ConversationId = 1, SortOrder = 1, Role = "assistant", Content = "Version 2 [1].", CitationsJson = sources },
+                new() { Id = 102, ConversationId = 1, SortOrder = 2, Role = "assistant", Content = "Older", CitationsJson = "not json" }
+            });
+
+        var result = await _coordinator.LoadMessagesAsync(1);
+
+        result[0].WebCitations.Should().BeEmpty();
+        result[1].WebCitations.Should().ContainSingle().Which.Url.Should().Be("https://example.org/notes");
+        result[2].WebCitations.Should().BeEmpty();
+    }
+
+    [Fact]
     public async Task LoadMessagesAsync_LoadsFeedbackForAssistantMessages()
     {
         // Arrange
@@ -381,7 +403,7 @@ public class ConversationCoordinatorTests
         result[0].FeedbackRating.Should().Be("positive");
     }
 
-    // ── Event helpers ──────────────────────────────────────────────
+    // -- Event helpers ----------------------------------------------
 
     [Fact]
     public void RaiseConversationsChanged_RaisesEvent()

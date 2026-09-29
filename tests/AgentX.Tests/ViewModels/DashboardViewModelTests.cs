@@ -8,9 +8,11 @@ using AgentX.Core.Search;
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Collections;
 using AgentX.Core.Services.Indexing;
+using AgentX.Core.Services.Localization;
 using AgentX.Core.Services.Privacy;
 using AgentX.Core.Services.TemporalIdentity;
 using AgentX.Core.Services.TemporalIdentity.Models;
+using AgentX.Tests.Helpers;
 using FluentAssertions;
 using Moq;
 using Xunit;
@@ -77,6 +79,8 @@ public sealed class DashboardViewModelTests
 
         _temporalIdentity.Setup(service => service.GetBeliefConflictsAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<BeliefConflictEntity>());
+        _temporalIdentity.Setup(service => service.GetActiveTopicDetailsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<ActiveTopic>());
 
         _operationsOverviewService.Setup(service => service.GetSnapshotAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new OperationsOverviewSnapshot
@@ -85,7 +89,7 @@ public sealed class DashboardViewModelTests
                 {
                     Headline = "5",
                     Status = "Durable recall current",
-                    Detail = "6 stored snapshots · latest 10 minutes ago"
+                    Detail = "6 stored snapshots | latest 10 minutes ago"
                 },
                 SyncHealth = new OperationsCardSnapshot
                 {
@@ -103,7 +107,7 @@ public sealed class DashboardViewModelTests
                 {
                     Headline = "2",
                     Status = "2 connectors enabled",
-                    Detail = "Email Connector · Calendar Connector"
+                    Detail = "Email Connector | Calendar Connector"
                 },
                 WorkflowActivity = new OperationsCardSnapshot
                 {
@@ -111,7 +115,7 @@ public sealed class DashboardViewModelTests
                     Status = "86% success rate",
                     SupportingPrimary = "2 active / 30d",
                     SupportingSecondary = "42s avg run",
-                    Detail = "Top workflow: Research Briefing · 4 runs"
+                    Detail = "Top workflow: Research Briefing | 4 runs"
                 }
             });
     }
@@ -160,31 +164,37 @@ public sealed class DashboardViewModelTests
                 ConversationIntelligence = new OperationsCardSnapshot
                 {
                     Headline = "0",
+                    StatusKind = OperationsStatusKind.RecallInactive,
                     Status = "Durable recall inactive",
                     Detail = "Open Analytics to inspect summary coverage."
                 },
                 SyncHealth = new OperationsCardSnapshot
                 {
                     Headline = "Not configured",
+                    StatusKind = OperationsStatusKind.SyncNotConfigured,
                     Status = "Collaborative sync is off",
                     Detail = "Configure a shared folder to keep multiple installations aligned."
                 },
                 IngestionBacklog = new OperationsCardSnapshot
                 {
                     Headline = "0",
+                    StatusKind = OperationsStatusKind.BacklogClear,
                     Status = "Queue clear",
                     Detail = "Watch folders and enabled connectors will surface new items here."
                 },
                 Connectors = new OperationsCardSnapshot
                 {
                     Headline = "0",
+                    StatusKind = OperationsStatusKind.NoPluginsInstalled,
                     Status = "No plugins installed",
                     Detail = "Install or enable plugins to bring external data and workflow extensions into the app."
                 },
                 WorkflowActivity = new OperationsCardSnapshot
                 {
                     Headline = "0",
+                    StatusKind = OperationsStatusKind.WorkflowReadyToAutomate,
                     Status = "Ready to automate",
+                    SupportingPrimaryKind = OperationsStatusKind.WorkflowsNoRecentRuns,
                     SupportingPrimary = "No recent runs",
                     SupportingSecondary = "Avg duration unavailable",
                     Detail = "Create or launch a workflow from Vault or Search to start automating multi-step tasks."
@@ -206,6 +216,21 @@ public sealed class DashboardViewModelTests
     }
 
     [Fact]
+    public async Task InitializeAsync_when_the_overview_fails_recommends_setup_in_any_language()
+    {
+        // The fallback cards are worded in the UI language. The recommendations read their typed
+        // status, so a German UI gets the same setup actions the English one does.
+        _operationsOverviewService.Setup(service => service.GetSnapshotAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("overview unavailable"));
+        var viewModel = CreateViewModel(localization: ReswLocalization.For("de"));
+
+        await viewModel.InitializeAsync();
+
+        viewModel.RecommendedActions.Select(action => action.Route)
+            .Should().Contain(new[] { "SyncSettings", "PluginManager" });
+    }
+
+    [Fact]
     public async Task InitializeAsync_prioritizes_ai_setup_when_provider_is_unavailable()
     {
         _aiProvider.Setup(provider => provider.CheckConnectionAsync(It.IsAny<CancellationToken>()))
@@ -218,31 +243,37 @@ public sealed class DashboardViewModelTests
                 ConversationIntelligence = new OperationsCardSnapshot
                 {
                     Headline = "0",
+                    StatusKind = OperationsStatusKind.RecallInactive,
                     Status = "Durable recall inactive",
                     Detail = "Open Analytics to inspect summary coverage."
                 },
                 SyncHealth = new OperationsCardSnapshot
                 {
                     Headline = "Not configured",
+                    StatusKind = OperationsStatusKind.SyncNotConfigured,
                     Status = "Collaborative sync is off",
                     Detail = "Configure a shared folder to keep multiple installations aligned."
                 },
                 IngestionBacklog = new OperationsCardSnapshot
                 {
                     Headline = "0",
+                    StatusKind = OperationsStatusKind.BacklogClear,
                     Status = "Queue clear",
                     Detail = "Watch folders and enabled connectors will surface new items here."
                 },
                 Connectors = new OperationsCardSnapshot
                 {
                     Headline = "0",
+                    StatusKind = OperationsStatusKind.NoPluginsInstalled,
                     Status = "No plugins installed",
                     Detail = "Install or enable plugins to bring external data and workflow extensions into the app."
                 },
                 WorkflowActivity = new OperationsCardSnapshot
                 {
                     Headline = "0",
+                    StatusKind = OperationsStatusKind.WorkflowReadyToAutomate,
                     Status = "Ready to automate",
+                    SupportingPrimaryKind = OperationsStatusKind.WorkflowsNoRecentRuns,
                     SupportingPrimary = "No recent runs",
                     SupportingSecondary = "Avg duration unavailable",
                     Detail = "Create or launch a workflow from Vault or Search to start automating multi-step tasks."
@@ -277,6 +308,266 @@ public sealed class DashboardViewModelTests
         _aiProvider.Verify(provider => provider.CheckConnectionAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
+    [Theory]
+    [InlineData("Built-in LLM", true, "Connected to Built-in LLM")]
+    [InlineData("OpenAI", false, "OpenAI not available")]
+    [InlineData("", true, "Connected to AI provider")]
+    public async Task InitializeAsync_names_the_active_provider_in_the_connection_status(
+        string displayName, bool connected, string expected)
+    {
+        _aiProvider.SetupGet(provider => provider.DisplayName).Returns(displayName);
+        _aiProvider.Setup(provider => provider.CheckConnectionAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(connected);
+
+        var viewModel = CreateViewModel();
+
+        await viewModel.InitializeAsync();
+
+        viewModel.ConnectionStatus.Should().Be(expected);
+        viewModel.ConnectionStatus.Should().NotContain("Ollama");
+    }
+
+    // --- Provider attention hint ---
+    // "Connect Ollama to unlock AI chat" showed under the connection card whatever the provider
+    // was and whether or not it was reachable.
+
+    [Theory]
+    [InlineData("ollama", "Ollama", "Check that Ollama is running with a model downloaded, and that its address in Settings is correct.")]
+    [InlineData("local", "Built-in LLM", "Check that the built-in model is installed and that there is enough free memory to load it.")]
+    [InlineData("openai", "OpenAI", "Check the OpenAI API key in Settings and your network connection.")]
+    public async Task InitializeAsync_when_the_active_provider_is_unreachable_says_what_to_check_for_it(
+        string providerId, string displayName, string expected)
+    {
+        _aiProvider.SetupGet(provider => provider.ProviderId).Returns(providerId);
+        _aiProvider.SetupGet(provider => provider.DisplayName).Returns(displayName);
+        _aiProvider.Setup(provider => provider.CheckConnectionAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        var viewModel = CreateViewModel();
+
+        await viewModel.InitializeAsync();
+
+        viewModel.HasProviderAttentionHint.Should().BeTrue();
+        viewModel.ProviderAttentionHint.Should().Be(expected);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_when_the_active_provider_is_reachable_shows_no_hint()
+    {
+        _aiProvider.SetupGet(provider => provider.ProviderId).Returns("local");
+        _aiProvider.SetupGet(provider => provider.DisplayName).Returns("Built-in LLM");
+
+        var viewModel = CreateViewModel();
+
+        await viewModel.InitializeAsync();
+
+        viewModel.HasProviderAttentionHint.Should().BeFalse();
+        viewModel.ProviderAttentionHint.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task InitializeAsync_while_the_ai_service_is_starting_shows_no_hint()
+    {
+        _aiService.SetupGet(service => service.ActiveProvider)
+            .Throws(new InvalidOperationException("AI service has not been initialized. Call InitializeAsync first."));
+
+        var viewModel = CreateViewModel();
+
+        await viewModel.InitializeAsync();
+
+        viewModel.HasProviderAttentionHint.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task InitializeAsync_names_the_provider_and_its_advice_in_the_users_language()
+    {
+        _aiProvider.SetupGet(provider => provider.ProviderId).Returns("ollama");
+        _aiProvider.SetupGet(provider => provider.DisplayName).Returns("Ollama");
+        _aiProvider.Setup(provider => provider.CheckConnectionAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        var viewModel = CreateViewModel(localization: ReswLocalization.For("de"));
+
+        await viewModel.InitializeAsync();
+
+        viewModel.ConnectionStatus.Should().Be("Ollama nicht verfügbar");
+        viewModel.ProviderAttentionHint.Should().Be(
+            "Prüfen Sie, ob Ollama läuft und ein Modell heruntergeladen ist und ob die Adresse in den Einstellungen stimmt.");
+    }
+
+    // --- New Chat ---
+    // The New Chat tile was a plain navigation to Chat, so the cached Chat page reopened the last
+    // conversation. It now carries the intent Ctrl+N and the palette's New Conversation use.
+
+    [Fact]
+    public void StartNewChatCommand_opens_chat_with_the_new_conversation_intent()
+    {
+        var viewModel = CreateViewModel();
+        var navigations = new List<(string Page, object? Parameter)>();
+        viewModel.NavigateRequested = (page, parameter) => navigations.Add((page, parameter));
+
+        viewModel.StartNewChatCommand.Execute(null);
+
+        navigations.Should().Equal(("Chat", (object?)NavigationIntents.NewConversation));
+    }
+
+    [Fact]
+    public void NavigateToChatCommand_still_opens_chat_where_it_was_left()
+    {
+        // "View All" under Recent Conversations shows the conversations, not a new one.
+        var viewModel = CreateViewModel();
+        var navigations = new List<(string Page, object? Parameter)>();
+        viewModel.NavigateRequested = (page, parameter) => navigations.Add((page, parameter));
+
+        viewModel.NavigateToChatCommand.Execute(null);
+
+        navigations.Should().Equal(("Chat", (object?)null));
+    }
+
+    // --- Belief card ---
+    // The card said "Your beliefs are consistent" / "No detected contradictions" when no belief
+    // had been recorded at all, so there was nothing to compare.
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task InitializeAsync_with_no_recorded_beliefs_does_not_claim_they_are_consistent(bool withEnglishResources)
+    {
+        _temporalIdentity.Setup(service => service.GetActiveTopicDetailsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<ActiveTopic>());
+
+        var viewModel = CreateViewModel(localization: EnglishOrNone(withEnglishResources));
+
+        await viewModel.InitializeAsync();
+
+        viewModel.HasBeliefConflicts.Should().BeFalse();
+        viewModel.BeliefConflictsStatus.Should().Be("No beliefs to compare yet");
+        viewModel.BeliefConflictsDetail.Should().Be(
+            "Agent-X has not recorded your views on any topic more than once, so there is nothing to compare yet.");
+        viewModel.BeliefConflictsDetail.Should().NotContain("contradictions");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task InitializeAsync_with_recorded_beliefs_and_no_conflict_says_they_are_consistent(bool withEnglishResources)
+    {
+        // A view recorded twice was compared with itself over time.
+        _temporalIdentity.Setup(service => service.GetActiveTopicDetailsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<ActiveTopic>
+            {
+                new("Microservices", new DateTime(2026, 5, 1, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 9, 1, 0, 0, 0, DateTimeKind.Utc))
+            });
+
+        var viewModel = CreateViewModel(localization: EnglishOrNone(withEnglishResources));
+
+        await viewModel.InitializeAsync();
+
+        viewModel.HasBeliefConflicts.Should().BeFalse();
+        viewModel.BeliefConflictsStatus.Should().Be("Your beliefs are consistent");
+        viewModel.BeliefConflictsDetail.Should().Be("No detected contradictions between your past and current views.");
+    }
+
+    [Fact]
+    public async Task InitializeAsync_with_views_recorded_only_once_says_there_is_nothing_to_compare()
+    {
+        var once = new DateTime(2026, 9, 1, 0, 0, 0, DateTimeKind.Utc);
+        _temporalIdentity.Setup(service => service.GetActiveTopicDetailsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<ActiveTopic> { new("Microservices", once, once) });
+
+        var viewModel = CreateViewModel();
+
+        await viewModel.InitializeAsync();
+
+        viewModel.BeliefConflictsStatus.Should().Be("No beliefs to compare yet");
+    }
+
+    [Fact]
+    public async Task InitializeAsync_asks_for_every_recorded_belief_not_only_recent_ones()
+    {
+        // A belief recorded a year ago still makes "consistent" a claim about something.
+        var viewModel = CreateViewModel();
+
+        await viewModel.InitializeAsync();
+
+        _temporalIdentity.Verify(
+            service => service.GetActiveTopicDetailsAsync(It.Is<int>(days => days >= 36_500), It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Theory]
+    [InlineData(1, "Your view on 1 topic has evolved over time.", false)]
+    [InlineData(3, "Your views on 3 topics have evolved over time.", false)]
+    [InlineData(1, "Your view on 1 topic has evolved over time.", true)]
+    [InlineData(3, "Your views on 3 topics have evolved over time.", true)]
+    public async Task InitializeAsync_with_conflicts_lists_them(int count, string expectedDetail, bool withEnglishResources)
+    {
+        var conflicts = Enumerable.Range(1, count)
+            .Select(i => new BeliefConflictEntity { Id = i, PreviousStance = "before", CurrentStance = "after" })
+            .ToList();
+        _temporalIdentity.Setup(service => service.GetBeliefConflictsAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(conflicts);
+
+        var viewModel = CreateViewModel(localization: EnglishOrNone(withEnglishResources));
+
+        await viewModel.InitializeAsync();
+
+        viewModel.HasBeliefConflicts.Should().BeTrue();
+        viewModel.BeliefConflictsHeadline.Should().Be(count.ToString());
+        viewModel.BeliefConflictsStatus.Should().Be("Belief evolution detected");
+        viewModel.BeliefConflictsDetail.Should().Be(expectedDetail);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task AcknowledgingTheLastConflict_says_so_rather_than_claiming_consistency(bool withEnglishResources)
+    {
+        var conflict = new BeliefConflictEntity { Id = 7, PreviousStance = "before", CurrentStance = "after" };
+        _temporalIdentity.Setup(service => service.GetBeliefConflictsAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<BeliefConflictEntity> { conflict });
+        _temporalIdentity.Setup(service => service.AcknowledgeConflictAsync(7, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+        var viewModel = CreateViewModel(localization: EnglishOrNone(withEnglishResources));
+        await viewModel.InitializeAsync();
+
+        await viewModel.AcknowledgeConflictCommand.ExecuteAsync(viewModel.BeliefConflicts.Single());
+
+        viewModel.HasBeliefConflicts.Should().BeFalse();
+        viewModel.BeliefConflictsStatus.Should().Be("No open conflicts");
+        viewModel.BeliefConflictsDetail.Should().Be("All belief conflicts have been acknowledged.");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task InitializeAsync_when_the_belief_history_cannot_be_read_says_so(bool withEnglishResources)
+    {
+        _temporalIdentity.Setup(service => service.GetBeliefConflictsAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("database unavailable"));
+
+        var viewModel = CreateViewModel(localization: EnglishOrNone(withEnglishResources));
+
+        await viewModel.InitializeAsync();
+
+        viewModel.HasBeliefConflicts.Should().BeFalse();
+        viewModel.BeliefConflictsStatus.Should().Be("Belief status unavailable");
+        viewModel.BeliefConflictsDetail.Should().Be("Agent-X could not load your belief history.");
+    }
+
+    [Fact]
+    public async Task The_belief_card_is_read_from_the_users_language()
+    {
+        _temporalIdentity.Setup(service => service.GetActiveTopicDetailsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<ActiveTopic>());
+
+        var viewModel = CreateViewModel(localization: ReswLocalization.For("fr"));
+
+        await viewModel.InitializeAsync();
+
+        viewModel.BeliefConflictsStatus.Should().Be("Aucune conviction à comparer pour le moment");
+    }
+
     [Fact]
     public async Task InitializeAsync_prefers_exact_targets_when_operations_snapshot_includes_preview_ids()
     {
@@ -287,11 +578,12 @@ public sealed class DashboardViewModelTests
                 {
                     Headline = "5",
                     Status = "Durable recall current",
-                    Detail = "6 stored snapshots · latest 10 minutes ago"
+                    Detail = "6 stored snapshots | latest 10 minutes ago"
                 },
                 SyncHealth = new OperationsCardSnapshot
                 {
                     Headline = "Configured",
+                    StatusKind = OperationsStatusKind.SyncStandingBy,
                     Status = "Standing by",
                     Detail = "Syncing the full workspace."
                 },
@@ -318,6 +610,7 @@ public sealed class DashboardViewModelTests
                         DocumentId = 501,
                         Title = "Quarterly Brief.docx",
                         Status = "Email Connector",
+                        Health = OperationsDocumentHealth.NeedsAttention,
                         HealthStatus = "Needs Attention",
                         Detail = "Embedding request failed."
                     }
@@ -325,7 +618,8 @@ public sealed class DashboardViewModelTests
                 Connectors = new OperationsCardSnapshot
                 {
                     Headline = "1",
-                    Status = "1 connector disabled",
+                    Status = "1 plugin installed",
+                    StatusKind = OperationsStatusKind.PluginsInstalled,
                     Detail = "Email Connector is installed but currently disabled."
                 },
                 ConnectorPreviews =
@@ -343,7 +637,9 @@ public sealed class DashboardViewModelTests
                 WorkflowActivity = new OperationsCardSnapshot
                 {
                     Headline = "0",
+                    StatusKind = OperationsStatusKind.WorkflowReadyToAutomate,
                     Status = "Ready to automate",
+                    SupportingPrimaryKind = OperationsStatusKind.WorkflowsNoRecentRuns,
                     SupportingPrimary = "No recent runs",
                     SupportingSecondary = "Avg duration unavailable",
                     Detail = "Create or launch a workflow from Vault or Search to start automating multi-step tasks."
@@ -418,9 +714,9 @@ public sealed class DashboardViewModelTests
         navigations.Should().Equal("Analytics", "Operations", "Inbox", "SyncSettings", "Workflows", "PluginManager");
     }
 
-    // ── Indexing status ──────────────────────────────────────────────────────
+    // -- Indexing status ------------------------------------------------------
     // When the indexing query fails the dashboard used to report 100% indexed and
-    // "Idle" — a green light for a state it had not observed.
+    // "Idle" - a green light for a state it had not observed.
 
     [Fact]
     public async Task InitializeAsync_WhenTheIndexingQueryFails_ReportsUnknownRatherThanAllIndexed()
@@ -436,7 +732,7 @@ public sealed class DashboardViewModelTests
         viewModel.IndexedPercent.Should().Be(0);
     }
 
-    // ── Quick search ─────────────────────────────────────────────────────────
+    // -- Quick search ---------------------------------------------------------
     // The dashboard search box navigated to Search but dropped what the user typed,
     // landing them on an empty search page. The query has to travel with the route.
 
@@ -511,7 +807,7 @@ public sealed class DashboardViewModelTests
     {
         // AX-QA-003 follow-up (dashboard race): MainWindow shows the dashboard shell before the
         // awaited migration completes, so InitializeAsync must block on the data-ready gate before
-        // fanning out its DB reads — otherwise it queries a not-yet-migrated schema.
+        // fanning out its DB reads - otherwise it queries a not-yet-migrated schema.
         var gate = new StartupGate(); // closed
         var viewModel = CreateViewModel(gate);
 
@@ -526,7 +822,7 @@ public sealed class DashboardViewModelTests
         _conversationService.Verify(service => service.GetConversationCountAsync(), Times.Never,
             "no database read may occur before the migration gate opens");
 
-        // Open the gate — initialization must now complete and the reads must run.
+        // Open the gate - initialization must now complete and the reads must run.
         gate.SignalDataReady();
         await init.WaitAsync(TimeSpan.FromSeconds(5));
 
@@ -551,7 +847,164 @@ public sealed class DashboardViewModelTests
         _documentService.Verify(service => service.GetTotalDocumentCountAsync(), Times.Never);
     }
 
-    private DashboardViewModel CreateViewModel(IStartupGate? startupGate = null)
+    // -- Texts in the user's language ------------------------------------------
+    // The system card, the recommendations, the placeholders and the operations fallback were
+    // English literals, and Core formats hardware sizes but words nothing.
+
+    [Fact]
+    public async Task InitializeAsync_WordsTheSystemCardInTheUsersLanguage()
+    {
+        _hardwareDetector.Setup(detector => detector.DetectAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new HardwareCapability
+            {
+                GpuName = "Unknown GPU",
+                GpuVramBytes = 0,
+                TotalRamBytes = 32_000_000_000,
+                AvailableRamBytes = 24_000_000_000
+            });
+        var viewModel = CreateViewModel(localization: ReswLocalization.For("de"));
+
+        await viewModel.InitializeAsync();
+
+        viewModel.GpuName.Should().Be("Keine GPU erkannt", "a placeholder GPU name reads as the Hardware Advisor shows it");
+        viewModel.GpuVramInfo.Should().Be("Integrierte GPU");
+        viewModel.TotalRamInfo.Should().Be(new HardwareCapability { TotalRamBytes = 32_000_000_000 }.TotalRamFormatted + " gesamt");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task InitializeAsync_NamesTheVramAndTotalRam(bool withEnglishResources)
+    {
+        var hardware = new HardwareCapability
+        {
+            GpuName = "RTX Test",
+            GpuVramBytes = 8_000_000_000,
+            TotalRamBytes = 32_000_000_000,
+            AvailableRamBytes = 24_000_000_000
+        };
+        var viewModel = CreateViewModel(localization: EnglishOrNone(withEnglishResources));
+
+        await viewModel.InitializeAsync();
+
+        viewModel.GpuName.Should().Be("RTX Test");
+        viewModel.GpuVramInfo.Should().Be($"{hardware.GpuVramFormatted} VRAM");
+        viewModel.TotalRamInfo.Should().Be($"{hardware.TotalRamFormatted} total");
+        viewModel.AvailableRam.Should().Be(hardware.AvailableRamFormatted);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_SaysWhenWindowsReportedNoMemory()
+    {
+        _hardwareDetector.Setup(detector => detector.DetectAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new HardwareCapability { GpuName = "RTX Test", GpuVramBytes = 8_000_000_000 });
+        var viewModel = CreateViewModel(localization: ReswLocalization.For("fr"));
+
+        await viewModel.InitializeAsync();
+
+        viewModel.AvailableRam.Should().Be("Non détectée");
+        viewModel.TotalRamInfo.Should().Be("Non détectée");
+    }
+
+    [Fact]
+    public async Task InitializeAsync_WhenDetectionFails_SaysSoInTheUsersLanguage()
+    {
+        _hardwareDetector.Setup(detector => detector.DetectAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("WMI unavailable"));
+        var viewModel = CreateViewModel(localization: ReswLocalization.For("es"));
+
+        await viewModel.InitializeAsync();
+
+        viewModel.GpuName.Should().Be("Error de detección");
+        viewModel.AvailableRam.Should().Be("Desconocido");
+        viewModel.GpuVramInfo.Should().Be("Desconocido");
+    }
+
+    [Fact]
+    public void Placeholders_ReadInTheUsersLanguageBeforeAnythingLoads()
+    {
+        var viewModel = CreateViewModel(localization: ReswLocalization.For("ja"));
+
+        viewModel.ConnectionStatus.Should().Be("接続を確認しています...");
+        viewModel.GpuName.Should().Be("検出しています...");
+        viewModel.PrivacyTitle.Should().Be("100% プライベート");
+        viewModel.SyncHealthHeadline.Should().Be("未構成");
+    }
+
+    [Fact]
+    public async Task InitializeAsync_ShowsTheRecommendationsInTheUsersLanguage()
+    {
+        var viewModel = CreateViewModel(localization: ReswLocalization.For("fr"));
+
+        await viewModel.InitializeAsync();
+
+        var backlog = viewModel.RecommendedActions[0];
+        backlog.Route.Should().Be("Operations");
+        backlog.CategoryLabel.Should().Be("Attention");
+        backlog.Title.Should().Be("Résorbez le retard d'indexation");
+        backlog.Detail.Should().Be("2 éléments importés doivent encore être vérifiés ou réindexés.");
+        backlog.CommandText.Should().Be("Ouvrir Operations");
+        viewModel.RecommendedActions[1].Detail.Should()
+            .Be("4 éléments de la Smart Inbox attendent une classification, une orientation ou la génération d'un aperçu.");
+    }
+
+    [Fact]
+    public async Task InitializeAsync_WhenTheOperationsOverviewFails_ShowsItsFallbackInTheUsersLanguage()
+    {
+        _operationsOverviewService.Setup(service => service.GetSnapshotAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("overview unavailable"));
+        var viewModel = CreateViewModel(localization: ReswLocalization.For("zh-CN"));
+
+        await viewModel.InitializeAsync();
+
+        viewModel.SyncHealthHeadline.Should().Be("不可用");
+        viewModel.SyncHealthStatus.Should().Be("同步状态不可用");
+        viewModel.ConnectorsStatus.Should().Be("未安装插件");
+        viewModel.WorkflowDetail.Should().Be("打开工作流以创建或运行自动化。");
+    }
+
+    [Fact]
+    public async Task InitializeAsync_CountsCollectionDocumentsInTheSingularForOne()
+    {
+        _collectionService.Setup(service => service.GetAllCollectionsAsync())
+            .ReturnsAsync(new[]
+            {
+                new CollectionEntity { Id = 1, Name = "Research", DocumentCount = 3 },
+                new CollectionEntity { Id = 2, Name = "Receipts", DocumentCount = 1 }
+            });
+        var viewModel = CreateViewModel();
+
+        await viewModel.InitializeAsync();
+
+        viewModel.TopCollections.Select(item => item.CountLabel).Should().Equal("3 docs", "1 doc");
+    }
+
+    [Fact]
+    public void OpenRecommendedActionCommand_NamesTheRecommendationInTheUsersLanguage()
+    {
+        var viewModel = CreateViewModel(localization: ReswLocalization.For("de"));
+
+        viewModel.OpenRecommendedActionCommand.Execute(new DashboardRecommendedActionItem
+        {
+            Title = "Connector verbinden",
+            Route = "PluginManager",
+            TargetId = 7
+        });
+
+        _operationsDrillInService.Verify(service => service.StagePluginRequest(
+            It.Is<OperationsPluginDrillInRequest>(request =>
+                request.PluginId == 7 &&
+                request.SourceLabel == "Dashboard-Empfehlung \u201EConnector verbinden\u201C geöffnet")), Times.Once);
+    }
+
+    /// <summary>
+    /// The shipped en-US resources, or none: the view model then uses its English fallbacks, which
+    /// must read the same.
+    /// </summary>
+    private static ILocalizationService? EnglishOrNone(bool withEnglishResources) =>
+        withEnglishResources ? ReswLocalization.For("en-US") : null;
+
+    private DashboardViewModel CreateViewModel(IStartupGate? startupGate = null, ILocalizationService? localization = null)
     {
         // Default to an already-open gate so the many InitializeAsync tests proceed immediately;
         // tests exercising the gate itself pass an explicit (closed) gate.
@@ -575,6 +1028,7 @@ public sealed class DashboardViewModelTests
             _temporalIdentity.Object,
             gate,
             _privacyStatusService.Object,
-            _operationsDrillInService.Object);
+            _operationsDrillInService.Object,
+            localization);
     }
 }

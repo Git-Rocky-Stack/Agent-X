@@ -1,73 +1,80 @@
 # Document Templates
 
-**Pre-built document structures for Agent-X**
+**Markdown outlines for notes you write and then import into Agent-X**
+
+---
+
+## How to use these outlines
+
+Agent-X does not create documents from templates. These outlines are for your own editor:
+
+1. Copy an outline below into a new file in any text editor.
+2. Replace the parts in square brackets, delete the sections you do not need, and save the
+   file with the `.md` extension.
+3. Bring it into Agent-X: **Import Files** in the Knowledge Vault, or save it in a folder you
+   added under **Settings > Knowledge Vault > Watch Folders**, which imports new and changed
+   files while Agent-X runs.
+
+Agent-X indexes the text of the file. Tags come from the AI model after indexing, not from the
+file, so the outlines have no tag or metadata block. Using the same headings in every note of
+a kind (for example **Action Items** in every set of meeting notes) makes targeted questions in
+Ask Your Files, such as "List the action items from the March meetings", easier to answer.
 
 ---
 
 ## Project Brief Template
 
 ```markdown
----
-name: Project Brief
-description: Structured project overview and planning document
-category: Project Management
-tags: [project, planning, brief]
----
+# [Project name]
 
-# {{projectName}}
-
-**Created:** {{date}}
-**Author:** {{author}}
-**Status:** {{status}} (Draft / In Progress / Completed)
+**Created:** [date]
+**Author:** [name]
+**Status:** [Draft / In Progress / Completed]
 
 ## Executive Summary
 
-{{executiveSummary}}
+[Two or three sentences on what the project is and why it matters.]
 
 ## Objectives
 
-{{#each objectives}}
-- {{this}}
-{{/each}}
+- [Objective 1]
+- [Objective 2]
 
 ## Scope
 
 ### In Scope
-{{#each inScope}}
-- {{this}}
-{{/each}}
+
+- [Item]
 
 ### Out of Scope
-{{#each outOfScope}}
-- {{this}}
-{{/each}}
+
+- [Item]
 
 ## Timeline
 
 | Phase | Duration | Deliverables |
 |-------|----------|--------------|
-| {{phase1Name}} | {{phase1Duration}} | {{phase1Deliverables}} |
-| {{phase2Name}} | {{phase2Duration}} | {{phase2Deliverables}} |
-| {{phase3Name}} | {{phase3Duration}} | {{phase3Deliverables}} |
+| [Phase 1] | [Duration] | [Deliverables] |
+| [Phase 2] | [Duration] | [Deliverables] |
+| [Phase 3] | [Duration] | [Deliverables] |
 
 ## Resources
 
-**Team:** {{teamMembers}}
-**Budget:** {{budget}}
-**Tools:** {{tools}}
+**Team:** [names and roles]
+**Budget:** [amount]
+**Tools:** [tools]
 
-## Risks & Mitigation
+## Risks and Mitigation
 
 | Risk | Impact | Mitigation |
 |------|--------|------------|
-| {{risk1}} | {{impact1}} | {{mitigation1}} |
-| {{risk2}} | {{impact2}} | {{mitigation2}} |
+| [Risk 1] | [Impact] | [Mitigation] |
+| [Risk 2] | [Impact] | [Mitigation] |
 
 ## Success Criteria
 
-{{#each successCriteria}}
-- {{this}}
-{{/each}}
+- [Criterion 1]
+- [Criterion 2]
 ```
 
 ---
@@ -75,70 +82,44 @@ tags: [project, planning, brief]
 ## Meeting Notes Template
 
 ```markdown
----
-name: Meeting Notes
-description: Structured meeting record with action items
-category: Communication
-tags: [meeting, notes, action-items]
----
+# [Meeting title]
 
-# {{meetingTitle}}
-
-**Date:** {{date}}
-**Time:** {{startTime}} - {{endTime}}
-**Location:** {{location}}
-**Attendees:** {{attendees}}
+**Date:** [date]
+**Time:** [start] - [end]
+**Location:** [room or link]
+**Attendees:** [names]
 
 ## Meeting Purpose
 
-{{meetingPurpose}}
+[Why the meeting took place.]
 
 ## Agenda Items
 
-{{#each agendaItems}}
-### {{title}}
-{{#if discussion}}
-**Discussion:** {{discussion}}
-{{/if}}
-{{#if decision}}
-**Decision:** {{decision}}
-{{/if}}
-{{#if timebox}}
-**Timebox:** {{timebox}}
-{{/if}}
-{{/each}}
+### [Agenda item 1]
 
-## Discussion Summary
+**Discussion:** [summary]
+**Decision:** [decision, if any]
 
-{{discussionSummary}}
+### [Agenda item 2]
+
+**Discussion:** [summary]
+**Decision:** [decision, if any]
 
 ## Decisions Made
 
-{{#each decisions}}
-- **{{topic}}:** {{decision}}
-{{/each}}
+- **[Topic]:** [decision]
 
 ## Action Items
 
 | Task | Owner | Due Date | Status |
 |------|-------|----------|--------|
-| {{action1}} | {{owner1}} | {{dueDate1}} | {{status1}} |
-| {{action2}} | {{owner2}} | {{dueDate2}} | {{status2}} |
-| {{action3}} | {{owner3}} | {{dueDate3}} | {{status3}} |
+| [Task] | [Owner] | [Date] | [Open / Done] |
+| [Task] | [Owner] | [Date] | [Open / Done] |
 
 ## Next Meeting
 
-**Date:** {{nextMeetingDate}}
-**Time:** {{nextMeetingTime}}
-**Agenda:** {{nextMeetingAgenda}}
-
-## Attachments
-
-{{#if attachments}}
-- {{attachments}}
-{{else}}
-No attachments
-{{/if}}
+**Date:** [date]
+**Agenda:** [topics]
 ```
 
 ---
@@ -146,337 +127,243 @@ No attachments
 ## Research Summary Template
 
 ```markdown
----
-name: Research Summary
-description: Structured research synthesis document
-category: Research
-tags: [research, summary, synthesis]
----
+# [Research topic]
 
-# {{researchTopic}}
-
-**Research Date:** {{date}}
-**Researcher:** {{author}}
+**Research Date:** [date]
+**Researcher:** [name]
 
 ## Research Question
 
-{{researchQuestion}}
+[The question this research answers.]
 
 ## Methodology
 
-{{methodology}}
+[How the research was done.]
 
 ## Sources
 
-{{#each sources}}
-- {{title}} — {{author}} ({{year}})
-  - URL: {{url}}
-  - Access Date: {{accessDate}}
-{{/each}}
+- [Title] - [Author] ([Year]), [URL or location], accessed [date]
+- [Title] - [Author] ([Year]), [URL or location], accessed [date]
 
 ## Key Findings
 
-{{#each findings}}
-### {{title}}
+### [Finding 1]
 
-{{content}}
+[Description.]
 
-**Relevance:** {{relevance}}
-**Confidence:** {{confidence}} (High / Medium / Low)
-{{/each}}
+**Relevance:** [why it matters]
+**Confidence:** [High / Medium / Low]
+
+### [Finding 2]
+
+[Description.]
+
+**Relevance:** [why it matters]
+**Confidence:** [High / Medium / Low]
 
 ## Analysis
 
-{{analysis}}
+[What the findings mean together.]
 
 ## Limitations
 
-{{#each limitations}}
-- {{this}}
-{{/each}}
+- [Limitation]
 
 ## Conclusions
 
-{{conclusions}}
+[Conclusions.]
 
 ## Recommendations
 
-{{#each recommendations}}
-1. {{this}}
-{{/each}}
+1. [Recommendation]
+2. [Recommendation]
 
 ## Further Research
 
-{{#each furtherResearch}}
-- {{this}}
-{{/each}}
+- [Open question]
 
 ## Related Documents
 
-{{#if relatedDocuments}}
-- {{relatedDocuments}}
-{{else}}
-No related documents
-{{/if}}
+- [Document name]
 ```
 
 ---
 
 ## Technical Specification Template
 
-```markdown
----
-name: Technical Specification
-description: Technical design specification document
-category: Technical
-tags: [specification, technical, design]
----
+````markdown
+# [Feature name] - Technical Specification
 
-# {{featureName}} — Technical Specification
-
-**Version:** {{version}}
-**Status:** {{status}} (Draft / Review / Approved)
-**Author:** {{author}}
-**Reviewers:** {{reviewers}}
+**Version:** [version]
+**Status:** [Draft / Review / Approved]
+**Author:** [name]
+**Reviewers:** [names]
 
 ## Overview
 
-{{overview}}
+[What the feature does and why.]
 
 ## Requirements
 
 ### Functional Requirements
 
-{{#each functionalRequirements}}
-- FR{{@index}}: {{this}}
-{{/each}}
+- FR1: [requirement]
+- FR2: [requirement]
 
 ### Non-Functional Requirements
 
-{{#each nonFunctionalRequirements}}
-- NFR{{@index}}: {{this}}
-{{/each}}
+- NFR1: [requirement]
+- NFR2: [requirement]
 
 ## Architecture
 
 ### System Context
 
-{{systemContext}}
-
-### Component Diagram
-
-{{componentDiagram}}
+[Where the feature sits in the system.]
 
 ### Data Flow
 
-{{dataFlow}}
+[How data moves through the feature.]
 
 ## Technical Approach
 
-{{#each technicalApproach}}
-### {{title}}
+### [Component 1]
 
-{{description}}
+[Description.]
 
-**Technologies:** {{technologies}}
-**Dependencies:** {{dependencies}}
-{{/each}}
+**Technologies:** [technologies]
+**Dependencies:** [dependencies]
 
 ## API Specifications
 
-{{#if apiSpecs}}
-### {{apiSpecs}}
+### [Endpoint name]
 
-**Endpoint:** `{{endpoint}}`
-**Method:** {{method}}
-**Authentication:** {{auth}}
+**Endpoint:** `[path]`
+**Method:** [GET / POST / PUT / DELETE]
+**Authentication:** [method]
+
 **Request:**
+
 ```json
-{{request}}
+[request example]
 ```
+
 **Response:**
+
 ```json
-{{response}}
+[response example]
 ```
-{{/if}}
 
-## Database Schema
+## Database Changes
 
-{{#if databaseChanges}}
-### Changes Required
-
-{{#each databaseChanges}}
-- Table: {{table}}
-  - Action: {{action}} (ADD / MODIFY / DROP)
-  - Details: {{details}}
-{{/each}}
-{{/if}}
+- Table: [table] - [ADD / MODIFY / DROP] - [details]
 
 ## Security Considerations
 
-{{securityConsiderations}}
+[Threats and how the design handles them.]
 
 ## Performance Requirements
 
 | Metric | Target | Measurement |
 |--------|--------|-------------|
-| {{metric1}} | {{target1}} | {{measurement1}} |
-| {{metric2}} | {{target2}} | {{measurement2}} |
+| [Metric] | [Target] | [How it is measured] |
 
 ## Testing Strategy
 
-{{testingStrategy}}
+[Approach.]
 
 ### Test Cases
 
-{{#each testCases}}
-- TC{{@index}}: {{description}}
-  - Expected: {{expected}}
-  - Priority: {{priority}}
-{{/each}}
+- TC1: [description] - expected: [result] - priority: [High / Medium / Low]
+- TC2: [description] - expected: [result] - priority: [High / Medium / Low]
 
 ## Deployment Plan
 
-{{deploymentPlan}}
+[Steps.]
 
 ## Rollback Plan
 
-{{rollbackPlan}}
+[Steps.]
 
 ## References
 
-{{#each references}}
-- {{this}}
-{{/each}}
-```
+- [Reference]
+````
 
 ---
 
 ## Code Review Template
 
 ```markdown
----
-name: Code Review
-description: Structured code review documentation
-category: Development
-tags: [code-review, development, quality]
----
+# Code Review - [pull request title]
 
-# Code Review — {{pullRequestTitle}}
-
-**Date:** {{date}}
-**Reviewer:** {{author}}
-**Author:** {{codeAuthor}}
-**Pull Request:** {{prNumber}}
+**Date:** [date]
+**Reviewer:** [name]
+**Author:** [name]
+**Pull Request:** [number or link]
 
 ## Overview
 
-{{overview}}
+[What the change does.]
 
 ## Files Changed
 
-{{#each changedFiles}}
-- `{{path}}` ({{linesChanged}} lines)
-  - Changes: {{description}}
-{{/each}}
+- `[path]` ([lines] lines): [what changed]
+- `[path]` ([lines] lines): [what changed]
 
 ## Overall Assessment
 
-**Recommendation:** {{recommendation}} (Approve / Request Changes / Reject)
+**Recommendation:** [Approve / Request Changes / Reject]
 
-**Summary:** {{summary}}
+**Summary:** [one paragraph]
 
 ## Detailed Review
 
 ### Strengths
 
-{{#each strengths}}
-- {{this}}
-{{/each}}
+- [Strength]
 
 ### Areas for Improvement
 
-{{#each improvements}}
-#### {{title}}
+#### [Issue title]
 
-**File:** {{file}}
-**Line:** {{line}}
-
-**Issue:** {{issue}}
-**Suggestion:** {{suggestion}}
-**Priority:** {{priority}} (Must Fix / Should Fix / Nice to Have)
-{{/each}}
+**File:** [path]
+**Line:** [line]
+**Issue:** [description]
+**Suggestion:** [suggestion]
+**Priority:** [Must Fix / Should Fix / Nice to Have]
 
 ### Questions
 
-{{#each questions}}
-- {{this}}
-{{/each}}
+- [Question]
 
 ## Security Concerns
 
-{{#if securityConcerns}}
-{{#each securityConcerns}}
-- {{this}}
-{{/each}}
-{{else}}
-No security concerns identified.
-{{/if}}
+- [Concern, or "None identified"]
 
 ## Performance Considerations
 
-{{performanceConsiderations}}
+[Notes.]
 
 ## Testing Coverage
 
-**Unit Tests:** {{unitTestCoverage}}%
-**Integration Tests:** {{integrationTestCoverage}}%
-
-**Missing Test Coverage:**
-{{#each missingTests}}
-- {{file}} — {{reason}}
-{{/each}}
+[What is tested and what is missing.]
 
 ## Approval Conditions
 
-{{#if approved}}
-Approved with conditions:
-{{#each conditions}}
-- {{this}}
-{{/each}}
-{{else}}
-Conditional approval. Address the "Must Fix" items above.
-{{/if}}
+- [Condition]
 ```
 
 ---
 
-## Using Document Templates
+## Working with the imported notes
 
-### Create from Template
-
-1. Navigate to **Knowledge Vault**
-2. Click **[+ New from Template]**
-3. Select template from list
-4. Fill prompted variables
-5. Click **Create**
-
-### Save Custom Template
-
-1. Create document with desired structure
-2. Navigate to **Settings → Templates**
-3. Click **[Save as Template]**
-4. Provide name and description
-5. Template saved for future use
-
-### Edit Template
-
-1. Navigate to **Settings → Templates**
-2. Select template to edit
-3. Click **[Edit]**
-4. Modify template content
-5. Save changes
-
----
-
-*Last updated: 2026-05-03*
+- **Ask Your Files** answers questions across your notes and cites them; pick a collection to
+  search only one kind of note.
+- **Quick Actions > Summarize** and **Key Points** work on one indexed document at a time.
+- The **Workflow** button on a document in the Knowledge Vault opens the Workflows page with
+  the document's name, title and the start of its text as input, for example for the
+  **Document Review** template. For a long document, paste its full text into **Input**
+  instead.
+- If you edit an imported file outside Agent-X, **Re-index** it in the Knowledge Vault (a file
+  in a watch folder is picked up again while Agent-X runs).

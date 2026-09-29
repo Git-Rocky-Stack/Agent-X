@@ -6,22 +6,26 @@ using Serilog;
 namespace AgentX.Core.Services.Workspace;
 
 /// <summary>
-/// EF Core–backed implementation of <see cref="IWorkspaceProfileService"/>.
-/// All database interactions run through a dedicated <see cref="AgentXDbContext"/>
+/// EF Core backed implementation of <see cref="IWorkspaceProfileService"/>.
+/// All database interactions run through the <see cref="AgentXDbContext"/>
 /// instance injected at construction time.
 /// </summary>
 /// <remarks>
 /// <para>
 /// Read queries use <c>AsNoTracking()</c> to avoid change-tracker overhead, since
 /// callers typically only need the data for display or serialisation purposes.
-/// Write operations (create, update, delete, set-default, duplicate) track changes
-/// explicitly and call <c>SaveChangesAsync</c> within the same unit of work.
 /// </para>
 /// <para>
-/// <see cref="SetDefaultProfileAsync"/> wraps both the clear and promote steps in a
-/// single <c>ExecuteUpdateAsync</c> + tracked-save sequence so the two writes are
-/// committed atomically.  SQLite serialises writers, so no additional locking is
-/// required at the application layer.
+/// The injected context is the application's long-lived shared context, so an entity
+/// tracked by one call is still tracked on the next. Writes therefore never attach a
+/// caller's detached instance (a second save of the same profile would collide with the
+/// instance tracked by the first); <see cref="UpdateProfileAsync"/> copies the editable
+/// fields onto the tracked instance instead. <see cref="SetDefaultProfileAsync"/> and
+/// <see cref="ClearDefaultProfileAsync"/> change the default flag with a single
+/// <c>ExecuteUpdateAsync</c> statement, which is atomic but bypasses the change
+/// tracker, so they reload every tracked profile afterwards. Otherwise identity
+/// resolution would keep handing out the old <see cref="WorkspaceProfileEntity.IsDefault"/>
+/// value.
 /// </para>
 /// </remarks>
 public sealed class WorkspaceProfileService : IWorkspaceProfileService
@@ -152,22 +156,47 @@ public sealed class WorkspaceProfileService : IWorkspaceProfileService
             .ConfigureAwait(false);
 
         if (!exists)
+        {
+            DetachTracked(profile.Id);
             throw new InvalidOperationException(
                 $"Workspace profile {profile.Id} does not exist and cannot be updated.");
+        }
 
-        profile.UpdatedAt = DateTime.UtcNow;
+        // Update the instance the shared context already tracks (or load it). Attaching the
+        // caller's instance with Update() threw "another instance with the same key value is
+        // already being tracked" on the second save of the same profile.
+        var tracked = await _db.WorkspaceProfiles
+            .FindAsync(profile.Id)
+            .ConfigureAwait(false)
+            ?? throw new InvalidOperationException(
+                $"Workspace profile {profile.Id} does not exist and cannot be updated.");
 
-        // Attach the detached entity (result of a previous AsNoTracking query)
-        // and mark every scalar property as modified.
-        _db.WorkspaceProfiles.Update(profile);
+        var now = DateTime.UtcNow;
+
+        tracked.Name = profile.Name;
+        tracked.Description = profile.Description;
+        tracked.ActiveModelId = profile.ActiveModelId;
+        tracked.ActiveCollectionIds = profile.ActiveCollectionIds;
+        tracked.CustomSettings = profile.CustomSettings;
+        tracked.UpdatedAt = now;
+
+        // IsDefault and CreatedAt are not edited here: the default flag changes only through
+        // SetDefaultProfileAsync and ClearDefaultProfileAsync, which keep at most one default.
+        // If the caller passed the tracked instance itself with either value edited, put the
+        // stored value back.
+        var entry = _db.Entry(tracked);
+        entry.Property(p => p.IsDefault).CurrentValue = entry.Property(p => p.IsDefault).OriginalValue;
+        entry.Property(p => p.CreatedAt).CurrentValue = entry.Property(p => p.CreatedAt).OriginalValue;
 
         try
         {
             await _db.SaveChangesAsync().ConfigureAwait(false);
 
+            profile.UpdatedAt = now;
+
             Log.Information(
                 "Updated workspace profile {ProfileId} '{Name}'",
-                profile.Id, profile.Name);
+                profile.Id, tracked.Name);
         }
         catch (Exception ex)
         {
@@ -206,48 +235,63 @@ public sealed class WorkspaceProfileService : IWorkspaceProfileService
     /// <inheritdoc />
     public async Task SetDefaultProfileAsync(long id)
     {
-        // Confirm the target profile exists before modifying anything.
-        var target = await _db.WorkspaceProfiles
-            .FirstOrDefaultAsync(p => p.Id == id)
-            .ConfigureAwait(false);
-
-        if (target is null)
-            throw new InvalidOperationException(
-                $"Workspace profile {id} does not exist.");
-
-        if (target.IsDefault)
-        {
-            Log.Information("Workspace profile {ProfileId} is already the default — no-op", id);
-            return;
-        }
+        await EnsureExistsAsync(id).ConfigureAwait(false);
 
         var now = DateTime.UtcNow;
 
-        // Step 1: Clear the IsDefault flag on every profile that currently carries it,
-        // using a bulk ExecuteUpdateAsync to avoid loading all rows into memory.
-        await _db.WorkspaceProfiles
-            .Where(p => p.IsDefault && p.Id != id)
-            .ExecuteUpdateAsync(setters => setters
-                .SetProperty(p => p.IsDefault, false)
-                .SetProperty(p => p.UpdatedAt, now))
-            .ConfigureAwait(false);
-
-        // Step 2: Promote the target profile.  The entity is already tracked from
-        // the FirstOrDefaultAsync call above, so no extra round-trip is needed.
-        target.IsDefault = true;
-        target.UpdatedAt = now;
-
         try
         {
-            await _db.SaveChangesAsync().ConfigureAwait(false);
+            // One UPDATE statement promotes the target and clears every other default, so the
+            // at-most-one-default rule is never half applied. It tests the stored flag, not a
+            // tracked instance: the old code read IsDefault = true left over on a tracked
+            // instance from an earlier call (SetDefault A, B, A) and skipped the promotion.
+            var changed = await _db.WorkspaceProfiles
+                .Where(p => p.IsDefault != (p.Id == id))
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(p => p.IsDefault, p => p.Id == id)
+                    .SetProperty(p => p.UpdatedAt, now))
+                .ConfigureAwait(false);
 
-            Log.Information(
-                "Workspace profile {ProfileId} '{Name}' set as default",
-                id, target.Name);
+            await ReloadTrackedProfilesAsync().ConfigureAwait(false);
+
+            if (changed == 0)
+                Log.Information("Workspace profile {ProfileId} is already the default", id);
+            else
+                Log.Information("Workspace profile {ProfileId} set as default", id);
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to set workspace profile {ProfileId} as default", id);
+            throw;
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task ClearDefaultProfileAsync(long id)
+    {
+        await EnsureExistsAsync(id).ConfigureAwait(false);
+
+        var now = DateTime.UtcNow;
+
+        try
+        {
+            var changed = await _db.WorkspaceProfiles
+                .Where(p => p.Id == id && p.IsDefault)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(p => p.IsDefault, false)
+                    .SetProperty(p => p.UpdatedAt, now))
+                .ConfigureAwait(false);
+
+            await ReloadTrackedProfilesAsync().ConfigureAwait(false);
+
+            if (changed == 0)
+                Log.Information("Workspace profile {ProfileId} was not the default", id);
+            else
+                Log.Information("Workspace profile {ProfileId} is no longer the default", id);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to clear the default flag on workspace profile {ProfileId}", id);
             throw;
         }
     }
@@ -270,7 +314,7 @@ public sealed class WorkspaceProfileService : IWorkspaceProfileService
 
         // Clone all content fields.  Id is intentionally omitted so EF Core
         // generates a new primary key.  Name is replaced with the caller-supplied
-        // value.  IsDefault is always false — the duplicate starts as a neutral profile.
+        // value.  IsDefault is always false - the duplicate starts as a neutral profile.
         var duplicate = new WorkspaceProfileEntity
         {
             Name = newName.Trim(),
@@ -290,7 +334,7 @@ public sealed class WorkspaceProfileService : IWorkspaceProfileService
             await _db.SaveChangesAsync().ConfigureAwait(false);
 
             Log.Information(
-                "Duplicated workspace profile {SourceId} '{SourceName}' → {NewId} '{NewName}'",
+                "Duplicated workspace profile {SourceId} '{SourceName}' -> {NewId} '{NewName}'",
                 sourceId, source.Name, duplicate.Id, duplicate.Name);
 
             return duplicate;
@@ -303,5 +347,44 @@ public sealed class WorkspaceProfileService : IWorkspaceProfileService
                 sourceId, newName);
             throw;
         }
+    }
+
+    // ------------------------------------------------------------------
+    // Helpers
+    // ------------------------------------------------------------------
+
+    private async Task EnsureExistsAsync(long id)
+    {
+        var exists = await _db.WorkspaceProfiles
+            .AsNoTracking()
+            .AnyAsync(p => p.Id == id)
+            .ConfigureAwait(false);
+
+        if (!exists)
+        {
+            DetachTracked(id);
+            throw new InvalidOperationException($"Workspace profile {id} does not exist.");
+        }
+    }
+
+    /// <summary>
+    /// Re-reads every tracked profile after a bulk update. ExecuteUpdateAsync writes straight
+    /// to the database, and the shared context would otherwise keep serving the old values to
+    /// tracked queries (identity resolution) and to the next save.
+    /// </summary>
+    private async Task ReloadTrackedProfilesAsync()
+    {
+        var entries = _db.ChangeTracker.Entries<WorkspaceProfileEntity>().ToList();
+        foreach (var entry in entries)
+            await entry.ReloadAsync().ConfigureAwait(false);
+    }
+
+    /// <summary>Stops tracking a profile whose row no longer exists.</summary>
+    private void DetachTracked(long id)
+    {
+        var entry = _db.ChangeTracker.Entries<WorkspaceProfileEntity>()
+            .FirstOrDefault(e => e.Entity.Id == id);
+        if (entry is not null)
+            entry.State = EntityState.Detached;
     }
 }

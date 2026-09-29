@@ -1,3 +1,5 @@
+using AgentX.Core.AI.Providers;
+using AgentX.Core.Services.Backup.Models;
 using AgentX.Core.Services.Search;
 
 namespace AgentX.Core.Services.Settings;
@@ -12,13 +14,19 @@ public class AppSettings
     // keys by AppSettings property name, so ThemeService must use "Theme".
     public string Theme { get; set; } = "Dark";
 
-    // AI Provider — Active selection ("local", "ollama", "openai", "anthropic")
+    // UI language picked in Settings ("en-US", "de", "es", "fr", "ja" or "zh-CN"). Null follows
+    // the Windows display language. Applied at startup, before the shell is built.
+    public string? LanguageOverride { get; set; }
+
+    // AI Provider - Active selection ("local", "ollama", "openai", "anthropic")
     public string ActiveProviderId { get; set; } = "local";
 
     // Built-in Local LLM (LLamaSharp)
     public string LocalModelFileName { get; set; } = "llama-3.2-3b-instruct-q4_k_m.gguf";
     public int LocalContextSize { get; set; } = 8192;
-    public int LocalGpuLayers { get; set; } = 0; // 0 = CPU only; increase for GPU offloading
+    // Layers on the GPU: 0 = automatic (NVIDIA GPU detected by video memory), a positive count =
+    // that many, negative = none (CPU only). See LocalLlmProvider.ResolveGpuLayers.
+    public int LocalGpuLayers { get; set; } = 0;
 
     // Ollama Provider
     public string OllamaEndpoint { get; set; } = "http://localhost:11434";
@@ -33,7 +41,7 @@ public class AppSettings
     // Anthropic Provider
     public string? AnthropicApiKey { get; set; }
     public string AnthropicEndpoint { get; set; } = "https://api.anthropic.com/v1/";
-    public string? AnthropicDefaultModel { get; set; } = "claude-sonnet-4-20250514";
+    public string? AnthropicDefaultModel { get; set; } = AnthropicProvider.DefaultModelId;
 
     // Inference
     public double Temperature { get; set; } = 0.7;
@@ -71,6 +79,8 @@ public class AppSettings
     public bool EnableHnswIndex { get; set; } = true;
     public int HnswM { get; set; } = 16;
     public int HnswEfConstruction { get; set; } = 200;
+    // Minimum search breadth (ef). Queries already search at least max(EfConstruction, 2 x
+    // candidates), so only a value above that widens the search (better recall, slower).
     public int HnswEfSearch { get; set; } = 50;
     public int HnswFallbackThreshold { get; set; } = 10000;
 
@@ -82,6 +92,10 @@ public class AppSettings
 
     // Email Connector
     public EmailSettings EmailConnector { get; set; } = new();
+
+    // Scheduled backups (read by IBackupService.StartScheduledBackupsAsync). Off by default; the
+    // optional archive password is stored DPAPI-encrypted like the other secrets.
+    public BackupScheduleConfig BackupSchedule { get; set; } = new();
 
     // Storage
     public string StoragePath { get; set; } = Path.Combine(
@@ -113,8 +127,9 @@ public class OAuthSettings
 }
 
 /// <summary>
-/// Google OAuth2 settings. Client credentials are obtained from the
-/// Google Cloud Console (APIs &amp; Services &gt; Credentials).
+/// Google OAuth2 settings, entered under OAuth App Credentials on the Calendar and Email
+/// connector pages. The client is a Desktop app OAuth client from the Google Cloud Console
+/// (APIs &amp; Services &gt; Credentials); its secret is stored DPAPI-encrypted.
 /// </summary>
 public class GoogleOAuthSettings
 {
@@ -124,8 +139,11 @@ public class GoogleOAuthSettings
 }
 
 /// <summary>
-/// Microsoft (Azure AD / Entra ID) OAuth2 settings. Client credentials are
-/// obtained from the Azure Portal (App Registrations).
+/// Microsoft (Azure AD / Entra ID) OAuth2 settings, entered under OAuth App Credentials on the
+/// Calendar and Email connector pages. The app registration is a public client (mobile and
+/// desktop applications), so <see cref="ClientSecret"/> stays empty; a secret entered here by
+/// hand for a confidential registration is sent, and is dropped when the page changes the
+/// client ID.
 /// </summary>
 public class MicrosoftOAuthSettings
 {
@@ -164,8 +182,9 @@ public class CalendarSettings
     public int DaysFutureToSync { get; set; } = 30;
 
     /// <summary>
-    /// Strategy for resolving conflicting calendar events during sync.
-    /// Valid values: "LocalWins", "RemoteWins", "Merge".
+    /// Not applied. Meant as the strategy for conflicting calendar events ("LocalWins",
+    /// "RemoteWins" or "Merge"), but calendar sync only imports events and never reads it, and
+    /// the Settings control for it was removed. Kept so existing settings files still load.
     /// </summary>
     public string ConflictResolution { get; set; } = "RemoteWins";
 
@@ -210,14 +229,16 @@ public class EmailSettings
     public int DaysBackToSync { get; set; } = 30;
 
     /// <summary>
-    /// Whether to use AI-based categorization to automatically tag
-    /// and prioritize incoming email messages.
+    /// Not applied. Synced messages are categorized by rules, not by AI (see
+    /// <c>EmailSyncSettings.EnableAiCategorization</c>); the property is kept so existing
+    /// settings files still load.
     /// </summary>
     public bool EnableAiCategorization { get; set; } = true;
 
     /// <summary>
-    /// Whether to include the full email body content when syncing messages.
-    /// When disabled, only metadata (sender, subject, date) is stored.
+    /// Not applied. Whether a message body is kept is the email connector's own
+    /// <c>EmailSyncSettings.IncludeHtmlBody</c> setting; the property is kept so existing
+    /// settings files still load.
     /// </summary>
     public bool IncludeBodyContent { get; set; } = true;
 

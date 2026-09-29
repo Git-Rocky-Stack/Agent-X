@@ -1,19 +1,23 @@
+using AgentX.Core.Documents.Models;
 using AgentX.Core.Services.Plugins;
 using Serilog;
+using HostProcessedDocument = AgentX.Core.Documents.Models.ProcessedDocument;
 
 namespace AgentX.Plugins.Sample;
 
 /// <summary>
-/// Sample plugin demonstrating the AgentX plugin lifecycle.
-/// Implements <see cref="IPlugin"/> as a <see cref="PluginType.DocumentProcessor"/>
-/// that handles plain-text and Markdown files with word counting and frontmatter extraction.
+/// Sample plugin demonstrating the AgentX plugin lifecycle and the document-processor
+/// extension point. Implements <see cref="IDocumentProcessorPlugin"/>, so while the plugin is
+/// active the host offers it to the import pipeline for files no built-in processor handles.
 /// </summary>
 /// <remarks>
 /// This plugin is intended as a reference implementation. It shows the correct order of
 /// lifecycle calls, defensive state-checking patterns, and Serilog integration expected
-/// from a production-quality AgentX plugin.
+/// from a production-quality AgentX plugin. Agent-X's built-in processors already read
+/// <c>.txt</c> and <c>.md</c> and take precedence, so in practice the host routes only
+/// <c>.text</c> files here.
 /// </remarks>
-public sealed class SamplePlugin : IPlugin
+public sealed class SamplePlugin : IDocumentProcessorPlugin
 {
     private IPluginContext? _context;
     private bool _isInitialized;
@@ -162,9 +166,66 @@ public sealed class SamplePlugin : IPlugin
         Processor = null;
     }
 
+    // -- IDocumentProcessor ----------------------------------------------------
+
+    /// <inheritdoc />
+    public IReadOnlySet<string> SupportedExtensions => SampleDocumentProcessor.Extensions;
+
+    /// <inheritdoc />
+    public bool CanProcess(string filePath)
+    {
+        // Only while running: the host may still hold this instance briefly after disabling it.
+        return _isActive
+            && !string.IsNullOrWhiteSpace(filePath)
+            && SampleDocumentProcessor.Extensions.Contains(Path.GetExtension(filePath));
+    }
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// Delegates to <see cref="SampleDocumentProcessor"/> and maps its result onto the host's
+    /// document model: the text is what gets chunked and indexed, and the counts and
+    /// frontmatter become document metadata.
+    /// </remarks>
+    public async Task<HostProcessedDocument> ProcessAsync(string filePath, CancellationToken ct = default)
+    {
+        ThrowIfDisposed();
+        ct.ThrowIfCancellationRequested();
+
+        var processor = Processor
+            ?? throw new InvalidOperationException($"Plugin '{Id}' must be initialized before it can process documents.");
+
+        var result = await processor.ProcessDocumentAsync(filePath).ConfigureAwait(false);
+        var fileInfo = new FileInfo(filePath);
+
+        var metadata = new DocumentMetadata();
+        foreach (var (key, value) in result.Frontmatter)
+        {
+            metadata.Custom[key] = value;
+        }
+
+        metadata.Custom["lineCount"] = result.LineCount.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        metadata.Custom["characterCount"] = result.CharacterCount.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+        return new HostProcessedDocument
+        {
+            FilePath = filePath,
+            FileName = fileInfo.Name,
+            FileType = fileInfo.Extension.TrimStart('.').ToLowerInvariant(),
+            FileSizeBytes = fileInfo.Exists ? fileInfo.Length : 0,
+            ExtractedText = result.Content,
+            ExtractedTitle = result.Frontmatter.TryGetValue("title", out var title)
+                ? title
+                : Path.GetFileNameWithoutExtension(filePath),
+            PageCount = 1,
+            WordCount = result.WordCount,
+            Metadata = metadata,
+        };
+    }
+
     /// <summary>
     /// Throws <see cref="ObjectDisposedException"/> if the plugin has been disposed.
     /// </summary>
+
     private void ThrowIfDisposed()
     {
         if (_isDisposed)

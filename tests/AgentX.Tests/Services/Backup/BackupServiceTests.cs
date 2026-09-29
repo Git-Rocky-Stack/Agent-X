@@ -17,30 +17,28 @@ using Xunit;
 namespace AgentX.Tests.Services.Backup;
 
 /// <summary>
-/// Behavioural coverage for <see cref="BackupService"/> — the create / restore / validate /
+/// Behavioural coverage for <see cref="BackupService"/> - the create / restore / validate /
 /// history / delete / estimate / scheduled-backup surface. Complements
 /// <see cref="BackupServiceSecurityTests"/> (which exercises the pure static crypto + path-guard
 /// helpers) by driving the real service end-to-end.
 ///
-/// <para><b>Harness design.</b> The service has no path-injection seam: its source database path is
-/// the hardcoded <c>%LocalAppData%\AgentX\agentx.db</c>. The SQLite Online Backup API copy is taken
+/// <para><b>Harness design.</b> The service copies the file the context uses; this harness's context is
+/// in-memory, so the copy source falls back to <c>%LocalAppData%\AgentX\agentx.db</c>. The SQLite Online Backup API copy is taken
 /// through the injectable <see cref="IEncryptedConnectionFactory"/>, so the harness mocks the factory
-/// to (a) redirect the <i>source</i> open to a seeded throwaway temp database — never the real user
-/// DB — and (b) honour the generated <i>destination</i> temp path. Every write target
+/// to (a) redirect the <i>source</i> open to a seeded throwaway temp database - never the real user
+/// DB - and (b) honour the generated <i>destination</i> temp path. Every write target
 /// (<see cref="BackupOptions.DestinationPath"/>, the documents storage path) is a per-test temp
 /// directory. A full <see cref="BackupService.CreateBackupAsync"/> therefore round-trips safely,
 /// producing a real <c>.agentxbak</c> archive on disk.</para>
 ///
-/// <para><b>Restore.</b> <see cref="BackupService.RestoreFromBackupAsync"/>'s success path writes the
-/// extracted database to that same hardcoded real user-profile path and swaps the live EF
-/// connection — with no seam to redirect it, exercising it would clobber the developer's real
-/// Agent-X database. These tests therefore cover only restore's guard, validation, encrypted, and
-/// error branches (all of which return <i>before</i> any database write); the file-swap body is a
-/// deliberate, safety-bounded residual.</para>
+/// <para><b>Restore.</b> This harness uses an in-memory context, so these tests cover only
+/// restore's guard, validation, encrypted, and error branches (all of which return <i>before</i>
+/// any database write). The swap itself runs against the file the live context uses, and is
+/// covered end to end with a file-backed context in <see cref="BackupRestoreRoundTripTests"/>.</para>
 /// </summary>
 public sealed class BackupServiceTests : IDisposable
 {
-    // ── Harness ──────────────────────────────────────────────────────────────
+    // -- Harness --------------------------------------------------------------
 
     private sealed class BackupHarness : IDisposable
     {
@@ -86,7 +84,7 @@ public sealed class BackupServiceTests : IDisposable
             CurrentSettings = new AppSettings { StoragePath = StorageDir };
             Settings.Setup(s => s.GetSettingsAsync()).ReturnsAsync(() => CurrentSettings);
 
-            // Source open → seeded temp DB; destination temp copy (".tmp") → honour the requested path.
+            // Source open -> seeded temp DB; destination temp copy (".tmp") -> honour the requested path.
             ConnFactory
                 .Setup(f => f.OpenKeyed(It.IsAny<string>()))
                 .Returns<string>(p =>
@@ -146,7 +144,7 @@ public sealed class BackupServiceTests : IDisposable
             h.Dispose();
     }
 
-    /// <summary>Synchronous progress collector — deterministic, unlike <see cref="Progress{T}"/>.</summary>
+    /// <summary>Synchronous progress collector - deterministic, unlike <see cref="Progress{T}"/>.</summary>
     private sealed class CollectingProgress : IProgress<BackupProgress>
     {
         private readonly List<BackupProgress> _items = new();
@@ -161,7 +159,7 @@ public sealed class BackupServiceTests : IDisposable
         }
     }
 
-    // ── Constructor guards ───────────────────────────────────────────────────
+    // -- Constructor guards ---------------------------------------------------
 
     [Fact]
     public void Ctor_NullDbContext_Throws()
@@ -187,7 +185,7 @@ public sealed class BackupServiceTests : IDisposable
         act.Should().Throw<ArgumentNullException>().WithParameterName("connectionFactory");
     }
 
-    // ── CreateBackupAsync ────────────────────────────────────────────────────
+    // -- CreateBackupAsync ----------------------------------------------------
 
     [Fact]
     public async Task CreateBackupAsync_NullOptions_Throws()
@@ -231,12 +229,19 @@ public sealed class BackupServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task CreateBackupAsync_WithDocuments_IncludesFilesAndExcludesDatabaseSidecars()
+    public async Task CreateBackupAsync_WithDocuments_IncludesOnlyDocumentFolders()
     {
         var h = NewHarness();
-        h.AddStorageFile("notes/a.txt", Encoding.UTF8.GetBytes("alpha"));
-        h.AddStorageFile("b.bin", new byte[] { 1, 2, 3, 4 });
-        // Sidecar database files must be excluded by the backup builder.
+        h.AddStorageFile("WebImports/article.md", Encoding.UTF8.GetBytes("alpha"));
+        h.AddStorageFile("WebImports/nested/b.md", new byte[] { 1, 2, 3, 4 });
+        // The rest of the storage folder is configuration, secrets, logs, models and caches: it
+        // must never be archived (the old builder zipped all of it, including multi-GB models,
+        // the live log and the DPAPI-protected settings and encryption marker).
+        h.AddStorageFile("settings.json", Encoding.UTF8.GetBytes("{}"));
+        h.AddStorageFile("encryption.info.json", Encoding.UTF8.GetBytes("{}"));
+        h.AddStorageFile("Logs/agentx-20260101.log", Encoding.UTF8.GetBytes("log"));
+        h.AddStorageFile("Models/llama.gguf", new byte[] { 7 });
+        h.AddStorageFile("notes/a.txt", Encoding.UTF8.GetBytes("not a document folder"));
         h.AddStorageFile("agentx.db", new byte[] { 9 });
         h.AddStorageFile("agentx.db-wal", new byte[] { 9 });
 
@@ -254,9 +259,7 @@ public sealed class BackupServiceTests : IDisposable
             .Select(e => e.FullName)
             .ToList();
 
-        docEntries.Should().Contain("documents/notes/a.txt");
-        docEntries.Should().Contain("documents/b.bin");
-        docEntries.Should().NotContain(e => e.EndsWith(".db") || e.EndsWith(".db-wal"));
+        docEntries.Should().BeEquivalentTo("documents/WebImports/article.md", "documents/WebImports/nested/b.md");
     }
 
     [Fact]
@@ -275,7 +278,7 @@ public sealed class BackupServiceTests : IDisposable
         result.Success.Should().BeTrue(result.ErrorMessage);
 
         var bytes = await File.ReadAllBytesAsync(result.BackupFilePath!);
-        bytes.Take(8).Should().Equal(Encoding.ASCII.GetBytes("AGXENC2\0"));
+        bytes.Take(8).Should().Equal(Encoding.ASCII.GetBytes("AGXENC3\0"));
 
         // Decrypting with the password yields the inner ZIP with the expected entries.
         var zipBytes = BackupService.DecryptBytes(bytes, password);
@@ -385,7 +388,7 @@ public sealed class BackupServiceTests : IDisposable
         result.ErrorMessage.Should().Be("settings exploded");
     }
 
-    // ── RestoreFromBackupAsync (guard / validation / encrypted / error only) ──
+    // -- RestoreFromBackupAsync (guard / validation / encrypted / error only) --
 
     [Fact]
     public async Task RestoreFromBackupAsync_NullPath_Throws()
@@ -421,17 +424,32 @@ public sealed class BackupServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task RestoreFromBackupAsync_EncryptedArchive_ReturnsGuidanceError()
+    public async Task RestoreFromBackupAsync_EncryptedArchiveWithoutPassword_AsksForThePassword()
     {
         var h = NewHarness();
         var path = Path.Combine(h.DestDir, "enc.agentxbak");
         var blob = BackupService.EncryptBytes(BuildPlainArchiveBytes(), "pw");
         await File.WriteAllBytesAsync(path, blob);
 
+        // BK2: restoring encrypted archives is supported through the password overload (see
+        // BackupRestoreRoundTripTests); without a password the error says what is needed.
         var result = await h.Service.RestoreFromBackupAsync(path);
 
         result.Success.Should().BeFalse();
-        result.ErrorMessage.Should().Contain("encrypted");
+        result.ErrorMessage.Should().Contain("encrypted").And.Contain("password");
+    }
+
+    [Fact]
+    public async Task RestoreFromBackupAsync_EncryptedArchiveWithWrongPassword_ReportsThePassword()
+    {
+        var h = NewHarness();
+        var path = Path.Combine(h.DestDir, "enc.agentxbak");
+        await File.WriteAllBytesAsync(path, BackupService.EncryptBytes(BuildPlainArchiveBytes(), "right"));
+
+        var result = await h.Service.RestoreFromBackupAsync(path, "wrong");
+
+        result.Success.Should().BeFalse();
+        result.ErrorMessage.Should().Contain("password is incorrect");
     }
 
     [Fact]
@@ -450,7 +468,7 @@ public sealed class BackupServiceTests : IDisposable
         result.ErrorMessage.Should().Contain("cancelled");
     }
 
-    // ── GetBackupHistoryAsync ────────────────────────────────────────────────
+    // -- GetBackupHistoryAsync ------------------------------------------------
 
     [Fact]
     public async Task GetBackupHistoryAsync_ReturnsNewestFirst()
@@ -475,7 +493,7 @@ public sealed class BackupServiceTests : IDisposable
         (await h.Service.GetBackupHistoryAsync()).Should().BeEmpty();
     }
 
-    // ── DeleteBackupAsync ────────────────────────────────────────────────────
+    // -- DeleteBackupAsync ----------------------------------------------------
 
     [Fact]
     public async Task DeleteBackupAsync_RemovesRecordAndArchiveFile()
@@ -548,7 +566,7 @@ public sealed class BackupServiceTests : IDisposable
             id = e.Id;
         });
 
-        // Hold an exclusive lock so File.Delete throws — the service must swallow it and still
+        // Hold an exclusive lock so File.Delete throws - the service must swallow it and still
         // remove the history record.
         using (var _ = new FileStream(archivePath, FileMode.Open, FileAccess.Read, FileShare.None))
         {
@@ -559,16 +577,18 @@ public sealed class BackupServiceTests : IDisposable
         ctx.Backups.Should().BeEmpty();
     }
 
-    // ── EstimateBackupSizeAsync ──────────────────────────────────────────────
+    // -- EstimateBackupSizeAsync ----------------------------------------------
 
     [Fact]
-    public async Task EstimateBackupSizeAsync_SumsDocumentFilesExcludingDatabaseSidecars()
+    public async Task EstimateBackupSizeAsync_CountsOnlyTheDocumentFoldersABackupIncludes()
     {
         var h = NewHarness();
-        h.AddStorageFile("a.txt", new byte[1024]);
-        h.AddStorageFile("nested/b.bin", new byte[2048]);
-        h.AddStorageFile("agentx.db", new byte[4096]);      // excluded
-        h.AddStorageFile("agentx.db-shm", new byte[4096]);  // excluded
+        h.AddStorageFile("WebImports/a.md", new byte[1024]);
+        h.AddStorageFile("WebImports/nested/b.md", new byte[2048]);
+        h.AddStorageFile("agentx.db", new byte[4096]);        // excluded
+        h.AddStorageFile("agentx.db-shm", new byte[4096]);    // excluded
+        h.AddStorageFile("Models/big.gguf", new byte[8192]);  // excluded
+        h.AddStorageFile("Logs/agentx.log", new byte[512]);   // excluded
         h.Seed(ctx =>
         {
             ctx.Conversations.Add(new ConversationEntity { Title = "c", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow });
@@ -576,7 +596,7 @@ public sealed class BackupServiceTests : IDisposable
 
         var estimate = await h.Service.EstimateBackupSizeAsync();
 
-        // 3072 bytes of real documents; the 8 KB of sidecars must not be counted.
+        // 3072 bytes of web-imported documents; nothing else in the storage folder is archived.
         estimate.DocumentsSizeMB.Should().BeApproximately(3072 / (1024.0 * 1024.0), 0.0001);
         estimate.TotalEstimatedMB.Should().BeApproximately(estimate.DatabaseSizeMB + estimate.DocumentsSizeMB, 0.0001);
     }
@@ -592,7 +612,7 @@ public sealed class BackupServiceTests : IDisposable
         estimate.DocumentsSizeMB.Should().Be(0);
     }
 
-    // ── ValidateBackupAsync ──────────────────────────────────────────────────
+    // -- ValidateBackupAsync --------------------------------------------------
 
     [Fact]
     public async Task ValidateBackupAsync_NullPath_Throws()
@@ -675,7 +695,7 @@ public sealed class BackupServiceTests : IDisposable
         (await h.Service.ValidateBackupAsync(path)).Should().BeFalse();
     }
 
-    // ── TryValidateDocumentEntries (null guard) ──────────────────────────────
+    // -- TryValidateDocumentEntries (null guard) ------------------------------
 
     [Fact]
     public void TryValidateDocumentEntries_NullArchive_Throws()
@@ -684,7 +704,7 @@ public sealed class BackupServiceTests : IDisposable
         act.Should().Throw<ArgumentNullException>();
     }
 
-    // ── Encrypt / Decrypt guard branches (beyond the security suite) ──────────
+    // -- Encrypt / Decrypt guard branches (beyond the security suite) ----------
 
     [Fact]
     public void EncryptBytes_NullPlaintext_Throws()
@@ -738,37 +758,38 @@ public sealed class BackupServiceTests : IDisposable
         act.Should().Throw<InvalidOperationException>().WithMessage("*too short*");
     }
 
-    // ── Scheduled backups: config loading + lifecycle ────────────────────────
+    // -- Scheduled backups: config loading + lifecycle ------------------------
 
     [Fact]
-    public async Task StartScheduledBackupsAsync_NoConfig_DoesNotStartLoop()
+    public async Task StartScheduledBackupsAsync_DefaultSettings_DoesNotStartLoop()
     {
         var h = NewHarness();
-        h.Settings.Setup(s => s.GetValueAsync<string>("BackupScheduleConfig")).ReturnsAsync((string?)null);
 
         await h.Service.StartScheduledBackupsAsync();
 
-        // Disabled by default → calling stop is a safe no-op.
+        // Disabled by default -> calling stop is a safe no-op.
         var act = () => h.Service.StopScheduledBackups();
         act.Should().NotThrow();
     }
 
     [Fact]
-    public async Task StartScheduledBackupsAsync_MalformedConfig_FallsBackToDisabled()
+    public async Task StartScheduledBackupsAsync_OutOfRangeValues_AreClampedInsteadOfThrowing()
     {
         var h = NewHarness();
-        h.Settings.Setup(s => s.GetValueAsync<string>("BackupScheduleConfig")).ReturnsAsync("{ not valid json");
+        // A hand-edited settings.json: a zero interval used to throw inside the timer.
+        h.CurrentSettings.BackupSchedule = new BackupScheduleConfig { Enabled = true, IntervalHours = 0, MaxBackupsToKeep = -3 };
 
         var act = () => h.Service.StartScheduledBackupsAsync();
 
         await act.Should().NotThrowAsync();
+        h.Service.StopScheduledBackups();
     }
 
     [Fact]
-    public async Task StartScheduledBackupsAsync_NullJsonLiteral_FallsBackToDisabled()
+    public async Task StartScheduledBackupsAsync_NullSchedule_FallsBackToDisabled()
     {
         var h = NewHarness();
-        h.Settings.Setup(s => s.GetValueAsync<string>("BackupScheduleConfig")).ReturnsAsync("null");
+        h.CurrentSettings.BackupSchedule = null!;
 
         var act = () => h.Service.StartScheduledBackupsAsync();
 
@@ -779,16 +800,15 @@ public sealed class BackupServiceTests : IDisposable
     public async Task StartScheduledBackupsAsync_EnabledConfig_StartsAndCanBeStopped()
     {
         var h = NewHarness();
-        // Long interval (weekly) — the loop arms its timer but never fires within the test.
-        var config = JsonSerializer.Serialize(new BackupScheduleConfig
+        // FF24: the schedule lives in AppSettings.BackupSchedule. It used to be read from a
+        // "BackupScheduleConfig" key that no AppSettings property matched, so it was always off.
+        h.CurrentSettings.BackupSchedule = new BackupScheduleConfig
         {
             Enabled = true,
             IntervalHours = 168,
             MaxBackupsToKeep = 3,
             DestinationPath = h.DestDir,
-        }, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
-
-        h.Settings.Setup(s => s.GetValueAsync<string>("BackupScheduleConfig")).ReturnsAsync(config);
+        };
 
         await h.Service.StartScheduledBackupsAsync();
         // A second start must cancel the first cleanly.
@@ -799,6 +819,85 @@ public sealed class BackupServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task StartScheduledBackupsAsync_TwiceAtOnce_LeavesOneLoopThatStopEnds()
+    {
+        var h = NewHarness();
+        h.Seed(ctx => ctx.Backups.Add(new BackupEntity
+        {
+            FileName = "last-week",
+            BackupType = "scheduled",
+            CreatedAt = DateTime.UtcNow.AddDays(-8),
+        }));
+        h.CurrentSettings.BackupSchedule = new BackupScheduleConfig { Enabled = true, IntervalHours = 168, DestinationPath = h.DestDir };
+        // A settings read that completes asynchronously, as reading settings.json can.
+        h.Settings.Setup(s => s.GetSettingsAsync()).Returns(async () =>
+        {
+            await Task.Delay(50);
+            return h.CurrentSettings;
+        });
+        h.Service.ScheduledStartupDelay = TimeSpan.FromMilliseconds(400);
+
+        // Startup and a schedule saved on the Backup and Restore page can start it at the same time.
+        await Task.WhenAll(h.Service.StartScheduledBackupsAsync(), h.Service.StartScheduledBackupsAsync());
+        h.Service.StopScheduledBackups();
+
+        // An overdue backup would run 400 ms after a loop starts. Both starts used to store their
+        // own loop, so the first one could no longer be stopped and kept making backups.
+        await Task.Delay(TimeSpan.FromSeconds(2));
+        Directory.EnumerateFiles(h.DestDir, "*.agentxbak").Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task ScheduledBackups_RunWhenTheLastScheduledBackupIsOverdue()
+    {
+        var h = NewHarness();
+        h.Seed(ctx => ctx.Backups.Add(new BackupEntity
+        {
+            FileName = "last-week",
+            BackupType = "scheduled",
+            CreatedAt = DateTime.UtcNow.AddDays(-8),
+        }));
+        h.CurrentSettings.BackupSchedule = new BackupScheduleConfig { Enabled = true, IntervalHours = 168, DestinationPath = h.DestDir };
+        h.Service.ScheduledStartupDelay = TimeSpan.FromMilliseconds(50);
+
+        await h.Service.StartScheduledBackupsAsync();
+        try
+        {
+            // A weekly timer that restarted with every launch never fired for anyone who restarts
+            // more often than weekly; an overdue backup now runs shortly after startup.
+            var deadline = DateTime.UtcNow.AddSeconds(20);
+            while (DateTime.UtcNow < deadline && !Directory.EnumerateFiles(h.DestDir, "*.agentxbak").Any())
+                await Task.Delay(50);
+
+            Directory.EnumerateFiles(h.DestDir, "*.agentxbak").Should().NotBeEmpty();
+        }
+        finally
+        {
+            h.Service.StopScheduledBackups();
+        }
+    }
+
+    [Fact]
+    public async Task ScheduledBackups_WaitWhenTheLastScheduledBackupIsRecent()
+    {
+        var h = NewHarness();
+        h.Seed(ctx => ctx.Backups.Add(new BackupEntity
+        {
+            FileName = "an-hour-ago",
+            BackupType = "scheduled",
+            CreatedAt = DateTime.UtcNow.AddHours(-1),
+        }));
+        h.CurrentSettings.BackupSchedule = new BackupScheduleConfig { Enabled = true, IntervalHours = 168, DestinationPath = h.DestDir };
+        h.Service.ScheduledStartupDelay = TimeSpan.FromMilliseconds(50);
+
+        await h.Service.StartScheduledBackupsAsync();
+        await Task.Delay(500);
+        h.Service.StopScheduledBackups();
+
+        Directory.EnumerateFiles(h.DestDir, "*.agentxbak").Should().BeEmpty();
+    }
+
+    [Fact]
     public void StopScheduledBackups_WhenNoneRunning_IsNoOp()
     {
         var h = NewHarness();
@@ -806,7 +905,7 @@ public sealed class BackupServiceTests : IDisposable
         act.Should().NotThrow();
     }
 
-    // ── EnforceRetentionPolicyAsync (private; reached by reflection) ──────────
+    // -- EnforceRetentionPolicyAsync (private; reached by reflection) ----------
 
     [Fact]
     public async Task EnforceRetentionPolicy_DeletesOldestScheduledBeyondCap()
@@ -878,7 +977,7 @@ public sealed class BackupServiceTests : IDisposable
         ctx.Backups.Count(b => b.BackupType == "scheduled").Should().Be(2);
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
+    // -- Helpers --------------------------------------------------------------
 
     private static Task InvokeEnforceRetentionAsync(BackupService service, int maxToKeep)
     {

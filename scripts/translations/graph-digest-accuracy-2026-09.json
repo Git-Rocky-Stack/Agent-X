@@ -1,0 +1,111 @@
+{
+  "_comment": "Knowledge Graph and Weekly Digest guide accuracy pass 2026-09. Knowledge Graph: there is one force-directed layout computed when the graph is built (no radial or hierarchical layouts, physics controls or navigator panel), clicking a node selects it and opens Node Details (Collections and tags also highlight their cluster) rather than navigating, there is no right-click menu, no panning, no date filter and no similarity edges; edges come from Collection and tag membership. Weekly Digest: a fixed seven-day statistical report (counts, top-five lists with trends against the previous seven days, conversation highlights, report history); no AI narrative, citations, export, templates, email delivery or insight surfacing. Apply with python scripts/apply-guide-accuracy.py scripts/translations/graph-digest-accuracy-2026-09.json",
+  "removePrefixes": [],
+  "update": {
+    "UserGuide_KnowledgeGraph_Description.Text": {
+      "en-US": "The Knowledge Graph draws your Knowledge Vault as a network. Documents, Collections and tags are nodes; a line joins each document to its Collections and tags, and joins two documents that share at least one Collection or tag. Open it from the navigation rail or with Ctrl+G to see which documents cluster together and which stand alone.",
+      "de": "Der Wissensgraph stellt Ihren Wissens-Tresor als Netzwerk dar. Dokumente, Sammlungen und Tags sind Knoten; eine Linie verbindet jedes Dokument mit seinen Sammlungen und Tags sowie zwei Dokumente, die mindestens eine Sammlung oder einen Tag gemeinsam haben. Öffnen Sie ihn über die Navigationsleiste oder mit Strg+G, um zu sehen, welche Dokumente sich gruppieren und welche allein stehen.",
+      "es": "El Grafo de conocimiento dibuja su Bóveda de Conocimiento como una red. Los documentos, las colecciones y las etiquetas son nodos; una línea une cada documento con sus colecciones y etiquetas, y une dos documentos que comparten al menos una colección o etiqueta. Ábralo desde la barra de navegación o con Ctrl+G para ver qué documentos se agrupan y cuáles quedan aislados.",
+      "fr": "Le Graphe de connaissances représente votre Coffre-fort de Connaissances sous forme de réseau. Les documents, les collections et les tags sont des nœuds ; une ligne relie chaque document à ses collections et à ses tags, et relie deux documents qui partagent au moins une collection ou un tag. Ouvrez-le depuis la barre de navigation ou avec Ctrl+G pour voir quels documents se regroupent et lesquels restent isolés.",
+      "ja": "ナレッジ グラフは、Knowledge Vault をネットワークとして描画します。ドキュメント、コレクション、タグがノードになり、各ドキュメントとそのコレクションやタグの間、および少なくとも 1 つのコレクションまたはタグを共有する 2 つのドキュメントの間が線で結ばれます。ナビゲーション レールまたは Ctrl+G で開くと、どのドキュメントがまとまり、どれが孤立しているかがわかります。",
+      "zh-CN": "知识图谱将您的 Knowledge Vault 绘制为一张网络。文档、合集和标签都是节点；每个文档与其所属的合集和标签之间以线相连，至少共享一个合集或标签的两个文档之间也会相连。可从导航栏或按 Ctrl+G 打开它，查看哪些文档聚集在一起、哪些孤立存在。"
+    },
+    "UserGuide_KnowledgeGraph_Element1.Text": {
+      "en-US": "Document Nodes - Circles in the Document color of the legend, sized by chunk count, so longer documents are larger. Hover a node to see its name, type and number of connections; click it to open Node Details, which also shows the file type.",
+      "de": "Dokumentknoten - Kreise in der Dokumentfarbe der Legende, deren Größe von der Anzahl der Chunks abhängt, sodass längere Dokumente größer sind. Fahren Sie mit der Maus über einen Knoten, um Name, Typ und Anzahl der Verbindungen zu sehen; ein Klick öffnet die Knotendetails, die zusätzlich den Dateityp zeigen.",
+      "es": "Nodos de documento - Círculos del color de Documento de la leyenda, con un tamaño que depende del número de fragmentos, de modo que los documentos más largos son más grandes. Pase el puntero sobre un nodo para ver su nombre, tipo y número de conexiones; haga clic en él para abrir Detalles del nodo, que también muestra el tipo de archivo.",
+      "fr": "Nœuds de document - Des cercles de la couleur Document de la légende, dont la taille dépend du nombre de fragments : les documents plus longs sont plus grands. Survolez un nœud pour voir son nom, son type et son nombre de connexions ; cliquez dessus pour ouvrir Détails du nœud, qui indique aussi le type de fichier.",
+      "ja": "ドキュメント ノード：凡例のドキュメントの色で表示される円で、チャンク数に応じて大きさが変わるため、長いドキュメントほど大きくなります。ノードにポインターを合わせると名前、種類、接続数が表示され、クリックすると「ノードの詳細」が開き、ファイルの種類も表示されます。",
+      "zh-CN": "文档节点：以图例中“文档”颜色显示的圆形，大小取决于分块数量，因此较长的文档显示得更大。将指针悬停在节点上可查看其名称、类型和连接数；单击节点会打开“节点详情”，其中还会显示文件类型。"
+    },
+    "UserGuide_KnowledgeGraph_Element2.Text": {
+      "en-US": "Collection Nodes - Fixed-size hubs in the Collection color, each linked to its member documents. Node Details shows how many documents the Collection holds.",
+      "de": "Sammlungsknoten - Knoten fester Größe in der Sammlungsfarbe, jeweils mit ihren Mitgliedsdokumenten verbunden. Die Knotendetails zeigen, wie viele Dokumente die Sammlung enthält.",
+      "es": "Nodos de colección - Nodos de tamaño fijo del color de Colección, cada uno unido a sus documentos. Detalles del nodo muestra cuántos documentos contiene la colección.",
+      "fr": "Nœuds de collection - Des nœuds de taille fixe de la couleur Collection, chacun relié à ses documents membres. Détails du nœud indique combien de documents la collection contient.",
+      "ja": "コレクション ノード：コレクションの色で表示される固定サイズのハブで、それぞれ所属ドキュメントと結ばれます。「ノードの詳細」には、そのコレクションに含まれるドキュメント数が表示されます。",
+      "zh-CN": "合集节点：以“合集”颜色显示的固定大小的中心节点，各自与其成员文档相连。“节点详情”会显示该合集包含多少个文档。"
+    },
+    "UserGuide_KnowledgeGraph_Element3.Text": {
+      "en-US": "Tag Nodes - Smaller nodes in the Tag color, one per tag, whether it was assigned automatically or by hand (Node Details says which). Documents that share a tag are linked, so the layout tends to pull them together.",
+      "de": "Tag-Knoten - Kleinere Knoten in der Tag-Farbe, einer pro Tag, gleich ob er automatisch oder von Hand vergeben wurde (die Knotendetails zeigen, welches von beiden). Dokumente mit einem gemeinsamen Tag sind verbunden, daher zieht das Layout sie tendenziell zusammen.",
+      "es": "Nodos de etiqueta - Nodos más pequeños del color de Etiqueta, uno por etiqueta, tanto si se asignó automáticamente como a mano (Detalles del nodo indica cuál). Los documentos que comparten una etiqueta están unidos, así que la disposición tiende a acercarlos.",
+      "fr": "Nœuds de tag - Des nœuds plus petits de la couleur Tag, un par tag, qu'il ait été attribué automatiquement ou à la main (Détails du nœud précise lequel). Les documents qui partagent un tag sont reliés, si bien que la disposition tend à les rapprocher.",
+      "ja": "タグ ノード：タグの色で表示される小さめのノードで、自動で付けられたタグか手動で付けたタグかにかかわらず、タグごとに 1 つずつあります (どちらかは「ノードの詳細」でわかります)。タグを共有するドキュメント同士は結ばれるため、レイアウト上で引き寄せられやすくなります。",
+      "zh-CN": "标签节点：以“标签”颜色显示的较小节点，每个标签一个，无论是自动添加还是手动添加的（“节点详情”会说明是哪一种）。共享同一标签的文档之间会相连，因此布局往往会把它们拉近。"
+    },
+    "UserGuide_KnowledgeGraph_Element4.Text": {
+      "en-US": "Edges - Solid lines. A link to a Collection or tag takes that node's color; a link between two documents uses a neutral tone and gets thicker the more Collections and tags they share. There are no similarity edges: the graph shows Collections and tags, not how alike two documents' contents are.",
+      "de": "Kanten - Durchgezogene Linien. Eine Verbindung zu einer Sammlung oder einem Tag hat die Farbe dieses Knotens; eine Verbindung zwischen zwei Dokumenten ist neutral gefärbt und wird umso dicker, je mehr Sammlungen und Tags die beiden gemeinsam haben. Ähnlichkeitskanten gibt es nicht: Der Graph zeigt Sammlungen und Tags, nicht, wie ähnlich sich die Inhalte zweier Dokumente sind.",
+      "es": "Aristas - Líneas continuas. Un enlace a una colección o etiqueta toma el color de ese nodo; un enlace entre dos documentos usa un tono neutro y es más grueso cuantas más colecciones y etiquetas comparten. No hay aristas de similitud: el grafo muestra colecciones y etiquetas, no cuánto se parecen los contenidos de dos documentos.",
+      "fr": "Arêtes - Des lignes continues. Un lien vers une collection ou un tag prend la couleur de ce nœud ; un lien entre deux documents utilise un ton neutre et s'épaissit avec le nombre de collections et de tags qu'ils partagent. Il n'y a pas d'arêtes de similarité : le graphe montre les collections et les tags, pas la ressemblance entre les contenus de deux documents.",
+      "ja": "エッジ：すべて実線です。コレクションやタグへのリンクはそのノードの色になり、2 つのドキュメント間のリンクは中間色で、共有するコレクションやタグが多いほど太くなります。類似度によるエッジはありません。グラフが示すのはコレクションとタグであり、2 つのドキュメントの内容がどれだけ似ているかではありません。",
+      "zh-CN": "连线：均为实线。指向合集或标签的连线使用该节点的颜色；两个文档之间的连线使用中性色调，两者共享的合集和标签越多，线条越粗。图谱中没有相似度连线：它反映的是合集和标签，而不是两个文档内容的相似程度。"
+    },
+    "UserGuide_KnowledgeGraph_Interaction1.Text": {
+      "en-US": "Select and Highlight - Click a node to select it and open Node Details (type, name, subtitle, connection count and position). Clicking a Collection or tag also highlights its cluster, that node and everything linked to it, and dims the rest; click it again, click empty space, or use the clear button next to Cluster Active to reset. Nodes do not open documents, and there is no right-click menu.",
+      "de": "Auswählen und hervorheben - Klicken Sie auf einen Knoten, um ihn auszuwählen und die Knotendetails zu öffnen (Typ, Name, Untertitel, Anzahl der Verbindungen und Position). Ein Klick auf eine Sammlung oder einen Tag hebt außerdem deren Cluster hervor, also den Knoten und alles, was mit ihm verbunden ist, und blendet den Rest ab; klicken Sie erneut darauf, auf eine leere Stelle oder auf die Schaltfläche zum Aufheben neben „Cluster aktiv“, um zurückzusetzen. Knoten öffnen keine Dokumente, und es gibt kein Kontextmenü.",
+      "es": "Seleccionar y resaltar - Haga clic en un nodo para seleccionarlo y abrir Detalles del nodo (tipo, nombre, subtítulo, número de conexiones y posición). Al hacer clic en una colección o etiqueta también se resalta su clúster, ese nodo y todo lo que está unido a él, y se atenúa el resto; haga clic de nuevo en él, en un espacio vacío o en el botón para quitar el resaltado junto a Clúster activo para restablecerlo. Los nodos no abren documentos y no hay menú contextual.",
+      "fr": "Sélectionner et mettre en surbrillance - Cliquez sur un nœud pour le sélectionner et ouvrir Détails du nœud (type, nom, sous-titre, nombre de connexions et position). Cliquer sur une collection ou un tag met aussi en surbrillance son cluster, ce nœud et tout ce qui lui est relié, et atténue le reste ; cliquez de nouveau dessus, sur un espace vide ou sur le bouton d'effacement à côté de Cluster actif pour réinitialiser. Les nœuds n'ouvrent pas les documents, et il n'y a pas de menu contextuel.",
+      "ja": "選択と強調表示：ノードをクリックすると選択され、「ノードの詳細」(種類、名前、サブタイトル、接続数、位置) が開きます。コレクションまたはタグをクリックすると、そのノードとつながっているすべてのノードからなるクラスターも強調表示され、それ以外は淡く表示されます。元に戻すには、もう一度クリックするか、何もない場所をクリックするか、「クラスター アクティブ」の横にある解除ボタンを使います。ノードからドキュメントを開くことはできず、右クリック メニューもありません。",
+      "zh-CN": "选择与高亮：单击节点即可选中它并打开“节点详情”（类型、名称、副标题、连接数和位置）。单击合集或标签时，还会高亮其聚类，即该节点及与之相连的所有节点，并淡化其余节点；再次单击该节点、单击空白处或使用“聚类已激活”旁的清除按钮即可恢复。节点不会打开文档，也没有右键菜单。"
+    },
+    "UserGuide_KnowledgeGraph_Interaction2.Text": {
+      "en-US": "Zoom, Filter and Search - Zoom with the mouse wheel or the zoom buttons (0.25x to 4x), and go back with Reset Zoom; the view cannot be panned. The SHOW check boxes at the bottom hide or show documents, Collections and tags. Typing in the search box highlights the nodes whose name or subtitle contains the text and shows how many matched.",
+      "de": "Zoomen, filtern und suchen - Zoomen Sie mit dem Mausrad oder den Zoom-Schaltflächen (0,25x bis 4x) und kehren Sie mit „Zoom zurücksetzen“ zurück; verschieben lässt sich die Ansicht nicht. Die Kontrollkästchen unter „ANZEIGEN“ blenden Dokumente, Sammlungen und Tags ein oder aus. Eine Eingabe im Suchfeld hebt die Knoten hervor, deren Name oder Untertitel den Text enthält, und zeigt, wie viele gefunden wurden.",
+      "es": "Zoom, filtros y búsqueda - Use la rueda del ratón o los botones de zoom (de 0,25x a 4x) y vuelva con Restablecer zoom; la vista no se puede desplazar. Las casillas de MOSTRAR, en la parte inferior, ocultan o muestran documentos, colecciones y etiquetas. Al escribir en el cuadro de búsqueda se resaltan los nodos cuyo nombre o subtítulo contiene el texto y se indica cuántos coinciden.",
+      "fr": "Zoom, filtres et recherche - Zoomez avec la molette de la souris ou les boutons de zoom (de 0,25x à 4x) et revenez en arrière avec Réinitialiser le zoom ; la vue ne peut pas être déplacée. Les cases à cocher AFFICHER, en bas, masquent ou affichent les documents, les collections et les tags. Saisir du texte dans la zone de recherche met en surbrillance les nœuds dont le nom ou le sous-titre le contient et indique combien correspondent.",
+      "ja": "ズーム、フィルター、検索：マウス ホイールまたはズーム ボタン (0.25 倍から 4 倍) でズームし、[ズームをリセット] で元に戻します。ビューをドラッグして移動することはできません。下部の「表示」のチェック ボックスで、ドキュメント、コレクション、タグの表示と非表示を切り替えます。検索ボックスに入力すると、名前またはサブタイトルにその文字列を含むノードが強調表示され、一致した数が表示されます。",
+      "zh-CN": "缩放、筛选和搜索：使用鼠标滚轮或缩放按钮（0.25 倍到 4 倍）进行缩放，并用“重置缩放”恢复；视图不能平移。底部“显示”中的复选框用于显示或隐藏文档、合集和标签。在搜索框中输入文字，会高亮名称或副标题包含该文字的节点，并显示匹配的数量。"
+    },
+    "UserGuide_KnowledgeGraph_Interaction3.Text": {
+      "en-US": "Layout - Positions come from a force-directed simulation of 100 steps that runs when the graph is built: linked nodes pull together while all nodes push apart. The layout then stays fixed; Refresh rebuilds the graph from the current vault. There is one layout, with no physics controls or navigator panel, and leaving the page cancels a build that is still running.",
+      "de": "Layout - Die Positionen stammen aus einer kraftbasierten Simulation mit 100 Schritten, die beim Erstellen des Graphen läuft: Verbundene Knoten ziehen sich an, während sich alle Knoten gegenseitig abstoßen. Danach bleibt das Layout fest; „Aktualisieren“ erstellt den Graphen aus dem aktuellen Wissens-Tresor neu. Es gibt nur ein Layout, ohne Physik-Steuerung oder Navigator-Panel, und das Verlassen der Seite bricht eine noch laufende Erstellung ab.",
+      "es": "Disposición - Las posiciones salen de una simulación dirigida por fuerzas de 100 pasos que se ejecuta al construir el grafo: los nodos unidos se atraen mientras todos los nodos se repelen. Después la disposición queda fija; Actualizar vuelve a construir el grafo a partir de la bóveda actual. Hay una sola disposición, sin controles de física ni panel navegador, y salir de la página cancela una construcción que aún esté en curso.",
+      "fr": "Disposition - Les positions proviennent d'une simulation par forces de 100 étapes, exécutée à la construction du graphe : les nœuds reliés s'attirent tandis que tous les nœuds se repoussent. La disposition reste ensuite fixe ; Actualiser reconstruit le graphe à partir du coffre-fort actuel. Il n'existe qu'une seule disposition, sans réglages de physique ni panneau de navigation, et quitter la page annule une construction encore en cours.",
+      "ja": "レイアウト：ノードの位置は、グラフの作成時に実行される 100 ステップのフォース指向シミュレーションで決まります。つながったノードは引き合い、すべてのノードは互いに反発します。その後レイアウトは固定され、[更新] で現在の Knowledge Vault からグラフが作り直されます。レイアウトは 1 種類だけで、物理演算の操作やナビゲーター パネルはありません。作成中にページを離れると、その作成は取り消されます。",
+      "zh-CN": "布局：节点位置来自构建图谱时运行的 100 步力导向模拟：相连的节点相互吸引，同时所有节点相互排斥。之后布局保持固定；“刷新”会根据当前的 Knowledge Vault 重新构建图谱。只有一种布局，没有物理模拟控件或导航面板；构建仍在进行时离开页面会取消构建。"
+    },
+    "UserGuide_WeeklyDigest_Description.Text": {
+      "en-US": "The Weekly Digest is a statistical report on the last seven days in Agent-X, computed from your vault, conversations and search history. It counts what you imported, discussed and searched, compares the week with the seven days before it, and keeps each report so you can look back. No AI model writes it: every figure comes straight from the database.",
+      "de": "Der Wochen-Digest ist ein statistischer Bericht über die letzten sieben Tage in Agent-X, berechnet aus Ihrem Wissens-Tresor, Ihren Konversationen und Ihrem Suchverlauf. Er zählt, was Sie importiert, besprochen und gesucht haben, vergleicht die Woche mit den sieben Tagen davor und bewahrt jeden Bericht auf, damit Sie zurückblicken können. Kein KI-Modell schreibt ihn: Jede Zahl stammt direkt aus der Datenbank.",
+      "es": "El Resumen semanal es un informe estadístico de los últimos siete días en Agent-X, calculado a partir de su bóveda, sus conversaciones y su historial de búsqueda. Cuenta lo que importó, conversó y buscó, compara la semana con los siete días anteriores y conserva cada informe para que pueda mirar atrás. Ningún modelo de IA lo redacta: cada cifra sale directamente de la base de datos.",
+      "fr": "Le Résumé hebdomadaire est un rapport statistique sur les sept derniers jours dans Agent-X, calculé à partir de votre coffre-fort, de vos conversations et de votre historique de recherche. Il compte ce que vous avez importé, discuté et recherché, compare la semaine aux sept jours précédents et conserve chaque rapport pour que vous puissiez revenir en arrière. Aucun modèle d'IA ne le rédige : chaque chiffre vient directement de la base de données.",
+      "ja": "週次ダイジェストは、Agent-X での直近 7 日間の統計レポートで、Knowledge Vault、会話、検索履歴から計算されます。インポート、会話、検索の件数を数え、その週をさらに前の 7 日間と比較し、各レポートを保存するので後から振り返れます。AI モデルが書くものではなく、すべての数値はデータベースから直接取得されます。",
+      "zh-CN": "每周摘要是 Agent-X 最近七天的统计报告，根据您的 Knowledge Vault、会话和搜索历史计算得出。它统计您导入、讨论和搜索的内容，将本周与之前的七天进行比较，并保存每份报告供您回顾。报告不是由 AI 模型撰写的：每个数字都直接来自数据库。"
+    },
+    "UserGuide_WeeklyDigest_Feature1.Text": {
+      "en-US": "Activity Totals - Each report shows the week's new documents, new conversations, searches, tokens used in chat messages, and the storage the new documents added.",
+      "de": "Aktivitätssummen - Jeder Bericht zeigt die neuen Dokumente, neuen Konversationen, Suchanfragen und in Chatnachrichten verwendeten Tokens der Woche sowie den Speicherplatz, den die neuen Dokumente hinzugefügt haben.",
+      "es": "Totales de actividad - Cada informe muestra los documentos nuevos, las conversaciones nuevas, las búsquedas y los tokens usados en mensajes de chat durante la semana, y el almacenamiento que añadieron los documentos nuevos.",
+      "fr": "Totaux d'activité - Chaque rapport montre les nouveaux documents, les nouvelles conversations, les recherches et les tokens utilisés dans les messages de chat de la semaine, ainsi que l'espace de stockage ajouté par les nouveaux documents.",
+      "ja": "アクティビティの合計：各レポートには、その週の新規ドキュメント、新規会話、検索、チャット メッセージで使われたトークン、そして新規ドキュメントによって増えたストレージ容量が表示されます。",
+      "zh-CN": "活动总计：每份报告显示本周新增的文档、新增的会话、搜索次数、聊天消息使用的 Token，以及新文档增加的存储空间。"
+    },
+    "UserGuide_WeeklyDigest_Feature2.Text": {
+      "en-US": "Top Lists with Trends - Up to five of the most repeated searches, the Collections that gained the most documents, and the most imported file types, each marked as new, up, down or flat against the previous seven days.",
+      "de": "Top-Listen mit Trends - Bis zu fünf der häufigsten Suchanfragen, der Sammlungen mit den meisten neuen Dokumenten und der am häufigsten importierten Dateitypen, jeweils als neu, steigend, fallend oder gleichbleibend gegenüber den sieben Tagen davor markiert.",
+      "es": "Listas principales con tendencias - Hasta cinco de las búsquedas más repetidas, de las colecciones que más documentos ganaron y de los tipos de archivo más importados, cada uno marcado como nuevo, al alza, a la baja o estable frente a los siete días anteriores.",
+      "fr": "Classements avec tendances - Jusqu'à cinq des recherches les plus répétées, des collections qui ont gagné le plus de documents et des types de fichiers les plus importés, chacun marqué comme nouveau, en hausse, en baisse ou stable par rapport aux sept jours précédents.",
+      "ja": "傾向付きの上位リスト：最も多く繰り返された検索、ドキュメントが最も増えたコレクション、最も多くインポートされたファイルの種類をそれぞれ最大 5 件表示し、直前の 7 日間と比べて新規、増加、減少、横ばいのいずれかを示します。",
+      "zh-CN": "带趋势的排行榜：列出最多五个重复最多的搜索、新增文档最多的合集以及导入最多的文件类型，并与之前七天相比，分别标注为新增、上升、下降或持平。"
+    },
+    "UserGuide_WeeklyDigest_Feature4.Text": {
+      "en-US": "Conversation Highlights - The three most active conversations of the week, with their message and token counts. A report lives only on this page: there is no export, sharing or email delivery.",
+      "de": "Konversations-Highlights - Die drei aktivsten Konversationen der Woche mit ihrer Anzahl an Nachrichten und Tokens. Ein Bericht existiert nur auf dieser Seite: Es gibt keinen Export, keine Freigabe und keinen E-Mail-Versand.",
+      "es": "Momentos destacados de conversaciones - Las tres conversaciones más activas de la semana, con su número de mensajes y de tokens. Un informe solo existe en esta página: no hay exportación, uso compartido ni envío por correo.",
+      "fr": "Temps forts des conversations - Les trois conversations les plus actives de la semaine, avec leur nombre de messages et de tokens. Un rapport n'existe que sur cette page : il n'y a ni export, ni partage, ni envoi par e-mail.",
+      "ja": "会話のハイライト：その週に最も活発だった 3 つの会話を、メッセージ数とトークン数とともに表示します。レポートはこのページにしかなく、エクスポート、共有、メール送信はできません。",
+      "zh-CN": "会话亮点：本周最活跃的三个会话，以及它们的消息数和 Token 数。报告只存在于此页面：不支持导出、共享或通过电子邮件发送。"
+    },
+    "UserGuide_WeeklyDigest_Feature5.Text": {
+      "en-US": "Report History - Earlier reports are listed with their date range and document and search counts; select one to reopen it. The digest does not flag unused documents, belief conflicts or knowledge gaps.",
+      "de": "Berichtsverlauf - Frühere Berichte werden mit Zeitraum sowie Anzahl der Dokumente und Suchanfragen aufgelistet; wählen Sie einen aus, um ihn erneut zu öffnen. Der Digest markiert weder ungenutzte Dokumente noch Konflikte zwischen Überzeugungen oder Wissenslücken.",
+      "es": "Historial de informes - Los informes anteriores aparecen con su intervalo de fechas y su número de documentos y búsquedas; seleccione uno para volver a abrirlo. El resumen no señala documentos sin usar, conflictos de creencias ni lagunas de conocimiento.",
+      "fr": "Historique des rapports - Les rapports précédents sont listés avec leur période et leurs nombres de documents et de recherches ; sélectionnez-en un pour le rouvrir. Le résumé ne signale ni documents inutilisés, ni conflits de convictions, ni lacunes de connaissances.",
+      "ja": "レポート履歴：以前のレポートが期間、ドキュメント数、検索数とともに一覧表示され、選択するともう一度開けます。ダイジェストは、使われていないドキュメント、考えの矛盾、知識の不足を指摘しません。",
+      "zh-CN": "报告历史：之前的报告会连同日期范围、文档数和搜索次数一起列出；选择其中一份即可重新打开。摘要不会标出未使用的文档、观点冲突或知识空白。"
+    }
+  },
+  "add": {}
+}

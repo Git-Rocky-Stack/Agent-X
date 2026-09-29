@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
+using AgentX.Core.Services.Localization;
 using AgentX.Core.Services.Settings;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -10,18 +11,19 @@ namespace AgentX.App.ViewModels;
 
 public partial class OnboardingViewModel : ObservableObject
 {
-    // ── Services ─────────────────────────────────────────────
+    // -- Services ---------------------------------------------
     private readonly IAiService _aiService;
     private readonly ISettingsService _settingsService;
     private readonly IHardwareDetector _hardwareDetector;
     private readonly IBuiltInModelBootstrap _bootstrap;
+    private readonly ILocalizationService _localization;
 
-    // ── Step Navigation ──────────────────────────────────────
+    // -- Step Navigation --------------------------------------
     [ObservableProperty] private int _currentStep;
     [ObservableProperty] private bool _canGoBack;
     [ObservableProperty] private bool _canGoNext = true;
 
-    // ── Step Visibility ──────────────────────────────────────
+    // -- Step Visibility --------------------------------------
     [ObservableProperty] private bool _isStep0Visible = true;
     [ObservableProperty] private bool _isStep1Visible;
     [ObservableProperty] private bool _isStep2Visible;
@@ -29,7 +31,7 @@ public partial class OnboardingViewModel : ObservableObject
     [ObservableProperty] private bool _isStep4Visible;
     [ObservableProperty] private bool _showNextButton;
 
-    // ── Step 1: Ollama Connection ────────────────────────────
+    // -- Step 1: Ollama Connection ----------------------------
     [ObservableProperty] private string _ollamaEndpoint = "http://localhost:11434";
     [ObservableProperty] private bool _isTestingConnection;
 
@@ -52,7 +54,7 @@ public partial class OnboardingViewModel : ObservableObject
         _ => "idle"
     };
 
-    // ── Step 2: Model Selection ──────────────────────────────
+    // -- Step 2: Model Selection ------------------------------
     [ObservableProperty] private ObservableCollection<OnboardingModelItem> _availableModels = new();
     [ObservableProperty] private string _selectedChatModel = "";
     [ObservableProperty] private string _selectedEmbeddingModel = "";
@@ -60,11 +62,11 @@ public partial class OnboardingViewModel : ObservableObject
     [ObservableProperty] private bool _isLoadingModels;
     [ObservableProperty] private string _hardwareInfo = "";
 
-    // ── Step 3: Built-in AI & Cloud API Keys ─────────────────
+    // -- Step 3: Built-in AI & Cloud API Keys -----------------
     [ObservableProperty] private bool _isLocalModelAvailable;
-    [ObservableProperty] private string _gpuAccelerationInfo = "Detecting hardware...";
+    [ObservableProperty] private string _gpuAccelerationInfo;
     [ObservableProperty] private string _localModelName = "Llama 3.2 3B Instruct";
-    [ObservableProperty] private string _localModelStatusText = "Checking...";
+    [ObservableProperty] private string _localModelStatusText;
     [ObservableProperty] private string _openAiApiKey = "";
     [ObservableProperty] private string _anthropicApiKey = "";
 
@@ -74,29 +76,39 @@ public partial class OnboardingViewModel : ObservableObject
     [ObservableProperty] private double _localModelDownloadProgress;
     [ObservableProperty] private string _localModelDownloadStatus = "";
 
-    // ── Step 4: Summary ──────────────────────────────────────
-    [ObservableProperty] private string _summaryOllamaStatus = "Not configured";
-    [ObservableProperty] private string _summaryChatModel = "Default (llama3.2)";
-    [ObservableProperty] private string _summaryEmbeddingModel = "Default (all-minilm)";
-    [ObservableProperty] private string _summaryLocalModel = "Not detected";
-    [ObservableProperty] private string _summaryCloudProviders = "None configured";
+    // -- Step 4: Summary --------------------------------------
+    [ObservableProperty] private string _summaryOllamaStatus;
+    [ObservableProperty] private string _summaryChatModel;
+    [ObservableProperty] private string _summaryEmbeddingModel;
+    [ObservableProperty] private string _summaryLocalModel;
+    [ObservableProperty] private string _summaryCloudProviders;
 
     public OnboardingViewModel(
         IAiService aiService,
         ISettingsService settingsService,
         IHardwareDetector hardwareDetector,
-        IBuiltInModelBootstrap builtInModelBootstrap)
+        IBuiltInModelBootstrap builtInModelBootstrap,
+        ILocalizationService localization)
     {
         _aiService = aiService;
         _settingsService = settingsService;
         _hardwareDetector = hardwareDetector;
         _bootstrap = builtInModelBootstrap;
+        _localization = localization;
+
+        _gpuAccelerationInfo = _localization.GetString("Onb_DetectingHardware");
+        _localModelStatusText = _localization.GetString("Onb_Checking");
+        _summaryOllamaStatus = _localization.GetString("Onb_SummaryNotConfigured");
+        _summaryChatModel = _localization.GetString("Onb_SummaryDefaultModel", "llama3.2");
+        _summaryEmbeddingModel = _localization.GetString("Onb_SummaryDefaultModel", "all-minilm");
+        _summaryLocalModel = _localization.GetString("Onb_SummaryNotDetected");
+        _summaryCloudProviders = _localization.GetString("Onb_SummaryNoneConfigured");
         Log.Debug("OnboardingViewModel created");
     }
 
-    // ═══════════════════════════════════════════════════════════
+    // ===========================================================
     //  STEP NAVIGATION
-    // ═══════════════════════════════════════════════════════════
+    // ===========================================================
 
     [RelayCommand]
     private async Task NextStepAsync()
@@ -167,9 +179,9 @@ public partial class OnboardingViewModel : ObservableObject
         CanGoNext = CurrentStep < 4;
     }
 
-    // ═══════════════════════════════════════════════════════════
+    // ===========================================================
     //  STEP 1: OLLAMA CONNECTION
-    // ═══════════════════════════════════════════════════════════
+    // ===========================================================
 
     [RelayCommand]
     private async Task TestConnectionAsync()
@@ -178,28 +190,34 @@ public partial class OnboardingViewModel : ObservableObject
 
         IsTestingConnection = true;
         ShowConnectionStatus = true;
-        ConnectionStatusText = "Testing connection...";
+        ConnectionStatusText = _localization.GetString("Onb_TestingConnection");
         Log.Information("Testing Ollama connection at {Endpoint}", OllamaEndpoint);
 
         try
         {
-            // Update the settings with the user's chosen endpoint before testing
-            var settings = await _settingsService.GetSettingsAsync();
-            settings.OllamaEndpoint = OllamaEndpoint;
-            await _settingsService.SaveSettingsAsync(settings);
+            if (!AiService.TryParseHttpEndpoint(OllamaEndpoint, out var endpoint))
+            {
+                IsOllamaConnected = false;
+                ConnectionStatusText = _localization.GetString("Onb_EndpointInvalid");
+                return;
+            }
 
-            var connected = await _aiService.ActiveProvider.CheckConnectionAsync();
+            // Test the typed endpoint with a temporary Ollama provider. The active provider is
+            // usually the built-in model, so testing it said nothing about Ollama, and nothing
+            // is saved until the wizard completes.
+            using var ollama = new AgentX.Core.AI.Providers.OllamaProvider(endpoint, Log.Logger);
+            var connected = await ollama.CheckConnectionAsync();
             IsOllamaConnected = connected;
             ConnectionStatusText = connected
-                ? "Connected to Ollama successfully!"
-                : "Could not connect to Ollama. Make sure Ollama is running.";
+                ? _localization.GetString("Onb_OllamaConnected")
+                : _localization.GetString("Onb_OllamaNotReachable");
 
             Log.Information("Ollama connection test result: {Connected}", connected);
         }
         catch (Exception ex)
         {
             IsOllamaConnected = false;
-            ConnectionStatusText = "Connection failed. Check that Ollama is installed and running.";
+            ConnectionStatusText = _localization.GetString("Onb_ConnectionFailed");
             Log.Warning(ex, "Ollama connection test failed");
         }
         finally
@@ -208,9 +226,9 @@ public partial class OnboardingViewModel : ObservableObject
         }
     }
 
-    // ═══════════════════════════════════════════════════════════
+    // ===========================================================
     //  STEP 2: MODEL SELECTION
-    // ═══════════════════════════════════════════════════════════
+    // ===========================================================
 
     private async Task LoadModelsAsync()
     {
@@ -221,20 +239,23 @@ public partial class OnboardingViewModel : ObservableObject
         {
             // Load hardware info
             var hw = await _hardwareDetector.DetectAsync();
-            HardwareInfo = $"{hw.GpuName}  |  {hw.TotalRamFormatted} RAM  |  {hw.RecommendedMaxModelSize}";
+            var maxModelSize = _localization.GetString("HwAdvisor_UpToModelSize", hw.RecommendedMaxModelParameters);
+            HardwareInfo = _localization.GetString("Onb_HardwareSummary", hw.GpuName, hw.TotalRamFormatted, maxModelSize);
         }
         catch (Exception ex)
         {
             Log.Warning(ex, "Failed to detect hardware during onboarding");
-            HardwareInfo = "Hardware detection unavailable";
+            HardwareInfo = _localization.GetString("Onb_HardwareUnavailable");
         }
 
-        // Only load models if Ollama is connected
-        if (IsOllamaConnected == true)
+        // Only load models if Ollama is connected. They are listed from the tested Ollama
+        // endpoint, not from the active provider (usually the built-in model).
+        if (IsOllamaConnected == true && AiService.TryParseHttpEndpoint(OllamaEndpoint, out var ollamaEndpoint))
         {
             try
             {
-                var models = await _aiService.ActiveProvider.ListModelsAsync();
+                using var ollama = new AgentX.Core.AI.Providers.OllamaProvider(ollamaEndpoint, Log.Logger);
+                var models = await ollama.ListModelsAsync();
                 foreach (var model in models)
                 {
                     var isEmbedding = model.Name.Contains("minilm", StringComparison.OrdinalIgnoreCase)
@@ -290,13 +311,13 @@ public partial class OnboardingViewModel : ObservableObject
         IsLoadingModels = false;
     }
 
-    // ═══════════════════════════════════════════════════════════
+    // ===========================================================
     //  STEP 3: BUILT-IN AI MODEL & CLOUD API KEYS
-    // ═══════════════════════════════════════════════════════════
+    // ===========================================================
 
     private async Task CheckBuiltInModelAsync()
     {
-        LocalModelStatusText = "Checking...";
+        LocalModelStatusText = _localization.GetString("Onb_Checking");
         CanDownloadLocalModel = false;
 
         try
@@ -308,12 +329,11 @@ public partial class OnboardingViewModel : ObservableObject
             if (IsLocalModelAvailable)
             {
                 var sizeMb = new FileInfo(_bootstrap.ModelPath).Length / 1_000_000.0;
-                LocalModelStatusText = $"Ready ({sizeMb:F0} MB)";
+                LocalModelStatusText = _localization.GetString("Onb_LocalModelReady", sizeMb.ToString("F0"));
             }
             else
             {
-                LocalModelStatusText =
-                    "Not installed yet. Download it for fully-offline AI (~1.9 GB), or just add a cloud API key below.";
+                LocalModelStatusText = _localization.GetString("Onb_LocalModelNotInstalled");
                 CanDownloadLocalModel = true;
             }
 
@@ -330,14 +350,44 @@ public partial class OnboardingViewModel : ObservableObject
 
             // Detect hardware for GPU info
             var hw = await _hardwareDetector.DetectAsync();
-            GpuAccelerationInfo = hw.GpuAccelerationSummary;
+            GpuAccelerationInfo = DescribeGpuAcceleration(hw);
         }
         catch (Exception ex)
         {
             Log.Warning(ex, "Failed to check built-in model during onboarding");
-            LocalModelStatusText = "Unable to verify model";
-            GpuAccelerationInfo = "Hardware detection unavailable";
+            LocalModelStatusText = _localization.GetString("Onb_LocalModelUnverified");
+            GpuAccelerationInfo = _localization.GetString("Onb_HardwareUnavailable");
         }
+    }
+
+    /// <summary>
+    /// What the built-in model runs on. Its layers reach an NVIDIA GPU only when LLamaSharp loads
+    /// its CUDA 12 backend, which needs the NVIDIA CUDA 12 Toolkit (Agent-X does not ship the CUDA
+    /// runtime), and the automatic layer count gives a GPU under 2 GB of video memory no layers.
+    /// "Available" is said only when both hold.
+    /// </summary>
+    private string DescribeGpuAcceleration(HardwareCapability hw)
+    {
+        if (!hw.IsNvidiaGpu)
+            return _localization.GetString("Onb_GpuCpuOnly");
+
+        if (hw.RecommendedGpuLayers <= 0)
+            return _localization.GetString("Onb_GpuTooLittleMemory");
+
+        return IsCuda12ToolkitInstalled()
+            ? _localization.GetString("Onb_GpuCudaAvailable", hw.GpuVramFormatted, hw.RecommendedGpuLayers)
+            : _localization.GetString("Onb_GpuNeedsCudaToolkit", hw.GpuVramFormatted);
+    }
+
+    /// <summary>
+    /// True when CUDA_PATH names a CUDA 12 toolkit, the one whose runtime (bin\cudart64_12.dll)
+    /// LLamaSharp's CUDA 12 backend loads.
+    /// </summary>
+    private static bool IsCuda12ToolkitInstalled()
+    {
+        var cudaPath = Environment.GetEnvironmentVariable("CUDA_PATH");
+        return !string.IsNullOrWhiteSpace(cudaPath)
+            && File.Exists(Path.Combine(cudaPath, "bin", "cudart64_12.dll"));
     }
 
     /// <summary>
@@ -352,7 +402,7 @@ public partial class OnboardingViewModel : ObservableObject
         IsDownloadingLocalModel = true;
         CanDownloadLocalModel = false;
         LocalModelDownloadProgress = 0;
-        LocalModelDownloadStatus = "Starting download…";
+        LocalModelDownloadStatus = _localization.GetString("Onb_DownloadStarting");
         Log.Information("User started built-in model download during onboarding");
 
         try
@@ -376,8 +426,8 @@ public partial class OnboardingViewModel : ObservableObject
             if (IsLocalModelAvailable)
             {
                 var sizeMb = new FileInfo(_bootstrap.ModelPath).Length / 1_000_000.0;
-                LocalModelStatusText = $"Ready ({sizeMb:F0} MB)";
-                LocalModelDownloadStatus = "Download complete.";
+                LocalModelStatusText = _localization.GetString("Onb_LocalModelReady", sizeMb.ToString("F0"));
+                LocalModelDownloadStatus = _localization.GetString("Onb_DownloadComplete");
 
                 // Make the freshly-downloaded built-in model the active provider.
                 var settings = await _settingsService.GetSettingsAsync();
@@ -394,14 +444,14 @@ public partial class OnboardingViewModel : ObservableObject
             }
             else
             {
-                LocalModelDownloadStatus = "Download did not complete. You can retry or use cloud models.";
+                LocalModelDownloadStatus = _localization.GetString("Onb_DownloadIncomplete");
                 CanDownloadLocalModel = true;
             }
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Built-in model download failed during onboarding");
-            LocalModelDownloadStatus = $"Download failed: {ex.Message}";
+            LocalModelDownloadStatus = _localization.GetString("Onb_DownloadFailed", ex.Message);
             CanDownloadLocalModel = true;
         }
         finally
@@ -410,35 +460,36 @@ public partial class OnboardingViewModel : ObservableObject
         }
     }
 
-    private static string FormatModelDownloadStatus(ModelDownloadProgress p)
+    private string FormatModelDownloadStatus(ModelDownloadProgress p)
     {
         if (p.TotalBytes <= 0) return p.Status;
         var done = p.CompletedBytes / 1_000_000_000.0;
         var total = p.TotalBytes / 1_000_000_000.0;
-        return $"{done:F2} / {total:F2} GB  ({p.PercentComplete:F0}%)";
+        return _localization.GetString(
+            "Onb_DownloadProgress", done.ToString("F2"), total.ToString("F2"), p.PercentComplete.ToString("F0"));
     }
 
-    // ═══════════════════════════════════════════════════════════
+    // ===========================================================
     //  STEP 4: SUMMARY & COMPLETION
-    // ═══════════════════════════════════════════════════════════
+    // ===========================================================
 
     private void BuildSummary()
     {
         SummaryOllamaStatus = IsOllamaConnected == true
-            ? $"Connected ({OllamaEndpoint})"
-            : "Not connected (can be configured in Settings)";
+            ? _localization.GetString("Onb_SummaryOllamaConnected", OllamaEndpoint)
+            : _localization.GetString("Onb_SummaryOllamaNotConnected");
 
         SummaryChatModel = !string.IsNullOrEmpty(SelectedChatModel)
             ? SelectedChatModel
-            : "Default (llama3.2)";
+            : _localization.GetString("Onb_SummaryDefaultModel", "llama3.2");
 
         SummaryEmbeddingModel = !string.IsNullOrEmpty(SelectedEmbeddingModel)
             ? SelectedEmbeddingModel
-            : "Default (all-minilm)";
+            : _localization.GetString("Onb_SummaryDefaultModel", "all-minilm");
 
         SummaryLocalModel = IsLocalModelAvailable
-            ? $"{LocalModelName} (ready)"
-            : "Not found (reinstall to restore)";
+            ? _localization.GetString("Onb_SummaryLocalModelReady", LocalModelName)
+            : _localization.GetString("Onb_SummaryLocalModelMissing");
 
         var cloudProviders = new List<string>();
         if (!string.IsNullOrWhiteSpace(OpenAiApiKey))
@@ -448,7 +499,7 @@ public partial class OnboardingViewModel : ObservableObject
 
         SummaryCloudProviders = cloudProviders.Count > 0
             ? string.Join(", ", cloudProviders)
-            : "None (can be added later in Settings)";
+            : _localization.GetString("Onb_SummaryNoCloudProviders");
     }
 
     [RelayCommand]
@@ -528,9 +579,9 @@ public partial class OnboardingViewModel : ObservableObject
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════
+// ===================================================================
 //  DISPLAY ITEM CLASSES
-// ═══════════════════════════════════════════════════════════════════
+// ===================================================================
 
 /// <summary>
 /// Represents an AI model available for selection during onboarding.

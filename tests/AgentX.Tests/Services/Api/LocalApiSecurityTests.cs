@@ -5,14 +5,14 @@ using Xunit;
 namespace AgentX.Tests.Services.Api;
 
 /// <summary>
-/// Tests for <see cref="LocalApiSecurity"/> — the bearer-token authorization and CORS-origin
+/// Tests for <see cref="LocalApiSecurity"/> - the bearer-token authorization and CORS-origin
 /// policy that closes the unauthenticated-API / wildcard-CORS vulnerability.
 /// </summary>
 public sealed class LocalApiSecurityTests
 {
     private const string Token = "A1B2C3D4E5F6A7B8C9D0E1F2A3B4C5D6E7F8A9B0C1D2E3F4A5B6C7D8E9F0A1B2";
 
-    // ── Public paths ─────────────────────────────────────────────────────────
+    // -- Public paths ---------------------------------------------------------
 
     [Theory]
     [InlineData("/api/extension/health", true)]
@@ -23,7 +23,7 @@ public sealed class LocalApiSecurityTests
     public void IsPublicPath_OnlyExtensionHealthIsPublic(string path, bool expected)
         => LocalApiSecurity.IsPublicPath(path).Should().Be(expected);
 
-    // ── Authorization ────────────────────────────────────────────────────────
+    // -- Authorization --------------------------------------------------------
 
     [Fact]
     public void IsAuthorized_ValidBearerToken_Succeeds()
@@ -53,7 +53,7 @@ public sealed class LocalApiSecurityTests
         LocalApiSecurity.IsAuthorized($"Bearer {Token}", "").Should().BeFalse();
     }
 
-    // ── CORS origin policy ───────────────────────────────────────────────────
+    // -- CORS origin policy ---------------------------------------------------
 
     [Theory]
     [InlineData("chrome-extension://abcdefghijklmnop")]
@@ -70,7 +70,7 @@ public sealed class LocalApiSecurityTests
     public void ResolveAllowedOrigin_DeniesWebOrigins(string? origin)
         => LocalApiSecurity.ResolveAllowedOrigin(origin).Should().BeNull();
 
-    // ── Token generation ─────────────────────────────────────────────────────
+    // -- Token generation -----------------------------------------------------
 
     [Fact]
     public void GenerateToken_ProducesDistinctHighEntropyTokens()

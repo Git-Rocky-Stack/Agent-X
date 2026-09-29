@@ -59,7 +59,7 @@ public class CodeFileProcessor : IDocumentProcessor
 
     /// <summary>
     /// Regular expressions used to detect the first class, function, module, or namespace
-    /// declaration in source code. Ordered by specificity — the first match wins.
+    /// declaration in source code. Ordered by specificity - the first match wins.
     /// Each pattern captures a named group "name" containing the identifier.
     /// </summary>
     private static readonly List<(string Language, Regex Pattern)> DeclarationPatterns = new()
@@ -182,8 +182,8 @@ public class CodeFileProcessor : IDocumentProcessor
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to process code file: {FilePath}", filePath);
-            document.ExtractedText = string.Empty;
-            document.Metadata.Custom["error"] = ex.Message;
+            throw new DocumentExtractionException(
+                $"Could not read the code file '{document.FileName}': {ex.Message}", ex);
         }
 
         return document;

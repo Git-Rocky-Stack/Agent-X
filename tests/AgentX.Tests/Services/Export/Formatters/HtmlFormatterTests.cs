@@ -156,7 +156,7 @@ public sealed class HtmlFormatterTests
         // Act
         var result = await _sut.ExportConversationAsync(conversation, options);
 
-        // Assert — system message should not appear as a message div
+        // Assert - system message should not appear as a message div
         result.Should().NotContain("class=\"message system\"");
     }
 
@@ -237,7 +237,7 @@ public sealed class HtmlFormatterTests
         // Act
         var result = await _sut.ExportConversationAsync(conversation, options);
 
-        // Assert — title and content should be HTML-encoded
+        // Assert - title and content should be HTML-encoded
         result.Should().Contain("Test &amp; &lt;Chat&gt;");
         result.Should().Contain("&lt;script&gt;");
         result.Should().NotContain("<script>alert");

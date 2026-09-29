@@ -49,9 +49,33 @@ public interface IIndexingService : IDisposable
 
     /// <summary>
     /// Raised when a document has been successfully indexed.
-    /// The event argument is the document ID.
+    /// The event argument is the document ID. Raised on the indexing thread.
     /// </summary>
     event EventHandler<long>? DocumentIndexed;
+
+    /// <summary>
+    /// Raised when indexing a document failed, after the document has been saved as "failed"
+    /// with the reason. Raised on the indexing thread.
+    /// </summary>
+    event EventHandler<DocumentIndexingFailedEventArgs>? DocumentIndexingFailed;
+}
+
+/// <summary>
+/// Event data for a document whose indexing failed.
+/// </summary>
+public sealed class DocumentIndexingFailedEventArgs : EventArgs
+{
+    public DocumentIndexingFailedEventArgs(long documentId, string error)
+    {
+        DocumentId = documentId;
+        Error = error;
+    }
+
+    /// <summary>The document that could not be indexed.</summary>
+    public long DocumentId { get; }
+
+    /// <summary>The reason, as saved in the document's indexing error.</summary>
+    public string Error { get; }
 }
 
 /// <summary>

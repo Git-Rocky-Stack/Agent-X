@@ -1,10 +1,13 @@
 using AgentX.Core.AI.Context;
+using AgentX.Core.Helpers;
 
 namespace AgentX.Core.Services.Chat.Models;
 
 /// <summary>
 /// Latest in-memory inspection snapshot for one conversation's assembled chat
-/// context. This is intentionally ephemeral and is not persisted.
+/// context. This is intentionally ephemeral and is not persisted. Its story, chips and
+/// explanations are worded in the user's language through <see cref="FormatHelper.LocalizedText"/>
+/// (English until the app sets it).
 /// </summary>
 public sealed record ChatContextInspectionSnapshot
 {
@@ -25,85 +28,122 @@ public sealed record ChatContextInspectionSnapshot
     public static ChatContextInspectionSnapshot CreateLimited(
         long conversationId,
         string currentQuery,
-        string reason) =>
-        new()
+        string reason)
+    {
+        var words = LocalizedWords.Current;
+        return new()
         {
             ConversationId = conversationId,
             CapturedAt = DateTime.UtcNow,
             CurrentQuery = currentQuery,
             HasLimitedVisibility = true,
             LimitedVisibilityReason = reason,
-            AssemblyExplanation = "Agent-X generated a response without the full context assembly pipeline.",
-            CompressionExplanation = "Compression details are unavailable for this response path.",
-            RecallExplanation = "Durable recall details are unavailable for this response path."
+            AssemblyExplanation = words.GetString(
+                "Chat_ExplainAssemblyLimited",
+                "Agent-X generated a response without the full context assembly pipeline."),
+            CompressionExplanation = words.GetString(
+                "Chat_ExplainCompressionLimited",
+                "Compression details are unavailable for this response path."),
+            RecallExplanation = words.GetString(
+                "Chat_ExplainRecallLimited",
+                "Durable recall details are unavailable for this response path.")
         };
+    }
 
     private static string BuildContextStoryText(ChatContextInspectionSnapshot snapshot)
     {
+        var words = LocalizedWords.Current;
+
         if (snapshot.HasLimitedVisibility)
         {
             return snapshot.LimitedVisibilityReason switch
             {
-                "summary_only_refresh" => "Showing a summary-only view because no newly assembled response context has been captured yet.",
-                _ => "This response used a limited-visibility path, so only partial chat context details are available."
+                "summary_only_refresh" => words.GetString(
+                    "Chat_StorySummaryOnly",
+                    "Showing a summary-only view because no newly assembled response context has been captured yet."),
+                _ => words.GetString(
+                    "Chat_StoryLimited",
+                    "This response used a limited-visibility path, so only partial chat context details are available.")
             };
         }
 
         if (snapshot.Diagnostics.UsedLegacyFallback)
         {
-            return "This response used the legacy context path, so the assembled context story is only partially inspectable.";
+            return words.GetString(
+                "Chat_StoryLegacy",
+                "This response used the legacy context path, so the assembled context story is only partially inspectable.");
         }
 
         if (snapshot.Diagnostics.UsedLexicalFallback)
         {
             return AppendContextIngredients(
-                "Agent-X selected thread context with lexical fallback",
-                snapshot);
+                words.GetString("Chat_StoryLeadLexical", "Agent-X selected thread context with lexical fallback"),
+                snapshot,
+                words);
         }
 
         var leadClause = snapshot.Summary switch
         {
-            { IsStale: true, PendingMessageCount: > 0 } summary =>
-                $"Using a stale durable summary with {summary.PendingMessageCount} newer {Pluralize("message", summary.PendingMessageCount)} still outside it",
-            { IsStale: true } =>
-                "Using a stale durable summary while newer thread changes wait to be folded in",
-            not null =>
-                "Using a current durable summary",
-            _ =>
-                "Using live thread context without a durable summary snapshot"
+            { IsStale: true, PendingMessageCount: 1 } => words.GetString(
+                "Chat_StoryLeadStaleOne",
+                "Using a stale durable summary with 1 newer message still outside it"),
+            { IsStale: true, PendingMessageCount: > 1 } summary => words.GetString(
+                "Chat_StoryLeadStaleMany",
+                "Using a stale durable summary with {0} newer messages still outside it",
+                summary.PendingMessageCount),
+            { IsStale: true } => words.GetString(
+                "Chat_StoryLeadStale",
+                "Using a stale durable summary while newer thread changes wait to be folded in"),
+            not null => words.GetString("Chat_StoryLeadCurrent", "Using a current durable summary"),
+            _ => words.GetString("Chat_StoryLeadLive", "Using live thread context without a durable summary snapshot")
         };
 
-        return AppendContextIngredients(leadClause, snapshot);
+        return AppendContextIngredients(leadClause, snapshot, words);
     }
 
     private static IReadOnlyList<ChatContextStorySourceChip> BuildContextStorySourceChips(
         ChatContextInspectionSnapshot snapshot)
     {
+        var words = LocalizedWords.Current;
         var chips = new List<ChatContextStorySourceChip>(5);
 
         if (snapshot.HasLimitedVisibility)
         {
-            chips.Add(new ChatContextStorySourceChip { Label = "Limited Visibility" });
+            chips.Add(new ChatContextStorySourceChip
+            {
+                Label = words.GetString("Chat_ChipLimitedVisibility", "Limited Visibility")
+            });
             if (string.Equals(snapshot.LimitedVisibilityReason, "summary_only_refresh", StringComparison.Ordinal))
             {
-                chips.Add(new ChatContextStorySourceChip { Label = "Summary Only" });
+                chips.Add(new ChatContextStorySourceChip
+                {
+                    Label = words.GetString("Chat_ChipSummaryOnly", "Summary Only")
+                });
             }
         }
 
         if (snapshot.Diagnostics.UsedLegacyFallback)
         {
-            chips.Add(new ChatContextStorySourceChip { Label = "Legacy Fallback" });
+            chips.Add(new ChatContextStorySourceChip
+            {
+                Label = words.GetString("Chat_ChipLegacyFallback", "Legacy Fallback")
+            });
         }
         else if (snapshot.Diagnostics.UsedLexicalFallback)
         {
-            chips.Add(new ChatContextStorySourceChip { Label = "Lexical Fallback" });
+            chips.Add(new ChatContextStorySourceChip
+            {
+                Label = words.GetString("Chat_ChipLexicalFallback", "Lexical Fallback")
+            });
         }
 
         if (snapshot.Summary is not null)
         {
             chips.Add(new ChatContextStorySourceChip
             {
-                Label = snapshot.Summary.IsStale ? "Stale Summary" : "Current Summary"
+                Label = snapshot.Summary.IsStale
+                    ? words.GetString("Chat_ChipStaleSummary", "Stale Summary")
+                    : words.GetString("Chat_ChipCurrentSummary", "Current Summary")
             });
         }
 
@@ -112,47 +152,55 @@ public sealed record ChatContextInspectionSnapshot
             chips.Add(new ChatContextStorySourceChip
             {
                 Label = snapshot.RecallMatches.Count == 1
-                    ? "1 Recall Match"
-                    : $"{snapshot.RecallMatches.Count} Recall Matches"
+                    ? words.GetString("Chat_ChipRecallMatchOne", "1 Recall Match")
+                    : words.GetString("Chat_ChipRecallMatchesMany", "{0} Recall Matches", snapshot.RecallMatches.Count)
             });
         }
 
         if (snapshot.Diagnostics.AddedOverflowSummary)
         {
-            chips.Add(new ChatContextStorySourceChip { Label = "Compressed Overflow" });
+            chips.Add(new ChatContextStorySourceChip
+            {
+                Label = words.GetString("Chat_ChipCompressedOverflow", "Compressed Overflow")
+            });
         }
 
         return chips;
     }
 
+    /// <summary>
+    /// Ends the story's lead clause with what else went into the context. The whole sentence is
+    /// a resource template, so each language joins the parts its own way.
+    /// </summary>
     private static string AppendContextIngredients(
         string leadClause,
-        ChatContextInspectionSnapshot snapshot)
+        ChatContextInspectionSnapshot snapshot,
+        LocalizedWords words)
     {
         var ingredients = new List<string>(2);
 
         if (snapshot.RecallMatches.Count > 0)
         {
             ingredients.Add(snapshot.RecallMatches.Count == 1
-                ? "1 recalled message from another conversation"
-                : $"{snapshot.RecallMatches.Count} recalled messages from other conversations");
+                ? words.GetString("Chat_StoryRecallOne", "1 recalled message from another conversation")
+                : words.GetString(
+                    "Chat_StoryRecallMany",
+                    "{0} recalled messages from other conversations",
+                    snapshot.RecallMatches.Count));
         }
 
         if (snapshot.Diagnostics.AddedOverflowSummary)
         {
-            ingredients.Add("compressed overflow context");
+            ingredients.Add(words.GetString("Chat_StoryOverflow", "compressed overflow context"));
         }
 
         return ingredients.Count switch
         {
-            0 => $"{leadClause}.",
-            1 => $"{leadClause} and {ingredients[0]}.",
-            _ => $"{leadClause}, {ingredients[0]}, and {ingredients[1]}."
+            0 => words.GetString("Chat_StorySentence", "{0}.", leadClause),
+            1 => words.GetString("Chat_StorySentenceOne", "{0} and {1}.", leadClause, ingredients[0]),
+            _ => words.GetString("Chat_StorySentenceTwo", "{0}, {1}, and {2}.", leadClause, ingredients[0], ingredients[1])
         };
     }
-
-    private static string Pluralize(string noun, int count) =>
-        count == 1 ? noun : $"{noun}s";
 }
 
 public sealed record ChatContextStorySourceChip

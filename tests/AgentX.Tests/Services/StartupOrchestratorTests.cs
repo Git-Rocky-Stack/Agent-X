@@ -15,7 +15,7 @@ namespace AgentX.Tests.Services;
 /// gate the REST API host and built-in connectors behind its success. If migration throws
 /// (including the new <see cref="BaselineSchemaIncompleteException"/>), the orchestrator must
 /// enter a recovery/failure state and start NEITHER the API NOR the connectors (fail closed).
-/// On success it must start them in order: migration → API → connectors.
+/// On success it must start them in order: migration -> API -> connectors.
 ///
 /// The orchestrator depends only on interfaces (<see cref="IMigrationRunner"/>,
 /// <see cref="IApiHostLifecycleService"/>, <see cref="IBuiltinConnectorLifecycleService"/>, a
@@ -94,7 +94,7 @@ public class StartupOrchestratorTests
         var api = new Mock<IApiHostLifecycleService>(MockBehavior.Strict);
         var connectors = new Mock<IBuiltinConnectorLifecycleService>(MockBehavior.Strict);
 
-        // Record the real invocation order so we can assert migration → API → connectors.
+        // Record the real invocation order so we can assert migration -> API -> connectors.
         var callOrder = new List<string>();
 
         runner
@@ -131,7 +131,7 @@ public class StartupOrchestratorTests
     public async Task Successful_migration_opens_data_gate_before_starting_api_and_connectors()
     {
         // AX-QA-003 follow-up (dashboard race): the data-ready gate must open the instant the
-        // migration succeeds — BEFORE the API and connectors — so data-backed UI can load in
+        // migration succeeds - BEFORE the API and connectors - so data-backed UI can load in
         // parallel with them rather than waiting on subsystems it does not depend on.
         var runner = new Mock<IMigrationRunner>(MockBehavior.Strict);
         var api = new Mock<IApiHostLifecycleService>(MockBehavior.Strict);
@@ -161,7 +161,7 @@ public class StartupOrchestratorTests
     public async Task Migration_failure_fails_the_gate_and_never_opens_it()
     {
         // On migration failure the gate must be FAILED (releasing waiters via cancellation) and must
-        // never be opened — so data-backed UI skips loading instead of querying a broken schema.
+        // never be opened - so data-backed UI skips loading instead of querying a broken schema.
         var runner = new Mock<IMigrationRunner>(MockBehavior.Strict);
         var api = new Mock<IApiHostLifecycleService>(MockBehavior.Strict);
         var connectors = new Mock<IBuiltinConnectorLifecycleService>(MockBehavior.Strict);
@@ -186,7 +186,7 @@ public class StartupOrchestratorTests
     public async Task Api_failure_does_not_block_connectors_but_is_reported()
     {
         // The API host and connectors are independent best-effort lifecycle steps AFTER the gate.
-        // A failure in one must not prevent the other from being attempted — the migration gate is
+        // A failure in one must not prevent the other from being attempted - the migration gate is
         // the only fail-closed boundary. (Both ran against a VALID schema, so partial failure here
         // is a connectivity problem, not a data-integrity one.)
         var runner = new Mock<IMigrationRunner>(MockBehavior.Strict);
@@ -207,7 +207,7 @@ public class StartupOrchestratorTests
 
         var result = await orchestrator.RunCriticalStartupAsync();
 
-        // Migration succeeded — so this is NOT a recovery state — but connectors were still tried.
+        // Migration succeeded - so this is NOT a recovery state - but connectors were still tried.
         result.MigrationSucceeded.Should().BeTrue();
         result.IsRecoveryState.Should().BeFalse();
         connectors.Verify(c => c.InitializeAsync(It.IsAny<CancellationToken>()), Times.Once);

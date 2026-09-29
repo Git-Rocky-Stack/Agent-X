@@ -11,20 +11,20 @@
           HorizontalAlignment="Stretch"
           VerticalAlignment="Stretch">
 
-        <!-- ═══════════════════════════════════════════════════════
+        <!-- =======================================================
              SEMI-TRANSPARENT BACKDROP (click to dismiss)
-             ═══════════════════════════════════════════════════════ -->
+             ======================================================= -->
         <Border x:Name="BackdropLayer"
                 Background="{ThemeResource OverlayBrush}"
                 Opacity="0"
                 Tapped="BackdropLayer_Tapped" />
 
-        <!-- ═══════════════════════════════════════════════════════
+        <!-- =======================================================
              FLOATING COMMAND PALETTE CARD
              An overlay faceplate (ROverlay) with the search input as a
              recessed well. Rows are built in code-behind from the pages
              the navigation rail registers, so the two can never drift.
-             ═══════════════════════════════════════════════════════ -->
+             ======================================================= -->
         <Border x:Name="PaletteCard"
                 Width="480"
                 MaxHeight="540"
@@ -44,9 +44,9 @@
             <Grid>
                 <StackPanel>
 
-                    <!-- ═══════════════════════════════════════
+                    <!-- =======================================
                          SEARCH INPUT SECTION
-                         ═══════════════════════════════════════ -->
+                         ======================================= -->
                     <Grid Padding="16,16,16,0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -93,9 +93,9 @@
                             Background="{ThemeResource BorderSubtleBrush}"
                             Margin="16,12,16,0" />
 
-                    <!-- ═══════════════════════════════════════
+                    <!-- =======================================
                          RESULTS LIST
-                         ═══════════════════════════════════════ -->
+                         ======================================= -->
                     <ScrollViewer x:Name="ResultsScroller"
                                   MaxHeight="400"
                                   Padding="8,8,8,4"
@@ -105,9 +105,9 @@
                                     Spacing="2" />
                     </ScrollViewer>
 
-                    <!-- ═══════════════════════════════════════
+                    <!-- =======================================
                          FOOTER HINTS (brushed stripe)
-                         ═══════════════════════════════════════ -->
+                         ======================================= -->
                     <Border Background="{ThemeResource StripeBrush}"
                             CornerRadius="0,0,8,8"
                             Padding="16,8">

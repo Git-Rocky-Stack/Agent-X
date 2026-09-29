@@ -19,7 +19,7 @@ public sealed partial class ConversationsViewModel : ObservableObject
         _api = api;
     }
 
-    // ── Observable state ──────────────────────────────────────────────────────
+    // -- Observable state ------------------------------------------------------
 
     [ObservableProperty]
     private ObservableCollection<ConversationDto> _conversations = [];
@@ -36,7 +36,7 @@ public sealed partial class ConversationsViewModel : ObservableObject
     [ObservableProperty]
     private bool _isEmpty;
 
-    // ── Commands ──────────────────────────────────────────────────────────────
+    // -- Commands --------------------------------------------------------------
 
     /// <summary>Loads (or refreshes) the conversation list from the API.</summary>
     [RelayCommand]
@@ -48,17 +48,26 @@ public sealed partial class ConversationsViewModel : ObservableObject
 
         try
         {
-            var convs = await _api.GetConversationsAsync(ct).ConfigureAwait(true);
+            var result = await _api.GetConversationsAsync(ct).ConfigureAwait(true);
+            if (!result.IsSuccess)
+            {
+                // Say why (not paired, unreachable, server error) instead of showing the
+                // "No conversations yet" empty state for what is really a failure.
+                HasError = true;
+                ErrorMessage = result.ErrorMessage ?? "Could not load conversations.";
+                IsEmpty = false;
+                return;
+            }
 
             Conversations.Clear();
-            foreach (var c in convs)
+            foreach (var c in result.Data!)
                 Conversations.Add(c);
 
             IsEmpty = Conversations.Count == 0;
         }
         catch (OperationCanceledException)
         {
-            // Navigation away — ignore
+            // Navigation away - ignore
         }
         catch (Exception ex)
         {

@@ -65,7 +65,7 @@ public sealed class ExportTemplateService : IExportTemplateService
         return Task.FromResult(sb.ToString());
     }
 
-    // ── Research Report ─────────────────────────────────────────────
+    // -- Research Report ---------------------------------------------
 
     private static void ApplyResearchReport(
         StringBuilder sb, IReadOnlyList<TemplateMessage> messages, string title)
@@ -85,7 +85,7 @@ public sealed class ExportTemplateService : IExportTemplateService
             .Distinct()
             .ToList();
 
-        // Introduction — first assistant message
+        // Introduction - first assistant message
         sb.AppendLine("## Introduction");
         sb.AppendLine();
         if (assistantMessages.Count > 0)
@@ -113,7 +113,7 @@ public sealed class ExportTemplateService : IExportTemplateService
         }
         sb.AppendLine();
 
-        // Findings — middle assistant messages
+        // Findings - middle assistant messages
         sb.AppendLine("## Findings");
         sb.AppendLine();
         if (assistantMessages.Count > 2)
@@ -127,7 +127,7 @@ public sealed class ExportTemplateService : IExportTemplateService
         }
         else if (assistantMessages.Count > 0)
         {
-            // Only one or two assistant messages — all go to findings except first
+            // Only one or two assistant messages - all go to findings except first
             for (var i = 1; i < assistantMessages.Count; i++)
             {
                 sb.AppendLine(assistantMessages[i].Content.Trim());
@@ -157,7 +157,7 @@ public sealed class ExportTemplateService : IExportTemplateService
         }
         sb.AppendLine();
 
-        // Conclusion — last assistant message
+        // Conclusion - last assistant message
         sb.AppendLine("## Conclusion");
         sb.AppendLine();
         if (assistantMessages.Count > 1)
@@ -174,7 +174,7 @@ public sealed class ExportTemplateService : IExportTemplateService
         }
         sb.AppendLine();
 
-        // References — source documents
+        // References - source documents
         sb.AppendLine("## References");
         sb.AppendLine();
         if (sourceDocuments.Count > 0)
@@ -190,7 +190,7 @@ public sealed class ExportTemplateService : IExportTemplateService
         }
     }
 
-    // ── Executive Summary ───────────────────────────────────────────
+    // -- Executive Summary -------------------------------------------
 
     private static void ApplyExecutiveSummary(
         StringBuilder sb, IReadOnlyList<TemplateMessage> messages, string title)
@@ -202,7 +202,7 @@ public sealed class ExportTemplateService : IExportTemplateService
             .Where(m => m.Role.Equals("assistant", StringComparison.OrdinalIgnoreCase))
             .ToList();
 
-        // Executive Summary — first assistant message
+        // Executive Summary - first assistant message
         sb.AppendLine("## Executive Summary");
         sb.AppendLine();
         if (assistantMessages.Count > 0)
@@ -215,7 +215,7 @@ public sealed class ExportTemplateService : IExportTemplateService
         }
         sb.AppendLine();
 
-        // Key Findings — bullet points from subsequent assistant messages
+        // Key Findings - bullet points from subsequent assistant messages
         sb.AppendLine("## Key Findings");
         sb.AppendLine();
         if (assistantMessages.Count > 1)
@@ -240,7 +240,7 @@ public sealed class ExportTemplateService : IExportTemplateService
         }
         sb.AppendLine();
 
-        // Recommendations — last assistant message or derived from findings
+        // Recommendations - last assistant message or derived from findings
         sb.AppendLine("## Recommendations");
         sb.AppendLine();
         if (assistantMessages.Count > 1)
@@ -253,7 +253,7 @@ public sealed class ExportTemplateService : IExportTemplateService
         }
     }
 
-    // ── Annotated Bibliography ───────────────────────────────────────
+    // -- Annotated Bibliography ---------------------------------------
 
     private static void ApplyAnnotatedBibliography(
         StringBuilder sb, IReadOnlyList<TemplateMessage> messages, string title)
@@ -272,7 +272,7 @@ public sealed class ExportTemplateService : IExportTemplateService
         sb.AppendLine($"This bibliography covers {totalSources} source(s) referenced in the conversation.");
         sb.AppendLine();
 
-        // Sources — grouped by DocumentName
+        // Sources - grouped by DocumentName
         sb.AppendLine("## Sources");
         sb.AppendLine();
 

@@ -19,7 +19,7 @@
 
     <Grid>
 
-        <!-- ═══════ ADAPTIVE LAYOUT (Tier 3) — see Colors.xaml breakpoints ═══════
+        <!-- ======= ADAPTIVE LAYOUT (Tier 3) - see Colors.xaml breakpoints =======
              Narrow (<960):  sidebar 220   |  Medium (>=960): sidebar 240
              Wide (>=1280):  sidebar 260 (markup default) -->
         <VisualStateManager.VisualStateGroups>
@@ -53,9 +53,9 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <!-- ══════════════════════════════════════════════════════════
+        <!-- ==========================================================
              LEFT PANEL: Filters & Actions
-             ══════════════════════════════════════════════════════════ -->
+             ========================================================== -->
         <Border Grid.Column="0"
                 Background="{ThemeResource CardGradientSubtleBrush}"
                 BorderBrush="{ThemeResource BorderSubtleBrush}"
@@ -88,10 +88,12 @@
                             <StackLayout Spacing="4" />
                         </ItemsRepeater.Layout>
                         <ItemsRepeater.ItemTemplate>
-                            <DataTemplate x:DataType="x:String">
-                                <Button Content="{x:Bind}"
+                            <!-- The button shows the status name in the user's language and filters
+                                 by the status value the inbox service uses. -->
+                            <DataTemplate x:DataType="vm:InboxStatusFilterOption">
+                                <Button Content="{x:Bind Label}"
                                         Command="{Binding ViewModel.FilterByStatusCommand, ElementName=InboxRoot}"
-                                        CommandParameter="{Binding}"
+                                        CommandParameter="{x:Bind Value}"
                                         HorizontalAlignment="Stretch"
                                         HorizontalContentAlignment="Left"
                                         Style="{StaticResource GhostButtonStyle}"
@@ -129,13 +131,19 @@
                             Command="{x:Bind ViewModel.CleanupProcessedCommand}"
                             Style="{StaticResource GhostButtonStyle}"
                             HorizontalAlignment="Stretch" />
+                    <!-- Items keep arriving (watch folders, web clips, connectors) while the page
+                         is open; the list otherwise reloads only on navigation. -->
+                    <Button x:Uid="Inbox_RefreshBtn" Content="Refresh"
+                            Command="{x:Bind ViewModel.RefreshCommand}"
+                            Style="{StaticResource GhostButtonStyle}"
+                            HorizontalAlignment="Stretch" />
                 </StackPanel>
             </StackPanel>
         </Border>
 
-        <!-- ══════════════════════════════════════════════════════════
+        <!-- ==========================================================
              RIGHT PANEL: Inbox Items
-             ══════════════════════════════════════════════════════════ -->
+             ========================================================== -->
         <Grid Grid.Column="1">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <Grid Padding="{StaticResource PaddingPage}" RowSpacing="16" MaxWidth="900" HorizontalAlignment="Center">
@@ -244,8 +252,8 @@
                                                     <TextBlock Text="{x:Bind FileType}"
                                                                Style="{StaticResource CaptionStyle}" />
                                                     <TextBlock Style="{StaticResource CaptionStyle}"
-                                                               Text="{x:Bind Status}" />
-                                                    <!-- Web Clip badge — visible only for browser-extension items -->
+                                                               Text="{x:Bind StatusLabel}" />
+                                                    <!-- Web Clip badge - visible only for browser-extension items -->
                                                     <Border Visibility="{x:Bind IsBrowserClip, Converter={StaticResource BoolToVis}}"
                                                             CornerRadius="4"
                                                             Background="{ThemeResource InfoSubtleBrush}"
@@ -351,7 +359,7 @@
                         <TextBlock x:Uid="Inbox_EmptyTitle" Text="Inbox is empty"
                                    Style="{StaticResource BodySecondaryStyle}"
                                    HorizontalAlignment="Center" />
-                        <TextBlock x:Uid="Inbox_EmptyHint" Text="New files from watch folders will appear here for triage."
+                        <TextBlock x:Uid="Inbox_EmptyHint" Text="Pages you clip with the Agent-X browser extension appear here for triage. Files from watch folders go straight to the Knowledge Vault."
                                    Style="{StaticResource CaptionStyle}"
                                    HorizontalAlignment="Center" />
                     </StackPanel>

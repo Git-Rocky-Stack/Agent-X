@@ -113,7 +113,7 @@ public class MigrationRunnerTests
         // previous implementation derived DatabaseCreated from CanConnectAsync(), which is true
         // for that empty file, so a genuinely fresh install was mis-reported as created=false.
         // DatabaseCreated must reflect whether this run created the SCHEMA, derived from real
-        // table presence — a freshly-opened empty file still means "created on this run".
+        // table presence - a freshly-opened empty file still means "created on this run".
         var (ctx, dbPath) = CreateContextAtTempPath();
         try
         {
@@ -140,7 +140,7 @@ public class MigrationRunnerTests
     public async Task RunAsync_on_fresh_database_does_not_leave_the_licenses_table()
     {
         // Regression for KNOWN-ISSUE #6: Agent-X is fully free, so 20260528120000_DropLicensesTable
-        // removes the licenses table. InitialBaseline still CREATES it (it must — so the drop has a
+        // removes the licenses table. InitialBaseline still CREATES it (it must - so the drop has a
         // target on every historical install and so the migration stays reversible), but a fresh
         // install applies all migrations in order and the trailing DropLicensesTable removes it
         // again. The resulting schema must therefore contain NO licenses table.
@@ -162,6 +162,31 @@ public class MigrationRunnerTests
             {
                 await ctx.Database.CloseConnectionAsync();
             }
+        }
+        finally
+        {
+            await ctx.DisposeAsync();
+            SqliteConnection.ClearAllPools();
+            if (File.Exists(dbPath)) File.Delete(dbPath);
+        }
+    }
+
+    [Fact]
+    public async Task RunAsync_on_a_later_launch_does_not_bring_the_dropped_licenses_table_back()
+    {
+        // The stamped-baseline heal treated "licenses" as a missing baseline table on every
+        // launch after DropLicensesTable had run, and recreated it.
+        var (ctx, dbPath) = CreateContextAtTempPath();
+        try
+        {
+            IMigrationRunner runner = new Core.Data.MigrationRunner.MigrationRunner(ctx);
+            await runner.RunAsync();
+
+            var secondLaunch = await runner.RunAsync();
+
+            secondLaunch.AppliedMigrations.Should().BeEmpty();
+            (await TableExistsAsync(ctx, "licenses")).Should().BeFalse(
+                "a table an applied migration dropped is absent on purpose, not missing");
         }
         finally
         {
@@ -284,6 +309,7 @@ public class MigrationRunnerTests
             await ctx.Database.ExecuteSqlRawAsync("DROP TABLE IF EXISTS conversation_theme_clusters;");
             await ctx.Database.ExecuteSqlRawAsync("DROP TABLE IF EXISTS conversation_theme_daily_metrics;");
             await ctx.Database.ExecuteSqlRawAsync("DROP INDEX IF EXISTS IX_messages_EmbeddedAt;");
+            await ctx.Database.ExecuteSqlRawAsync("DROP INDEX IF EXISTS IX_messages_EmbeddingModel;");
             await ctx.Database.ExecuteSqlRawAsync("ALTER TABLE messages DROP COLUMN Embedding;");
             await ctx.Database.ExecuteSqlRawAsync("ALTER TABLE messages DROP COLUMN EmbeddedAt;");
             await ctx.Database.ExecuteSqlRawAsync("ALTER TABLE messages DROP COLUMN EmbeddingModel;");
@@ -321,7 +347,7 @@ public class MigrationRunnerTests
         // Regression for AX-QA-002 (data integrity): a legacy/partial install carries baseline +
         // later-migration tables (38 application tables) but is MISSING baseline tables and has no
         // __EFMigrationsHistory. The old behavior stamped _InitialBaseline as applied because at
-        // least one application table existed — so the missing baseline tables were never created,
+        // least one application table existed - so the missing baseline tables were never created,
         // and a later migration's "ALTER TABLE memories ..." failed with
         // "SQLite Error 1: 'no such table: memories'". Baseline adoption must self-heal: create the
         // missing baseline objects (via EF's own SQL generator, not hand-duplicated DDL), re-verify
@@ -359,7 +385,7 @@ public class MigrationRunnerTests
             stamped.Should().Contain(m => m.EndsWith("_InitialBaseline"));
 
             // The later semantic-memory migration's columns must exist on the now-present memories
-            // table — proof the ALTER TABLE path that used to crash on "no such table" now runs.
+            // table - proof the ALTER TABLE path that used to crash on "no such table" now runs.
             var memoryColumns = await GetTableColumnsAsync(ctx, "memories");
             memoryColumns.Should().Contain(new[] { "Embedding", "DecayRate", "LinkedMemoryId", "Confidence", "Tags" });
         }
@@ -466,7 +492,7 @@ public class MigrationRunnerTests
             IMigrationRunner seedRunner = new Core.Data.MigrationRunner.MigrationRunner(seedCtx);
             await seedRunner.RunAsync();
 
-            // Rewrite history to the legacy id (tables stay in place — mimicking the old install).
+            // Rewrite history to the legacy id (tables stay in place - mimicking the old install).
             await seedCtx.Database.ExecuteSqlRawAsync(
                 "DELETE FROM \"__EFMigrationsHistory\" WHERE \"MigrationId\" = '20260430000000_AddTemporalIdentity';");
             await seedCtx.Database.ExecuteSqlRawAsync(
@@ -645,7 +671,7 @@ public class MigrationRunnerTests
     [Fact]
     public async Task RunAsync_heals_stamped_baseline_when_multiple_memories_migrations_are_pending()
     {
-        // Same brick, deeper history hole — the exact topology observed on a real dev database:
+        // Same brick, deeper history hole - the exact topology observed on a real dev database:
         // memories missing AND both AddSemanticMemoryColumns and AddEmbeddingModelVersioning
         // absent from __EFMigrationsHistory (pending), with document_chunks/messages still at
         // their pre-versioning shape. The heal must recreate memories at BASELINE shape only
@@ -663,7 +689,7 @@ public class MigrationRunnerTests
             await ctx.Database.ExecuteSqlRawAsync(
                 "DELETE FROM __EFMigrationsHistory WHERE MigrationId LIKE '%_AddEmbeddingModelVersioning';");
             // Rewind document_chunks/messages to their pre-versioning shape so the pending
-            // versioning migration has real work to do (indexes first — SQLite cannot drop an
+            // versioning migration has real work to do (indexes first - SQLite cannot drop an
             // indexed column, and EF's replayed CREATE INDEX has no IF NOT EXISTS).
             await ctx.Database.ExecuteSqlRawAsync("DROP INDEX IF EXISTS IX_document_chunks_EmbeddingModelVersion;");
             await ctx.Database.ExecuteSqlRawAsync("DROP INDEX IF EXISTS IX_messages_EmbeddingModel;");

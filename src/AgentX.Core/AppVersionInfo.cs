@@ -5,15 +5,15 @@ namespace AgentX.Core;
 /// <summary>
 /// Single source of truth for the user-facing application version (AX-QA-014).
 ///
-/// Reads the running assembly's version — ultimately driven by the one
-/// <c>&lt;Version&gt;</c> in <c>Directory.Build.props</c> — so the dashboard footer,
+/// Reads the running assembly's version - ultimately driven by the one
+/// <c>&lt;Version&gt;</c> in <c>Directory.Build.props</c> - so the dashboard footer,
 /// the Settings page, the backup manifest, and any other surface never drift from
 /// the shipped build. Prefer this over hardcoding a version string anywhere.
 /// </summary>
 public static class AppVersionInfo
 {
     /// <summary>
-    /// Product version for display, e.g. <c>"2.1.2"</c> — without assembly-info build
+    /// Product version for display, e.g. <c>"2.1.2"</c> - without assembly-info build
     /// metadata (the <c>+bedrock</c>/commit suffix) or a trailing <c>.0</c> revision.
     /// </summary>
     public static string Display { get; } = Resolve();

@@ -1,3 +1,4 @@
+using AgentX.App.Helpers;
 using AgentX.App.ViewModels;
 using Microsoft.UI.Xaml.Controls;
 
@@ -9,7 +10,7 @@ public sealed partial class AnalyticsPage : Page
 
     public AnalyticsPage()
     {
-        ViewModel = App.GetService<AnalyticsViewModel>();
+        ViewModel = PageViewModelFactory.Create<AnalyticsViewModel>();
         InitializeComponent();
         Loaded += async (_, _) => await ViewModel.LoadDataAsync();
     }

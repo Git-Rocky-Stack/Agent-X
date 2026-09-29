@@ -88,7 +88,82 @@ public sealed class ApiHostLifecycleServiceTests
         apiHost.IsRunning.Should().BeFalse();
     }
 
-    // ── Test doubles ─────────────────────────────────────────────────────────
+    // --- ApplySettingsAsync: token rotation and the enable toggle at runtime ---
+
+    [Fact]
+    public async Task ApplySettingsAsync_WhenRunning_HandsTheRegeneratedTokenToTheLiveListener()
+    {
+        // Regenerating the token in Settings used to only save it: the listener kept the token it
+        // captured at startup, so the old (possibly leaked) token kept working and the new one got
+        // 401 until the app restarted.
+        var apiHost = new RecordingApiHostService { IsRunning = true, Port = 9846 };
+        var settings = new FakeSettingsService(new AppSettings { LocalApiEnabled = true, LocalApiToken = "OLD" });
+        var lifecycle = new ApiHostLifecycleService(apiHost, settings, Logger.None);
+
+        settings.Current.LocalApiToken = "REGENERATED";
+        await lifecycle.ApplySettingsAsync();
+
+        apiHost.AppliedTokens.Should().Equal("REGENERATED");
+        apiHost.StartCount.Should().Be(0, "a running listener adopts the token in place, without a restart");
+        apiHost.StopCount.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task ApplySettingsAsync_WhenApiDisabled_StopsTheRunningListener()
+    {
+        var apiHost = new RecordingApiHostService { IsRunning = true, Port = 9846 };
+        var settings = new FakeSettingsService(new AppSettings { LocalApiEnabled = false, LocalApiToken = "T" });
+        var lifecycle = new ApiHostLifecycleService(apiHost, settings, Logger.None);
+
+        await lifecycle.ApplySettingsAsync();
+
+        apiHost.StopCount.Should().Be(1, "turning the API off must stop the listener, not wait for a restart");
+        apiHost.IsRunning.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task ApplySettingsAsync_WhenApiDisabledAndStopped_IsANoOp()
+    {
+        var apiHost = new RecordingApiHostService();
+        var settings = new FakeSettingsService(new AppSettings { LocalApiEnabled = false });
+        var lifecycle = new ApiHostLifecycleService(apiHost, settings, Logger.None);
+
+        await lifecycle.ApplySettingsAsync();
+
+        apiHost.StartCount.Should().Be(0);
+        apiHost.StopCount.Should().Be(0);
+        settings.SaveCount.Should().Be(0, "a disabled API must not provision a token");
+    }
+
+    [Fact]
+    public async Task ApplySettingsAsync_WhenApiEnabledAndStopped_StartsTheListenerWithTheSavedToken()
+    {
+        var apiHost = new RecordingApiHostService();
+        var settings = new FakeSettingsService(new AppSettings { LocalApiEnabled = true, LocalApiToken = "SAVED" });
+        var lifecycle = new ApiHostLifecycleService(apiHost, settings, Logger.None);
+
+        await lifecycle.ApplySettingsAsync();
+
+        apiHost.StartCount.Should().Be(1, "turning the API on must start the listener, not wait for a restart");
+        apiHost.StartedPort.Should().Be(9846);
+        apiHost.StartedToken.Should().Be("SAVED");
+    }
+
+    [Fact]
+    public async Task ApplySettingsAsync_WhenTokenMissing_ProvisionsPersistsAndAppliesOne()
+    {
+        var apiHost = new RecordingApiHostService { IsRunning = true, Port = 9846 };
+        var settings = new FakeSettingsService(new AppSettings { LocalApiEnabled = true, LocalApiToken = null });
+        var lifecycle = new ApiHostLifecycleService(apiHost, settings, Logger.None);
+
+        await lifecycle.ApplySettingsAsync();
+
+        settings.Current.LocalApiToken.Should().NotBeNullOrEmpty();
+        settings.SaveCount.Should().Be(1, "a freshly generated token must be persisted");
+        apiHost.AppliedTokens.Should().Equal(settings.Current.LocalApiToken);
+    }
+
+    // -- Test doubles ---------------------------------------------------------
 
     private sealed class RecordingApiHostService : IApiHostService
     {
@@ -99,6 +174,9 @@ public sealed class ApiHostLifecycleServiceTests
         public string? StartedToken { get; private set; }
         public int StartCount { get; private set; }
         public int StopCount { get; private set; }
+        public List<string?> AppliedTokens { get; } = new();
+
+        public void SetAuthToken(string? authToken) => AppliedTokens.Add(authToken);
 
         public Task StartAsync(int port = 9846, string? authToken = null, CancellationToken ct = default)
         {

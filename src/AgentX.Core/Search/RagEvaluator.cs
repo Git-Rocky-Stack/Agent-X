@@ -22,12 +22,12 @@ public sealed class RagEvaluator : IRagEvaluator
     private readonly ILogger _logger;
 
     // P2-5: fallback when no IRagConfiguration is registered. Older default
-    // was 200 — too aggressive; the judge couldn't see beyond char 200 and
+    // was 200 - too aggressive; the judge couldn't see beyond char 200 and
     // returned spurious low context_relevance scores on long chunks.
     private const int FallbackEvalContextCharLimit = 800;
 
     /// <summary>
-    /// P2-4: returns the active eval system prompt — catalog when registered,
+    /// P2-4: returns the active eval system prompt - catalog when registered,
     /// compile-time default otherwise.
     /// </summary>
     private string EvalSystemPrompt
@@ -35,7 +35,7 @@ public sealed class RagEvaluator : IRagEvaluator
 
     // FU-5: provider-side schema enforcement (OpenAI strict json_schema).
     // OpenAI rejects responses that miss required fields, exceed declared
-    // ranges, or include extra keys — eliminating a class of parse failures
+    // ranges, or include extra keys - eliminating a class of parse failures
     // that previously fell through to placeholder defaults.
     private const string EvalJsonSchema =
         """
@@ -80,7 +80,7 @@ public sealed class RagEvaluator : IRagEvaluator
         IReadOnlyList<RagContextChunk> contextChunks,
         CancellationToken ct = default)
     {
-        // Input validation — return marked-default metrics so aggregators don't
+        // Input validation - return marked-default metrics so aggregators don't
         // pollute their averages with placeholder scores.
         if (string.IsNullOrWhiteSpace(question)
             || string.IsNullOrWhiteSpace(answer)
@@ -122,7 +122,7 @@ public sealed class RagEvaluator : IRagEvaluator
                 Temperature = 0.0,
                 // 256 tokens is a safe floor for the 3-key JSON output. Local LLMs frequently
                 // add a 1-2 sentence preamble or trailing whitespace; 128 was below the floor
-                // and caused silent truncation → JSON parse failure → default scores.
+                // and caused silent truncation -> JSON parse failure -> default scores.
                 MaxTokens = 256,
                 ResponseFormat = ResponseFormat.JsonObject,
                 // FU-5: strict provider-side schema validation on OpenAI. Other
@@ -168,12 +168,21 @@ public sealed class RagEvaluator : IRagEvaluator
 
                 if (parsed is not null)
                 {
+                    // A missing key is not a zero score. Recording it as one fed 0/0/0 into
+                    // the quality averages as if it were a real judgement, so an incomplete
+                    // response keeps the scores it did give (neutral 0.5 for the rest) and
+                    // is marked as default so aggregators skip it.
+                    var complete = parsed.ContextRelevance.HasValue
+                        && parsed.Faithfulness.HasValue
+                        && parsed.AnswerRelevance.HasValue;
+
                     return new RagEvalMetrics
                     {
-                        ContextRelevance = Math.Clamp(parsed.ContextRelevance / 10.0, 0, 1),
-                        Faithfulness = Math.Clamp(parsed.Faithfulness / 10.0, 0, 1),
-                        AnswerRelevance = Math.Clamp(parsed.AnswerRelevance / 10.0, 0, 1),
-                        IsDefault = false
+                        ContextRelevance = ToUnitScore(parsed.ContextRelevance),
+                        Faithfulness = ToUnitScore(parsed.Faithfulness),
+                        AnswerRelevance = ToUnitScore(parsed.AnswerRelevance),
+                        IsDefault = !complete,
+                        DefaultReason = complete ? string.Empty : "MissingKeys"
                     };
                 }
             }
@@ -207,15 +216,19 @@ public sealed class RagEvaluator : IRagEvaluator
     private static string Truncate(string text, int max)
         => text.Length <= max ? text : text[..max] + "...";
 
+    /// <summary>Maps a 0-10 judge score to 0-1; a missing score is the neutral 0.5.</summary>
+    private static double ToUnitScore(double? score)
+        => score.HasValue ? Math.Clamp(score.Value / 10.0, 0, 1) : 0.5;
+
     private sealed class EvalScores
     {
         [JsonPropertyName("context_relevance")]
-        public double ContextRelevance { get; set; }
+        public double? ContextRelevance { get; set; }
 
         [JsonPropertyName("faithfulness")]
-        public double Faithfulness { get; set; }
+        public double? Faithfulness { get; set; }
 
         [JsonPropertyName("answer_relevance")]
-        public double AnswerRelevance { get; set; }
+        public double? AnswerRelevance { get; set; }
     }
 }

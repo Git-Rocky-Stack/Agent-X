@@ -215,6 +215,10 @@ public sealed class DuplicateDetectionServiceTests : IDisposable
 
         public Task OptimizeAsync(CancellationToken ct = default) => Task.CompletedTask;
 
+        public Task SuspendAsync(CancellationToken ct = default) => Task.CompletedTask;
+
+        public Task ResumeAsync(bool reloadFromDatabase, CancellationToken ct = default) => Task.CompletedTask;
+
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;
     }
 }

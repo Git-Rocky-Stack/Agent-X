@@ -1,4 +1,5 @@
 using AgentX.Core.Constants;
+using AgentX.Core.Services.Backup.Models;
 using AgentX.Core.Services.Settings;
 
 namespace AgentX.Core.Validation;
@@ -13,10 +14,13 @@ namespace AgentX.Core.Validation;
 /// <list type="bullet">
 ///   <item><see cref="AppSettings.ActiveProviderId"/> must be one of
 ///         <c>"local"</c>, <c>"ollama"</c>, <c>"openai"</c>, or <c>"anthropic"</c>.</item>
-///   <item>Numeric inference and chunking parameters must fall within their documented ranges.</item>
+///   <item>Numeric inference and chunking parameters must fall within their documented ranges;
+///         the chunk overlap must be smaller than the chunk size, as ChunkingService requires.</item>
 ///   <item>Provider-specific endpoints must be valid URIs when their provider is active.</item>
 ///   <item>Provider-specific API keys must be non-empty when their provider is active.</item>
 ///   <item><see cref="AppSettings.StoragePath"/> must not be null or whitespace.</item>
+///   <item>An enabled <see cref="AppSettings.BackupSchedule"/> must have an interval of 1 to
+///         <see cref="BackupScheduleConfig.MaxIntervalHours"/> hours and a non-negative retention count.</item>
 /// </list>
 /// </remarks>
 public sealed class AppSettingsValidator : IValidator<AppSettings>
@@ -39,7 +43,7 @@ public sealed class AppSettingsValidator : IValidator<AppSettings>
 
         var errors = new List<ValidationError>();
 
-        // ── ActiveProviderId ─────────────────────────────────────────────
+        // -- ActiveProviderId ---------------------------------------------
         if (string.IsNullOrWhiteSpace(instance.ActiveProviderId))
         {
             errors.Add(new ValidationError(
@@ -53,7 +57,7 @@ public sealed class AppSettingsValidator : IValidator<AppSettings>
                 $"Active provider ID must be one of: {string.Join(", ", ValidProviderIds)}. Got '{instance.ActiveProviderId}'."));
         }
 
-        // ── Numeric inference parameters ─────────────────────────────────
+        // -- Numeric inference parameters ---------------------------------
         if (instance.Temperature < 0.0 || instance.Temperature > 2.0)
         {
             errors.Add(new ValidationError(
@@ -75,7 +79,7 @@ public sealed class AppSettingsValidator : IValidator<AppSettings>
                 $"ContextWindow must be between 512 and 1048576. Got {instance.ContextWindow}."));
         }
 
-        // ── Knowledge Vault chunking parameters ──────────────────────────
+        // -- Knowledge Vault chunking parameters --------------------------
         if (instance.ChunkSize < 64 || instance.ChunkSize > AppConstants.MaxChunkSize)
         {
             errors.Add(new ValidationError(
@@ -83,11 +87,13 @@ public sealed class AppSettingsValidator : IValidator<AppSettings>
                 $"ChunkSize must be between 64 and 8192. Got {instance.ChunkSize}."));
         }
 
-        if (instance.ChunkOverlap < 0 || instance.ChunkOverlap > instance.ChunkSize)
+        // The same rule ChunkingService enforces: an overlap as large as the chunk would leave no
+        // room for new text, so the chunker rejects it and every document would fail to index.
+        if (instance.ChunkOverlap < 0 || instance.ChunkOverlap >= instance.ChunkSize)
         {
             errors.Add(new ValidationError(
                 nameof(AppSettings.ChunkOverlap),
-                $"ChunkOverlap must be between 0 and ChunkSize ({instance.ChunkSize}). Got {instance.ChunkOverlap}."));
+                $"ChunkOverlap must be at least 0 and less than ChunkSize ({instance.ChunkSize}). Got {instance.ChunkOverlap}."));
         }
 
         if (instance.TopKResults < 1 || instance.TopKResults > 100)
@@ -97,7 +103,7 @@ public sealed class AppSettingsValidator : IValidator<AppSettings>
                 $"TopKResults must be between 1 and 100. Got {instance.TopKResults}."));
         }
 
-        // ── Provider-specific endpoint and API key validation ────────────
+        // -- Provider-specific endpoint and API key validation ------------
         string providerId = instance.ActiveProviderId?.ToLowerInvariant() ?? string.Empty;
 
         if (providerId == "ollama")
@@ -132,12 +138,31 @@ public sealed class AppSettingsValidator : IValidator<AppSettings>
             }
         }
 
-        // ── Storage path ─────────────────────────────────────────────────
+        // -- Storage path -------------------------------------------------
         if (string.IsNullOrWhiteSpace(instance.StoragePath))
         {
             errors.Add(new ValidationError(
                 nameof(AppSettings.StoragePath),
                 "Storage path must not be null or whitespace."));
+        }
+
+        // Scheduled backups: checked only while enabled
+        var schedule = instance.BackupSchedule;
+        if (schedule is { Enabled: true })
+        {
+            if (schedule.IntervalHours < 1 || schedule.IntervalHours > BackupScheduleConfig.MaxIntervalHours)
+            {
+                errors.Add(new ValidationError(
+                    $"{nameof(AppSettings.BackupSchedule)}.{nameof(BackupScheduleConfig.IntervalHours)}",
+                    $"Backup interval must be between 1 and {BackupScheduleConfig.MaxIntervalHours} hours. Got {schedule.IntervalHours}."));
+            }
+
+            if (schedule.MaxBackupsToKeep < 0)
+            {
+                errors.Add(new ValidationError(
+                    $"{nameof(AppSettings.BackupSchedule)}.{nameof(BackupScheduleConfig.MaxBackupsToKeep)}",
+                    $"The number of scheduled backups to keep must not be negative. Got {schedule.MaxBackupsToKeep}."));
+            }
         }
 
         return errors.Count == 0

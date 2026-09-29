@@ -19,13 +19,13 @@ public interface IShortcutRegistry
     /// <summary>Descriptors for Global + the given scope name.</summary>
     IReadOnlyList<ShortcutDescriptor> ForScope(string scopeName);
 
-    /// <summary>Finds a descriptor matching the first chord key — used by input router.</summary>
+    /// <summary>Finds a descriptor matching the first chord key - used by input router.</summary>
     /// <param name="activeScopeName">
     /// Current page scope. Scope-specific matches beat global matches when both apply.
     /// Pass <c>null</c> for pre-navigation / global-only lookup.
     /// </param>
     ShortcutDescriptor? FindByPrimaryKey(KeyChord key, string? activeScopeName);
 
-    /// <summary>Event fired on any registration change — palette VM refreshes from this.</summary>
+    /// <summary>Event fired on any registration change - palette VM refreshes from this.</summary>
     event EventHandler? Changed;
 }

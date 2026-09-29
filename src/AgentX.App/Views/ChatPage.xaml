@@ -1,4 +1,4 @@
-﻿<Page
+<Page
     x:Class="AgentX.App.Views.ChatPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -10,9 +10,9 @@
 
     <Page.Resources>
 
-        <!-- ═══════════════════════════════════════════════════════════
+        <!-- ===========================================================
              CONVERTERS
-             ═══════════════════════════════════════════════════════════ -->
+             =========================================================== -->
 
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibility" />
         <converters:BoolToVisibilityConverter x:Key="InverseBoolToVisibility" IsInverted="True" />
@@ -21,9 +21,9 @@
         <converters:CountToVisibilityConverter x:Key="CountToVisibility" />
         <converters:BoolToOpacityConverter x:Key="BoolToOpacityConverter" />
 
-        <!-- ═══════════════════════════════════════════════════════════
+        <!-- ===========================================================
              CONVERSATION LIST ITEM TEMPLATE
-             ═══════════════════════════════════════════════════════════ -->
+             =========================================================== -->
 
         <DataTemplate x:Key="ConversationItemTemplate" x:DataType="vm:ConversationListItem">
             <Border Style="{StaticResource ConversationItemStyle}">
@@ -85,122 +85,42 @@
             </Border>
         </DataTemplate>
 
-        <!-- ═══════════════════════════════════════════════════════════
-             USER MESSAGE TEMPLATE
-             ═══════════════════════════════════════════════════════════ -->
+        <!-- Row actions for a sidebar conversation. Attached to each row's container
+             (the list's ItemContainerStyle) so it opens on right-click and on the
+             context-menu key or Shift+F10 over the focused row. The opening handler
+             shows Pin or Unpin to match the row. -->
+        <MenuFlyout x:Key="ConversationRowFlyout"
+                    Opening="OnConversationRowFlyoutOpening">
+            <MenuFlyoutItem x:Uid="Chat_PinConversationItem"
+                            Text="Pin conversation"
+                            Tag="Pin"
+                            Click="OnTogglePinConversationClick">
+                <MenuFlyoutItem.Icon>
+                    <FontIcon Glyph="&#xE718;" />
+                </MenuFlyoutItem.Icon>
+            </MenuFlyoutItem>
+            <MenuFlyoutItem x:Uid="Chat_UnpinConversationItem"
+                            Text="Unpin conversation"
+                            Tag="Unpin"
+                            Click="OnTogglePinConversationClick">
+                <MenuFlyoutItem.Icon>
+                    <FontIcon Glyph="&#xE77A;" />
+                </MenuFlyoutItem.Icon>
+            </MenuFlyoutItem>
+            <MenuFlyoutSeparator />
+            <MenuFlyoutItem x:Uid="Chat_DeleteConversationItem"
+                            Text="Delete conversation"
+                            Tag="Delete"
+                            Click="OnDeleteConversationClick">
+                <MenuFlyoutItem.Icon>
+                    <FontIcon Glyph="&#xE74D;" />
+                </MenuFlyoutItem.Icon>
+            </MenuFlyoutItem>
+        </MenuFlyout>
 
-        <DataTemplate x:Key="UserMessageTemplate" x:DataType="vm:ChatMessageItem">
-            <StackPanel HorizontalAlignment="Right"
-                        Margin="64,4,0,4"
-                        MaxWidth="680">
-                <!-- Message bubble -->
-                <Border Style="{StaticResource UserMessageStyle}">
-                    <TextBlock Text="{x:Bind Content, Mode=OneWay}"
-                               Style="{StaticResource BodyStyle}"
-                               TextWrapping="Wrap"
-                               IsTextSelectionEnabled="True" />
-                </Border>
-
-                <!-- Timestamp -->
-                <TextBlock Text="{x:Bind FormattedTime}"
-                           Style="{StaticResource ChatTimestampStyle}"
-                           HorizontalAlignment="Right"
-                           Margin="0,4,4,0" />
-            </StackPanel>
-        </DataTemplate>
-
-        <!-- ═══════════════════════════════════════════════════════════
-             ASSISTANT MESSAGE TEMPLATE
-             ═══════════════════════════════════════════════════════════ -->
-
-        <DataTemplate x:Key="AssistantMessageTemplate" x:DataType="vm:ChatMessageItem">
-            <StackPanel HorizontalAlignment="Left"
-                        Margin="0,4,64,4"
-                        MaxWidth="720">
-                <!-- Message bubble with accent left border -->
-                <Border Style="{StaticResource AssistantMessageStyle}">
-                    <Grid ColumnSpacing="0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-
-                        <!-- Red accent bar -->
-                        <Border Style="{StaticResource AssistantAccentBorderStyle}" />
-
-                        <!-- Content area: rendered with markdown formatting -->
-                        <StackPanel Grid.Column="1" Spacing="4">
-                            <controls:MarkdownMessageControl
-                                Segments="{x:Bind ContentSegments, Mode=OneWay}" />
-
-                            <!-- Streaming cursor (visible only while streaming) -->
-                            <Border Style="{StaticResource StreamingCursorStyle}"
-                                    x:Name="StreamingCursor"
-                                    Visibility="{x:Bind IsStreaming, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"
-                                    HorizontalAlignment="Left" />
-                        </StackPanel>
-                    </Grid>
-                </Border>
-
-                <Button Style="{StaticResource GhostButtonStyle}"
-                        Padding="0"
-                        MinHeight="0"
-                        HorizontalAlignment="Stretch"
-                        HorizontalContentAlignment="Stretch"
-                        Margin="8,4,24,0"
-                        Click="OnInspectInlineContextClick"
-                        Tag="{x:Bind}"
-                        x:Uid="Chat_InspectContextTip" ToolTipService.ToolTip="Inspect the full context used for this response"
-                        Visibility="{x:Bind HasInlineContextNote, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"
-                        AutomationProperties.LabeledBy="{Binding ElementName=ContextUsedLabel}">
-                    <Border Background="{ThemeResource AccentSubtleBrush}"
-                            BorderBrush="{ThemeResource BorderSubtleBrush}"
-                            BorderThickness="1"
-                            CornerRadius="{StaticResource RControl}"
-                            Padding="8,8,8,8">
-                        <StackPanel Spacing="4">
-                            <TextBlock x:Name="ContextUsedLabel" x:Uid="Chat_ContextUsedLabel" Text="Context Used"
-                                       Style="{StaticResource CaptionStyle}"
-                                       Foreground="{ThemeResource TextAccentBrush}" />
-                            <TextBlock Text="{x:Bind InlineContextStoryText, Mode=OneWay}"
-                                       Style="{StaticResource CaptionStyle}"
-                                       TextWrapping="WrapWholeWords" />
-                            <ItemsRepeater ItemsSource="{x:Bind InlineContextStorySourceChips, Mode=OneWay}"
-                                           ItemTemplate="{StaticResource InlineContextStoryChipTemplate}"
-                                           Visibility="{x:Bind HasInlineContextStorySourceChips, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
-                                <ItemsRepeater.Layout>
-                                    <StackLayout Orientation="Horizontal" Spacing="4" />
-                                </ItemsRepeater.Layout>
-                            </ItemsRepeater>
-                        </StackPanel>
-                    </Border>
-                </Button>
-
-                <!-- Meta row: timestamp, tokens, generation time -->
-                <Grid Margin="4,4,0,0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <TextBlock Text="{x:Bind FormattedTime}"
-                                   Style="{StaticResource ChatTimestampStyle}" />
-                        <TextBlock Text="{x:Bind FormattedTokens}"
-                                   Style="{StaticResource MessageMetaStyle}"
-                                   Visibility="{x:Bind FormattedTokens, Converter={StaticResource StringToVisibility}}" />
-                        <TextBlock Text="{x:Bind FormattedTokenSpeed}"
-                                   Style="{StaticResource MessageMetaStyle}"
-                                   Visibility="{x:Bind FormattedTokenSpeed, Converter={StaticResource StringToVisibility}}" />
-                    </StackPanel>
-                </Grid>
-            </StackPanel>
-        </DataTemplate>
-
-        <!-- ═══════════════════════════════════════════════════════════
+        <!-- ===========================================================
              SYSTEM PROMPT PICKER ITEM TEMPLATE
-             ═══════════════════════════════════════════════════════════ -->
+             =========================================================== -->
 
         <DataTemplate x:Key="SystemPromptItemTemplate" x:DataType="vm:SystemPromptItem">
             <Border Style="{StaticResource PromptPickerItemStyle}">
@@ -234,14 +154,6 @@
             </Border>
         </DataTemplate>
 
-        <!-- ═══════════════════════════════════════════════════════════
-             MODEL COMBOBOX ITEM TEMPLATE
-             ═══════════════════════════════════════════════════════════ -->
-
-        <DataTemplate x:Key="ModelItemTemplate" x:DataType="vm:ChatMessageItem">
-            <TextBlock Style="{StaticResource BodyStyle}" />
-        </DataTemplate>
-
         <DataTemplate x:Key="ContextStoryChipTemplate" x:DataType="vm:ChatContextStorySourceDisplayItem">
             <Border Background="{ThemeResource CardBrush}"
                     BorderBrush="{ThemeResource BorderSubtleBrush}"
@@ -269,21 +181,21 @@
 
     </Page.Resources>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          ROOT LAYOUT: 2-column grid (sidebar + chat area)
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
 
     <Grid Background="{ThemeResource PageBackgroundBrush}">
 
-        <!-- ═══════════════════════════════════════════════════════════
+        <!-- ===========================================================
              ADAPTIVE LAYOUT (Tier 3)
              Breakpoints follow Tokens.xaml: Medium=960, Wide=1280.
              - Narrow  (<960):  sidebar shrinks to 240; top-bar text
                                 labels (connection, system prompt,
                                 folder, token badge) collapse to icons.
              - Medium (>=960):  sidebar at 260; full top-bar labels.
-             - Wide   (>=1280): full design — sidebar 280, all labels.
-             ═══════════════════════════════════════════════════════════ -->
+             - Wide   (>=1280): full design - sidebar 280, all labels.
+             =========================================================== -->
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup x:Name="LayoutStates">
                 <VisualState x:Name="NarrowState">
@@ -325,9 +237,9 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <!-- ═══════════════════════════════════════════════════════════
+        <!-- ===========================================================
              COLUMN 0: CONVERSATION SIDEBAR
-             ═══════════════════════════════════════════════════════════ -->
+             =========================================================== -->
 
         <Grid Grid.Column="0"
               Background="{ThemeResource SidebarGradientBrush}"
@@ -411,12 +323,15 @@
                 </ScrollViewer>
             </Border>
 
-            <!-- Conversation List -->
+            <!-- Conversation List: a click (or Enter on the focused row) opens the
+                 conversation; the selection highlight follows the open conversation. -->
             <ListView Grid.Row="3"
                       x:Name="ConversationListView"
                       ItemsSource="{x:Bind ViewModel.Conversations, Mode=OneWay}"
                       ItemTemplate="{StaticResource ConversationItemTemplate}"
                       SelectionMode="Single"
+                      IsItemClickEnabled="True"
+                      ItemClick="OnConversationItemClick"
                       Padding="8,0,8,0"
                       Background="Transparent">
                 <ListView.ItemContainerStyle>
@@ -426,6 +341,7 @@
                         <Setter Property="Margin" Value="0" />
                         <Setter Property="MinHeight" Value="0" />
                         <Setter Property="Background" Value="Transparent" />
+                        <Setter Property="ContextFlyout" Value="{StaticResource ConversationRowFlyout}" />
                     </Style>
                 </ListView.ItemContainerStyle>
             </ListView>
@@ -515,9 +431,9 @@
             </Border>
         </Grid>
 
-        <!-- ═══════════════════════════════════════════════════════════
+        <!-- ===========================================================
              COLUMN 1: CHAT AREA
-             ═══════════════════════════════════════════════════════════ -->
+             =========================================================== -->
 
         <Grid Grid.Column="1">
             <Grid.RowDefinitions>
@@ -531,9 +447,9 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <!-- ═══════════════════════════════════════════════════
+            <!-- ===================================================
                  TOP BAR: Model selector, status, controls
-                 ═══════════════════════════════════════════════════ -->
+                 =================================================== -->
 
             <Border Grid.Row="0" Style="{StaticResource ChatTopBarStyle}">
                 <Grid>
@@ -589,8 +505,10 @@
                                 Spacing="4"
                                 VerticalAlignment="Center"
                                 Margin="0,0,12,0">
+                        <!-- The dot is toned by the connection state, not by the status text,
+                             which is in the user's language. -->
                         <Ellipse Width="8" Height="8"
-                                 Fill="{x:Bind ViewModel.ConnectionStatus, Mode=OneWay, Converter={StaticResource StatusToColor}}" />
+                                 Fill="{x:Bind ViewModel.ConnectionState, Mode=OneWay, Converter={StaticResource StatusToColor}}" />
                         <TextBlock x:Name="ConnectionStatusText"
                                    Text="{x:Bind ViewModel.ConnectionStatus, Mode=OneWay}"
                                    Style="{StaticResource CaptionStyle}"
@@ -618,7 +536,7 @@
                         </StackPanel>
 
                         <Button.Flyout>
-                            <Flyout Placement="Bottom">
+                            <Flyout x:Name="SystemPromptFlyout" Placement="Bottom">
                                 <StackPanel Width="280" Spacing="8">
                                     <TextBlock x:Uid="Chat_SystemPromptTitle" Text="System Prompt"
                                                Style="{StaticResource HeadingSmallStyle}" />
@@ -645,10 +563,12 @@
 
                                     <Border Style="{StaticResource SeparatorStyle}" Margin="0,2,0,2" />
 
-                                    <!-- Prompt list -->
+                                    <!-- Prompt list: a click (or Enter) applies the prompt -->
                                     <ListView ItemsSource="{x:Bind ViewModel.SystemPrompts, Mode=OneWay}"
                                               ItemTemplate="{StaticResource SystemPromptItemTemplate}"
                                               SelectionMode="None"
+                                              IsItemClickEnabled="True"
+                                              ItemClick="OnSystemPromptItemClick"
                                               MaxHeight="300"
                                               Background="Transparent">
                                         <ListView.ItemContainerStyle>
@@ -893,9 +813,9 @@
                 </Grid>
             </Border>
 
-            <!-- ═══════════════════════════════════════════════════
+            <!-- ===================================================
                  CENTER: Messages ScrollViewer
-                 ═══════════════════════════════════════════════════ -->
+                 =================================================== -->
 
             <Grid Grid.Row="2">
 
@@ -920,7 +840,9 @@
                             <TextBlock x:Uid="Chat_EmptyTitle" Text="Start a Conversation"
                                        Style="{StaticResource HeadingMediumStyle}"
                                        HorizontalAlignment="Center" />
-                            <TextBlock x:Uid="Chat_EmptyHint" Text="Chat with local AI models powered by Ollama. Your messages stay on this device. No data leaves your machine."
+                            <!-- Where messages go, for the active provider and Research Mode:
+                                 the local claim only when nothing leaves this computer. -->
+                            <TextBlock Text="{x:Bind ViewModel.PrivacyHint, Mode=OneWay}"
                                        Style="{StaticResource BodySecondaryStyle}"
                                        TextWrapping="Wrap"
                                        TextAlignment="Center"
@@ -930,7 +852,8 @@
                         <!-- Quick action suggestions -->
                         <StackPanel Spacing="8" HorizontalAlignment="Center">
                             <Border Style="{StaticResource BadgeAccentStyle}"
-                                    HorizontalAlignment="Center">
+                                    HorizontalAlignment="Center"
+                                    Visibility="{x:Bind ViewModel.IsChatPrivate, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
                                 <TextBlock x:Uid="Chat_PrivateBadge" Text="100% Private"
                                            Style="{StaticResource CaptionStyle}"
                                            Foreground="{ThemeResource TextAccentBrush}"
@@ -975,9 +898,9 @@
                         <ItemsRepeater.ItemTemplate>
                             <DataTemplate x:DataType="vm:ChatMessageItem">
                                 <Grid>
-                                    <!-- ═══════════════════════════════════════════
+                                    <!-- ===========================================
                                          USER MESSAGE LAYOUT
-                                         ═══════════════════════════════════════════ -->
+                                         =========================================== -->
                                     <StackPanel Visibility="{x:Bind IsUser, Converter={StaticResource BoolToVisibility}}"
                                                 HorizontalAlignment="Right"
                                                 Margin="64,4,0,4"
@@ -1080,9 +1003,9 @@
                                         </StackPanel>
                                     </StackPanel>
 
-                                    <!-- ═══════════════════════════════════════════
+                                    <!-- ===========================================
                                          ASSISTANT MESSAGE LAYOUT
-                                         ═══════════════════════════════════════════ -->
+                                         =========================================== -->
                                     <StackPanel Visibility="{x:Bind IsAssistant, Converter={StaticResource BoolToVisibility}}"
                                                 HorizontalAlignment="Left"
                                                 Margin="0,4,64,4"
@@ -1111,6 +1034,83 @@
                                             </Grid>
                                         </Border>
 
+                                        <!-- Context note: what the answer was built from. A click opens the
+                                             context inspector for this answer. -->
+                                        <Button Style="{StaticResource GhostButtonStyle}"
+                                                Padding="0"
+                                                MinHeight="0"
+                                                HorizontalAlignment="Stretch"
+                                                HorizontalContentAlignment="Stretch"
+                                                Margin="8,4,24,0"
+                                                Click="OnInspectInlineContextClick"
+                                                Tag="{x:Bind}"
+                                                x:Uid="Chat_InspectContextTip" ToolTipService.ToolTip="Inspect the full context used for this response"
+                                                Visibility="{x:Bind HasInlineContextNote, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"
+                                                AutomationProperties.LabeledBy="{Binding ElementName=ContextUsedLabel}">
+                                            <Border Background="{ThemeResource AccentSubtleBrush}"
+                                                    BorderBrush="{ThemeResource BorderSubtleBrush}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="{StaticResource RControl}"
+                                                    Padding="8,8,8,8">
+                                                <StackPanel Spacing="4">
+                                                    <TextBlock x:Name="ContextUsedLabel" x:Uid="Chat_ContextUsedLabel" Text="Context Used"
+                                                               Style="{StaticResource CaptionStyle}"
+                                                               Foreground="{ThemeResource TextAccentBrush}" />
+                                                    <TextBlock Text="{x:Bind InlineContextStoryText, Mode=OneWay}"
+                                                               Style="{StaticResource CaptionStyle}"
+                                                               TextWrapping="WrapWholeWords" />
+                                                    <ItemsRepeater ItemsSource="{x:Bind InlineContextStorySourceChips, Mode=OneWay}"
+                                                                   ItemTemplate="{StaticResource InlineContextStoryChipTemplate}"
+                                                                   Visibility="{x:Bind HasInlineContextStorySourceChips, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                                                        <ItemsRepeater.Layout>
+                                                            <StackLayout Orientation="Horizontal" Spacing="4" />
+                                                        </ItemsRepeater.Layout>
+                                                    </ItemsRepeater>
+                                                </StackPanel>
+                                            </Border>
+                                        </Button>
+
+                                        <!-- Web sources: the pages Research Mode gave this answer, numbered as its [n]
+                                             markers. A streamed reply gets them when it completes, after this bubble
+                                             is realized. Chips are raised controls (Layer 3); a click opens the page. -->
+                                        <StackPanel Margin="8,4,24,0"
+                                                    Spacing="4"
+                                                    Visibility="{x:Bind HasWebCitations, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                                            <TextBlock x:Name="WebSourcesLabel"
+                                                       x:Uid="Chat_WebSourcesLabel" Text="Web sources"
+                                                       Style="{StaticResource CaptionStyle}"
+                                                       Foreground="{ThemeResource TextSecondaryBrush}" />
+                                            <ItemsRepeater ItemsSource="{x:Bind WebCitationChips, Mode=OneWay}"
+                                                           AutomationProperties.LabeledBy="{Binding ElementName=WebSourcesLabel}">
+                                                <ItemsRepeater.Layout>
+                                                    <StackLayout Orientation="Vertical" Spacing="4" />
+                                                </ItemsRepeater.Layout>
+                                                <ItemsRepeater.ItemTemplate>
+                                                    <DataTemplate x:DataType="vm:WebCitationChip">
+                                                        <Button Style="{StaticResource GhostButtonStyle}"
+                                                                Padding="0"
+                                                                MinHeight="0"
+                                                                HorizontalAlignment="Left"
+                                                                Click="OnOpenWebCitationClick"
+                                                                Tag="{x:Bind}"
+                                                                IsEnabled="{x:Bind HasLink}"
+                                                                ToolTipService.ToolTip="{x:Bind Url}"
+                                                                AutomationProperties.Name="{x:Bind Label}">
+                                                            <Border Style="{StaticResource ControlCapStyle}"
+                                                                    Padding="8,3,8,3">
+                                                                <TextBlock Text="{x:Bind Label}"
+                                                                           Style="{StaticResource CaptionStyle}"
+                                                                           Foreground="{ThemeResource TextSecondaryBrush}"
+                                                                           TextWrapping="NoWrap"
+                                                                           TextTrimming="CharacterEllipsis"
+                                                                           MaxWidth="600" />
+                                                            </Border>
+                                                        </Button>
+                                                    </DataTemplate>
+                                                </ItemsRepeater.ItemTemplate>
+                                            </ItemsRepeater>
+                                        </StackPanel>
+
                                         <!-- Meta info + action bar -->
                                         <Grid Margin="4,4,0,0">
                                             <Grid.ColumnDefinitions>
@@ -1123,12 +1123,14 @@
                                                         Spacing="8">
                                                 <TextBlock Text="{x:Bind FormattedTime}"
                                                            Style="{StaticResource ChatTimestampStyle}" />
-                                                <TextBlock Text="{x:Bind FormattedTokens}"
+                                                <!-- The stats arrive when a streamed reply completes,
+                                                     after this bubble is already realized. -->
+                                                <TextBlock Text="{x:Bind FormattedTokens, Mode=OneWay}"
                                                            Style="{StaticResource MessageMetaStyle}"
-                                                           Visibility="{x:Bind FormattedTokens, Converter={StaticResource StringToVisibility}}" />
-                                                <TextBlock Text="{x:Bind FormattedTokenSpeed}"
+                                                           Visibility="{x:Bind FormattedTokens, Mode=OneWay, Converter={StaticResource StringToVisibility}}" />
+                                                <TextBlock Text="{x:Bind FormattedTokenSpeed, Mode=OneWay}"
                                                            Style="{StaticResource MessageMetaStyle}"
-                                                           Visibility="{x:Bind FormattedTokenSpeed, Converter={StaticResource StringToVisibility}}" />
+                                                           Visibility="{x:Bind FormattedTokenSpeed, Mode=OneWay, Converter={StaticResource StringToVisibility}}" />
                                             </StackPanel>
 
                                             <!-- Right: action buttons -->
@@ -1187,9 +1189,9 @@
                 </ScrollViewer>
             </Grid>
 
-            <!-- ═══════════════════════════════════════════════════
+            <!-- ===================================================
                  BOTTOM: Input bar
-                 ═══════════════════════════════════════════════════ -->
+                 =================================================== -->
 
             <Border Grid.Row="3" Style="{StaticResource ChatInputBarStyle}">
                 <Grid MaxWidth="900" HorizontalAlignment="Stretch">
@@ -1264,13 +1266,13 @@
                                         <TextBlock Style="{StaticResource CaptionStyle}">
                                             <Run x:Uid="Chat_SelectedRun" Text="Selected: " />
                                             <Run Text="{x:Bind ViewModel.ContextSelectedMessages, Mode=OneWay}" />
-                                            <Run x:Uid="Chat_AnchorsRun" Text=" · Anchors: " />
+                                            <Run x:Uid="Chat_AnchorsRun" Text=" | Anchors: " />
                                             <Run Text="{x:Bind ViewModel.ContextAnchorMessages, Mode=OneWay}" />
                                         </TextBlock>
                                         <TextBlock Style="{StaticResource CaptionStyle}">
                                             <Run x:Uid="Chat_OverflowRun" Text="Overflow: " />
                                             <Run Text="{x:Bind ViewModel.ContextOverflowMessages, Mode=OneWay}" />
-                                            <Run x:Uid="Chat_PromptEstRun" Text=" · Prompt est: " />
+                                            <Run x:Uid="Chat_PromptEstRun" Text=" | Prompt est: " />
                                             <Run Text="{x:Bind ViewModel.ContextEstimatedPromptTokens, Mode=OneWay}" />
                                         </TextBlock>
                                         <TextBlock Text="{x:Bind ViewModel.ContextAssemblyExplanation, Mode=OneWay}"
@@ -1341,7 +1343,7 @@
                                                 <DataTemplate x:DataType="x:String">
                                                     <TextBlock Style="{StaticResource CaptionStyle}"
                                                                TextWrapping="WrapWholeWords">
-                                                        <Run Text="• " />
+                                                        <Run Text="- " />
                                                         <Run Text="{x:Bind}" />
                                                     </TextBlock>
                                                 </DataTemplate>
@@ -1385,7 +1387,7 @@
                                                                        TextWrapping="WrapWholeWords" />
                                                             <TextBlock Style="{StaticResource CaptionStyle}">
                                                                 <Run Text="{x:Bind SimilarityLabel}" />
-                                                                <Run Text=" · " />
+                                                                <Run Text=" | " />
                                                                 <Run Text="{x:Bind TimestampLabel}" />
                                                             </TextBlock>
                                                         </StackPanel>
@@ -1416,6 +1418,99 @@
                                         <Run x:Uid="Chat_CapturedRun" Text="Captured " />
                                         <Run Text="{x:Bind ViewModel.ContextCapturedAt, Mode=OneWay}" />
                                     </TextBlock>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Memories: facts noted from chats, shared by every conversation.
+                                 Read when the inspector opens; each can be deleted, or all. -->
+                            <Border Background="{ThemeResource CardBrush}"
+                                    BorderBrush="{ThemeResource BorderSubtleBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="{StaticResource RControl}"
+                                    Padding="12">
+                                <StackPanel Spacing="8">
+                                    <Grid ColumnSpacing="8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <TextBlock x:Uid="Chat_MemoriesTitle" Text="Memories"
+                                                   Style="{StaticResource CaptionStyle}"
+                                                   Foreground="{ThemeResource TextAccentBrush}"
+                                                   VerticalAlignment="Center" />
+
+                                        <!-- Memory count: a number in an LCD well, like the token count -->
+                                        <Border Grid.Column="1"
+                                                Background="{ThemeResource VoidBrush}"
+                                                BorderBrush="{ThemeResource HairlineBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="{StaticResource RCard}"
+                                                Padding="8,3,8,3"
+                                                VerticalAlignment="Center">
+                                            <TextBlock Style="{StaticResource LcdStyle}"
+                                                       FontSize="10">
+                                                <Run Text="{x:Bind ViewModel.MemoryCount, Mode=OneWay}" />
+                                                <Run x:Uid="Chat_MemoriesCountRun" Text="stored" />
+                                            </TextBlock>
+                                        </Border>
+
+                                        <Button Grid.Column="2"
+                                                x:Uid="Chat_ClearMemoriesBtn" Content="Clear all"
+                                                Style="{StaticResource GhostButtonStyle}"
+                                                Command="{x:Bind ViewModel.ClearMemoriesCommand}"
+                                                Visibility="{x:Bind ViewModel.HasMemories, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"
+                                                Padding="8,4,8,4"
+                                                MinHeight="28"
+                                                FontSize="12" />
+                                    </Grid>
+
+                                    <TextBlock x:Uid="Chat_MemoriesHint"
+                                               Text="Facts Agent-X noted from your chats. When you send a message, up to eight that closely match it are added to the model's context, whichever conversation they came from."
+                                               Style="{StaticResource CaptionStyle}"
+                                               TextWrapping="WrapWholeWords" />
+
+                                    <TextBlock Text="{x:Bind ViewModel.MemoriesStatus, Mode=OneWay}"
+                                               Style="{StaticResource CaptionStyle}"
+                                               Foreground="{ThemeResource TextSecondaryBrush}"
+                                               TextWrapping="WrapWholeWords"
+                                               Visibility="{x:Bind ViewModel.HasMemoriesStatus, Mode=OneWay, Converter={StaticResource BoolToVisibility}}" />
+
+                                    <ScrollViewer MaxHeight="200"
+                                                  VerticalScrollBarVisibility="Auto"
+                                                  HorizontalScrollBarVisibility="Disabled"
+                                                  Visibility="{x:Bind ViewModel.HasMemories, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+                                        <ItemsRepeater ItemsSource="{x:Bind ViewModel.Memories, Mode=OneWay}">
+                                            <ItemsRepeater.Layout>
+                                                <StackLayout Orientation="Vertical" Spacing="4" />
+                                            </ItemsRepeater.Layout>
+                                            <ItemsRepeater.ItemTemplate>
+                                                <DataTemplate x:DataType="vm:ChatMemoryItem">
+                                                    <Grid ColumnSpacing="8">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+
+                                                        <TextBlock Text="{x:Bind Content}"
+                                                                   Style="{StaticResource CaptionStyle}"
+                                                                   TextWrapping="WrapWholeWords"
+                                                                   VerticalAlignment="Center" />
+
+                                                        <Button Grid.Column="1"
+                                                                Style="{StaticResource MessageActionButtonStyle}"
+                                                                Click="OnDeleteMemoryClick"
+                                                                Tag="{x:Bind}"
+                                                                x:Uid="Chat_DeleteMemoryTip" ToolTipService.ToolTip="Delete memory"
+                                                                VerticalAlignment="Center">
+                                                            <FontIcon Glyph="&#xE74D;" FontSize="12" />
+                                                        </Button>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ItemsRepeater.ItemTemplate>
+                                        </ItemsRepeater>
+                                    </ScrollViewer>
                                 </StackPanel>
                             </Border>
                         </StackPanel>
@@ -1497,7 +1592,7 @@
                                     MinWidth="44"
                                     Command="{x:Bind ViewModel.ToggleVoiceRecordingCommand}"
                                     Visibility="{x:Bind ViewModel.IsVoiceActive, Mode=OneWay, Converter={StaticResource InverseBoolToVisibility}}"
-                                    x:Uid="Chat_VoiceInputTip" ToolTipService.ToolTip="Voice input — click to record"
+                                    x:Uid="Chat_VoiceInputTip" ToolTipService.ToolTip="Voice input - click to record"
                                     RightTapped="OnMicRightTapped">
                                 <FontIcon Glyph="&#xE720;" FontSize="16"
                                           Foreground="{ThemeResource TextSecondaryBrush}" />

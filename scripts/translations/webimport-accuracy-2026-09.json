@@ -1,0 +1,23 @@
+{
+  "_comment": "Web Import feed card accuracy pass 2026-09. The RSS / Atom card promised a subscription (\"Subscribe & Import\", \"Subscribe to a feed\"), but no subscription is stored: WebImportViewModel.SubscribeToFeedAsync reads the feed once and imports the items it lists at that moment. The button and caption now describe a one-time feed import. Apply with python scripts/apply-guide-accuracy.py scripts/translations/webimport-accuracy-2026-09.json",
+  "removePrefixes": [],
+  "update": {
+    "WebImport_SubscribeImport.Content": {
+      "en-US": "Import Feed",
+      "de": "Feed importieren",
+      "es": "Importar fuente",
+      "fr": "Importer le flux",
+      "ja": "フィードをインポート",
+      "zh-CN": "导入源"
+    },
+    "WebImport_SubscribeToAFeed.Text": {
+      "en-US": "Import every item a feed lists right now into your Knowledge Vault. The feed is read once; new items are not fetched later.",
+      "de": "Importieren Sie alle Einträge, die ein Feed gerade enthält, in Ihren Wissens-Tresor. Der Feed wird einmal gelesen; neue Einträge werden später nicht abgerufen.",
+      "es": "Importe a su bóveda de conocimiento todos los elementos que una fuente contiene en este momento. La fuente se lee una sola vez; los elementos nuevos no se obtienen más adelante.",
+      "fr": "Importez dans votre coffre-fort de connaissances tous les éléments qu'un flux contient à cet instant. Le flux n'est lu qu'une fois : les nouveaux éléments ne sont pas récupérés par la suite.",
+      "ja": "フィードに現在含まれているすべてのアイテムを Knowledge Vault にインポートします。フィードの読み込みは 1 回だけで、新しいアイテムは後から取得されません。",
+      "zh-CN": "将源中当前列出的所有条目导入 Knowledge Vault。源只读取一次，之后不会获取新条目。"
+    }
+  },
+  "add": {}
+}

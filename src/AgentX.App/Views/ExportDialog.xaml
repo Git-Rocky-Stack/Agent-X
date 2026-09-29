@@ -23,16 +23,16 @@
                       x:Uid="ExportDlg_IncludeCitations" Header="Include citations"
                       IsOn="True" />
 
+        <ToggleSwitch x:Name="IncludeModelInfoToggle"
+                      x:Uid="ExportDlg_IncludeModelInfo" Header="Include model info"
+                      IsOn="False" />
+
         <ToggleSwitch x:Name="IncludeMetadataToggle"
                       x:Uid="ExportDlg_IncludeMetadata" Header="Include metadata"
                       IsOn="True" />
 
         <ToggleSwitch x:Name="IncludeTimestampsToggle"
                       x:Uid="ExportDlg_IncludeTimestamps" Header="Include timestamps"
-                      IsOn="True" />
-
-        <ToggleSwitch x:Name="IncludeBranchesToggle"
-                      x:Uid="ExportDlg_IncludeBranches" Header="Include branches"
                       IsOn="True" />
 
         <!-- Copying as Markdown skips the file picker entirely, so it belongs beside

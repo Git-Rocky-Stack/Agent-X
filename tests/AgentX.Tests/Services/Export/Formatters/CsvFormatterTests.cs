@@ -1,4 +1,6 @@
+using System.Globalization;
 using AgentX.Core.Data.Entities;
+using AgentX.Core.Services.Export;
 using AgentX.Core.Services.Export.Formatters;
 using AgentX.Core.Services.Export.Models;
 using FluentAssertions;
@@ -61,9 +63,9 @@ public sealed class CsvFormatterTests
         };
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Properties
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Format_ShouldBeCsv()
@@ -83,9 +85,9 @@ public sealed class CsvFormatterTests
         _sut.MimeType.Should().Be("text/csv");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
-    //  ExportConversationAsync (single — no ConversationTitle column)
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
+    //  ExportConversationAsync (single - no ConversationTitle column)
+    // ======================================================================
 
     [Fact]
     public async Task ExportConversationAsync_StartsWithHeaderRow()
@@ -129,7 +131,7 @@ public sealed class CsvFormatterTests
         // Act
         var result = await _sut.ExportConversationAsync(conversation, options);
 
-        // Assert — system message content should not appear in CSV body
+        // Assert - system message content should not appear in CSV body
         result.Should().NotContain("You are a helpful assistant.");
     }
 
@@ -143,7 +145,7 @@ public sealed class CsvFormatterTests
         // Act
         var result = await _sut.ExportConversationAsync(conversation, options);
 
-        // Assert — single conversation CSV has no ConversationTitle column
+        // Assert - single conversation CSV has no ConversationTitle column
         var firstLine = result.Split('\n').First().TrimEnd('\r');
         firstLine.Should().NotContain("ConversationTitle");
         result.Should().NotContain("My Special Chat");
@@ -180,7 +182,7 @@ public sealed class CsvFormatterTests
         // Act
         var result = await _sut.ExportConversationAsync(conversation, options);
 
-        // Assert — content with commas should be double-quoted
+        // Assert - content with commas should be double-quoted
         result.Should().Contain("\"Hello, world, with commas\"");
     }
 
@@ -215,7 +217,7 @@ public sealed class CsvFormatterTests
         // Act
         var result = await _sut.ExportConversationAsync(conversation, options);
 
-        // Assert — embedded quotes should be doubled
+        // Assert - embedded quotes should be doubled
         result.Should().Contain("\"He said \"\"hello\"\"\"");
     }
 
@@ -251,7 +253,7 @@ public sealed class CsvFormatterTests
         // Act
         var result = await _sut.ExportConversationAsync(conversation, options);
 
-        // Assert — null modelId should result in empty quoted field
+        // Assert - null modelId should result in empty quoted field
         var lines = result.Split('\n').Where(l => !string.IsNullOrWhiteSpace(l.TrimEnd('\r'))).ToList();
         lines.Should().HaveCount(2); // header + 1 data row
         // The data row should have the model column as "" and end with token count
@@ -259,9 +261,9 @@ public sealed class CsvFormatterTests
         lines[1].TrimEnd('\r').Should().EndWith("5");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
-    //  ExportConversationsAsync (batch — includes ConversationTitle column)
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
+    //  ExportConversationsAsync (batch - includes ConversationTitle column)
+    // ======================================================================
 
     [Fact]
     public async Task ExportConversationsAsync_StartsWithHeaderRowIncludingConversationTitle()
@@ -331,7 +333,7 @@ public sealed class CsvFormatterTests
         // Act
         var result = await _sut.ExportConversationsAsync(conversations, options);
 
-        // Assert — header + 2 messages per conversation = 4 data rows
+        // Assert - header + 2 messages per conversation = 4 data rows
         var nonEmptyLines = result.Split('\n')
             .Where(l => !string.IsNullOrWhiteSpace(l.TrimEnd('\r')))
             .ToList();
@@ -369,4 +371,68 @@ public sealed class CsvFormatterTests
         // Assert
         await act.Should().ThrowAsync<OperationCanceledException>();
     }
+
+    // -- Spreadsheet formula injection and culture ------------------------------
+
+    [Theory]
+    [InlineData("=HYPERLINK(\"http://evil.example\",\"click\")")]
+    [InlineData("+1+1")]
+    [InlineData("-2+3")]
+    [InlineData("@SUM(A1:A9)")]
+    [InlineData("\tcmd")]
+    [InlineData("\r=1")]
+    public void CsvEscape_ACellAFormulaWouldRun_IsPrefixedWithAQuote(string cell)
+    {
+        var escaped = ExportContentBuilder.CsvEscape(cell);
+
+        // Strip the CSV quoting to see what the spreadsheet reads as the cell's text.
+        var text = escaped.StartsWith('"') ? escaped[1..^1].Replace("\"\"", "\"") : escaped;
+        text.Should().StartWith("'");
+        text[1..].Should().Be(cell);
+    }
+
+    [Theory]
+    [InlineData("plain text")]
+    [InlineData("2026-03-10T09:00:00.0000000Z")]
+    [InlineData("a=b")]
+    public void CsvEscape_OrdinaryCells_AreUnchanged(string cell)
+    {
+        ExportContentBuilder.CsvEscape(cell).Should().Be(cell);
+    }
+
+    [Fact]
+    public async Task ExportConversationAsync_MessageStartingWithAFormula_IsNeutralized()
+    {
+        var conversation = CreateConversation(messageCount: 1);
+        conversation.Messages.First().Content = "=cmd|' /C calc'!A0";
+
+        var csv = await _sut.ExportConversationAsync(conversation, new ExportOptions());
+
+        csv.Should().Contain("'=cmd|' /C calc'!A0");
+        csv.Split('\n').Should().NotContain(line => line.Contains(",=cmd"));
+    }
+
+    [Fact]
+    public void BuildSearchResultsCsv_WritesScoresWithAPeriod_WhateverTheUserCulture()
+    {
+        var previous = CultureInfo.CurrentCulture;
+        try
+        {
+            CultureInfo.CurrentCulture = new CultureInfo("de-DE");
+            var results = new List<SearchResultExportItem>
+            {
+                new() { DocumentName = "report.pdf", Content = "excerpt", RelevanceScore = 0.8123f },
+            };
+
+            var csv = ExportContentBuilder.BuildSearchResultsCsv("query", results);
+
+            csv.Should().Contain(",0.8123,");
+            csv.Should().NotContain("0,8123");
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = previous;
+        }
+    }
 }
+

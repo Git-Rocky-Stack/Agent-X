@@ -15,7 +15,7 @@ using Xunit;
 namespace AgentX.Tests.Search;
 
 /// <summary>
-/// Behavioural coverage for <see cref="SemanticSearchService"/> — the semantic-search pipeline that
+/// Behavioural coverage for <see cref="SemanticSearchService"/> - the semantic-search pipeline that
 /// embeds a query, runs a vector-similarity search, enriches the hits with EF-Core document metadata,
 /// filters by embedding-model version + collection / file-type / date, builds display excerpts, and
 /// sorts / truncates to TopK; plus the search-history and saved-filter CRUD surface.
@@ -24,7 +24,7 @@ namespace AgentX.Tests.Search;
 /// <see cref="AgentXDbContext"/> (in-memory SQLite via <see cref="TestDbContextFactory"/>):
 /// <see cref="IEmbeddingService"/> (query embedding + <c>ModelVersion</c> for the compatibility gate),
 /// <see cref="IVectorStore"/> (the ANN search), and an optional <see cref="IRagConfiguration"/>
-/// (retrieval multiplier / cap; absent → built-in fallbacks 3 / 500). Vector hits are seeded by
+/// (retrieval multiplier / cap; absent -> built-in fallbacks 3 / 500). Vector hits are seeded by
 /// <c>Distance</c> because <see cref="VectorSearchResult.Similarity"/> is the computed inverse
 /// <c>1 - Distance</c>. The logger flows through <c>ILogger.ForContext&lt;T&gt;()</c>, so a real silent
 /// Serilog logger is supplied. The version-compatibility gate compares a chunk's
@@ -52,7 +52,7 @@ public sealed class SemanticSearchServiceTests : IDisposable
         }
     }
 
-    // ─── Harness ────────────────────────────────────────────────────────────────
+    // --- Harness ----------------------------------------------------------------
 
     private sealed class Harness : IDisposable
     {
@@ -103,7 +103,7 @@ public sealed class SemanticSearchServiceTests : IDisposable
         }
     }
 
-    // ─── Builders / seed helpers ──────────────────────────────────────────────────
+    // --- Builders / seed helpers --------------------------------------------------
 
     private static VectorSearchResult Vec(long chunkId, double similarity)
         => new() { ChunkId = chunkId, Distance = 1.0 - similarity };
@@ -219,9 +219,9 @@ public sealed class SemanticSearchServiceTests : IDisposable
         return cts.Token;
     }
 
-    // ══════════════════════════════════════════════════════════════════════════════
+    // ==============================================================================
     //  Constructor guards
-    // ══════════════════════════════════════════════════════════════════════════════
+    // ==============================================================================
 
     [Fact]
     public void Ctor_NullEmbeddingService_Throws()
@@ -273,9 +273,9 @@ public sealed class SemanticSearchServiceTests : IDisposable
         act.Should().NotThrow();
     }
 
-    // ══════════════════════════════════════════════════════════════════════════════
-    //  SearchAsync — guards & short-circuits
-    // ══════════════════════════════════════════════════════════════════════════════
+    // ==============================================================================
+    //  SearchAsync - guards & short-circuits
+    // ==============================================================================
 
     [Fact]
     public async Task SearchAsync_NullQuery_Throws()
@@ -371,16 +371,16 @@ public sealed class SemanticSearchServiceTests : IDisposable
     {
         var h = NewHarness();
         h.SetVector(Vec(1, 0.9));
-        h.Db.Dispose(); // the chunk-load query will throw ObjectDisposedException (generic catch → empty)
+        h.Db.Dispose(); // the chunk-load query will throw ObjectDisposedException (generic catch -> empty)
 
         var results = await h.Service.SearchAsync(Q("hello world"));
 
         results.Should().BeEmpty();
     }
 
-    // ══════════════════════════════════════════════════════════════════════════════
-    //  SearchAsync — embedding-model version compatibility gate
-    // ══════════════════════════════════════════════════════════════════════════════
+    // ==============================================================================
+    //  SearchAsync - embedding-model version compatibility gate
+    // ==============================================================================
 
     [Fact]
     public async Task SearchAsync_MismatchedVersionChunk_IsExcluded()
@@ -439,9 +439,9 @@ public sealed class SemanticSearchServiceTests : IDisposable
         second.Should().ContainSingle();
     }
 
-    // ══════════════════════════════════════════════════════════════════════════════
-    //  SearchAsync — happy path & result mapping
-    // ══════════════════════════════════════════════════════════════════════════════
+    // ==============================================================================
+    //  SearchAsync - happy path & result mapping
+    // ==============================================================================
 
     [Fact]
     public async Task SearchAsync_HappyPath_MapsAllResultFields()
@@ -475,7 +475,7 @@ public sealed class SemanticSearchServiceTests : IDisposable
         var h = NewHarness();
         var docId = SeedDoc(h);
         var chunkId = SeedChunk(h, docId, content: "clamp me");
-        h.SetVector(Vec(chunkId, 1.6)); // Distance = -0.6, similarity 1.6 → clamp to 1.0
+        h.SetVector(Vec(chunkId, 1.6)); // Distance = -0.6, similarity 1.6 -> clamp to 1.0
 
         var results = await h.Service.SearchAsync(Q("clamp"));
 
@@ -513,9 +513,9 @@ public sealed class SemanticSearchServiceTests : IDisposable
         results[1].ChunkId.Should().Be(mid);
     }
 
-    // ══════════════════════════════════════════════════════════════════════════════
-    //  SearchAsync — metadata filters
-    // ══════════════════════════════════════════════════════════════════════════════
+    // ==============================================================================
+    //  SearchAsync - metadata filters
+    // ==============================================================================
 
     [Fact]
     public async Task SearchAsync_CollectionFilter_ExcludesNonMembers()
@@ -608,9 +608,9 @@ public sealed class SemanticSearchServiceTests : IDisposable
         results.Should().ContainSingle().Which.ChunkId.Should().Be(matchChunk);
     }
 
-    // ══════════════════════════════════════════════════════════════════════════════
-    //  SearchAsync — excerpt building
-    // ══════════════════════════════════════════════════════════════════════════════
+    // ==============================================================================
+    //  SearchAsync - excerpt building
+    // ==============================================================================
 
     [Fact]
     public async Task SearchAsync_ShortContent_ExcerptIsWhitespaceNormalizedContent()
@@ -688,15 +688,15 @@ public sealed class SemanticSearchServiceTests : IDisposable
         var chunkId = SeedChunk(h, docId, content: content);
         h.SetVector(Vec(chunkId, 0.9));
 
-        // Every query word is < 3 chars, so no keyword positions are extracted → fallback slice.
+        // Every query word is < 3 chars, so no keyword positions are extracted -> fallback slice.
         var results = await h.Service.SearchAsync(Q("is ai to"));
 
         results.Should().ContainSingle().Which.Excerpt.Should().EndWith("...");
     }
 
-    // ══════════════════════════════════════════════════════════════════════════════
-    //  SearchAsync — retrieval sizing (multiplier / cap)
-    // ══════════════════════════════════════════════════════════════════════════════
+    // ==============================================================================
+    //  SearchAsync - retrieval sizing (multiplier / cap)
+    // ==============================================================================
 
     [Fact]
     public async Task SearchAsync_WithoutRagConfig_UsesFallbackMultiplierOfThree()
@@ -711,6 +711,61 @@ public sealed class SemanticSearchServiceTests : IDisposable
         await h.Service.SearchAsync(Q("term", topK: 10));
 
         capturedTopK.Should().Be(30); // 10 * fallback multiplier 3, under the 500 cap
+    }
+
+    [Fact]
+    public async Task SearchAsync_ScopedSearch_WidensTheCandidatePoolUntilInScopeMatchesAppear()
+    {
+        // The collection filter ran on the first TopK x 3 candidates only, so a scoped search
+        // whose matches ranked below that cut returned nothing.
+        var h = NewHarness();
+        var outside = SeedDoc(h, "outside.pdf", filePath: "/docs/outside.pdf");
+        var inside = SeedDoc(h, "inside.pdf", filePath: "/docs/inside.pdf");
+        var collection = SeedCollection(h, "Scoped");
+        Link(h, inside, collection);
+
+        var candidates = new List<VectorSearchResult>();
+        for (var i = 0; i < 6; i++)
+        {
+            candidates.Add(Vec(SeedChunk(h, outside, $"outside passage {i}", chunkIndex: i), 0.95 - i * 0.01));
+        }
+
+        var insideChunk = SeedChunk(h, inside, "inside passage");
+        candidates.Add(Vec(insideChunk, 0.6));
+
+        var requested = new List<int>();
+        h.Vector.Setup(v => v.SearchAsync(
+                It.IsAny<float[]>(), It.IsAny<int>(), It.IsAny<double>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((float[] _, int topK, double _, CancellationToken _) =>
+            {
+                requested.Add(topK);
+                return (IReadOnlyList<VectorSearchResult>)candidates.Take(topK).ToList();
+            });
+
+        var results = await h.Service.SearchAsync(Q("inside", topK: 2, collectionId: collection));
+
+        results.Should().ContainSingle().Which.ChunkId.Should().Be(insideChunk);
+        requested.Should().Equal(6, 24); // 2 x 3, then widened once; the store then ran out
+    }
+
+    [Fact]
+    public async Task SearchAsync_UnscopedSearch_FetchesCandidatesOnce()
+    {
+        var h = NewHarness();
+        var doc = SeedDoc(h);
+        var chunk = SeedChunk(h, doc, "only passage");
+        var calls = 0;
+        h.Vector.Setup(v => v.SearchAsync(
+                It.IsAny<float[]>(), It.IsAny<int>(), It.IsAny<double>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((float[] _, int topK, double _, CancellationToken _) =>
+            {
+                calls++;
+                return (IReadOnlyList<VectorSearchResult>)Enumerable.Repeat(Vec(chunk, 0.9), 1).ToList();
+            });
+
+        await h.Service.SearchAsync(Q("only", topK: 5));
+
+        calls.Should().Be(1);
     }
 
     [Fact]
@@ -744,13 +799,13 @@ public sealed class SemanticSearchServiceTests : IDisposable
 
         await h.Service.SearchAsync(Q("term", topK: 10));
 
-        // multiplier max(1,0)=1 → 10; cap max(1,0)=1 → min(10,1)=1.
+        // multiplier max(1,0)=1 -> 10; cap max(1,0)=1 -> min(10,1)=1.
         capturedTopK.Should().Be(1);
     }
 
-    // ══════════════════════════════════════════════════════════════════════════════
+    // ==============================================================================
     //  SaveSearchHistoryAsync
-    // ══════════════════════════════════════════════════════════════════════════════
+    // ==============================================================================
 
     [Theory]
     [InlineData("")]
@@ -789,6 +844,22 @@ public sealed class SemanticSearchServiceTests : IDisposable
         entry.SortOrder.Should().Be("relevance");
     }
 
+    [Theory]
+    [InlineData("keyword", "keyword")]
+    [InlineData("Hybrid", "hybrid")]
+    [InlineData(null, "semantic")]
+    public async Task SaveSearchHistory_StoresTheSearchModeItRanIn(string? searchType, string expected)
+    {
+        // Every entry was stored as "semantic", so a saved keyword or hybrid filter came
+        // back in semantic mode.
+        var h = NewHarness();
+
+        await h.Service.SaveSearchHistoryAsync("invoice 2231", 2, searchType: searchType);
+
+        await using var read = h.Fresh();
+        (await read.SearchHistory.SingleAsync()).SearchType.Should().Be(expected);
+    }
+
     [Fact]
     public async Task SaveSearchHistory_OnFailure_SwallowsAndDoesNotThrow()
     {
@@ -800,9 +871,9 @@ public sealed class SemanticSearchServiceTests : IDisposable
         await act.Should().NotThrowAsync();
     }
 
-    // ══════════════════════════════════════════════════════════════════════════════
+    // ==============================================================================
     //  GetSearchHistoryAsync
-    // ══════════════════════════════════════════════════════════════════════════════
+    // ==============================================================================
 
     [Theory]
     [InlineData(0)]
@@ -857,9 +928,9 @@ public sealed class SemanticSearchServiceTests : IDisposable
         entries.Should().BeEmpty();
     }
 
-    // ══════════════════════════════════════════════════════════════════════════════
+    // ==============================================================================
     //  ClearSearchHistoryAsync
-    // ══════════════════════════════════════════════════════════════════════════════
+    // ==============================================================================
 
     [Fact]
     public async Task ClearSearchHistory_DeletesAllEntries()
@@ -885,9 +956,9 @@ public sealed class SemanticSearchServiceTests : IDisposable
         await act.Should().ThrowAsync<Exception>();
     }
 
-    // ══════════════════════════════════════════════════════════════════════════════
+    // ==============================================================================
     //  SaveSearchFilterAsync / UnsaveSearchFilterAsync
-    // ══════════════════════════════════════════════════════════════════════════════
+    // ==============================================================================
 
     [Fact]
     public async Task SaveSearchFilter_ExistingEntry_SetsIsSavedTrue()
@@ -933,9 +1004,9 @@ public sealed class SemanticSearchServiceTests : IDisposable
         await act.Should().NotThrowAsync();
     }
 
-    // ══════════════════════════════════════════════════════════════════════════════
+    // ==============================================================================
     //  GetSavedFiltersAsync
-    // ══════════════════════════════════════════════════════════════════════════════
+    // ==============================================================================
 
     [Fact]
     public async Task GetSavedFilters_ReturnsOnlySaved_NewestFirst()
@@ -975,9 +1046,9 @@ public sealed class SemanticSearchServiceTests : IDisposable
         entries.Should().BeEmpty();
     }
 
-    // ══════════════════════════════════════════════════════════════════════════════
-    //  SearchAsync — cancellation propagation
-    // ══════════════════════════════════════════════════════════════════════════════
+    // ==============================================================================
+    //  SearchAsync - cancellation propagation
+    // ==============================================================================
 
     [Fact]
     public async Task SearchAsync_CanceledTokenDuringChunkLoad_Rethrows()

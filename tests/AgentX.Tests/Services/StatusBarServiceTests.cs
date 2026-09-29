@@ -6,6 +6,8 @@ using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
 using AgentX.Core.Documents;
 using AgentX.Core.Services.Indexing;
+using AgentX.Core.Services.Localization;
+using AgentX.Tests.Helpers;
 using FluentAssertions;
 using Moq;
 using Xunit;
@@ -99,9 +101,16 @@ public class StatusBarServiceTests
         service.ActiveModelName.Should().BeEmpty();
     }
 
-    [Fact]
-    public async Task PollAsync_WhenConnectedWithoutModelName_ShowsConnectedToOllama()
+    // The strip said "Connected to Ollama" and "Ollama not detected" whatever provider was
+    // active, so someone on the built-in model or a cloud provider was pointed at Ollama.
+
+    [Theory]
+    [InlineData("Ollama")]
+    [InlineData("Built-in LLM")]
+    [InlineData("Anthropic Claude")]
+    public async Task PollAsync_WhenConnectedWithoutModelName_NamesTheActiveProvider(string providerName)
     {
+        _providerMock.SetupGet(p => p.DisplayName).Returns(providerName);
         _providerMock.Setup(p => p.CheckConnectionAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
         _aiServiceMock.SetupGet(a => a.ActiveModelId).Returns((string)null!);
         _indexingServiceMock.SetupGet(i => i.IsProcessing).Returns(false);
@@ -114,7 +123,69 @@ public class StatusBarServiceTests
         await service.PollAsync();
 
         capturedState.Should().NotBeNull();
-        capturedState!.ConnectionStatus.Should().Be("Connected to Ollama");
+        capturedState!.ConnectionStatus.Should().Be($"Connected to {providerName}");
+    }
+
+    [Fact]
+    public async Task PollAsync_WhenTheBuiltInModelIsNotAvailable_SaysSoWithoutMentioningOllama()
+    {
+        _providerMock.SetupGet(p => p.DisplayName).Returns("Built-in LLM");
+        _providerMock.Setup(p => p.CheckConnectionAsync(It.IsAny<CancellationToken>())).ReturnsAsync(false);
+        _indexingServiceMock.SetupGet(i => i.IsProcessing).Returns(false);
+        _documentServiceMock.Setup(d => d.GetTotalDocumentCountAsync()).ReturnsAsync(0L);
+
+        var service = CreateService();
+        StatusBarState? capturedState = null;
+        service.StateChanged += (_, state) => capturedState = state;
+
+        await service.PollAsync();
+
+        capturedState!.ConnectionStatus.Should().Be("Built-in LLM not available");
+        capturedState.ConnectionStatus.Should().NotContain("Ollama");
+    }
+
+    // The provider-aware status was English whatever the user's language.
+
+    [Theory]
+    [InlineData(true, null, "Verbunden mit Built-in LLM")]
+    [InlineData(true, "llama3.2", "Verbunden: llama3.2")]
+    [InlineData(false, null, "Built-in LLM nicht verfügbar")]
+    public async Task PollAsync_ReadsTheStatusFromTheUsersLanguage(bool connected, string? modelId, string expected)
+    {
+        _serviceProviderMock
+            .Setup(sp => sp.GetService(typeof(ILocalizationService)))
+            .Returns(ReswLocalization.For("de"));
+        _providerMock.SetupGet(p => p.DisplayName).Returns("Built-in LLM");
+        _providerMock.Setup(p => p.CheckConnectionAsync(It.IsAny<CancellationToken>())).ReturnsAsync(connected);
+        _aiServiceMock.SetupGet(a => a.ActiveModelId).Returns(modelId!);
+        _documentServiceMock.Setup(d => d.GetTotalDocumentCountAsync()).ReturnsAsync(0L);
+
+        var service = CreateService();
+        StatusBarState? capturedState = null;
+        service.StateChanged += (_, state) => capturedState = state;
+
+        await service.PollAsync();
+
+        capturedState!.ConnectionStatus.Should().Be(expected);
+    }
+
+    [Fact]
+    public async Task PollAsync_WithoutAProvider_NamesTheGenericProviderInTheUsersLanguage()
+    {
+        _serviceProviderMock
+            .Setup(sp => sp.GetService(typeof(ILocalizationService)))
+            .Returns(ReswLocalization.For("de"));
+        _serviceProviderMock
+            .Setup(sp => sp.GetService(typeof(IAiService)))
+            .Throws(new InvalidOperationException("Service unavailable"));
+
+        var service = CreateService();
+        StatusBarState? capturedState = null;
+        service.StateChanged += (_, state) => capturedState = state;
+
+        await service.PollAsync();
+
+        capturedState!.ConnectionStatus.Should().Be("KI-Anbieter nicht verfügbar");
     }
 
     [Fact]
@@ -171,7 +242,7 @@ public class StatusBarServiceTests
 
         service.IsConnected.Should().BeFalse();
         capturedState.Should().NotBeNull();
-        capturedState!.ConnectionStatus.Should().Be("Ollama not detected");
+        capturedState!.ConnectionStatus.Should().Be("AI provider not available");
     }
 
     [Fact]
@@ -211,7 +282,7 @@ public class StatusBarServiceTests
 
         var service = CreateService();
 
-        // Poll without subscribing — should not throw
+        // Poll without subscribing - should not throw
         var act = async () => await service.PollAsync();
         act.Should().NotThrowAsync();
     }

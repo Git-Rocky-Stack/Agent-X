@@ -6,6 +6,7 @@ using AgentX.Core.Services.Export;
 using AgentX.Core.Services.Export.Formatters;
 using AgentX.Core.Services.Export.Models;
 using AgentX.Core.Services.Settings;
+using AgentX.Tests.Helpers;
 using FluentAssertions;
 using Moq;
 using Serilog;
@@ -18,7 +19,7 @@ namespace AgentX.Tests.Services.Export;
 /// Tests the thin orchestrator that delegates formatting to <see cref="IExportFormatter"/>
 /// implementations while handling file I/O and special-case exports
 /// (search results, collections) inline. Every export format is unconditionally
-/// available — there is no license gating.
+/// available - there is no license gating.
 /// </summary>
 public sealed class ExportServiceTests : IDisposable
 {
@@ -498,7 +499,7 @@ public sealed class ExportServiceTests : IDisposable
     {
         // Markdown search-result export was formerly gated behind a paid tier; it must
         // now succeed unconditionally. (PDF/HTML are not supported for search results
-        // by design — a format-capability limit unrelated to licensing.)
+        // by design - a format-capability limit unrelated to licensing.)
         var results = new List<SearchResultExportItem>
         {
             new SearchResultExportItem { Query = "test", Content = "Test", DocumentName = "Test.pdf" }
@@ -937,4 +938,204 @@ public sealed class ExportServiceTests : IDisposable
         result.Success.Should().BeFalse();
         result.ErrorMessage.Should().Contain("cancelled");
     }
+
+    // ====================================================================
+    //  Templates, failure propagation, untracked reads
+    // ====================================================================
+
+    private static ConversationEntity CreateTwoTurnConversation(long id = 1) => new()
+    {
+        Id = id,
+        Title = "Quarterly review",
+        CreatedAt = DateTime.UtcNow,
+        UpdatedAt = DateTime.UtcNow,
+        Messages = new List<MessageEntity>
+        {
+            new() { Id = 1, Role = "user", Content = "Summarize the quarter", Timestamp = DateTime.UtcNow, SortOrder = 0 },
+            new() { Id = 2, Role = "assistant", Content = "Revenue grew four percent.", Timestamp = DateTime.UtcNow, SortOrder = 1 },
+        },
+    };
+
+    [Fact]
+    public async Task ExportConversationAsync_WithATemplate_WritesTheTemplateLayout()
+    {
+        // TemplateId used to be accepted and ignored.
+        _conversationServiceMock.Setup(s => s.GetConversationAsync(1)).ReturnsAsync(CreateTwoTurnConversation());
+        var sut = CreateService();
+        var outputPath = Path.Combine(_tempExportDir, "templated.md");
+
+        var result = await sut.ExportConversationAsync(1, new ExportOptions
+        {
+            Format = ExportFormat.Markdown,
+            TemplateId = ExportTemplateId.ExecutiveSummary,
+            OutputPath = outputPath,
+        });
+
+        result.Success.Should().BeTrue(result.ErrorMessage);
+        var content = await File.ReadAllTextAsync(outputPath);
+        content.Should().Contain("## Executive Summary");
+        content.Should().Contain("## Recommendations");
+        content.Should().Contain("Revenue grew four percent.");
+    }
+
+    [Theory]
+    [InlineData(ExportFormat.Html)]
+    [InlineData(ExportFormat.Docx)]
+    public async Task ExportConversationAsync_ATemplateWithANonMarkdownFormat_FailsInsteadOfIgnoringIt(ExportFormat format)
+    {
+        _conversationServiceMock.Setup(s => s.GetConversationAsync(1)).ReturnsAsync(CreateTwoTurnConversation());
+        var sut = CreateService();
+
+        var result = await sut.ExportConversationAsync(1, new ExportOptions
+        {
+            Format = format,
+            TemplateId = ExportTemplateId.ResearchReport,
+            OutputPath = Path.Combine(_tempExportDir, "out.bin"),
+        });
+
+        result.Success.Should().BeFalse();
+        result.ErrorMessage.Should().Contain("Markdown");
+    }
+
+    [Fact]
+    public async Task ExportConversationsAsync_WithATemplate_FailsInsteadOfIgnoringIt()
+    {
+        var sut = CreateService();
+
+        var result = await sut.ExportConversationsAsync([1, 2], new ExportOptions
+        {
+            Format = ExportFormat.Markdown,
+            TemplateId = ExportTemplateId.ExecutiveSummary,
+        });
+
+        result.Success.Should().BeFalse();
+        result.ErrorMessage.Should().Contain("single conversation");
+    }
+
+    [Fact]
+    public async Task FormatConversationAsMarkdownAsync_FormatterFailure_Propagates()
+    {
+        // "Copy as Markdown" reported success after an empty string came back from a failure.
+        _conversationServiceMock.Setup(s => s.GetConversationAsync(1)).ReturnsAsync(CreateTwoTurnConversation());
+        var failing = new Mock<IExportFormatter>();
+        failing.SetupGet(f => f.Format).Returns(ExportFormat.Markdown);
+        failing
+            .Setup(f => f.ExportConversationAsync(It.IsAny<ConversationEntity>(), It.IsAny<ExportOptions>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("renderer broke"));
+
+        var sut = new ExportService(
+            _conversationServiceMock.Object,
+            _documentServiceMock.Object,
+            _collectionServiceMock.Object,
+            _settingsServiceMock.Object,
+            _loggerMock.Object,
+            [failing.Object]);
+
+        var act = () => sut.FormatConversationAsMarkdownAsync(1, includeMeta: false);
+
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("renderer broke");
+    }
+
+    [Fact]
+    public async Task ExportConversationsAsync_WithADatabase_LeavesNothingTrackedInTheSharedContext()
+    {
+        using var factory = new TestDbContextFactory();
+        using (var seed = factory.CreateContext())
+        {
+            seed.Conversations.Add(new ConversationEntity
+            {
+                Title = "Tracked?",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                Messages = new List<MessageEntity>
+                {
+                    new() { Role = "user", Content = "Hi", Timestamp = DateTime.UtcNow, SortOrder = 0 },
+                    new() { Role = "assistant", Content = "Hello", Timestamp = DateTime.UtcNow, SortOrder = 1 },
+                },
+            });
+            await seed.SaveChangesAsync();
+        }
+
+        using var shared = factory.CreateContext();
+        var conversationId = shared.Conversations.AsEnumerable().Single().Id;
+        shared.ChangeTracker.Clear();
+
+        var sut = new ExportService(
+            _conversationServiceMock.Object,
+            _documentServiceMock.Object,
+            _collectionServiceMock.Object,
+            _settingsServiceMock.Object,
+            _loggerMock.Object,
+            CreateFormatters(),
+            db: shared);
+
+        var result = await sut.ExportConversationsAsync([conversationId], new ExportOptions
+        {
+            Format = ExportFormat.Markdown,
+            OutputPath = Path.Combine(_tempExportDir, "all.md"),
+        });
+
+        result.Success.Should().BeTrue(result.ErrorMessage);
+        (await File.ReadAllTextAsync(result.FilePath!)).Should().Contain("Hello");
+        shared.ChangeTracker.Entries().Should().BeEmpty(
+            "an export only reads; tracked copies would burden every later SaveChanges");
+        _conversationServiceMock.Verify(s => s.GetConversationAsync(It.IsAny<long>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ExportCollectionAsync_WithADatabase_LeavesNothingTrackedInTheSharedContext()
+    {
+        // Collection exports read through CollectionService, whose reads are tracked: every
+        // export left the collection, its links and all of its documents in the shared context.
+        using var factory = new TestDbContextFactory();
+        long collectionId;
+        using (var seed = factory.CreateContext())
+        {
+            var collection = new CollectionEntity { Name = "Research", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+            seed.Collections.Add(collection);
+            foreach (var name in new[] { "b-paper.pdf", "a-notes.md" })
+            {
+                var document = new DocumentEntity
+                {
+                    FileName = name,
+                    FilePath = "/vault/" + name,
+                    FileType = Path.GetExtension(name).TrimStart('.'),
+                    ContentHash = "hash-" + name,
+                    ImportedAt = DateTime.UtcNow,
+                    FileModifiedAt = DateTime.UtcNow,
+                    IndexingStatus = "completed",
+                };
+                seed.Documents.Add(document);
+                seed.DocumentCollections.Add(new DocumentCollectionEntity { Document = document, Collection = collection, AddedAt = DateTime.UtcNow });
+            }
+
+            await seed.SaveChangesAsync();
+            collectionId = collection.Id;
+        }
+
+        using var shared = factory.CreateContext();
+        var sut = new ExportService(
+            _conversationServiceMock.Object,
+            _documentServiceMock.Object,
+            _collectionServiceMock.Object,
+            _settingsServiceMock.Object,
+            _loggerMock.Object,
+            CreateFormatters(),
+            db: shared);
+
+        var result = await sut.ExportCollectionAsync(collectionId, new ExportOptions
+        {
+            Format = ExportFormat.Csv,
+            OutputPath = Path.Combine(_tempExportDir, "research.csv"),
+        });
+
+        result.Success.Should().BeTrue(result.ErrorMessage);
+        var lines = await File.ReadAllLinesAsync(result.FilePath!);
+        lines.Skip(1).Select(line => line.Split(',')[0]).Should().Equal("a-notes.md", "b-paper.pdf");
+        shared.ChangeTracker.Entries().Should().BeEmpty(
+            "an export only reads; tracked copies would burden every later SaveChanges");
+        _collectionServiceMock.Verify(s => s.GetCollectionAsync(It.IsAny<long>()), Times.Never);
+        _collectionServiceMock.Verify(s => s.GetDocumentsInCollectionAsync(It.IsAny<long>()), Times.Never);
+    }
 }
+

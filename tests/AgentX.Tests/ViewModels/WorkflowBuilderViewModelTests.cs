@@ -1,3 +1,5 @@
+using System.Text.RegularExpressions;
+using System.Xml.Linq;
 using AgentX.App.Services;
 using AgentX.App.ViewModels;
 using AgentX.Core.AI;
@@ -7,6 +9,8 @@ using AgentX.Core.Documents;
 using AgentX.Core.Helpers;
 using AgentX.Core.Services.Export;
 using AgentX.Core.Services.Export.Models;
+using AgentX.Core.Services.Localization;
+using AgentX.Core.Services.Settings;
 using AgentX.Core.Services.Workflows;
 using AgentX.Core.Services.Workflows.Models;
 using FluentAssertions;
@@ -45,7 +49,7 @@ public sealed class WorkflowBuilderViewModelTests : IDisposable
         }
         catch
         {
-            // Best-effort cleanup — never fail a test because temp deletion raced a file handle.
+            // Best-effort cleanup - never fail a test because temp deletion raced a file handle.
         }
     }
 
@@ -373,6 +377,7 @@ public sealed class WorkflowBuilderViewModelTests : IDisposable
         viewModel.StepOutputs.Should().ContainSingle();
         viewModel.StepOutputs[0].StepName.Should().Be("Analyze");
         viewModel.RunResultContextText.Should().Contain("Showing stored run from");
+        viewModel.IsShowingStoredRun.Should().BeTrue();
     }
 
     [Fact]
@@ -691,6 +696,7 @@ public sealed class WorkflowBuilderViewModelTests : IDisposable
             },
             RunOutput = "stored result",
             RunResultContextText = $"Showing stored run from {run.StartedAtText}",
+            IsShowingStoredRun = true,
             FocusedWorkflowRunSourceLabel = "Opened stored workflow run for \"Research Brief\" from Operations"
         };
         viewModel.RecentRuns.Add(run);
@@ -1159,5 +1165,536 @@ public sealed class WorkflowBuilderViewModelTests : IDisposable
         public override void Send(SendOrPostCallback d, object? state) => d(state);
 
         public override SynchronizationContext CreateCopy() => this;
+    }
+
+    // ---- Editing identity, ConfigJson round-trip, cancelled runs ----
+
+    private WorkflowBuilderViewModel CreateEditingViewModel(long workflowId, bool isBuiltIn = false, string? configJson = null)
+    {
+        _workflowService.Setup(service => service.GetWorkflowAsync(workflowId))
+            .ReturnsAsync(() => new WorkflowEntity
+            {
+                Id = workflowId,
+                Name = $"Workflow {workflowId}",
+                Category = "Custom",
+                IsBuiltIn = isBuiltIn,
+                Steps =
+                [
+                    new WorkflowStepEntity
+                    {
+                        Id = 5,
+                        StepOrder = 1,
+                        Name = "Transform",
+                        StepType = "TextTransform",
+                        PromptTemplate = "{{input}}",
+                        ConfigJson = configJson,
+                    }
+                ]
+            });
+        _workflowService.Setup(service => service.GetAllWorkflowsAsync(It.IsAny<bool>()))
+            .ReturnsAsync(Array.Empty<WorkflowEntity>());
+        _workflowService.Setup(service => service.UpdateWorkflowAsync(It.IsAny<WorkflowEntity>()))
+            .Returns(Task.CompletedTask);
+        _workflowService.Setup(service => service.AddStepAsync(It.IsAny<long>(), It.IsAny<WorkflowStepEntity>()))
+            .Returns(Task.CompletedTask);
+
+        return new WorkflowBuilderViewModel(
+            _workflowService.Object,
+            _workflowEngine.Object,
+            _modelManager.Object,
+            _documentService.Object);
+    }
+
+    [Fact]
+    public async Task SaveWorkflowAsync_updates_the_workflow_opened_for_editing_even_if_the_selection_moved()
+    {
+        var viewModel = CreateEditingViewModel(10);
+        await viewModel.EditWorkflowCommand.ExecuteAsync(10L);
+
+        // The list binds its selection two-way; a click elsewhere used to redirect the save.
+        viewModel.SelectedWorkflow = new WorkflowListItem { Id = 99, Name = "Someone else" };
+        viewModel.EditName = "Renamed";
+        await viewModel.SaveWorkflowCommand.ExecuteAsync(null);
+
+        _workflowService.Verify(service => service.UpdateWorkflowAsync(It.Is<WorkflowEntity>(w => w.Id == 10 && w.Name == "Renamed")), Times.Once);
+        _workflowService.Verify(service => service.GetWorkflowAsync(99), Times.Never);
+        _workflowService.Verify(service => service.AddStepAsync(10, It.IsAny<WorkflowStepEntity>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task SaveWorkflowAsync_keeps_each_steps_config_json()
+    {
+        const string config = "{\"transform\":\"lowercase\"}";
+        var viewModel = CreateEditingViewModel(11, configJson: config);
+        await viewModel.EditWorkflowCommand.ExecuteAsync(11L);
+
+        viewModel.EditSteps.Single().ConfigJson.Should().Be(config);
+        await viewModel.SaveWorkflowCommand.ExecuteAsync(null);
+
+        _workflowService.Verify(service => service.AddStepAsync(11, It.Is<WorkflowStepEntity>(step => step.ConfigJson == config)), Times.Once);
+    }
+
+    [Fact]
+    public async Task SaveWorkflowAsync_never_overwrites_a_built_in_workflow()
+    {
+        var viewModel = CreateEditingViewModel(12);
+        await viewModel.EditWorkflowCommand.ExecuteAsync(12L);
+
+        // The workflow turned out to be a built-in template by the time it is saved.
+        _workflowService.Setup(service => service.GetWorkflowAsync(12))
+            .ReturnsAsync(new WorkflowEntity { Id = 12, Name = "Research Brief", Category = "Research", IsBuiltIn = true });
+        _workflowService.Setup(service => service.CreateWorkflowAsync(It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()))
+            .ReturnsAsync(new WorkflowEntity { Id = 300, Name = "Workflow 12", Category = "Custom" });
+
+        await viewModel.SaveWorkflowCommand.ExecuteAsync(null);
+
+        _workflowService.Verify(service => service.UpdateWorkflowAsync(It.IsAny<WorkflowEntity>()), Times.Never);
+        _workflowService.Verify(service => service.AddStepAsync(300, It.IsAny<WorkflowStepEntity>()), Times.Once);
+        viewModel.StatusMessage.Should().Contain("was not changed");
+    }
+
+    [Fact]
+    public async Task Workflow_list_selection_is_locked_while_editing()
+    {
+        var viewModel = CreateEditingViewModel(13);
+        viewModel.CanChangeWorkflowSelection.Should().BeTrue();
+
+        await viewModel.EditWorkflowCommand.ExecuteAsync(13L);
+        viewModel.CanChangeWorkflowSelection.Should().BeFalse();
+
+        viewModel.CancelEditCommand.Execute(null);
+        viewModel.CanChangeWorkflowSelection.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task RunWorkflowAsync_reports_a_cancelled_run_as_cancelled_not_failed()
+    {
+        _workflowService.Setup(service => service.GetWorkflowAsync(77))
+            .ReturnsAsync(new WorkflowEntity { Id = 77, Name = "Wf", Steps = [new WorkflowStepEntity { Id = 1, Name = "S" }] });
+        _workflowService.Setup(service => service.GetAllWorkflowsAsync(It.IsAny<bool>()))
+            .ReturnsAsync(Array.Empty<WorkflowEntity>());
+        _workflowEngine.Setup(engine => engine.ExecuteWorkflowAsync(77, "in", It.IsAny<IProgress<WorkflowStepResult>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new WorkflowRunResult { WorkflowName = "Wf", Success = false, WasCancelled = true });
+
+        var viewModel = new WorkflowBuilderViewModel(
+            _workflowService.Object,
+            _workflowEngine.Object,
+            _modelManager.Object,
+            _documentService.Object)
+        {
+            RunInput = "in",
+        };
+
+        await viewModel.RunWorkflowCommand.ExecuteAsync(77L);
+
+        viewModel.StatusMessage.Should().Be("Workflow cancelled");
+        viewModel.RunErrorMessage.Should().Be("Cancelled by user");
+        viewModel.RunResultContextText.Should().Be("Showing the cancelled execution result");
+    }
+
+    // ---- Step settings editor ----
+
+    [Fact]
+    public void The_step_type_list_offers_every_type_the_engine_runs()
+    {
+        var viewModel = new WorkflowBuilderViewModel(
+            _workflowService.Object,
+            _workflowEngine.Object,
+            _modelManager.Object,
+            _documentService.Object);
+
+        viewModel.StepTypes.Should().Equal("AiPrompt", "DocumentLookup", "TextTransform", "ConditionalBranch", "OutputFormat");
+    }
+
+    [Fact]
+    public void The_settings_box_is_offered_for_the_step_types_that_read_settings()
+    {
+        var step = new WorkflowStepItem();
+        var changed = new List<string?>();
+        step.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+
+        step.HasSettings.Should().BeFalse();
+        step.ConfigExample.Should().BeEmpty();
+        step.ConfigHint.Should().BeEmpty();
+
+        step.StepType = "OutputFormat";
+
+        step.HasSettings.Should().BeTrue();
+        step.ConfigExample.Should().Be("{\"format\": \"bullet_list\"}");
+        step.ConfigHint.Should().Be(
+            "Optional. \"format\" is one of: json, markdown, html, bullet_list, numbered_list. \"prefix\" and \"suffix\" add text before and after the output.");
+        changed.Should().Contain(new[]
+        {
+            nameof(WorkflowStepItem.HasSettings),
+            nameof(WorkflowStepItem.ConfigExample),
+            nameof(WorkflowStepItem.ConfigHint),
+        });
+    }
+
+    [Fact]
+    public void Settings_are_checked_as_they_are_typed()
+    {
+        var step = new WorkflowStepItem { StepType = "TextTransform" };
+        var changed = new List<string?>();
+        step.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+
+        step.ConfigText = "{\"transform\": \"upper\"}";
+
+        step.ConfigJson.Should().Be("{\"transform\": \"upper\"}");
+        step.HasConfigError.Should().BeTrue();
+        step.ConfigError.Should().Be(
+            "\"transform\" cannot be \"upper\". Use one of: uppercase, lowercase, titlecase, trim, extract_lines, word_count, char_count, reverse_lines, deduplicate_lines, sort_lines, number_lines.");
+        changed.Should().Contain(new[]
+        {
+            nameof(WorkflowStepItem.ConfigText),
+            nameof(WorkflowStepItem.ConfigError),
+            nameof(WorkflowStepItem.HasConfigError),
+        });
+
+        step.ConfigText = "{\"transform\": \"uppercase\"}";
+
+        step.HasConfigError.Should().BeFalse();
+        step.ConfigError.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Changing_the_step_type_checks_the_settings_again()
+    {
+        var step = new WorkflowStepItem { StepType = "TextTransform", ConfigJson = "{\"transform\": \"lowercase\"}" };
+        step.HasConfigError.Should().BeFalse();
+
+        step.StepType = "ConditionalBranch";
+
+        step.HasConfigError.Should().BeTrue();
+        step.ConfigError.Should().StartWith("This step type has no setting named \"transform\"");
+
+        // A prompt step reads no settings, so what is left in them is not an error.
+        step.StepType = "AiPrompt";
+
+        step.HasSettings.Should().BeFalse();
+        step.HasConfigError.Should().BeFalse();
+        step.ConfigError.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void A_new_conditional_branch_says_it_needs_settings()
+    {
+        var step = new WorkflowStepItem { StepType = "ConditionalBranch" };
+
+        step.ConfigText.Should().BeEmpty();
+        step.HasConfigError.Should().BeTrue();
+        step.ConfigError.Should().Be("This step type needs settings. The empty box shows an example to start from.");
+    }
+
+    [Theory]
+    [InlineData("ConditionalBranch", "")]
+    [InlineData("DocumentLookup", "{\"collectionId\": 3,}")]
+    [InlineData("DocumentLookup", "[3]")]
+    [InlineData("DocumentLookup", "{\"collection\": 3}")]
+    [InlineData("TextTransform", "{\"transform\": 1}")]
+    [InlineData("DocumentLookup", "{\"collectionId\": \"3\"}")]
+    [InlineData("OutputFormat", "{\"format\": \"table\"}")]
+    [InlineData("ConditionalBranch", "{\"condition\": \"matches\", \"value\": \"(\"}")]
+    public void Settings_texts_without_a_localization_service_match_the_English_resources(string stepType, string configJson)
+    {
+        var fallback = new WorkflowStepItem { StepType = stepType, ConfigJson = configJson };
+        var resources = new WorkflowStepItem(EnglishResources()) { StepType = stepType, ConfigJson = configJson };
+
+        fallback.HasConfigError.Should().BeTrue();
+        fallback.ConfigError.Should().NotBeEmpty().And.Be(resources.ConfigError);
+        fallback.ConfigHint.Should().NotBeEmpty().And.Be(resources.ConfigHint);
+    }
+
+    [Fact]
+    public void Steps_use_the_view_models_localization_and_fall_back_to_English_for_a_missing_resource()
+    {
+        var localization = new Mock<ILocalizationService>();
+        // The service answers a resource it does not have with the key itself.
+        localization.Setup(service => service.GetString(It.IsAny<string>()))
+            .Returns((string key) => key);
+        localization.Setup(service => service.GetString(It.IsAny<string>(), It.IsAny<object[]>()))
+            .Returns((string key, object[] _) => key);
+        localization.Setup(service => service.GetString("WfBuilder_StepSettingsNotText", It.IsAny<object[]>()))
+            .Returns((string _, object[] args) => $"L10N {args[0]}");
+
+        var viewModel = new WorkflowBuilderViewModel(
+            _workflowService.Object,
+            _workflowEngine.Object,
+            _modelManager.Object,
+            _documentService.Object,
+            localization: localization.Object);
+        viewModel.CreateWorkflowCommand.Execute(null);
+        viewModel.AddStepCommand.Execute(null);
+
+        var step = viewModel.EditSteps.Last();
+        step.StepType = "OutputFormat";
+        step.ConfigText = "{\"suffix\": 2}";
+
+        step.ConfigError.Should().Be("L10N suffix");
+        step.ConfigHint.Should().StartWith("Optional. \"format\" is one of: json,");
+    }
+
+    [Fact]
+    public async Task SaveWorkflowAsync_refuses_settings_the_engine_cannot_use_until_they_are_fixed()
+    {
+        var viewModel = CreateEditingViewModel(14, configJson: "{\"transform\": \"shout\"}");
+        await viewModel.EditWorkflowCommand.ExecuteAsync(14L);
+        viewModel.EditSteps.Single().HasConfigError.Should().BeTrue();
+
+        await viewModel.SaveWorkflowCommand.ExecuteAsync(null);
+
+        _workflowService.Verify(service => service.UpdateWorkflowAsync(It.IsAny<WorkflowEntity>()), Times.Never);
+        _workflowService.Verify(service => service.AddStepAsync(It.IsAny<long>(), It.IsAny<WorkflowStepEntity>()), Times.Never);
+        viewModel.IsEditing.Should().BeTrue();
+        viewModel.StatusMessage.Should().Be("Step 1 has settings that cannot be used. Fix them before saving the workflow.");
+
+        viewModel.EditSteps.Single().ConfigText = "{\"transform\": \"uppercase\"}";
+        await viewModel.SaveWorkflowCommand.ExecuteAsync(null);
+
+        _workflowService.Verify(
+            service => service.AddStepAsync(14, It.Is<WorkflowStepEntity>(step => step.ConfigJson == "{\"transform\": \"uppercase\"}")),
+            Times.Once);
+        viewModel.IsEditing.Should().BeFalse();
+    }
+
+    [Fact]
+    public void The_save_refusal_matches_its_English_resource()
+    {
+        var english = EnglishResources().GetString("WfBuilder_FixStepSettings", 1);
+
+        english.Should().Be("Step 1 has settings that cannot be used. Fix them before saving the workflow.");
+    }
+
+    // ---- Page messages in the UI language ----
+
+    /// <summary>
+    /// A resource lookup followed by the resource key and the English the view model shows
+    /// when it has no localization service.
+    /// </summary>
+    private static readonly Regex FallbackPair = new(
+        @"Resolve\(\s*_?localization\?\.GetString\(\s*""(?<key>\w+)""(?:[^()]|\([^()]*\))*\)\s*,\s*""(?<key2>\w+)""\s*,\s*""(?<english>(?:[^""\\]|\\.)*)""");
+
+    [Fact]
+    public void Every_English_fallback_matches_its_en_US_resource()
+    {
+        // Without a localization service the page shows the English written next to each
+        // resource key. That text must be the en-US resource, or the page would read
+        // differently depending on whether the service was supplied.
+        var source = File.ReadAllText(
+            Path.Combine(ResolveSourceRoot(), "AgentX.App", "ViewModels", "WorkflowBuilderViewModel.cs"));
+        var english = EnglishResources();
+
+        var pairs = FallbackPair.Matches(source);
+
+        pairs.Count.Should().Be(Regex.Matches(source, @"GetString\(\s*""WfBuilder_").Count,
+            "every workflow builder resource lookup has an English fallback");
+        foreach (System.Text.RegularExpressions.Match pair in pairs)
+        {
+            var key = pair.Groups["key"].Value;
+            pair.Groups["key2"].Value.Should().Be(key, "a fallback belongs to the resource it replaces");
+            english.GetString(key).Should().Be(Regex.Unescape(pair.Groups["english"].Value), $"{key} falls back to its en-US text");
+        }
+    }
+
+    [Fact]
+    public void Run_history_items_name_the_status_and_counts_in_the_UI_language()
+    {
+        var single = new WorkflowRunHistoryDisplayItem(
+            new WorkflowRunHistoryItem { RunId = 1, Status = "cancelled", StepsCompleted = 0, TotalSteps = 1, TotalTokensUsed = 1 },
+            EnglishResources());
+        var several = new WorkflowRunHistoryDisplayItem(
+            new WorkflowRunHistoryItem { RunId = 2, Status = "completed", StepsCompleted = 2, TotalSteps = 3, TotalTokensUsed = 180, DurationMs = 42 });
+
+        single.StatusText.Should().Be("Cancelled");
+        single.DetailText.Should().Be("0/1 step | 1 token");
+        several.StatusText.Should().Be("Completed");
+        several.DetailText.Should().Be("2/3 steps | 180 tokens | 42 ms");
+    }
+
+    [Fact]
+    public void A_new_workflow_and_its_steps_take_their_default_names_from_the_resources()
+    {
+        var localization = new Mock<ILocalizationService>();
+        localization.Setup(service => service.GetString(It.IsAny<string>())).Returns((string key) => key);
+        localization.Setup(service => service.GetString(It.IsAny<string>(), It.IsAny<object[]>()))
+            .Returns((string key, object[] _) => key);
+        localization.Setup(service => service.GetString("WfBuilder_NewWorkflowName")).Returns("Neuer Workflow");
+        localization.Setup(service => service.GetString("WfBuilder_DefaultStepName", It.IsAny<object[]>()))
+            .Returns((string _, object[] args) => $"Schritt {args[0]}");
+        var viewModel = new WorkflowBuilderViewModel(
+            _workflowService.Object,
+            _workflowEngine.Object,
+            _modelManager.Object,
+            _documentService.Object,
+            localization: localization.Object);
+
+        viewModel.CreateWorkflowCommand.Execute(null);
+        viewModel.AddStepCommand.Execute(null);
+
+        viewModel.EditName.Should().Be("Neuer Workflow");
+        viewModel.EditSteps.Select(step => step.Name).Should().Equal("Schritt 1", "Schritt 2");
+        viewModel.EditCategory.Should().Be("Custom", "the category is a stored value, not display text");
+    }
+
+    [Fact]
+    public void Template_guides_come_from_the_resources()
+    {
+        _workflowService.Setup(service => service.GetRecentRunsAsync(1, 8, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<WorkflowRunHistoryItem>());
+        var viewModel = new WorkflowBuilderViewModel(
+            _workflowService.Object,
+            _workflowEngine.Object,
+            _modelManager.Object,
+            _documentService.Object,
+            localization: EnglishResources());
+        viewModel.Workflows.Add(new WorkflowListItem { Id = 1, Name = "Document Review", Category = "Writing", IsBuiltIn = true });
+
+        viewModel.SelectTemplateCommand.Execute(1L);
+
+        viewModel.SelectedTemplateGuideSummary.Should().StartWith("Review a document, surface what is working");
+        viewModel.SelectedTemplateGuideExamples.Should().HaveCount(3);
+        viewModel.WorkflowStarterTemplates.Single().BestFor.Should().StartWith("Draft proposals, client documents");
+        viewModel.StatusMessage.Should().Be("Selected template \"Document Review\"");
+    }
+
+    [Fact]
+    public async Task Categories_are_shown_in_the_UI_language_while_the_stored_value_stays()
+    {
+        // The workflow list, the template cards and the editor dropdown showed the stored
+        // category ("Research") in every language.
+        _workflowService.Setup(service => service.SeedBuiltInWorkflowsAsync())
+            .Returns(Task.CompletedTask);
+        _workflowService.Setup(service => service.GetAllWorkflowsAsync(It.IsAny<bool>()))
+            .ReturnsAsync(
+            [
+                new WorkflowEntity { Id = 42, Name = "Market Scan", Category = "Research", IsBuiltIn = true },
+                new WorkflowEntity { Id = 43, Name = "Imported", Category = "Marketing" }
+            ]);
+        _modelManager.Setup(service => service.GetAvailableModelsAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<AiModel>());
+        var german = AgentX.Tests.Helpers.ReswLocalization.For("de");
+        var viewModel = new WorkflowBuilderViewModel(
+            _workflowService.Object,
+            _workflowEngine.Object,
+            _modelManager.Object,
+            _documentService.Object,
+            localization: german);
+
+        await viewModel.InitializeAsync();
+
+        var research = german.GetString("WfBuilder_CategoryResearch");
+        research.Should().NotBe("Research").And.NotBe("WfBuilder_CategoryResearch");
+        viewModel.Workflows.Select(workflow => workflow.CategoryLabel).Should().Equal(research, "Marketing");
+        viewModel.Workflows.Select(workflow => workflow.Category).Should().Equal("Research", "Marketing");
+
+        var template = viewModel.WorkflowStarterTemplates.Single();
+        template.Category.Should().Be("Research");
+        template.CategoryLabel.Should().Be(research);
+        template.BestFor.Should().Be(research, "a template without a guide names its category");
+
+        viewModel.CategoryOptions.Should().Equal(
+            german.GetString("WfBuilder_CategoryCustom"),
+            research,
+            german.GetString("WfBuilder_CategoryWriting"),
+            german.GetString("WfBuilder_CategoryAnalysis"),
+            german.GetString("WfBuilder_CategoryProductivity"));
+    }
+
+    [Fact]
+    public void Category_dropdown_selects_by_index_so_the_stored_category_stays_English()
+    {
+        // The dropdown bound the stored value itself, so it could only list the English names.
+        var viewModel = new WorkflowBuilderViewModel(
+            _workflowService.Object,
+            _workflowEngine.Object,
+            _modelManager.Object,
+            _documentService.Object);
+        var changed = new List<string?>();
+        viewModel.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+
+        viewModel.CategoryOptions.Should().Equal("Custom", "Research", "Writing", "Analysis", "Productivity");
+        viewModel.SelectedCategoryIndex.Should().Be(0);
+
+        viewModel.SelectedCategoryIndex = 3;
+
+        viewModel.EditCategory.Should().Be("Analysis");
+        changed.Should().Contain(nameof(WorkflowBuilderViewModel.SelectedCategoryIndex));
+
+        viewModel.EditCategory = "Marketing";
+        viewModel.SelectedCategoryIndex.Should().Be(-1);
+
+        viewModel.SelectedCategoryIndex = -1;
+
+        viewModel.EditCategory.Should().Be("Marketing", "a category the dropdown does not offer stays as stored");
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("  \n ")]
+    public async Task SaveWorkflowAsync_saves_a_cleared_settings_box_as_no_settings(string cleared)
+    {
+        var viewModel = CreateEditingViewModel(15, configJson: "{\"transform\":\"lowercase\"}");
+        await viewModel.EditWorkflowCommand.ExecuteAsync(15L);
+
+        viewModel.EditSteps.Single().ConfigText = cleared;
+        await viewModel.SaveWorkflowCommand.ExecuteAsync(null);
+
+        _workflowService.Verify(
+            service => service.AddStepAsync(15, It.Is<WorkflowStepEntity>(step => step.ConfigJson == null)),
+            Times.Once);
+    }
+
+    /// <summary>A localization service serving the en-US resources the app ships.</summary>
+    private static ILocalizationService EnglishResources()
+    {
+        var resw = Path.Combine(ResolveSourceRoot(), "AgentX.App", "Strings", "en-US", "Resources.resw");
+        var values = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var data in XDocument.Load(resw).Root!.Elements("data"))
+        {
+            values[(string)data.Attribute("name")!] = (string?)data.Element("value") ?? string.Empty;
+        }
+
+        return new LocalizationService(
+            Mock.Of<ISettingsService>(),
+            Mock.Of<IPluralRuleProvider>(),
+            new DictionaryResourceLoader(values));
+    }
+
+    private static string ResolveSourceRoot()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null)
+        {
+            var candidate = Path.Combine(directory.FullName, "src");
+            if (Directory.Exists(Path.Combine(candidate, "AgentX.App")) &&
+                Directory.Exists(Path.Combine(candidate, "AgentX.Core")))
+            {
+                return candidate;
+            }
+
+            directory = directory.Parent;
+        }
+
+        throw new DirectoryNotFoundException("Could not locate Agent-X source root from test output directory.");
+    }
+
+    /// <summary>Serves resources from a dictionary, answering a missing one with null as MRT Core does.</summary>
+    private sealed class DictionaryResourceLoader : IResourceLoaderAdapter
+    {
+        private readonly IReadOnlyDictionary<string, string> _values;
+
+        public DictionaryResourceLoader(IReadOnlyDictionary<string, string> values) => _values = values;
+
+        public void SetLanguageOverride(string? languageCode)
+        {
+        }
+
+        public string GetActiveLanguage() => "en-US";
+
+        public void Initialize()
+        {
+        }
+
+        public string? GetString(string key) => _values.TryGetValue(key, out var value) ? value : null;
     }
 }

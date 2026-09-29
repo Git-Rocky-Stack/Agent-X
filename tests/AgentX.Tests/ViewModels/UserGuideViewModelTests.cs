@@ -67,7 +67,7 @@ public class UserGuideViewModelTests
             "InsightHarvestingTemplate",
             "WeeklyDigestTemplate",
             "AnalyticsTemplate",
-            // Automation (on-demand pipelines only — no scheduler/rule engine exists)
+            // Automation (on-demand pipelines only - no scheduler/rule engine exists)
             "WorkflowsTemplate",
             // Configuration
             "ModelManagerTemplate",

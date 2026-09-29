@@ -9,7 +9,7 @@ namespace AgentX.Core.Services.Plugins.Email;
 /// <summary>
 /// Orchestrates email sync cycles: fetches messages from all registered providers,
 /// converts them into inbox items via <see cref="EmailTriageProcessor"/>,
-/// and pushes them into the Smart Inbox via <see cref="IInboxService.TriageExternalAsync"/>.
+/// and pushes them into the Smart Inbox via <see cref="IInboxService.UpsertExternalAsync"/>.
 /// </summary>
 public sealed class EmailSyncService
 {
@@ -74,7 +74,7 @@ public sealed class EmailSyncService
 
                 if (enabledFolderIds.Count == 0)
                 {
-                    _log.Debug("No enabled folders for provider {ProviderId} — skipping", provider.ProviderId);
+                    _log.Debug("No enabled folders for provider {ProviderId} - skipping", provider.ProviderId);
                     continue;
                 }
 
@@ -90,9 +90,16 @@ public sealed class EmailSyncService
                     var deltaKey = $"{provider.ProviderId}:{folder.Id}";
                     var existingDeltaToken = deltaTokens.GetValueOrDefault(deltaKey);
 
+                    // "Sync days back" bounds the first (full) read of a folder; incremental
+                    // reads return whatever changed since the stored token.
+                    DateTime? receivedAfterUtc = settings.SyncDaysBack > 0
+                        ? DateTime.UtcNow.AddDays(-settings.SyncDaysBack)
+                        : null;
+
                     var (messages, newDeltaToken) = await provider.GetMessagesAsync(
                         folder.Id, settings.MaxMessagesPerSync,
                         deltaToken: existingDeltaToken,
+                        receivedAfterUtc: receivedAfterUtc,
                         cancellationToken: cancellationToken)
                         .ConfigureAwait(false);
 
@@ -107,20 +114,20 @@ public sealed class EmailSyncService
                         {
                             var (fileName, fileType, sourceType, sourceUrl,
                                  sourcePluginId, sourceCategory, externalId,
-                                 contentPreview, contentText) = _processor.ConvertToInboxParameters(email);
+                                 contentPreview, contentText) = _processor.ConvertToInboxParameters(email, settings);
 
-                            var inboxItem = await _inboxService.TriageExternalAsync(
+
+                            var triage = await _inboxService.UpsertExternalAsync(
                                 fileName, fileType, sourceType, sourceUrl,
                                 sourcePluginId, sourceCategory, externalId,
                                 contentPreview, contentText).ConfigureAwait(false);
 
-                            if (inboxItem.ProcessedAt == inboxItem.AddedAt || inboxItem.AddedAt < startedAt.AddSeconds(-1))
+                            // The inbox reports what it did, so counts never depend on timestamps.
+                            switch (triage.Outcome)
                             {
-                                totalSkipped++;
-                            }
-                            else
-                            {
-                                totalAdded++;
+                                case ExternalTriageOutcome.Created: totalAdded++; break;
+                                case ExternalTriageOutcome.Updated: totalUpdated++; break;
+                                default: totalSkipped++; break;
                             }
                         }
                         catch (Exception ex) when (ex is not OperationCanceledException)
@@ -175,7 +182,7 @@ public sealed class EmailSyncService
         return result;
     }
 
-    // ── Private: delta token persistence ────────────────────────────────────────
+    // -- Private: delta token persistence ----------------------------------------
 
     private async Task<Dictionary<string, string>> LoadDeltaTokensAsync()
     {
@@ -192,7 +199,7 @@ public sealed class EmailSyncService
         }
         catch (Exception ex)
         {
-            _log.Warning(ex, "Failed to load email delta tokens from {Path} — starting fresh", path);
+            _log.Warning(ex, "Failed to load email delta tokens from {Path} - starting fresh", path);
             return new Dictionary<string, string>();
         }
     }

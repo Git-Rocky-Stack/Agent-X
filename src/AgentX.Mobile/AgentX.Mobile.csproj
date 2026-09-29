@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <!-- iOS is excluded on Linux so the Android CI job (which can only install the maui-android
-         workload — the full `maui` workload is unsupported on Linux) restores cleanly without a
+         workload - the full `maui` workload is unsupported on Linux) restores cleanly without a
          -p:TargetFrameworks override, which would disable the MAUI SDK's implicit framework
          references (UseMaui() etc.). iOS still builds on Windows/macOS. AX-QA-004. -->
     <TargetFrameworks>net8.0-android</TargetFrameworks>
@@ -27,7 +27,7 @@
          longer auto-includes it from <UseMaui>true</UseMaui> and emits warning MA002 when it is absent
          (`dotnet new maui` carries it too). Version 8.0.100 matches the maui-android workload band
          pinned by global.json (SDK 8.0.4xx). HISTORICAL NOTE (AX-QA-004): the earlier net8.0-android
-         build break was NOT a missing-reference problem — Microsoft.Maui.Controls.dll was always
+         build break was NOT a missing-reference problem - Microsoft.Maui.Controls.dll was always
          resolved and Microsoft.Maui.Hosting was a global using. The defect was a wrong-API call in
          MauiProgram.cs: a non-existent parameterless `.UseMaui()`. The correct user-facing bootstrap is
          `.UseMauiApp<App>()` (it invokes the internal UseMaui for you). -->
@@ -45,6 +45,12 @@
   <ItemGroup>
     <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#6366F1" />
     <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#FFFFFF" BaseSize="128,128" />
+  </ItemGroup>
+
+  <!-- Tab bar icons referenced by AppShell.xaml (tab_*.png). MAUI has no default glob for images:
+       each single-color 24x24 SVG here is rendered by the resizetizer to a PNG of the same name. -->
+  <ItemGroup>
+    <MauiImage Include="Resources\Images\*.svg" />
   </ItemGroup>
 
   <!-- MAUI resource inclusions -->

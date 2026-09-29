@@ -105,7 +105,7 @@ public static class FileTypeHelper
         return DisplayNames.GetValueOrDefault(ext, $"{ext.TrimStart('.').ToUpperInvariant()} File");
     }
 
-    // ── Private Helpers ─────────────────────────────────────────────────────
+    // -- Private Helpers -----------------------------------------------------
 
     /// <summary>
     /// Normalizes an extension to lowercase with a leading dot.
@@ -118,7 +118,7 @@ public static class FileTypeHelper
         return ext;
     }
 
-    // ── MIME Type Mappings ──────────────────────────────────────────────────
+    // -- MIME Type Mappings --------------------------------------------------
 
     private static readonly Dictionary<string, string> MimeTypes = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -175,7 +175,7 @@ public static class FileTypeHelper
         [".xaml"] = "application/xaml+xml",
     };
 
-    // ── Icon Glyph Mappings (Segoe Fluent Icons) ───────────────────────────
+    // -- Icon Glyph Mappings (Segoe Fluent Icons) ---------------------------
 
     private static readonly Dictionary<string, string> IconGlyphs = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -204,7 +204,7 @@ public static class FileTypeHelper
         [".bmp"] = "\uEB9F",        // Photo
         [".tiff"] = "\uEB9F",       // Photo
 
-        // Code — all get the Code glyph
+        // Code - all get the Code glyph
         [".cs"] = "\uE943",
         [".js"] = "\uE943",
         [".ts"] = "\uE943",
@@ -232,7 +232,7 @@ public static class FileTypeHelper
         [".xaml"] = "\uE943",
     };
 
-    // ── Display Name Mappings ──────────────────────────────────────────────
+    // -- Display Name Mappings ----------------------------------------------
 
     private static readonly Dictionary<string, string> DisplayNames = new(StringComparer.OrdinalIgnoreCase)
     {

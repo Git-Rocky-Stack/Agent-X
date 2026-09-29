@@ -3,6 +3,8 @@ using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
 using AgentX.Core.AI.Routing;
 using AgentX.Core.Services.Api;
+using AgentX.Core.Services.Indexing;
+using AgentX.Core.Services.Localization;
 using AgentX.Core.Services.Search;
 using AgentX.Core.Services.Security;
 using AgentX.Core.Services.Settings;
@@ -20,91 +22,148 @@ public partial class SettingsViewModel : ObservableObject
     private readonly IThemeService _themeService;
     private readonly ISecurityStatusService _securityStatusService;
     private readonly IModelRouterService? _modelRouterService;
-    private readonly IDatabaseKeyService _databaseKeyService;
-    private readonly IDatabaseEncryptionMigrator _databaseEncryptionMigrator;
-    private readonly IDatabaseKeyProvider _databaseKeyProvider;
     private readonly IEncryptionStateFile _encryptionStateFile;
+    private readonly IApiHostLifecycleService _apiHostLifecycle;
+    private readonly ILocalizationService _localization;
+    private readonly IDatabaseEncryptionManager? _databaseEncryptionManager;
+    private bool _encryptionChangeInFlight;
 
-    // ── Active Provider ──────────────────────────────────────
+    // -- Active Provider --------------------------------------
     [ObservableProperty] private int _activeProviderIndex;
-    [ObservableProperty] private string _activeProviderId = "ollama";
+    [ObservableProperty] private string _activeProviderId = "local";
 
-    // ── Ollama ────────────────────────────────────────────────
+    /// <summary>The Built-in LLM block: GPU layers of the built-in model.</summary>
+    public BuiltInModelSettingsViewModel BuiltInModel { get; } = new();
+
+    // -- Ollama ------------------------------------------------
     [ObservableProperty] private string _ollamaEndpoint = "http://localhost:11434";
     [ObservableProperty] private string _defaultModel = "llama3.2";
     [ObservableProperty] private string _embeddingModel = "all-minilm";
     [ObservableProperty] private string _storagePath = string.Empty;
     [ObservableProperty] private string _ollamaConnectionStatus = string.Empty;
 
-    // ── OpenAI ────────────────────────────────────────────────
+    // -- OpenAI ------------------------------------------------
     [ObservableProperty] private string _openAiApiKey = string.Empty;
     [ObservableProperty] private string _openAiEndpoint = "https://api.openai.com/v1/";
     [ObservableProperty] private string _openAiDefaultModel = "gpt-4o-mini";
     [ObservableProperty] private string _openAiConnectionStatus = string.Empty;
 
-    // ── Anthropic ─────────────────────────────────────────────
+    // -- Anthropic ---------------------------------------------
     [ObservableProperty] private string _anthropicApiKey = string.Empty;
     [ObservableProperty] private string _anthropicEndpoint = "https://api.anthropic.com/v1/";
-    [ObservableProperty] private string _anthropicDefaultModel = "claude-sonnet-4-20250514";
+    [ObservableProperty] private string _anthropicDefaultModel = AgentX.Core.AI.Providers.AnthropicProvider.DefaultModelId;
     [ObservableProperty] private string _anthropicConnectionStatus = string.Empty;
 
-    // ── Inference ───────────────────────────────────────────
+    // -- Inference -------------------------------------------
     [ObservableProperty] private double _temperature = 0.7;
     [ObservableProperty] private int _maxTokens = 4096;
     [ObservableProperty] private int _contextWindow = 8192;
 
-    // ── Indexing ────────────────────────────────────────────
+    // -- Indexing --------------------------------------------
     [ObservableProperty] private int _chunkSize = 512;
     [ObservableProperty] private int _chunkOverlap = 50;
     [ObservableProperty] private int _topKResults = 5;
     [ObservableProperty] private bool _autoIndexWatchFolders = true;
 
-    // ── Appearance ──────────────────────────────────────────
+    /// <summary>The Watch Folders section next to the Auto-index watch folders switch.</summary>
+    public WatchFolderSettingsViewModel WatchFolders { get; }
+
+    // -- Appearance ------------------------------------------
     [ObservableProperty] private bool _compactMode;
     [ObservableProperty] private int _themeIndex;
 
-    // ── Cost Tracking ────────────────────────────────────────
+    // Index into LanguageOptions: 0 follows Windows, then SupportedLanguages in order.
+    [ObservableProperty] private int _languageIndex;
+    private bool _loadingLanguage;
+
+    // -- Cost Tracking ----------------------------------------
     [ObservableProperty] private string _totalCostDisplay = "$0.00";
     [ObservableProperty] private string _todayCostDisplay = "$0.00";
     [ObservableProperty] private string _totalTokensDisplay = "0";
 
-    // ── Security Status ────────────────────────────────────
+    // -- Security Status ------------------------------------
     [ObservableProperty] private bool _areKeysEncrypted;
     [ObservableProperty] private string _encryptionStatusDescription = string.Empty;
 
-    // ── Database Encryption ───────────────────────────────────
+    // -- Database Encryption -----------------------------------
     [ObservableProperty] private bool _encryptionEnabled;
     [ObservableProperty] private string _encryptionStatus = string.Empty;
 
-    // ── Multi-Model Routing ──────────────────────────────
+    // -- Multi-Model Routing ------------------------------
     [ObservableProperty] private bool _enableModelRouting;
     [ObservableProperty] private string _activeRoutingProfileId = "balanced";
     [ObservableProperty] private int _routingProfileIndex;
 
-    // ── Deep Research Mode ──────────────────────────────
+    // -- Deep Research Mode ------------------------------
     [ObservableProperty] private bool _enableResearchMode;
-    [ObservableProperty] private WebSearchProvider _selectedWebSearchProvider = WebSearchProvider.Brave;
+
+    /// <summary>
+    /// Index into <see cref="WebSearchProviderOptions"/>; -1 shows a saved provider that is not
+    /// listed, which saving keeps (see <see cref="WebSearchProviderChoices"/>).
+    /// </summary>
+    [ObservableProperty] private int _webSearchProviderIndex = WebSearchProviderChoices.IndexOf(WebSearchProvider.Brave);
     [ObservableProperty] private string? _webSearchApiKey;
     [ObservableProperty] private int _maxSearchResults = 10;
     [ObservableProperty] private int _searchCacheTtlMinutes = 60;
 
-    public IReadOnlyList<WebSearchProvider> WebSearchProviders { get; }
-        = Enum.GetValues<WebSearchProvider>().ToList();
+    /// <summary>
+    /// Search provider names for the ComboBox items, in <see cref="WebSearchProviderChoices"/>
+    /// order: Brave, Serper and SearXNG, product names that are not translated. The provider is
+    /// saved as its enum value, so the names never reach the settings.
+    /// </summary>
+    public IReadOnlyList<string> WebSearchProviderOptions { get; } = WebSearchProviderChoices.DisplayNames;
 
-    // ── Local REST API (browser extension) ───────────────
+    // Screen Awareness: Quick Chat adds the text of the window in front to a question, read with
+    // Windows OCR by ScreenCaptureService, only while this is on. Off by default.
+    [ObservableProperty] private bool _enableScreenAwareness;
+
+    // -- Local REST API (browser extension) ---------------
     [ObservableProperty] private bool _localApiEnabled = true;
-    [ObservableProperty] private string _localApiToken = string.Empty;
 
-    // ── App Info ────────────────────────────────────────────
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(LocalApiTokenDisplay))]
+    private string _localApiToken = string.Empty;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(LocalApiTokenDisplay))]
+    private bool _isApiTokenRevealed;
+
+    /// <summary>
+    /// The token as the Settings page shows it: a fixed-length mask unless the user reveals it, so
+    /// the secret is not on screen (or in a screenshot) by default. The mask length does not
+    /// follow the token length. Copy always copies the real token.
+    /// </summary>
+    public string LocalApiTokenDisplay =>
+        IsApiTokenRevealed || string.IsNullOrEmpty(LocalApiToken) ? LocalApiToken : ApiTokenMask;
+
+    /// <summary>Mask glyph matches the PasswordBox default (U+25CF BLACK CIRCLE).</summary>
+    private static readonly string ApiTokenMask = new((char)0x25CF, 24);
+
+    // -- App Info --------------------------------------------
     // Single source (assembly version) instead of a hardcoded string (AX-QA-014).
     [ObservableProperty] private string _appVersion = AgentX.Core.AppVersionInfo.Display;
 
+    // Save outcome: the settings service rejects invalid values (for example a chunk overlap
+    // that is not smaller than the chunk size) and writes nothing, so the page must say why.
+    [ObservableProperty] private bool _hasSaveError;
+    [ObservableProperty] private string _saveErrorMessage = string.Empty;
+
     /// <summary>
-    /// Provider display names for the ComboBox items.
-    /// Order must match the index mapping in ProviderIndexToId / ProviderIdToIndex.
+    /// Provider display names for the ComboBox items, in <see cref="ProviderChoices"/> order
+    /// (the built-in model first, since it is the default provider).
     /// </summary>
-    public List<string> ProviderOptions { get; } = new() { "Ollama (Local)", "OpenAI", "Anthropic Claude" };
-    public List<string> ThemeOptions { get; } = new() { "Dark", "Light", "System Default" };
+    public List<string> ProviderOptions { get; } = ProviderChoices.DisplayNames.ToList();
+
+    /// <summary>
+    /// Theme names in the user's language, in <see cref="ThemeIndex"/> order (Dark, Light,
+    /// System Default). The theme is saved by index, so the names never reach the settings.
+    /// </summary>
+    public List<string> ThemeOptions { get; }
+
+    /// <summary>
+    /// UI language choices: "Windows default" first, then each shipped language in its own name.
+    /// </summary>
+    public List<string> LanguageOptions { get; }
 
     /// <summary>
     /// Routing profile display names for the ComboBox. Order must match RoutingProfileIndexToId.
@@ -118,22 +177,32 @@ public partial class SettingsViewModel : ObservableObject
         ICostTracker costTracker,
         IThemeService themeService,
         ISecurityStatusService securityStatusService,
-        IDatabaseKeyService databaseKeyService,
-        IDatabaseEncryptionMigrator databaseEncryptionMigrator,
-        IDatabaseKeyProvider databaseKeyProvider,
         IEncryptionStateFile encryptionStateFile,
-        IModelRouterService? modelRouterService = null)
+        IApiHostLifecycleService apiHostLifecycle,
+        IFileWatcherService fileWatcherService,
+        ILocalizationService localization,
+        IModelRouterService? modelRouterService = null,
+        IDatabaseEncryptionManager? databaseEncryptionManager = null)
     {
         _settingsService = settingsService;
         _aiService = aiService;
         _costTracker = costTracker;
         _themeService = themeService;
         _securityStatusService = securityStatusService;
-        _databaseKeyService = databaseKeyService;
-        _databaseEncryptionMigrator = databaseEncryptionMigrator;
-        _databaseKeyProvider = databaseKeyProvider;
         _encryptionStateFile = encryptionStateFile;
+        _apiHostLifecycle = apiHostLifecycle;
         _modelRouterService = modelRouterService;
+        _databaseEncryptionManager = databaseEncryptionManager;
+        _localization = localization;
+        ThemeOptions = new List<string>
+        {
+            localization.GetString("Settings_ThemeDark"),
+            localization.GetString("Settings_ThemeLight"),
+            localization.GetString("Settings_ThemeSystemDefault")
+        };
+        LanguageOptions = new List<string> { localization.GetString("Settings_LanguageWindowsDefault") };
+        LanguageOptions.AddRange(localization.SupportedLanguages.Select(l => l.NativeName));
+        WatchFolders = new WatchFolderSettingsViewModel(fileWatcherService, settingsService, localization);
 
         StoragePath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -147,9 +216,13 @@ public partial class SettingsViewModel : ObservableObject
         var settings = await _settingsService.GetSettingsAsync();
         if (settings != null)
         {
-            // Provider settings
-            ActiveProviderId = settings.ActiveProviderId ?? "ollama";
-            ActiveProviderIndex = ProviderIdToIndex(ActiveProviderId);
+            // Provider settings. An id that is not in the picker shows as no selection and is
+            // saved back unchanged (see ProviderChoices).
+            ActiveProviderId = string.IsNullOrWhiteSpace(settings.ActiveProviderId) ? "local" : settings.ActiveProviderId;
+            ActiveProviderIndex = ProviderChoices.IndexOf(ActiveProviderId);
+
+            // Built-in LLM
+            BuiltInModel.Load(settings);
 
             // Ollama
             OllamaEndpoint = settings.OllamaEndpoint;
@@ -164,7 +237,7 @@ public partial class SettingsViewModel : ObservableObject
             // Anthropic
             AnthropicApiKey = settings.AnthropicApiKey ?? string.Empty;
             AnthropicEndpoint = settings.AnthropicEndpoint;
-            AnthropicDefaultModel = settings.AnthropicDefaultModel ?? "claude-sonnet-4-20250514";
+            AnthropicDefaultModel = settings.AnthropicDefaultModel ?? AgentX.Core.AI.Providers.AnthropicProvider.DefaultModelId;
 
             // Inference
             Temperature = settings.Temperature;
@@ -184,10 +257,13 @@ public partial class SettingsViewModel : ObservableObject
 
             // Deep Research Mode
             EnableResearchMode = settings.EnableResearchMode;
-            SelectedWebSearchProvider = settings.WebSearchProvider;
+            WebSearchProviderIndex = WebSearchProviderChoices.IndexOf(settings.WebSearchProvider);
             WebSearchApiKey = settings.WebSearchApiKey;
             MaxSearchResults = settings.MaxSearchResults;
             SearchCacheTtlMinutes = settings.SearchCacheTtlMinutes;
+
+            // Screen Awareness
+            EnableScreenAwareness = settings.EnableScreenAwareness;
 
             // Local REST API (browser extension)
             LocalApiEnabled = settings.LocalApiEnabled;
@@ -205,9 +281,17 @@ public partial class SettingsViewModel : ObservableObject
             _ => 2
         };
 
+        // Load the saved UI language without saving it straight back
+        _loadingLanguage = true;
+        LanguageIndex = IndexOfLanguage(settings?.LanguageOverride);
+        _loadingLanguage = false;
+
         // Load security status
         AreKeysEncrypted = _securityStatusService.AreKeysEncrypted;
         EncryptionStatusDescription = _securityStatusService.GetEncryptionStatusDescription();
+
+        // Watch folders and the saved state of their switch
+        await WatchFolders.LoadAsync();
 
         Log.Information("Settings loaded");
     }
@@ -219,11 +303,15 @@ public partial class SettingsViewModel : ObservableObject
         // (e.g. OnboardingCompleted, StoragePath)
         var settings = await _settingsService.GetSettingsAsync();
 
-        // Resolve provider ID from the selected ComboBox index
-        var resolvedProviderId = ProviderIndexToId(ActiveProviderIndex);
+        // Resolve provider ID from the selected ComboBox index (no selection keeps the saved id)
+        var resolvedProviderId = ProviderChoices.ResolveSelection(ActiveProviderIndex, ActiveProviderId);
 
         // Provider
         settings.ActiveProviderId = resolvedProviderId;
+        ActiveProviderId = resolvedProviderId;
+
+        // Built-in LLM (a changed value reloads the model when the AI service is re-initialized below)
+        BuiltInModel.ApplyTo(settings);
 
         // Ollama
         settings.OllamaEndpoint = OllamaEndpoint;
@@ -256,18 +344,43 @@ public partial class SettingsViewModel : ObservableObject
         settings.ActiveRoutingProfileId = RoutingProfileIndexToId(RoutingProfileIndex);
         ActiveRoutingProfileId = settings.ActiveRoutingProfileId;
 
-        // Deep Research Mode
+        // Deep Research Mode (no selection keeps the saved provider)
         settings.EnableResearchMode = EnableResearchMode;
-        settings.WebSearchProvider = SelectedWebSearchProvider;
+        settings.WebSearchProvider = WebSearchProviderChoices.ResolveSelection(WebSearchProviderIndex, settings.WebSearchProvider);
         settings.WebSearchApiKey = string.IsNullOrWhiteSpace(WebSearchApiKey) ? null : WebSearchApiKey;
         settings.MaxSearchResults = MaxSearchResults;
         settings.SearchCacheTtlMinutes = SearchCacheTtlMinutes;
 
-        // Local REST API (browser extension)
-        settings.LocalApiEnabled = LocalApiEnabled;
-        settings.LocalApiToken = string.IsNullOrWhiteSpace(LocalApiToken) ? null : LocalApiToken;
+        // Screen Awareness
+        settings.EnableScreenAwareness = EnableScreenAwareness;
 
-        await _settingsService.SaveSettingsAsync(settings);
+        // Local REST API (browser extension). The token is only ever created by the host or by
+        // Regenerate, so never clear a stored token just because this page loaded before the
+        // host provisioned it.
+        settings.LocalApiEnabled = LocalApiEnabled;
+        if (!string.IsNullOrWhiteSpace(LocalApiToken))
+            settings.LocalApiToken = LocalApiToken;
+
+        HasSaveError = false;
+        try
+        {
+            await _settingsService.SaveSettingsAsync(settings);
+        }
+        catch (SettingsValidationException ex)
+        {
+            // Nothing was written. Without this the exception reached the global handler and
+            // the page looked saved.
+            SaveErrorMessage = ex.Message;
+            HasSaveError = true;
+            Log.Warning(ex, "Settings were not saved because a value is invalid");
+            return;
+        }
+
+        // Turning the Local API on or off takes effect now, not on the next launch.
+        await ApplyLocalApiSettingsAsync();
+
+        // So does turning watch folders on or off.
+        await WatchFolders.ApplyAutoIndexAsync(settings.AutoIndexWatchFolders);
 
         // Re-initialize AI service so provider changes take effect
         try
@@ -285,19 +398,26 @@ public partial class SettingsViewModel : ObservableObject
     [RelayCommand]
     private async Task TestOllamaConnectionAsync()
     {
-        OllamaConnectionStatus = "Testing...";
+        if (!AiService.TryParseHttpEndpoint(OllamaEndpoint, out var endpoint))
+        {
+            OllamaConnectionStatus = _localization.GetString("Settings_OllamaInvalidEndpoint");
+            return;
+        }
+
+        OllamaConnectionStatus = _localization.GetString("Settings_ConnectionTesting");
         try
         {
             // Always create a temporary provider with the current endpoint value
             // (the user may have edited the endpoint but not saved yet)
-            using var tempProvider = new AgentX.Core.AI.Providers.OllamaProvider(
-                new Uri(OllamaEndpoint), Log.Logger);
+            using var tempProvider = new AgentX.Core.AI.Providers.OllamaProvider(endpoint, Log.Logger);
             var connected = await tempProvider.CheckConnectionAsync();
-            OllamaConnectionStatus = connected ? "Connected" : "Not reachable";
+            OllamaConnectionStatus = connected
+                ? _localization.GetString("Settings_ConnectionConnected")
+                : _localization.GetString("Settings_ConnectionNotReachable");
         }
         catch (Exception ex)
         {
-            OllamaConnectionStatus = $"Error: {ex.Message}";
+            OllamaConnectionStatus = _localization.GetString("Settings_ConnectionError", ex.Message);
             Log.Warning(ex, "Ollama connection test failed");
         }
     }
@@ -307,21 +427,23 @@ public partial class SettingsViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(OpenAiApiKey))
         {
-            OpenAiConnectionStatus = "API key required";
+            OpenAiConnectionStatus = _localization.GetString("Settings_ConnectionApiKeyRequired");
             return;
         }
 
-        OpenAiConnectionStatus = "Testing...";
+        OpenAiConnectionStatus = _localization.GetString("Settings_ConnectionTesting");
         try
         {
             using var tempProvider = new AgentX.Core.AI.Providers.OpenAiProvider(
                 OpenAiApiKey, OpenAiEndpoint, Log.Logger);
             var connected = await tempProvider.CheckConnectionAsync();
-            OpenAiConnectionStatus = connected ? "Connected" : "Authentication failed";
+            OpenAiConnectionStatus = connected
+                ? _localization.GetString("Settings_ConnectionConnected")
+                : _localization.GetString("Settings_ConnectionAuthFailed");
         }
         catch (Exception ex)
         {
-            OpenAiConnectionStatus = $"Error: {ex.Message}";
+            OpenAiConnectionStatus = _localization.GetString("Settings_ConnectionError", ex.Message);
             Log.Warning(ex, "OpenAI connection test failed");
         }
     }
@@ -331,21 +453,23 @@ public partial class SettingsViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(AnthropicApiKey))
         {
-            AnthropicConnectionStatus = "API key required";
+            AnthropicConnectionStatus = _localization.GetString("Settings_ConnectionApiKeyRequired");
             return;
         }
 
-        AnthropicConnectionStatus = "Testing...";
+        AnthropicConnectionStatus = _localization.GetString("Settings_ConnectionTesting");
         try
         {
             using var tempProvider = new AgentX.Core.AI.Providers.AnthropicProvider(
                 AnthropicApiKey, AnthropicEndpoint, Log.Logger);
             var connected = await tempProvider.CheckConnectionAsync();
-            AnthropicConnectionStatus = connected ? "Connected" : "Authentication failed";
+            AnthropicConnectionStatus = connected
+                ? _localization.GetString("Settings_ConnectionConnected")
+                : _localization.GetString("Settings_ConnectionAuthFailed");
         }
         catch (Exception ex)
         {
-            AnthropicConnectionStatus = $"Error: {ex.Message}";
+            AnthropicConnectionStatus = _localization.GetString("Settings_ConnectionError", ex.Message);
             Log.Warning(ex, "Anthropic connection test failed");
         }
     }
@@ -353,24 +477,25 @@ public partial class SettingsViewModel : ObservableObject
     [RelayCommand]
     private async Task ResetToDefaultsAsync()
     {
-        // Provider defaults
-        ActiveProviderIndex = 0; // Ollama
-        ActiveProviderId = "ollama";
+        // Provider defaults (the built-in model, as for a new install)
+        ActiveProviderId = "local";
+        ActiveProviderIndex = ProviderChoices.IndexOf(ActiveProviderId);
+        BuiltInModel.Reset();
 
         // Ollama
         OllamaEndpoint = "http://localhost:11434";
         DefaultModel = "llama3.2";
         EmbeddingModel = "all-minilm";
 
-        // OpenAI — clear key, keep default endpoint/model
+        // OpenAI - clear key, keep default endpoint/model
         OpenAiApiKey = string.Empty;
         OpenAiEndpoint = "https://api.openai.com/v1/";
         OpenAiDefaultModel = "gpt-4o-mini";
 
-        // Anthropic — clear key, keep default endpoint/model
+        // Anthropic - clear key, keep default endpoint/model
         AnthropicApiKey = string.Empty;
         AnthropicEndpoint = "https://api.anthropic.com/v1/";
-        AnthropicDefaultModel = "claude-sonnet-4-20250514";
+        AnthropicDefaultModel = AgentX.Core.AI.Providers.AnthropicProvider.DefaultModelId;
 
         // Inference
         Temperature = 0.7;
@@ -390,17 +515,20 @@ public partial class SettingsViewModel : ObservableObject
 
         // Deep Research Mode
         EnableResearchMode = false;
-        SelectedWebSearchProvider = WebSearchProvider.Brave;
+        WebSearchProviderIndex = WebSearchProviderChoices.IndexOf(WebSearchProvider.Brave);
         WebSearchApiKey = null;
         MaxSearchResults = 10;
         SearchCacheTtlMinutes = 60;
+
+        // Screen Awareness
+        EnableScreenAwareness = false;
 
         // Clear connection statuses
         OllamaConnectionStatus = string.Empty;
         OpenAiConnectionStatus = string.Empty;
         AnthropicConnectionStatus = string.Empty;
 
-        // Local REST API — re-enable by default but keep the existing token so a paired
+        // Local REST API - re-enable by default but keep the existing token so a paired
         // extension is not silently unpaired by a settings reset.
         LocalApiEnabled = true;
 
@@ -409,8 +537,9 @@ public partial class SettingsViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Generates a fresh per-install local API token and persists it immediately. Existing paired
-    /// clients must be re-paired with the new token; the running listener adopts it on next launch.
+    /// Generates a fresh per-install local API token, persists it, and hands it to the running
+    /// listener at once: the previous token stops working immediately, so existing paired clients
+    /// must be re-paired with the new token.
     /// </summary>
     [RelayCommand]
     private async Task RegenerateApiTokenAsync()
@@ -422,7 +551,30 @@ public partial class SettingsViewModel : ObservableObject
         settings.LocalApiEnabled = LocalApiEnabled;
         await _settingsService.SaveSettingsAsync(settings);
 
+        await ApplyLocalApiSettingsAsync();
+
         Log.Information("Local API token regenerated");
+    }
+
+    /// <summary>
+    /// Pushes the saved Local API settings to the live listener (start, stop, or token swap), then
+    /// shows the token actually in force, which the host provisions if none was stored yet.
+    /// </summary>
+    private async Task ApplyLocalApiSettingsAsync()
+    {
+        try
+        {
+            await _apiHostLifecycle.ApplySettingsAsync();
+        }
+        catch (Exception ex)
+        {
+            // Settings are saved either way; a start failure (for example the port is taken) is
+            // logged here the same way the startup path logs it.
+            Log.Warning(ex, "Applying the Local API settings to the running listener failed");
+        }
+
+        var settings = await _settingsService.GetSettingsAsync();
+        LocalApiToken = settings.LocalApiToken ?? string.Empty;
     }
 
     /// <summary>
@@ -441,7 +593,7 @@ public partial class SettingsViewModel : ObservableObject
         Log.Debug("Local API token copied to clipboard");
     }
 
-    // ── Private Helpers ─────────────────────────────────────
+    // -- Private Helpers -------------------------------------
 
     /// <summary>
     /// Refreshes the cost display properties from the cost tracker.
@@ -450,10 +602,12 @@ public partial class SettingsViewModel : ObservableObject
     {
         try
         {
+            // The usage history outlives a restart, so "today" is the user's calendar day (local
+            // midnight onward), not the UTC day.
             TotalCostDisplay = $"${_costTracker.GetTotalCostUsd():F4}";
-            var todayStart = DateTime.UtcNow.Date;
+            var todayStart = DateTime.Today.ToUniversalTime();
             TodayCostDisplay = $"${_costTracker.GetCostForPeriod(todayStart, DateTime.UtcNow):F4}";
-            var totalTokens = _costTracker.GetTotalInputTokens() + _costTracker.GetTotalOutputTokens();
+            var totalTokens = (long)_costTracker.GetTotalInputTokens() + _costTracker.GetTotalOutputTokens();
             TotalTokensDisplay = totalTokens.ToString("N0");
         }
         catch (Exception ex)
@@ -461,28 +615,6 @@ public partial class SettingsViewModel : ObservableObject
             Log.Warning(ex, "Failed to refresh cost display");
         }
     }
-
-    /// <summary>
-    /// Maps a provider ComboBox index to the provider ID string.
-    /// </summary>
-    private static string ProviderIndexToId(int index) => index switch
-    {
-        0 => "ollama",
-        1 => "openai",
-        2 => "anthropic",
-        _ => "ollama"
-    };
-
-    /// <summary>
-    /// Maps a provider ID string to the ComboBox index.
-    /// </summary>
-    private static int ProviderIdToIndex(string providerId) => providerId?.ToLowerInvariant() switch
-    {
-        "ollama" => 0,
-        "openai" => 1,
-        "anthropic" => 2,
-        _ => 0
-    };
 
     /// <summary>
     /// Reacts to theme ComboBox selection changes.
@@ -498,6 +630,56 @@ public partial class SettingsViewModel : ObservableObject
             _ => Microsoft.UI.Xaml.ElementTheme.Default
         };
         _ = _themeService.SetThemeAsync(theme);
+    }
+
+    /// <summary>
+    /// Saves the picked UI language. Resources loaded from now on use it; the shell and pages
+    /// already built switch on the next launch, which the caption under the picker explains.
+    /// </summary>
+    partial void OnLanguageIndexChanged(int value)
+    {
+        if (_loadingLanguage)
+        {
+            return;
+        }
+
+        _ = ApplyLanguageAsync(value > 0 && value <= _localization.SupportedLanguages.Count
+            ? _localization.SupportedLanguages[value - 1].Code
+            : null);
+    }
+
+    private async Task ApplyLanguageAsync(string? languageCode)
+    {
+        try
+        {
+            HasSaveError = false;
+            await _localization.SetLanguageAsync(languageCode);
+        }
+        catch (Exception ex)
+        {
+            SaveErrorMessage = ex.Message;
+            HasSaveError = true;
+            Log.Warning(ex, "Could not save the UI language {Language}", languageCode);
+        }
+    }
+
+    private int IndexOfLanguage(string? languageCode)
+    {
+        if (string.IsNullOrWhiteSpace(languageCode))
+        {
+            return 0;
+        }
+
+        var languages = _localization.SupportedLanguages;
+        for (var i = 0; i < languages.Count; i++)
+        {
+            if (string.Equals(languages[i].Code, languageCode, StringComparison.OrdinalIgnoreCase))
+            {
+                return i + 1;
+            }
+        }
+
+        return 0;
     }
 
     /// <summary>
@@ -533,70 +715,65 @@ public partial class SettingsViewModel : ObservableObject
         _ => 2
     };
 
-    // ── Database Encryption Toggle Flow ───────────────────────
+    // -- Database Encryption Toggle Flow -----------------------
 
     /// <summary>
-    /// Invoked by the Settings page when the encryption ToggleSwitch changes.
-    /// Database encryption is available to every user, free of charge. The key is
-    /// wrapped with Windows DPAPI and tied transparently to the current Windows user
-    /// account — no passphrase to remember and no risk of permanent data loss.
-    /// On failure, reverts the toggle and does NOT write the marker file.
+    /// Invoked by the Settings page with the state the user asked for on the encryption
+    /// ToggleSwitch. Database encryption is available to every user, free of charge. The key is
+    /// wrapped with Windows DPAPI and tied transparently to the current Windows user account.
+    /// <para>
+    /// Idempotent: the request is compared with the real state (the encryption marker), not with
+    /// the toggle, so a repeated request or an echo of a programmatic toggle change does nothing.
+    /// Only one change runs at a time, and <see cref="EncryptionEnabled"/> always ends on the real
+    /// state. <see cref="IDatabaseEncryptionManager"/> writes the marker only after the database
+    /// was migrated and verified, so a failed attempt leaves an unencrypted database and no marker.
+    /// </para>
     /// </summary>
-    public async System.Threading.Tasks.Task OnEncryptionToggledAsync()
+    public async System.Threading.Tasks.Task RequestEncryptionStateAsync(bool enable)
     {
-        // Called by the XAML code-behind when the ToggleSwitch is toggled by the user.
-        // The TwoWay binding means EncryptionEnabled already reflects the target state.
+        if (_encryptionChangeInFlight)
+            return;
 
-        if (!EncryptionEnabled)
+        var encrypted = _encryptionStateFile.Exists();
+        if (enable == encrypted)
         {
-            // v2.1 does not support disabling encryption.
-            if (_encryptionStateFile.Exists())
-            {
-                EncryptionStatus = "Disabling encryption is not supported in v2.1. Restore from an unencrypted backup to revert.";
-                EncryptionEnabled = true;
-            }
-            else
-            {
-                EncryptionStatus = "Encryption is not enabled.";
-            }
+            EncryptionEnabled = encrypted;
             return;
         }
 
-        // DPAPI-wrapped key storage is the universal, transparent mode available to
-        // every user. The key is managed automatically and tied to the Windows account.
-        const KeyStorageMode mode = KeyStorageMode.DpapiWrapped;
+        if (!enable)
+        {
+            // Turning encryption off in place is not supported.
+            EncryptionEnabled = true;
+            EncryptionStatus = _localization.GetString("Settings_EncryptionTurnOffUnsupported");
+            return;
+        }
 
+        if (_databaseEncryptionManager is null)
+        {
+            EncryptionEnabled = false;
+            EncryptionStatus = _localization.GetString("Settings_EncryptionUnavailable");
+            return;
+        }
+
+        _encryptionChangeInFlight = true;
+        EncryptionStatus = _localization.GetString("Settings_EncryptionEncrypting");
         try
         {
-            EncryptionStatus = "Encrypting…";
-
-            // Provisioning writes the marker file (containing the DPAPI-wrapped key)
-            // as part of GetOrCreateKeyAsync — no separate marker write is needed.
-            // If MigrateToEncryptedAsync fails below, the marker will be present but
-            // the DB unencrypted; the next launch will detect the mismatch and prompt
-            // the user. This is acceptable for v2.1 (disable-encryption flow is a
-            // future feature).
-            var key = await _databaseKeyService.GetOrCreateKeyAsync(mode, passphrase: null);
-            var dbPath = System.IO.Path.Combine(
-                System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData),
-                "AgentX",
-                "agentx.db");
-
-            await _databaseEncryptionMigrator.MigrateToEncryptedAsync(dbPath, key);
-
-            // Activate the key for THIS session so subsequent DB opens see it.
-            if (_databaseKeyProvider is DatabaseKeyProvider provider)
-                provider.Set(key);
-
-            EncryptionStatus = "Encrypted. The key is managed automatically and tied to your Windows user account.";
-
-            Serilog.Log.Information("Database encryption enabled (mode={Mode})", mode);
+            await _databaseEncryptionManager.EnableEncryptionAsync();
+            EncryptionStatus = _localization.GetString("Settings_EncryptionOnWindowsKey");
         }
         catch (System.Exception ex)
         {
             Serilog.Log.Error(ex, "Database encryption enable failed");
-            EncryptionEnabled = false;
-            EncryptionStatus = $"Encryption failed: {ex.Message}";
+            EncryptionStatus = _encryptionStateFile.Exists()
+                ? _localization.GetString("Settings_EncryptionReopenFailed", ex.Message)
+                : _localization.GetString("Settings_EncryptionFailed", ex.Message);
+        }
+        finally
+        {
+            _encryptionChangeInFlight = false;
+            EncryptionEnabled = _encryptionStateFile.Exists();
         }
     }
 
@@ -614,13 +791,13 @@ public partial class SettingsViewModel : ObservableObject
             // describing that case accurately while new encryptions use the universal
             // DPAPI-wrapped mode below.
             EncryptionStatus = info?.StorageMode == KeyStorageMode.UserPassphrase
-                ? "Encrypted with your passphrase. You'll be prompted on next launch."
-                : "Encrypted. The key is managed automatically and tied to your Windows user account.";
+                ? _localization.GetString("Settings_EncryptionOnPassphrase")
+                : _localization.GetString("Settings_EncryptionOnWindowsKey");
         }
         else
         {
             EncryptionEnabled = false;
-            EncryptionStatus = "Encryption is not enabled.";
+            EncryptionStatus = _localization.GetString("Settings_EncryptionOff");
         }
         return System.Threading.Tasks.Task.CompletedTask;
     }

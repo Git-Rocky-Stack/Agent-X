@@ -2,8 +2,10 @@ namespace AgentX.Core.Services.Localization;
 
 /// <summary>
 /// Thin seam around the platform resource-loading / language-override APIs
-/// (WinUI 3 <c>Windows.ApplicationModel.Resources.ResourceLoader</c> and
-/// <c>Windows.Globalization.ApplicationLanguages</c> in production). Exists so
+/// (in production the Windows App SDK MRT Core types
+/// <c>Microsoft.Windows.ApplicationModel.Resources.ResourceLoader</c> and
+/// <c>Microsoft.Windows.Globalization.ApplicationLanguages</c>, which work in the
+/// unpackaged app; the UWP equivalents need package identity). Exists so
 /// <see cref="ILocalizationService"/> can be unit-tested without a WinUI 3
 /// runtime: tests inject an in-memory fake; production DI injects the real
 /// WinUI-backed adapter in <c>AgentX.App</c>.
@@ -38,7 +40,7 @@ public interface IResourceLoaderAdapter
     /// <summary>
     /// Returns the localized string for <paramref name="key"/>, or <c>null</c>
     /// if the key is absent or the loader is not yet initialized. Must NOT
-    /// return the literal key on miss — callers distinguish "missing" from
+    /// return the literal key on miss - callers distinguish "missing" from
     /// "present-but-equal-to-key" on the strength of this null signal.
     /// </summary>
     string? GetString(string key);

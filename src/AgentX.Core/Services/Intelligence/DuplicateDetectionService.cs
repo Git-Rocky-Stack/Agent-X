@@ -318,6 +318,9 @@ public class DuplicateDetectionService : IDuplicateDetectionService
         {
             // Use the EF Core database connection to query the vec_embeddings table directly.
             // This table is created by SqliteVecStore and shares the same SQLite database.
+            // EF cannot see this command, so hold the context's database gate while it runs;
+            // EF work from other flows waits instead of sharing the connection with it.
+            using var gate = _db.EnterDatabaseGate();
             var connection = _db.Database.GetDbConnection();
 
             if (connection.State != System.Data.ConnectionState.Open)

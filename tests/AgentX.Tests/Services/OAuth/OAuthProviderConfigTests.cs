@@ -10,9 +10,9 @@ namespace AgentX.Tests.Services.OAuth;
 /// </summary>
 public sealed class OAuthProviderConfigTests
 {
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Default values
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Default_ProviderId_IsEmptyString()
@@ -114,9 +114,9 @@ public sealed class OAuthProviderConfigTests
         config.ExtraAuthParameters.Should().BeNull();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Construction with all fields
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void CanCreate_WithAllFieldsPopulated()
@@ -143,7 +143,7 @@ public sealed class OAuthProviderConfigTests
             ExtraAuthParameters = extraParams
         };
 
-        // Assert — every field should retain its assigned value
+        // Assert - every field should retain its assigned value
         config.ProviderId.Should().Be("google");
         config.DisplayName.Should().Be("Google Calendar");
         config.AuthorizationEndpoint.Should().Be("https://accounts.google.com/o/oauth2/v2/auth");
@@ -162,7 +162,7 @@ public sealed class OAuthProviderConfigTests
     [Fact]
     public void CanCreate_WithMinimalFields()
     {
-        // Act — only ProviderId is required for RegisterProvider validation
+        // Act - only ProviderId is required for RegisterProvider validation
         var config = new OAuthProviderConfig
         {
             ProviderId = "custom-provider"
@@ -191,14 +191,14 @@ public sealed class OAuthProviderConfigTests
             RevocationEndpoint = null
         };
 
-        // Assert — Microsoft provider does not support server-side revocation
+        // Assert - Microsoft provider does not support server-side revocation
         config.RevocationEndpoint.Should().BeNull();
     }
 
     [Fact]
     public void CanCreate_WithEmptyRevocationEndpoint()
     {
-        // Act — Some providers use empty string instead of null for "no revocation"
+        // Act - Some providers use empty string instead of null for "no revocation"
         var config = new OAuthProviderConfig
         {
             ProviderId = "microsoft",

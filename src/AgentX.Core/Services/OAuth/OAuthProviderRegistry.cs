@@ -7,10 +7,10 @@ namespace AgentX.Core.Services.OAuth;
 /// extra parameters so callers don't need to know provider-specific details.
 /// </summary>
 /// <remarks>
-/// <para>Usage: call the factory methods from <c>App.xaml.cs</c> during startup to register
-/// providers with <see cref="OAuthService.RegisterProvider"/>. Client credentials are
-/// pulled from <see cref="Settings.AppSettings.OAuth"/> so they remain configurable at
-/// runtime through the settings UI.</para>
+/// <para>Usage: the providers are registered at startup, and
+/// <see cref="OAuthService.ApplyProviderSettings"/> registers them again from the client
+/// credentials in <see cref="Settings.AppSettings.OAuth"/> whenever those are saved under
+/// OAuth App Credentials on the Calendar and Email connector pages.</para>
 ///
 /// <para>The scopes are defined as space-separated strings to match the
 /// <see cref="OAuthProviderConfig.Scopes"/> property format used throughout the OAuth pipeline.</para>
@@ -58,8 +58,11 @@ public static class OAuthProviderRegistry
     /// standard token revocation endpoint, so <see cref="OAuthProviderConfig.RevocationEndpoint"/>
     /// is left empty (local token deletion only).
     /// </summary>
-    /// <param name="clientId">Microsoft application (client) ID from Azure Portal.</param>
-    /// <param name="clientSecret">Microsoft client secret from Azure Portal.</param>
+    /// <param name="clientId">Application (client) ID of the Microsoft Entra app registration.</param>
+    /// <param name="clientSecret">
+    /// Client secret of a confidential (web) registration, or empty for the public client
+    /// (mobile and desktop applications) that the connector pages set up.
+    /// </param>
     /// <param name="tenantId">
     /// Azure AD tenant ID. Use <c>"common"</c> for multi-tenant consumer apps,
     /// <c>"organizations"</c> for work/school accounts only, or a specific tenant GUID.
@@ -74,7 +77,9 @@ public static class OAuthProviderRegistry
             AuthorizationEndpoint = $"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/authorize",
             TokenEndpoint = $"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token",
             RevocationEndpoint = string.Empty, // Microsoft does not expose a standard revocation endpoint
-            Scopes = "openid profile email Calendars.Read Mail.Read User.Read",
+            // offline_access is what makes Microsoft issue a refresh token; without it the
+            // connectors lose access when the first access token expires (about an hour).
+            Scopes = "openid profile email offline_access Calendars.Read Mail.Read User.Read",
             ClientId = clientId,
             ClientSecret = clientSecret,
             RedirectUri = redirectUri,

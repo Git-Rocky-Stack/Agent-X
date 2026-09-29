@@ -2,12 +2,21 @@
 <Application
     x:Class="AgentX.Mobile.App"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit">
 
     <Application.Resources>
         <ResourceDictionary>
 
-            <!-- ── Brand palette ─────────────────────────────────────── -->
+            <!-- Converters used by the pages. They must be declared here (or in a page's own
+                 XAML resources): a StaticResource is resolved while the page's InitializeComponent
+                 runs, so keys added from code-behind afterwards crashed every page on load with
+                 "StaticResource not found". -->
+            <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
+            <toolkit:IsStringNotNullOrEmptyConverter x:Key="StringNotEmptyConverter" />
+            <toolkit:IsNotNullConverter x:Key="IsNotNullConverter" />
+
+            <!-- == Brand palette ======================================= -->
             <Color x:Key="BrandPrimary">#6366F1</Color>
             <Color x:Key="BrandPrimaryDark">#4F46E5</Color>
             <Color x:Key="BrandAccent">#A5B4FC</Color>
@@ -29,19 +38,19 @@
             <Color x:Key="SuccessColor">#22C55E</Color>
             <Color x:Key="WarningColor">#F59E0B</Color>
 
-            <!-- ── Spacing ─────────────────────────────────────────────── -->
+            <!-- == Spacing =============================================== -->
             <x:Double x:Key="SpacingXS">4</x:Double>
             <x:Double x:Key="SpacingS">8</x:Double>
             <x:Double x:Key="SpacingM">16</x:Double>
             <x:Double x:Key="SpacingL">24</x:Double>
             <x:Double x:Key="SpacingXL">32</x:Double>
 
-            <!-- ── Corner radii ───────────────────────────────────────── -->
+            <!-- == Corner radii ========================================= -->
             <x:Double x:Key="RadiusS">6</x:Double>
             <x:Double x:Key="RadiusM">12</x:Double>
             <x:Double x:Key="RadiusL">16</x:Double>
 
-            <!-- ── Shared styles ──────────────────────────────────────── -->
+            <!-- == Shared styles ======================================== -->
 
             <!-- Primary action button -->
             <Style x:Key="PrimaryButton" TargetType="Button">

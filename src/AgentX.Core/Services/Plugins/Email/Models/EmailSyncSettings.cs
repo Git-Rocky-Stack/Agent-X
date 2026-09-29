@@ -1,4 +1,7 @@
+using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using Serilog;
 
 namespace AgentX.Core.Services.Plugins.Email.Models;
 
@@ -27,24 +30,37 @@ public sealed class EmailSyncSettings
     public int MaxMessagesPerSync { get; set; } = 50;
 
     /// <summary>
-    /// How many days back to sync on first connection.
+    /// How many days back the first (full) sync of a folder reaches. Later syncs are
+    /// incremental and read whatever changed since the previous one.
     /// </summary>
     public int SyncDaysBack { get; set; } = 30;
 
     /// <summary>
-    /// Whether to use AI to categorize emails during triage.
+    /// Not applied. Messages are categorized by the rule-based
+    /// <see cref="EmailTriageProcessor.Classify"/>, which does not use AI; the property is kept
+    /// so existing settings files still load.
     /// </summary>
     public bool EnableAiCategorization { get; set; } = true;
 
     /// <summary>
-    /// Custom prompt for AI categorization (if null, uses default).
+    /// Not applied (no AI categorization exists; see <see cref="EnableAiCategorization"/>).
     /// </summary>
     public string? CategorizationPrompt { get; set; }
 
     /// <summary>
-    /// Whether to include full HTML body in indexed content.
+    /// Whether a message without a plain-text part keeps its body: when on (the default), its
+    /// HTML body is converted to readable text (HtmlParser.ConvertToPlainText) and stored and
+    /// indexed with the message, and fills the inbox preview; when off, such a message is stored
+    /// with its headers and preview only. A message with a plain-text part always keeps that
+    /// part, and raw HTML is never stored.
     /// </summary>
-    public bool IncludeHtmlBody { get; set; }
+    /// <remarks>
+    /// Saved as "includeHtmlBodyText". The earlier "includeHtmlBody" key was written with every
+    /// settings file while the option did nothing, so its value says nothing about what the user
+    /// wants and is ignored: those files get the default.
+    /// </remarks>
+    [JsonPropertyName("includeHtmlBodyText")]
+    public bool IncludeHtmlBody { get; set; } = true;
 
     /// <summary>
     /// Whether to include attachment names in indexed content.
@@ -57,20 +73,80 @@ public sealed class EmailSyncSettings
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
 
+    /// <summary>
+    /// Reads the settings file. A missing file gives defaults; so does an unreadable or corrupt
+    /// one, which must not stop the email connector (and the calendar connector initialized
+    /// after it) from starting. A corrupt file is kept as <c>{path}.corrupt</c> for inspection.
+    /// </summary>
     public static EmailSyncSettings Load(string path)
     {
         if (!File.Exists(path))
             return new EmailSyncSettings();
 
-        var json = File.ReadAllText(path);
-        return JsonSerializer.Deserialize<EmailSyncSettings>(json, JsonOptions) ?? new EmailSyncSettings();
+        string json;
+        try
+        {
+            json = File.ReadAllText(path);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            Log.ForContext<EmailSyncSettings>().Warning(ex, "Could not read email sync settings at {Path}; using defaults", path);
+            return new EmailSyncSettings();
+        }
+
+        try
+        {
+            return JsonSerializer.Deserialize<EmailSyncSettings>(json, JsonOptions) ?? new EmailSyncSettings();
+        }
+        catch (JsonException ex)
+        {
+            Log.ForContext<EmailSyncSettings>().Warning(ex, "Email sync settings at {Path} are corrupt; using defaults", path);
+            TryKeepCorruptFile(path);
+            return new EmailSyncSettings();
+        }
     }
 
+    /// <summary>
+    /// Writes the settings atomically: a sibling temporary file is written and flushed, then
+    /// moved over the target, so a crash or a full disk mid-write leaves the previous file
+    /// intact instead of a truncated one.
+    /// </summary>
     public void Save(string path)
     {
         var dir = Path.GetDirectoryName(path)!;
         Directory.CreateDirectory(dir);
         var json = JsonSerializer.Serialize(this, JsonOptions);
-        File.WriteAllText(path, json);
+
+        var tempPath = path + ".tmp";
+        try
+        {
+            using (var stream = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None))
+            using (var writer = new StreamWriter(stream, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false)))
+            {
+                writer.Write(json);
+                writer.Flush();
+                stream.Flush(flushToDisk: true);
+            }
+
+            File.Move(tempPath, path, overwrite: true);
+        }
+        catch
+        {
+            try { File.Delete(tempPath); } catch (IOException) { } catch (UnauthorizedAccessException) { }
+            throw;
+        }
     }
+
+    private static void TryKeepCorruptFile(string path)
+    {
+        try
+        {
+            File.Move(path, path + ".corrupt", overwrite: true);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            Log.ForContext<EmailSyncSettings>().Debug(ex, "Could not set aside the corrupt settings file {Path}", path);
+        }
+    }
+
 }

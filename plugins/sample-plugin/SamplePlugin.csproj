@@ -6,14 +6,33 @@
     <RootNamespace>AgentX.Plugins.Sample</RootNamespace>
     <Platforms>x86;x64;ARM64</Platforms>
     <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
+    <!-- Produces a deps.json the host's plugin loader reads to resolve private dependencies. -->
+    <EnableDynamicLoading>true</EnableDynamicLoading>
   </PropertyGroup>
 
+  <!--
+    AgentX.Core and Serilog are provided by the host at run time. They are referenced for
+    compilation only (Private=false, ExcludeAssets) so the build output, and so the
+    .agentx-plugin package, never carries its own AgentX.Core.dll or Serilog.dll, nor the
+    host's native libraries. The plugin loader gives every plugin the host's AgentX.Core and
+    ignores a bundled copy, so shipping one would only make the package larger.
+  -->
   <ItemGroup>
-    <PackageReference Include="Serilog" Version="4.0.2" />
+    <PackageReference Include="Serilog" Version="4.0.2">
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\AgentX.Core\AgentX.Core.csproj" />
+    <ProjectReference Include="..\..\src\AgentX.Core\AgentX.Core.csproj">
+      <Private>false</Private>
+      <ExcludeAssets>runtime;native;contentfiles;build;buildtransitive</ExcludeAssets>
+    </ProjectReference>
+  </ItemGroup>
+
+  <!-- The package needs manifest.json at its root, so it travels with the build output. -->
+  <ItemGroup>
+    <None Update="manifest.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

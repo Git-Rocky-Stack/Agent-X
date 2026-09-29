@@ -2,17 +2,17 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!--
-    ╔══════════════════════════════════════════════════════════════════╗
-    ║          USER GUIDE POWER USER SECTIONS (NEW)                     ║
-    ║                                                                  ║
-    ║  AdvancedQueriesTemplate, PerformanceTuningTemplate,              ║
-    ║  ExportTemplate                                                   ║
-    ╚══════════════════════════════════════════════════════════════════╝
+    +==================================================================+
+    |          USER GUIDE POWER USER SECTIONS (NEW)                     |
+    |                                                                  |
+    |  AdvancedQueriesTemplate, PerformanceTuningTemplate,              |
+    |  ExportTemplate                                                   |
+    +==================================================================+
     -->
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          ADVANCED QUERIES
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
     <DataTemplate x:Key="AdvancedQueriesTemplate">
         <Border Style="{StaticResource CardStyle}">
             <StackPanel Spacing="16">
@@ -112,9 +112,9 @@
         </Border>
     </DataTemplate>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          PERFORMANCE TUNING
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
     <DataTemplate x:Key="PerformanceTuningTemplate">
         <Border Style="{StaticResource CardStyle}">
             <StackPanel Spacing="16">
@@ -165,9 +165,9 @@
         </Border>
     </DataTemplate>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          EXPORT & DATA PORTABILITY
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
     <DataTemplate x:Key="ExportTemplate">
         <Border Style="{StaticResource CardStyle}">
             <StackPanel Spacing="16">

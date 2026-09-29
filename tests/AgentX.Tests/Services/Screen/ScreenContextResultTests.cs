@@ -11,7 +11,7 @@ namespace AgentX.Tests.Services.Screen;
 /// </summary>
 public sealed class ScreenContextResultTests
 {
-    // ── IsEmpty ───────────────────────────────────────────────────────────────
+    // -- IsEmpty ---------------------------------------------------------------
 
     [Fact]
     public void IsEmpty_WhenBothFieldsAreEmpty_ReturnsTrue()
@@ -65,7 +65,7 @@ public sealed class ScreenContextResultTests
         result.IsEmpty.Should().BeFalse();
     }
 
-    // ── Whitespace handling ────────────────────────────────────────────────────
+    // -- Whitespace handling ----------------------------------------------------
 
     [Theory]
     [InlineData("   ")]
@@ -101,7 +101,7 @@ public sealed class ScreenContextResultTests
         result.IsEmpty.Should().BeTrue();
     }
 
-    // ── Default values ──────────────────────────────────────────────────────────
+    // -- Default values ----------------------------------------------------------
 
     [Fact]
     public void DefaultInstance_HasEmptyOcrText()
@@ -132,7 +132,7 @@ public sealed class ScreenContextResultTests
         result.CapturedAtUtc.Should().BeOnOrBefore(after);
     }
 
-    // ── IdeContext ────────────────────────────────────────────────────────────────
+    // -- IdeContext ----------------------------------------------------------------
 
     [Fact]
     public void IsEmpty_WithIdeContext_ReturnsFalse()
@@ -164,7 +164,7 @@ public sealed class ScreenContextResultTests
     [Fact]
     public void IsEmpty_WithoutIdeContext_ReturnsTrue_WhenOtherFieldsEmpty()
     {
-        // Arrange — default instance has no IdeContext and empty strings
+        // Arrange - default instance has no IdeContext and empty strings
         var result = new ScreenContextResult();
 
         // Assert
@@ -172,7 +172,7 @@ public sealed class ScreenContextResultTests
         result.IdeContext.Should().BeNull();
     }
 
-    // ── Init-set values ─────────────────────────────────────────────────────────
+    // -- Init-set values ---------------------------------------------------------
 
     [Fact]
     public void CapturedAtUtc_CanBeSetToSpecificTime()

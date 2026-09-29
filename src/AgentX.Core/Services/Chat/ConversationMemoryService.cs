@@ -41,14 +41,13 @@ public sealed class ConversationMemoryService : IConversationMemoryService
 
             if (messages.Count < 2) return;
 
-            // Build a summary of recent messages for AI extraction
-            var recentContent = string.Join("\n", messages
-                .OrderBy(m => m.SortOrder)
-                .Select(m => $"{m.Role}: {m.Content}"));
-
-            // Truncate to prevent token overflow
-            if (recentContent.Length > 3000)
-                recentContent = recentContent[..3000];
+            // Build a summary of recent messages for AI extraction, truncated to prevent token
+            // overflow. The newest turns are kept: they are the ones this extraction runs for.
+            var recentContent = SemanticMemoryService.TakeNewestExcerpt(
+                string.Join("\n", messages
+                    .OrderBy(m => m.SortOrder)
+                    .Select(m => $"{m.Role}: {m.Content}")),
+                SemanticMemoryService.MaxExtractionExcerptLength);
 
             // Ask AI to extract memorable facts
             var extractionPrompt = @"Extract key facts, user preferences, and important context from this conversation that would be useful to remember for future conversations.
@@ -211,11 +210,45 @@ Conversation:
     /// <inheritdoc />
     public async Task<IReadOnlyList<MemoryEntity>> GetAllMemoriesAsync(CancellationToken ct = default)
     {
+        // Untracked: the list is for display, and the shared change tracker is also used by the
+        // background memory extraction.
         return await _db.Memories
+            .AsNoTracking()
             .Where(m => m.IsActive)
             .OrderByDescending(m => m.Importance)
             .ThenByDescending(m => m.CreatedAt)
             .ToListAsync(ct);
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> DeleteMemoryAsync(long memoryId, CancellationToken ct = default)
+    {
+        // Set-based statements rather than tracked Remove calls: the context is shared with the
+        // background extraction. Links go first, because databases built from the model carry a
+        // restricting foreign key on LinkedMemoryId, and a link to a deleted memory leads nowhere.
+        await _db.Memories
+            .Where(m => m.LinkedMemoryId == memoryId)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(m => m.LinkedMemoryId, (long?)null), ct);
+
+        var deleted = await _db.Memories
+            .Where(m => m.Id == memoryId)
+            .ExecuteDeleteAsync(ct);
+
+        _logger.Information("Deleted memory {MemoryId}: {Deleted}", memoryId, deleted > 0);
+        return deleted > 0;
+    }
+
+    /// <inheritdoc />
+    public async Task<int> DeleteAllMemoriesAsync(CancellationToken ct = default)
+    {
+        await _db.Memories
+            .Where(m => m.LinkedMemoryId != null)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(m => m.LinkedMemoryId, (long?)null), ct);
+
+        var deleted = await _db.Memories.ExecuteDeleteAsync(ct);
+
+        _logger.Information("Deleted all {Count} memories", deleted);
+        return deleted;
     }
 
     /// <inheritdoc />

@@ -41,9 +41,9 @@ public sealed class CollectionServiceTests : IDisposable
         return new CollectionService(db, _loggerMock.Object);
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  CreateCollectionAsync
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task CreateCollectionAsync_WithValidName_CreatesCollectionWithCorrectName()
@@ -140,9 +140,9 @@ public sealed class CollectionServiceTests : IDisposable
         third.SortOrder.Should().Be(2);
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  GetAllCollectionsAsync
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task GetAllCollectionsAsync_WhenEmpty_ReturnsEmptyList()
@@ -175,9 +175,9 @@ public sealed class CollectionServiceTests : IDisposable
         collections.Select(c => c.Name).Should().Contain(new[] { "Alpha", "Beta", "Gamma" });
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  GetRootCollectionsAsync
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task GetRootCollectionsAsync_OnlyReturnsRootLevelCollections()
@@ -200,9 +200,9 @@ public sealed class CollectionServiceTests : IDisposable
         rootCollections.Should().OnlyContain(c => c.ParentCollectionId == null);
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  UpdateCollectionAsync
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task UpdateCollectionAsync_UpdatesNameAndDescription()
@@ -254,9 +254,9 @@ public sealed class CollectionServiceTests : IDisposable
             .WithMessage("*not found*");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  DeleteCollectionAsync
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task DeleteCollectionAsync_RemovesCollection()
@@ -307,9 +307,9 @@ public sealed class CollectionServiceTests : IDisposable
         await act.Should().NotThrowAsync();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
-    //  MoveCollectionAsync — circular reference and self-parenting guards
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
+    //  MoveCollectionAsync - circular reference and self-parenting guards
+    // ======================================================================
 
     [Fact]
     public async Task MoveCollectionAsync_PreventsCircularReference()
@@ -379,9 +379,9 @@ public sealed class CollectionServiceTests : IDisposable
         moved!.ParentCollectionId.Should().BeNull();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  AddDocumentToCollectionAsync
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task AddDocumentToCollectionAsync_CreatesAssociation()
@@ -440,10 +440,14 @@ public sealed class CollectionServiceTests : IDisposable
         await db.SaveChangesAsync();
 
         // Act: add twice
-        await sut.AddDocumentToCollectionAsync(doc.Id, collection.Id);
-        await sut.AddDocumentToCollectionAsync(doc.Id, collection.Id);
+        var first = await sut.AddDocumentToCollectionAsync(doc.Id, collection.Id);
+        var second = await sut.AddDocumentToCollectionAsync(doc.Id, collection.Id);
 
-        // Assert: should still only have one association
+        // Assert: the caller learns the second add found the document already there
+        // (Add Documents reports it as "already in this collection"), and there is still
+        // only one association
+        first.Should().BeTrue();
+        second.Should().BeFalse();
         var reader = CreateService();
         var updatedCollection = await reader.GetCollectionAsync(collection.Id);
         updatedCollection.Should().NotBeNull();
@@ -493,9 +497,9 @@ public sealed class CollectionServiceTests : IDisposable
             .WithMessage("*Collection*not found*");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  GetCollectionCountAsync
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task GetCollectionCountAsync_WhenEmpty_ReturnsZero()
@@ -542,5 +546,118 @@ public sealed class CollectionServiceTests : IDisposable
 
         // Assert: root + 2 children = 3
         count.Should().Be(3);
+    }
+
+    // ======================================================================
+    //  Document counts
+    // ======================================================================
+
+    [Fact]
+    public async Task GetAllCollectionsAsync_CorrectsADocumentCountThatDrifted()
+    {
+        // Imports, web imports and deletes link and unlink documents without this service,
+        // so the stored count drifted from the real number of members.
+        var db = _factory.CreateContext();
+        var sut = new CollectionService(db, _loggerMock.Object);
+        var collection = await sut.CreateCollectionAsync("Drifted");
+        var root = await sut.CreateCollectionAsync("Parent");
+        var child = await sut.CreateCollectionAsync("Child", parentId: root.Id);
+
+        var first = AddDocument(db, "one.pdf");
+        var second = AddDocument(db, "two.pdf");
+        db.DocumentCollections.AddRange(
+            new DocumentCollectionEntity { DocumentId = first.Id, CollectionId = collection.Id, AddedAt = DateTime.UtcNow },
+            new DocumentCollectionEntity { DocumentId = second.Id, CollectionId = collection.Id, AddedAt = DateTime.UtcNow },
+            new DocumentCollectionEntity { DocumentId = first.Id, CollectionId = child.Id, AddedAt = DateTime.UtcNow });
+        await db.SaveChangesAsync();
+
+        var all = await CreateService().GetAllCollectionsAsync();
+
+        all.Single(c => c.Id == collection.Id).DocumentCount.Should().Be(2);
+        all.Single(c => c.Id == child.Id).DocumentCount.Should().Be(1);
+        all.Single(c => c.Id == root.Id).DocumentCount.Should().Be(0);
+
+        // The correction is persisted for readers that load collections directly.
+        using var fresh = _factory.CreateContext();
+        fresh.Collections.Single(c => c.Id == collection.Id).DocumentCount.Should().Be(2);
+    }
+
+    [Fact]
+    public async Task GetRootCollectionsAsync_CorrectsLoadedChildrenToo()
+    {
+        var db = _factory.CreateContext();
+        var sut = new CollectionService(db, _loggerMock.Object);
+        var root = await sut.CreateCollectionAsync("Root");
+        var child = await sut.CreateCollectionAsync("Child", parentId: root.Id);
+        var doc = AddDocument(db, "member.pdf");
+        db.DocumentCollections.Add(new DocumentCollectionEntity { DocumentId = doc.Id, CollectionId = child.Id, AddedAt = DateTime.UtcNow });
+        await db.SaveChangesAsync();
+
+        var roots = await CreateService().GetRootCollectionsAsync();
+
+        roots.Single().ChildCollections.Single().DocumentCount.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task DeleteCollectionAsync_WithDocuments_DeletesThemThroughTheDocumentService()
+    {
+        // Removing the rows directly left the documents' vectors, keyword index rows and
+        // cached search results behind.
+        var db = _factory.CreateContext();
+        var documentService = new Mock<AgentX.Core.Documents.IDocumentService>();
+        var sut = new CollectionService(db, _loggerMock.Object, documentService.Object);
+        var collection = await sut.CreateCollectionAsync("Doomed");
+        var doc = AddDocument(db, "doomed.pdf");
+        db.DocumentCollections.Add(new DocumentCollectionEntity { DocumentId = doc.Id, CollectionId = collection.Id, AddedAt = DateTime.UtcNow });
+        await db.SaveChangesAsync();
+
+        await sut.DeleteCollectionAsync(collection.Id, deleteDocuments: true);
+
+        documentService.Verify(d => d.DeleteDocumentAsync(doc.Id), Times.Once);
+        using var fresh = _factory.CreateContext();
+        fresh.Collections.Any(c => c.Id == collection.Id).Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task GetDocumentsInCollectionAsync_LeavesNothingTrackedInTheSharedContext()
+    {
+        // Its callers only read (the collection page, collection exports), but every call
+        // left the collection's documents tracked in the long-lived shared context.
+        long collectionId;
+        using (var seed = _factory.CreateContext())
+        {
+            var seeder = new CollectionService(seed, _loggerMock.Object);
+            var collection = await seeder.CreateCollectionAsync("Reading");
+            var second = AddDocument(seed, "zeta.pdf");
+            var first = AddDocument(seed, "alpha.pdf");
+            seed.DocumentCollections.AddRange(
+                new DocumentCollectionEntity { DocumentId = second.Id, CollectionId = collection.Id, AddedAt = DateTime.UtcNow },
+                new DocumentCollectionEntity { DocumentId = first.Id, CollectionId = collection.Id, AddedAt = DateTime.UtcNow });
+            await seed.SaveChangesAsync();
+            collectionId = collection.Id;
+        }
+
+        using var shared = _factory.CreateContext();
+        var documents = await new CollectionService(shared, _loggerMock.Object).GetDocumentsInCollectionAsync(collectionId);
+
+        documents.Select(d => d.FileName).Should().Equal("alpha.pdf", "zeta.pdf");
+        shared.ChangeTracker.Entries().Should().BeEmpty();
+    }
+
+    private static DocumentEntity AddDocument(AgentX.Core.Data.AgentXDbContext db, string fileName)
+    {
+        var doc = new DocumentEntity
+        {
+            FileName = fileName,
+            FilePath = "/tmp/" + fileName,
+            FileType = "pdf",
+            ContentHash = Guid.NewGuid().ToString("N"),
+            ImportedAt = DateTime.UtcNow,
+            FileModifiedAt = DateTime.UtcNow,
+            IndexingStatus = "completed"
+        };
+        db.Documents.Add(doc);
+        db.SaveChanges();
+        return doc;
     }
 }

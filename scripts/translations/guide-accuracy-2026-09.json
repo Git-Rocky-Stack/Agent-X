@@ -1,0 +1,567 @@
+{
+  "_comment": "Guide accuracy pass 2026-09 (SH22): in-app user guide strings corrected to describe only what ships. Removes Scheduled Queries, Automation Rules, remappable shortcuts, a profile switcher, CalDAV/IMAP/EWS, workflow triggers, scheduled feed refresh, merge and cherry-pick restore, scheduled backups and backup notifications, a model-delete confirmation, native messaging and one-time-code extension pairing, QR mobile pairing and mobile capture, and a watch-folder list. Locales whose current text for a key was already true keep it. Apply with python scripts/apply-guide-accuracy.py scripts/translations/guide-accuracy-2026-09.json",
+  "removePrefixes": [],
+  "update": {
+    "UserGuide_Welcome_Description2.Text": {
+      "en-US": "Agent-X unifies a remarkable breadth of capabilities under one roof: chat with local Ollama models or cloud frontier models from OpenAI and Anthropic; ask grounded questions about your own documents using Retrieval-Augmented Generation (RAG) with citations; build a curated Knowledge Vault with auto-tagging, duplicate detection, and a force-directed Knowledge Graph; run hybrid semantic+keyword search with FTS5 and Reciprocal Rank Fusion; capture web content via the browser extension or built-in scraper; transcribe audio; annotate PDFs; run repeatable multi-step Workflows on demand; track how your beliefs evolve over time with Temporal Identity; and extend the platform with plugins, calendar/email connectors, and an Android companion app for browsing and searching your vault.",
+      "de": "Agent-X supports multiple AI providers: Ollama for local inference with open-source models, and optional cloud providers including OpenAI and Anthropic Claude for users who want access to frontier models. Chat with AI models, ask questions about your own documents using Retrieval-Augmented Generation (RAG), manage a local knowledge vault, run pre-built AI actions, and search your files using semantic vector search - all with a local-first architecture that keeps your data on your device.",
+      "es": "Agent-X supports multiple AI providers: Ollama for local inference with open-source models, and optional cloud providers including OpenAI and Anthropic Claude for users who want access to frontier models. Chat with AI models, ask questions about your own documents using Retrieval-Augmented Generation (RAG), manage a local knowledge vault, run pre-built AI actions, and search your files using semantic vector search - all with a local-first architecture that keeps your data on your device.",
+      "fr": "Agent-X supports multiple AI providers: Ollama for local inference with open-source models, and optional cloud providers including OpenAI and Anthropic Claude for users who want access to frontier models. Chat with AI models, ask questions about your own documents using Retrieval-Augmented Generation (RAG), manage a local knowledge vault, run pre-built AI actions, and search your files using semantic vector search - all with a local-first architecture that keeps your data on your device.",
+      "ja": "Agent-X supports multiple AI providers: Ollama for local inference with open-source models, and optional cloud providers including OpenAI and Anthropic Claude for users who want access to frontier models. Chat with AI models, ask questions about your own documents using Retrieval-Augmented Generation (RAG), manage a local knowledge vault, run pre-built AI actions, and search your files using semantic vector search - all with a local-first architecture that keeps your data on your device.",
+      "zh-CN": "Agent-X supports multiple AI providers: Ollama for local inference with open-source models, and optional cloud providers including OpenAI and Anthropic Claude for users who want access to frontier models. Chat with AI models, ask questions about your own documents using Retrieval-Augmented Generation (RAG), manage a local knowledge vault, run pre-built AI actions, and search your files using semantic vector search - all with a local-first architecture that keeps your data on your device."
+    },
+    "UserGuide_GettingStarted_FirstLaunch_Description.Text": {
+      "en-US": "The first time you open Agent-X the Onboarding wizard takes over. It tests the connection to your Ollama endpoint (you can skip this step), lists your locally installed Ollama models so you can pick a default chat model and a default embedding model, checks the built-in local model and your GPU acceleration (and offers to download the model if your installer did not include it), and takes optional OpenAI and Anthropic API keys before a final summary. You import documents afterwards, from the Knowledge Vault.",
+      "de": "Beim ersten Start von Agent-X übernimmt der Onboarding-Assistent. Er prüft die Verbindung zu Ihrem Ollama-Endpunkt (dieser Schritt lässt sich überspringen), listet Ihre lokal installierten Ollama-Modelle auf, damit Sie ein Standard-Chatmodell und ein Standard-Embedding-Modell wählen können, prüft das integrierte lokale Modell und die GPU-Beschleunigung (und bietet den Download des Modells an, falls Ihr Installer es nicht enthielt) und nimmt optional OpenAI- und Anthropic-API-Schlüssel entgegen, bevor eine abschließende Zusammenfassung erscheint. Dokumente importieren Sie danach im Wissens-Tresor.",
+      "es": "La primera vez que abre Agent-X, el asistente de incorporación toma el control. Comprueba la conexión con su endpoint de Ollama (puede omitir este paso), enumera los modelos de Ollama instalados localmente para que elija un modelo de chat y un modelo de embeddings predeterminados, comprueba el modelo local integrado y la aceleración por GPU (y ofrece descargar el modelo si su instalador no lo incluía) y recoge claves de API opcionales de OpenAI y Anthropic antes de un resumen final. Los documentos se importan después, desde la Bóveda de Conocimiento.",
+      "fr": "Au premier lancement d'Agent-X, l'assistant d'intégration prend la main. Il teste la connexion à votre point de terminaison Ollama (vous pouvez passer cette étape), liste vos modèles Ollama installés localement pour que vous choisissiez un modèle de chat et un modèle d'embedding par défaut, vérifie le modèle local intégré et l'accélération GPU (et propose de télécharger le modèle si votre installateur ne l'incluait pas), puis recueille des clés d'API OpenAI et Anthropic facultatives avant un récapitulatif final. Vous importez ensuite vos documents depuis le Coffre-fort de Connaissances.",
+      "ja": "Agent-X を初めて開くと、オンボーディング ウィザードが起動します。Ollama エンドポイントへの接続をテストし (この手順はスキップできます)、ローカルにインストールされた Ollama モデルを一覧表示して既定のチャット モデルと埋め込みモデルを選べるようにし、内蔵ローカル モデルと GPU アクセラレーションを確認し (インストーラーにモデルが含まれていなかった場合はダウンロードを提案します)、最後の概要の前に任意で OpenAI と Anthropic の API キーを受け付けます。ドキュメントのインポートはその後、Knowledge Vault から行います。",
+      "zh-CN": "首次打开 Agent-X 时，初始引导向导会接管界面。它会测试与 Ollama 端点的连接（此步骤可跳过），列出本地已安装的 Ollama 模型供您选择默认聊天模型和默认嵌入模型，检查内置本地模型和 GPU 加速（如果安装程序未包含该模型，会提供下载），并在最终摘要之前接收可选的 OpenAI 和 Anthropic API 密钥。文档随后在 Knowledge Vault 中导入。"
+    },
+    "UserGuide_GettingStarted_FirstLaunch_Tip.Text": {
+      "en-US": "The Dashboard's Setup AI button opens Settings, where you can change the AI provider, models, and API keys at any time. To walk through the wizard again, press Ctrl+P and choose Onboarding. Leaving the wizard before its final Launch Agent-X step (with a shortcut, the command palette, or Jump To) counts as skipping it, so it does not come back on the next launch.",
+      "de": "Die Schaltfläche „KI einrichten“ im Dashboard öffnet die Einstellungen, in denen Sie KI-Anbieter, Modelle und API-Schlüssel jederzeit ändern können. Um den Assistenten erneut zu durchlaufen, drücken Sie Strg+P und wählen Sie „Onboarding“. Wenn Sie den Assistenten vor seinem letzten Schritt „Agent-X starten“ verlassen (per Tastenkürzel, Befehlspalette oder Jump To), gilt er als übersprungen und erscheint beim nächsten Start nicht erneut.",
+      "es": "El botón Configurar IA del Dashboard abre Configuración, donde puede cambiar el proveedor de IA, los modelos y las claves de API en cualquier momento. Para recorrer de nuevo el asistente, pulse Ctrl+P y elija Onboarding. Si sale del asistente antes de su paso final Iniciar Agent-X (con un atajo, la paleta de comandos o Jump To), se considera omitido y no volverá a aparecer en el siguiente inicio.",
+      "fr": "Le bouton Configurer l'IA du tableau de bord ouvre les Paramètres, où vous pouvez modifier à tout moment le fournisseur d'IA, les modèles et les clés d'API. Pour refaire l'assistant, appuyez sur Ctrl+P et choisissez Onboarding. Quitter l'assistant avant sa dernière étape Lancer Agent-X (par un raccourci, la palette de commandes ou Jump To) revient à l'ignorer : il ne réapparaît pas au lancement suivant.",
+      "ja": "ダッシュボードの [AI をセットアップ] ボタンは設定を開き、AI プロバイダー、モデル、API キーをいつでも変更できます。ウィザードをもう一度実行するには、Ctrl+P を押して Onboarding を選択します。最後の [Agent-X を起動] の手順より前に (ショートカット、コマンド パレット、Jump To などで) ウィザードを離れるとスキップしたものと見なされ、次回の起動時には表示されません。",
+      "zh-CN": "仪表板上的“设置 AI”按钮会打开设置，您可以随时在其中更改 AI 提供商、模型和 API 密钥。要再次运行向导，请按 Ctrl+P 并选择 Onboarding。如果在最后的“启动 Agent-X”步骤之前离开向导（通过快捷键、命令面板或 Jump To），则视为跳过，下次启动时不会再出现。"
+    },
+    "UserGuide_Dashboard_Feature3.Text": {
+      "en-US": "Recent Activity Timeline - A reverse-chronological feed of conversations, document imports, search queries, Quick Action runs, workflow executions, and detected insights. Click any entry to jump straight back to that context.",
+      "de": "Recent Activity - A timeline of your latest actions: recent chats, document imports, search queries, and quick action results.",
+      "es": "Recent Activity - A timeline of your latest actions: recent chats, document imports, search queries, and quick action results.",
+      "fr": "Recent Activity - A timeline of your latest actions: recent chats, document imports, search queries, and quick action results.",
+      "ja": "Recent Activity - A timeline of your latest actions: recent chats, document imports, search queries, and quick action results.",
+      "zh-CN": "Recent Activity - A timeline of your latest actions: recent chats, document imports, search queries, and quick action results."
+    },
+    "UserGuide_Dashboard_QuickAction1_Description.Text": {
+      "en-US": "Open Settings to reconfigure the AI provider, Ollama, and models.",
+      "de": "Öffnet die Einstellungen, um KI-Anbieter, Ollama und Modelle neu zu konfigurieren.",
+      "es": "Abre Configuración para reconfigurar el proveedor de IA, Ollama y los modelos.",
+      "fr": "Ouvre les Paramètres pour reconfigurer le fournisseur d'IA, Ollama et les modèles.",
+      "ja": "設定を開いて、AI プロバイダー、Ollama、モデルを再構成します。",
+      "zh-CN": "打开设置，以重新配置 AI 提供商、Ollama 和模型。"
+    },
+    "UserGuide_KnowledgeVault_Import3.Text": {
+      "en-US": "Folder import - Click Import Folder to import every supported file in a folder and its subfolders in one pass. Watch folders, which would pick up new files on their own, are not available yet: Settings shows an Auto-index watch folders switch, but the app has no way to add a folder to watch, so import new files yourself.",
+      "de": "Folder import - Select an entire folder to recursively import all supported files. Subfolders are scanned automatically.",
+      "es": "Folder import - Select an entire folder to recursively import all supported files. Subfolders are scanned automatically.",
+      "fr": "Folder import - Select an entire folder to recursively import all supported files. Subfolders are scanned automatically.",
+      "ja": "Folder import - Select an entire folder to recursively import all supported files. Subfolders are scanned automatically.",
+      "zh-CN": "Folder import - Select an entire folder to recursively import all supported files. Subfolders are scanned automatically."
+    },
+    "UserGuide_Settings_Group3_Description.Text": {
+      "en-US": "Control indexing behavior: chunk size (default 512 tokens), chunk overlap (default 50 tokens), and how many chunks are retrieved per query (top-K, default 5). The Auto-index watch folders switch lives here too, but the app has no way to add a watch folder yet, so the switch has nothing to act on.",
+      "de": "Chunk size, chunk overlap, and top-K results for retrieval. Controls how documents are split and how many chunks are retrieved per query.",
+      "es": "Chunk size, chunk overlap, and top-K results for retrieval. Controls how documents are split and how many chunks are retrieved per query.",
+      "fr": "Chunk size, chunk overlap, and top-K results for retrieval. Controls how documents are split and how many chunks are retrieved per query.",
+      "ja": "Chunk size, chunk overlap, and top-K results for retrieval. Controls how documents are split and how many chunks are retrieved per query.",
+      "zh-CN": "Chunk size, chunk overlap, and top-K results for retrieval. Controls how documents are split and how many chunks are retrieved per query."
+    },
+    "UserGuide_Collections_Description.Text": {
+      "en-US": "Collections are the organizational layer above the Knowledge Vault. Think of them as smart folders that any document can belong to multiple times - a single research paper can simultaneously live in \"AI Safety,\" \"2025 Reading,\" and \"Cited in Q4 Report.\" Collections drive scoped retrieval: every Quick Action, Semantic Search, RAG query, and Workflow can be scoped to a Collection so the AI only sees what is relevant to the task.",
+      "de": "Collections let you organize your documents into logical groups. Think of them as folders or tags for your Knowledge Vault - a single document can belong to multiple collections.",
+      "es": "Collections let you organize your documents into logical groups. Think of them as folders or tags for your Knowledge Vault - a single document can belong to multiple collections.",
+      "fr": "Collections let you organize your documents into logical groups. Think of them as folders or tags for your Knowledge Vault - a single document can belong to multiple collections.",
+      "ja": "Collections let you organize your documents into logical groups. Think of them as folders or tags for your Knowledge Vault - a single document can belong to multiple collections.",
+      "zh-CN": "Collections let you organize your documents into logical groups. Think of them as folders or tags for your Knowledge Vault - a single document can belong to multiple collections."
+    },
+    "UserGuide_Collections_Working3.Text": {
+      "en-US": "Scope retrieval - In Search, Ask Your Files, Workflows, and Quick Actions, pick a Collection from the scope selector to confine retrieval to its members only. Combine multiple Collections with AND/OR logic for advanced queries like \"Q4 docs AND tagged 'pricing'.\" Scoped retrieval typically improves answer precision by 20-40% on focused tasks.",
+      "de": "Collection-scoped search - When using Semantic Search or Ask Your Files, you can scope your query to a specific collection to narrow results to only the relevant documents.",
+      "es": "Collection-scoped search - When using Semantic Search or Ask Your Files, you can scope your query to a specific collection to narrow results to only the relevant documents.",
+      "fr": "Collection-scoped search - When using Semantic Search or Ask Your Files, you can scope your query to a specific collection to narrow results to only the relevant documents.",
+      "ja": "Collection-scoped search - When using Semantic Search or Ask Your Files, you can scope your query to a specific collection to narrow results to only the relevant documents.",
+      "zh-CN": "Collection-scoped search - When using Semantic Search or Ask Your Files, you can scope your query to a specific collection to narrow results to only the relevant documents."
+    },
+    "UserGuide_WeeklyDigest_Feature3.Text": {
+      "en-US": "On-Demand Reports - Click Generate New Digest on the Weekly Digest page to build a report covering the last seven days. Every report is kept in the digest history, so you can reopen earlier weeks. Digests are not produced on a schedule, and the seven-day window is fixed.",
+      "de": "Berichte auf Abruf - Klicken Sie auf der Seite „Weekly Digest“ auf „Neuen Digest erstellen“, um einen Bericht über die letzten sieben Tage zu erzeugen. Jeder Bericht bleibt im Digest-Verlauf erhalten, sodass Sie frühere Wochen wieder öffnen können. Digests werden nicht zeitgesteuert erstellt, und der Zeitraum von sieben Tagen ist fest.",
+      "es": "Informes bajo demanda - Haga clic en Generar nuevo resumen en la página Weekly Digest para crear un informe de los últimos siete días. Cada informe se conserva en el historial de resúmenes, para que pueda volver a abrir semanas anteriores. Los resúmenes no se generan según una programación y el periodo de siete días es fijo.",
+      "fr": "Rapports à la demande - Cliquez sur Générer un nouveau résumé dans la page Weekly Digest pour produire un rapport couvrant les sept derniers jours. Chaque rapport est conservé dans l'historique des résumés, ce qui vous permet de rouvrir les semaines précédentes. Les résumés ne sont pas générés selon une planification, et la période de sept jours est fixe.",
+      "ja": "オンデマンド レポート：Weekly Digest ページで [新しいダイジェストを生成] をクリックすると、直近 7 日間を対象とするレポートが作成されます。各レポートはダイジェスト履歴に保存されるため、以前の週をもう一度開けます。ダイジェストはスケジュールでは作成されず、7 日間という期間は固定です。",
+      "zh-CN": "按需报告：在 Weekly Digest 页面点击“生成新摘要”，即可生成涵盖最近七天的报告。每份报告都会保存在摘要历史中，您可以重新打开之前各周的报告。摘要不会按计划自动生成，七天的时间范围也是固定的。"
+    },
+    "UserGuide_ModelManager_Capability4.Text": {
+      "en-US": "Delete models - Reclaim disk by removing models you no longer use. Delete acts on one model at a time and takes effect immediately: there is no confirmation prompt and no undo, so pull the model again if you remove one by mistake.",
+      "de": "Modelle löschen - Geben Sie Speicherplatz frei, indem Sie nicht mehr benötigte Modelle entfernen. Gelöscht wird jeweils ein Modell, und zwar sofort: Es gibt keine Rückfrage und kein Rückgängigmachen. Laden Sie das Modell erneut herunter (Pull), falls Sie es versehentlich entfernt haben.",
+      "es": "Eliminar modelos - Recupere espacio en disco quitando los modelos que ya no usa. La eliminación actúa sobre un modelo cada vez y es inmediata: no hay mensaje de confirmación ni forma de deshacerla, así que vuelva a descargar (pull) el modelo si lo quita por error.",
+      "fr": "Supprimer des modèles - Récupérez de l'espace disque en retirant les modèles que vous n'utilisez plus. La suppression porte sur un modèle à la fois et prend effet immédiatement : aucune confirmation n'est demandée et rien ne peut être annulé, alors retéléchargez (pull) le modèle si vous l'avez supprimé par erreur.",
+      "ja": "モデルの削除：使わなくなったモデルを削除してディスク容量を回復します。削除は 1 モデルずつ行われ、すぐに反映されます。確認メッセージも元に戻す操作もないため、誤って削除した場合はモデルをもう一度プル (pull) してください。",
+      "zh-CN": "删除模型：删除不再使用的模型以回收磁盘空间。删除一次只针对一个模型，并且立即生效：没有确认提示，也无法撤销；如果误删了模型，请重新拉取（pull）该模型。"
+    },
+    "UserGuide_KeyboardShortcuts_Footer.Text": {
+      "en-US": "Tip: Press F1 (or Ctrl+Shift+/) anywhere to open the Cheatsheet, which lists the global shortcuts plus the ones registered by the page you are on. Shortcuts are fixed in this release; they cannot be remapped.",
+      "de": "Tipp: Drücken Sie überall F1 (oder Strg+Umschalt+/), um die Cheatsheet-Übersicht zu öffnen. Sie listet die globalen Tastenkombinationen und die der aktuellen Seite auf. In dieser Version sind die Tastenkombinationen fest vorgegeben und lassen sich nicht neu zuweisen.",
+      "es": "Sugerencia: pulse F1 (o Ctrl+Mayús+/) en cualquier lugar para abrir el Cheatsheet, que muestra los atajos globales y los que registra la página en la que se encuentra. En esta versión los atajos son fijos; no se pueden reasignar.",
+      "fr": "Astuce : appuyez sur F1 (ou Ctrl+Maj+/) n'importe où pour ouvrir le Cheatsheet, qui liste les raccourcis globaux ainsi que ceux enregistrés par la page affichée. Dans cette version, les raccourcis sont fixes ; ils ne peuvent pas être réaffectés.",
+      "ja": "ヒント: どこからでも F1 (または Ctrl+Shift+/) を押すとチートシートが開き、グローバル ショートカットと現在のページが登録したショートカットが一覧表示されます。このリリースではショートカットは固定で、再割り当てはできません。",
+      "zh-CN": "提示：在任意位置按 F1（或 Ctrl+Shift+/）即可打开速查表，其中列出全局快捷键以及当前页面注册的快捷键。此版本中的快捷键是固定的，无法重新映射。"
+    },
+    "UserGuide_GettingHelp_Docs_Description.Text": {
+      "en-US": "The online documentation portal hosts the full reference: deep-dive articles, video walkthroughs, the plugin developer SDK, REST API docs for the local API host, the mobile connection guide, and an exhaustive changelog. Every topic in this in-app guide has a longer-form companion article online with examples and architectural diagrams.",
+      "de": "Full online documentation, tutorials, and API reference.",
+      "es": "Full online documentation, tutorials, and API reference.",
+      "fr": "Full online documentation, tutorials, and API reference.",
+      "ja": "Full online documentation, tutorials, and API reference.",
+      "zh-CN": "Full online documentation, tutorials, and API reference."
+    },
+    "UserGuide_WebImport_Method2.Text": {
+      "en-US": "Browser extension - Load the Agent-X Web Clipper in Chrome or Edge, paste the API token from Settings > Connections into its popup, and clip the page you are reading: the full page, your selection, or a reader view. Clips go to the Smart Inbox for triage rather than straight into the vault. The extension talks to the desktop app through its local API on this computer, so nothing makes a cloud round-trip.",
+      "de": "Browser-Erweiterung - Laden Sie den Agent-X Web Clipper in Chrome oder Edge, fügen Sie das API-Token aus Einstellungen > Verbindungen in sein Popup ein und erfassen Sie die Seite, die Sie gerade lesen: die ganze Seite, Ihre Auswahl oder eine Leseansicht. Erfassungen landen zur Sichtung in der Smart Inbox statt direkt im Tresor. Die Erweiterung spricht über die lokale API auf diesem Computer mit der Desktop-App, es gibt also keinen Umweg über die Cloud.",
+      "es": "Extensión del navegador - Cargue el Agent-X Web Clipper en Chrome o Edge, pegue en su ventana emergente el token de API de Configuración > Conexiones y capture la página que está leyendo: la página completa, su selección o una vista de lectura. Las capturas van a la Smart Inbox para su clasificación en lugar de entrar directamente en la bóveda. La extensión se comunica con la aplicación de escritorio a través de su API local en este equipo, por lo que nada pasa por la nube.",
+      "fr": "Extension de navigateur - Chargez l'Agent-X Web Clipper dans Chrome ou Edge, collez dans sa fenêtre contextuelle le jeton d'API de Paramètres > Connexions, puis capturez la page que vous lisez : la page entière, votre sélection ou une vue lecture. Les captures arrivent dans la Smart Inbox pour être triées au lieu d'entrer directement dans le coffre. L'extension communique avec l'application de bureau via son API locale sur cet ordinateur, sans aller-retour par le cloud.",
+      "ja": "ブラウザー拡張機能：Chrome または Edge に Agent-X Web Clipper を読み込み、設定 > 接続 の API トークンをそのポップアップに貼り付けて、読んでいるページをクリップします (ページ全体、選択範囲、またはリーダー表示)。クリップはボールトに直接入らず、トリアージのために Smart Inbox に届きます。拡張機能はこのコンピューター上のローカル API を通じてデスクトップ アプリと通信するため、クラウドを経由することはありません。",
+      "zh-CN": "浏览器扩展：在 Chrome 或 Edge 中加载 Agent-X Web Clipper，将“设置 > 连接”中的 API 令牌粘贴到其弹出窗口中，然后剪藏您正在阅读的页面：整页、所选内容或阅读视图。剪藏内容会先进入 Smart Inbox 等待分拣，而不是直接进入知识库。扩展通过本机上的本地 API 与桌面应用通信，因此不会经过云端。"
+    },
+    "UserGuide_WebImport_Method3.Text": {
+      "en-US": "Batch & feed-based import - Paste several URLs, one per line, to import them in one run; point Agent-X at an RSS/Atom feed to import the items it lists right now; or import every page listed in a sitemap.xml. A feed is read once, when you import it: Agent-X does not re-check feeds on a schedule, so import the feed again to pick up new items.",
+      "de": "Stapel- und Feed-Import - Fügen Sie mehrere URLs ein, eine pro Zeile, um sie in einem Durchgang zu importieren; geben Sie einen RSS/Atom-Feed an, um die aktuell darin aufgeführten Einträge zu importieren; oder importieren Sie jede in einer sitemap.xml aufgeführte Seite. Ein Feed wird einmal gelesen, nämlich beim Import: Agent-X prüft Feeds nicht zeitgesteuert erneut. Importieren Sie den Feed also noch einmal, um neue Einträge zu erhalten.",
+      "es": "Importación por lotes y desde feeds - Pegue varias URL, una por línea, para importarlas de una vez; indique a Agent-X un feed RSS/Atom para importar los elementos que contiene en ese momento; o importe todas las páginas de un sitemap.xml. Un feed se lee una sola vez, al importarlo: Agent-X no vuelve a consultar los feeds de forma programada, así que importe el feed de nuevo para obtener los elementos nuevos.",
+      "fr": "Import par lots et par flux - Collez plusieurs URL, une par ligne, pour les importer en une seule passe ; indiquez à Agent-X un flux RSS/Atom pour importer les éléments qu'il contient à ce moment-là ; ou importez chaque page listée dans un sitemap.xml. Un flux est lu une seule fois, au moment de l'import : Agent-X ne revérifie pas les flux selon une planification, donc importez à nouveau le flux pour récupérer les nouveaux éléments.",
+      "ja": "一括インポートとフィード インポート：複数の URL を 1 行に 1 つずつ貼り付けて一度にインポートする、RSS/Atom フィードを指定してその時点で含まれている項目をインポートする、または sitemap.xml に記載されたすべてのページをインポートすることができます。フィードはインポート時に一度だけ読み込まれます。Agent-X はスケジュールでフィードを再確認しないため、新しい項目を取り込むにはフィードをもう一度インポートしてください。",
+      "zh-CN": "批量和订阅源导入：粘贴多个 URL（每行一个）即可一次性导入；指定 RSS/Atom 订阅源，导入其当前列出的条目；或导入 sitemap.xml 中列出的所有页面。订阅源只在导入时读取一次：Agent-X 不会按计划重新检查订阅源，因此要获取新条目，请再次导入该订阅源。"
+    },
+    "UserGuide_BrowserExtension_Description.Text": {
+      "en-US": "The Agent-X browser extension, the Agent-X Web Clipper, is your in-browser bridge to the desktop app. Clip the page you are reading, just the text you selected, or a clean reader view, or clip every open tab at once, and each clip lands in the Smart Inbox for triage. The extension talks to the desktop app over its local API at http://localhost:9846, authenticated with a token you paste in once: no cloud, no proxy, no third party.",
+      "de": "Die Agent-X-Browser-Erweiterung, der Agent-X Web Clipper, ist Ihre Brücke vom Browser zur Desktop-App. Erfassen Sie die Seite, die Sie lesen, nur den markierten Text oder eine bereinigte Leseansicht, oder erfassen Sie alle geöffneten Tabs auf einmal; jede Erfassung landet zur Sichtung in der Smart Inbox. Die Erweiterung spricht über die lokale API unter http://localhost:9846 mit der Desktop-App und authentifiziert sich mit einem Token, das Sie einmal einfügen: keine Cloud, kein Proxy, keine Drittanbieter.",
+      "es": "La extensión de navegador de Agent-X, el Agent-X Web Clipper, es su puente entre el navegador y la aplicación de escritorio. Capture la página que está leyendo, solo el texto seleccionado o una vista de lectura limpia, o capture todas las pestañas abiertas a la vez; cada captura llega a la Smart Inbox para su clasificación. La extensión se comunica con la aplicación de escritorio a través de su API local en http://localhost:9846, autenticada con un token que se pega una sola vez: sin nube, sin proxy, sin terceros.",
+      "fr": "L'extension de navigateur Agent-X, l'Agent-X Web Clipper, fait le lien entre votre navigateur et l'application de bureau. Capturez la page que vous lisez, uniquement le texte sélectionné ou une vue lecture épurée, ou capturez tous les onglets ouverts d'un coup : chaque capture arrive dans la Smart Inbox pour être triée. L'extension communique avec l'application de bureau via son API locale sur http://localhost:9846, authentifiée par un jeton que vous collez une seule fois : pas de cloud, pas de proxy, aucun tiers.",
+      "ja": "Agent-X のブラウザー拡張機能 Agent-X Web Clipper は、ブラウザーとデスクトップ アプリをつなぐ橋渡し役です。読んでいるページ、選択したテキストだけ、または整形されたリーダー表示をクリップでき、開いているすべてのタブを一度にクリップすることもできます。各クリップはトリアージのために Smart Inbox に届きます。拡張機能は http://localhost:9846 のローカル API を通じてデスクトップ アプリと通信し、一度貼り付けたトークンで認証します。クラウド、プロキシ、第三者は一切介在しません。",
+      "zh-CN": "Agent-X 浏览器扩展 Agent-X Web Clipper 是浏览器与桌面应用之间的桥梁。您可以剪藏正在阅读的页面、仅剪藏所选文本或剪藏整洁的阅读视图，也可以一次剪藏所有打开的标签页；每条剪藏都会进入 Smart Inbox 等待分拣。扩展通过位于 http://localhost:9846 的本地 API 与桌面应用通信，并使用您粘贴一次的令牌进行身份验证：不经过云端、代理或任何第三方。"
+    },
+    "UserGuide_BrowserExtension_Step1.Text": {
+      "en-US": "Load the extension into Chrome or Edge (both Chromium-based browsers are supported): open the browser's extensions page, turn on Developer mode, choose Load unpacked, and select the browser-extension/dist folder of an Agent-X build. The extension is open-source and ships from the same repository as the desktop app.",
+      "de": "Laden Sie die Erweiterung in Chrome oder Edge (beide Chromium-basierten Browser werden unterstützt): Öffnen Sie die Erweiterungsseite des Browsers, aktivieren Sie den Entwicklermodus, wählen Sie „Entpackte Erweiterung laden“ und wählen Sie den Ordner browser-extension/dist eines Agent-X-Builds aus. Die Erweiterung ist Open Source und stammt aus demselben Repository wie die Desktop-App.",
+      "es": "Cargue la extensión en Chrome o Edge (ambos navegadores basados en Chromium son compatibles): abra la página de extensiones del navegador, active el modo de desarrollador, elija Cargar descomprimida y seleccione la carpeta browser-extension/dist de una compilación de Agent-X. La extensión es de código abierto y se distribuye desde el mismo repositorio que la aplicación de escritorio.",
+      "fr": "Chargez l'extension dans Chrome ou Edge (les deux navigateurs basés sur Chromium sont pris en charge) : ouvrez la page des extensions du navigateur, activez le mode développeur, choisissez Charger l'extension non empaquetée et sélectionnez le dossier browser-extension/dist d'une build d'Agent-X. L'extension est open source et provient du même dépôt que l'application de bureau.",
+      "ja": "拡張機能を Chrome または Edge に読み込みます (どちらの Chromium ベースのブラウザーにも対応)。ブラウザーの拡張機能ページを開き、デベロッパー モードをオンにして [パッケージ化されていない拡張機能を読み込む] を選び、Agent-X ビルドの browser-extension/dist フォルダーを選択します。拡張機能はオープンソースで、デスクトップ アプリと同じリポジトリから提供されます。",
+      "zh-CN": "将扩展加载到 Chrome 或 Edge（两者均为基于 Chromium 的浏览器，均受支持）：打开浏览器的扩展程序页面，开启开发者模式，选择“加载已解压的扩展程序”，然后选择 Agent-X 构建中的 browser-extension/dist 文件夹。该扩展开源，并与桌面应用出自同一代码仓库。"
+    },
+    "UserGuide_BrowserExtension_Step2.Text": {
+      "en-US": "In Agent-X, open Settings > Connections, make sure Enable Local API is on, and copy the API token. The local API listens only on this computer (http://localhost:9846), and a change to that switch takes effect on the next launch.",
+      "de": "Öffnen Sie in Agent-X Einstellungen > Verbindungen, vergewissern Sie sich, dass „Lokale API aktivieren“ eingeschaltet ist, und kopieren Sie das API-Token. Die lokale API lauscht nur auf diesem Computer (http://localhost:9846), und eine Änderung dieses Schalters wird beim nächsten Start wirksam.",
+      "es": "En Agent-X, abra Configuración > Conexiones, asegúrese de que Activar API local está activado y copie el token de API. La API local solo escucha en este equipo (http://localhost:9846), y un cambio en ese interruptor se aplica en el siguiente inicio.",
+      "fr": "Dans Agent-X, ouvrez Paramètres > Connexions, vérifiez que Activer l'API locale est activé et copiez le jeton d'API. L'API locale n'écoute que sur cet ordinateur (http://localhost:9846), et une modification de cet interrupteur prend effet au lancement suivant.",
+      "ja": "Agent-X で 設定 > 接続 を開き、[ローカル API を有効化] がオンになっていることを確認して、API トークンをコピーします。ローカル API はこのコンピューター上でのみ待ち受け (http://localhost:9846)、このスイッチの変更は次回の起動時に反映されます。",
+      "zh-CN": "在 Agent-X 中打开“设置 > 连接”，确认“启用本地 API”已开启，然后复制 API 令牌。本地 API 只在本机上监听（http://localhost:9846），更改该开关后需在下次启动时生效。"
+    },
+    "UserGuide_BrowserExtension_Step3.Text": {
+      "en-US": "Pin the extension to your toolbar, open its popup, paste the token into the pairing field, and click Save. The header of the popup then shows the Agent-X version instead of Offline. There is no pairing code to confirm: the token is the pairing. It is stored in the browser and stays valid until you regenerate it in Settings > Connections, which disconnects every client until you paste the new token.",
+      "de": "Heften Sie die Erweiterung an Ihre Symbolleiste an, öffnen Sie ihr Popup, fügen Sie das Token in das Kopplungsfeld ein und klicken Sie auf „Save“. Die Kopfzeile des Popups zeigt dann die Agent-X-Version statt „Offline“. Es gibt keinen Kopplungscode zu bestätigen: Das Token ist die Kopplung. Es wird im Browser gespeichert und bleibt gültig, bis Sie es unter Einstellungen > Verbindungen neu erzeugen; danach sind alle Clients getrennt, bis Sie das neue Token einfügen.",
+      "es": "Ancle la extensión a la barra de herramientas, abra su ventana emergente, pegue el token en el campo de vinculación y haga clic en Save. El encabezado de la ventana mostrará entonces la versión de Agent-X en lugar de Offline. No hay ningún código de vinculación que confirmar: el token es la vinculación. Se guarda en el navegador y sigue siendo válido hasta que lo regenere en Configuración > Conexiones, lo que desconecta a todos los clientes hasta que pegue el nuevo token.",
+      "fr": "Épinglez l'extension à votre barre d'outils, ouvrez sa fenêtre contextuelle, collez le jeton dans le champ d'appairage et cliquez sur Save. L'en-tête de la fenêtre affiche alors la version d'Agent-X au lieu de Offline. Il n'y a aucun code d'appairage à confirmer : le jeton fait office d'appairage. Il est enregistré dans le navigateur et reste valide jusqu'à ce que vous le régénériez dans Paramètres > Connexions, ce qui déconnecte tous les clients jusqu'à ce que vous colliez le nouveau jeton.",
+      "ja": "拡張機能をツールバーにピン留めし、ポップアップを開いてペアリング欄にトークンを貼り付け、[Save] をクリックします。するとポップアップのヘッダーに Offline ではなく Agent-X のバージョンが表示されます。確認するペアリング コードはなく、トークンそのものがペアリングです。トークンはブラウザーに保存され、設定 > 接続 で再生成するまで有効です。再生成すると、新しいトークンを貼り付けるまですべてのクライアントが切断されます。",
+      "zh-CN": "将扩展固定到工具栏，打开其弹出窗口，把令牌粘贴到配对字段中，然后点击 Save。随后弹出窗口的标题会显示 Agent-X 版本，而不是 Offline。无需确认任何配对码：令牌本身就是配对凭据。令牌保存在浏览器中，在您于“设置 > 连接”中重新生成之前一直有效；重新生成后，所有客户端都会断开，直到您粘贴新令牌。"
+    },
+    "UserGuide_BrowserExtension_Feature1.Text": {
+      "en-US": "Clip modes - Full page captures the whole article, Selection captures only the text you highlighted, and Reader view keeps the main content without navigation and ads. Each clip carries the page title and URL along with the text.",
+      "de": "Erfassungsmodi - „Ganze Seite“ erfasst den gesamten Artikel, „Auswahl“ nur den markierten Text und „Leseansicht“ den Hauptinhalt ohne Navigation und Werbung. Jede Erfassung enthält neben dem Text den Seitentitel und die URL.",
+      "es": "Modos de captura - Página completa captura el artículo entero, Selección solo el texto resaltado y Vista de lectura conserva el contenido principal sin navegación ni anuncios. Cada captura incluye el título y la URL de la página junto con el texto.",
+      "fr": "Modes de capture - Page entière capture tout l'article, Sélection uniquement le texte surligné, et Vue lecture conserve le contenu principal sans navigation ni publicités. Chaque capture inclut le titre et l'URL de la page en plus du texte.",
+      "ja": "クリップ モード：ページ全体は記事全体を、選択範囲はハイライトしたテキストだけを取り込み、リーダー表示はナビゲーションや広告を除いた本文を残します。各クリップにはテキストと共にページのタイトルと URL が含まれます。",
+      "zh-CN": "剪藏模式：“整页”会捕获整篇文章，“所选内容”只捕获您高亮的文本，“阅读视图”保留去除导航和广告后的正文。每条剪藏都会随文本一起附带页面标题和 URL。"
+    },
+    "UserGuide_BrowserExtension_Feature2.Text": {
+      "en-US": "Clip all tabs - One button clips every tab in the current browser window, each as its own Smart Inbox item, which is handy at the end of a research session.",
+      "de": "Alle Tabs erfassen - Eine Schaltfläche erfasst jeden Tab im aktuellen Browserfenster als eigenes Element in der Smart Inbox, praktisch am Ende einer Recherche.",
+      "es": "Capturar todas las pestañas - Un solo botón captura cada pestaña de la ventana actual del navegador, cada una como un elemento propio de la Smart Inbox, algo útil al terminar una sesión de investigación.",
+      "fr": "Capturer tous les onglets - Un seul bouton capture chaque onglet de la fenêtre de navigateur active, chacun comme un élément distinct de la Smart Inbox, pratique à la fin d'une session de recherche.",
+      "ja": "すべてのタブをクリップ：1 つのボタンで現在のブラウザー ウィンドウのすべてのタブをクリップし、それぞれを個別の Smart Inbox アイテムにします。調べものの締めくくりに便利です。",
+      "zh-CN": "剪藏所有标签页：一个按钮即可剪藏当前浏览器窗口中的所有标签页，每个标签页都会成为单独的 Smart Inbox 条目，适合在一轮资料收集结束时使用。"
+    },
+    "UserGuide_BrowserExtension_Feature3.Text": {
+      "en-US": "Recent clips - The popup lists what you clipped recently, so you can confirm at a glance that a capture reached Agent-X. The extension has no context menu, keyboard shortcut, or side panel: everything starts from the popup.",
+      "de": "Letzte Erfassungen - Das Popup listet Ihre letzten Erfassungen auf, sodass Sie auf einen Blick sehen, dass eine Erfassung Agent-X erreicht hat. Die Erweiterung hat kein Kontextmenü, kein Tastenkürzel und kein Seitenpanel: Alles beginnt im Popup.",
+      "es": "Capturas recientes - La ventana emergente muestra lo que ha capturado recientemente, para que confirme de un vistazo que una captura llegó a Agent-X. La extensión no tiene menú contextual, atajo de teclado ni panel lateral: todo empieza en la ventana emergente.",
+      "fr": "Captures récentes - La fenêtre contextuelle liste vos captures récentes, pour vérifier d'un coup d'oeil qu'une capture a bien atteint Agent-X. L'extension n'a ni menu contextuel, ni raccourci clavier, ni panneau latéral : tout part de la fenêtre contextuelle.",
+      "ja": "最近のクリップ：ポップアップに最近クリップした内容が一覧表示されるため、クリップが Agent-X に届いたかをひと目で確認できます。拡張機能にはコンテキスト メニュー、キーボード ショートカット、サイド パネルはなく、すべての操作はポップアップから行います。",
+      "zh-CN": "最近剪藏：弹出窗口会列出您最近剪藏的内容，便于一眼确认剪藏已到达 Agent-X。该扩展没有右键菜单、键盘快捷键或侧边栏：所有操作都从弹出窗口开始。"
+    },
+    "UserGuide_BrowserExtension_Feature4.Text": {
+      "en-US": "Triage before the vault - Clips do not go straight into the Knowledge Vault. They wait in the Smart Inbox, where you review each one and accept, defer, or reject it.",
+      "de": "Sichtung vor dem Tresor - Erfassungen gelangen nicht direkt in den Wissens-Tresor. Sie warten in der Smart Inbox, wo Sie jede prüfen und annehmen, zurückstellen oder ablehnen.",
+      "es": "Clasificación antes de la bóveda - Las capturas no entran directamente en la Bóveda de Conocimiento. Esperan en la Smart Inbox, donde revisa cada una y la acepta, la pospone o la rechaza.",
+      "fr": "Tri avant le coffre - Les captures n'entrent pas directement dans le Coffre-fort de Connaissances. Elles attendent dans la Smart Inbox, où vous examinez chacune pour l'accepter, la reporter ou la rejeter.",
+      "ja": "ボールトに入る前のトリアージ：クリップは Knowledge Vault に直接入りません。Smart Inbox で待機し、そこで 1 件ずつ確認して、承認、保留、または却下します。",
+      "zh-CN": "入库前分拣：剪藏内容不会直接进入 Knowledge Vault，而是在 Smart Inbox 中等待，由您逐条查看并接受、推迟或拒绝。"
+    },
+    "UserGuide_BrowserExtension_NativeMessaging_Title.Text": {
+      "en-US": "Local API Connection",
+      "de": "Verbindung über die lokale API",
+      "es": "Conexión mediante la API local",
+      "fr": "Connexion par l'API locale",
+      "ja": "ローカル API 接続",
+      "zh-CN": "本地 API 连接"
+    },
+    "UserGuide_BrowserExtension_NativeMessaging_Description.Text": {
+      "en-US": "Each clip is an authenticated request to the Agent-X local API at http://localhost:9846, which answers only on this computer and blocks requests from web pages. Agent-X must be running with Enable Local API turned on: when it is not, the popup shows Offline and a clip fails instead of being queued for later, so clip again once the app is back. Nothing leaves your machine.",
+      "de": "Jede Erfassung ist eine authentifizierte Anfrage an die lokale Agent-X-API unter http://localhost:9846, die nur auf diesem Computer antwortet und Anfragen von Webseiten blockiert. Agent-X muss mit eingeschaltetem „Lokale API aktivieren“ laufen: Andernfalls zeigt das Popup „Offline“, und eine Erfassung schlägt fehl, statt für später vorgemerkt zu werden. Erfassen Sie dann erneut, sobald die App wieder läuft. Nichts verlässt Ihren Rechner.",
+      "es": "Cada captura es una solicitud autenticada a la API local de Agent-X en http://localhost:9846, que solo responde en este equipo y bloquea las solicitudes de páginas web. Agent-X debe estar en ejecución con Activar API local activado: si no lo está, la ventana emergente muestra Offline y la captura falla en lugar de quedar en cola, así que vuelva a capturar cuando la aplicación esté disponible. Nada sale de su equipo.",
+      "fr": "Chaque capture est une requête authentifiée vers l'API locale d'Agent-X sur http://localhost:9846, qui ne répond que sur cet ordinateur et bloque les requêtes des pages web. Agent-X doit être en cours d'exécution avec Activer l'API locale activé : sinon, la fenêtre contextuelle affiche Offline et la capture échoue au lieu d'être mise en attente, alors recommencez une fois l'application revenue. Rien ne quitte votre machine.",
+      "ja": "各クリップは http://localhost:9846 の Agent-X ローカル API への認証済みリクエストです。このローカル API はこのコンピューター上でのみ応答し、Web ページからのリクエストはブロックします。Agent-X が [ローカル API を有効化] をオンにした状態で実行されている必要があります。そうでない場合、ポップアップには Offline と表示され、クリップは後で送るためにキューに入ることなく失敗します。アプリが戻ってから、もう一度クリップしてください。データがこのコンピューターの外に出ることはありません。",
+      "zh-CN": "每条剪藏都是发往位于 http://localhost:9846 的 Agent-X 本地 API 的一次经过身份验证的请求；该 API 只在本机上响应，并会阻止来自网页的请求。Agent-X 必须处于运行状态且已开启“启用本地 API”：否则弹出窗口会显示 Offline，剪藏会直接失败而不会排队等待稍后发送，因此请在应用恢复后重新剪藏。任何数据都不会离开您的计算机。"
+    },
+    "UserGuide_MobileCompanion_Description.Text": {
+      "en-US": "Agent-X Mobile is a companion app for Android, built with .NET MAUI, that reads from the desktop app's local API. It lets you browse your documents and conversations and run searches across your vault. It keeps no copy of the vault, and it cannot chat, capture, or change anything. The desktop listens on this computer only, so the phone reaches it through the Android emulator or a USB connection; Wi-Fi and remote connections are not supported yet.",
+      "de": "Agent-X Mobile ist eine mit .NET MAUI erstellte Begleit-App für Android, die aus der lokalen API der Desktop-App liest. Damit durchsuchen Sie Ihre Dokumente und Konversationen und führen Suchen in Ihrem Tresor aus. Sie speichert keine Kopie des Tresors und kann weder chatten noch Inhalte erfassen oder etwas ändern. Der Desktop lauscht nur auf diesem Computer, daher erreicht ihn das Telefon über den Android-Emulator oder eine USB-Verbindung; WLAN- und Fernverbindungen werden noch nicht unterstützt.",
+      "es": "Agent-X Mobile es una aplicación complementaria para Android, creada con .NET MAUI, que lee de la API local de la aplicación de escritorio. Le permite examinar sus documentos y conversaciones y hacer búsquedas en su bóveda. No guarda una copia de la bóveda y no puede chatear, capturar contenido ni cambiar nada. El escritorio solo escucha en este equipo, por lo que el teléfono lo alcanza a través del emulador de Android o de una conexión USB; las conexiones por Wi-Fi y remotas aún no son compatibles.",
+      "fr": "Agent-X Mobile est une application compagnon pour Android, conçue avec .NET MAUI, qui lit les données de l'API locale de l'application de bureau. Elle vous permet de parcourir vos documents et conversations et de lancer des recherches dans votre coffre. Elle ne conserve aucune copie du coffre et ne peut ni discuter, ni capturer, ni rien modifier. Le poste de bureau n'écoute que sur cet ordinateur : le téléphone l'atteint donc via l'émulateur Android ou une connexion USB ; les connexions Wi-Fi et à distance ne sont pas encore prises en charge.",
+      "ja": "Agent-X Mobile は .NET MAUI で作られた Android 向けのコンパニオン アプリで、デスクトップ アプリのローカル API からデータを読み取ります。ドキュメントや会話を閲覧し、ボールト全体を検索できます。ボールトのコピーは保持せず、チャット、キャプチャ、変更はいずれもできません。デスクトップはこのコンピューター上でのみ待ち受けるため、電話からは Android エミュレーターまたは USB 接続で接続します。Wi-Fi やリモートでの接続にはまだ対応していません。",
+      "zh-CN": "Agent-X Mobile 是使用 .NET MAUI 构建的 Android 伴侣应用，从桌面应用的本地 API 读取数据。您可以用它浏览文档和对话，并在知识库中执行搜索。它不保存知识库的副本，也无法聊天、捕获内容或更改任何内容。桌面端只在本机上监听，因此手机需要通过 Android 模拟器或 USB 连接访问它；目前尚不支持 Wi-Fi 和远程连接。"
+    },
+    "UserGuide_MobileCompanion_Pairing_Title.Text": {
+      "en-US": "Connecting Your Device",
+      "de": "Gerät verbinden",
+      "es": "Conectar su dispositivo",
+      "fr": "Connecter votre appareil",
+      "ja": "デバイスの接続",
+      "zh-CN": "连接您的设备"
+    },
+    "UserGuide_MobileCompanion_Step1.Text": {
+      "en-US": "Install the Agent-X Mobile app on an Android phone or in the Android emulator. There is no iOS version yet.",
+      "de": "Installieren Sie die App Agent-X Mobile auf einem Android-Telefon oder im Android-Emulator. Eine iOS-Version gibt es noch nicht.",
+      "es": "Instale la aplicación Agent-X Mobile en un teléfono Android o en el emulador de Android. Todavía no hay versión para iOS.",
+      "fr": "Installez l'application Agent-X Mobile sur un téléphone Android ou dans l'émulateur Android. Il n'existe pas encore de version iOS.",
+      "ja": "Android スマートフォンまたは Android エミュレーターに Agent-X Mobile アプリをインストールします。iOS 版はまだありません。",
+      "zh-CN": "在 Android 手机或 Android 模拟器中安装 Agent-X Mobile 应用。目前还没有 iOS 版本。"
+    },
+    "UserGuide_MobileCompanion_Step2.Text": {
+      "en-US": "Make the desktop reachable. The Android emulator reaches this computer at http://10.0.2.2:9846. For a phone, connect it over USB and run adb reverse tcp:9846 tcp:9846 on the computer, then use http://localhost:9846. Enable Local API must be on in the desktop's Settings > Connections.",
+      "de": "Machen Sie den Desktop erreichbar. Der Android-Emulator erreicht diesen Computer unter http://10.0.2.2:9846. Ein Telefon verbinden Sie per USB, führen auf dem Computer adb reverse tcp:9846 tcp:9846 aus und verwenden dann http://localhost:9846. In den Einstellungen des Desktops unter Verbindungen muss „Lokale API aktivieren“ eingeschaltet sein.",
+      "es": "Haga que el escritorio sea accesible. El emulador de Android llega a este equipo en http://10.0.2.2:9846. Para un teléfono, conéctelo por USB, ejecute adb reverse tcp:9846 tcp:9846 en el equipo y use http://localhost:9846. Activar API local debe estar activado en Configuración > Conexiones del escritorio.",
+      "fr": "Rendez le poste de bureau joignable. L'émulateur Android atteint cet ordinateur à l'adresse http://10.0.2.2:9846. Pour un téléphone, branchez-le en USB, exécutez adb reverse tcp:9846 tcp:9846 sur l'ordinateur, puis utilisez http://localhost:9846. Activer l'API locale doit être activé dans Paramètres > Connexions sur le poste de bureau.",
+      "ja": "デスクトップに接続できるようにします。Android エミュレーターからは http://10.0.2.2:9846 でこのコンピューターに接続できます。スマートフォンの場合は USB で接続し、コンピューターで adb reverse tcp:9846 tcp:9846 を実行してから http://localhost:9846 を使います。デスクトップの 設定 > 接続 で [ローカル API を有効化] がオンになっている必要があります。",
+      "zh-CN": "让桌面端可被访问。Android 模拟器可通过 http://10.0.2.2:9846 访问本机。对于手机，请通过 USB 连接，在电脑上运行 adb reverse tcp:9846 tcp:9846，然后使用 http://localhost:9846。桌面端“设置 > 连接”中的“启用本地 API”必须处于开启状态。"
+    },
+    "UserGuide_MobileCompanion_Step3.Text": {
+      "en-US": "In the app's Settings, enter that URL, paste the API token from the desktop's Settings > Connections, tap Save, and tap Test Connection to confirm the desktop answers. There is no QR code or pairing code: the token is the pairing, and regenerating it on the desktop disconnects the phone until you paste the new one.",
+      "de": "Geben Sie in den Einstellungen der App diese URL ein, fügen Sie das API-Token aus den Desktop-Einstellungen unter Verbindungen ein, tippen Sie auf „Save“ und dann auf „Test Connection“, um zu prüfen, ob der Desktop antwortet. Es gibt keinen QR-Code und keinen Kopplungscode: Das Token ist die Kopplung. Wenn Sie es am Desktop neu erzeugen, ist das Telefon getrennt, bis Sie das neue Token einfügen.",
+      "es": "En la Configuración de la aplicación, introduzca esa URL, pegue el token de API de Configuración > Conexiones del escritorio, toque Save y luego Test Connection para comprobar que el escritorio responde. No hay código QR ni código de vinculación: el token es la vinculación, y si lo regenera en el escritorio, el teléfono queda desconectado hasta que pegue el nuevo.",
+      "fr": "Dans les paramètres de l'application, saisissez cette URL, collez le jeton d'API de Paramètres > Connexions du poste de bureau, touchez Save, puis Test Connection pour vérifier que le poste de bureau répond. Il n'y a ni code QR ni code d'appairage : le jeton fait office d'appairage, et le régénérer sur le poste de bureau déconnecte le téléphone jusqu'à ce que vous colliez le nouveau.",
+      "ja": "アプリの設定でその URL を入力し、デスクトップの 設定 > 接続 から API トークンを貼り付けて [Save] をタップし、[Test Connection] をタップしてデスクトップが応答することを確認します。QR コードやペアリング コードはなく、トークンそのものがペアリングです。デスクトップでトークンを再生成すると、新しいトークンを貼り付けるまで電話は切断されます。",
+      "zh-CN": "在应用的设置中输入该 URL，粘贴桌面端“设置 > 连接”中的 API 令牌，点击 Save，然后点击 Test Connection 确认桌面端有响应。没有二维码或配对码：令牌本身就是配对凭据；在桌面端重新生成令牌后，手机会断开连接，直到您粘贴新令牌。"
+    },
+    "UserGuide_MobileCompanion_Feature1_Title.Text": {
+      "en-US": "Conversation List",
+      "de": "Konversationsliste",
+      "es": "Lista de conversaciones",
+      "fr": "Liste des conversations",
+      "ja": "会話の一覧",
+      "zh-CN": "对话列表"
+    },
+    "UserGuide_MobileCompanion_Feature1_Description.Text": {
+      "en-US": "See the conversations stored on the desktop with their title, model, message count, and last update. Reading messages and chatting are not available on the phone; open the conversation on the desktop.",
+      "de": "Sehen Sie die auf dem Desktop gespeicherten Konversationen mit Titel, Modell, Anzahl der Nachrichten und letzter Aktualisierung. Nachrichten lesen und chatten ist auf dem Telefon nicht möglich; öffnen Sie die Konversation am Desktop.",
+      "es": "Vea las conversaciones guardadas en el escritorio con su título, modelo, número de mensajes y última actualización. En el teléfono no se pueden leer los mensajes ni chatear; abra la conversación en el escritorio.",
+      "fr": "Consultez les conversations enregistrées sur le poste de bureau avec leur titre, leur modèle, leur nombre de messages et leur dernière mise à jour. La lecture des messages et le chat ne sont pas disponibles sur le téléphone ; ouvrez la conversation sur le poste de bureau.",
+      "ja": "デスクトップに保存されている会話を、タイトル、モデル、メッセージ数、最終更新日時とともに確認できます。電話ではメッセージの閲覧やチャットはできないため、会話はデスクトップで開いてください。",
+      "zh-CN": "查看桌面端存储的对话及其标题、模型、消息数量和最近更新时间。手机上无法阅读消息或聊天；请在桌面端打开对话。"
+    },
+    "UserGuide_MobileCompanion_Feature2_Description.Text": {
+      "en-US": "Search your Knowledge Vault from the phone. The query runs on the desktop, and each result shows the matching passage, its document, and a relevance score.",
+      "de": "Durchsuchen Sie Ihren Wissens-Tresor vom Telefon aus. Die Suche läuft auf dem Desktop, und jedes Ergebnis zeigt die passende Textstelle, ihr Dokument und eine Relevanzbewertung.",
+      "es": "Busque en su Bóveda de Conocimiento desde el teléfono. La consulta se ejecuta en el escritorio y cada resultado muestra el pasaje coincidente, su documento y una puntuación de relevancia.",
+      "fr": "Interrogez votre Coffre-fort de Connaissances depuis le téléphone. La requête s'exécute sur le poste de bureau, et chaque résultat affiche le passage correspondant, son document et un score de pertinence.",
+      "ja": "電話から Knowledge Vault を検索できます。検索はデスクトップで実行され、各結果には一致した箇所、そのドキュメント、関連度スコアが表示されます。",
+      "zh-CN": "在手机上搜索您的 Knowledge Vault。查询在桌面端运行，每条结果都会显示匹配的段落、所属文档和相关度评分。"
+    },
+    "UserGuide_MobileCompanion_Feature3_Title.Text": {
+      "en-US": "Document List",
+      "de": "Dokumentliste",
+      "es": "Lista de documentos",
+      "fr": "Liste des documents",
+      "ja": "ドキュメントの一覧",
+      "zh-CN": "文档列表"
+    },
+    "UserGuide_MobileCompanion_Feature3_Description.Text": {
+      "en-US": "Browse the documents in your vault with their size, import date, and indexing status. The app cannot add anything: voice notes, photos, and text notes cannot be captured from the phone.",
+      "de": "Durchsuchen Sie die Dokumente in Ihrem Tresor mit Größe, Importdatum und Indexierungsstatus. Die App kann nichts hinzufügen: Sprachnotizen, Fotos und Textnotizen lassen sich vom Telefon aus nicht erfassen.",
+      "es": "Examine los documentos de su bóveda con su tamaño, fecha de importación y estado de indexación. La aplicación no puede añadir nada: las notas de voz, las fotos y las notas de texto no se pueden capturar desde el teléfono.",
+      "fr": "Parcourez les documents de votre coffre avec leur taille, leur date d'import et leur état d'indexation. L'application ne peut rien ajouter : notes vocales, photos et notes texte ne peuvent pas être capturées depuis le téléphone.",
+      "ja": "ボールト内のドキュメントを、サイズ、インポート日、インデックス作成の状態とともに閲覧できます。アプリから追加できるものはなく、音声メモ、写真、テキスト メモを電話から取り込むことはできません。",
+      "zh-CN": "浏览知识库中的文档及其大小、导入日期和索引状态。该应用无法添加任何内容：无法从手机捕获语音备忘、照片或文本笔记。"
+    },
+    "UserGuide_MobileCompanion_Feature4_Title.Text": {
+      "en-US": "Live Connection Only",
+      "de": "Nur mit aktiver Verbindung",
+      "es": "Solo con conexión activa",
+      "fr": "Connexion active uniquement",
+      "ja": "常時接続が必要",
+      "zh-CN": "仅在线可用"
+    },
+    "UserGuide_MobileCompanion_Feature4_Description.Text": {
+      "en-US": "Nothing is cached for offline use. The app needs the desktop running and reachable, and it reports a connection error instead of showing stale data.",
+      "de": "Für die Offline-Nutzung wird nichts zwischengespeichert. Die App braucht einen laufenden, erreichbaren Desktop und meldet einen Verbindungsfehler, statt veraltete Daten anzuzeigen.",
+      "es": "No se almacena nada en caché para usarlo sin conexión. La aplicación necesita que el escritorio esté en ejecución y accesible, y muestra un error de conexión en lugar de datos obsoletos.",
+      "fr": "Rien n'est mis en cache pour une utilisation hors ligne. L'application a besoin d'un poste de bureau en cours d'exécution et joignable, et signale une erreur de connexion plutôt que d'afficher des données périmées.",
+      "ja": "オフライン用にキャッシュされるものはありません。アプリを使うにはデスクトップが実行中で接続可能である必要があり、接続できない場合は古いデータを表示せずに接続エラーを表示します。",
+      "zh-CN": "不会为离线使用缓存任何内容。应用需要桌面端正在运行且可访问；无法连接时会报告连接错误，而不是显示过时的数据。"
+    },
+    "UserGuide_MobileCompanion_Sync_Title.Text": {
+      "en-US": "Connection & Security",
+      "de": "Verbindung und Sicherheit",
+      "es": "Conexión y seguridad",
+      "fr": "Connexion et sécurité",
+      "ja": "接続とセキュリティ",
+      "zh-CN": "连接与安全"
+    },
+    "UserGuide_MobileCompanion_Sync_Description.Text": {
+      "en-US": "The phone reads everything from the desktop's local API on demand and stores only its own connection settings. The desktop listens on localhost only, and the app refuses plain HTTP to any other host, so traffic stays on the emulator bridge or the USB link. Every request carries the API token; regenerate it in Settings > Connections to cut off every connected client at once.",
+      "de": "Das Telefon liest alles bei Bedarf aus der lokalen API des Desktops und speichert nur seine eigenen Verbindungseinstellungen. Der Desktop lauscht nur auf localhost, und die App verweigert unverschlüsseltes HTTP zu jedem anderen Host, sodass der Datenverkehr auf der Emulator-Brücke oder der USB-Verbindung bleibt. Jede Anfrage trägt das API-Token; erzeugen Sie es unter Einstellungen > Verbindungen neu, um alle verbundenen Clients auf einmal zu trennen.",
+      "es": "El teléfono lee todo de la API local del escritorio cuando lo necesita y solo guarda su propia configuración de conexión. El escritorio solo escucha en localhost y la aplicación rechaza HTTP sin cifrar hacia cualquier otro host, de modo que el tráfico se queda en el puente del emulador o en el enlace USB. Cada solicitud lleva el token de API; regénérelo en Configuración > Conexiones para desconectar de una vez a todos los clientes conectados.",
+      "fr": "Le téléphone lit tout à la demande depuis l'API locale du poste de bureau et ne stocke que ses propres paramètres de connexion. Le poste de bureau n'écoute que sur localhost, et l'application refuse le HTTP non chiffré vers tout autre hôte : le trafic reste sur le pont de l'émulateur ou sur la liaison USB. Chaque requête porte le jeton d'API ; régénérez-le dans Paramètres > Connexions pour couper d'un coup tous les clients connectés.",
+      "ja": "電話は必要なときにデスクトップのローカル API からすべてを読み取り、保存するのは自身の接続設定だけです。デスクトップは localhost でのみ待ち受け、アプリはそれ以外のホストへの暗号化されていない HTTP を拒否するため、通信はエミュレーターのブリッジまたは USB 接続の中にとどまります。すべてのリクエストには API トークンが付きます。設定 > 接続 でトークンを再生成すると、接続中のすべてのクライアントを一度に切断できます。",
+      "zh-CN": "手机按需从桌面端的本地 API 读取所有内容，只保存自身的连接设置。桌面端只在 localhost 上监听，应用会拒绝发往其他任何主机的明文 HTTP，因此流量只停留在模拟器桥接或 USB 连接上。每个请求都携带 API 令牌；在“设置 > 连接”中重新生成令牌即可一次性断开所有已连接的客户端。"
+    },
+    "UserGuide_Inbox_Description.Text": {
+      "en-US": "The Smart Inbox is the triage queue for content entering your knowledge base. Captures from the browser extension and plugins land here first, so you decide what is worth keeping - instead of letting everything pile into the vault unsorted.",
+      "de": "Die Smart Inbox ist die Triage-Warteschlange für Inhalte auf dem Weg in Ihre Wissensbasis. Erfassungen aus der Browser-Erweiterung und von Plugins landen zuerst hier - Sie entscheiden, was es wert ist, behalten zu werden, statt alles unsortiert in den Tresor laufen zu lassen.",
+      "es": "La Smart Inbox es la cola de clasificación del contenido que entra en su base de conocimiento. Las capturas de la extensión del navegador y de los plugins llegan aquí primero, de modo que usted decide qué merece conservarse en lugar de dejar que todo se acumule sin clasificar en la bóveda.",
+      "fr": "La Smart Inbox est la file de triage du contenu qui entre dans votre base de connaissances. Les captures de l'extension de navigateur et des plugins y arrivent d'abord : c'est vous qui décidez ce qui mérite d'être conservé, au lieu de laisser tout s'entasser sans tri dans le coffre.",
+      "ja": "Smart Inbox は、ナレッジベースに入ってくるコンテンツのトリアージキューです。ブラウザ拡張機能とプラグインからのキャプチャはまずここに届きます。すべてを未整理のままボールトに流し込むのではなく、残す価値があるものをあなたが判断できます。",
+      "zh-CN": "Smart Inbox 是内容进入知识库前的分拣队列。来自浏览器扩展和插件的捕获内容会先到达这里，由您决定哪些值得保留 - 而不是让所有内容未经整理就堆进知识库。"
+    },
+    "UserGuide_Inbox_Feature3_Description.Text": {
+      "en-US": "Web captures from the browser extension and content contributed by plugins all flow into one queue with a consistent triage workflow.",
+      "de": "Web-Erfassungen aus der Browser-Erweiterung und von Plugins beigesteuerte Inhalte laufen in einer Warteschlange mit einheitlichem Triage-Ablauf zusammen.",
+      "es": "Las capturas web de la extensión del navegador y el contenido aportado por plugins confluyen en una única cola con un flujo de clasificación coherente.",
+      "fr": "Les captures web de l'extension de navigateur et les contenus fournis par les plugins convergent dans une seule file, avec un flux de triage cohérent.",
+      "ja": "ブラウザ拡張機能からの Web キャプチャとプラグインが提供するコンテンツが、一貫したトリアージワークフローを持つ 1 つのキューに集まります。",
+      "zh-CN": "来自浏览器扩展的网页捕获以及插件贡献的内容，都汇入同一个队列，采用一致的分拣流程。"
+    },
+    "UserGuide_AudioTranscription_Description.Text": {
+      "en-US": "Drop audio files (MP3, M4A, WAV, FLAC, OGG, WebM) into Agent-X and they're transcribed locally with Whisper-class models, indexed into the Knowledge Vault with timestamped chunks, and available to every other feature - RAG, Search, Quick Actions, Workflows. Voice memos, podcast episodes, meeting recordings, lectures, interviews - all become first-class searchable content.",
+      "de": "Werfen Sie Audiodateien (MP3, M4A, WAV, FLAC, OGG, WebM) in Agent-X, und sie werden lokal mit Whisper-Klasse-Modellen transkribiert, mit zeitgestempelten Chunks in den Wissens-Tresor indiziert und stehen jeder anderen Funktion zur Verfügung - RAG, Suche, Quick Actions, Workflows. Sprachnotizen, Podcast-Folgen, Meeting-Aufzeichnungen, Vorlesungen, Interviews - alles wird zu erstklassigem, durchsuchbarem Inhalt.",
+      "es": "Suelta archivos de audio (MP3, M4A, WAV, FLAC, OGG, WebM) en Agent-X y se transcriben localmente con modelos clase Whisper, se indexan en la Bóveda de Conocimiento con fragmentos con marca de tiempo, y quedan disponibles para todas las demás funciones - RAG, Búsqueda, Quick Actions, Workflows. Notas de voz, episodios de podcast, grabaciones de reuniones, conferencias, entrevistas - todo se convierte en contenido buscable de primera clase.",
+      "fr": "Déposez des fichiers audio (MP3, M4A, WAV, FLAC, OGG, WebM) dans Agent-X et ils sont transcrits localement avec des modèles classe Whisper, indexés dans le Coffre-fort de Connaissances avec des fragments horodatés, et disponibles pour chaque autre fonctionnalité - RAG, Recherche, Quick Actions, Workflows. Notes vocales, épisodes de podcast, enregistrements de réunion, conférences, interviews - tout devient un contenu recherchable de premier ordre.",
+      "ja": "音声ファイル(MP3、M4A、WAV、FLAC、OGG、WebM)を Agent-X にドロップすると、Whisper クラスのモデルでローカルに文字起こしされ、タイムスタンプ付きチャンクで Knowledge Vault にインデックスされ、他のすべての機能 - RAG、検索、Quick Actions、Workflows - で利用可能になります。音声メモ、ポッドキャスト エピソード、会議録音、講義、インタビュー - すべてが一級の検索可能なコンテンツになります。",
+      "zh-CN": "将音频文件(MP3、M4A、WAV、FLAC、OGG、WebM)拖入 Agent-X,会以 Whisper 级模型在本地完成转录,并按带时间戳的片段索引到 Knowledge Vault,从而对所有其他功能可用--RAG、搜索、Quick Actions、Workflows。语音备忘、播客集、会议录音、讲座、访谈--全部成为一等可搜索内容。"
+    },
+    "UserGuide_AudioTranscription_Step1.Text": {
+      "en-US": "Import via drag-and-drop or the file picker. Files queue in the Audio Transcription pipeline and the indexing queue shows live progress in Operations.",
+      "de": "Importieren Sie per Drag-and-drop oder über die Dateiauswahl. Dateien reihen sich in die Audio-Transkriptions-Pipeline ein, und die Indexierungs-Warteschlange zeigt Live-Fortschritt unter Operations.",
+      "es": "Importa vía arrastrar y soltar o con el selector de archivos. Los archivos se encolan en la tubería de Transcripción de Audio y la cola de indexación muestra progreso en vivo en Operations.",
+      "fr": "Importez par glisser-déposer ou avec le sélecteur de fichiers. Les fichiers s’empilent dans la pipeline de Transcription Audio et la file d’indexation affiche la progression en direct dans Operations.",
+      "ja": "ドラッグ&ドロップまたはファイル ピッカーでインポートします。ファイルは Audio Transcription パイプラインのキューに入り、Operations にインデックス作成キューのライブ進捗が表示されます。",
+      "zh-CN": "通过拖放或文件选择器导入。文件在 Audio Transcription 管道中排队,索引队列在 Operations 中实时显示进度。"
+    },
+    "UserGuide_AudioTranscription_UseCase3.Text": {
+      "en-US": "Voice journaling - Record voice notes with any recorder app, import the audio files, and they transcribe and feed into Temporal Identity tracking just like written messages do.",
+      "de": "Sprach-Journaling - Nehmen Sie Sprachnotizen mit einer beliebigen Aufnahme-App auf und importieren Sie die Audiodateien; sie werden transkribiert und fließen in das Temporal-Identity-Tracking ein, genau wie geschriebene Nachrichten.",
+      "es": "Diario de voz - Graba notas de voz con cualquier aplicación de grabación e importa los archivos de audio; se transcriben y alimentan el seguimiento de Temporal Identity igual que los mensajes escritos.",
+      "fr": "Journal vocal - Enregistrez des notes vocales avec n'importe quelle application d'enregistrement, puis importez les fichiers audio ; ils sont transcrits et alimentent le suivi Temporal Identity comme les messages écrits.",
+      "ja": "ボイス ジャーナリング - 任意の録音アプリで音声メモを録音し、その音声ファイルをインポートします。文字起こしされ、書かれたメッセージと同様に Temporal Identity トラッキングに供給されます。",
+      "zh-CN": "语音日记 - 使用任意录音应用录制语音备忘，然后导入音频文件；它们会被转录，并像书面消息一样进入 Temporal Identity 跟踪。"
+    },
+    "UserGuide_Workflows_CreateStep1.Text": {
+      "en-US": "Open Workflows from the navigation rail (or press Ctrl+Shift+W) and click New Workflow, or pick one of the built-in templates and click Use Template to start from it.",
+      "de": "Öffnen Sie Workflows über die Navigationsleiste (oder mit Strg+Umschalt+W) und klicken Sie auf „Neuer Workflow“, oder wählen Sie eine der integrierten Vorlagen und klicken Sie auf „Vorlage verwenden“, um davon auszugehen.",
+      "es": "Abra Workflows desde la barra de navegación (o pulse Ctrl+Mayús+W) y haga clic en Nuevo flujo de trabajo, o elija una de las plantillas integradas y haga clic en Usar plantilla para partir de ella.",
+      "fr": "Ouvrez Workflows depuis la barre de navigation (ou appuyez sur Ctrl+Maj+W) et cliquez sur Nouveau flux de travail, ou choisissez l'un des modèles intégrés et cliquez sur Utiliser le modèle pour partir de celui-ci.",
+      "ja": "ナビゲーション レールから Workflows を開き (または Ctrl+Shift+W を押し)、[新しいワークフロー] をクリックします。組み込みテンプレートのいずれかを選んで [テンプレートを使用] をクリックし、それを基に始めることもできます。",
+      "zh-CN": "从导航栏打开 Workflows（或按 Ctrl+Shift+W），点击“新建工作流”；也可以选择一个内置模板并点击“使用模板”，以它为起点。"
+    },
+    "UserGuide_Workflows_CreateStep2.Text": {
+      "en-US": "Name the workflow and add steps. Each step is one of five types (AI Prompt, Document Lookup, Text Transform, Conditional Branch, Output Format), and each step's output feeds the next.",
+      "de": "Benennen Sie den Workflow und fügen Sie Schritte hinzu. Jeder Schritt ist einer von fünf Typen (KI-Prompt, Dokumenten-Lookup, Texttransformation, Bedingte Verzweigung, Ausgabeformat), und die Ausgabe jedes Schritts fließt in den nächsten.",
+      "es": "Asigne un nombre al workflow y añada pasos. Cada paso es de uno de cinco tipos (Prompt de IA, Búsqueda de documentos, Transformación de texto, Ramificación condicional, Formato de salida), y la salida de cada paso alimenta al siguiente.",
+      "fr": "Nommez le workflow et ajoutez des étapes. Chaque étape est de l'un des cinq types (Prompt d'IA, Recherche de documents, Transformation de texte, Branchement conditionnel, Format de sortie), et la sortie de chaque étape alimente la suivante.",
+      "ja": "ワークフローに名前を付け、ステップを追加します。各ステップは 5 種類 (AI プロンプト、ドキュメント検索、テキスト変換、条件分岐、出力フォーマット) のいずれかで、各ステップの出力が次のステップに渡されます。",
+      "zh-CN": "为工作流命名并添加步骤。每个步骤属于五种类型之一（AI 提示、文档查找、文本转换、条件分支、输出格式化），每个步骤的输出都会传给下一个步骤。"
+    },
+    "UserGuide_Workflows_CreateStep3.Text": {
+      "en-US": "Arrange the steps with the move up and move down buttons, remove any you do not need, and save. Steps transform text; no step sends notifications or messages.",
+      "de": "Ordnen Sie die Schritte mit den Schaltflächen zum Nach-oben- und Nach-unten-Verschieben, entfernen Sie nicht benötigte Schritte und speichern Sie. Schritte verarbeiten Text; kein Schritt versendet Benachrichtigungen oder Nachrichten.",
+      "es": "Ordene los pasos con los botones de subir y bajar, quite los que no necesite y guarde. Los pasos transforman texto; ningún paso envía notificaciones ni mensajes.",
+      "fr": "Réorganisez les étapes avec les boutons monter et descendre, supprimez celles dont vous n'avez pas besoin, puis enregistrez. Les étapes transforment du texte ; aucune étape n'envoie de notifications ni de messages.",
+      "ja": "上へ移動と下へ移動のボタンでステップの順序を整え、不要なステップを削除して保存します。ステップはテキストを変換するもので、通知やメッセージを送信するステップはありません。",
+      "zh-CN": "使用上移和下移按钮调整步骤顺序，删除不需要的步骤，然后保存。步骤用于转换文本；没有任何步骤会发送通知或消息。"
+    },
+    "UserGuide_Workflows_CreateStep4.Text": {
+      "en-US": "Run the workflow: enter the input text and click Run. The final output appears when the last step finishes, and you can save it to the Knowledge Vault; every run is also kept in the run history. Workflows run only when you start them: there are no schedules or event triggers.",
+      "de": "Führen Sie den Workflow aus: Geben Sie den Eingabetext ein und klicken Sie auf „Ausführen“. Das Endergebnis erscheint, wenn der letzte Schritt fertig ist, und Sie können es im Wissens-Tresor speichern; jeder Lauf bleibt außerdem im Laufverlauf erhalten. Workflows laufen nur, wenn Sie sie starten: Es gibt keine Zeitpläne oder Ereignisauslöser.",
+      "es": "Ejecute el workflow: introduzca el texto de entrada y haga clic en Ejecutar. El resultado final aparece cuando termina el último paso y puede guardarlo en la Bóveda de Conocimiento; además, cada ejecución se conserva en el historial de ejecuciones. Los workflows solo se ejecutan cuando usted los inicia: no hay programaciones ni desencadenadores por eventos.",
+      "fr": "Exécutez le workflow : saisissez le texte d'entrée et cliquez sur Exécuter. Le résultat final apparaît quand la dernière étape se termine, et vous pouvez l'enregistrer dans le Coffre-fort de Connaissances ; chaque exécution est aussi conservée dans l'historique des exécutions. Les workflows ne s'exécutent que lorsque vous les lancez : il n'y a ni planification ni déclencheur sur événement.",
+      "ja": "ワークフローを実行します。入力テキストを入力して [実行] をクリックすると、最後のステップが終わった時点で最終出力が表示され、Knowledge Vault に保存できます。各実行は実行履歴にも保存されます。ワークフローはユーザーが開始したときにだけ実行され、スケジュールやイベント トリガーはありません。",
+      "zh-CN": "运行工作流：输入文本并点击“运行”。最后一个步骤完成后会显示最终输出，您可以将其保存到 Knowledge Vault；每次运行也会保存在运行历史中。工作流只在您启动时运行：没有计划任务或事件触发器。"
+    },
+    "UserGuide_WorkspaceProfiles_Description.Text": {
+      "en-US": "Workspace Profiles are named presets that record how you like to work: a name, a description, a model identifier, a list of collection IDs, and free-form custom settings. You can create, edit, duplicate, and delete profiles, and mark one as the default. In this release a profile is a saved record only: nothing in Agent-X loads it, so marking a profile default or editing it does not switch the active model, filter the vault, or separate conversations.",
+      "de": "Workspace-Profile sind benannte Vorlagen, die festhalten, wie Sie arbeiten möchten: ein Name, eine Beschreibung, eine Modellkennung, eine Liste von Sammlungs-IDs und frei formulierte benutzerdefinierte Einstellungen. Sie können Profile erstellen, bearbeiten, duplizieren und löschen und eines als Standard markieren. In dieser Version ist ein Profil nur ein gespeicherter Eintrag: Agent-X lädt es nirgends. Ein Profil als Standard zu markieren oder zu bearbeiten wechselt daher weder das aktive Modell, noch filtert es den Tresor oder trennt Konversationen.",
+      "es": "Los perfiles de espacio de trabajo son ajustes predefinidos con nombre que registran cómo le gusta trabajar: un nombre, una descripción, un identificador de modelo, una lista de ID de colecciones y ajustes personalizados de formato libre. Puede crear, editar, duplicar y eliminar perfiles, y marcar uno como predeterminado. En esta versión un perfil es solo un registro guardado: nada en Agent-X lo carga, así que marcarlo como predeterminado o editarlo no cambia el modelo activo, no filtra la bóveda ni separa las conversaciones.",
+      "fr": "Les profils d'espace de travail sont des préréglages nommés qui consignent votre façon de travailler : un nom, une description, un identifiant de modèle, une liste d'ID de collections et des paramètres personnalisés en texte libre. Vous pouvez créer, modifier, dupliquer et supprimer des profils, et en marquer un comme profil par défaut. Dans cette version, un profil n'est qu'un enregistrement : rien dans Agent-X ne le charge, donc le marquer par défaut ou le modifier ne change pas le modèle actif, ne filtre pas le coffre et ne sépare pas les conversations.",
+      "ja": "ワークスペース プロファイルは、作業のしかたを記録する名前付きのプリセットです。名前、説明、モデル識別子、コレクション ID の一覧、自由形式のカスタム設定を保存します。プロファイルは作成、編集、複製、削除ができ、1 つを既定としてマークできます。このリリースではプロファイルは保存された記録にすぎず、Agent-X のどこからも読み込まれません。そのため、既定にしたり編集したりしても、アクティブなモデルの切り替え、ボールトの絞り込み、会話の分離は行われません。",
+      "zh-CN": "工作区配置文件是具名的预设，用于记录您的工作方式：名称、描述、模型标识符、集合 ID 列表以及自由格式的自定义设置。您可以创建、编辑、复制和删除配置文件，并将其中一个标记为默认。在此版本中，配置文件只是保存的记录：Agent-X 中没有任何地方会加载它，因此将配置文件设为默认或编辑它，并不会切换当前模型、筛选知识库或分隔对话。"
+    },
+    "UserGuide_WorkspaceProfiles_Create1.Text": {
+      "en-US": "Open Workspace Profiles from the navigation rail (or find it with Ctrl+K), type a name and an optional description, and click Create Profile.",
+      "de": "Öffnen Sie Workspace-Profile über die Navigationsleiste (oder finden Sie die Seite mit Strg+K), geben Sie einen Namen und optional eine Beschreibung ein und klicken Sie auf „Profil erstellen“.",
+      "es": "Abra Perfiles de espacio de trabajo desde la barra de navegación (o búsquelo con Ctrl+K), escriba un nombre y una descripción opcional, y haga clic en Crear perfil.",
+      "fr": "Ouvrez Profils d'espace de travail depuis la barre de navigation (ou trouvez-la avec Ctrl+K), saisissez un nom et une description facultative, puis cliquez sur Créer le profil.",
+      "ja": "ナビゲーション レールから [ワークスペース プロファイル] を開き (または Ctrl+K で検索し)、名前と任意の説明を入力して [プロファイルを作成] をクリックします。",
+      "zh-CN": "从导航栏打开“工作区配置文件”（或按 Ctrl+K 查找），输入名称和可选的描述，然后点击“创建配置文件”。"
+    },
+    "UserGuide_WorkspaceProfiles_Create2.Text": {
+      "en-US": "Select the profile to fill in its details: an Ollama model identifier (for example llama3.2), a comma-separated list of collection IDs, and any custom settings as JSON or key=value text. Click Save Profile to store them.",
+      "de": "Wählen Sie das Profil aus, um seine Details einzutragen: eine Ollama-Modellkennung (zum Beispiel llama3.2), eine kommagetrennte Liste von Sammlungs-IDs und beliebige benutzerdefinierte Einstellungen als JSON oder key=value-Text. Klicken Sie auf „Profil speichern“, um sie zu sichern.",
+      "es": "Seleccione el perfil para completar sus datos: un identificador de modelo de Ollama (por ejemplo llama3.2), una lista de ID de colecciones separadas por comas y cualquier ajuste personalizado como JSON o texto clave=valor. Haga clic en Guardar perfil para almacenarlos.",
+      "fr": "Sélectionnez le profil pour en renseigner les détails : un identifiant de modèle Ollama (par exemple llama3.2), une liste d'ID de collections séparés par des virgules et des paramètres personnalisés au format JSON ou clé=valeur. Cliquez sur Enregistrer le profil pour les conserver.",
+      "ja": "プロファイルを選択して詳細を入力します。Ollama のモデル識別子 (例: llama3.2)、カンマ区切りのコレクション ID の一覧、JSON または key=value 形式のカスタム設定です。[プロファイルを保存] をクリックして保存します。",
+      "zh-CN": "选择配置文件以填写其详细信息：Ollama 模型标识符（例如 llama3.2）、以逗号分隔的集合 ID 列表，以及任意 JSON 或 key=value 格式的自定义设置。点击“保存配置文件”进行存储。"
+    },
+    "UserGuide_WorkspaceProfiles_Create3.Text": {
+      "en-US": "Use Duplicate to start a new profile from an existing one, and Set as Default to mark the profile you use most. There is no profile switcher and no Ctrl+Shift+S shortcut: to change the model or collections you work with, change them directly in Settings, Chat, or Search.",
+      "de": "Mit „Duplizieren“ beginnen Sie ein neues Profil auf Basis eines vorhandenen, und mit „Als Standard festlegen“ markieren Sie das Profil, das Sie am häufigsten verwenden. Es gibt keinen Profilumschalter und kein Tastenkürzel Strg+Umschalt+S: Um das Modell oder die Sammlungen zu wechseln, mit denen Sie arbeiten, ändern Sie sie direkt in den Einstellungen, im Chat oder in der Suche.",
+      "es": "Use Duplicar para crear un perfil nuevo a partir de uno existente, y Establecer como predeterminado para marcar el perfil que más usa. No hay selector de perfiles ni atajo Ctrl+Mayús+S: para cambiar el modelo o las colecciones con los que trabaja, cámbielos directamente en Configuración, Chat o Búsqueda.",
+      "fr": "Utilisez Dupliquer pour créer un profil à partir d'un profil existant, et Définir par défaut pour marquer celui que vous utilisez le plus. Il n'y a ni sélecteur de profil ni raccourci Ctrl+Maj+S : pour changer le modèle ou les collections avec lesquels vous travaillez, modifiez-les directement dans les Paramètres, le Chat ou la Recherche.",
+      "ja": "[複製] で既存のプロファイルを基に新しいプロファイルを作成し、[既定に設定] で最もよく使うプロファイルをマークします。プロファイルの切り替え機能や Ctrl+Shift+S ショートカットはありません。作業に使うモデルやコレクションを変えるには、設定、チャット、検索で直接変更してください。",
+      "zh-CN": "使用“复制”可基于现有配置文件新建配置文件，使用“设为默认”可标记最常用的配置文件。没有配置文件切换器，也没有 Ctrl+Shift+S 快捷键：要更换所用的模型或集合，请直接在设置、聊天或搜索中更改。"
+    },
+    "UserGuide_WorkspaceProfiles_UseCase1.Text": {
+      "en-US": "Record a setup - Write down which model and collections a line of work uses, so switching to it by hand is quick and consistent.",
+      "de": "Ein Setup festhalten - Notieren Sie, welches Modell und welche Sammlungen ein Arbeitsbereich nutzt, damit der manuelle Wechsel schnell und einheitlich gelingt.",
+      "es": "Registrar una configuración - Anote qué modelo y qué colecciones usa una línea de trabajo, para que cambiar a ella a mano sea rápido y coherente.",
+      "fr": "Consigner une configuration - Notez le modèle et les collections qu'utilise un type de travail, pour y basculer à la main rapidement et de façon cohérente.",
+      "ja": "セットアップを記録：ある作業で使うモデルとコレクションを書き留めておけば、手動での切り替えを素早く一貫して行えます。",
+      "zh-CN": "记录一套配置：写下某项工作使用的模型和集合，以便手动切换时快速且一致。"
+    },
+    "UserGuide_WorkspaceProfiles_UseCase2.Text": {
+      "en-US": "Start from a copy - Duplicate a profile to try a variation, such as a different model for the same collections, without losing the original.",
+      "de": "Mit einer Kopie beginnen - Duplizieren Sie ein Profil, um eine Variante auszuprobieren, etwa ein anderes Modell für dieselben Sammlungen, ohne das Original zu verlieren.",
+      "es": "Partir de una copia - Duplique un perfil para probar una variante, como otro modelo para las mismas colecciones, sin perder el original.",
+      "fr": "Partir d'une copie - Dupliquez un profil pour essayer une variante, par exemple un autre modèle pour les mêmes collections, sans perdre l'original.",
+      "ja": "コピーから始める：プロファイルを複製して、同じコレクションに別のモデルを使うなどのバリエーションを、元のプロファイルを失わずに試せます。",
+      "zh-CN": "从副本开始：复制配置文件来尝试变体，例如为同一组集合换用另一个模型，而不会丢失原配置。"
+    },
+    "UserGuide_WorkspaceProfiles_UseCase3.Text": {
+      "en-US": "Keep notes with a configuration - The description and custom settings fields hold whatever context you want next to a setup, such as the system prompt you use for a project.",
+      "de": "Notizen zur Konfiguration - Die Felder für Beschreibung und benutzerdefinierte Einstellungen nehmen jeden Kontext auf, den Sie neben einem Setup festhalten möchten, etwa den System-Prompt, den Sie für ein Projekt verwenden.",
+      "es": "Guardar notas con una configuración - Los campos de descripción y de ajustes personalizados guardan el contexto que quiera conservar junto a una configuración, como el prompt de sistema que usa para un proyecto.",
+      "fr": "Garder des notes avec une configuration - Les champs de description et de paramètres personnalisés contiennent le contexte que vous voulez garder à côté d'une configuration, comme le prompt système que vous utilisez pour un projet.",
+      "ja": "構成と一緒にメモを残す：説明とカスタム設定の欄には、プロジェクトで使うシステム プロンプトなど、セットアップと一緒に残しておきたい情報を何でも保存できます。",
+      "zh-CN": "为配置保留备注：描述和自定义设置字段可以保存您想与某套配置放在一起的任何上下文，例如您在某个项目中使用的系统提示。"
+    },
+    "UserGuide_Integrations_Description.Text": {
+      "en-US": "Connect Microsoft Outlook or Google (Gmail and Google Calendar) and Agent-X brings your calendar events and emails in alongside your documents: each synced event or message is added to the Smart Inbox and imported into the Knowledge Vault as a searchable document. These are the only supported providers; there is no CalDAV, IMAP, or Exchange Web Services connector. The connectors only read: Agent-X never sends, replies to, or changes anything in your account.",
+      "de": "Verbinden Sie Microsoft Outlook oder Google (Gmail und Google Kalender), und Agent-X holt Ihre Kalenderereignisse und E-Mails neben Ihre Dokumente: Jedes synchronisierte Ereignis und jede Nachricht wird der Smart Inbox hinzugefügt und als durchsuchbares Dokument in den Wissens-Tresor importiert. Andere Anbieter werden nicht unterstützt; es gibt keinen CalDAV-, IMAP- oder Exchange-Web-Services-Connector. Die Connectors lesen nur: Agent-X sendet, beantwortet oder ändert nie etwas in Ihrem Konto.",
+      "es": "Conecte Microsoft Outlook o Google (Gmail y Google Calendar) y Agent-X incorpora sus eventos de calendario y correos junto a sus documentos: cada evento o mensaje sincronizado se añade a la Smart Inbox y se importa en la Bóveda de Conocimiento como un documento buscable. No se admiten otros proveedores; no hay conector CalDAV, IMAP ni Exchange Web Services. Los conectores solo leen: Agent-X nunca envía, responde ni cambia nada en su cuenta.",
+      "fr": "Connectez Microsoft Outlook ou Google (Gmail et Google Agenda) et Agent-X fait entrer vos événements d'agenda et vos e-mails à côté de vos documents : chaque événement ou message synchronisé est ajouté à la Smart Inbox et importé dans le Coffre-fort de Connaissances comme document consultable. Aucun autre fournisseur n'est pris en charge ; il n'existe pas de connecteur CalDAV, IMAP ou Exchange Web Services. Les connecteurs ne font que lire : Agent-X n'envoie, ne répond et ne modifie jamais rien dans votre compte.",
+      "ja": "Microsoft Outlook または Google (Gmail と Google カレンダー) を接続すると、Agent-X はカレンダーのイベントとメールをドキュメントと並べて取り込みます。同期された各イベントやメッセージは Smart Inbox に追加され、検索可能なドキュメントとして Knowledge Vault にインポートされます。対応しているのはこれらのプロバイダーだけで、CalDAV、IMAP、Exchange Web Services のコネクターはありません。コネクターは読み取り専用で、Agent-X がアカウント内で送信、返信、変更を行うことはありません。",
+      "zh-CN": "连接 Microsoft Outlook 或 Google（Gmail 和 Google 日历）后，Agent-X 会将您的日历事件和电子邮件与文档放在一起：每个已同步的事件或邮件都会添加到 Smart Inbox，并作为可搜索的文档导入 Knowledge Vault。仅支持这两家提供商；没有 CalDAV、IMAP 或 Exchange Web Services 连接器。连接器只读取数据：Agent-X 绝不会在您的账户中发送、回复或更改任何内容。"
+    },
+    "UserGuide_Integrations_Calendar1.Text": {
+      "en-US": "Connect Outlook (OAuth via Microsoft Graph) or Google Calendar (OAuth via Google). The calendar connector syncs events on a schedule (every 15 minutes by default) across a window of past and future days you choose, and you can run a manual sync at any time.",
+      "de": "Verbinden Sie Outlook (OAuth über Microsoft Graph) oder Google Kalender (OAuth über Google). Der Kalender-Connector synchronisiert Ereignisse zeitgesteuert (standardmäßig alle 15 Minuten) über einen von Ihnen gewählten Zeitraum vergangener und künftiger Tage, und Sie können jederzeit manuell synchronisieren.",
+      "es": "Conecte Outlook (OAuth mediante Microsoft Graph) o Google Calendar (OAuth mediante Google). El conector de calendario sincroniza los eventos de forma programada (cada 15 minutos de forma predeterminada) en un intervalo de días pasados y futuros que usted elige, y puede lanzar una sincronización manual en cualquier momento.",
+      "fr": "Connectez Outlook (OAuth via Microsoft Graph) ou Google Agenda (OAuth via Google). Le connecteur d'agenda synchronise les événements selon une planification (toutes les 15 minutes par défaut) sur une plage de jours passés et futurs que vous choisissez, et vous pouvez lancer une synchronisation manuelle à tout moment.",
+      "ja": "Outlook (Microsoft Graph 経由の OAuth) または Google カレンダー (Google 経由の OAuth) を接続します。カレンダー コネクターは、選択した過去と未来の日数の範囲にわたって、スケジュールに従って (既定では 15 分ごとに) イベントを同期します。手動同期もいつでも実行できます。",
+      "zh-CN": "连接 Outlook（通过 Microsoft Graph 进行 OAuth）或 Google 日历（通过 Google 进行 OAuth）。日历连接器会按计划（默认每 15 分钟）同步您所选过去和未来天数范围内的事件，您也可以随时手动同步。"
+    },
+    "UserGuide_Integrations_Calendar3.Text": {
+      "en-US": "Events do not trigger anything: there are no calendar-driven Workflows, automatic meeting briefs, or posts to other services. Once synced, events are documents like any other, so you can ask about them in Chat or Ask Your Files.",
+      "de": "Ereignisse lösen nichts aus: Es gibt keine kalendergesteuerten Workflows, keine automatischen Meeting-Briefings und keine Beiträge an andere Dienste. Nach der Synchronisierung sind Ereignisse Dokumente wie alle anderen, sodass Sie im Chat oder unter „Ask Your Files“ danach fragen können.",
+      "es": "Los eventos no desencadenan nada: no hay workflows impulsados por el calendario, ni resúmenes automáticos de reuniones, ni publicaciones en otros servicios. Una vez sincronizados, los eventos son documentos como cualquier otro, así que puede preguntar por ellos en Chat o en Ask Your Files.",
+      "fr": "Les événements ne déclenchent rien : il n'y a ni workflows pilotés par l'agenda, ni briefings de réunion automatiques, ni publication vers d'autres services. Une fois synchronisés, les événements sont des documents comme les autres : vous pouvez donc les interroger dans le Chat ou dans Ask Your Files.",
+      "ja": "イベントが何かを起動することはありません。カレンダーをきっかけに動くワークフロー、自動の会議ブリーフ、他のサービスへの投稿はありません。同期されたイベントは他と同じドキュメントなので、チャットや Ask Your Files で質問できます。",
+      "zh-CN": "事件不会触发任何操作：没有由日历驱动的工作流、自动会议简报，也不会向其他服务发布内容。同步后，事件与其他文档一样，因此您可以在聊天或 Ask Your Files 中询问它们。"
+    },
+    "UserGuide_Integrations_Email1.Text": {
+      "en-US": "Connect Outlook (OAuth via Microsoft Graph) or Gmail (OAuth via Google); IMAP is not supported. Choose which folders to sync, how many messages to fetch per sync (50 by default), and how many days back to go (30 by default). Mail syncs every 10 minutes by default, and each message becomes a searchable document.",
+      "de": "Verbinden Sie Outlook (OAuth über Microsoft Graph) oder Gmail (OAuth über Google); IMAP wird nicht unterstützt. Wählen Sie, welche Ordner synchronisiert werden, wie viele Nachrichten pro Synchronisierung abgerufen werden (standardmäßig 50) und wie viele Tage zurück (standardmäßig 30). E-Mails werden standardmäßig alle 10 Minuten synchronisiert, und jede Nachricht wird zu einem durchsuchbaren Dokument.",
+      "es": "Conecte Outlook (OAuth mediante Microsoft Graph) o Gmail (OAuth mediante Google); IMAP no es compatible. Elija qué carpetas sincronizar, cuántos mensajes obtener en cada sincronización (50 de forma predeterminada) y cuántos días hacia atrás (30 de forma predeterminada). El correo se sincroniza cada 10 minutos de forma predeterminada y cada mensaje se convierte en un documento buscable.",
+      "fr": "Connectez Outlook (OAuth via Microsoft Graph) ou Gmail (OAuth via Google) ; IMAP n'est pas pris en charge. Choisissez les dossiers à synchroniser, le nombre de messages récupérés par synchronisation (50 par défaut) et le nombre de jours en arrière (30 par défaut). Les e-mails se synchronisent toutes les 10 minutes par défaut, et chaque message devient un document consultable.",
+      "ja": "Outlook (Microsoft Graph 経由の OAuth) または Gmail (Google 経由の OAuth) を接続します。IMAP には対応していません。同期するフォルダー、1 回の同期で取得するメッセージ数 (既定は 50)、さかのぼる日数 (既定は 30) を選択します。メールは既定で 10 分ごとに同期され、各メッセージは検索可能なドキュメントになります。",
+      "zh-CN": "连接 Outlook（通过 Microsoft Graph 进行 OAuth）或 Gmail（通过 Google 进行 OAuth）；不支持 IMAP。选择要同步的文件夹、每次同步获取的邮件数（默认 50 封）以及向前追溯的天数（默认 30 天）。邮件默认每 10 分钟同步一次，每封邮件都会成为可搜索的文档。"
+    },
+    "UserGuide_Integrations_Email3.Text": {
+      "en-US": "Email does not trigger automation: there are no email-driven Workflows, and Agent-X does not draft, queue, or send replies. As messages sync, AI can sort them into categories (on by default), and that is the extent of the processing.",
+      "de": "E-Mails lösen keine Automatisierung aus: Es gibt keine E-Mail-gesteuerten Workflows, und Agent-X entwirft, plant oder sendet keine Antworten. Beim Synchronisieren kann eine KI die Nachrichten in Kategorien einordnen (standardmäßig aktiv); mehr Verarbeitung findet nicht statt.",
+      "es": "El correo no desencadena automatizaciones: no hay workflows impulsados por el correo, y Agent-X no redacta, pone en cola ni envía respuestas. Al sincronizarse los mensajes, la IA puede clasificarlos en categorías (activado de forma predeterminada), y ese es todo el procesamiento.",
+      "fr": "Les e-mails ne déclenchent aucune automatisation : il n'y a pas de workflows pilotés par e-mail, et Agent-X ne rédige, ne met en file ni n'envoie de réponses. Lors de la synchronisation, l'IA peut classer les messages par catégories (activé par défaut), et le traitement s'arrête là.",
+      "ja": "メールが自動化を起動することはありません。メールをきっかけに動くワークフローはなく、Agent-X が返信を下書き、キューイング、送信することもありません。同期時に AI がメッセージをカテゴリに分類でき (既定でオン)、処理はそこまでです。",
+      "zh-CN": "电子邮件不会触发自动化：没有由邮件驱动的工作流，Agent-X 也不会起草、排队或发送回复。邮件同步时，AI 可以将其归入各个类别（默认开启），处理仅限于此。"
+    },
+    "UserGuide_BackupRestore_Description.Text": {
+      "en-US": "Backup & Restore is the round-trip story for your data: an encrypted archive of your Agent-X database and, optionally, your imported documents, which you can restore on this or another machine. Backups are created when you ask for them, and a restore replaces the current database with the one in the archive; there is no merge or selective restore.",
+      "de": "Backup & Wiederherstellung sichert Ihre Daten für den Hin- und Rückweg: ein verschlüsseltes Archiv Ihrer Agent-X-Datenbank und optional Ihrer importierten Dokumente, das Sie auf diesem oder einem anderen Rechner wiederherstellen können. Backups entstehen, wenn Sie sie anstoßen, und eine Wiederherstellung ersetzt die aktuelle Datenbank durch die aus dem Archiv; Zusammenführen oder selektives Wiederherstellen gibt es nicht.",
+      "es": "Copia de seguridad y restauración cubre el viaje de ida y vuelta de sus datos: un archivo cifrado de su base de datos de Agent-X y, opcionalmente, de sus documentos importados, que puede restaurar en este u otro equipo. Las copias se crean cuando usted las solicita, y una restauración sustituye la base de datos actual por la del archivo; no hay combinación ni restauración selectiva.",
+      "fr": "Sauvegarde et restauration assure l'aller-retour de vos données : une archive chiffrée de votre base de données Agent-X et, en option, de vos documents importés, que vous pouvez restaurer sur cette machine ou une autre. Les sauvegardes sont créées quand vous le demandez, et une restauration remplace la base de données actuelle par celle de l'archive ; il n'y a ni fusion ni restauration sélective.",
+      "ja": "バックアップと復元は、データの往復を担う機能です。Agent-X データベースと、必要に応じてインポート済みドキュメントを暗号化したアーカイブを作成し、このコンピューターや別のコンピューターで復元できます。バックアップは要求したときに作成され、復元では現在のデータベースがアーカイブ内のものに置き換わります。マージや選択的な復元はありません。",
+      "zh-CN": "备份与还原负责数据的往返：它会为您的 Agent-X 数据库以及（可选的）已导入文档创建加密存档，您可以在本机或其他计算机上还原。备份在您需要时创建，还原会用存档中的数据库替换当前数据库；不支持合并或选择性还原。"
+    },
+    "UserGuide_BackupRestore_Backup1.Text": {
+      "en-US": "Manual backup - On the Backup & Restore page, pick a destination folder, optionally set a password to encrypt the archive (AES-256-GCM), choose whether to include indexed documents, add notes if you like, and click Create Backup. The result is a single .agentxbak file; the page estimates its size before you start.",
+      "de": "Manuelles Backup - Wählen Sie auf der Seite „Backup & Wiederherstellung“ einen Zielordner, legen Sie optional ein Passwort zur Verschlüsselung des Archivs fest (AES-256-GCM), entscheiden Sie, ob indexierte Dokumente einbezogen werden, fügen Sie bei Bedarf Notizen hinzu und klicken Sie auf „Backup erstellen“. Das Ergebnis ist eine einzelne .agentxbak-Datei; die Seite schätzt ihre Größe vorab.",
+      "es": "Copia manual - En la página Copia de seguridad y restauración, elija una carpeta de destino, establezca opcionalmente una contraseña para cifrar el archivo (AES-256-GCM), decida si incluir los documentos indexados, añada notas si quiere y haga clic en Crear copia de seguridad. El resultado es un único archivo .agentxbak; la página estima su tamaño antes de empezar.",
+      "fr": "Sauvegarde manuelle - Dans la page Sauvegarde et restauration, choisissez un dossier de destination, définissez éventuellement un mot de passe pour chiffrer l'archive (AES-256-GCM), indiquez si les documents indexés doivent être inclus, ajoutez des notes si vous le souhaitez, puis cliquez sur Créer une sauvegarde. Le résultat est un seul fichier .agentxbak ; la page estime sa taille avant de commencer.",
+      "ja": "手動バックアップ：[バックアップと復元] ページで保存先フォルダーを選び、必要に応じてアーカイブを暗号化するパスワード (AES-256-GCM) を設定し、インデックス済みドキュメントを含めるかどうかを選んで、メモを追加してから [バックアップを作成] をクリックします。結果は 1 つの .agentxbak ファイルで、ページには開始前にサイズの見積もりが表示されます。",
+      "zh-CN": "手动备份：在“备份与还原”页面选择目标文件夹，可选择设置密码来加密存档（AES-256-GCM），决定是否包含已索引的文档，按需添加备注，然后点击“创建备份”。结果是一个 .agentxbak 文件；页面会在开始前估算其大小。"
+    },
+    "UserGuide_BackupRestore_Backup2.Text": {
+      "en-US": "No scheduled backups yet - Backups run only when you click Create Backup. The app has no setting for automatic backups or a retention policy, and it shows no backup notifications. The BAK lamp on the instrument strip tells you how old your latest backup is: green under a week, amber after that.",
+      "de": "Noch keine geplanten Backups - Backups laufen nur, wenn Sie auf „Backup erstellen“ klicken. Die App hat keine Einstellung für automatische Backups oder eine Aufbewahrungsrichtlinie und zeigt keine Backup-Benachrichtigungen. Die BAK-Lampe in der Instrumentenleiste zeigt, wie alt Ihr letztes Backup ist: grün unter einer Woche, danach gelb.",
+      "es": "Aún sin copias programadas - Las copias solo se ejecutan cuando hace clic en Crear copia de seguridad. La aplicación no tiene ajuste para copias automáticas ni para una política de retención, y no muestra notificaciones de copias. La lámpara BAK de la barra de instrumentos indica la antigüedad de su última copia: verde si tiene menos de una semana, ámbar después.",
+      "fr": "Pas encore de sauvegardes planifiées - Les sauvegardes ne s'exécutent que lorsque vous cliquez sur Créer une sauvegarde. L'application n'a aucun réglage de sauvegarde automatique ni de politique de rétention, et n'affiche aucune notification de sauvegarde. Le voyant BAK de la barre d'instruments indique l'âge de votre dernière sauvegarde : vert à moins d'une semaine, ambre au-delà.",
+      "ja": "スケジュール バックアップはまだありません：バックアップは [バックアップを作成] をクリックしたときにだけ実行されます。自動バックアップや保持ポリシーの設定はなく、バックアップに関する通知も表示されません。インストゥルメント ストリップの BAK ランプで最新バックアップの経過期間がわかります (1 週間未満は緑、それ以降は琥珀色)。",
+      "zh-CN": "暂不支持计划备份：只有点击“创建备份”时才会执行备份。应用没有自动备份或保留策略的设置，也不会显示任何备份通知。仪表条上的 BAK 指示灯会显示最近一次备份的时间：一周以内为绿色，超过一周为琥珀色。"
+    },
+    "UserGuide_BackupRestore_Backup3.Text": {
+      "en-US": "What's included - the full SQLite database (conversations, documents and their chunks, collections, annotations, insights, beliefs, workflows, and Workspace Profiles) plus, if you choose, the files in your document storage folder. App settings in settings.json and installed plugin files are not part of the archive.",
+      "de": "Was enthalten ist - die vollständige SQLite-Datenbank (Konversationen, Dokumente mit ihren Chunks, Sammlungen, Anmerkungen, Erkenntnisse, Überzeugungen, Workflows und Workspace-Profile) sowie auf Wunsch die Dateien in Ihrem Dokumentspeicherordner. App-Einstellungen in settings.json und installierte Plugin-Dateien sind nicht Teil des Archivs.",
+      "es": "Qué se incluye - la base de datos SQLite completa (conversaciones, documentos con sus fragmentos, colecciones, anotaciones, insights, creencias, workflows y perfiles de espacio de trabajo) y, si lo elige, los archivos de su carpeta de almacenamiento de documentos. La configuración de la aplicación en settings.json y los archivos de plugins instalados no forman parte del archivo.",
+      "fr": "Contenu - la base de données SQLite complète (conversations, documents et leurs fragments, collections, annotations, insights, croyances, workflows et profils d'espace de travail) ainsi que, si vous le choisissez, les fichiers de votre dossier de stockage de documents. Les paramètres de l'application dans settings.json et les fichiers des plugins installés ne font pas partie de l'archive.",
+      "ja": "含まれるもの：SQLite データベース全体 (会話、ドキュメントとそのチャンク、コレクション、注釈、インサイト、信念、ワークフロー、ワークスペース プロファイル) と、選択した場合はドキュメント保存フォルダー内のファイルです。settings.json のアプリ設定とインストール済みプラグインのファイルはアーカイブに含まれません。",
+      "zh-CN": "包含内容：完整的 SQLite 数据库（对话、文档及其片段、集合、批注、洞察、信念、工作流和工作区配置文件），以及您选择包含时文档存储文件夹中的文件。settings.json 中的应用设置和已安装插件的文件不在存档中。"
+    },
+    "UserGuide_BackupRestore_Restore1.Text": {
+      "en-US": "Replace - Choose a backup file (or an entry in the backup history), enter its password if it is encrypted, and restore. The archive's database replaces the current one and its documents are written back to your storage folder. If the restore fails partway, Agent-X puts the previous database back; once a restore succeeds it cannot be undone, so create a fresh backup first.",
+      "de": "Ersetzen - Wählen Sie eine Backup-Datei (oder einen Eintrag im Backup-Verlauf), geben Sie bei verschlüsselten Archiven das Passwort ein und stellen Sie wieder her. Die Datenbank aus dem Archiv ersetzt die aktuelle, und seine Dokumente werden in Ihren Speicherordner zurückgeschrieben. Scheitert die Wiederherstellung unterwegs, setzt Agent-X die vorherige Datenbank wieder ein; eine erfolgreiche Wiederherstellung lässt sich nicht rückgängig machen, erstellen Sie daher vorher ein frisches Backup.",
+      "es": "Reemplazar - Elija un archivo de copia (o una entrada del historial de copias), introduzca su contraseña si está cifrado y restaure. La base de datos del archivo sustituye a la actual y sus documentos se vuelven a escribir en su carpeta de almacenamiento. Si la restauración falla a mitad, Agent-X recupera la base de datos anterior; una vez completada con éxito no se puede deshacer, así que cree antes una copia reciente.",
+      "fr": "Remplacer - Choisissez un fichier de sauvegarde (ou une entrée de l'historique des sauvegardes), saisissez son mot de passe s'il est chiffré, puis restaurez. La base de données de l'archive remplace l'actuelle et ses documents sont réécrits dans votre dossier de stockage. Si la restauration échoue en cours de route, Agent-X remet en place la base de données précédente ; une restauration réussie ne peut pas être annulée, alors créez d'abord une sauvegarde récente.",
+      "ja": "置換：バックアップ ファイル (またはバックアップ履歴の項目) を選び、暗号化されている場合はパスワードを入力して復元します。アーカイブのデータベースが現在のものに置き換わり、ドキュメントは保存フォルダーに書き戻されます。復元が途中で失敗した場合、Agent-X は以前のデータベースを元に戻します。復元が成功すると元に戻せないため、事前に新しいバックアップを作成してください。",
+      "zh-CN": "替换：选择一个备份文件（或备份历史中的一条记录），如已加密则输入密码，然后还原。存档中的数据库会替换当前数据库，其中的文档会写回您的存储文件夹。如果还原中途失败，Agent-X 会恢复之前的数据库；还原成功后无法撤销，因此请先创建一份新的备份。"
+    },
+    "UserGuide_BackupRestore_Restore2.Text": {
+      "en-US": "Checks before anything changes - Agent-X validates the archive first: a wrong password, a damaged or tampered file, or unsafe paths inside the archive stop the restore with an error instead of leaving a half-restored vault.",
+      "de": "Prüfung, bevor sich etwas ändert - Agent-X validiert zuerst das Archiv: Ein falsches Passwort, eine beschädigte oder manipulierte Datei oder unsichere Pfade im Archiv brechen die Wiederherstellung mit einem Fehler ab, statt einen halb wiederhergestellten Tresor zu hinterlassen.",
+      "es": "Comprobaciones antes de cambiar nada - Agent-X valida primero el archivo: una contraseña incorrecta, un archivo dañado o manipulado, o rutas no seguras dentro del archivo detienen la restauración con un error en lugar de dejar una bóveda restaurada a medias.",
+      "fr": "Vérifications avant toute modification - Agent-X valide d'abord l'archive : un mot de passe erroné, un fichier endommagé ou falsifié, ou des chemins dangereux dans l'archive arrêtent la restauration avec une erreur au lieu de laisser un coffre à moitié restauré.",
+      "ja": "変更前のチェック：Agent-X はまずアーカイブを検証します。パスワードの誤り、破損または改ざんされたファイル、アーカイブ内の安全でないパスがあると、中途半端に復元されたボールトを残すことなく、エラーで復元を中止します。",
+      "zh-CN": "变更前检查：Agent-X 会先校验存档：密码错误、文件损坏或被篡改，或存档内存在不安全的路径时，还原会以错误终止，而不会留下只还原了一半的知识库。"
+    },
+    "UserGuide_BackupRestore_Restore3.Text": {
+      "en-US": "After a restore - Review the restore summary: the number of documents, conversations, and workflows restored, plus any warnings. There is no merge or cherry-pick mode; a restore always brings back the whole database.",
+      "de": "Nach der Wiederherstellung - Prüfen Sie die Zusammenfassung: die Anzahl wiederhergestellter Dokumente, Konversationen und Workflows sowie etwaige Warnungen. Einen Zusammenführungs- oder Auswahlmodus gibt es nicht; eine Wiederherstellung bringt immer die gesamte Datenbank zurück.",
+      "es": "Después de restaurar - Revise el resumen de la restauración: el número de documentos, conversaciones y workflows restaurados, más cualquier advertencia. No hay modo de combinación ni de selección; una restauración siempre recupera la base de datos completa.",
+      "fr": "Après une restauration - Consultez le récapitulatif : le nombre de documents, conversations et workflows restaurés, ainsi que les éventuels avertissements. Il n'y a pas de mode fusion ni de sélection ; une restauration ramène toujours la base de données entière.",
+      "ja": "復元後：復元の概要で、復元されたドキュメント、会話、ワークフローの数と警告を確認します。マージや部分選択のモードはなく、復元では常にデータベース全体が戻ります。",
+      "zh-CN": "还原之后：查看还原摘要：已还原的文档、对话和工作流数量，以及任何警告。没有合并或挑选模式；还原总是恢复整个数据库。"
+    },
+    "UserGuide_Export_Backup_Title.Text": {
+      "en-US": "Backups",
+      "de": "Backups",
+      "es": "Copias de seguridad",
+      "fr": "Sauvegardes",
+      "ja": "バックアップ",
+      "zh-CN": "备份"
+    },
+    "UserGuide_Export_Backup.Text": {
+      "en-US": "Create backups on the Backup & Restore page. A backup captures the SQLite database (conversations, insights, beliefs, and the rest of your records) and, optionally, the document store, compressed into one .agentxbak file that you can encrypt with a password before keeping it in any folder, including a cloud-synced one. Backups are made on demand; there is no schedule or retention setting.",
+      "de": "Erstellen Sie Backups auf der Seite „Backup & Wiederherstellung“. Ein Backup erfasst die SQLite-Datenbank (Konversationen, Erkenntnisse, Überzeugungen und alle übrigen Einträge) und optional den Dokumentspeicher, komprimiert in eine .agentxbak-Datei, die Sie mit einem Passwort verschlüsseln können, bevor Sie sie in einem beliebigen Ordner ablegen, auch in einem Cloud-synchronisierten. Backups entstehen auf Abruf; es gibt keinen Zeitplan und keine Aufbewahrungseinstellung.",
+      "es": "Cree copias de seguridad en la página Copia de seguridad y restauración. Una copia recoge la base de datos SQLite (conversaciones, insights, creencias y el resto de sus registros) y, opcionalmente, el almacén de documentos, comprimidos en un único archivo .agentxbak que puede cifrar con una contraseña antes de guardarlo en cualquier carpeta, incluida una sincronizada con la nube. Las copias se hacen bajo demanda; no hay programación ni ajuste de retención.",
+      "fr": "Créez des sauvegardes dans la page Sauvegarde et restauration. Une sauvegarde capture la base de données SQLite (conversations, insights, croyances et le reste de vos enregistrements) et, en option, le stockage des documents, compressés dans un seul fichier .agentxbak que vous pouvez chiffrer avec un mot de passe avant de le ranger dans n'importe quel dossier, y compris un dossier synchronisé avec le cloud. Les sauvegardes se font à la demande ; il n'y a ni planification ni réglage de rétention.",
+      "ja": "バックアップは [バックアップと復元] ページで作成します。バックアップには SQLite データベース (会話、インサイト、信念、その他すべての記録) と、必要に応じてドキュメント ストアが含まれ、1 つの .agentxbak ファイルに圧縮されます。このファイルはパスワードで暗号化してから、クラウド同期フォルダーを含む任意のフォルダーに保管できます。バックアップは必要なときに作成するもので、スケジュールや保持の設定はありません。",
+      "zh-CN": "在“备份与还原”页面创建备份。备份会将 SQLite 数据库（对话、洞察、信念以及其余所有记录）和可选的文档存储压缩为一个 .agentxbak 文件，您可以先用密码对其加密，再保存到任意文件夹，包括云同步文件夹。备份按需创建；没有计划或保留设置。"
+    },
+    "UserGuide_Export_Restore.Text": {
+      "en-US": "Restore a backup from the Backup & Restore page. A restore replaces the current database with the backup's and writes its documents back; there are no merge or cherry-pick modes, and onboarding does not offer a restore step. Cross-version migration runs automatically: when Agent-X opens a restored database from an earlier version, the migration pipeline upgrades the schema in place.",
+      "de": "Stellen Sie ein Backup auf der Seite „Backup & Wiederherstellung“ wieder her. Eine Wiederherstellung ersetzt die aktuelle Datenbank durch die des Backups und schreibt dessen Dokumente zurück; Zusammenführungs- oder Auswahlmodi gibt es nicht, und das Onboarding bietet keinen Wiederherstellungsschritt. Die versionsübergreifende Migration läuft automatisch: Öffnet Agent-X eine wiederhergestellte Datenbank einer früheren Version, aktualisiert die Migrations-Pipeline das Schema direkt.",
+      "es": "Restaure una copia desde la página Copia de seguridad y restauración. Una restauración sustituye la base de datos actual por la de la copia y vuelve a escribir sus documentos; no hay modos de combinación ni de selección, y la incorporación no ofrece un paso de restauración. La migración entre versiones es automática: cuando Agent-X abre una base de datos restaurada de una versión anterior, la canalización de migración actualiza el esquema en el sitio.",
+      "fr": "Restaurez une sauvegarde depuis la page Sauvegarde et restauration. Une restauration remplace la base de données actuelle par celle de la sauvegarde et réécrit ses documents ; il n'y a ni mode fusion ni mode sélection, et l'intégration ne propose pas d'étape de restauration. La migration entre versions est automatique : quand Agent-X ouvre une base de données restaurée d'une version antérieure, le pipeline de migration met le schéma à niveau sur place.",
+      "ja": "バックアップの復元は [バックアップと復元] ページで行います。復元では現在のデータベースがバックアップのものに置き換わり、ドキュメントが書き戻されます。マージや部分選択のモードはなく、オンボーディングに復元の手順もありません。バージョン間の移行は自動で行われ、以前のバージョンのデータベースを復元して Agent-X が開くと、移行パイプラインがスキーマをその場でアップグレードします。",
+      "zh-CN": "在“备份与还原”页面还原备份。还原会用备份中的数据库替换当前数据库，并写回其中的文档；不支持合并或挑选模式，初始引导也不提供还原步骤。跨版本迁移会自动进行：当 Agent-X 打开从早期版本还原的数据库时，迁移流程会就地升级架构。"
+    }
+  },
+  "add": {}
+}

@@ -5,9 +5,10 @@ namespace AgentX.App.Services;
 /// <summary>
 /// Manages page navigation within the main window's content frame and NavigationView.
 /// Keeps the frame and nav pane selection in sync, and exposes navigation for
-/// command palette, shortcuts, and tray menu actions.
+/// command palette, shortcuts, and tray menu actions. The onboarding gate
+/// (SuppressNavigation, EnsureNavPaneVisible) is inherited from <see cref="INavigationGate"/>.
 /// </summary>
-public interface IAppNavigationService
+public interface IAppNavigationService : INavigationGate
 {
     /// <summary>
     /// Initializes the service with the page map, nav item map, content frame,
@@ -32,12 +33,6 @@ public interface IAppNavigationService
     void NavigateToPage(string pageKey, object? parameter = null);
 
     /// <summary>
-    /// Ensures the NavigationView pane is visible and open.
-    /// Used after onboarding completes or when recovering from hidden-pane states.
-    /// </summary>
-    void EnsureNavPaneVisible();
-
-    /// <summary>
     /// Executes a non-navigation action by action ID (e.g., "NewConversation", "ToggleTheme").
     /// </summary>
     void ExecuteAction(string actionId);
@@ -52,10 +47,4 @@ public interface IAppNavigationService
     /// The event arg is the page tag.
     /// </summary>
     event EventHandler<string>? PageChanged;
-
-    /// <summary>
-    /// Gets or sets whether navigation events should be suppressed.
-    /// Used during onboarding when NavView state is being programmatically modified.
-    /// </summary>
-    bool SuppressNavigation { get; set; }
 }

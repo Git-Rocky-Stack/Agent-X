@@ -12,7 +12,5 @@ public sealed partial class SearchPage : ContentPage
     {
         InitializeComponent();
         BindingContext = vm;
-
-        Resources.Add("InvertedBoolConverter", new CommunityToolkit.Maui.Converters.InvertedBoolConverter());
     }
 }

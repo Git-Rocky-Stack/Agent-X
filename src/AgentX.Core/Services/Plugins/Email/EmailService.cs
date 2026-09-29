@@ -55,7 +55,10 @@ public sealed class EmailService : IEmailService
     {
         var results = new List<EmailFolderInfo>();
 
-        foreach (var provider in _plugin.Providers)
+        // Every connected account, whether or not sync is on yet.
+        var providers = await _plugin.GetProvidersForFolderListingAsync().ConfigureAwait(false);
+
+        foreach (var provider in providers)
         {
             try
             {

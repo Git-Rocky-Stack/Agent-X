@@ -46,7 +46,7 @@
                 <StackPanel Spacing="4">
                     <TextBlock x:Uid="Dash_Title" Text="Dashboard"
                                Style="{StaticResource DisplaySmallStyle}" />
-                    <TextBlock x:Uid="Dash_Subtitle" Text="Your private AI intelligence center. Everything runs on your machine."
+                    <TextBlock x:Uid="Dash_Subtitle" Text="Your private AI intelligence center. Your documents and conversations stay on this computer unless you choose a cloud AI provider or set up web search."
                                Style="{StaticResource BodySecondaryStyle}" />
                 </StackPanel>
 
@@ -69,8 +69,18 @@
 
                     <StackPanel Spacing="12">
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <Ellipse Width="10" Height="10"
-                                     Fill="{ThemeResource OfflineBrush}" />
+                            <!-- Connection lamp, bound to the provider's state like the MDL lamp
+                                 on the instrument strip: steady GO while it answers, steady HOLD
+                                 while it is being checked, is starting or cannot be reached. Both
+                                 are theme brushes, so HighContrast draws them in system colors. -->
+                            <Grid VerticalAlignment="Center">
+                                <Ellipse Width="10" Height="10"
+                                         Fill="{ThemeResource LedGoLampBrush}"
+                                         Visibility="{x:Bind ViewModel.IsOllamaConnected, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+                                <Ellipse Width="10" Height="10"
+                                         Fill="{ThemeResource LedHoldLampBrush}"
+                                         Visibility="{x:Bind ViewModel.IsOllamaConnected, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}" />
+                            </Grid>
                             <TextBlock Text="{x:Bind ViewModel.ConnectionStatus, Mode=OneWay}"
                                        Style="{StaticResource BodyStyle}"
                                        Foreground="{ThemeResource TextSecondaryBrush}" />
@@ -79,7 +89,9 @@
                         <TextBlock Text="{x:Bind ViewModel.ActiveModelName, Mode=OneWay}"
                                    Style="{StaticResource HeadingLargeStyle}" />
 
-                        <TextBlock x:Uid="Dash_ConnectOllamaHint" Text="Connect Ollama to unlock AI chat, semantic search, and file intelligence."
+                        <!-- Advice for the active provider, only while it cannot be reached -->
+                        <TextBlock Text="{x:Bind ViewModel.ProviderAttentionHint, Mode=OneWay}"
+                                   Visibility="{x:Bind ViewModel.HasProviderAttentionHint, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                                    Style="{StaticResource BodySecondaryStyle}"
                                    MaxWidth="500"
                                    TextWrapping="Wrap" />
@@ -96,13 +108,14 @@
             <!-- ==========================================================
                  ROW 2: QUICK SEARCH BAR
                  ========================================================== -->
-            <!-- Quick search: a recessed dark well carved into the chassis -->
+            <!-- Quick search: a recessed dark well carved into the chassis. Enter searches; it has
+                 no shortcut of its own (Ctrl+K opens the Command Palette, which the instrument
+                 strip hints at). -->
             <Border Grid.Row="2" Style="{StaticResource WellStyle}" Padding="16,4">
                 <Grid ColumnSpacing="12">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
                     <FontIcon Glyph="&#xE721;"
@@ -111,25 +124,12 @@
                               VerticalAlignment="Center" />
 
                     <TextBox Grid.Column="1"
-                             x:Uid="Dash_SearchBox" PlaceholderText="Search your knowledge vault...  (Ctrl+K)"
+                             x:Uid="Dash_SearchBox" PlaceholderText="Search your knowledge vault..."
                              Style="{StaticResource SearchInputStyle}"
                              Text="{x:Bind ViewModel.QuickSearchQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                              KeyDown="OnQuickSearchKeyDown"
                              BorderThickness="0"
                              Background="Transparent" />
-
-                    <Border Grid.Column="2"
-                            Background="{ThemeResource VoidBrush}"
-                            BorderBrush="{ThemeResource HairlineBrush}"
-                            BorderThickness="1"
-                            CornerRadius="{StaticResource RCard}"
-                            Padding="8,2"
-                            VerticalAlignment="Center">
-                        <TextBlock Text="Ctrl+K"
-                                   Style="{StaticResource TelemetrySmallStyle}"
-                                   Foreground="{ThemeResource WellTextBrush}"
-                                   Opacity="0.45" />
-                    </Border>
                 </Grid>
             </Border>
 
@@ -188,10 +188,11 @@
                                     <Run Text="{x:Bind ViewModel.IndexedPercent, Mode=OneWay}"
                                          FontWeight="SemiBold"
                                          Foreground="{ThemeResource TextSecondaryBrush}" />
-                                    <Run Text="% indexed" />
+                                    <Run x:Uid="Dash_IndexedRun" Text="% indexed" />
                                 </TextBlock>
                                 <controls:SegmentMeter Value="{x:Bind ViewModel.IndexedPercent, Mode=OneWay}"
                                                        Maximum="100"
+                                                       x:Uid="Dash_IndexedMeter"
                                                        AutomationProperties.Name="Indexed percent" />
                             </StackPanel>
                         </StackPanel>
@@ -561,7 +562,7 @@
                                                            TextTrimming="CharacterEllipsis" />
                                                 <TextBlock Style="{StaticResource CaptionStyle}">
                                                     <Run Text="{x:Bind FileType}" />
-                                                    <Run Text=" · " />
+                                                    <Run Text=" | " />
                                                     <Run Text="{x:Bind FileSize}" />
                                                 </TextBlock>
                                             </StackPanel>
@@ -1088,12 +1089,12 @@
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
-                    <!-- New Chat -->
+                    <!-- New Chat: starts a conversation, like Ctrl+N -->
                     <Button Grid.Column="0"
                             Style="{StaticResource SecondaryButtonStyle}"
                             HorizontalAlignment="Stretch"
                             Padding="16,12"
-                            Command="{x:Bind ViewModel.NavigateToChatCommand}"
+                            Command="{x:Bind ViewModel.StartNewChatCommand}"
                             AutomationProperties.LabeledBy="{x:Bind NewChatTileLabel}">
                         <StackPanel Orientation="Horizontal" Spacing="8"
                                     HorizontalAlignment="Center">

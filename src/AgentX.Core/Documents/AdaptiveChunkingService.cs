@@ -18,7 +18,7 @@ public sealed class AdaptiveChunkingService : IAdaptiveChunkingService
     // Content type patterns
     private const string CodePattern = @"^\s*```|\b(function|class|def|public|private|if\s*\(|for\s*\(|while\s*\()";
     private const string TablePattern = @"^\|.*\|$|^[\s\-+]+\|";
-    private const string ListItemPattern = @"^\s*[-*•]\s+|^\s*\d+[.)]\s+";
+    private const string ListItemPattern = @"^\s*[-*\u2022]\s+|^\s*\d+[.)]\s+";
 
     public AdaptiveChunkingService(IRagConfiguration configuration, ILogger log)
     {
@@ -50,70 +50,13 @@ public sealed class AdaptiveChunkingService : IAdaptiveChunkingService
         return info;
     }
 
-    /// <inheritdoc />
-    public int GetOptimalChunkSize(ContentType contentType, int averageLineLength)
-    {
-        return (contentType, averageLineLength) switch
-        {
-            // Code: Smaller chunks preserve function/class boundaries
-            (ContentType.Code, _) => 256,
-
-            // Tables: Larger chunks to keep table rows together
-            (ContentType.Table, _) => 1024,
-
-            // Lists: Medium chunks
-            (ContentType.List, _) => 384,
-
-            // Prose: Use configuration default
-            (ContentType.Prose, _) => _configuration.DefaultChunkSize,
-
-            // Mixed: Slightly larger than default
-            (ContentType.Mixed, _) => (int)(_configuration.DefaultChunkSize * 1.2),
-
-            _ => _configuration.DefaultChunkSize
-        };
-    }
-
-    /// <inheritdoc />
-    public IReadOnlyList<int> DetectNaturalBoundaries(string text, int targetChunkSize)
-    {
-        if (string.IsNullOrWhiteSpace(text))
-            return Array.Empty<int>();
-
-        var boundaries = new List<int>();
-        var lines = text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-
-        int currentLength = 0;
-        for (int i = 0; i < lines.Length; i++)
-        {
-            currentLength += lines[i].Length + 1; // +1 for newline
-
-            // Check for structural boundaries
-            if (IsStructuralBoundary(lines[i]))
-            {
-                if (currentLength >= targetChunkSize * 0.5) // Not too early
-                {
-                    boundaries.Add(i);
-                    currentLength = 0;
-                }
-            }
-            else if (currentLength >= targetChunkSize)
-            {
-                boundaries.Add(i + 1);
-                currentLength = 0;
-            }
-        }
-
-        return boundaries;
-    }
-
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Private helpers
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     private static ContentType DetectContentType(string[] lines, string? fileName)
     {
-        // FU-2: removed dead `hasCode/hasTable/hasList/hasProse` locals — the actual
+        // FU-2: removed dead `hasCode/hasTable/hasList/hasProse` locals - the actual
         // content type is decided below from `*LineCount` totals, not from boolean
         // flags. The booleans were assigned-but-never-read (CS0219).
 
@@ -233,16 +176,6 @@ public interface IAdaptiveChunkingService
     /// Analyzes content to determine optimal chunking strategy.
     /// </summary>
     AdaptiveChunkInfo AnalyzeContent(string text, string? fileName = null);
-
-    /// <summary>
-    /// Gets the optimal chunk size for a specific content type.
-    /// </summary>
-    int GetOptimalChunkSize(ContentType contentType, int averageLineLength);
-
-    /// <summary>
-    /// Detects natural boundaries in text for chunk splitting.
-    /// </summary>
-    IReadOnlyList<int> DetectNaturalBoundaries(string text, int targetChunkSize);
 }
 
 /// <summary>

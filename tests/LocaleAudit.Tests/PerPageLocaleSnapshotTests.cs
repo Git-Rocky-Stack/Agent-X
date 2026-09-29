@@ -7,12 +7,12 @@ namespace LocaleAudit.Tests;
 
 /// <summary>
 /// End-to-end snapshot QA for Agent-X's six shipping locales. Runs the LocaleAudit
-/// pipeline (XAML + C# extractors → CoverageReport) against the real repo and asserts:
+/// pipeline (XAML + C# extractors -> CoverageReport) against the real repo and asserts:
 ///   (1) every required locale folder exists,
 ///   (2) every referenced key resolves to a non-empty value in every locale,
 ///   (3) zero orphan resw entries in any locale,
-///   (4) global coverage ≥ 98% per the CI gate contract.
-/// Visual / layout QA remains manual (Task 13) — this fixture is a data-level regression guard.
+///   (4) global coverage >= 98% per the CI gate contract.
+/// Visual / layout QA remains manual (Task 13) - this fixture is a data-level regression guard.
 /// </summary>
 public class PerPageLocaleSnapshotTests
 {
@@ -51,7 +51,7 @@ public class PerPageLocaleSnapshotTests
                 $"(missing: {string.Join(", ", coverage.MissingKeys)})");
 
             coverage.OrphanKeys.Should().BeEmpty(
-                $"'{locale}' must not carry dead resw entries — A1 Task 7 cleaned them up; " +
+                $"'{locale}' must not carry dead resw entries - A1 Task 7 cleaned them up; " +
                 "any new orphans indicate regression");
         }
 

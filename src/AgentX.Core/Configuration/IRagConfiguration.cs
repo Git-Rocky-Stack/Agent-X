@@ -6,9 +6,9 @@ namespace AgentX.Core.Configuration;
 /// </summary>
 public interface IRagConfiguration
 {
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Search Configuration
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>Default number of results to retrieve from vector search.</summary>
     int DefaultTopK { get; }
@@ -28,14 +28,14 @@ public interface IRagConfiguration
     /// <summary>
     /// Hard ceiling on the expanded retrieval candidate pool, applied as
     /// <c>min(TopK * RetrievalMultiplier, RetrievalCap)</c>. Prevents pathological
-    /// requests (e.g. TopK=200, multiplier=3 → 600) from saturating the vector
+    /// requests (e.g. TopK=200, multiplier=3 -> 600) from saturating the vector
     /// store or hybrid backends. Default 500.
     /// </summary>
     int RetrievalCap { get; }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Chunking Configuration
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>Default target chunk size in tokens (approximate words).</summary>
     int DefaultChunkSize { get; }
@@ -49,9 +49,9 @@ public interface IRagConfiguration
     /// <summary>Minimum allowed chunk size (prevents tiny, meaningless chunks).</summary>
     int MinChunkSize { get; }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Embedding Configuration
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>Default embedding model name (e.g., "all-minilm", "nomic-embed-text").</summary>
     string DefaultEmbeddingModel { get; }
@@ -68,9 +68,9 @@ public interface IRagConfiguration
     /// <summary>Maximum number of embeddings to process in a single batch.</summary>
     int EmbeddingBatchSize { get; }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Context Assembly Configuration
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>Weight for semantic similarity in context selection (0.0-1.0).</summary>
     double SemanticWeight { get; }
@@ -84,9 +84,9 @@ public interface IRagConfiguration
     /// <summary>Minimum tokens required for recall augmentation.</summary>
     int MinRecallBudgetTokens { get; }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Semantic Memory Configuration
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>Default temporal decay rate for memories (0.0 = no decay, higher = faster fade).</summary>
     double MemoryDecayRate { get; }
@@ -100,9 +100,9 @@ public interface IRagConfiguration
     /// <summary>Maximum number of memories to retrieve for a query.</summary>
     int MaxMemoriesPerQuery { get; }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Vector Store Configuration
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>Embedding count below which linear scan is used instead of HNSW.</summary>
     int VectorStoreFallbackThreshold { get; }
@@ -119,9 +119,9 @@ public interface IRagConfiguration
     /// <summary>HNSW EfConstruction parameter: candidate list size during build.</summary>
     int HnswEfConstruction { get; }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Reranking Configuration
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>Whether LLM-based reranking is enabled.</summary>
     bool EnableLlmReranking { get; }
@@ -140,12 +140,12 @@ public interface IRagConfiguration
     /// </summary>
     int CompressionConcurrency { get; }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Evaluation Configuration (P2-3, P2-5)
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>
-    /// Probability (0.0–1.0) that any given RAG turn fires an LLM-as-judge eval.
+    /// Probability (0.0-1.0) that any given RAG turn fires an LLM-as-judge eval.
     /// 1.0 evaluates every turn (highest signal, highest cost); 0.2 samples 1-in-5.
     /// 0.0 disables evaluation without un-registering the service. Default 1.0.
     /// </summary>
@@ -159,9 +159,9 @@ public interface IRagConfiguration
     /// </summary>
     int EvalContextCharLimit { get; }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  HyDE Configuration
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>
     /// Whether HyDE (Hypothetical Document Embeddings) is enabled in the RAG pipeline.
@@ -177,9 +177,9 @@ public interface IRagConfiguration
     /// </summary>
     int HydeMinQueryLength { get; }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Search Routing
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>
     /// Default search mode used by the RAG pipeline.
@@ -187,9 +187,9 @@ public interface IRagConfiguration
     /// </summary>
     string DefaultSearchMode { get; }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Privacy / PII
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>
     /// When true, RAG context chunks are scanned for PII (emails, phone numbers,
@@ -203,9 +203,9 @@ public interface IRagConfiguration
     /// </summary>
     string PiiRedactionMask { get; }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Research Mode Configuration
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>Whether web search integration is enabled for Research Mode.</summary>
     bool EnableResearchMode { get; }
@@ -213,9 +213,9 @@ public interface IRagConfiguration
     /// <summary>Maximum number of web search results to retrieve in Research Mode.</summary>
     int ResearchMaxWebResults { get; }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Validation
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>Validates all configuration values and throws if invalid.</summary>
     void Validate();

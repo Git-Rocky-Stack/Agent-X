@@ -1,7 +1,7 @@
 name: Extension CI
 
 # AX-QA-006: the browser extension previously had no CI gate. This lints, type-checks, and builds the
-# extension and audits its production dependencies on every change under browser-extension/.
+# extension and audits its whole dependency tree on every change under browser-extension/.
 
 on:
   push:
@@ -45,10 +45,11 @@ jobs:
       - name: Build (production)
         run: npm run build
 
-      # Production runtime dependencies must be clean at any severity. Dev-only advisories are
-      # excluded here (tracked separately as AX-QA-016) since they never ship in the extension.
-      - name: Audit production dependencies
-        run: npm audit --omit=dev --audit-level=low
+      # Every package in package.json is a devDependency, so `npm audit --omit=dev` audited an empty
+      # set and could never fail. The toolchain (webpack, ts-loader, terser) produces the bundle that
+      # ships, so audit the full tree and fail on any high or critical advisory.
+      - name: Audit dependencies (full tree)
+        run: npm audit --audit-level=high
 
       - name: Upload build output
         if: always()

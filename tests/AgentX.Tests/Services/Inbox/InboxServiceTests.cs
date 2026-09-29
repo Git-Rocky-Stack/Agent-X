@@ -4,6 +4,7 @@ using AgentX.Core.AI.Models;
 using AgentX.Core.Data;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Documents;
+using AgentX.Core.Helpers;
 using AgentX.Core.Services.Collections;
 using AgentX.Core.Services.Inbox;
 using AgentX.Core.Services.Intelligence;
@@ -16,7 +17,7 @@ using Xunit;
 namespace AgentX.Tests.Services.Inbox;
 
 /// <summary>
-/// Behavioural coverage for <see cref="InboxService"/> — the Smart-Inbox triage queue:
+/// Behavioural coverage for <see cref="InboxService"/> - the Smart-Inbox triage queue:
 /// ingestion + dedup, pending/paged queries, single + batch accept/reject/defer, AI preview
 /// generation (with collection/tag suggestion parsing), processed-item purge, and the
 /// plugin-sourced <c>TriageExternal</c> bridge into the document library.
@@ -27,7 +28,7 @@ namespace AgentX.Tests.Services.Inbox;
 /// <see cref="IAiService"/> (token-streamed triage completion), and an optional
 /// <see cref="IDocumentService"/> (external-content bridge). <see cref="ISummaryService"/> is
 /// constructor-injected but unused, so a bare mock satisfies it. Logging is Serilog's <b>static</b>
-/// <c>Log</c> (silent by default — no logger seam). Ingestion + preview read real files, so fixtures
+/// <c>Log</c> (silent by default - no logger seam). Ingestion + preview read real files, so fixtures
 /// write real temp files into a per-test temp directory torn down on dispose; the
 /// <c>TriageExternal</c> temp-file tree (<c>%TEMP%/AgentX/ExternalItems/{pluginId}</c>) is likewise
 /// tracked and cleaned.</para>
@@ -51,7 +52,7 @@ public sealed class InboxServiceTests : IDisposable
         }
     }
 
-    // ─── Harness ──────────────────────────────────────────────────────────────
+    // --- Harness --------------------------------------------------------------
 
     private sealed class InboxHarness : IDisposable
     {
@@ -64,20 +65,35 @@ public sealed class InboxServiceTests : IDisposable
         public InboxService Service { get; }
         public string TempDir { get; }
 
-        private readonly List<string> _externalDirs = new();
+        /// <summary>Stand-in for %LOCALAPPDATA%/AgentX so the service never writes into the real profile.</summary>
+        public string AppDataDir { get; }
 
         public InboxHarness(bool withDocumentService)
         {
             Db = Factory.CreateContext();
             TempDir = Path.Combine(Path.GetTempPath(), "agentx-inbox-" + Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(TempDir);
+            AppDataDir = Path.Combine(TempDir, "appdata");
 
             Service = new InboxService(
                 Db,
                 Summary.Object,
                 Collections.Object,
                 Ai.Object,
-                withDocumentService ? Documents.Object : null);
+                withDocumentService ? Documents.Object : null,
+                new TestAppPathService(AppDataDir));
+        }
+
+        /// <summary>The inbox store root the service writes under.</summary>
+        public string InboxStoreDir => Path.Combine(AppDataDir, "Inbox");
+
+        /// <summary>Makes the mocked document service import every file as a new document.</summary>
+        public void SetupSuccessfulImport(long documentId = 501)
+        {
+            Documents.Setup(d => d.CheckForDuplicateAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new DuplicateCheckResult { IsDuplicate = false });
+            Documents.Setup(d => d.ImportFileAsync(It.IsAny<string>(), It.IsAny<long?>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new DocumentEntity { Id = documentId });
         }
 
         public string WriteFile(string name, string content = "Quarterly revenue rose 12% on strong enterprise demand.")
@@ -87,13 +103,8 @@ public sealed class InboxServiceTests : IDisposable
             return path;
         }
 
-        /// <summary>Allocates a unique plugin id and registers its external temp dir for cleanup.</summary>
-        public string NewPluginId()
-        {
-            var pid = "plugin." + Guid.NewGuid().ToString("N");
-            _externalDirs.Add(Path.Combine(Path.GetTempPath(), "AgentX", "ExternalItems", pid));
-            return pid;
-        }
+        /// <summary>Allocates a unique plugin id (its content lands under <see cref="AppDataDir"/>).</summary>
+        public string NewPluginId() => "plugin." + Guid.NewGuid().ToString("N");
 
         public void Seed(Action<AgentXDbContext> seed)
         {
@@ -109,10 +120,6 @@ public sealed class InboxServiceTests : IDisposable
             Db.Dispose();
             Factory.Dispose();
             TryDelete(TempDir);
-            foreach (var dir in _externalDirs)
-            {
-                TryDelete(dir);
-            }
         }
 
         private static void TryDelete(string dir)
@@ -131,7 +138,21 @@ public sealed class InboxServiceTests : IDisposable
         }
     }
 
-    // ─── Async-stream + seed helpers ──────────────────────────────────────────
+    /// <summary>Roots every app path under a disposable test directory.</summary>
+    private sealed class TestAppPathService : IAppPathService
+    {
+        private readonly string _root;
+        public TestAppPathService(string root) => _root = root;
+        public string GetAppDataPath() => Ensure(_root);
+        public string GetTempPath() => Ensure(Path.Combine(_root, "Temp"));
+        private static string Ensure(string path)
+        {
+            Directory.CreateDirectory(path);
+            return path;
+        }
+    }
+
+    // --- Async-stream + seed helpers ------------------------------------------
 
     /// <summary>Async enumerable that yields the given tokens (simulates AI streaming).</summary>
     private static async IAsyncEnumerable<string> TokenStream(params string[] tokens)
@@ -213,9 +234,9 @@ public sealed class InboxServiceTests : IDisposable
         return item.Id;
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  Constructor guards
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public void Ctor_NullDb_Throws()
@@ -255,9 +276,9 @@ public sealed class InboxServiceTests : IDisposable
         act.Should().Throw<ArgumentNullException>().WithParameterName("aiService");
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  AddToInboxAsync
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Theory]
     [InlineData("")]
@@ -313,9 +334,9 @@ public sealed class InboxServiceTests : IDisposable
         (await fresh.InboxItems.CountAsync()).Should().Be(1);
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  Queries
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task GetPendingItemsAsync_ReturnsPendingOldestFirst()
@@ -390,7 +411,7 @@ public sealed class InboxServiceTests : IDisposable
             }
         });
 
-        // Newest first: f4, f3, f2, f1, f0. Skip 1 → start at f3; take 2 → f3, f2.
+        // Newest first: f4, f3, f2, f1, f0. Skip 1 -> start at f3; take 2 -> f3, f2.
         var page = await h.Service.GetAllItemsAsync(statusFilter: null, skip: 1, take: 2);
 
         page.Should().HaveCount(2);
@@ -430,32 +451,59 @@ public sealed class InboxServiceTests : IDisposable
         await act.Should().ThrowAsync<ObjectDisposedException>();
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  Single-item triage
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
-    public async Task AcceptItemAsync_NoCollection_MarksAccepted()
+    public async Task AcceptItemAsync_NoCollection_ImportsCopyIntoVaultAndLinksDocument()
     {
         var h = NewHarness();
-        var id = SeedItem(h, NewItem(status: "pending"));
+        var source = h.WriteFile("clip-note.md", "# Clipped\n\nBody text.");
+        var id = SeedItem(h, NewItem(status: "pending", fileName: "clip-note.md", filePath: source));
+        h.SetupSuccessfulImport(documentId: 501);
 
-        await h.Service.AcceptItemAsync(id);
+        var result = await h.Service.AcceptItemAsync(id);
+
+        result.Outcome.Should().Be(InboxAcceptOutcome.Imported);
+        result.DocumentId.Should().Be(501);
 
         using var fresh = h.Fresh();
         var item = await fresh.InboxItems.FindAsync(id);
         item!.Status.Should().Be("accepted");
         item.ProcessedAt.Should().NotBeNull();
+        item.DocumentId.Should().Be(501);
         item.SuggestedCollectionId.Should().BeNull();
         h.Collections.Verify(c => c.GetCollectionAsync(It.IsAny<long>()), Times.Never);
+
+        // The vault imports a copy owned by the app, not the (possibly temp) source file.
+        var expectedCopy = Path.Combine(h.InboxStoreDir, "Accepted", id.ToString(), "clip-note.md");
+        h.Documents.Verify(d => d.ImportFileAsync(expectedCopy, null, It.IsAny<CancellationToken>()), Times.Once);
+        File.Exists(expectedCopy).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task AcceptItemAsync_CopySurvivesTempCleanupOfTheSource()
+    {
+        var h = NewHarness();
+        var source = h.WriteFile("clip.md", "clipped article");
+        var id = SeedItem(h, NewItem(status: "pending", fileName: "clip.md", filePath: source));
+        h.SetupSuccessfulImport();
+
+        await h.Service.AcceptItemAsync(id);
+        File.Delete(source); // what %TEMP% cleanup does to a browser clip
+
+        var copy = Path.Combine(h.InboxStoreDir, "Accepted", id.ToString(), "clip.md");
+        File.ReadAllText(copy).Should().Be("clipped article");
     }
 
     [Fact]
     public async Task AcceptItemAsync_WithCollectionOverride_SetsCollection()
     {
         var h = NewHarness();
-        var id = SeedItem(h, NewItem(status: "pending"));
+        var id = SeedItem(h, NewItem(status: "pending", filePath: h.WriteFile("f.txt")));
         h.Collections.Setup(c => c.GetCollectionAsync(42)).ReturnsAsync(Coll(42, "Taxes"));
+        h.SetupSuccessfulImport();
 
         await h.Service.AcceptItemAsync(id, collectionId: 42);
 
@@ -463,14 +511,16 @@ public sealed class InboxServiceTests : IDisposable
         var item = await fresh.InboxItems.FindAsync(id);
         item!.SuggestedCollectionId.Should().Be(42);
         item.SuggestedCollectionName.Should().Be("Taxes");
+        h.Documents.Verify(d => d.ImportFileAsync(It.IsAny<string>(), 42, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
     public async Task AcceptItemAsync_CollectionOverrideNotFound_LeavesNameNull()
     {
         var h = NewHarness();
-        var id = SeedItem(h, NewItem(status: "pending"));
+        var id = SeedItem(h, NewItem(status: "pending", filePath: h.WriteFile("f.txt")));
         h.Collections.Setup(c => c.GetCollectionAsync(99)).ReturnsAsync((CollectionEntity?)null);
+        h.SetupSuccessfulImport();
 
         await h.Service.AcceptItemAsync(id, collectionId: 99);
 
@@ -489,21 +539,169 @@ public sealed class InboxServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task AcceptItemAsync_SourceFileGone_ThrowsAndLeavesItemPending()
+    {
+        var h = NewHarness();
+        var id = SeedItem(h, NewItem(status: "pending", filePath: Path.Combine(h.TempDir, "vanished.md")));
+        h.SetupSuccessfulImport();
+
+        var act = () => h.Service.AcceptItemAsync(id);
+
+        await act.Should().ThrowAsync<FileNotFoundException>();
+        using var fresh = h.Fresh();
+        (await fresh.InboxItems.FindAsync(id))!.Status.Should().Be("pending");
+        h.Documents.Verify(d => d.ImportFileAsync(It.IsAny<string>(), It.IsAny<long?>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task AcceptItemAsync_IdenticalContentInVault_LinksExistingDocumentInsteadOfImporting()
+    {
+        var h = NewHarness();
+        var id = SeedItem(h, NewItem(status: "pending", filePath: h.WriteFile("dup.pdf")));
+        h.Documents.Setup(d => d.CheckForDuplicateAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new DuplicateCheckResult { IsDuplicate = true, IsExactMatch = true, ExistingDocumentId = 77, ExistingFileName = "dup.pdf" });
+
+        var result = await h.Service.AcceptItemAsync(id);
+
+        result.Outcome.Should().Be(InboxAcceptOutcome.AlreadyInVault);
+        result.DocumentId.Should().Be(77);
+        h.Documents.Verify(d => d.ImportFileAsync(It.IsAny<string>(), It.IsAny<long?>(), It.IsAny<CancellationToken>()), Times.Never);
+        using var fresh = h.Fresh();
+        var item = await fresh.InboxItems.FindAsync(id);
+        item!.Status.Should().Be("accepted");
+        item.DocumentId.Should().Be(77);
+    }
+
+    // The duplicate check can miss (it failed, or the same content arrived since), and the import
+    // then refused the file with its English duplicate message, which the Inbox showed as the
+    // reason the accept failed.
+
+    [Fact]
+    public async Task AcceptItemAsync_WhenTheImportFindsTheContentInTheVault_LinksThatDocument()
+    {
+        var h = NewHarness();
+        var id = SeedItem(h, NewItem(status: "pending", fileName: "clip.md", filePath: h.WriteFile("clip.md")));
+        h.Collections.Setup(c => c.GetCollectionAsync(42)).ReturnsAsync(Coll(42, "Taxes"));
+        h.Documents.Setup(d => d.CheckForDuplicateAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new DuplicateCheckResult { IsDuplicate = false });
+        h.Documents.Setup(d => d.ImportFileAsync(It.IsAny<string>(), It.IsAny<long?>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new DuplicateDocumentException(77, "clip.md"));
+
+        var result = await h.Service.AcceptItemAsync(id, collectionId: 42);
+
+        result.Outcome.Should().Be(InboxAcceptOutcome.AlreadyInVault);
+        result.DocumentId.Should().Be(77);
+        h.Documents.Verify(
+            d => d.BulkAssignToCollectionAsync(It.Is<IReadOnlyList<long>>(ids => ids.Single() == 77), 42, It.IsAny<CancellationToken>()),
+            Times.Once);
+        using var fresh = h.Fresh();
+        var item = await fresh.InboxItems.FindAsync(id);
+        item!.Status.Should().Be("accepted");
+        item.DocumentId.Should().Be(77);
+        Directory.Exists(Path.Combine(h.InboxStoreDir, "Accepted", id.ToString())).Should().BeFalse(
+            "the copy made for the import is not needed");
+    }
+
+    [Fact]
+    public async Task AcceptAllPendingAsync_CountsAContentAlreadyInTheVaultAsLinkedNotFailed()
+    {
+        var h = NewHarness();
+        h.Seed(ctx =>
+        {
+            ctx.InboxItems.Add(NewItem(status: "pending", fileName: "new.md", filePath: h.WriteFile("new.md", "new text")));
+            ctx.InboxItems.Add(NewItem(status: "pending", fileName: "again.md", filePath: h.WriteFile("again.md", "known text")));
+        });
+        h.Documents.Setup(d => d.CheckForDuplicateAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new DuplicateCheckResult { IsDuplicate = false });
+        h.Documents.Setup(d => d.ImportFileAsync(It.Is<string>(path => path.EndsWith("new.md", StringComparison.Ordinal)), It.IsAny<long?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new DocumentEntity { Id = 501 });
+        h.Documents.Setup(d => d.ImportFileAsync(It.Is<string>(path => path.EndsWith("again.md", StringComparison.Ordinal)), It.IsAny<long?>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new DuplicateDocumentException(77, "known.md"));
+
+        var result = await h.Service.AcceptAllPendingAsync();
+
+        result.Should().BeEquivalentTo(new { Imported = 1, AlreadyInVault = 1, Failed = 0 });
+        result.Errors.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task AcceptItemAsync_ImportFails_LeavesItemPendingAndRemovesTheCopy()
+    {
+        var h = NewHarness();
+        var id = SeedItem(h, NewItem(status: "pending", fileName: "weird.xyz", filePath: h.WriteFile("weird.xyz")));
+        h.Documents.Setup(d => d.CheckForDuplicateAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new DuplicateCheckResult { IsDuplicate = false });
+        h.Documents.Setup(d => d.ImportFileAsync(It.IsAny<string>(), It.IsAny<long?>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new NotSupportedException("No processor found for file type '.xyz'."));
+
+        var act = () => h.Service.AcceptItemAsync(id);
+
+        await act.Should().ThrowAsync<NotSupportedException>();
+        using var fresh = h.Fresh();
+        var item = await fresh.InboxItems.FindAsync(id);
+        item!.Status.Should().Be("pending");
+        item.DocumentId.Should().BeNull();
+        Directory.Exists(Path.Combine(h.InboxStoreDir, "Accepted", id.ToString())).Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task AcceptItemAsync_NoDocumentService_ThrowsInsteadOfFakingSuccess()
+    {
+        var h = NewHarness(withDocumentService: false);
+        var id = SeedItem(h, NewItem(status: "pending", filePath: h.WriteFile("f.txt")));
+
+        var act = () => h.Service.AcceptItemAsync(id);
+
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*document import is not available*");
+        using var fresh = h.Fresh();
+        (await fresh.InboxItems.FindAsync(id))!.Status.Should().Be("pending");
+    }
+
+    [Fact]
     public async Task AcceptAllPendingAsync_AcceptsEveryPending()
     {
         var h = NewHarness();
         h.Seed(ctx =>
         {
-            ctx.InboxItems.Add(NewItem(status: "pending", fileName: "p1.txt"));
-            ctx.InboxItems.Add(NewItem(status: "pending", fileName: "p2.txt"));
-            ctx.InboxItems.Add(NewItem(status: "rejected", fileName: "r.txt"));
+            ctx.InboxItems.Add(NewItem(status: "pending", fileName: "p1.txt", filePath: h.WriteFile("p1.txt")));
+            ctx.InboxItems.Add(NewItem(status: "pending", fileName: "p2.txt", filePath: h.WriteFile("p2.txt")));
+            ctx.InboxItems.Add(NewItem(status: "rejected", fileName: "r.txt", filePath: h.WriteFile("r.txt")));
         });
+        h.SetupSuccessfulImport();
 
-        await h.Service.AcceptAllPendingAsync();
+        var result = await h.Service.AcceptAllPendingAsync();
 
+        result.Imported.Should().Be(2);
+        result.Failed.Should().Be(0);
         using var fresh = h.Fresh();
         (await fresh.InboxItems.CountAsync(i => i.Status == "pending")).Should().Be(0);
         (await fresh.InboxItems.CountAsync(i => i.Status == "accepted")).Should().Be(2);
+    }
+
+    [Fact]
+    public async Task AcceptAllPendingAsync_PartialFailure_ReportsFailureAndKeepsItPending()
+    {
+        var h = NewHarness();
+        long goodId = 0, goneId = 0;
+        h.Seed(ctx =>
+        {
+            var good = NewItem(status: "pending", fileName: "good.txt", filePath: h.WriteFile("good.txt"));
+            var gone = NewItem(status: "pending", fileName: "gone.txt", filePath: Path.Combine(h.TempDir, "gone.txt"));
+            ctx.InboxItems.AddRange(good, gone);
+            ctx.SaveChanges();
+            goodId = good.Id;
+            goneId = gone.Id;
+        });
+        h.SetupSuccessfulImport();
+
+        var result = await h.Service.AcceptAllPendingAsync();
+
+        result.Imported.Should().Be(1);
+        result.Failed.Should().Be(1);
+        result.Errors.Should().ContainSingle().Which.Should().StartWith("gone.txt:");
+        using var fresh = h.Fresh();
+        (await fresh.InboxItems.FindAsync(goodId))!.Status.Should().Be("accepted");
+        (await fresh.InboxItems.FindAsync(goneId))!.Status.Should().Be("pending");
     }
 
     [Fact]
@@ -512,8 +710,9 @@ public sealed class InboxServiceTests : IDisposable
         var h = NewHarness();
         SeedItem(h, NewItem(status: "accepted"));
 
-        await h.Service.AcceptAllPendingAsync();
+        var result = await h.Service.AcceptAllPendingAsync();
 
+        result.Should().Be(InboxBatchAcceptResult.Empty);
         using var fresh = h.Fresh();
         (await fresh.InboxItems.CountAsync(i => i.Status == "accepted")).Should().Be(1);
     }
@@ -571,9 +770,9 @@ public sealed class InboxServiceTests : IDisposable
         await act.Should().ThrowAsync<InvalidOperationException>();
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  Batch triage
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task AcceptSelectedAsync_NullIds_Throws()
@@ -602,14 +801,15 @@ public sealed class InboxServiceTests : IDisposable
         long id1 = 0, id2 = 0;
         h.Seed(ctx =>
         {
-            var a = NewItem(status: "pending", fileName: "a.txt");
-            var b = NewItem(status: "pending", fileName: "b.txt");
+            var a = NewItem(status: "pending", fileName: "a.txt", filePath: h.WriteFile("a.txt"));
+            var b = NewItem(status: "pending", fileName: "b.txt", filePath: h.WriteFile("b.txt"));
             ctx.InboxItems.AddRange(a, b);
             ctx.SaveChanges();
             id1 = a.Id;
             id2 = b.Id;
         });
         h.Collections.Setup(c => c.GetCollectionAsync(5)).ReturnsAsync(Coll(5, "Work"));
+        h.SetupSuccessfulImport();
 
         // Duplicates + a non-existent id (88888) exercise Distinct() and the silent-skip path.
         await h.Service.AcceptSelectedAsync(new[] { id1, id1, id2, 88888L }, collectionId: 5);
@@ -629,13 +829,14 @@ public sealed class InboxServiceTests : IDisposable
         long id = 0;
         h.Seed(ctx =>
         {
-            var a = NewItem(status: "pending");
+            var a = NewItem(status: "pending", filePath: h.WriteFile("f.txt"));
             a.SuggestedCollectionId = 3;
             a.SuggestedCollectionName = "Existing";
             ctx.InboxItems.Add(a);
             ctx.SaveChanges();
             id = a.Id;
         });
+        h.SetupSuccessfulImport();
 
         await h.Service.AcceptSelectedAsync(new[] { id });
 
@@ -644,6 +845,8 @@ public sealed class InboxServiceTests : IDisposable
         item!.Status.Should().Be("accepted");
         item.SuggestedCollectionId.Should().Be(3); // retained
         h.Collections.Verify(c => c.GetCollectionAsync(It.IsAny<long>()), Times.Never);
+        // The item's own suggestion is where the imported document lands.
+        h.Documents.Verify(d => d.ImportFileAsync(It.IsAny<string>(), 3, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -705,9 +908,9 @@ public sealed class InboxServiceTests : IDisposable
         await act.Should().ThrowAsync<ObjectDisposedException>();
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  AI preview generation
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task GeneratePreviewAsync_Missing_Throws()
@@ -721,7 +924,7 @@ public sealed class InboxServiceTests : IDisposable
     public async Task GeneratePreviewAsync_FileUnreadable_SkipsWithoutAiCall()
     {
         var h = NewHarness();
-        // FilePath points at a non-existent file → snippet empty → early return.
+        // FilePath points at a non-existent file -> snippet empty -> early return.
         var id = SeedItem(h, NewItem(status: "pending", filePath: Path.Combine(h.TempDir, "gone.txt")));
 
         await h.Service.GeneratePreviewAsync(id);
@@ -775,7 +978,7 @@ public sealed class InboxServiceTests : IDisposable
         var h = NewHarness();
         var path = h.WriteFile("doc.txt");
         var id = SeedItem(h, NewItem(status: "pending", filePath: path));
-        SetupCollections(h); // empty → "none available" prompt branch
+        SetupCollections(h); // empty -> "none available" prompt branch
         SetupAi(h, TriageResponse("Just a preview.", "none", "none"));
 
         await h.Service.GeneratePreviewAsync(id);
@@ -783,8 +986,8 @@ public sealed class InboxServiceTests : IDisposable
         using var fresh = h.Fresh();
         var item = await fresh.InboxItems.FindAsync(id);
         item!.Preview.Should().Be("Just a preview.");
-        item.SuggestedCollectionName.Should().BeNull(); // "none" → not stored
-        item.SuggestedTags.Should().BeNull();           // "none" → not stored
+        item.SuggestedCollectionName.Should().BeNull(); // "none" -> not stored
+        item.SuggestedTags.Should().BeNull();           // "none" -> not stored
     }
 
     [Fact]
@@ -794,7 +997,7 @@ public sealed class InboxServiceTests : IDisposable
         var path = h.WriteFile("doc.txt");
         var id = SeedItem(h, NewItem(status: "pending", filePath: path));
         SetupCollections(h);
-        // Mixed case, blanks, and more than five tags → lowercased, trimmed, empties removed, first 5.
+        // Mixed case, blanks, and more than five tags -> lowercased, trimmed, empties removed, first 5.
         SetupAi(h, TriageResponse("P.", null, "Finance, , Quarterly,REPORT,Audit,Tax,Extra"));
 
         await h.Service.GeneratePreviewAsync(id);
@@ -811,7 +1014,7 @@ public sealed class InboxServiceTests : IDisposable
         var path = h.WriteFile("doc.txt");
         var id = SeedItem(h, NewItem(status: "pending", filePath: path));
         SetupCollections(h);
-        SetupAi(h, "   ", "\n"); // trims to empty → ParseTriageResponse early-return
+        SetupAi(h, "   ", "\n"); // trims to empty -> ParseTriageResponse early-return
 
         await h.Service.GeneratePreviewAsync(id);
 
@@ -853,7 +1056,7 @@ public sealed class InboxServiceTests : IDisposable
     public async Task GenerateAllPreviewsAsync_NoEligibleItems_Completes()
     {
         var h = NewHarness();
-        // One pending item that ALREADY has a preview → excluded by the Preview == null filter.
+        // One pending item that ALREADY has a preview -> excluded by the Preview == null filter.
         SeedItem(h, NewItem(status: "pending", preview: "already done"));
 
         await h.Service.GenerateAllPreviewsAsync();
@@ -890,7 +1093,7 @@ public sealed class InboxServiceTests : IDisposable
         var p1 = h.WriteFile("a.txt");
         h.Seed(ctx => ctx.InboxItems.Add(NewItem(status: "pending", fileName: "a.txt", filePath: p1)));
         SetupCollections(h);
-        // AI throws (non-cancellation) → GeneratePreview rethrows → batch catches, logs, continues.
+        // AI throws (non-cancellation) -> GeneratePreview rethrows -> batch catches, logs, continues.
         SetupAiFault(h, new InvalidOperationException("ai down"));
 
         var act = () => h.Service.GenerateAllPreviewsAsync();
@@ -929,13 +1132,14 @@ public sealed class InboxServiceTests : IDisposable
         return (await fresh.InboxItems.OrderBy(i => i.Id).FirstAsync()).Id;
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  Maintenance
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
-    public async Task DeleteProcessedItemsAsync_RemovesProcessedKeepsPending()
+    public async Task DeleteProcessedItemsAsync_RemovesAcceptedAndRejected_KeepsPendingAndDeferred()
     {
+        // A deferred item is a decision put off, not made; cleanup used to delete it too.
         var h = NewHarness();
         h.Seed(ctx =>
         {
@@ -948,8 +1152,8 @@ public sealed class InboxServiceTests : IDisposable
         await h.Service.DeleteProcessedItemsAsync();
 
         using var fresh = h.Fresh();
-        (await fresh.InboxItems.CountAsync()).Should().Be(1);
-        (await fresh.InboxItems.SingleAsync()).Status.Should().Be("pending");
+        (await fresh.InboxItems.Select(i => i.Status).ToListAsync())
+            .Should().BeEquivalentTo("pending", "deferred");
     }
 
     [Fact]
@@ -973,9 +1177,9 @@ public sealed class InboxServiceTests : IDisposable
         await act.Should().ThrowAsync<ObjectDisposedException>();
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
     //  TriageExternalAsync
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===========================================================================
 
     [Fact]
     public async Task TriageExternalAsync_BlankFileName_Throws()
@@ -1005,18 +1209,130 @@ public sealed class InboxServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task TriageExternalAsync_Duplicate_ReturnsExisting()
+    public async Task TriageExternalAsync_SameItemTwice_ReturnsExistingRowUnchanged()
+    {
+        var h = NewHarness(withDocumentService: false);
+        var pid = h.NewPluginId();
+        var first = await h.Service.UpsertExternalAsync(
+            "Standup", "CalendarEvent", "calendar", null, pid, null, "ext-7", "preview", "body");
+
+        var second = await h.Service.UpsertExternalAsync(
+            "Standup", "CalendarEvent", "calendar", null, pid, null, "ext-7", "preview", "body");
+
+        first.Outcome.Should().Be(ExternalTriageOutcome.Created);
+        second.Outcome.Should().Be(ExternalTriageOutcome.Unchanged);
+        second.Item.Id.Should().Be(first.Item.Id);
+        using var fresh = h.Fresh();
+        (await fresh.InboxItems.CountAsync()).Should().Be(1); // no duplicate
+    }
+
+    [Fact]
+    public async Task UpsertExternalAsync_ChangedEvent_RewritesContentAndReindexesLinkedDocument()
     {
         var h = NewHarness();
         var pid = h.NewPluginId();
-        SeedItem(h, NewItem(status: "accepted", fileName: "old", externalId: "ext-7", sourcePluginId: pid));
+        h.Documents
+            .Setup(d => d.ImportExternalContentAsync(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
+                It.IsAny<string?>(), It.IsAny<long?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((string path, string type, string name, string? url, long? col, CancellationToken _) =>
+            {
+                using var ctx = h.Fresh();
+                var doc = new DocumentEntity
+                {
+                    FileName = name,
+                    FilePath = path,
+                    FileType = type,
+                    ContentHash = Guid.NewGuid().ToString("N"),
+                    IndexingStatus = "pending",
+                    ImportedAt = DateTime.UtcNow,
+                };
+                ctx.Documents.Add(doc);
+                ctx.SaveChanges();
+                return doc;
+            });
+        h.Documents.Setup(d => d.ReindexDocumentAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
 
-        var result = await h.Service.TriageExternalAsync(
-            "New Name", "CalendarEvent", "calendar", null, pid, null, "ext-7", null, "body");
+        var created = await h.Service.UpsertExternalAsync(
+            "Calendar: Review (2026-03-02 09:00)", "CalendarEvent", "calendar-connector", null,
+            pid, "calendar_event", "google:primary:evt-1", "09:00", "Start: 2026-03-02 09:00 UTC");
+        var documentId = created.Item.DocumentId!.Value;
 
-        result.FileName.Should().Be("old"); // returned the pre-existing row
+        // The meeting is rescheduled at the provider.
+        var updated = await h.Service.UpsertExternalAsync(
+            "Calendar: Review (2026-03-02 11:00)", "CalendarEvent", "calendar-connector", null,
+            pid, "calendar_event", "google:primary:evt-1", "11:00", "Start: 2026-03-02 11:00 UTC");
+
+        updated.Outcome.Should().Be(ExternalTriageOutcome.Updated);
+        updated.Item.Id.Should().Be(created.Item.Id);
+        updated.Item.FileName.Should().Be("Calendar: Review (2026-03-02 11:00)");
+        updated.Item.Preview.Should().Be("11:00");
+        File.ReadAllText(updated.Item.FilePath).Should().Contain("11:00");
+        h.Documents.Verify(d => d.ReindexDocumentAsync(documentId, It.IsAny<CancellationToken>()), Times.Once);
+
         using var fresh = h.Fresh();
-        (await fresh.InboxItems.CountAsync()).Should().Be(1); // no duplicate
+        var document = await fresh.Documents.FindAsync(documentId);
+        document!.FileName.Should().Be("Calendar: Review (2026-03-02 11:00)");
+        (await fresh.InboxItems.CountAsync()).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task UpsertExternalAsync_ChangedItemTheUserRejected_UpdatesRowButLeavesVaultAlone()
+    {
+        var h = NewHarness();
+        var pid = h.NewPluginId();
+        SeedItem(h, NewItem(status: "rejected", fileName: "Email: old", externalId: "google:INBOX:m1", sourcePluginId: pid));
+
+        var result = await h.Service.UpsertExternalAsync(
+            "Email: new", "EmailMessage", "email-connector", null, pid, "Other", "google:INBOX:m1", null, "new body");
+
+        result.Outcome.Should().Be(ExternalTriageOutcome.Updated);
+        result.Item.Status.Should().Be("rejected");
+        h.Documents.Verify(d => d.ImportExternalContentAsync(
+            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
+            It.IsAny<string?>(), It.IsAny<long?>(), It.IsAny<CancellationToken>()), Times.Never);
+        h.Documents.Verify(d => d.ReindexDocumentAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task UpsertExternalAsync_ProviderIdWithColons_WritesColonFreeFileUnderAppData()
+    {
+        var h = NewHarness(withDocumentService: false);
+        var pid = h.NewPluginId();
+
+        var result = await h.Service.UpsertExternalAsync(
+            "Calendar: Sync", "CalendarEvent", "calendar-connector", null,
+            pid, "calendar_event", "google:primary:abc_123", null, "content");
+
+        result.Item.ExternalId.Should().Be("google:primary:abc_123"); // dedupe key kept verbatim
+        File.Exists(result.Item.FilePath).Should().BeTrue();
+        Path.GetFileName(result.Item.FilePath).Should().NotContain(":");
+        var relative = Path.GetRelativePath(h.AppDataDir, result.Item.FilePath);
+        relative.Should().NotContain(":");
+        relative.Should().NotStartWith("..", "content must live under the app data folder, not %TEMP%");
+    }
+
+    [Fact]
+    public void BuildExternalContentPath_IsStableAndNeverContainsProviderSeparators()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "store");
+
+        var first = InboxService.BuildExternalContentPath(root, "com.agentx.calendar", "google:primary:abc_Weekly sync");
+        var again = InboxService.BuildExternalContentPath(root, "com.agentx.calendar", "google:primary:abc_Weekly sync");
+        var other = InboxService.BuildExternalContentPath(root, "com.agentx.calendar", "google:primary:abc_Weekly sync2");
+        var hostile = InboxService.BuildExternalContentPath(root, "evil:../..\\plugin", "a:b/c\\d*?<>|");
+
+        again.Should().Be(first);
+        other.Should().NotBe(first);
+        foreach (var path in new[] { first, other, hostile })
+        {
+            var relative = Path.GetRelativePath(root, path);
+            relative.Should().NotContain(":");
+            relative.Split(Path.DirectorySeparatorChar).Should().NotContain("..");
+            Path.GetFullPath(path).Should().StartWith(Path.GetFullPath(root));
+            Path.GetFileName(path).Should().MatchRegex("^[0-9a-f]{32}\\.txt$");
+        }
     }
 
     [Fact]
@@ -1090,6 +1406,8 @@ public sealed class InboxServiceTests : IDisposable
             "Re: Q1/Q2 <Report>", "EmailMessage", "email", null, pid, null, "evt-3", null, "body");
 
         item.FileName.Should().Be("Re: Q1/Q2 <Report>"); // original display name preserved
-        File.Exists(item.FilePath).Should().BeTrue();      // sanitized temp path created
+        File.Exists(item.FilePath).Should().BeTrue();      // sanitized content path created
+        Path.GetFileName(item.FilePath).Should().NotContain(":");
+
     }
 }

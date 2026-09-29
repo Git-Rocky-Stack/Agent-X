@@ -98,7 +98,7 @@ public sealed class JsonFormatterTests
         // Act
         var result = await _sut.ExportConversationAsync(conversation, options);
 
-        // Assert — should be valid JSON
+        // Assert - should be valid JSON
         var act = () => JsonDocument.Parse(result);
         act.Should().NotThrow();
     }
@@ -155,14 +155,14 @@ public sealed class JsonFormatterTests
     [Fact]
     public async Task ExportConversationAsync_IncludesSystemMessagesInArray()
     {
-        // Arrange — system messages are included in the JSON messages array
+        // Arrange - system messages are included in the JSON messages array
         var conversation = CreateConversation(messageCount: 2, includeSystemMessage: true);
         var options = new ExportOptions();
 
         // Act
         var result = await _sut.ExportConversationAsync(conversation, options);
 
-        // Assert — JSON export includes all messages (system included)
+        // Assert - JSON export includes all messages (system included)
         using var doc = JsonDocument.Parse(result);
         var messages = doc.RootElement
             .GetProperty("conversations").EnumerateArray().First()
@@ -211,7 +211,7 @@ public sealed class JsonFormatterTests
         // Act
         var result = await _sut.ExportConversationAsync(conversation, options);
 
-        // Assert — messages with null modelId should not have the field serialized
+        // Assert - messages with null modelId should not have the field serialized
         using var doc = JsonDocument.Parse(result);
         var messages = doc.RootElement
             .GetProperty("conversations").EnumerateArray().First()
@@ -248,7 +248,7 @@ public sealed class JsonFormatterTests
         // Act
         var result = await _sut.ExportConversationAsync(conversation, options);
 
-        // Assert — should use camelCase property names
+        // Assert - should use camelCase property names
         result.Should().Contain("exportMetadata");
         result.Should().Contain("conversationCount");
         result.Should().Contain("exportedAt");
@@ -264,7 +264,7 @@ public sealed class JsonFormatterTests
         // Act
         var result = await _sut.ExportConversationAsync(conversation, options);
 
-        // Assert — indented JSON should contain whitespace/newlines for readability
+        // Assert - indented JSON should contain whitespace/newlines for readability
         result.Should().Contain("\n");
         result.Should().Contain("  ");
     }

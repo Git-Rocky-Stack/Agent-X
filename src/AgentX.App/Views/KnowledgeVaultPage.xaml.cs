@@ -1,6 +1,7 @@
 using AgentX.App.Helpers;
 using AgentX.App.Services;
 using AgentX.App.ViewModels;
+using AgentX.Core.Services.Localization;
 using AgentX.Core.Services.Shortcuts;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -19,15 +20,25 @@ namespace AgentX.App.Views;
 /// </summary>
 public sealed partial class KnowledgeVaultPage : Page
 {
+    // The frame caches this page (NavigationCacheMode="Enabled") and only builds a new instance
+    // after it has evicted the previous one. The evicted page's view model is still subscribed
+    // to the singleton indexing service's events, so it is released here.
+    private static KnowledgeVaultViewModel? s_liveViewModel;
+
     private readonly IShortcutRegistry _shortcutRegistry;
     private IDisposable? _shortcutScope;
 
     public KnowledgeVaultViewModel ViewModel { get; }
 
+    /// <summary>The preview's document text and annotations.</summary>
+    private DocumentNotesViewModel Notes => ViewModel.Notes;
+
     public KnowledgeVaultPage()
     {
-        ViewModel = App.GetService<KnowledgeVaultViewModel>();
+        ViewModel = PageViewModelFactory.Create<KnowledgeVaultViewModel>();
+        Interlocked.Exchange(ref s_liveViewModel, ViewModel)?.Dispose();
         ViewModel.NavigateRequested = NavigateToPage;
+        ViewModel.ConfirmDeleteAsync = ConfirmDeleteAsync;
         _shortcutRegistry = App.GetService<IShortcutRegistry>();
         InitializeComponent();
         Loaded += async (_, _) => await ViewModel.InitializeAsync();
@@ -36,6 +47,10 @@ public sealed partial class KnowledgeVaultPage : Page
     protected override void OnNavigatedTo(NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
+
+        // The previewed document counts as read while the page is on screen. Resume before the
+        // navigation parameter can open another document, so that one is timed too.
+        ViewModel.ResumeDocumentEngagement();
 
         // Honour the item the caller picked (Jump-To, command palette) rather than
         // dropping it and opening this page on whatever was last active.
@@ -48,14 +63,15 @@ public sealed partial class KnowledgeVaultPage : Page
             OnImportFilesClick(this, new RoutedEventArgs());
         }
 
+        var localization = App.GetService<ILocalizationService>();
         _shortcutScope = _shortcutRegistry.RegisterShortcuts(
             new AgentX.Core.Services.Shortcuts.ShortcutDescriptor(
                 "vault.refresh",
-                "Refresh documents",
+                localization.GetString("Vault_ShortcutRefreshDocuments"),
                 new ShortcutScope(nameof(KnowledgeVaultPage)),
                 new[] { new KeyChord(KeyModifiers.None, VirtualKeyCode.F5) },
                 _ => ViewModel.RefreshCommand.ExecuteAsync(null),
-                "Documents"));
+                localization.GetString("Vault_ShortcutCategory")));
     }
 
     protected override void OnNavigatedFrom(NavigationEventArgs e)
@@ -63,6 +79,7 @@ public sealed partial class KnowledgeVaultPage : Page
         base.OnNavigatedFrom(e);
         _shortcutScope?.Dispose();
         _shortcutScope = null;
+        _ = ViewModel.PauseDocumentEngagementAsync();
     }
 
     private void NavigateToPage(string pageTag, object? parameter = null)
@@ -73,9 +90,9 @@ public sealed partial class KnowledgeVaultPage : Page
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // FILE IMPORT HANDLERS
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     /// <summary>
     /// Opens a file picker for selecting individual files to import.
@@ -89,27 +106,13 @@ public sealed partial class KnowledgeVaultPage : Page
             picker.ViewMode = PickerViewMode.List;
             picker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
 
-            // Add supported file types
-            picker.FileTypeFilter.Add(".pdf");
-            picker.FileTypeFilter.Add(".docx");
-            picker.FileTypeFilter.Add(".doc");
-            picker.FileTypeFilter.Add(".txt");
-            picker.FileTypeFilter.Add(".md");
-            picker.FileTypeFilter.Add(".csv");
-            picker.FileTypeFilter.Add(".json");
-            picker.FileTypeFilter.Add(".html");
-            picker.FileTypeFilter.Add(".htm");
-            picker.FileTypeFilter.Add(".xml");
-            // No .rtf: nothing in Documents/Processors reads RTF, so offering it here only
-            // lets the user pick a file the import then rejects.
-            picker.FileTypeFilter.Add(".py");
-            picker.FileTypeFilter.Add(".cs");
-            picker.FileTypeFilter.Add(".js");
-            picker.FileTypeFilter.Add(".ts");
-            picker.FileTypeFilter.Add(".java");
-            picker.FileTypeFilter.Add(".cpp");
-            picker.FileTypeFilter.Add(".c");
-            picker.FileTypeFilter.Add(".h");
+            // Every format a document processor reads, the built-in ones and those of active
+            // plugins: the formats folder imports pick up, and nothing the import would reject.
+            // Each entry starts with a dot and appears once, as the picker requires.
+            foreach (var fileType in ViewModel.GetImportFileTypes())
+            {
+                picker.FileTypeFilter.Add(fileType);
+            }
 
             // Initialize the picker with the window handle
             var hwnd = WindowNative.GetWindowHandle(App.MainWindow);
@@ -155,14 +158,14 @@ public sealed partial class KnowledgeVaultPage : Page
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // DRAG AND DROP HANDLERS
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     private void DropZone_DragOver(object sender, DragEventArgs e)
     {
         e.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.Copy;
-        e.DragUIOverride.Caption = "Drop to import";
+        e.DragUIOverride.Caption = App.GetService<ILocalizationService>().GetString("Vault_DropToImport");
         e.DragUIOverride.IsCaptionVisible = true;
         e.DragUIOverride.IsGlyphVisible = true;
 
@@ -198,7 +201,9 @@ public sealed partial class KnowledgeVaultPage : Page
             {
                 var items = await e.DataView.GetStorageItemsAsync();
                 var filePaths = new List<string>();
+                var folderPaths = new List<string>();
 
+                // Collect every dropped item; files and folders can be mixed in one drop.
                 foreach (var item in items)
                 {
                     if (item is StorageFile file)
@@ -207,16 +212,11 @@ public sealed partial class KnowledgeVaultPage : Page
                     }
                     else if (item is StorageFolder folder)
                     {
-                        // For dropped folders, use the folder import path
-                        await ViewModel.ImportFolderCommand.ExecuteAsync(folder.Path);
-                        return;
+                        folderPaths.Add(folder.Path);
                     }
                 }
 
-                if (filePaths.Count > 0)
-                {
-                    await ViewModel.HandleDroppedFilesAsync(filePaths);
-                }
+                await ViewModel.HandleDroppedItemsAsync(filePaths, folderPaths);
             }
         }
         catch (Exception ex)
@@ -225,9 +225,9 @@ public sealed partial class KnowledgeVaultPage : Page
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // FILTER CHIP HANDLERS
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     private void OnFilterTypeClick(object sender, RoutedEventArgs e)
     {
@@ -249,9 +249,9 @@ public sealed partial class KnowledgeVaultPage : Page
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // TAG FILTER HANDLER (Feature 7)
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     private void OnFilterTagClick(object sender, RoutedEventArgs e)
     {
@@ -262,9 +262,9 @@ public sealed partial class KnowledgeVaultPage : Page
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // MULTI-SELECT HANDLER (Feature 8)
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     private void OnDocumentCheckToggle(object sender, RoutedEventArgs e)
     {
@@ -274,9 +274,9 @@ public sealed partial class KnowledgeVaultPage : Page
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // ADVANCED FILTER HANDLERS (Feature 9)
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     private void OnCollectionFilterChanged(object sender, SelectionChangedEventArgs e)
     {
@@ -326,12 +326,12 @@ public sealed partial class KnowledgeVaultPage : Page
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // DOCUMENT ACTION BUTTON HANDLERS
     // These bridge the DataTemplate button clicks to ViewModel commands,
     // since x:Bind with CommandParameter inside ItemsRepeater DataTemplates
     // does not support binding to ViewModel commands directly.
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     private void OnViewDetailClick(object sender, RoutedEventArgs e)
     {
@@ -381,9 +381,58 @@ public sealed partial class KnowledgeVaultPage : Page
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    /// <summary>
+    /// Asks before documents are deleted: one by name, several by count. The view model
+    /// deletes only on a yes; the files on disk are never touched.
+    /// </summary>
+    private async Task<bool> ConfirmDeleteAsync(DocumentDeletionRequest request)
+    {
+        var localization = App.GetService<ILocalizationService>();
+        var (title, body) = request.DocumentName is { } name
+            ? (localization.GetString("Vault_DeleteDocumentTitle"),
+               localization.GetString("Vault_DeleteDocumentBody", name))
+            : (localization.GetString("Vault_DeleteDocumentsTitle"),
+               localization.GetString("Vault_DeleteDocumentsBody", request.Count));
+
+        var dialog = new ContentDialog
+        {
+            Title = title,
+            Content = body,
+            PrimaryButtonText = localization.GetString("Vault_DeleteConfirm"),
+            CloseButtonText = localization.GetString("Vault_DeleteCancel"),
+            DefaultButton = ContentDialogButton.Close,
+            XamlRoot = this.XamlRoot
+        };
+
+        return await dialog.ShowAsync() == ContentDialogResult.Primary;
+    }
+
+    // Preview annotations
+
+    /// <summary>
+    /// Hands the text selected in the preview's passage to the view model. The selection start
+    /// is a text pointer whose offset also counts element boundaries, so it only tells the view
+    /// model which occurrence of the selected text was meant.
+    /// </summary>
+    private void OnPassageSelectionChanged(object sender, RoutedEventArgs e)
+    {
+        if (sender is TextBlock passage)
+        {
+            Notes.CaptureSelection(passage.SelectedText, passage.SelectionStart?.Offset ?? -1);
+        }
+    }
+
+    private async void OnDeleteAnnotationClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button button && button.Tag is long annotationId)
+        {
+            await Notes.DeleteAnnotationCommand.ExecuteAsync(annotationId);
+        }
+    }
+
+    // ===============================================================
     // VISIBILITY HELPERS
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     /// <summary>
     /// Returns Visible when there are no documents and the drop zone is not

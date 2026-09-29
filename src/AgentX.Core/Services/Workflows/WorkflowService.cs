@@ -783,6 +783,55 @@ public class WorkflowService : IWorkflowService
         }
     }
 
+    /// <summary>Error recorded on a run that a previous process left in the "running" state.</summary>
+    internal const string InterruptedRunMessage =
+        "Interrupted: Agent-X closed before this run finished.";
+
+    /// <inheritdoc />
+    public async Task<int> ReconcileInterruptedRunsAsync(CancellationToken ct = default)
+    {
+        try
+        {
+            var stale = await _db.WorkflowRuns
+                .Where(run => run.Status == "running" || run.Status == "pending")
+                .ToListAsync(ct);
+
+            if (stale.Count == 0)
+            {
+                return 0;
+            }
+
+            var now = DateTime.UtcNow;
+            foreach (var run in stale)
+            {
+                run.Status = "failed";
+                run.ErrorMessage = InterruptedRunMessage;
+                run.CompletedAt ??= now;
+            }
+
+            try
+            {
+                await _db.SaveChangesAsync(ct);
+            }
+            catch
+            {
+                RevertUnsavedEdits(stale);
+                throw;
+            }
+
+            _log.Warning(
+                "Marked {Count} workflow run(s) left running by a previous session as interrupted",
+                stale.Count);
+
+            return stale.Count;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _log.Error(ex, "Failed to reconcile interrupted workflow runs");
+            throw;
+        }
+    }
+
     /// <inheritdoc />
     public async Task SeedBuiltInWorkflowsAsync()
     {
@@ -796,6 +845,7 @@ public class WorkflowService : IWorkflowService
                 _log.Debug(
                     "Skipping seed: {Count} built-in workflows already exist",
                     existingBuiltInCount);
+                await RepairBuiltInTemplatesAsync();
                 return;
             }
 
@@ -822,9 +872,64 @@ public class WorkflowService : IWorkflowService
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    /// <summary>
+    /// Fixes defects in built-in templates seeded by earlier versions. A step is only
+    /// rewritten while it still holds the exact text that shipped, so a user's own edit is
+    /// never overwritten.
+    /// </summary>
+    private async Task RepairBuiltInTemplatesAsync()
+    {
+        var staleEmailSteps = await _db.WorkflowSteps
+            .Where(step => step.Workflow.IsBuiltIn
+                           && step.Workflow.Name == "Content Repurpose"
+                           && step.PromptTemplate == WorkflowTemplate.LegacyContentRepurposeEmailTemplate)
+            .ToListAsync();
+
+        if (staleEmailSteps.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var step in staleEmailSteps)
+        {
+            step.PromptTemplate = WorkflowTemplate.ContentRepurposeEmailTemplate;
+        }
+
+        try
+        {
+            await _db.SaveChangesAsync();
+        }
+        catch
+        {
+            RevertUnsavedEdits(staleEmailSteps);
+            throw;
+        }
+
+        _log.Information(
+            "Repaired the email step of the built-in Content Repurpose workflow ({Count} step(s))",
+            staleEmailSteps.Count);
+    }
+
+    /// <summary>
+    /// Restores the loaded values of entities whose save failed, so an unrelated later save on
+    /// the shared context does not persist (or trip over) these half-applied edits.
+    /// </summary>
+    private void RevertUnsavedEdits(IEnumerable<object> entities)
+    {
+        foreach (var entity in entities)
+        {
+            var entry = _db.Entry(entity);
+            if (entry.State == EntityState.Modified)
+            {
+                entry.CurrentValues.SetValues(entry.OriginalValues);
+                entry.State = EntityState.Unchanged;
+            }
+        }
+    }
+
+    // ---------------------------------------------------------------------
     // Internal DTOs for JSON import/export (keep internal IDs out of JSON)
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     private sealed class WorkflowExportDto
     {

@@ -19,7 +19,7 @@
 
     <Grid>
 
-        <!-- ═══════ ADAPTIVE LAYOUT (Tier 3) — see Colors.xaml breakpoints ═══════
+        <!-- ======= ADAPTIVE LAYOUT (Tier 3) - see Colors.xaml breakpoints =======
              Narrow (<960):  sidebar 260   |  Medium (>=960): sidebar 300
              Wide (>=1280):  sidebar 320 (markup default) -->
         <VisualStateManager.VisualStateGroups>
@@ -53,9 +53,9 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <!-- ══════════════════════════════════════════════════════════
+        <!-- ==========================================================
              LEFT PANEL: Workflow List
-             ══════════════════════════════════════════════════════════ -->
+             ========================================================== -->
         <Border Grid.Column="0"
                 Background="{ThemeResource CardGradientSubtleBrush}"
                 BorderBrush="{ThemeResource BorderSubtleBrush}"
@@ -101,6 +101,7 @@
                 <ListView Grid.Row="2"
                           ItemsSource="{x:Bind ViewModel.Workflows}"
                           SelectedItem="{x:Bind ViewModel.SelectedWorkflow, Mode=TwoWay}"
+                          IsEnabled="{x:Bind ViewModel.CanChangeWorkflowSelection, Mode=OneWay}"
                           SelectionMode="Single"
                           Padding="8,0">
                     <ListView.ItemTemplate>
@@ -136,7 +137,7 @@
                                                MaxLines="2"
                                                Visibility="{x:Bind Description, Mode=OneWay, Converter={StaticResource StringToVis}}" />
                                     <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <TextBlock Text="{x:Bind Category}"
+                                        <TextBlock Text="{x:Bind CategoryLabel}"
                                                    Style="{StaticResource CaptionStyle}" />
                                         <TextBlock Style="{StaticResource CaptionStyle}">
                                             <Run Text="{x:Bind StepCount}" />
@@ -188,9 +189,9 @@
             </Grid>
         </Border>
 
-        <!-- ══════════════════════════════════════════════════════════
+        <!-- ==========================================================
              RIGHT PANEL: Editor / Runner
-             ══════════════════════════════════════════════════════════ -->
+             ========================================================== -->
         <Grid Grid.Column="1">
             <ScrollViewer VerticalScrollBarVisibility="Auto"
                           HorizontalScrollBarVisibility="Disabled">
@@ -205,7 +206,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <!-- ═══ PAGE HEADER ═══ -->
+                    <!-- === PAGE HEADER === -->
                     <StackPanel Grid.Row="0" Spacing="4">
                         <TextBlock x:Uid="WfBuilder_PageTitle" Text="Prompt Workflows"
                                    Style="{StaticResource DisplaySmallStyle}" />
@@ -213,7 +214,7 @@
                                    Style="{StaticResource BodySecondaryStyle}" />
                     </StackPanel>
 
-                    <!-- ═══ EDITOR SECTION ═══ -->
+                    <!-- === EDITOR SECTION === -->
                     <controls:Faceplate Grid.Row="1" Padding="24" Visibility="{x:Bind ViewModel.IsEditing, Mode=OneWay, Converter={StaticResource BoolToVis}}" Kicker="MOD - WFLW - 01">
                         <StackPanel Spacing="20">
                             <TextBlock x:Uid="WfBuilder_WorkflowEditor" Text="Workflow Editor"
@@ -238,8 +239,8 @@
                             <!-- Category -->
                             <StackPanel Spacing="4">
                                 <TextBlock x:Uid="WfBuilder_Category" Text="Category" Style="{StaticResource LabelStyle}" />
-                                <ComboBox ItemsSource="{x:Bind ViewModel.Categories}"
-                                          SelectedItem="{x:Bind ViewModel.EditCategory, Mode=TwoWay}"
+                                <ComboBox ItemsSource="{x:Bind ViewModel.CategoryOptions}"
+                                          SelectedIndex="{x:Bind ViewModel.SelectedCategoryIndex, Mode=TwoWay}"
                                           HorizontalAlignment="Stretch" />
                             </StackPanel>
 
@@ -348,6 +349,37 @@
                                                          MaxHeight="200"
                                                          Header="Prompt Template"
                                                          Style="{StaticResource InputTextBoxStyle}" />
+
+                                                <!-- Step Settings: the JSON the step type reads, checked as it is typed -->
+                                                <StackPanel Spacing="4"
+                                                            Visibility="{x:Bind HasSettings, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                                                    <TextBlock x:Uid="WfBuilder_StepSettingsLabel" Text="Step settings (JSON)"
+                                                               Style="{StaticResource LabelStyle}" />
+                                                    <Grid>
+                                                        <TextBox x:Uid="WfBuilder_StepSettingsBox"
+                                                                 AutomationProperties.Name="Step settings (JSON)"
+                                                                 Text="{x:Bind ConfigText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                 PlaceholderText="{x:Bind ConfigExample, Mode=OneWay}"
+                                                                 AcceptsReturn="True"
+                                                                 TextWrapping="Wrap"
+                                                                 MaxHeight="160"
+                                                                 FontFamily="{StaticResource FontMono}"
+                                                                 FontSize="13"
+                                                                 Style="{StaticResource InputTextBoxStyle}" />
+                                                        <!-- NO-GO edge while the settings cannot be used -->
+                                                        <Border BorderBrush="{ThemeResource ErrorBrush}"
+                                                                BorderThickness="1"
+                                                                CornerRadius="{StaticResource RCard}"
+                                                                IsHitTestVisible="False"
+                                                                Visibility="{x:Bind HasConfigError, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+                                                    </Grid>
+                                                    <TextBlock Text="{x:Bind ConfigHint, Mode=OneWay}"
+                                                               Style="{StaticResource CaptionStyle}" />
+                                                    <TextBlock Text="{x:Bind ConfigError, Mode=OneWay}"
+                                                               Style="{StaticResource CaptionStyle}"
+                                                               Foreground="{ThemeResource LedNoGoTextBrush}"
+                                                               Visibility="{x:Bind HasConfigError, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+                                                </StackPanel>
                                             </StackPanel>
                                         </Border>
                                     </DataTemplate>
@@ -366,7 +398,7 @@
                         </StackPanel>
                     </controls:Faceplate>
 
-                    <!-- ═══ RUNNER SECTION ═══ -->
+                    <!-- === RUNNER SECTION === -->
                     <controls:Faceplate Grid.Row="2" Padding="24" Visibility="{x:Bind ViewModel.ShowWorkflowRunnerSection, Mode=OneWay, Converter={StaticResource BoolToVis}}" Kicker="MOD - WFLW - 02">
                         <StackPanel Spacing="20">
                             <Border Background="{ThemeResource AccentSubtleBrush}"
@@ -539,7 +571,7 @@
                         </StackPanel>
                     </controls:Faceplate>
 
-                    <!-- ═══ RECENT RUNS ═══ -->
+                    <!-- === RECENT RUNS === -->
                     <controls:Faceplate Grid.Row="3" Padding="24" Visibility="{x:Bind ViewModel.HasSelectedWorkflow, Mode=OneWay, Converter={StaticResource BoolToVis}}" Kicker="MOD - WFLW - 03">
                         <StackPanel Spacing="16">
                             <Grid>
@@ -639,7 +671,7 @@
                         </StackPanel>
                     </controls:Faceplate>
 
-                    <!-- ═══ STEP OUTPUTS ═══ -->
+                    <!-- === STEP OUTPUTS === -->
                     <controls:Faceplate Grid.Row="4" Padding="24" Visibility="{x:Bind ViewModel.HasStepOutputs, Mode=OneWay, Converter={StaticResource BoolToVis}}" Kicker="MOD - WFLW - 04">
                         <StackPanel Spacing="16">
                             <Grid>
@@ -720,7 +752,7 @@
                         </StackPanel>
                     </controls:Faceplate>
 
-                    <!-- ═══ FINAL OUTPUT ═══ -->
+                    <!-- === FINAL OUTPUT === -->
                     <controls:Faceplate Grid.Row="5" Padding="24" Visibility="{x:Bind ViewModel.HasRunOutputOrError, Mode=OneWay, Converter={StaticResource BoolToVis}}" Kicker="MOD - WFLW - 05">
                         <StackPanel Spacing="12">
                             <TextBlock x:Uid="WfBuilder_FinalOutput" Text="Final Output"
@@ -755,14 +787,14 @@
                         </StackPanel>
                     </controls:Faceplate>
 
-                    <!-- ═══ STATUS MESSAGE ═══ -->
+                    <!-- === STATUS MESSAGE === -->
                     <TextBlock Grid.Row="6"
                                Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
                                Style="{StaticResource CaptionStyle}"
                                Margin="0,8,0,0"
                                Visibility="{x:Bind ViewModel.StatusMessage, Mode=OneWay, Converter={StaticResource StringToVis}}" />
 
-                    <!-- ═══ EMPTY STATE ═══ -->
+                    <!-- === EMPTY STATE === -->
                     <controls:Faceplate Grid.Row="2" Padding="28" Visibility="{x:Bind ViewModel.ShowWorkflowStarterEmptyState, Mode=OneWay, Converter={StaticResource BoolToVis}}" Kicker="MOD - WFLW - 06">
                         <StackPanel Spacing="20">
                             <StackPanel Spacing="8">
@@ -802,7 +834,7 @@
                                                             <Border Background="{ThemeResource AccentSubtleBrush}"
                                                                     CornerRadius="{StaticResource RControl}"
                                                                     Padding="8,2">
-                                                                <TextBlock Text="{x:Bind Category}"
+                                                                <TextBlock Text="{x:Bind CategoryLabel}"
                                                                            Style="{StaticResource CaptionStyle}"
                                                                            Foreground="{ThemeResource AccentPrimaryBrush}" />
                                                             </Border>

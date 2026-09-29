@@ -1,5 +1,6 @@
 using AgentX.App.ViewModels;
 using AgentX.Core.Services.Export.Models;
+using AgentX.Core.Services.Localization;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
@@ -7,8 +8,13 @@ namespace AgentX.App.Views;
 
 /// <summary>
 /// ContentDialog for configuring and executing conversation exports.
-/// Supports all 8 export formats and 3 built-in templates.
+/// Supports all 8 export formats and, for Markdown, 3 built-in templates.
 /// </summary>
+/// <remarks>
+/// "Include citations" lists the web sources saved with each answer, and "Include model info"
+/// names the model that wrote it. "Include branches" is not offered: no exporter includes
+/// branch conversations, so the switch would change nothing.
+/// </remarks>
 public sealed partial class ExportDialog : ContentDialog
 {
     private readonly ExportViewModel _viewModel;
@@ -19,21 +25,29 @@ public sealed partial class ExportDialog : ContentDialog
         _viewModel = viewModel;
         InitializeComponent();
 
-        // Populate format combo with all ExportFormat values
-        FormatCombo.ItemsSource = Enum.GetValues<ExportFormat>();
+        // The combos showed the enum member names ("PlainText", "ResearchReport") and an
+        // English "(None)"; each choice now carries its localized name and file extension.
+        var localization = App.GetService<ILocalizationService>();
+        FormatCombo.ItemsSource = Enum.GetValues<ExportFormat>()
+            .Select(format => new Choice<ExportFormat>(format, FormatLabel(localization, format)))
+            .ToList();
         FormatCombo.SelectedIndex = 0;
 
-        // Populate template combo: "(None)" + template names
-        var templates = new List<string> { "(None)" };
-        templates.AddRange(Enum.GetNames<ExportTemplateId>());
+        var templates = new List<Choice<ExportTemplateId?>>
+        {
+            new(null, localization.GetString("ExportDlg_TemplateNone"))
+        };
+        templates.AddRange(Enum.GetValues<ExportTemplateId>()
+            .Select(template => new Choice<ExportTemplateId?>(template, TemplateLabel(localization, template))));
         TemplateCombo.ItemsSource = templates;
         TemplateCombo.SelectedIndex = 0;
 
-        // Templates are only applicable to Markdown, Docx, and Html
+        // Templates produce Markdown, so they apply to Markdown exports only (the export
+        // service rejects a template with any other format rather than ignoring it).
         FormatCombo.SelectionChanged += (s, e) =>
         {
-            var fmt = (ExportFormat)FormatCombo.SelectedItem!;
-            TemplateCombo.IsEnabled = fmt is ExportFormat.Markdown or ExportFormat.Docx or ExportFormat.Html;
+            var fmt = SelectedFormat;
+            TemplateCombo.IsEnabled = fmt is ExportFormat.Markdown;
             if (!TemplateCombo.IsEnabled)
             {
                 TemplateCombo.SelectedIndex = 0;
@@ -47,7 +61,43 @@ public sealed partial class ExportDialog : ContentDialog
     public void SetConversation(long conversationId, string title)
     {
         _conversationId = conversationId;
-        Title = $"Export: {title}";
+        Title = string.Format(
+            System.Globalization.CultureInfo.CurrentCulture,
+            App.GetService<ILocalizationService>().GetString("ExportDlg_TitleFormat"),
+            title);
+    }
+
+    private ExportFormat SelectedFormat =>
+        FormatCombo.SelectedItem is Choice<ExportFormat> choice ? choice.Value : ExportFormat.Markdown;
+
+    private ExportTemplateId? SelectedTemplate =>
+        TemplateCombo.SelectedItem is Choice<ExportTemplateId?> choice ? choice.Value : null;
+
+    private static string FormatLabel(ILocalizationService localization, ExportFormat format) => format switch
+    {
+        ExportFormat.Markdown => localization.GetString("ExportDlg_FormatMarkdown"),
+        ExportFormat.Html => localization.GetString("ExportDlg_FormatHtml"),
+        ExportFormat.Pdf => localization.GetString("ExportDlg_FormatPdf"),
+        ExportFormat.Json => localization.GetString("ExportDlg_FormatJson"),
+        ExportFormat.PlainText => localization.GetString("ExportDlg_FormatPlainText"),
+        ExportFormat.Csv => localization.GetString("ExportDlg_FormatCsv"),
+        ExportFormat.Docx => localization.GetString("ExportDlg_FormatDocx"),
+        ExportFormat.Pptx => localization.GetString("ExportDlg_FormatPptx"),
+        _ => format.ToString()
+    };
+
+    private static string TemplateLabel(ILocalizationService localization, ExportTemplateId template) => template switch
+    {
+        ExportTemplateId.ResearchReport => localization.GetString("ExportDlg_TemplateResearchReport"),
+        ExportTemplateId.ExecutiveSummary => localization.GetString("ExportDlg_TemplateExecutiveSummary"),
+        ExportTemplateId.AnnotatedBibliography => localization.GetString("ExportDlg_TemplateAnnotatedBibliography"),
+        _ => template.ToString()
+    };
+
+    /// <summary>A combo entry: the value it stands for and the name shown for it.</summary>
+    private sealed record Choice<T>(T Value, string Label)
+    {
+        public override string ToString() => Label;
     }
 
     /// <summary>
@@ -59,29 +109,35 @@ public sealed partial class ExportDialog : ContentDialog
     {
         await _viewModel.CopyConversationAsMarkdownCommand.ExecuteAsync(_conversationId);
 
+        // The outcome comes from the view model's state: the message is translated, so its
+        // wording cannot tell a failure from a success.
         StatusInfoBar.Message = _viewModel.StatusMessage;
-        StatusInfoBar.Severity = _viewModel.StatusMessage.StartsWith("Copy failed", StringComparison.Ordinal)
-            ? InfoBarSeverity.Error
-            : InfoBarSeverity.Success;
+        StatusInfoBar.Severity = _viewModel.LastExportSucceeded
+            ? InfoBarSeverity.Success
+            : InfoBarSeverity.Error;
         StatusInfoBar.IsOpen = true;
     }
 
     private async void OnPrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
     {
+        // The dialog stays open: the export's result is shown in the InfoBar, which the dialog
+        // used to close over as soon as the export returned. The operator closes it after
+        // reading the result (and can retry a failed export in place).
+        args.Cancel = true;
         var deferral = args.GetDeferral();
+        IsPrimaryButtonEnabled = false;
         try
         {
-            var format = (ExportFormat)FormatCombo.SelectedItem!;
-            var templateIdx = TemplateCombo.SelectedIndex - 1; // -1 because index 0 is "(None)"
-            var template = templateIdx >= 0 ? (ExportTemplateId?)templateIdx : null;
+            var format = SelectedFormat;
+            var template = SelectedTemplate;
 
             var options = new ExportOptions
             {
                 Format = format,
                 IncludeCitations = IncludeCitationsToggle.IsOn,
+                IncludeModelInfo = IncludeModelInfoToggle.IsOn,
                 IncludeMetadata = IncludeMetadataToggle.IsOn,
                 IncludeTimestamps = IncludeTimestampsToggle.IsOn,
-                IncludeBranches = IncludeBranchesToggle.IsOn,
                 TemplateId = template
             };
 
@@ -101,14 +157,22 @@ public sealed partial class ExportDialog : ContentDialog
                 }
                 else
                 {
-                    StatusInfoBar.Severity = _viewModel.StatusMessage.StartsWith("Export failed")
+                    var failed = !_viewModel.LastExportSucceeded;
+                    StatusInfoBar.Severity = failed
                         ? InfoBarSeverity.Error
                         : InfoBarSeverity.Success;
+
+                    if (!failed)
+                    {
+                        // Nothing is left to cancel once the file is written.
+                        CloseButtonText = App.GetService<ILocalizationService>().GetString("ExportDlg_Close");
+                    }
                 }
             }
         }
         finally
         {
+            IsPrimaryButtonEnabled = true;
             deferral.Complete();
         }
     }

@@ -15,7 +15,7 @@ namespace AgentX.Tests.Services.Email;
 
 /// <summary>
 /// Integration tests for the Email sync pipeline:
-/// EmailSyncService → EmailTriageProcessor → IInboxService.TriageExternalAsync
+/// EmailSyncService -> EmailTriageProcessor -> IInboxService.UpsertExternalAsync
 /// and EmailPlugin lifecycle.
 /// </summary>
 public sealed class EmailIntegrationTests : IDisposable
@@ -51,7 +51,7 @@ public sealed class EmailIntegrationTests : IDisposable
         catch { /* best effort */ }
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────────
+    // -- Helpers ------------------------------------------------------------------
 
     private static EmailMessage CreateMessage(
         string id = "msg-1",
@@ -91,6 +91,9 @@ public sealed class EmailIntegrationTests : IDisposable
         return settings;
     }
 
+    private static ExternalTriageResult Created(InboxItemEntity item) =>
+        new(item, ExternalTriageOutcome.Created);
+
     private InboxItemEntity CreateInboxItem(long id = 1, DateTime? addedAt = null, DateTime? processedAt = null)
     {
         return new InboxItemEntity
@@ -117,7 +120,7 @@ public sealed class EmailIntegrationTests : IDisposable
             });
         _gmailProvider
             .Setup(p => p.GetMessagesAsync("INBOX", It.IsAny<int>(),
-                It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+                It.IsAny<string?>(), It.IsAny<DateTime?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((messages.ToList() as IReadOnlyList<EmailMessage>, (string?)"gmail-delta-1"));
     }
 
@@ -132,11 +135,11 @@ public sealed class EmailIntegrationTests : IDisposable
             });
         _outlookProvider
             .Setup(p => p.GetMessagesAsync("AAMkAGI2AAA=", It.IsAny<int>(),
-                It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+                It.IsAny<string?>(), It.IsAny<DateTime?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((messages.ToList() as IReadOnlyList<EmailMessage>, (string?)"ms-delta-1"));
     }
 
-    // ── EmailSyncService integration tests ────────────────────────────────────
+    // -- EmailSyncService integration tests ------------------------------------
 
     [Fact]
     public async Task SyncAsync_SingleProvider_ProcessesAllEmailsThroughInbox()
@@ -146,11 +149,11 @@ public sealed class EmailIntegrationTests : IDisposable
         SetupGmailProvider(msg1, msg2);
 
         _inboxService
-            .Setup(i => i.TriageExternalAsync(
+            .Setup(i => i.UpsertExternalAsync(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
                 It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string?>(),
                 It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()))
-            .ReturnsAsync(CreateInboxItem());
+            .ReturnsAsync(Created(CreateInboxItem()));
 
         var settings = DefaultSettings("INBOX");
 
@@ -162,7 +165,7 @@ public sealed class EmailIntegrationTests : IDisposable
 
         // Both fixtures carry "Please review the sprint deliverables before EOD",
         // so the triage category the sync service forwards is ActionRequired.
-        _inboxService.Verify(i => i.TriageExternalAsync(
+        _inboxService.Verify(i => i.UpsertExternalAsync(
             It.IsAny<string>(), "EmailMessage", "email-connector",
             It.IsAny<string?>(), "com.agentx.email", nameof(EmailCategory.ActionRequired),
             It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()),
@@ -178,11 +181,11 @@ public sealed class EmailIntegrationTests : IDisposable
         SetupOutlookProvider(outlookMsg);
 
         _inboxService
-            .Setup(i => i.TriageExternalAsync(
+            .Setup(i => i.UpsertExternalAsync(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
                 It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string?>(),
                 It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()))
-            .ReturnsAsync(CreateInboxItem());
+            .ReturnsAsync(Created(CreateInboxItem()));
 
         var settings = DefaultSettings("INBOX", "AAMkAGI2AAA=");
 
@@ -190,7 +193,7 @@ public sealed class EmailIntegrationTests : IDisposable
             [_gmailProvider.Object, _outlookProvider.Object], settings);
 
         result.ItemsFailed.Should().Be(0);
-        _inboxService.Verify(i => i.TriageExternalAsync(
+        _inboxService.Verify(i => i.UpsertExternalAsync(
             It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
             It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string?>(),
             It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()),
@@ -208,7 +211,7 @@ public sealed class EmailIntegrationTests : IDisposable
 
         result.ItemsAdded.Should().Be(0);
         result.ItemsFailed.Should().Be(0);
-        _inboxService.Verify(i => i.TriageExternalAsync(
+        _inboxService.Verify(i => i.UpsertExternalAsync(
             It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
             It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string?>(),
             It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()),
@@ -220,11 +223,11 @@ public sealed class EmailIntegrationTests : IDisposable
     {
         SetupGmailProvider(CreateMessage());
         _inboxService
-            .Setup(i => i.TriageExternalAsync(
+            .Setup(i => i.UpsertExternalAsync(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
                 It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string?>(),
                 It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()))
-            .ReturnsAsync(CreateInboxItem());
+            .ReturnsAsync(Created(CreateInboxItem()));
 
         var settings = DefaultSettings("INBOX");
         await _syncService.SyncAsync([_gmailProvider.Object], settings);
@@ -248,11 +251,11 @@ public sealed class EmailIntegrationTests : IDisposable
         SetupOutlookProvider(CreateMessage("o-1", "Outlook Email", "AAMkAGI2AAA=", "microsoft"));
 
         _inboxService
-            .Setup(i => i.TriageExternalAsync(
+            .Setup(i => i.UpsertExternalAsync(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
                 It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string?>(),
                 It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()))
-            .ReturnsAsync(CreateInboxItem());
+            .ReturnsAsync(Created(CreateInboxItem()));
 
         var settings = DefaultSettings("INBOX", "AAMkAGI2AAA=");
 
@@ -260,7 +263,7 @@ public sealed class EmailIntegrationTests : IDisposable
             [_gmailProvider.Object, _outlookProvider.Object], settings);
 
         result.ItemsFailed.Should().Be(1); // Gmail provider failure
-        _inboxService.Verify(i => i.TriageExternalAsync(
+        _inboxService.Verify(i => i.UpsertExternalAsync(
             It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
             It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string?>(),
             It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()),
@@ -272,11 +275,11 @@ public sealed class EmailIntegrationTests : IDisposable
     {
         SetupGmailProvider(CreateMessage());
         _inboxService
-            .Setup(i => i.TriageExternalAsync(
+            .Setup(i => i.UpsertExternalAsync(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
                 It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string?>(),
                 It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()))
-            .ReturnsAsync(CreateInboxItem());
+            .ReturnsAsync(Created(CreateInboxItem()));
 
         var settings = DefaultSettings("INBOX");
         using var cts = new CancellationTokenSource();
@@ -295,7 +298,7 @@ public sealed class EmailIntegrationTests : IDisposable
 
         var callCount = 0;
         _inboxService
-            .Setup(i => i.TriageExternalAsync(
+            .Setup(i => i.UpsertExternalAsync(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
                 It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string?>(),
                 It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()))
@@ -303,7 +306,7 @@ public sealed class EmailIntegrationTests : IDisposable
             {
                 callCount++;
                 if (callCount == 1) throw new InvalidOperationException("DB error");
-                return CreateInboxItem(2);
+                return Created(CreateInboxItem(2));
             });
 
         var settings = DefaultSettings("INBOX");
@@ -311,14 +314,14 @@ public sealed class EmailIntegrationTests : IDisposable
         var result = await _syncService.SyncAsync([_gmailProvider.Object], settings);
 
         result.ItemsFailed.Should().Be(1);
-        _inboxService.Verify(i => i.TriageExternalAsync(
+        _inboxService.Verify(i => i.UpsertExternalAsync(
             It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
             It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string?>(),
             It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()),
             Times.Exactly(2));
     }
 
-    // ── EmailTriageProcessor pipeline tests ────────────────────────────────────
+    // -- EmailTriageProcessor pipeline tests ------------------------------------
 
     [Fact]
     public void Processor_ProducesCorrectExternalId_ForGmail()
@@ -364,7 +367,7 @@ public sealed class EmailIntegrationTests : IDisposable
         content.Should().Contain("HasAttachments");
     }
 
-    // ── EmailPlugin integration tests ──────────────────────────────────────────
+    // -- EmailPlugin integration tests ------------------------------------------
 
     [Fact]
     public async Task EmailPlugin_WithInboxService_ActivatesWithoutError()
@@ -414,4 +417,127 @@ public sealed class EmailIntegrationTests : IDisposable
         plugin.Dispose();
     }
 
+    // -- Settings reach the providers; lifecycle runs no sync -----------------------
+
+    [Fact]
+    public async Task SyncAsync_PassesSyncDaysBackToTheProvider()
+    {
+        DateTime? capturedAfter = null;
+        _gmailProvider.SetupGet(p => p.ProviderId).Returns("google");
+        _gmailProvider
+            .Setup(p => p.ListFoldersAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<EmailFolderInfo> { new() { Id = "INBOX", Name = "Inbox" } });
+        _gmailProvider
+            .Setup(p => p.GetMessagesAsync("INBOX", It.IsAny<int>(), It.IsAny<string?>(),
+                It.IsAny<DateTime?>(), It.IsAny<CancellationToken>()))
+            .Callback<string, int, string?, DateTime?, CancellationToken>((_, _, _, after, _) => capturedAfter = after)
+            .ReturnsAsync((new List<EmailMessage>() as IReadOnlyList<EmailMessage>, (string?)"h1"));
+
+        var settings = DefaultSettings("INBOX");
+        settings.SyncDaysBack = 7;
+
+        await _syncService.SyncAsync([_gmailProvider.Object], settings);
+
+        capturedAfter.Should().NotBeNull();
+        capturedAfter!.Value.Should().BeCloseTo(DateTime.UtcNow.AddDays(-7), TimeSpan.FromMinutes(1));
+    }
+
+    [Fact]
+    public async Task SyncAsync_DefaultSettings_SyncTheOutlookInbox()
+    {
+        // The default selection is {"INBOX": true}; Outlook used to report only opaque ids,
+        // so every Outlook folder was skipped and sync reported 0/0/0 as a success.
+        _outlookProvider.SetupGet(p => p.ProviderId).Returns("microsoft");
+        _outlookProvider
+            .Setup(p => p.ListFoldersAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<EmailFolderInfo>
+            {
+                new() { Id = IEmailProvider.InboxFolderId, Name = "Inbox", SourceProvider = "microsoft" },
+                new() { Id = "AAMkArchive=", Name = "Archive", SourceProvider = "microsoft" },
+            });
+        _outlookProvider
+            .Setup(p => p.GetMessagesAsync(IEmailProvider.InboxFolderId, It.IsAny<int>(), It.IsAny<string?>(),
+                It.IsAny<DateTime?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((new List<EmailMessage> { CreateMessage("o-1", folderId: "INBOX", sourceProvider: "microsoft") }
+                as IReadOnlyList<EmailMessage>, (string?)"delta"));
+        _inboxService
+            .Setup(i => i.UpsertExternalAsync(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
+                It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<string?>(),
+                It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>()))
+            .ReturnsAsync(Created(CreateInboxItem()));
+
+        var result = await _syncService.SyncAsync([_outlookProvider.Object], new EmailSyncSettings());
+
+        result.ItemsAdded.Should().Be(1);
+    }
+
+    private async Task<(EmailPlugin Plugin, Mock<IOAuthService> OAuth, ServiceProvider Services)> CreatePluginWithGmailAsync()
+    {
+        var oauth = new Mock<IOAuthService>(MockBehavior.Loose);
+        oauth.Setup(o => o.GetCredentialAsync("google"))
+            .ReturnsAsync(new OAuthCredential { ProviderId = "google", AccessToken = "a", RefreshToken = "r" });
+        oauth.Setup(o => o.GetCredentialAsync("microsoft")).ReturnsAsync((OAuthCredential?)null);
+
+        var collection = new ServiceCollection();
+        collection.AddSingleton(oauth.Object);
+        collection.AddSingleton(new Mock<IInboxService>(MockBehavior.Loose).Object);
+        var services = collection.BuildServiceProvider();
+
+        var context = new Mock<IPluginContext>();
+        context.SetupGet(c => c.Services).Returns(services);
+        context.SetupGet(c => c.PluginDataPath).Returns(_tempDir);
+        context.SetupGet(c => c.Logger).Returns(_logger);
+
+        var plugin = new EmailPlugin();
+        await plugin.InitializeAsync(context.Object);
+        return (plugin, oauth, services);
+    }
+
+    [Fact]
+    public async Task EmailPlugin_Deactivate_DoesNotRunASync()
+    {
+        // Deactivation runs on disable, on every connector settings save and at shutdown; its
+        // "flush" used to run a full mail sync each time.
+        var (plugin, oauth, services) = await CreatePluginWithGmailAsync();
+        using var serviceScope = services;
+        await plugin.ActivateAsync();
+        plugin.Providers.Should().ContainSingle();
+
+        await plugin.DeactivateAsync();
+
+        oauth.Verify(o => o.GetAccessTokenAsync(It.IsAny<string>()), Times.Never);
+        plugin.Dispose();
+    }
+
+    [Fact]
+    public async Task EmailPlugin_Deactivate_WaitsABoundedTimeForARunningSync()
+    {
+        var (plugin, oauth, services) = await CreatePluginWithGmailAsync();
+        using var serviceScope = services;
+        var tokenRequested = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
+        oauth.Setup(o => o.GetAccessTokenAsync("google")).Returns(() =>
+        {
+            tokenRequested.TrySetResult();
+            return release.Task;
+        });
+
+        await plugin.ActivateAsync();
+        plugin.DeactivationWaitTimeout = TimeSpan.FromMilliseconds(200);
+
+        var sync = plugin.TriggerSyncAsync();
+        await tokenRequested.Task.WaitAsync(TimeSpan.FromSeconds(10));
+
+        // The sync is stuck in a call that ignores cancellation; deactivation must still return.
+        await plugin.DeactivateAsync().WaitAsync(TimeSpan.FromSeconds(10));
+
+        // Once the stuck call fails, the sync ends and reports the failure.
+        release.SetException(new InvalidOperationException("token unavailable"));
+        var result = await sync.WaitAsync(TimeSpan.FromSeconds(10));
+        result.ItemsFailed.Should().Be(1);
+        plugin.Dispose();
+
+    }
 }
+

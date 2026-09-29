@@ -37,7 +37,7 @@ public sealed class SyncConfigurationValidator : IValidator<SyncConfiguration>
 
         var errors = new List<ValidationError>();
 
-        // ── SyncFolderPath ───────────────────────────────────────────────
+        // -- SyncFolderPath -----------------------------------------------
         if (string.IsNullOrWhiteSpace(instance.SyncFolderPath))
         {
             errors.Add(new ValidationError(
@@ -51,7 +51,7 @@ public sealed class SyncConfigurationValidator : IValidator<SyncConfiguration>
                 $"Sync folder path must be an absolute (rooted) path. Got '{instance.SyncFolderPath}'."));
         }
 
-        // ── EncryptionKey ────────────────────────────────────────────────
+        // -- EncryptionKey ------------------------------------------------
         if (string.IsNullOrWhiteSpace(instance.EncryptionKey))
         {
             errors.Add(new ValidationError(
@@ -65,7 +65,7 @@ public sealed class SyncConfigurationValidator : IValidator<SyncConfiguration>
                 $"Encryption key must be at least {MinEncryptionKeyLength} characters long. Got {instance.EncryptionKey.Length} characters."));
         }
 
-        // ── SyncIntervalMinutes ──────────────────────────────────────────
+        // -- SyncIntervalMinutes ------------------------------------------
         if (instance.SyncIntervalMinutes < MinSyncIntervalMinutes ||
             instance.SyncIntervalMinutes > MaxSyncIntervalMinutes)
         {
@@ -74,7 +74,7 @@ public sealed class SyncConfigurationValidator : IValidator<SyncConfiguration>
                 $"Sync interval must be between {MinSyncIntervalMinutes} and {MaxSyncIntervalMinutes} minutes. Got {instance.SyncIntervalMinutes}."));
         }
 
-        // ── SelectedCollectionIds (conditional) ──────────────────────────
+        // -- SelectedCollectionIds (conditional) --------------------------
         if (instance.SyncScope == SyncScope.SelectedCollections &&
             string.IsNullOrWhiteSpace(instance.SelectedCollectionIds))
         {

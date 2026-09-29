@@ -44,9 +44,9 @@ public sealed class PdfExportTests : IDisposable
         }
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Basic Properties
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Format_ShouldReturnPdf()
@@ -68,9 +68,9 @@ public sealed class PdfExportTests : IDisposable
         extension.Should().Be(".pdf");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Supports<T> Method
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Supports_WithConversationEntity_ShouldReturnTrue()
@@ -112,9 +112,9 @@ public sealed class PdfExportTests : IDisposable
         result.Should().BeFalse();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  RenderToFileAsync - Single Conversation
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task RenderToFileAsync_WithSingleConversation_CreatesPdfFile()
@@ -193,9 +193,9 @@ public sealed class PdfExportTests : IDisposable
         // PDF content verification would require PDF parsing library
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  RenderToFileAsync - Multiple Conversations
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task RenderToFileAsync_WithMultipleConversations_CreatesPdfFile()
@@ -237,9 +237,9 @@ public sealed class PdfExportTests : IDisposable
         new FileInfo(result).Length.Should().BeGreaterThan(0);
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  RenderToFileAsync - Search Results
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task RenderToFileAsync_WithSearchResults_CreatesPdfFile()
@@ -269,9 +269,9 @@ public sealed class PdfExportTests : IDisposable
         new FileInfo(result).Length.Should().BeGreaterThan(0);
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  RenderAsync - In-Memory (Byte Array)
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task RenderAsync_WithConversation_ReturnsPdfBytes()
@@ -300,9 +300,9 @@ public sealed class PdfExportTests : IDisposable
         bytes.Should().HaveCountGreaterThan(0);
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Cancellation Support
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task RenderToFileAsync_WithCancelledToken_ThrowsOperationCanceledException()
@@ -346,9 +346,9 @@ public sealed class PdfExportTests : IDisposable
             async () => await _export.RenderAsync(conversation, new ExportOptions(), cts.Token));
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Unsupported Type Handling
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task RenderToFileAsync_WithUnsupportedType_ThrowsNotSupportedException()

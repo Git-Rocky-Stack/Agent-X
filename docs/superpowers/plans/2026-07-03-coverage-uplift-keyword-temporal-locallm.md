@@ -1,8 +1,8 @@
-# Coverage Uplift: KeywordSearchService / TemporalIdentityService / LocalLlmProvider — Implementation Plan
+# Coverage Uplift: KeywordSearchService / TemporalIdentityService / LocalLlmProvider - Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Close the three remaining tracked AX-QA-009 coverage gaps — `KeywordSearchService` (0%), `TemporalIdentityService` (~partial, 4 existing tests), `LocalLlmProvider` (0%) — then ratchet the global coverage floor.
+**Goal:** Close the three remaining tracked AX-QA-009 coverage gaps - `KeywordSearchService` (0%), `TemporalIdentityService` (~partial, 4 existing tests), `LocalLlmProvider` (0%) - then ratchet the global coverage floor.
 
 **Architecture:** Three independent test campaigns using the established AX-QA-009 harnesses: (1) real in-memory-SQLite EF context + real FTS5 virtual table for KeywordSearchService; (2) append behavioural tests to the existing partial `TemporalIdentityServiceTests` over the same EF harness, fixing any latent untranslatable-LINQ always-throws bugs that surface (the `GetAllMemoriesAsync` precedent); (3) two minimal `internal` test seams on `LocalLlmProvider` (the ComparisonService optional-seam precedent) so the streaming-chat and model-download pipelines are testable without a native GGUF model, plus a localhost `HttpListener` stub for the download path.
 
@@ -16,13 +16,13 @@
   - Full coverage run (Task 4 only): `dotnet test tests/AgentX.Tests/AgentX.Tests.csproj -c Release -p:Platform=x64 --no-build --collect "XPlat Code Coverage" --settings coverlet.runsettings --results-directory .cov-tmp`
   - Gate: `pwsh scripts/check-coverage.ps1 -ReportOnly -CoverageFile .cov-tmp`
 - **Run all commands from the repo root:** `C:\Users\User\Desktop\Development Projects\Strategia-Enhanced-App\Agent-X`
-- **Work happens directly on `main`** — this is the campaign convention (all six prior coverage rounds: 16fe0d6, 8866651, dcbe0f3, ddca2e4, 5489275, cdec382 are direct-to-main). Do not push until the final task passes the gate.
-- **Coverage floors are a ratchet.** Never lower a floor. Raise a floor only with ≥ 0.5 pt headroom below the measured value. None of the three services is a trust boundary → **no new critical namespaces**; gains flow into the GLOBAL floor only.
+- **Work happens directly on `main`** - this is the campaign convention (all six prior coverage rounds: 16fe0d6, 8866651, dcbe0f3, ddca2e4, 5489275, cdec382 are direct-to-main). Do not push until the final task passes the gate.
+- **Coverage floors are a ratchet.** Never lower a floor. Raise a floor only with >= 0.5 pt headroom below the measured value. None of the three services is a trust boundary -> **no new critical namespaces**; gains flow into the GLOBAL floor only.
 - **The suite is currently 2696 tests, all green.** Every task must leave the full suite green. Existing tests in `TemporalIdentityServiceTests.cs` must not be modified or deleted.
-- **Service code may only change in two sanctioned ways:** (a) the two `internal` test seams on `LocalLlmProvider` specified in Task 3, and (b) fixing latent always-throws EF-translation bugs in `TemporalIdentityService` per the exact conditional fixes in Task 2 — client-side evaluation that preserves the method's observable contract, following the `SemanticMemoryService.GetAllMemoriesAsync` precedent (commit 5489275). No other behaviour changes.
+- **Service code may only change in two sanctioned ways:** (a) the two `internal` test seams on `LocalLlmProvider` specified in Task 3, and (b) fixing latent always-throws EF-translation bugs in `TemporalIdentityService` per the exact conditional fixes in Task 2 - client-side evaluation that preserves the method's observable contract, following the `SemanticMemoryService.GetAllMemoriesAsync` precedent (commit 5489275). No other behaviour changes.
 - **Commit style** (match `git log`): `test(core): cover KeywordSearchService 0% -> NN% line / NN% branch`. End every commit message with `Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>`.
 - **House test style:** one behavioural test method per mechanism with rich multi-assert bodies (see `tests/AgentX.Tests/Search/SemanticSearchServiceTests.cs`); `IDisposable` test classes disposing their factories; a real silent Serilog logger (`new LoggerConfiguration().CreateLogger()`) wherever a ctor calls `logger.ForContext<T>()`.
-- `AgentX.Core` already has `<InternalsVisibleTo Include="AgentX.Tests" />` — internal seams are directly accessible, no reflection needed for internals. Reflection **is** used for private statics (established pattern).
+- `AgentX.Core` already has `<InternalsVisibleTo Include="AgentX.Tests" />` - internal seams are directly accessible, no reflection needed for internals. Reflection **is** used for private statics (established pattern).
 
 ---
 
@@ -33,15 +33,15 @@
 - Reference (read-only): `src/AgentX.Core/Search/KeywordSearchService.cs`, `src/AgentX.Core/Search/Models/` (SearchQuery/SearchResult), `tests/AgentX.Tests/Helpers/TestDbContextFactory.cs`
 
 **Interfaces:**
-- Consumes: `TestDbContextFactory` (in-memory SQLite, shared open connection — FTS virtual tables created on it persist for the factory lifetime), `KeywordSearchService(AgentXDbContext db, ILogger logger)`.
+- Consumes: `TestDbContextFactory` (in-memory SQLite, shared open connection - FTS virtual tables created on it persist for the factory lifetime), `KeywordSearchService(AgentXDbContext db, ILogger logger)`.
 - Produces: nothing consumed by later tasks (independent).
 
 **Design facts you need:**
-- The service issues raw ADO.NET against `_db.Database.GetDbConnection()` — the same shared `SqliteConnection` the factory holds open, so EF-seeded rows and FTS rows coexist.
-- FTS5 must be present in the `SQLitePCLRaw.bundle_e_sqlcipher` build. The very first test (`InitializeFtsAsync`) proves this. **If it fails with `no such module: fts5`, STOP the task and report** — that changes the whole approach and needs a human decision.
+- The service issues raw ADO.NET against `_db.Database.GetDbConnection()` - the same shared `SqliteConnection` the factory holds open, so EF-seeded rows and FTS rows coexist.
+- FTS5 must be present in the `SQLitePCLRaw.bundle_e_sqlcipher` build. The very first test (`InitializeFtsAsync`) proves this. **If it fails with `no such module: fts5`, STOP the task and report** - that changes the whole approach and needs a human decision.
 - BM25 `rank` is negative for matches; the service maps it to `score = 1/(1+|rank|)`, so scores are always in `(0, 1)`. A `MinScore` of `0.99f` filters everything.
-- The `syntax error` catch arm in `SearchAsync` is unreachable through the public API (the sanitizer quotes every term) — that is an accepted residual; do not chase it.
-- `RebuildFtsIndexAsync` selects documents with `IndexingStatus == "completed" && ChunkCount > 0` — the **entity's `ChunkCount` column**, so seeds must set it explicitly.
+- The `syntax error` catch arm in `SearchAsync` is unreachable through the public API (the sanitizer quotes every term) - that is an accepted residual; do not chase it.
+- `RebuildFtsIndexAsync` selects documents with `IndexingStatus == "completed" && ChunkCount > 0` - the **entity's `ChunkCount` column**, so seeds must set it explicitly.
 
 - [ ] **Step 1: Write the test file skeleton + harness + the FTS-availability test**
 
@@ -61,7 +61,7 @@ using Xunit;
 namespace AgentX.Tests.Search;
 
 /// <summary>
-/// Behavioural coverage for <see cref="KeywordSearchService"/> — the SQLite FTS5 full-text
+/// Behavioural coverage for <see cref="KeywordSearchService"/> - the SQLite FTS5 full-text
 /// pipeline (porter/unicode61 virtual table init -> chunk indexing in a transaction -> MATCH
 /// query with BM25-rank normalisation -> post-query metadata filters -> excerpt building ->
 /// TopK) plus removal and full-index rebuild.
@@ -93,7 +93,7 @@ public sealed class KeywordSearchServiceTests : IDisposable
         _logger.Dispose();
     }
 
-    // ─── Seed / raw-SQL helpers ─────────────────────────────────────────────────
+    // --- Seed / raw-SQL helpers -------------------------------------------------
 
     private DocumentEntity SeedDocument(
         string fileName,
@@ -171,7 +171,7 @@ public sealed class KeywordSearchServiceTests : IDisposable
             CreatedBefore = createdBefore,
         };
 
-    // ─── Construction ────────────────────────────────────────────────────────────
+    // --- Construction ------------------------------------------------------------
 
     [Fact]
     public void Ctor_guards_null_dependencies()
@@ -182,7 +182,7 @@ public sealed class KeywordSearchServiceTests : IDisposable
             .Should().Throw<ArgumentNullException>().WithParameterName("logger");
     }
 
-    // ─── InitializeFtsAsync ──────────────────────────────────────────────────────
+    // --- InitializeFtsAsync ------------------------------------------------------
 
     [Fact]
     public async Task InitializeFts_creates_fts5_table_and_is_idempotent()
@@ -190,7 +190,7 @@ public sealed class KeywordSearchServiceTests : IDisposable
         // This test doubles as the FTS5-availability probe for the SQLCipher bundle.
         // If it fails with "no such module: fts5" STOP THE TASK and report.
         await _service.InitializeFtsAsync();
-        await _service.InitializeFtsAsync(); // IF NOT EXISTS — second call must not throw
+        await _service.InitializeFtsAsync(); // IF NOT EXISTS - second call must not throw
 
         var conn = _db.Database.GetDbConnection();
         using var cmd = conn.CreateCommand();
@@ -200,21 +200,21 @@ public sealed class KeywordSearchServiceTests : IDisposable
 }
 ```
 
-Note the `SearchQuery` member names (`QueryText`, `TopK`, `MinScore`, `CollectionId`, `FileTypeFilter`, `CreatedAfter`, `CreatedBefore`) mirror the `Q()` helper in the sibling `SemanticSearchServiceTests.cs` — if compilation fails here, diff against that file, it is the source of truth.
+Note the `SearchQuery` member names (`QueryText`, `TopK`, `MinScore`, `CollectionId`, `FileTypeFilter`, `CreatedAfter`, `CreatedBefore`) mirror the `Q()` helper in the sibling `SemanticSearchServiceTests.cs` - if compilation fails here, diff against that file, it is the source of truth.
 
-- [ ] **Step 2: Build and run — the FTS5 probe must pass**
+- [ ] **Step 2: Build and run - the FTS5 probe must pass**
 
 Run:
 ```
 dotnet build tests/AgentX.Tests/AgentX.Tests.csproj -c Release -p:Platform=x64
 dotnet test tests/AgentX.Tests/AgentX.Tests.csproj -c Release -p:Platform=x64 --no-build --filter "FullyQualifiedName~KeywordSearchServiceTests"
 ```
-Expected: 2 tests PASS. If `no such module: fts5` → STOP, report to the orchestrator.
+Expected: 2 tests PASS. If `no such module: fts5` -> STOP, report to the orchestrator.
 
 - [ ] **Step 3: Add indexing + removal tests**
 
 ```csharp
-    // ─── IndexDocumentChunksAsync ────────────────────────────────────────────────
+    // --- IndexDocumentChunksAsync ------------------------------------------------
 
     [Fact]
     public async Task Index_missing_document_is_a_noop()
@@ -290,7 +290,7 @@ Expected: 2 tests PASS. If `no such module: fts5` → STOP, report to the orches
             .Should().ThrowAsync<SqliteException>();
     }
 
-    // ─── RemoveDocumentFromFtsAsync ──────────────────────────────────────────────
+    // --- RemoveDocumentFromFtsAsync ----------------------------------------------
 
     [Fact]
     public async Task Remove_deletes_only_that_documents_rows()
@@ -310,12 +310,12 @@ Expected: 2 tests PASS. If `no such module: fts5` → STOP, report to the orches
 
 - [ ] **Step 4: Run the new tests**
 
-Run the same filtered command as Step 2. Expected: all PASS. If `Index_failure_mid_batch...` fails because a different exception type surfaces, assert on the actual concrete type the run shows (it must derive from `Exception` and not be `OperationCanceledException`) — the point is the catch-arm + rollback path executes.
+Run the same filtered command as Step 2. Expected: all PASS. If `Index_failure_mid_batch...` fails because a different exception type surfaces, assert on the actual concrete type the run shows (it must derive from `Exception` and not be `OperationCanceledException`) - the point is the catch-arm + rollback path executes.
 
 - [ ] **Step 5: Add SearchAsync guard + pipeline tests**
 
 ```csharp
-    // ─── SearchAsync: guards ─────────────────────────────────────────────────────
+    // --- SearchAsync: guards -----------------------------------------------------
 
     [Fact]
     public async Task Search_null_query_throws()
@@ -341,11 +341,11 @@ Run the same filtered command as Step 2. Expected: all PASS. If `Index_failure_m
     [Fact]
     public async Task Search_without_initialized_fts_table_returns_empty_not_throw()
     {
-        // Deliberately no InitializeFtsAsync — hits the "no such table" catch arm.
+        // Deliberately no InitializeFtsAsync - hits the "no such table" catch arm.
         (await _service.SearchAsync(Q("anything"))).Should().BeEmpty();
     }
 
-    // ─── SearchAsync: pipeline ───────────────────────────────────────────────────
+    // --- SearchAsync: pipeline ---------------------------------------------------
 
     [Fact]
     public async Task Search_returns_stemmed_matches_with_normalized_scores_and_mapped_metadata()
@@ -477,12 +477,12 @@ Run the same filtered command as Step 2. Expected: all PASS. If `Index_failure_m
     }
 ```
 
-- [ ] **Step 6: Run the new tests** — same filtered command. Expected: all PASS.
+- [ ] **Step 6: Run the new tests** - same filtered command. Expected: all PASS.
 
 - [ ] **Step 7: Add excerpt-building + rebuild tests**
 
 ```csharp
-    // ─── Excerpt building ────────────────────────────────────────────────────────
+    // --- Excerpt building --------------------------------------------------------
 
     [Fact]
     public async Task Search_short_content_excerpt_is_full_text_with_whitespace_normalized()
@@ -535,7 +535,7 @@ Run the same filtered command as Step 2. Expected: all PASS. If `Index_failure_m
         results[0].Excerpt.Should().EndWith("...");
     }
 
-    // ─── RebuildFtsIndexAsync ────────────────────────────────────────────────────
+    // --- RebuildFtsIndexAsync ----------------------------------------------------
 
     [Fact]
     public async Task Rebuild_reindexes_completed_docs_with_chunks_and_reports_progress()
@@ -628,7 +628,7 @@ Run the same filtered command as Step 2. Expected: all PASS. If `Index_failure_m
     }
 ```
 
-- [ ] **Step 8: Run the full KeywordSearchServiceTests class** — all PASS expected. The `Rebuild_reindexes...` progress assertion uses `Progress<T>` (async posting) — if it flakes, switch it to `SynchronousProgress` like the other two rebuild tests; determinism beats fidelity to `Progress<T>` here.
+- [ ] **Step 8: Run the full KeywordSearchServiceTests class** - all PASS expected. The `Rebuild_reindexes...` progress assertion uses `Progress<T>` (async posting) - if it flakes, switch it to `SynchronousProgress` like the other two rebuild tests; determinism beats fidelity to `Progress<T>` here.
 
 - [ ] **Step 9: Run the WHOLE suite once (no coverage) to prove no cross-test damage**
 
@@ -639,7 +639,7 @@ Expected: 2696 + ~24 new, 0 failures.
 
 ```bash
 git add tests/AgentX.Tests/Search/KeywordSearchServiceTests.cs
-git commit -m "test(core): cover KeywordSearchService — real FTS5 end-to-end harness (AX-QA-009)
+git commit -m "test(core): cover KeywordSearchService - real FTS5 end-to-end harness (AX-QA-009)
 
 Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 ```
@@ -650,22 +650,22 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 ### Task 2: TemporalIdentityService tests (append to existing partial file, fix latent EF-translation bugs)
 
 **Files:**
-- Modify: `tests/AgentX.Tests/Services/TemporalIdentityServiceTests.cs` (append only — the 4 existing tests are regression tests, do not touch them)
+- Modify: `tests/AgentX.Tests/Services/TemporalIdentityServiceTests.cs` (append only - the 4 existing tests are regression tests, do not touch them)
 - Possibly modify (conditional fixes only): `src/AgentX.Core/Services/TemporalIdentity/TemporalIdentityService.cs`
 - Reference (read-only): `src/AgentX.Core/Services/TemporalIdentity/Models/TemporalIdentityModels.cs`, `src/AgentX.Core/Data/Entities/{MessageEntity,ConversationEntity,AnnotationEntity,DocumentEntity}.cs`
 
 **Interfaces:**
 - Consumes: `TemporalIdentityService(AgentXDbContext db)` (no logger), `TestDbContextFactory`.
-- Produces: possibly 2–4 service fixes (exact code below) that Task 4's narrative must mention.
+- Produces: possibly 2-4 service fixes (exact code below) that Task 4's narrative must mention.
 
-**⚠ Latent-bug protocol (the `GetAllMemoriesAsync` precedent):** four methods contain LINQ that the SQLite EF provider likely cannot translate. For each, FIRST write and run the behavioural test. If the test passes — great, service untouched. If it throws `InvalidOperationException` ("could not be translated"), apply the exact fix below (client-side evaluation preserving the method's contract), then re-run. Never change expected test outcomes to accommodate a throw.
+**Latent-bug protocol (the `GetAllMemoriesAsync` precedent):** four methods contain LINQ that the SQLite EF provider likely cannot translate. For each, FIRST write and run the behavioural test. If the test passes - great, service untouched. If it throws `InvalidOperationException` ("could not be translated"), apply the exact fix below (client-side evaluation preserving the method's contract), then re-run. Never change expected test outcomes to accommodate a throw.
 
-**Risk R1 — `GetRelatedConversationsAsync` (`(c.CreatedAt - around).TotalDays` in Where/OrderBy). Fix:**
+**Risk R1 - `GetRelatedConversationsAsync` (`(c.CreatedAt - around).TotalDays` in Where/OrderBy). Fix:**
 ```csharp
     private async Task<string[]> GetRelatedConversationsAsync(string topic, DateTime around, CancellationToken ct)
     {
         // DateTime subtraction is not translatable by the SQLite provider; materialise the
-        // title matches, then apply the ±30-day window + proximity ordering in memory.
+        // title matches, then apply the +/-30-day window + proximity ordering in memory.
         var candidates = await _db.Conversations
             .Where(c => c.Title != null && c.Title.Contains(topic))
             .Select(c => new { c.Title, c.CreatedAt })
@@ -680,7 +680,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
     }
 ```
 
-**Risk R2 — `GetRelatedDocumentsAsync` (same construct). Fix:**
+**Risk R2 - `GetRelatedDocumentsAsync` (same construct). Fix:**
 ```csharp
     private async Task<string[]> GetRelatedDocumentsAsync(string topic, DateTime around, CancellationToken ct)
     {
@@ -697,7 +697,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
     }
 ```
 
-**Risk R3 — `GetActiveTopicsAsync` (`b.ConfidenceLevel * b.LastObservedAt.Ticks` in OrderByDescending). Fix:**
+**Risk R3 - `GetActiveTopicsAsync` (`b.ConfidenceLevel * b.LastObservedAt.Ticks` in OrderByDescending). Fix:**
 ```csharp
     public async Task<List<string>> GetActiveTopicsAsync(
         int days = 30,
@@ -718,7 +718,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
     }
 ```
 
-**Risk R4 — `FindSimilarProblemsAsync` (`keywords.Any(k => c.Title.Contains(k))` over a local array — EF 8 may translate this via primitive collections; test decides). Fix if needed:**
+**Risk R4 - `FindSimilarProblemsAsync` (`keywords.Any(k => c.Title.Contains(k))` over a local array - EF 8 may translate this via primitive collections; test decides). Fix if needed:**
 ```csharp
         var keywords = ExtractKeywords(currentProblem);
 
@@ -737,17 +737,17 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 (keep the existing `return similarConversations.Select(...)` block unchanged.)
 
 **Determinism cheat-sheet for the analyzers (used to compute expected values below):**
-- `AnalyzeSentiment`: +0.2 per positive word present (`good great love excellent agree support believe`), −0.2 per negative (`bad hate terrible disagree oppose wrong problem`), clamp ±1. Substring match on lowercased content — one hit per distinct word.
-- `ComputeConfidence`: base 0.8 if content contains definitely/certainly/absolutely else 0.5; + |sentiment|·0.3, cap 1.
-- `ExtractTopics`: per sentence (split `.!?`), trimmed length must be **21–99**, must contain "I think"/"I believe"/"I feel", topic = substring after `" that "`, trimmed, length **4–49**, then `NormalizeTopic` (first char upper, rest lower).
-- Belief update: EMA `0.7·old + 0.3·new`; evolution flagged when `|oldSentiment − newSentiment| > 0.5` (compared BEFORE the EMA update); confidence `min(1, old + 0.05)`.
+- `AnalyzeSentiment`: +0.2 per positive word present (`good great love excellent agree support believe`), -0.2 per negative (`bad hate terrible disagree oppose wrong problem`), clamp +/-1. Substring match on lowercased content - one hit per distinct word.
+- `ComputeConfidence`: base 0.8 if content contains definitely/certainly/absolutely else 0.5; + |sentiment|*0.3, cap 1.
+- `ExtractTopics`: per sentence (split `.!?`), trimmed length must be **21-99**, must contain "I think"/"I believe"/"I feel", topic = substring after `" that "`, trimmed, length **4-49**, then `NormalizeTopic` (first char upper, rest lower).
+- Belief update: EMA `0.7*old + 0.3*new`; evolution flagged when `|oldSentiment - newSentiment| > 0.5` (compared BEFORE the EMA update); confidence `min(1, old + 0.05)`.
 
 - [ ] **Step 1: Append belief-tracking tests**
 
 Append inside the existing class, below the last test and above `Dispose()`:
 
 ```csharp
-    // ─── Seed helpers (append) ───────────────────────────────────────────────────
+    // --- Seed helpers (append) ---------------------------------------------------
 
     private async Task<MessageEntity> SeedMessageAsync(
         AgentXDbContext db, string role, string content, string convTitle = "chat")
@@ -764,7 +764,7 @@ Append inside the existing class, below the last test and above `Dispose()`:
         return msg;
     }
 
-    // ─── ProcessMessageAsync ─────────────────────────────────────────────────────
+    // --- ProcessMessageAsync -----------------------------------------------------
 
     [Fact]
     public async Task ProcessMessage_ignores_missing_and_non_user_messages()
@@ -846,12 +846,12 @@ Append inside the existing class, below the last test and above `Dispose()`:
 
 **Compile note:** the file's existing usings already include `AgentX.Core.Services.TemporalIdentity.Models` and `Microsoft.EntityFrameworkCore`; add `using AgentX.Core.Data;` and `using AgentX.Core.Data.Entities;` if not present.
 
-- [ ] **Step 2: Run** — `dotnet build ... && dotnet test ... --filter "FullyQualifiedName~TemporalIdentityServiceTests"`. Expected: existing 4 + new 4 PASS. These paths have no translation risk.
+- [ ] **Step 2: Run** - `dotnet build ... && dotnet test ... --filter "FullyQualifiedName~TemporalIdentityServiceTests"`. Expected: existing 4 + new 4 PASS. These paths have no translation risk.
 
 - [ ] **Step 3: Append past-self + insight tests (translation risks R1/R2 fire here)**
 
 ```csharp
-    // ─── GetPastSelfAsync ────────────────────────────────────────────────────────
+    // --- GetPastSelfAsync --------------------------------------------------------
 
     [Fact]
     public async Task GetPastSelf_unknown_topic_returns_null()
@@ -875,7 +875,7 @@ Append inside the existing class, below the last test and above `Dispose()`:
         });
         db.Conversations.AddRange(
             new ConversationEntity { Title = "remote work rituals", CreatedAt = anchor.AddDays(5) },
-            new ConversationEntity { Title = "remote work fatigue", CreatedAt = anchor.AddDays(200) }, // outside ±30d
+            new ConversationEntity { Title = "remote work fatigue", CreatedAt = anchor.AddDays(200) }, // outside +/-30d
             new ConversationEntity { Title = "unrelated", CreatedAt = anchor });
         db.Documents.AddRange(
             new DocumentEntity { FileName = "remote work handbook.pdf", ImportedAt = anchor.AddDays(-3) },
@@ -917,7 +917,7 @@ Append inside the existing class, below the last test and above `Dispose()`:
         past.CurrentStance.Should().Be("monoliths are fine at small scale");
     }
 
-    // ─── Insights ────────────────────────────────────────────────────────────────
+    // --- Insights ----------------------------------------------------------------
 
     [Fact]
     public async Task CaptureInsight_persists_a_high_significance_row()
@@ -987,16 +987,16 @@ Append inside the existing class, below the last test and above `Dispose()`:
     }
 ```
 
-- [ ] **Step 4: Run — R1/R2 verdict**
+- [ ] **Step 4: Run - R1/R2 verdict**
 
 Run the filtered command. `GetPastSelf_returns_stance_evidence...` is the R1/R2 probe:
-- PASS → provider translated it; service stays untouched.
-- FAIL with `InvalidOperationException` mentioning "could not be translated" → apply fixes **R1 and R2** exactly as specified in the task header, re-run, expect PASS.
+- PASS -> provider translated it; service stays untouched.
+- FAIL with `InvalidOperationException` mentioning "could not be translated" -> apply fixes **R1 and R2** exactly as specified in the task header, re-run, expect PASS.
 
 - [ ] **Step 5: Append engagement + voice + pattern tests (risks R3/R4 fire here)**
 
 ```csharp
-    // ─── Engagement ──────────────────────────────────────────────────────────────
+    // --- Engagement --------------------------------------------------------------
 
     [Fact]
     public async Task RecordEngagement_creates_then_accumulates_and_upgrades_depth()
@@ -1057,7 +1057,7 @@ Run the filtered command. `GetPastSelf_returns_stance_evidence...` is the R1/R2 
         rows.Select(r => r.TargetId).Should().Equal(1, 2); // ordered by time desc, php excluded
     }
 
-    // ─── Voice learning ──────────────────────────────────────────────────────────
+    // --- Voice learning ----------------------------------------------------------
 
     [Fact]
     public async Task LearnFromMessage_skips_missing_and_non_user_messages()
@@ -1132,7 +1132,7 @@ Run the filtered command. `GetPastSelf_returns_stance_evidence...` is the R1/R2 
         draft.Should().NotContain("The goal is to");
     }
 
-    // ─── Pattern recognition ─────────────────────────────────────────────────────
+    // --- Pattern recognition -----------------------------------------------------
 
     [Fact]
     public async Task FindSimilarProblems_maps_matching_titles_to_typed_patterns()
@@ -1145,7 +1145,7 @@ Run the filtered command. `GetPastSelf_returns_stance_evidence...` is the R1/R2 
             new ConversationEntity { Title = "random chatter", CreatedAt = DateTime.UtcNow, TokensUsed = 9000 });
         await db.SaveChangesAsync();
 
-        // keywords (>4 chars, lowered): "error", "deploy", "retries" — titles are lowercase on purpose
+        // keywords (>4 chars, lowered): "error", "deploy", "retries" - titles are lowercase on purpose
         // because string.Contains translates case-sensitively.
         var patterns = await new TemporalIdentityService(db)
             .FindSimilarProblemsAsync("error deploy retries");
@@ -1192,14 +1192,14 @@ Run the filtered command. `GetPastSelf_returns_stance_evidence...` is the R1/R2 
     }
 ```
 
-- [ ] **Step 6: Run — R3/R4 verdict**
+- [ ] **Step 6: Run - R3/R4 verdict**
 
 `GetActiveTopics_...` probes R3; `FindSimilarProblems_...` probes R4. Apply the corresponding fix from the task header ONLY for the one(s) that throw the untranslatable `InvalidOperationException`, then re-run. Expected: all PASS.
 
 - [ ] **Step 7: Append annotation + insight-detection tests**
 
 ```csharp
-    // ─── Annotations & auto-detected insights ───────────────────────────────────
+    // --- Annotations & auto-detected insights -----------------------------------
 
     private async Task<AnnotationEntity> SeedAnnotationAsync(
         AgentXDbContext db, string highlighted, string? note, string docName = "guide.pdf")
@@ -1307,18 +1307,18 @@ Run the filtered command. `GetPastSelf_returns_stance_evidence...` is the R1/R2 
     }
 ```
 
-**Watch-out for `DetectInsights...`:** the first message contains "key insight" (breakthrough) **and** a "!"? It must NOT — re-check the literal: it contains no `!` and none of ` amazing/ incredible/ fascinating/ interesting`, so significance is exactly 0.8. The second contains " amazing" (leading space matters) → 0.7. If an assertion lands at 0.9, the content accidentally matched both marker sets — adjust the content, not the expectation, until the marker sets are disjoint.
+**Watch-out for `DetectInsights...`:** the first message contains "key insight" (breakthrough) **and** a "!"? It must NOT - re-check the literal: it contains no `!` and none of ` amazing/ incredible/ fascinating/ interesting`, so significance is exactly 0.8. The second contains " amazing" (leading space matters) -> 0.7. If an assertion lands at 0.9, the content accidentally matched both marker sets - adjust the content, not the expectation, until the marker sets are disjoint.
 
-- [ ] **Step 8: Run the whole TemporalIdentityServiceTests class** — expected: 4 existing + ~24 new PASS.
+- [ ] **Step 8: Run the whole TemporalIdentityServiceTests class** - expected: 4 existing + ~24 new PASS.
 
-- [ ] **Step 9: Run the WHOLE suite (no coverage)** — 0 failures.
+- [ ] **Step 9: Run the WHOLE suite (no coverage)** - 0 failures.
 
 - [ ] **Step 10: Commit**
 
 ```bash
 git add tests/AgentX.Tests/Services/TemporalIdentityServiceTests.cs
 git add src/AgentX.Core/Services/TemporalIdentity/TemporalIdentityService.cs   # only if R-fixes applied
-git commit -m "test(core): cover TemporalIdentityService — belief/insight/engagement/voice/pattern surface (AX-QA-009)
+git commit -m "test(core): cover TemporalIdentityService - belief/insight/engagement/voice/pattern surface (AX-QA-009)
 
 <if fixes applied, add:> Fixes latent always-throws EF-translation bugs in GetRelatedConversations/
 GetRelatedDocuments/GetActiveTopics[/FindSimilarProblems] by materialising before untranslatable
@@ -1329,7 +1329,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 
 ---
 
-### Task 3: LocalLlmProvider — internal test seams + tests
+### Task 3: LocalLlmProvider - internal test seams + tests
 
 **Files:**
 - Modify: `src/AgentX.Core/AI/Providers/LocalLlmProvider.cs` (two internal seams, nothing else)
@@ -1338,7 +1338,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 
 **Interfaces:**
 - Consumes: `LocalLlmProvider(string modelsDirectory, string modelFileName, int contextSize, int gpuLayers, ILogger logger)`; `ChatOptions { MaxTokens(int, default 2048), Temperature(double, 0.7), TopP(double, 0.9), ResponseFormat(enum Text|JsonObject) }`; `ChatMessage { Role, Content }`.
-- Produces: two `internal` seams on the provider (below) — the tests in this task are their only consumer.
+- Produces: two `internal` seams on the provider (below) - the tests in this task are their only consumer.
 
 **Hard rule: no test may trigger a real LLamaSharp native model load with a VALID file.** The only permitted native interaction is `LLamaWeights.LoadFromFileAsync` **failing** on a garbage file after the download test (llama.cpp rejects the GGUF magic managed-side; `LLamaSharp.Backend.Cpu` is present so no DllNotFound crash). Everything else goes through the seams or never reaches model loading.
 
@@ -1375,14 +1375,14 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
         var prompt = FormatChatPrompt(messages, options?.ResponseFormat == ResponseFormat.JsonObject);
         var inferenceParams = BuildInferenceParams(options);
 
-        // StatelessExecutor creates its own context per call — thread-safe. The override
+        // StatelessExecutor creates its own context per call - thread-safe. The override
         // substitutes the token source only; lock, accounting, and cancellation are unchanged.
         var tokenStream = InferenceOverride is not null
             ? InferenceOverride(prompt, inferenceParams, ct)
             : new StatelessExecutor(_weights!, _chatParams!).InferAsync(prompt, inferenceParams, ct);
 
         // Track emitted tokens so we can warn on MaxTokens truncation (P0-6).
-        // LLamaSharp StatelessExecutor stops naturally on antiprompt or MaxTokens —
+        // LLamaSharp StatelessExecutor stops naturally on antiprompt or MaxTokens -
         // when token count equals MaxTokens, we likely hit the budget cap.
         int emittedTokens = 0;
         var maxTokens = inferenceParams.MaxTokens;
@@ -1402,7 +1402,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
             : ResolveDownloadUrl(modelName);
 ```
 
-- [ ] **Step 2: Build to prove the seams compile** — `dotnet build tests/AgentX.Tests/AgentX.Tests.csproj -c Release -p:Platform=x64`. Expected: success, 0 warnings introduced.
+- [ ] **Step 2: Build to prove the seams compile** - `dotnet build tests/AgentX.Tests/AgentX.Tests.csproj -c Release -p:Platform=x64`. Expected: success, 0 warnings introduced.
 
 - [ ] **Step 3: Create the test file with harness + lifecycle/listing tests**
 
@@ -1424,7 +1424,7 @@ using Xunit;
 namespace AgentX.Tests.AI.Providers;
 
 /// <summary>
-/// Behavioural coverage for <see cref="LocalLlmProvider"/> — the LLamaSharp-backed offline
+/// Behavioural coverage for <see cref="LocalLlmProvider"/> - the LLamaSharp-backed offline
 /// provider. Real native model loading is impossible in unit tests (needs a multi-GB GGUF), so
 /// coverage splits three ways: (1) file-system paths (listing, delete, availability) run for
 /// real against a temp models directory; (2) the streaming-chat pipeline runs through the
@@ -1490,7 +1490,7 @@ public sealed class LocalLlmProviderTests : IDisposable
         public void Emit(LogEvent logEvent) => Events.Enqueue(logEvent);
     }
 
-    // ─── Construction & identity ─────────────────────────────────────────────────
+    // --- Construction & identity -------------------------------------------------
 
     [Fact]
     public void Ctor_guards_null_arguments()
@@ -1512,7 +1512,7 @@ public sealed class LocalLlmProviderTests : IDisposable
         p.IsAvailable.Should().BeFalse();
     }
 
-    // ─── CheckConnectionAsync ────────────────────────────────────────────────────
+    // --- CheckConnectionAsync ----------------------------------------------------
 
     [Fact]
     public async Task CheckConnection_missing_model_returns_false_without_loading()
@@ -1522,7 +1522,7 @@ public sealed class LocalLlmProviderTests : IDisposable
         p.IsAvailable.Should().BeFalse();
     }
 
-    // ─── ListModelsAsync ─────────────────────────────────────────────────────────
+    // --- ListModelsAsync ---------------------------------------------------------
 
     [Fact]
     public async Task ListModels_missing_directory_returns_empty()
@@ -1565,7 +1565,7 @@ public sealed class LocalLlmProviderTests : IDisposable
         models.Single(m => m.Id == "other-model.gguf").Name.Should().Be("other-model");
     }
 
-    // ─── DeleteModelAsync ────────────────────────────────────────────────────────
+    // --- DeleteModelAsync --------------------------------------------------------
 
     [Fact]
     public async Task Delete_removes_inactive_model_file()
@@ -1595,12 +1595,12 @@ public sealed class LocalLlmProviderTests : IDisposable
 }
 ```
 
-- [ ] **Step 4: Run** — filtered on `LocalLlmProviderTests`. Expected: all PASS.
+- [ ] **Step 4: Run** - filtered on `LocalLlmProviderTests`. Expected: all PASS.
 
 - [ ] **Step 5: Add download-pipeline tests (HttpListener stub) + URL resolution**
 
 ```csharp
-    // ─── PullModelAsync / download pipeline ──────────────────────────────────────
+    // --- PullModelAsync / download pipeline --------------------------------------
 
     [Fact]
     public async Task Pull_unknown_model_without_url_is_a_noop()
@@ -1726,7 +1726,7 @@ public sealed class LocalLlmProviderTests : IDisposable
         await served.WaitAsync(TimeSpan.FromSeconds(5));
     }
 
-    /// <summary>Inline IProgress — Progress&lt;T&gt; posts asynchronously and loses reports.</summary>
+    /// <summary>Inline IProgress - Progress&lt;T&gt; posts asynchronously and loses reports.</summary>
     private sealed class SynchronousProgress<T> : IProgress<T>
     {
         private readonly Action<T> _handler;
@@ -1735,12 +1735,12 @@ public sealed class LocalLlmProviderTests : IDisposable
     }
 ```
 
-- [ ] **Step 6: Run** — filtered. Expected: all PASS. If `Pull_downloads_...` fails because `LoadModelAsync` did NOT throw (wildly unexpected — garbage magic), change the assertion to tolerate success but keep every file/progress assert; report this in the task summary.
+- [ ] **Step 6: Run** - filtered. Expected: all PASS. If `Pull_downloads_...` fails because `LoadModelAsync` did NOT throw (wildly unexpected - garbage magic), change the assertion to tolerate success but keep every file/progress assert; report this in the task summary.
 
 - [ ] **Step 7: Add streaming-chat pipeline tests (InferenceOverride seam) + guards**
 
 ```csharp
-    // ─── StreamChatAsync / ChatAsync via InferenceOverride ───────────────────────
+    // --- StreamChatAsync / ChatAsync via InferenceOverride -----------------------
 
     private static List<ChatMessage> Msgs(params (string Role, string Content)[] items)
         => items.Select(i => new ChatMessage { Role = i.Role, Content = i.Content }).ToList();
@@ -1834,7 +1834,7 @@ public sealed class LocalLlmProviderTests : IDisposable
 
         received.Should().Equal("a"); // "b" arrives after cancel and must not surface
 
-        // Lock must have been released by the finally — a second call proceeds.
+        // Lock must have been released by the finally - a second call proceeds.
         p.InferenceOverride = (_, _, ct) => Tokens(ct, "again");
         (await p.ChatAsync(Msgs(("user", "hi")))).Should().Be("again");
 
@@ -1855,7 +1855,7 @@ public sealed class LocalLlmProviderTests : IDisposable
         (await p.ChatAsync(Msgs(("user", "hi")))).Should().Be("foobar!");
     }
 
-    // ─── Embeddings & model-load failure paths ───────────────────────────────────
+    // --- Embeddings & model-load failure paths -----------------------------------
 
     [Fact]
     public async Task Embeddings_without_model_file_throw_FileNotFound_and_mark_unavailable()
@@ -1879,7 +1879,7 @@ public sealed class LocalLlmProviderTests : IDisposable
         }).Should().ThrowAsync<FileNotFoundException>();
     }
 
-    // ─── Dispose semantics ───────────────────────────────────────────────────────
+    // --- Dispose semantics -------------------------------------------------------
 
     [Fact]
     public async Task Dispose_is_idempotent_and_guards_every_entry_point()
@@ -1904,7 +1904,7 @@ public sealed class LocalLlmProviderTests : IDisposable
         }).Should().ThrowAsync<ObjectDisposedException>();
     }
 
-    // ─── GPU detection (environment-tolerant) ────────────────────────────────────
+    // --- GPU detection (environment-tolerant) ------------------------------------
 
     [Fact]
     public void DetectRecommendedGpuLayers_returns_a_supported_tier()
@@ -1920,15 +1920,15 @@ public sealed class LocalLlmProviderTests : IDisposable
     }
 ```
 
-- [ ] **Step 8: Run the whole LocalLlmProviderTests class** — all PASS expected.
+- [ ] **Step 8: Run the whole LocalLlmProviderTests class** - all PASS expected.
 
-- [ ] **Step 9: Run the WHOLE suite (no coverage)** — 0 failures. (Watch for LLamaSharp native init side effects on other tests: there should be none, since only failure paths were touched.)
+- [ ] **Step 9: Run the WHOLE suite (no coverage)** - 0 failures. (Watch for LLamaSharp native init side effects on other tests: there should be none, since only failure paths were touched.)
 
 - [ ] **Step 10: Commit**
 
 ```bash
 git add src/AgentX.Core/AI/Providers/LocalLlmProvider.cs tests/AgentX.Tests/AI/Providers/LocalLlmProviderTests.cs
-git commit -m "test(core): cover LocalLlmProvider — internal inference/download seams + HttpListener stub (AX-QA-009)
+git commit -m "test(core): cover LocalLlmProvider - internal inference/download seams + HttpListener stub (AX-QA-009)
 
 Two internal test seams (ComparisonService optional-seam precedent): InferenceOverride replaces
 the StatelessExecutor token stream; DownloadUrlResolver redirects PullModelAsync to a localhost
@@ -1961,9 +1961,9 @@ Expected: ~2770+ tests, 0 failures.
 - [ ] **Step 2: Read the gate report**
 
 Run: `pwsh scripts/check-coverage.ps1 -ReportOnly -CoverageFile .cov-tmp`
-Expected: GLOBAL measured strictly above 58.59 line / 48.68 branch (three ~0% services just gained coverage). Record: global line/branch, and per-class figures for the three services (from the cobertura XML `<class name="...KeywordSearchService">` etc. — `line-rate`/`branch-rate` attributes ×100).
+Expected: GLOBAL measured strictly above 58.59 line / 48.68 branch (three ~0% services just gained coverage). Record: global line/branch, and per-class figures for the three services (from the cobertura XML `<class name="...KeywordSearchService">` etc. - `line-rate`/`branch-rate` attributes x100).
 
-**Also verify the watch-item:** `AgentX.Core.Services.Backup` line must still be ≥ 75 (it wobbles 75.9–77.4 as the suite grows). If it dipped below, STOP and report — do not touch the Backup floor.
+**Also verify the watch-item:** `AgentX.Core.Services.Backup` line must still be >= 75 (it wobbles 75.9-77.4 as the suite grows). If it dipped below, STOP and report - do not touch the Backup floor.
 
 - [ ] **Step 3: Ratchet the global floor**
 
@@ -1971,9 +1971,9 @@ In `scripts/check-coverage.ps1`, update:
 ```powershell
     Global = @{ Line = <L>; Branch = <B> }          # measured <ml> / <mb> (2026-07-03, KeywordSearch/TemporalIdentity/LocalLlm)
 ```
-where `<L>` = highest integer ≤ (measured line − 0.5) and `<B>` = highest integer ≤ (measured branch − 0.5). If a floor cannot rise by ≥ 1 whole point with that headroom, HOLD it and say so in the comment (the ConversationBranchService precedent). None of the three namespaces becomes critical.
+where `<L>` = highest integer <= (measured line - 0.5) and `<B>` = highest integer <= (measured branch - 0.5). If a floor cannot rise by >= 1 whole point with that headroom, HOLD it and say so in the comment (the ConversationBranchService precedent). None of the three namespaces becomes critical.
 
-Prepend a narrative paragraph to the policy comment block, matching the established house format (date, service, previous %, what the service does, harness used, key seams/tricks, whether a latent bug was fixed, why not critical, old → new floors, measured values). Mention: the FTS5 end-to-end harness, any R1–R4 translation fixes applied, and the two LocalLlmProvider internal seams with their deliberate residual.
+Prepend a narrative paragraph to the policy comment block, matching the established house format (date, service, previous %, what the service does, harness used, key seams/tricks, whether a latent bug was fixed, why not critical, old -> new floors, measured values). Mention: the FTS5 end-to-end harness, any R1-R4 translation fixes applied, and the two LocalLlmProvider internal seams with their deliberate residual.
 
 - [ ] **Step 4: Re-run the gate in ENFORCING mode**
 
@@ -1989,7 +1989,7 @@ git commit -m "test(coverage): ratchet global floor to <L>/<B> after KeywordSear
 Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 git push origin main
 ```
-Then watch CI (`gh run watch` or `gh run list --limit 1`) until the build-test workflow is green. If the coverage gate fails in CI due to run-to-run branch variance, the floor chosen in Step 3 had insufficient headroom — widen headroom by 1 point (still a raise vs. today) and push the correction; never lower below today's 58/48.
+Then watch CI (`gh run watch` or `gh run list --limit 1`) until the build-test workflow is green. If the coverage gate fails in CI due to run-to-run branch variance, the floor chosen in Step 3 had insufficient headroom - widen headroom by 1 point (still a raise vs. today) and push the correction; never lower below today's 58/48.
 
 ---
 
@@ -1999,7 +1999,7 @@ Then watch CI (`gh run watch` or `gh run list --limit 1`) until the build-test w
 2. `scripts/check-coverage.ps1` (enforcing) passes with raised global floors.
 3. CI build-test workflow green on `main`.
 4. `git log` shows 4 commits in campaign style.
-5. The three services report (from cobertura): KeywordSearchService ≥ ~90% line, TemporalIdentityService ≥ ~90% line, LocalLlmProvider ≥ ~75% line (residuals documented above).
+5. The three services report (from cobertura): KeywordSearchService >= ~90% line, TemporalIdentityService >= ~90% line, LocalLlmProvider >= ~75% line (residuals documented above).
 
 ## Post-execution note (orchestrator, not the repo)
 

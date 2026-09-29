@@ -1,6 +1,6 @@
 using System.Text;
-using System.Text.Json;
 using AgentX.Core.Data.Entities;
+using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Export.Models;
 
 namespace AgentX.Core.Services.Export.Formatters;
@@ -60,9 +60,9 @@ public sealed class MarkdownFormatter : IExportFormatter
         return Task.FromResult(sb.ToString());
     }
 
-    // ────────────────────────────────────────────────────────────────
+    // ----------------------------------------------------------------
     //  Core formatting (extracted from ExportService.BuildMarkdown)
-    // ────────────────────────────────────────────────────────────────
+    // ----------------------------------------------------------------
 
     private static string BuildMarkdown(
         ConversationEntity conversation,
@@ -104,8 +104,6 @@ public sealed class MarkdownFormatter : IExportFormatter
             .OrderBy(m => m.SortOrder)
             .ToList();
 
-        var citationsList = new List<string>();
-
         foreach (var message in messages)
         {
             // Skip system messages from the export body (they are shown above)
@@ -131,11 +129,9 @@ public sealed class MarkdownFormatter : IExportFormatter
             sb.AppendLine(message.Content);
             sb.AppendLine();
 
-            // Collect citations if present
-            if (options.IncludeCitations && !string.IsNullOrWhiteSpace(message.CitationsJson))
+            if (options.IncludeCitations)
             {
-                var citations = TryParseCitations(message.CitationsJson);
-                citationsList.AddRange(citations);
+                AppendCitations(sb, message.CitationsJson);
             }
 
             if (options.IncludeMetadata && message.Role == "assistant")
@@ -157,27 +153,15 @@ public sealed class MarkdownFormatter : IExportFormatter
             }
         }
 
-        // Append citations as footnotes
-        if (citationsList.Count > 0)
-        {
-            sb.AppendLine("## Citations");
-            sb.AppendLine();
-            for (var i = 0; i < citationsList.Count; i++)
-            {
-                sb.AppendLine($"{i + 1}. {citationsList[i]}");
-            }
-            sb.AppendLine();
-        }
-
         sb.AppendLine("---");
         sb.AppendLine($"*Exported from Agent-X on {DateTime.Now:yyyy-MM-dd HH:mm:ss}*");
 
         return sb.ToString();
     }
 
-    // ────────────────────────────────────────────────────────────────
+    // ----------------------------------------------------------------
     //  Helpers
-    // ────────────────────────────────────────────────────────────────
+    // ----------------------------------------------------------------
 
     private static string GetRoleLabel(string role) =>
         role.ToLowerInvariant() switch
@@ -201,54 +185,26 @@ public sealed class MarkdownFormatter : IExportFormatter
             .Replace("]", "\\]");
     }
 
-    private static List<string> TryParseCitations(string citationsJson)
+    /// <summary>
+    /// Lists a message's sources with it, numbered as the message's own [n] markers number
+    /// them. Each answer numbers its own sources from 1, so one list for the whole export
+    /// would not match the markers of any answer after the first.
+    /// </summary>
+    private static void AppendCitations(StringBuilder sb, string? citationsJson)
     {
-        var result = new List<string>();
-
-        try
+        var citations = MessageCitations.Describe(citationsJson);
+        if (citations.Count == 0)
         {
-            using var doc = JsonDocument.Parse(citationsJson);
-
-            if (doc.RootElement.ValueKind != JsonValueKind.Array)
-            {
-                return result;
-            }
-
-            foreach (var element in doc.RootElement.EnumerateArray())
-            {
-                var fileName = element.TryGetProperty("fileName", out var fn)
-                    ? fn.GetString() ?? "Unknown"
-                    : "Unknown";
-
-                var pageNumber = element.TryGetProperty("pageNumber", out var pn)
-                    && pn.ValueKind == JsonValueKind.Number
-                    ? pn.GetInt32()
-                    : (int?)null;
-
-                var excerpt = element.TryGetProperty("excerpt", out var ex)
-                    ? ex.GetString()
-                    : null;
-
-                var description = pageNumber.HasValue
-                    ? $"{fileName}, page {pageNumber.Value}"
-                    : fileName;
-
-                if (!string.IsNullOrWhiteSpace(excerpt))
-                {
-                    var shortExcerpt = excerpt.Length > 80
-                        ? excerpt[..80] + "..."
-                        : excerpt;
-                    description += $" - \"{shortExcerpt}\"";
-                }
-
-                result.Add(description);
-            }
-        }
-        catch (JsonException)
-        {
-            // CitationsJson was not valid JSON; return empty list
+            return;
         }
 
-        return result;
+        sb.AppendLine("**Citations**");
+        sb.AppendLine();
+        for (var i = 0; i < citations.Count; i++)
+        {
+            sb.AppendLine($"{i + 1}. {EscapeMarkdown(citations[i])}");
+        }
+
+        sb.AppendLine();
     }
 }

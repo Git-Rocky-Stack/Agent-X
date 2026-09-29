@@ -7,7 +7,9 @@ namespace AgentX.App.ViewModels.Sync;
 //
 // Observable presentation wrapper around SyncLogEntity for the sync history
 // list. DirectionGlyph and StatusLabel are computed from the observable fields
-// so they update automatically when Direction or IsSuccess change.
+// so they update automatically when Direction or IsSuccess change. The texts
+// shown for the direction and status are the labels the view model supplies
+// in the user's language; Direction keeps the stored token.
 // =============================================================================
 
 /// <summary>
@@ -33,7 +35,19 @@ public partial class SyncLogDisplayItem : ObservableObject
     /// </summary>
     [ObservableProperty] private string _syncedAtFull = string.Empty;
 
-    // ── Existing Computed Properties ──────────────────────────────────────────
+    /// <summary>Direction badge text for an export pass, in the user's language.</summary>
+    public string ExportLabel { get; init; } = string.Empty;
+
+    /// <summary>Direction badge text for an import pass, in the user's language.</summary>
+    public string ImportLabel { get; init; } = string.Empty;
+
+    /// <summary>Status text for a pass that succeeded, in the user's language.</summary>
+    public string SuccessLabel { get; init; } = string.Empty;
+
+    /// <summary>Status text for a pass that failed, in the user's language.</summary>
+    public string FailedLabel { get; init; } = string.Empty;
+
+    // -- Existing Computed Properties ------------------------------------------
 
     /// <summary>
     /// Segoe Fluent Icons glyph representing the sync direction.
@@ -47,17 +61,17 @@ public partial class SyncLogDisplayItem : ObservableObject
     /// <summary>
     /// Short uppercase label for status badge display.
     /// </summary>
-    public string StatusLabel => IsSuccess ? "SUCCESS" : "FAILED";
+    public string StatusLabel => StatusText.ToUpperInvariant();
 
-    // ── Properties Required by SyncSettingsPage.xaml DataTemplate ─────────────
+    // -- Properties Required by SyncSettingsPage.xaml DataTemplate -------------
 
     /// <summary>
     /// Status color: green (#41E25E) for success, red (#C8453E) for failure.
     /// Bound by the XAML DataTemplate via SolidColorBrush Color="{x:Bind StatusColor}".
     /// </summary>
     public Windows.UI.Color StatusColor => IsSuccess
-        ? Windows.UI.Color.FromArgb(0xFF, 0x22, 0xC5, 0x5E)   // Green — success
-        : Windows.UI.Color.FromArgb(0xFF, 0xEF, 0x44, 0x44);  // Red   — failure
+        ? Windows.UI.Color.FromArgb(0xFF, 0x22, 0xC5, 0x5E)   // Green - success
+        : Windows.UI.Color.FromArgb(0xFF, 0xEF, 0x44, 0x44);  // Red - failure
 
     /// <summary>
     /// Segoe Fluent Icons glyph for the status indicator.
@@ -68,22 +82,22 @@ public partial class SyncLogDisplayItem : ObservableObject
         : "\uE711";  // X mark
 
     /// <summary>
-    /// Segoe Fluent Icons glyph for sync direction — alias for DirectionGlyph.
+    /// Segoe Fluent Icons glyph for sync direction - alias for DirectionGlyph.
     /// Upload (U+E898) for export, Download (U+E896) for import.
     /// </summary>
     public string DirectionIcon => DirectionGlyph;
 
     /// <summary>
-    /// Human-readable direction label: "Export" or "Import".
+    /// Human-readable direction label: <see cref="ExportLabel"/> or <see cref="ImportLabel"/>.
     /// </summary>
     public string DirectionDisplay => Direction.Equals("export", StringComparison.OrdinalIgnoreCase)
-        ? "Export"
-        : "Import";
+        ? ExportLabel
+        : ImportLabel;
 
     /// <summary>
-    /// Mixed-case status text: "Success" or "Failed".
+    /// Mixed-case status text: <see cref="SuccessLabel"/> or <see cref="FailedLabel"/>.
     /// </summary>
-    public string StatusText => IsSuccess ? "Success" : "Failed";
+    public string StatusText => IsSuccess ? SuccessLabel : FailedLabel;
 
     /// <summary>
     /// True when one or more conflicts were detected during this sync pass.

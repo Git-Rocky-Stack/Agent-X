@@ -17,7 +17,7 @@ public class KnowledgeGraphService : IKnowledgeGraphService
     private readonly AgentXDbContext _db;
     private readonly ILogger _log;
 
-    // ── Force-directed layout parameters ────────────────────────────
+    // -- Force-directed layout parameters ----------------------------
     private const double RepulsionStrength = 5000.0;
     private const double AttractionStrength = 0.01;
     private const double IdealEdgeLength = 100.0;
@@ -27,15 +27,18 @@ public class KnowledgeGraphService : IKnowledgeGraphService
     private const double CanvasExtent = 1000.0;
     private const double MinDistance = 1.0;
 
-    // ── Node color constants ────────────────────────────────────────
-    private const string DocumentColor = "#3B82F6";  // Blue
-    private const string CollectionColor = "#8B5CF6"; // Purple
-    private const string TagColor = "#F59E0B";        // Amber
+    // Reference colors
+    // Night Ops tones from DESIGN.md, matching the graph legend: documents LedScope,
+    // collections Silver, tags LedHold, links in the silver ramp. The app does not paint
+    // these hex values; it resolves the matching theme brushes per node type, so Day Shift
+    // and HighContrast (SystemColor tokens) render correctly.
+    private const string DocumentColor = "#58C4BC";
+    private const string CollectionColor = "#B3B3B3";
+    private const string TagColor = "#FFB000";
 
-    // ── Edge color constants ────────────────────────────────────────
-    private const string DocToCollectionEdgeColor = "#6366F1"; // Indigo
-    private const string DocToTagEdgeColor = "#D97706";        // Amber-dark
-    private const string DocToDocEdgeColor = "#374151";        // Gray
+    private const string DocToCollectionEdgeColor = "#B3B3B3";
+    private const string DocToTagEdgeColor = "#FFB000";
+    private const string DocToDocEdgeColor = "#5A5A5A";
 
     public KnowledgeGraphService(AgentXDbContext db, ILogger logger)
     {
@@ -49,7 +52,7 @@ public class KnowledgeGraphService : IKnowledgeGraphService
     {
         _log.Information("Building knowledge graph from vault data");
 
-        // ── 1. Load all entities ─────────────────────────────────────
+        // -- 1. Load all entities -------------------------------------
         var documents = await _db.Documents
             .Include(d => d.DocumentCollections).ThenInclude(dc => dc.Collection)
             .Include(d => d.DocumentTags).ThenInclude(dt => dt.Tag)
@@ -71,7 +74,7 @@ public class KnowledgeGraphService : IKnowledgeGraphService
             "Loaded {DocCount} documents, {ColCount} collections, {TagCount} tags",
             documents.Count, collections.Count, tags.Count);
 
-        // ── 2. Build node and edge lists ─────────────────────────────
+        // -- 2. Build node and edge lists -----------------------------
         var nodeLookup = new Dictionary<string, GraphNode>();
         var edges = new List<GraphEdge>();
 
@@ -131,7 +134,7 @@ public class KnowledgeGraphService : IKnowledgeGraphService
             nodeLookup[nodeId] = node;
         }
 
-        // ── 3. Create edges ──────────────────────────────────────────
+        // -- 3. Create edges ------------------------------------------
 
         // Document -> Collection edges
         foreach (var doc in documents)
@@ -176,10 +179,10 @@ public class KnowledgeGraphService : IKnowledgeGraphService
 
         // Document <-> Document edges when they share a collection or tag.
         // Weight is the count of shared connections.
-        var docDocEdges = BuildDocumentToDocumentEdges(documents);
+        var docDocEdges = BuildDocumentToDocumentEdges(documents, ct);
         edges.AddRange(docDocEdges);
 
-        // ── 4. Set connection counts ─────────────────────────────────
+        // -- 4. Set connection counts ---------------------------------
         foreach (var edge in edges)
         {
             if (nodeLookup.TryGetValue(edge.SourceId, out var sourceNode))
@@ -189,12 +192,12 @@ public class KnowledgeGraphService : IKnowledgeGraphService
                 targetNode.ConnectionCount++;
         }
 
-        // ── 5. Assign initial random positions ──────────────────────
+        // -- 5. Assign initial random positions ----------------------
         var nodes = nodeLookup.Values.ToList();
         AssignRandomPositions(nodes);
 
-        // ── 6. Run force-directed layout ────────────────────────────
-        RunForceDirectedLayout(nodes, edges, nodeLookup);
+        // -- 6. Run force-directed layout ----------------------------
+        RunForceDirectedLayout(nodes, edges, nodeLookup, ct);
 
         _log.Information(
             "Knowledge graph built: {NodeCount} nodes, {EdgeCount} edges",
@@ -210,16 +213,16 @@ public class KnowledgeGraphService : IKnowledgeGraphService
         };
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  PRIVATE HELPERS
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>
     /// Builds document-to-document edges for all pairs of documents that
     /// share at least one collection or tag. The edge weight equals the
     /// number of shared connections.
     /// </summary>
-    private static List<GraphEdge> BuildDocumentToDocumentEdges(List<DocumentEntity> documents)
+    private static List<GraphEdge> BuildDocumentToDocumentEdges(List<DocumentEntity> documents, CancellationToken ct)
     {
         var result = new List<GraphEdge>();
 
@@ -259,6 +262,9 @@ public class KnowledgeGraphService : IKnowledgeGraphService
             {
                 for (int i = 0; i < docIds.Count; i++)
                 {
+                    // A tag on thousands of documents makes this quadratic; stay cancellable
+                    ct.ThrowIfCancellationRequested();
+
                     for (int j = i + 1; j < docIds.Count; j++)
                     {
                         var lo = Math.Min(docIds[i], docIds[j]);
@@ -312,20 +318,25 @@ public class KnowledgeGraphService : IKnowledgeGraphService
     /// Runs a simple spring-electric force-directed layout algorithm.
     /// Uses repulsion between all node pairs, attraction along edges,
     /// and a centering gravity force. Applies velocity damping each iteration.
+    /// The work is O(N^2) per iteration, so the token is checked inside the pair loop and a
+    /// cancelled build (page closed, graph refreshed) stops promptly on large vaults.
     /// </summary>
     private static void RunForceDirectedLayout(
         List<GraphNode> nodes,
         List<GraphEdge> edges,
-        Dictionary<string, GraphNode> nodeLookup)
+        Dictionary<string, GraphNode> nodeLookup,
+        CancellationToken ct)
     {
         if (nodes.Count <= 1)
             return;
 
         for (int iteration = 0; iteration < LayoutIterations; iteration++)
         {
-            // ── Repulsion between all pairs ──────────────────────────
+            // -- Repulsion between all pairs --------------------------
             for (int i = 0; i < nodes.Count; i++)
             {
+                ct.ThrowIfCancellationRequested();
+
                 for (int j = i + 1; j < nodes.Count; j++)
                 {
                     var ni = nodes[i];
@@ -347,7 +358,7 @@ public class KnowledgeGraphService : IKnowledgeGraphService
                 }
             }
 
-            // ── Attraction along edges ───────────────────────────────
+            // -- Attraction along edges -------------------------------
             foreach (var edge in edges)
             {
                 if (!nodeLookup.TryGetValue(edge.SourceId, out var source))
@@ -369,14 +380,14 @@ public class KnowledgeGraphService : IKnowledgeGraphService
                 target.Vy -= fy;
             }
 
-            // ── Center gravity ───────────────────────────────────────
+            // -- Center gravity ---------------------------------------
             foreach (var node in nodes)
             {
                 node.Vx -= node.X * CenterGravity;
                 node.Vy -= node.Y * CenterGravity;
             }
 
-            // ── Apply velocities with damping ────────────────────────
+            // -- Apply velocities with damping ------------------------
             foreach (var node in nodes)
             {
                 node.Vx *= Damping;

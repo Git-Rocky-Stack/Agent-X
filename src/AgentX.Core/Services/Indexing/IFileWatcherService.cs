@@ -10,6 +10,14 @@ namespace AgentX.Core.Services.Indexing;
 public interface IFileWatcherService : IDisposable
 {
     /// <summary>
+    /// Startup entry point. When the AutoIndexWatchFolders setting is on, starts watching
+    /// every enabled watch folder and then catches up: files added while the app was not
+    /// running are imported, and files that changed since their import are re-indexed.
+    /// Does nothing when the setting is off.
+    /// </summary>
+    Task InitializeAsync(CancellationToken ct = default);
+
+    /// <summary>
     /// Loads all enabled watch folders from the database and starts
     /// a <see cref="FileSystemWatcher"/> for each one.
     /// </summary>

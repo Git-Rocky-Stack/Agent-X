@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.IO.Compression;
 using System.Net;
 using System.Text;
@@ -22,9 +23,9 @@ internal static class ExportContentBuilder
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     };
 
-    // ════════════════════════════════════════════════════════════════
-    //  Text artifact export — format dispatcher
-    // ════════════════════════════════════════════════════════════════
+    // ================================================================
+    //  Text artifact export - format dispatcher
+    // ================================================================
 
     internal static string? BuildTextArtifactContent(
         TextArtifactExportItem artifact,
@@ -100,6 +101,7 @@ internal static class ExportContentBuilder
         sb.AppendLine("<html lang=\"en\">");
         sb.AppendLine("<head>");
         sb.AppendLine("  <meta charset=\"utf-8\" />");
+        sb.AppendLine($"  <meta http-equiv=\"Content-Security-Policy\" content=\"{Formats.HtmlExport.ContentSecurityPolicy}\" />");
         sb.AppendLine($"  <title>{WebUtility.HtmlEncode(artifact.Title)}</title>");
         sb.AppendLine("  <style>");
         sb.AppendLine("    body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; margin: 40px; color: #1d1d1f; }");
@@ -153,9 +155,9 @@ internal static class ExportContentBuilder
         return JsonSerializer.Serialize(export, JsonOptions);
     }
 
-    // ════════════════════════════════════════════════════════════════
-    //  Search results — format dispatcher
-    // ════════════════════════════════════════════════════════════════
+    // ================================================================
+    //  Search results - format dispatcher
+    // ================================================================
 
     /// <summary>
     /// Dispatches search-result rendering to the correct format builder.
@@ -177,9 +179,9 @@ internal static class ExportContentBuilder
         };
     }
 
-    // ════════════════════════════════════════════════════════════════
-    //  Search results — format builders
-    // ════════════════════════════════════════════════════════════════
+    // ================================================================
+    //  Search results - format builders
+    // ================================================================
 
     internal static string BuildSearchResultsMarkdown(
         string query, IReadOnlyList<SearchResultExportItem> results,
@@ -299,7 +301,9 @@ internal static class ExportContentBuilder
             sb.Append(CsvEscape(query)).Append(',');
             sb.Append(CsvEscape(result.DocumentName)).Append(',');
             sb.Append(CsvEscape(result.Content)).Append(',');
-            sb.Append(CsvEscape(result.RelevanceScore.ToString("F4"))).Append(',');
+            // Invariant: a comma decimal separator (de, fr, es) would split the score across two
+            // columns of a comma-separated file.
+            sb.Append(CsvEscape(result.RelevanceScore.ToString("F4", CultureInfo.InvariantCulture))).Append(',');
 
             var citations = result.Citations.Count > 0
                 ? string.Join("; ", result.Citations)
@@ -310,9 +314,9 @@ internal static class ExportContentBuilder
         return sb.ToString();
     }
 
-    // ════════════════════════════════════════════════════════════════
-    //  Collection export — ZIP generation
-    // ════════════════════════════════════════════════════════════════
+    // ================================================================
+    //  Collection export - ZIP generation
+    // ================================================================
 
     internal static async Task WriteCollectionZipAsync(
         CollectionEntity collection,
@@ -373,9 +377,9 @@ internal static class ExportContentBuilder
             await writer.WriteAsync(readmeContent.AsMemory(), ct);
     }
 
-    // ════════════════════════════════════════════════════════════════
-    //  Collection export — README and CSV builders
-    // ════════════════════════════════════════════════════════════════
+    // ================================================================
+    //  Collection export - README and CSV builders
+    // ================================================================
 
     internal static string BuildCollectionReadme(
         CollectionEntity collection, IReadOnlyList<DocumentEntity> documents)
@@ -450,19 +454,19 @@ internal static class ExportContentBuilder
             sb.Append(CsvEscape(doc.FileName)).Append(',');
             sb.Append(CsvEscape(doc.FilePath)).Append(',');
             sb.Append(CsvEscape(doc.FileType)).Append(',');
-            sb.Append(CsvEscape(doc.FileSizeBytes.ToString())).Append(',');
-            sb.Append(CsvEscape(doc.ImportedAt.ToString("O"))).Append(',');
+            sb.Append(CsvEscape(doc.FileSizeBytes.ToString(CultureInfo.InvariantCulture))).Append(',');
+            sb.Append(CsvEscape(doc.ImportedAt.ToString("O", CultureInfo.InvariantCulture))).Append(',');
             sb.Append(CsvEscape(doc.IndexingStatus)).Append(',');
-            sb.Append(CsvEscape(doc.PageCount.ToString())).Append(',');
-            sb.AppendLine(CsvEscape(doc.WordCount.ToString()));
+            sb.Append(CsvEscape(doc.PageCount.ToString(CultureInfo.InvariantCulture))).Append(',');
+            sb.AppendLine(CsvEscape(doc.WordCount.ToString(CultureInfo.InvariantCulture)));
         }
 
         return sb.ToString();
     }
 
-    // ════════════════════════════════════════════════════════════════
+    // ================================================================
     //  Shared utility methods
-    // ════════════════════════════════════════════════════════════════
+    // ================================================================
 
     internal static string FormatFileSize(long bytes)
     {
@@ -479,16 +483,26 @@ internal static class ExportContentBuilder
         return $"{size:F1} {suffixes[order]}";
     }
 
+    /// <summary>
+    /// Escapes one CSV cell. A cell that a spreadsheet would read as a formula (it starts with
+    /// =, +, -, @, a tab or a carriage return) is prefixed with a single quote, per the OWASP
+    /// CSV injection guidance: exported chat text and file names are untrusted, and
+    /// "=HYPERLINK(...)" or "@SUM(...)" would otherwise run when the file is opened.
+    /// </summary>
     internal static string CsvEscape(string? value)
     {
         if (string.IsNullOrEmpty(value))
             return "\"\"";
+
+        if (value[0] is '=' or '+' or '-' or '@' or '\t' or '\r')
+            value = "'" + value;
 
         if (value.Contains('"') || value.Contains(',') || value.Contains('\n') || value.Contains('\r'))
             return $"\"{value.Replace("\"", "\"\"")}\"";
 
         return value;
     }
+
 
     private static string EscapeMarkdown(string text)
     {

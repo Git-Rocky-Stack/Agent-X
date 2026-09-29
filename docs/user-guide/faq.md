@@ -22,22 +22,22 @@
 
 ### What is Agent-X?
 
-Agent-X is a local-first AI-powered document intelligence application for Windows. It transforms your personal document collection into a queryable, AI-augmented knowledge base. Import documents, ask questions in natural language, search semantically across your entire vault, and interact with AI models — all without your data leaving your machine.
+Agent-X is a local-first AI document intelligence application for Windows. Import your documents into the Knowledge Vault, ask questions about them in Ask Your Files, search them by meaning or by keyword, and chat with AI models. By default everything runs on your computer with a built-in model; your data leaves the computer only for services you set up yourself, such as a cloud AI provider or web search (see [Is my data sent to the cloud?](#is-my-data-sent-to-the-cloud)).
 
-### What makes Agent-X different from other AI tools?
+### What sets Agent-X apart?
 
-| Feature | Agent-X | Other AI Tools |
-|---------|---------|----------------|
-| **Data Privacy** | 100% local — your data never leaves your machine | Cloud-based with data sent to external servers |
-| **Offline Capability** | Fully functional offline once the local model is on the machine | Requires internet connection |
-| **No Subscription** | Free and MIT-licensed; nothing to buy or activate | Monthly/annual subscription required |
-| **Open Models** | Uses open-source Llama models | Often uses proprietary closed models |
-| **RAG Pipeline** | Enterprise-grade 6-stage retrieval | Basic or no retrieval |
-| **Database Encryption** | AES-256-CBC at-rest encryption | Varies, often unencrypted |
+| Feature | Agent-X |
+|---------|---------|
+| **Data location** | Documents, embeddings, conversations and settings stay in `%LocalAppData%\AgentX` on your computer |
+| **Offline use** | Works offline once the built-in model is on the computer |
+| **Cost** | Free and MIT-licensed; nothing to buy or activate |
+| **Models** | Built-in Llama 3.2 3B, any model you run in Ollama, or OpenAI and Anthropic with your own API key |
+| **Retrieval** | Hybrid semantic and keyword search, query rephrasing, HyDE, reranking and numbered citations |
+| **Database encryption** | Optional SQLCipher (AES-256), with the key tied to your Windows account |
 
 ### Is Agent-X free?
 
-Yes, completely. Agent-X is free and open-source software under the MIT License (`LICENSE`). Every capability is unconditionally available to every user: unlimited documents, advanced RAG, GPU acceleration, multi-provider AI, the REST API, the full intelligence stack, plugins, integrations, and encryption. There are no paid tiers, no subscriptions, no activation, no quotas, and no feature gates of any kind.
+Yes. Agent-X is free and open-source software under the MIT License (`LICENSE`). Every capability is available to every user, with no paid tiers, subscriptions, activation, quotas or feature gates. Cloud AI providers and web search providers you choose to use bill you directly under their own terms.
 
 ### What file formats does Agent-X support?
 
@@ -45,30 +45,33 @@ Each format is claimed by a processor in `src/AgentX.Core/Documents/Processors/`
 
 | Category | Formats | Processor |
 |----------|---------|-----------|
-| **Documents** | `.pdf` | `PdfProcessor.cs` |
+| **PDF** | `.pdf` | `PdfProcessor.cs` |
 | **Word** | `.docx` | `DocxProcessor.cs` |
-| **Text** | `.txt`, `.csv`, `.log`, `.xml`, `.json`, `.ini`, `.cfg`, `.toml`, `.yaml`, `.yml` | `TextProcessor.cs` |
+| **Text and data** | `.txt`, `.csv`, `.log`, `.json`, `.xml`, `.yaml`, `.yml`, `.toml`, `.ini`, `.cfg` | `TextProcessor.cs` |
 | **Markdown** | `.md`, `.markdown`, `.mdx` | `MarkdownProcessor.cs` |
 | **Code** | `.cs`, `.js`, `.ts`, `.py`, `.java`, `.cpp`, `.c`, `.h`, `.go`, `.rs`, `.swift`, `.kt`, `.rb`, `.php`, `.html`, `.htm`, `.css`, `.scss`, `.sql`, `.sh`, `.xaml` | `CodeFileProcessor.cs` |
-| **Images** | `.png`, `.jpg`, `.jpeg`, `.bmp`, `.tiff` | `ImageProcessor.cs` |
-| **Audio** | `.mp3`, `.wav`, `.flac`, `.ogg`, `.m4a`, `.webm` | `AudioProcessor.cs` |
-| **Web bookmarks** | `.url`, `.webloc` | `WebProcessor.cs` |
+| **Images** | `.png`, `.jpg`, `.jpeg`, `.bmp`, `.tiff` (text read with Windows OCR) | `ImageProcessor.cs` |
+| **Audio** | `.mp3`, `.wav`, `.flac`, `.ogg`, `.m4a`, `.webm` (transcribed) | `AudioProcessor.cs` |
+| **Web shortcuts** | `.url`, `.webloc` (the linked page is fetched) | `WebProcessor.cs` |
 
-Two caveats the file picker used to hide:
+Plugins can add formats that no built-in processor handles.
 
-- **`.doc` (legacy binary Word) is not read.** The extension is declared for convenience but
-  the OpenXml reader cannot open it (`src/AgentX.Core/Documents/Processors/DocxProcessor.cs:15`).
-  Save as `.docx` first.
-- **`.rtf` is not supported.** It used to appear in the import picker with no processor behind
-  it, so selecting an RTF file failed after you had already chosen it. The picker no longer
-  offers it.
+A few things to know:
+
+- **Not supported:** legacy `.doc` (save it as `.docx`), `.rtf`, Excel, PowerPoint and EPUB files.
+- **PDFs** are read from their text layer. A scanned PDF without one is recorded as Failed with the reason; there is no OCR for PDFs.
+- **The Import Files picker** lists every format Agent-X can read, including images, audio, web shortcuts and formats added by active plugins. You can also drag files onto the Knowledge Vault page or use Import Folder.
+- **Audio** is transcribed on your computer by the speech-to-text model (Whisper base, about 142 MB). Install it with **Download** under Speech-to-Text Model on the Model Manager page; nothing downloads it on its own. Without it an audio file is imported as Failed with a message saying so, and it is transcribed after you install the model. OGG and WebM need a Windows codec.
+- **A file that cannot be read** (encrypted, damaged, no text) is kept in the vault as Failed, and its row and the Document Preview show why.
 
 ### Does Agent-X work offline?
 
-Yes, once the local model is on the machine. How it gets there depends on which installer you ran:
+Yes, once the built-in model is on the computer. How it gets there depends on the installer:
 
-- **SLIM** (the default, and the one attached to the GitHub release): the installer is ~228 MiB and Agent-X downloads Llama 3.2 3B (~1.9 GB) on first run, from Onboarding Step 3. That first download needs an internet connection; nothing after it does.
-- **OFFLINE** (hosted at `downloads.strategia-x.com`, linked from the release notes): the model is already inside the installer, so the machine never needs a connection.
+- **SLIM** (the default, attached to the GitHub release): the installer does not contain the model. On first run the onboarding wizard's "Your AI is Ready" step offers **Download built-in model**, a download of about 2 GB from Hugging Face. That download needs an internet connection; nothing after it does.
+- **OFFLINE** (hosted at `downloads.strategia-x.com` and linked from the release notes): the model is inside the installer, so the machine never needs a connection.
+
+Features that use the network by nature (cloud AI providers, Research Mode, Web Import, the calendar and email connectors) need a connection when you use them.
 
 ---
 
@@ -76,48 +79,47 @@ Yes, once the local model is on the machine. How it gets there depends on which 
 
 ### What are the system requirements?
 
-| Requirement | Minimum | Recommended |
-|-------------|----------|-------------|
-| **Windows** | 10 build 19041+ (2004) | 11 |
-| **Architecture** | x64 | x64 |
-| **RAM** | 8 GB | 16 GB+ |
-| **Disk Space** | 5 GB | 10 GB+ |
-| **GPU** | None required | NVIDIA with CUDA 12 support |
+| Requirement | Value |
+|-------------|-------|
+| **Windows** | Windows 10 build 19041 (version 2004) or later, or Windows 11 |
+| **Architecture** | x64 |
+| **Disk space** | The app, about 2 GB for the built-in model, about 142 MB for the optional speech-to-text model, and your data |
+| **GPU** | Not required. The built-in model can offload layers to an NVIDIA GPU when the NVIDIA CUDA 12 Toolkit is installed |
+
+The installer bundles the .NET runtime and the Windows App SDK, so nothing else has to be installed. No minimum amount of RAM is enforced; the Hardware Advisor page suggests model sizes for the memory your computer has.
 
 ### How do I install Agent-X?
 
-1. Download an installer. The published release is v2.1.1: `AgentX-Setup-2.1.1-x64.exe` (SLIM, attached to the release) or `AgentX-Setup-2.1.1-x64-offline.exe` (OFFLINE, linked from the release notes)
-2. Run the installer (no admin privileges required)
-3. Launch from Start Menu or desktop shortcut
-4. Create a passphrase on first launch
+1. Download an installer. The installers published with the v2.1.1 release are `AgentX-Setup-2.1.1-x64.exe` (SLIM, 228 MiB, attached to the release) and `AgentX-Setup-2.1.1-x64-offline.exe` (OFFLINE, 2.07 GiB, linked from the release notes). They are not code-signed, so Windows SmartScreen asks you to confirm. The v2.1.2 and v2.2.0 releases have no installers yet (they wait for a code-signing certificate), so the v2.1.1 files predate later fixes, among them the token that protects the local API; to run the current version, build it from source (see [the product README](../README.md#build-from-source)).
+2. Run the installer. It needs no administrator rights and offers an optional desktop shortcut.
+3. Launch Agent-X from the Start Menu, the desktop shortcut, or the installer's last page.
+4. Follow the onboarding wizard: it can test an Ollama connection, pick Ollama models, download the built-in model (SLIM) and take optional OpenAI and Anthropic API keys. No passphrase is needed.
 
 ### Do I need administrator rights?
 
-No. Agent-X installs to `%LocalAppData%\Programs\Agent-X` by default, which doesn't require elevation. Administrator rights are only needed if you want to install to Program Files for all users.
+No. For your own account Agent-X installs to `%LocalAppData%\Programs\Agent-X`, which does not need elevation. The installer can also install for all users into Program Files, which asks for administrator rights.
 
 ### Can I install Agent-X on a USB drive?
 
-Yes. During installation, choose a custom location and select your USB drive. Note that performance will be slower than installing to an internal SSD.
+You can choose another folder, including a USB drive, for the program files. Your data, the downloaded models and the logs are always kept in `%LocalAppData%\AgentX` on the computer's own drive, so the installation is not portable.
 
 ### How do I uninstall Agent-X?
 
-1. Go to **Settings → Apps → Installed Apps** in Windows
+1. Go to **Settings > Apps > Installed apps** in Windows
 2. Find "Agent-X" and click **Uninstall**
-3. Your data in `%LocalAppData%\AgentX\` is preserved
+3. The uninstaller removes the program and the log files. Your data in `%LocalAppData%\AgentX\` (database, settings, models, backups made there, plugins) is kept
 
-To completely remove Agent-X including data:
-1. Uninstall the application
-2. Delete `%LocalAppData%\AgentX\` manually
-3. Delete your Windows credential manager entries for Agent-X
+To remove everything, uninstall and then delete `%LocalAppData%\AgentX\`. Agent-X stores nothing in Windows Credential Manager.
 
-### Can I migrate my data to another computer?
+### Can I move my data to another computer?
 
-Yes. Your database and documents can be migrated:
+Use the Backup & Restore page:
 
-1. Copy `%LocalAppData%\AgentX\` to the new computer
-2. Install Agent-X on the new computer
-3. Replace the newly created data directory with your backup
-4. Launch Agent-X and unlock with your original passphrase
+1. On the old computer, create a backup with **Create Backup** (with **Include indexed documents** on, it also carries the pages saved by Web Import). A password is optional.
+2. Install Agent-X on the new computer, open Backup & Restore, choose the `.agentxbak` file under **Restore from Backup**, and click **Restore**. Restart Agent-X when it says so.
+3. Enter your API keys and other settings again: settings are not part of a backup, and the secrets in `settings.json` are encrypted for your Windows account on the old computer.
+
+Two limits apply. If database encryption is on, the database inside the backup is encrypted with that installation's key, so it can only be restored there. And documents are kept as extracted text plus the path to the original file: search and Ask Your Files work after the move, but re-indexing or opening a document needs the file at the same path on the new computer.
 
 ---
 
@@ -125,59 +127,57 @@ Yes. Your database and documents can be migrated:
 
 ### How do I import documents?
 
-1. Navigate to **Knowledge Vault** (`Ctrl+L`)
-2. Click **[+ Import Documents]**
-3. Select files or folders
-4. Choose import options (auto-title, auto-tag)
-5. Click **Import**
+1. Open the **Knowledge Vault** (`Ctrl+I`)
+2. Click **Import Files** and pick one or more files, click **Import Folder**, or drag files and folders onto the page
+3. With Import Files or drag and drop, if some files are exact copies of documents already in the vault, choose **Skip Duplicates** or **Import All** (Import Folder skips them)
+4. Indexing (chunking, embedding and keyword indexing, then auto-tagging) runs in the background; each row shows its status
+
+The Command Palette's Import Files action (`Ctrl+K`) opens the vault with the file picker. Titles come from the document itself (for example its first heading); **AI Title** asks the model for one on demand.
 
 ### Can I import entire folders?
 
-Yes. Use **[Select Folder]** during import to recursively import all supported files in a directory tree.
+Yes. **Import Folder** imports every supported file in a folder and its subfolders. To keep importing from a folder, add it under **Watch Folders** in Settings > Knowledge Vault: while **Auto-index watch folders** is on, Agent-X imports the supported files already there, then new and changed ones while it runs, straight into the vault.
 
 ### How do I organize my documents?
 
-Agent-X provides several organization methods, each backed by a table in `src/AgentX.Core/Data/Entities/`:
-
 | Method | Description |
 |--------|-------------|
-| **Collections** | Group documents manually or by rules |
-| **Tags** | Auto-generated or manually applied |
-| **Search Folders** | Save searches as virtual folders |
-| **Conversation Folders** | Organize chats (Work, Research, Personal) |
+| **Collections** | Groups you create on the Collections page and fill with **Add Documents**. A document can be in several; a Collection can be moved into another one level deep with **Move into...** |
+| **Tags** | Assigned by auto-tagging after indexing (up to five per document) |
+| **Saved Filters** | Searches saved on the Search page with their mode and settings |
+| **Conversation Folders** | Work, Research, Personal, Archive or a name you type, set with the folder button in AI Chat |
+
+Quick Actions > Organize suggests Collections and tags for documents that are in none, but applies nothing.
 
 ### What is the Knowledge Graph?
 
-The Knowledge Graph is an interactive visualization showing connections between:
-- Documents (nodes)
-- Collections (nodes)
-- Tags (nodes)
+The Knowledge Graph (`Ctrl+G`) draws your vault as a network:
+- Documents, Collections and tags are nodes
+- A line joins each document to its Collections and tags
+- A line joins two documents that share at least one Collection or tag, thicker the more they share
 
-Edges show relationships:
-- Document → Collection membership
-- Document → Tag associations
-- Tag co-occurrence
+Click a node for its details; clicking a Collection or tag highlights its cluster. You can zoom (not pan) and search node names. The layout is a force-directed simulation run once per build; Refresh rebuilds it.
 
 ### How do I use the command palette?
 
-Press `Ctrl+K` to open the command palette. Type commands like:
-
-- "Import documents"
-- "Search for meeting notes"
-- "Open settings"
-- "Start new chat"
-- "Show knowledge graph"
+Press `Ctrl+K` (or `Ctrl+Shift+P`) and type part of a name. The palette lists every page on the navigation rail, three actions (New Conversation, Import Files, Toggle Theme) and the shortcuts of the page you are on. The letters you type must appear in order but need not be adjacent. To open a specific document or conversation, use Jump To (`Ctrl+P`) instead.
 
 ### What are Workflows?
 
-Workflows automate repetitive tasks:
+Workflows are multi-step AI text pipelines you run on demand: each step's output feeds the next. A step is one of five types: AI Prompt, Document Lookup, Text Transform, Conditional Branch or Output Format. Agent-X ships four built-in templates you can run as they are or copy with **Use Template**:
 
 | Workflow | Description |
 |----------|-------------|
-| **Batch Import** | Import and process multiple documents |
-| **Weekly Digest** | Generate summary reports |
-| **Tag Cleanup** | Merge duplicate tags |
-| **Re-index Vault** | Refresh all document embeddings |
+| **Summarize & Act** | Summarize the input, extract key points, and generate action items |
+| **Research Brief** | Analyze a topic, identify key arguments, and write a structured brief |
+| **Document Review** | Summarize a document, list strengths and weaknesses, and suggest improvements |
+| **Content Repurpose** | Rewrite content as a tweet thread, an email, and a blog post |
+
+Workflows run only when you start them: there are no schedules, event triggers, or notifications.
+
+### Can I annotate documents?
+
+Yes. In the Knowledge Vault, open a document's preview with **Detail**. Under DOCUMENT TEXT, move through the indexed text with Previous passage and Next passage, select some text, add an optional note under NEW ANNOTATION and click **Save Annotation**. The preview lists the document's annotations under ANNOTATIONS, and the Annotations page lists all of them, where you can search, filter by color, edit the note and color, delete, and **Export as Markdown**. Annotations are not highlighted inside the passage text.
 
 ---
 
@@ -185,73 +185,69 @@ Workflows automate repetitive tasks:
 
 ### What AI models are supported?
 
-| Provider | Models | Type |
+| Provider (as named in Settings) | Models | Type |
 |----------|--------|------|
-| **Built-in** | Llama 3.2 3B Instruct | Local (bundled by the OFFLINE installer, downloaded on first run by SLIM) |
-| **Ollama** | Llama 3.x, Phi 4, Mistral, etc. | Local (user-managed) |
-| **OpenAI** | GPT-4o, GPT-4o-mini, etc. | Cloud (API key) |
-| **Anthropic** | Claude 3.5 Sonnet, Haiku, etc. | Cloud (API key) |
+| **Built-in LLM (Local)** | Llama 3.2 3B Instruct (the default); Llama 3.2 1B Instruct can also be downloaded | Local, on your computer |
+| **Ollama (Local)** | Any model you pull into Ollama | Local, or on another computer if you point the endpoint there |
+| **OpenAI** | The chat models your API key lists; `gpt-4o-mini` by default | Cloud (API key) |
+| **Anthropic Claude** | The models your API key lists; Claude Opus 5.5, Claude Sonnet 5 and Claude Haiku 4.5 are offered when the list cannot be fetched; `claude-sonnet-5` by default | Cloud (API key) |
 
-### What is the bundled model?
+### What is the built-in model?
 
-Agent-X uses **Llama 3.2 3B Instruct**, a compact but capable language model:
+Agent-X's default provider is **Llama 3.2 3B Instruct**, a compact language model:
 
-- **Size**: ~1.9 GB
-- **How you get it**: bundled in the OFFLINE installer; downloaded on first run with the default SLIM installer
-- **Capability**: Chat, summarization, question-answering
+- **File**: `llama-3.2-3b-instruct-q4_k_m.gguf` (Q4_K_M quantization, about 2 GB) in `%LocalAppData%\AgentX\Models`
+- **How you get it**: bundled in the OFFLINE installer; downloaded from the onboarding wizard with the default SLIM installer, or with Pull Model on the Model Manager page while the built-in provider is active
+- **Runs with**: LLamaSharp (llama.cpp), with an 8,192-token context
+- **Also used for**: embeddings, when it is installed and the Embedding Model setting is left at its default
 - **License**: Llama 3.2 Community License
 
-Throughput depends on your CPU, GPU, and VRAM, and is not benchmarked here. The onboarding wizard reports the acceleration Agent-X detected on your machine (`src/AgentX.App/Views/OnboardingPage.xaml:521`).
+Throughput depends on your CPU, GPU and memory and is not benchmarked here. Each reply in AI Chat shows its token count and speed.
 
 ### How do I add more models?
 
 **For Ollama (local):**
 1. Install Ollama from [ollama.com](https://ollama.com)
-2. Pull models: `ollama pull llama3.2` or `ollama pull phi4`
-3. Agent-X auto-detects Ollama at `http://localhost:11434`
+2. Pull a model: `ollama pull llama3.2`, or type its name under Pull New Model on the Model Manager page while Ollama is the active provider
+3. In Settings > AI Providers, set **Active Provider** to **Ollama (Local)**, check the **Endpoint** (`http://localhost:11434` by default) with **Test Connection**, and click **Save Settings**
 
 **For cloud providers:**
-1. Go to **Settings → AI Providers**
-2. Click **Configure** next to the provider
-3. Enter your API key
-4. Keys are stored encrypted in Windows credential manager
+1. Go to **Settings > AI Providers**
+2. Paste the **API Key** under **OpenAI** or **Anthropic Claude**, and optionally change **Endpoint** and **Default Model**
+3. Click **Test Connection**, choose the provider under **Active Provider**, and click **Save Settings**
+4. The key is stored in `settings.json`, encrypted with Windows DPAPI for your account
 
 ### Can I use my own models?
 
-Yes. Agent-X reaches models through the providers in `src/AgentX.Core/AI/Providers/`:
-- Ollama (run `ollama run <model-name>`)
-- OpenAI-compatible endpoints
-- Custom providers (via plugin system)
+Yes:
+- Any model you run in Ollama
+- An OpenAI-compatible server: enter its address as the OpenAI **Endpoint**
+- Another GGUF file for the built-in provider: copy it into `%LocalAppData%\AgentX\Models`. Set Active in the Model Manager uses it until Agent-X closes; to keep it, set `localModelFileName` in `settings.json` while Agent-X is closed (that file then also produces the embeddings)
+
+Plugins cannot add AI providers.
 
 ### How do I switch between models?
 
-1. Go to **Settings → AI Providers** (`src/AgentX.App/Views/SettingsPage.xaml`)
-2. Select your preferred provider from the dropdown
-3. Choose a specific model from that provider
-4. Your selection persists across sessions
+1. Choose the provider under **Active Provider** in Settings > AI Providers and click **Save Settings**
+2. Pick a model of that provider in the model box at the top of AI Chat, or with **Set Active** on the Model Manager page
+3. For Ollama, OpenAI and Anthropic the choice is remembered after a restart; for the built-in provider see the previous answer
+
+With **Enable Auto-Routing** (Settings > Multi-Model Routing), each chat reply can go to another provider according to the Routing Profile, without changing the active provider.
 
 ### What is GPU acceleration?
 
-GPU acceleration moves part of the model onto an NVIDIA GPU, so those layers run in
-VRAM instead of on the CPU. Agent-X detects the GPU and computes how many of the 33
-layers would fit (`src/AgentX.Core/AI/Models/AiModel.cs:119`):
+GPU acceleration moves part of the built-in model onto an NVIDIA GPU, so those layers run in video memory instead of on the CPU. The setting is **Automatic GPU layers** under Settings > AI Providers > Built-in LLM (Local), on by default. Automatic gives an NVIDIA GPU this many of the model's layers:
 
 | Detected VRAM | Layers offloaded |
 |---|---|
 | Under 2 GB, or no NVIDIA GPU | 0 (CPU only) |
 | 2-4 GB | 16 |
 | 4-6 GB | 28 |
-| 6 GB and above | 33 (all) |
+| 6 GB and above | 33 (all of the 3B model) |
 
-**There is no GPU toggle in Settings today.** The onboarding wizard shows the detected
-GPU and the recommended layer count, but nothing writes that recommendation back
-(`src/AgentX.App/ViewModels/OnboardingViewModel.cs:333`). The value actually used is
-`LocalGpuLayers` in `%LocalAppData%\AgentX\settings.json`, which defaults to 0
-(`src/AgentX.Core/Services/Settings/AppSettings.cs:21`) and is read at
-`src/AgentX.Core/AI/AiService.cs:80`. Editing that file while Agent-X is closed is the
-only way to change it.
+Turn Automatic off to enter **GPU Layers** yourself (0 to 999; 0 keeps the model on the CPU). **Save Settings** reloads the built-in model with the new value; no restart is needed.
 
-No throughput multiplier is published for these tiers, because none has been measured.
+The layers run on the GPU only when the **NVIDIA CUDA 12 Toolkit** is installed: Agent-X ships the CUDA 12 build of llama.cpp but not the CUDA runtime libraries it needs. Without the toolkit the model runs on the CPU whatever the setting says, and the onboarding wizard says what is missing. AMD and Intel GPUs are not used by the built-in model. Ollama decides its own GPU use.
 
 ---
 
@@ -259,97 +255,77 @@ No throughput multiplier is published for these tiers, because none has been mea
 
 ### What is RAG?
 
-**RAG** stands for **Retrieval-Augmented Generation**. It's a technique that:
+**RAG** stands for **Retrieval-Augmented Generation**. In Ask Your Files, Agent-X:
 
-1. Retrieves relevant documents from your knowledge base
-2. Includes them in the AI prompt
-3. Generates answers grounded in your data
+1. Retrieves the passages of your indexed documents that best match your question
+2. Gives them to the active AI model as numbered context
+3. Streams an answer that cites them as [1], [2] and so on
 
-This means Agent-X doesn't just "hallucinate" — it cites sources from your actual documents.
+The model is told to answer only from those passages and to say when they are not enough, but it can still make mistakes, so check the cited sources for anything that matters. AI Chat does not search your documents; use Ask Your Files for that.
 
 ### How does semantic search work?
 
 Semantic search uses **vector embeddings**:
 
-1. Your query is converted to a vector (list of numbers)
-2. Document embeddings are compared using cosine similarity
-3. Most similar documents are returned
+1. When a document is indexed, each chunk becomes a vector (a list of numbers) from the embedding model
+2. Your query is turned into a vector with the same model
+3. Chunks are compared by cosine similarity, and the closest come back with a relevance score
 
-This finds conceptually related content even without exact keyword matches.
+This finds related content even without exact keyword matches. Vaults with more than about 10,000 chunks are searched through an HNSW index, smaller ones exactly.
 
 ### What is hybrid search?
 
-Hybrid search runs **both semantic and keyword searches** in parallel:
+Hybrid search runs **semantic and keyword searches** together:
 
 | Search Type | Best For |
 |-------------|----------|
 | **Semantic** | Concepts, meaning, related topics |
-| **Keyword** | Exact phrases, names, technical terms |
-| **Hybrid (RRF)** | Best of both — merged results |
+| **Keyword** | Exact phrases, names, technical terms (SQLite FTS5 with BM25 ranking) |
+| **Hybrid** | Both, merged into one ranking |
 
-Results are combined using **Reciprocal Rank Fusion (RRF, k=60)**.
+Results are combined using **Reciprocal Rank Fusion (RRF, k=60)**. The Search page opens in Semantic mode; Ask Your Files always uses hybrid retrieval.
 
 ### What is HyDE?
 
-**HyDE** (Hypothetical Document Embeddings) improves retrieval:
+**HyDE** (Hypothetical Document Embeddings) helps when your question is worded differently from your documents. For questions of 80 characters or more, Ask Your Files:
 
-1. AI generates a "hypothetical" ideal answer to your query
-2. This hypothetical answer is embedded
-3. Used to find similar real documents
+1. Has the model draft a hypothetical answer
+2. Searches with that text as well as with your question and a few rephrasings of it
 
-This helps when your query doesn't match the language in your documents.
+Each of these is an extra model call.
 
 ### What are citations?
 
-Citations link AI responses to source documents:
+Citations link an answer to its sources:
 
-```
-According to the project plan, Phase 1 focuses on foundation work
-including architecture design and database setup.
-
-📎 Source: project-plan.pdf, page 3
-```
-
-Click the citation to open the document at the relevant location.
+- **Ask Your Files**: each [n] in the answer that matches a retrieved passage becomes a card in the Sources panel, with the document name, the page number when the format has pages, the match percentage and an excerpt. Open source document shows the file in File Explorer; it does not jump to the passage.
+- **Research Mode in AI Chat**: the web results the answer used are listed as numbered **Web sources** chips; a click opens the page in your browser.
 
 ---
 
 ## Performance & Hardware
 
-### How fast is the bundled model?
+### How fast is the built-in model?
 
-| Hardware | Tokens/sec | Notes |
-|----------|------------|-------|
-| **CPU (modern)** | 2-4 | Usable for chat |
-| **CPU (older)** | 1-2 | Slow but functional |
-| **GPU 4 GB** | 8-15 | Good experience |
-| **GPU 8 GB** | 15-25 | Excellent |
-| **GPU 16+ GB** | 30-50+ | Near-instant |
+It has not been benchmarked, and speed depends on your processor, memory and GPU. Each reply in AI Chat shows its token count and speed, so you can compare models on your own computer. For faster replies, see [AI responses are slow](#ai-responses-are-slow).
 
 ### Can Agent-X use multiple GPUs?
 
-No. Agent-X passes a single layer count to one device (`src/AgentX.Core/AI/AiService.cs:80`); there is no multi-GPU path in the code.
+No. Agent-X passes a single layer count for the built-in model (`LocalLlmProvider.ResolveGpuLayers` in `src/AgentX.Core/AI/Providers/LocalLlmProvider.cs`); there is no multi-GPU setting.
 
 ### How much disk space do I need?
 
 | Component | Size |
 |-----------|------|
-| **Application** | ~500 MB |
-| **Bundled Model** | ~2 GB |
-| **Database** | Varies by usage (~100 MB per 1000 documents) |
-| **Documents** | Your actual file sizes |
+| **SLIM installer** | 228 MiB (v2.1.1) |
+| **Built-in model** | About 2 GB (3B), or about 800 MB for the 1B model |
+| **Speech-to-text model** | About 142 MB, only if you install it |
+| **Database** | Grows with your vault: the extracted text, the chunks and one embedding per chunk. An embedding takes 1,536 bytes with `all-minilm` (384 dimensions) and 12,288 bytes with the built-in model (3,072 dimensions) |
+| **Documents** | Imported files stay where they are. Agent-X keeps its own copies only of pages saved by Web Import (`%LocalAppData%\AgentX\WebImports`) and of browser clips, Smart Inbox and connector items (`Clips` and `Inbox` in `%LocalAppData%\AgentX`) |
 
-**Total minimum:** 5 GB free space
-**Recommended:** 10 GB+ free space
+### How much memory does Agent-X use?
 
-### How much RAM does Agent-X use?
-
-| Usage | RAM |
-|-------|-----|
-| **Idle** | ~200 MB |
-| **Chat (CPU inference)** | ~1-2 GB |
-| **Chat (GPU inference)** | ~500 MB - 1 GB |
-| **Large vault (10k+ docs)** | ~2-4 GB |
+It has not been measured and depends on the model. When the built-in model is the active provider, it is loaded into memory as Agent-X starts (the 3B file is about 2 GB). For large vaults the HNSW index is held in memory and takes roughly chunks x dimensions x 4 bytes plus its links. A smaller embedding model, a lower Context Window or a smaller chat model all reduce memory use.
 
 ---
 
@@ -357,50 +333,53 @@ No. Agent-X passes a single layer count to one device (`src/AgentX.Core/AI/AiSer
 
 ### Is my data sent to the cloud?
 
-**No.** Agent-X is local-first:
+**Not by default.** With the built-in model, your documents, conversations and settings stay on your computer, and Agent-X sends no telemetry, usage analytics or crash reports. Data leaves the computer only for what you set up:
 
-- All processing happens on your machine
-- No telemetry, analytics, or phone-home
-- Your data never leaves your computer
+- **A cloud AI provider (OpenAI or Anthropic) as the active provider.** Every AI feature then sends its text there: chat messages with the conversation context and memories, Ask Your Files questions with the retrieved passages (with personal details such as e-mail addresses and phone numbers redacted first), auto-tagging (the first 2,000 characters of each newly indexed document), AI titles, Quick Actions, document comparisons, workflow AI steps, Smart Inbox previews, Draft As Me, conversation summaries and the background memory extraction after each chat reply.
+- **Ollama on another computer**: the same text goes to that computer.
+- **Enable Auto-Routing** with a cloud API key set: chat replies can go to that cloud provider.
+- **An OpenAI embedding model** (`text-embedding-...`) as the Embedding Model: the text of every indexed chunk and search query goes to OpenAI.
+- **Research Mode**: while it is on in Settings and in the chat, your message goes to the search provider (Brave, Serper, or your SearXNG instance, which forwards it to public search engines).
+- **Web Import**, `.url` and `.webloc` files: Agent-X fetches the pages you ask for.
+- **Calendar and email connectors**: Agent-X reads from your Google or Microsoft account.
+- **Model downloads**: the built-in model and the speech-to-text model come from Hugging Face when you ask for them.
+- **Collaborative Sync and backups** write encrypted files to the folder you choose, which may be a cloud-synced folder.
 
-The exception is if you explicitly configure cloud AI providers (OpenAI, Anthropic). In that case, only your prompts and retrieved documents are sent to generate responses.
+The Dashboard's privacy line and the LOCAL/NET lamp in the status strip list the cloud or remote AI provider, model routing, a configured web search provider and the connectors; they do not report an OpenAI embedding model (see [KNOWN-ISSUES](../KNOWN-ISSUES.md)).
 
 ### How is my data encrypted?
 
-Agent-X uses **SQLCipher** with:
-
-- **Algorithm:** AES-256-CBC
-- **Key derivation:** PBKDF2-HMAC-SHA256 (100,000 iterations)
-- **Key storage:** Windows DPAPI, tied to your Windows account (available to every user)
+- **Database**: optional. Turn it on under Settings > Database Encryption; the whole `agentx.db` is then encrypted with SQLCipher (AES-256). The key is a random 256-bit key, wrapped with Windows DPAPI for your account and kept in `%LocalAppData%\AgentX\encryption.info.json`. Encryption cannot be turned off again.
+- **Secrets**: API keys, the web search key or SearXNG address, the local API token, OAuth client secrets and the scheduled-backup password are DPAPI-encrypted in `settings.json`; Google and Microsoft sign-in tokens are DPAPI-encrypted in the database.
+- **Backups**: with a password, AES-256-GCM with a key derived by PBKDF2 (600,000 iterations).
+- **Collaborative Sync packages**: AES-256-GCM with a key derived by PBKDF2-SHA256 from your Encryption Key (100,000 iterations).
 
 ### What happens if I forget my passphrase?
 
-**There is no password recovery.** Agent-X uses strong encryption specifically so that not even the developers can access your data.
+Database encryption turned on in current versions uses no passphrase: the key is tied to your Windows account, and you are not asked for anything at startup. Keep `encryption.info.json` and your Windows account: without them the encrypted database cannot be opened.
 
-If you forget your passphrase:
-- Your data is permanently inaccessible
-- You can delete the database and start fresh
-
-**Tip:** Store your passphrase in a secure password manager.
+A database encrypted by an earlier version with a passphrase asks for it at startup, and backup passwords and the sync Encryption Key are also yours alone. **None of them can be recovered.** Store them in a password manager.
 
 ### Are my API keys safe?
 
-Yes. API keys are stored in **Windows Credential Manager**:
+API keys are stored in `%LocalAppData%\AgentX\settings.json`, encrypted with Windows DPAPI:
 
-- Encrypted with Windows DPAPI
-- Tied to your Windows user account
-- Never stored in plain text or config files
+- Only your Windows account can decrypt them
+- They are never written in plain text; a plain-text key found in the file is encrypted on the next start
+- They are sent only to the provider they belong to
+
+They are not in Windows Credential Manager, and they are not part of backups.
 
 ### Can I use Agent-X in a corporate environment?
 
-Yes, but consider:
+Yes. Consider:
 
-| Factor | Recommendation |
-|--------|----------------|
-| **Data Policy** | Local-first means data stays on your machine |
-| **Approval** | Check with IT before installing |
-| **Licensing** | MIT — free for commercial use with no per-seat fees |
-| **Support** | Community support via the project repository |
+| Factor | Notes |
+|--------|-------|
+| **Data policy** | Data stays on the computer unless you set up the services listed above |
+| **Approval** | Check with IT before installing; the current installers are not code-signed |
+| **Licensing** | MIT: free for commercial use, no per-seat fees |
+| **Support** | GitHub issues on the project repository, or support@strategia-x.com |
 
 ---
 
@@ -408,15 +387,15 @@ Yes, but consider:
 
 ### How is Agent-X licensed?
 
-Agent-X is free and open-source software released under the **MIT License** (`LICENSE`). Every feature is unconditionally available to every user: the built-in model, semantic search, GPU offloading, advanced RAG, Knowledge Graph, multi-provider AI, the REST API, sync, and analytics. There is nothing to buy, activate, or upgrade.
+Agent-X is free and open-source software released under the **MIT License** (`LICENSE`). Every feature is available to every user: the built-in model, semantic search, GPU offloading, Ask Your Files, the Knowledge Graph, multi-provider AI, the local API, sync and analytics. There is nothing to buy, activate, or upgrade.
 
 ### Is there anything I need to pay for?
 
-No. Agent-X is completely free. There are no tiers, no subscriptions, no trials, and no quotas. Install it and use everything, forever, at no cost.
+Not for Agent-X. There are no tiers, subscriptions, trials or quotas. If you use OpenAI, Anthropic, Brave Search or Serper, those services bill you under your own account; the Cost Tracking card in Settings estimates what the OpenAI and Anthropic calls cost.
 
 ### Can I use Agent-X commercially?
 
-Yes. The MIT License lets you use, copy, modify, merge, publish, distribute, sublicense, and even sell copies of Agent-X — for personal, business, or enterprise use — with no per-user or per-seat restrictions. The only condition is that the MIT copyright and permission notice be included in copies of the software.
+Yes. The MIT License lets you use, copy, modify, merge, publish, distribute, sublicense, and sell copies of Agent-X, for personal, business, or enterprise use, with no per-user or per-seat restrictions. The only condition is that the MIT copyright and permission notice be included in copies of the software.
 
 ---
 
@@ -426,48 +405,46 @@ Yes. The MIT License lets you use, copy, modify, merge, publish, distribute, sub
 
 **Possible causes:**
 
-1. **Another instance is running**
-   - Check Task Manager for `AgentX.exe`
-   - End the process and restart
+1. **It is already running in the notification area**
+   - Closing the window hides Agent-X instead of quitting it
+   - Open it from its tray icon, or check Task Manager for `AgentX.App.exe`. Use Exit in the tray menu to quit
 
-2. **Database locked**
-   - Ensure no other process is accessing the database
-   - Restart your computer
+2. **The database could not be opened or upgraded**
+   - Agent-X then shows "Agent-X could not start" and stops before loading any feature
+   - Follow the dialog's steps, and include the log files from `%LocalAppData%\AgentX\Logs` when you report it
 
 3. **Corrupt installation**
    - Uninstall and reinstall Agent-X
-   - Your data is preserved in `%LocalAppData%\AgentX\`
+   - Your data in `%LocalAppData%\AgentX\` is preserved
 
 ### AI responses are slow
 
 **Solutions:**
 
-1. **Offload layers to an NVIDIA GPU** (if you have one)
-   - Set `LocalGpuLayers` in `%LocalAppData%\AgentX\settings.json` while Agent-X is closed
-   - See "What is GPU acceleration?" above for the layer counts and why there is no toggle
+1. **Offload the built-in model to an NVIDIA GPU**
+   - Install the NVIDIA CUDA 12 Toolkit; with **Automatic GPU layers** on, the layers then run on the GPU
+   - See [What is GPU acceleration?](#what-is-gpu-acceleration)
 
 2. **Switch to a smaller model**
-   - Use Llama 3.2 3B (the built-in model) instead of larger models
-   - Smaller models are faster
+   - For example the built-in model, or a small Ollama model the Hardware Advisor suggests
 
-3. **Reduce context window**
-   - Smaller context = faster processing
-   - Settings → Inference → Context Window (`src/AgentX.App/Views/SettingsPage.xaml:391`)
+3. **Reduce the context**
+   - Lower **Context Window** or **Max Tokens** under Settings > Inference
+   - Start a new conversation when you change topics
 
 ### Search returns no results
 
 **Possible causes:**
 
-1. **Documents not indexed**
-   - Check **Knowledge Vault** for "Indexed" status
-   - Re-index if needed
+1. **Documents not indexed yet**
+   - Check the status in the **Knowledge Vault** (Indexed, Processing, Pending or Failed)
+   - A Failed row shows why; fix the cause and click **Re-index**
 
-2. **Query too specific**
-   - Try broader terms
-   - Use semantic search for concepts
+2. **Minimum relevance too high**
+   - Lower **MIN RELEVANCE** under Advanced on the Search page (30% by default)
 
-3. **Wrong search mode**
-   - Try **Hybrid** search instead of pure semantic or keyword
+3. **Wrong search mode or scope**
+   - Try **Hybrid** or **Keyword** mode, and clear the Collection and file type filters
 
 ### Import fails
 
@@ -475,37 +452,35 @@ Yes. The MIT License lets you use, copy, modify, merge, publish, distribute, sub
 
 | Issue | Solution |
 |-------|----------|
-| **Unsupported format** | Check file is in supported format list |
-| **Corrupt file** | File may be damaged — try opening separately |
-| **Access denied** | Ensure file isn't open in another application |
-| **Password protected** | Remove password protection first |
+| **Unsupported format** | Check the format list above; save legacy `.doc` files as `.docx` |
+| **Scanned PDF** | The PDF has no text layer; run it through OCR software first |
+| **Corrupt or encrypted file** | The row shows the reason; open the file in its own application and save a clean copy |
+| **Audio marked Failed** | Install the speech-to-text model on the Model Manager page; the file is transcribed afterwards |
 
 ### GPU acceleration not working
 
 **Check:**
 
-1. **CUDA installed?**
-   - Agent-X ships the CUDA 12 runtime (`LLamaSharp.Backend.Cuda12` in `src/AgentX.Core/AgentX.Core.csproj`)
-   - May need NVIDIA GPU driver update
+1. **Is the CUDA 12 Toolkit installed?**
+   - The built-in model needs it for GPU offload (`CUDA_PATH` must point at it)
+   - Updating the NVIDIA driver alone is not enough
 
-2. **VRAM insufficient?**
-   - Lower `LocalGpuLayers` in `settings.json`; a count the card cannot hold falls back to CPU
-   - Close other GPU-intensive applications
+2. **Enough video memory?**
+   - With Automatic, a GPU with under 2 GB gets no layers
+   - Turn Automatic off and enter a lower **GPU Layers** value if the model does not load; 0 keeps it on the CPU
 
-3. **Incompatible GPU?**
-   - NVIDIA GPUs with CUDA 12 support required
-   - AMD GPUs not currently supported
+3. **Is it an NVIDIA GPU?**
+   - AMD and Intel GPUs are not used by the built-in model; Ollama can use them where it supports them
 
 ### Database locked
 
 **Causes:**
 
-1. **Another Agent-X instance running**
-   - Check Task Manager
-   - End duplicate processes
+1. **A second copy of Agent-X is running**
+   - Check Task Manager for more than one `AgentX.App.exe` and exit the extra copy
 
-2. **Backup in progress**
-   - Wait for backup to complete
+2. **Another program has the database open**
+   - For example a backup or sync tool copying `agentx.db`; close it and try again
 
 3. **File lock not released**
    - Restart your computer
@@ -516,11 +491,11 @@ Yes. The MIT License lets you use, copy, modify, merge, publish, distribute, sub
 
 | Resource | Link |
 |----------|------|
-| **User Guide** | [Comprehensive documentation](../comprehensive-user-guide.md) |
-| **Troubleshooting** | [Detailed troubleshooting guide](../troubleshooting.md) |
-| **GitHub Issues** | Report bugs or request features |
-| **GitHub Discussions** | Community Q&A |
+| **User Guide** | [Full user guide](../USER-GUIDE.md) |
+| **Troubleshooting** | [Detailed troubleshooting guide](troubleshooting.md) |
+| **Known issues** | [Current limitations](../KNOWN-ISSUES.md) |
+| **GitHub Issues** | Report bugs or request features on the project repository |
 
 ---
 
-*Last updated: 2026-05-03*
+*Last updated: 2026-09-27*

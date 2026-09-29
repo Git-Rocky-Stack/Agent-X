@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Helpers;
+using AgentX.Core.Services.Localization;
 using AgentX.Core.Services.Workspace;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -11,8 +12,10 @@ namespace AgentX.App.ViewModels;
 // =====================================================================
 // WORKSPACE PROFILE VIEW MODEL
 //
-// Manages workspace profiles that let users save and restore complete
-// workspace configurations (active model, collections, custom settings).
+// Manages workspace profiles: saved presets recording a model identifier,
+// collection IDs and custom settings. Profiles are not applied to the
+// running app (selecting one or marking it as the default changes nothing
+// else), so the page must not claim otherwise.
 // Two-panel master/detail layout: profile list on the left, editor on
 // the right.
 //
@@ -23,6 +26,7 @@ public partial class WorkspaceProfileViewModel : ObservableObject, IDisposable
 {
     // -- Services -----------------------------------------------------
     private readonly IWorkspaceProfileService _profileService;
+    private readonly ILocalizationService _localization;
 
     // -- Page State ----------------------------------------------------
     [ObservableProperty] private bool _isLoading;
@@ -55,9 +59,10 @@ public partial class WorkspaceProfileViewModel : ObservableObject, IDisposable
     public bool CanCreateProfile => !string.IsNullOrWhiteSpace(NewProfileName);
 
     // -- Constructor ---------------------------------------------------
-    public WorkspaceProfileViewModel(IWorkspaceProfileService profileService)
+    public WorkspaceProfileViewModel(IWorkspaceProfileService profileService, ILocalizationService localization)
     {
         _profileService = profileService;
+        _localization = localization;
         Log.Debug("WorkspaceProfileViewModel created with services");
     }
 
@@ -80,7 +85,7 @@ public partial class WorkspaceProfileViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to initialize WorkspaceProfileViewModel");
-            SetError("Failed to load workspace profiles. Please try refreshing.");
+            SetError(_localization.GetString("Workspace_LoadFailed"));
         }
         finally
         {
@@ -148,7 +153,7 @@ public partial class WorkspaceProfileViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to reload profiles");
-            SetError("Failed to refresh profiles. Please try again.");
+            SetError(_localization.GetString("Workspace_RefreshFailed"));
         }
         finally
         {
@@ -188,13 +193,13 @@ public partial class WorkspaceProfileViewModel : ObservableObject, IDisposable
             // Select the newly created profile
             SelectedProfile = newItem;
 
-            SetStatus($"Profile \"{name}\" created successfully.");
+            SetStatus(_localization.GetString("Workspace_ProfileCreated", name));
             Log.Information("Workspace profile created: {Name} (ID: {Id})", name, entity.Id);
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to create workspace profile: {Name}", name);
-            SetError($"Failed to create profile: {ex.Message}");
+            SetError(_localization.GetString("Workspace_CreateFailed", ex.Message));
         }
     }
 
@@ -216,7 +221,7 @@ public partial class WorkspaceProfileViewModel : ObservableObject, IDisposable
             var entity = await _profileService.GetProfileAsync(SelectedProfile.Id);
             if (entity is null)
             {
-                SetError("Profile no longer exists. It may have been deleted.");
+                SetError(_localization.GetString("Workspace_ProfileMissing"));
                 return;
             }
 
@@ -238,7 +243,8 @@ public partial class WorkspaceProfileViewModel : ObservableObject, IDisposable
             SelectedProfile.UpdatedAt = entity.UpdatedAt;
             SelectedProfile.UpdatedAtFormatted = FormatHelper.TimeAgoWithMonths(entity.UpdatedAt);
 
-            // Handle default status change
+            // Handle default status change in both directions: turning the Default Profile
+            // switch off and saving used to be ignored.
             if (EditIsDefault && !SelectedProfile.IsDefault)
             {
                 await _profileService.SetDefaultProfileAsync(SelectedProfile.Id);
@@ -249,17 +255,22 @@ public partial class WorkspaceProfileViewModel : ObservableObject, IDisposable
                     profile.IsDefault = profile.Id == SelectedProfile.Id;
                 }
             }
+            else if (!EditIsDefault && SelectedProfile.IsDefault)
+            {
+                await _profileService.ClearDefaultProfileAsync(SelectedProfile.Id);
+                SelectedProfile.IsDefault = false;
+            }
 
             // Force the list to re-render the updated item
             RefreshProfileInList(SelectedProfile);
 
-            SetStatus($"Profile \"{entity.Name}\" saved successfully.");
+            SetStatus(_localization.GetString("Workspace_ProfileSaved", entity.Name));
             Log.Information("Workspace profile saved: {ProfileId}", SelectedProfile.Id);
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to save workspace profile: {ProfileId}", SelectedProfile?.Id);
-            SetError($"Failed to save profile: {ex.Message}");
+            SetError(_localization.GetString("Workspace_SaveFailed", ex.Message));
         }
     }
 
@@ -292,13 +303,13 @@ public partial class WorkspaceProfileViewModel : ObservableObject, IDisposable
             SelectedProfile = null;
             OnPropertyChanged(nameof(HasProfiles));
 
-            SetStatus($"Profile \"{profileName}\" deleted.");
+            SetStatus(_localization.GetString("Workspace_ProfileDeleted", profileName));
             Log.Information("Workspace profile deleted: {ProfileId}", profileId);
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to delete workspace profile: {ProfileId}", profileId);
-            SetError($"Failed to delete profile: {ex.Message}");
+            SetError(_localization.GetString("Workspace_DeleteFailed", ex.Message));
         }
     }
 
@@ -338,13 +349,13 @@ public partial class WorkspaceProfileViewModel : ObservableObject, IDisposable
             // Restore selection
             SelectedProfile = Profiles.FirstOrDefault(p => p.Id == SelectedProfile?.Id);
 
-            SetStatus($"Profile \"{SelectedProfile?.Name}\" is now the default.");
+            SetStatus(_localization.GetString("Workspace_ProfileIsDefault", SelectedProfile?.Name ?? string.Empty));
             Log.Information("Default workspace profile set: {ProfileId}", SelectedProfile?.Id);
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to set default workspace profile");
-            SetError($"Failed to set default profile: {ex.Message}");
+            SetError(_localization.GetString("Workspace_SetDefaultFailed", ex.Message));
         }
     }
 
@@ -357,7 +368,7 @@ public partial class WorkspaceProfileViewModel : ObservableObject, IDisposable
         if (SelectedProfile is null) return;
 
         var sourceId = SelectedProfile.Id;
-        var newName = $"{SelectedProfile.Name} (Copy)";
+        var newName = _localization.GetString("Workspace_CopyName", SelectedProfile.Name);
 
         Log.Information("Duplicating workspace profile: {SourceId} as \"{NewName}\"", sourceId, newName);
         ClearError();
@@ -374,13 +385,13 @@ public partial class WorkspaceProfileViewModel : ObservableObject, IDisposable
             // Select the duplicated profile
             SelectedProfile = newItem;
 
-            SetStatus($"Profile duplicated as \"{newName}\".");
+            SetStatus(_localization.GetString("Workspace_ProfileDuplicated", newName));
             Log.Information("Workspace profile duplicated: {SourceId} -> {NewId}", sourceId, duplicated.Id);
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to duplicate workspace profile: {SourceId}", sourceId);
-            SetError($"Failed to duplicate profile: {ex.Message}");
+            SetError(_localization.GetString("Workspace_DuplicateFailed", ex.Message));
         }
     }
 

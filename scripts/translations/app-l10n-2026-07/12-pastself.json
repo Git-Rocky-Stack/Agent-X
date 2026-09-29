@@ -50,7 +50,7 @@
     { "uid": "PastSelf_DraftAsMe", "attr": "Text", "en": "Draft as Me",
       "t": { "de": "Als ich entwerfen", "es": "Redactar como yo", "fr": "Rédiger comme moi", "ja": "自分らしく下書き", "zh-CN": "以我的口吻起草" } },
     { "uid": "PastSelf_GenerateTextInYour", "attr": "Text", "en": "Generate text in your voice using AI analysis of your writing patterns.",
-      "t": { "de": "Erzeugen Sie Texte in Ihrem Stil – auf Basis einer KI-Analyse Ihrer Schreibmuster.", "es": "Genere texto con su propia voz mediante el análisis de IA de sus patrones de escritura.", "fr": "Générez du texte avec votre voix grâce à l'analyse par IA de vos habitudes d'écriture.", "ja": "AI があなたの文章パターンを分析し、あなたらしい文章を生成します。", "zh-CN": "通过 AI 分析您的写作模式,生成符合您语气的文本。" } },
+      "t": { "de": "Erzeugen Sie Texte in Ihrem Stil - auf Basis einer KI-Analyse Ihrer Schreibmuster.", "es": "Genere texto con su propia voz mediante el análisis de IA de sus patrones de escritura.", "fr": "Générez du texte avec votre voix grâce à l'analyse par IA de vos habitudes d'écriture.", "ja": "AI があなたの文章パターンを分析し、あなたらしい文章を生成します。", "zh-CN": "通过 AI 分析您的写作模式,生成符合您语气的文本。" } },
     { "uid": "PastSelf_LoadProfile", "attr": "Content", "en": "Load Profile",
       "t": { "de": "Profil laden", "es": "Cargar perfil", "fr": "Charger le profil", "ja": "プロファイルを読み込む", "zh-CN": "加载画像" } },
     { "uid": "PastSelf_Samples", "attr": "Text", "en": "Samples",

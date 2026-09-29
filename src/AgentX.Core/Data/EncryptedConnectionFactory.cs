@@ -16,9 +16,20 @@ public sealed class EncryptedConnectionFactory : IEncryptedConnectionFactory
     public SqliteConnection OpenKeyed(string dbPath)
     {
         var conn = new SqliteConnection($"Data Source={dbPath}");
-        conn.Open();
-        ApplyKey(conn);
-        return conn;
+        try
+        {
+            conn.Open();
+            ApplyKey(conn);
+            return conn;
+        }
+        catch
+        {
+            // The caller never receives the connection on failure, so it must not stay open (or
+            // pooled) holding a handle on the database file.
+            SqliteConnection.ClearPool(conn);
+            conn.Dispose();
+            throw;
+        }
     }
 
     public void ApplyKey(SqliteConnection openConnection)

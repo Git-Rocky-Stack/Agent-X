@@ -31,19 +31,13 @@ public interface IKeywordSearchService
 
     /// <summary>
     /// Performs a full-text keyword search using FTS5 MATCH with BM25 ranking.
-    /// Results are returned as <see cref="Models.SearchResult"/> objects with
-    /// scores normalized to the 0-1 range.
+    /// Stop words are ignored and any remaining query term may match. Collection, file-type
+    /// and date filters are applied inside the query. Results are returned as
+    /// <see cref="Models.SearchResult"/> objects scored 0-1 relative to the best match, and
+    /// <see cref="Models.SearchQuery.MinScore"/> is applied on that relative scale.
     /// </summary>
     /// <param name="query">The search query with text and optional filters.</param>
     /// <param name="ct">Cancellation token.</param>
     /// <returns>Ordered list of search results, highest relevance first.</returns>
     Task<IReadOnlyList<Models.SearchResult>> SearchAsync(Models.SearchQuery query, CancellationToken ct = default);
-
-    /// <summary>
-    /// Drops and rebuilds the entire FTS5 index from all existing document chunks.
-    /// Useful after schema changes or data corruption.
-    /// </summary>
-    /// <param name="progress">Optional progress reporter with (processed, total) counts.</param>
-    /// <param name="ct">Cancellation token.</param>
-    Task RebuildFtsIndexAsync(IProgress<(int Processed, int Total)>? progress = null, CancellationToken ct = default);
 }

@@ -29,6 +29,7 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <!-- ==========================================================
@@ -128,9 +129,16 @@
             </controls:Faceplate>
 
             <!-- ==========================================================
-                 ROW 3: SYNC SETTINGS
+                 ROW 3: OAUTH APP CREDENTIALS (the same form as on the Email page)
                  ========================================================== -->
             <controls:Faceplate Grid.Row="3" Kicker="MOD - CAL - 02">
+                <controls:OAuthAppCredentialsPanel/>
+            </controls:Faceplate>
+
+            <!-- ==========================================================
+                 ROW 4: SYNC SETTINGS
+                 ========================================================== -->
+            <controls:Faceplate Grid.Row="4" Kicker="MOD - CAL - 03">
                 <StackPanel Spacing="16">
                     <TextBlock x:Uid="CalSet_SyncSettings" Text="Sync Settings"
                                Style="{StaticResource HeadingSmallStyle}"
@@ -166,14 +174,6 @@
                                    MinWidth="200"/>
                     </StackPanel>
 
-                    <StackPanel Spacing="4">
-                        <TextBlock x:Uid="CalSet_ConflictResolution" Text="Conflict resolution"
-                                   Style="{StaticResource LabelStyle}"/>
-                        <ComboBox ItemsSource="{x:Bind ViewModel.ConflictResolutionOptions, Mode=OneWay}"
-                                  SelectedIndex="{x:Bind ViewModel.ConflictResolutionIndex, Mode=TwoWay}"
-                                  MinWidth="200"/>
-                    </StackPanel>
-
                     <ToggleSwitch x:Uid="CalSet_IncludeAttendeeDetails" Header="Include attendee details"
                                   IsOn="{x:Bind ViewModel.IncludeAttendeeDetails, Mode=TwoWay}"
                                   OffContent="Exclude" OnContent="Include"/>
@@ -185,9 +185,9 @@
             </controls:Faceplate>
 
             <!-- ==========================================================
-                 ROW 4: ACTIONS
+                 ROW 5: ACTIONS
                  ========================================================== -->
-            <StackPanel Grid.Row="4" Orientation="Horizontal" Spacing="12">
+            <StackPanel Grid.Row="5" Orientation="Horizontal" Spacing="12">
                 <Button x:Uid="CalSet_SaveSettings" Content="Save Settings"
                         Command="{x:Bind ViewModel.SaveSettingsCommand, Mode=OneWay}"
                         Style="{StaticResource AccentButtonStyle}"/>
@@ -202,9 +202,9 @@
             </StackPanel>
 
             <!-- ==========================================================
-                 ROW 5: STATUS (3-column metric strip)
+                 ROW 6: STATUS (3-column metric strip)
                  ========================================================== -->
-            <controls:Faceplate Grid.Row="5" Kicker="MOD - CAL - 03">
+            <controls:Faceplate Grid.Row="6" Kicker="MOD - CAL - 04">
                 <Grid ColumnSpacing="24">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>

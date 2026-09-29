@@ -26,9 +26,9 @@ public sealed class SyncConfigurationValidatorTests
         SelectedCollectionIds = null
     };
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Valid configuration
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Validate_WithValidConfiguration_Passes()
@@ -73,9 +73,9 @@ public sealed class SyncConfigurationValidatorTests
         result.Errors.Should().NotContain(e => e.FieldName == nameof(SyncConfiguration.SyncFolderPath));
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Empty SyncFolderPath
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Theory]
     [InlineData("")]
@@ -109,9 +109,9 @@ public sealed class SyncConfigurationValidatorTests
         result.Errors.Should().Contain(e => e.FieldName == nameof(SyncConfiguration.SyncFolderPath));
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Non-rooted SyncFolderPath
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Theory]
     [InlineData("relative/path")]
@@ -134,9 +134,9 @@ public sealed class SyncConfigurationValidatorTests
             e.Message.Contains("rooted", StringComparison.OrdinalIgnoreCase));
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Short EncryptionKey
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Theory]
     [InlineData("short")]
@@ -202,9 +202,9 @@ public sealed class SyncConfigurationValidatorTests
         result.Errors.Should().Contain(e => e.FieldName == nameof(SyncConfiguration.EncryptionKey));
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  SyncIntervalMinutes out of range
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Theory]
     [InlineData(0)]
@@ -244,9 +244,9 @@ public sealed class SyncConfigurationValidatorTests
         result.Errors.Should().NotContain(e => e.FieldName == nameof(SyncConfiguration.SyncIntervalMinutes));
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  SelectedCollections scope with empty collection IDs
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Validate_SelectedCollectionsScopeWithNullIds_Fails()
@@ -315,9 +315,9 @@ public sealed class SyncConfigurationValidatorTests
             e.FieldName == nameof(SyncConfiguration.SelectedCollectionIds));
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Null instance
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Validate_NullInstance_ThrowsArgumentNullException()
@@ -329,9 +329,9 @@ public sealed class SyncConfigurationValidatorTests
         act.Should().Throw<ArgumentNullException>();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Multiple errors
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Validate_MultipleInvalidFields_ReportsAllErrors()

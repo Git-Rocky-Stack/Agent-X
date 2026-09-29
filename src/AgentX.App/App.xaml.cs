@@ -17,7 +17,6 @@ using AgentX.Core.Services.Api;
 using AgentX.Core.Services.Audio;
 using AgentX.Core.Services.Backup;
 using AgentX.Core.Services.Chat;
-using AgentX.Core.Services.Collaboration;
 using AgentX.Core.Services.Collections;
 using AgentX.Core.Services.Export;
 using AgentX.Core.Services.FeatureFlags;
@@ -80,7 +79,7 @@ public partial class App : Application
     public static IHost Host => _host ?? throw new InvalidOperationException("Host not initialized.");
     public static T GetService<T>() where T : class => Host.Services.GetRequiredService<T>();
 
-    protected override void OnLaunched(LaunchActivatedEventArgs args)
+    protected override async void OnLaunched(LaunchActivatedEventArgs args)
     {
         _host = Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder()
             .ConfigureAppConfiguration((ctx, config) =>
@@ -99,9 +98,15 @@ public partial class App : Application
             .ConfigureServices(ConfigureServices)
             .Build();
 
+        // Apply the persisted UI language before the shell is built: a language override only
+        // reaches resources loaded after it is set, so the shell's x:Uid strings would otherwise
+        // stay in the default language for the whole session. Localization reads settings.json
+        // only (no database access), so it does not have to wait for unlock and migration.
+        await InitializeLocalizationAsync();
+
         // Create and show the window shell FIRST. The critical async init below opens UI surfaces
-        // before any data work — the passphrase-unlock prompt and the migration-recovery dialog both
-        // need MainWindow.Content.XamlRoot — so _mainWindow must be assigned before init runs.
+        // before any data work - the passphrase-unlock prompt and the migration-recovery dialog both
+        // need MainWindow.Content.XamlRoot - so _mainWindow must be assigned before init runs.
         // (Pages are loaded lazily on navigation, so the shell carries no data-backed state yet; the
         // migration gate inside InitializeCoreServicesAsync still precedes every data-backed feature.)
         _mainWindow = new MainWindow();
@@ -118,28 +123,64 @@ public partial class App : Application
         // error (see InitializeCoreServicesAsync / EnterMigrationRecoveryStateAsync).
         InitializeCoreServicesAsync();
 
-        Log.Information("Agent-X started successfully");
+        // The core services above keep starting in the background; their last step logs
+        // "Agent-X core services started".
+        Log.Information("Agent-X window shown; core services are starting");
     }
 
     /// <summary>
-    /// Initializes core services on startup in a single defined order. The CRITICAL path —
-    /// database unlock, key apply, and the migration → API → connectors sequence — is AWAITED and
+    /// Loads the persisted language override and builds the resource loader. Runs before the
+    /// main window exists; a failure leaves the default language and never blocks startup.
+    /// </summary>
+    private static async Task InitializeLocalizationAsync()
+    {
+        try
+        {
+            var localization = GetService<ILocalizationService>();
+            await localization.InitializeAsync();
+
+            // Relative times ("5m ago"), the chat context inspector and the dashboard's privacy
+            // disclosures are worded in Core, which cannot read the app's resources.
+            AgentX.Core.Helpers.FormatHelper.LocalizedText = localization.GetString;
+            Log.Information("Localization initialized: {Language}", localization.CurrentLanguage);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Localization initialization failed; UI will use resource keys as fallback");
+        }
+    }
+
+    /// <summary>
+    /// Initializes core services on startup in a single defined order. The CRITICAL path -
+    /// database unlock, key apply, and the migration -> API -> connectors sequence - is AWAITED and
     /// fails closed: if migration throws, the app enters a recovery state and starts NO data-backed
     /// feature (AX-QA-003). Only after the migration gate succeeds do the best-effort inits (FTS,
-    /// AI/Ollama, feature flags, localization, theme) run, in order. Invoked after the window shell
-    /// exists so its UI prompts (passphrase, recovery dialog) have a XamlRoot. This is an
-    /// <c>async void</c> event-style entry point (WinUI's OnLaunched cannot be async), but it no
-    /// longer races the rest of startup for the critical path — that path is internally awaited and
-    /// gated end to end.
+    /// AI/Ollama, feature flags, theme) run, in order; localization already ran in OnLaunched,
+    /// before the shell was built. Invoked after the window shell exists so its UI prompts
+    /// (passphrase, recovery dialog) have a XamlRoot. This is an <c>async void</c> event-style
+    /// entry point (OnLaunched returns void, so nothing awaits it), but it no longer races the
+    /// rest of startup for the critical path - that path is internally awaited and gated end to
+    /// end.
     /// </summary>
     private static async void InitializeCoreServicesAsync()
     {
         Batteries_V2.Init();
 
         // 0. Unlock encrypted database (if encryption has been enabled)
-        // We check an out-of-DB marker file FIRST — reading UserSettings requires an unlocked
+        // We check an out-of-DB marker file FIRST - reading UserSettings requires an unlocked
         // DB, which we cannot do until the key is applied. The marker tells us which path to
-        // take without any DB access.
+        // take without any DB access. Before that, finish or undo an encryption change that a
+        // crash interrupted, so the marker and the database file agree when the marker is read.
+        try
+        {
+            GetService<IDatabaseEncryptionMigrator>().RecoverIfNeeded(
+                AgentX.Core.Helpers.PathHelper.GetDatabasePath());
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Encryption crash recovery failed");
+        }
+
         try
         {
             var stateFile = GetService<AgentX.Core.Services.Security.IEncryptionStateFile>();
@@ -156,7 +197,7 @@ public partial class App : Application
                 if (info is null)
                 {
                     Log.Warning("Encryption state file exists but is unreadable. Assuming plaintext DB.");
-                    key = null!; // fall-through — will NOT be used below
+                    key = null!; // fall-through - will NOT be used below
                 }
                 else if (info.StorageMode == AgentX.Core.Services.Security.KeyStorageMode.DpapiWrapped)
                 {
@@ -165,7 +206,7 @@ public partial class App : Application
                 }
                 else
                 {
-                    // UserPassphrase — prompt loop with probe.
+                    // UserPassphrase - prompt loop with probe.
                     key = await UnlockWithPassphraseLoopAsync(keySvc);
                     Log.Information("Database unlocked via user passphrase.");
                 }
@@ -175,19 +216,19 @@ public partial class App : Application
             }
             else
             {
-                Log.Debug("Encryption marker not present — opening plaintext database.");
+                Log.Debug("Encryption marker not present - opening plaintext database.");
             }
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Database unlock flow failed before migration runner");
             // Swallow here so the migration runner can still try (it will fail clearly
-            // if the DB is encrypted and we have no key — user can re-enter passphrase).
+            // if the DB is encrypted and we have no key - user can re-enter passphrase).
         }
 
         // 1. CRITICAL PATH (AX-QA-003): apply the database migration and gate every data-backed
-        //    subsystem behind its success. The orchestrator AWAITS the migration, then — only if it
-        //    succeeds — starts the REST API and built-in connectors, in order. If migration throws
+        //    subsystem behind its success. The orchestrator AWAITS the migration, then - only if it
+        //    succeeds - starts the REST API and built-in connectors, in order. If migration throws
         //    (including BaselineSchemaIncompleteException from AX-QA-002), it returns a recovery
         //    state and starts NOTHING. We must NOT continue to FTS or any data-backed feature in
         //    that case: fail closed.
@@ -213,7 +254,7 @@ public partial class App : Application
             return;
         }
 
-        // 1b. Initialize FTS5 full-text search — only AFTER the migration gate, since it queries
+        // 1b. Initialize FTS5 full-text search - only AFTER the migration gate, since it queries
         //     the now-valid schema.
         try
         {
@@ -223,7 +264,29 @@ public partial class App : Application
         }
         catch (Exception ex)
         {
-            Log.Warning(ex, "FTS5 initialization failed — keyword search unavailable");
+            Log.Warning(ex, "FTS5 initialization failed - keyword search unavailable");
+        }
+
+        // 1c. Resume auto-sync when it was on (the first cycle runs about a minute later; the loop
+        //     lives for the whole session, so it gets no short-lived token), and mark workflow
+        //     runs that a previous session left running as interrupted, so Operations does not
+        //     show them as running forever.
+        try
+        {
+            await GetService<ISyncService>().ResumeAutoSyncAsync(CancellationToken.None);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Could not resume auto-sync at startup");
+        }
+
+        try
+        {
+            await GetService<IWorkflowService>().ReconcileInterruptedRunsAsync();
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Could not reconcile interrupted workflow runs at startup");
         }
 
         // 2. Initialize the AI service (creates provider, tests connection)
@@ -234,7 +297,7 @@ public partial class App : Application
         }
         catch (Exception ex)
         {
-            Log.Warning(ex, "AI service initialization failed — Ollama may not be running");
+            Log.Warning(ex, "AI service initialization failed - Ollama may not be running");
         }
 
         // 3. Initialize feature flags
@@ -245,22 +308,7 @@ public partial class App : Application
         }
         catch (Exception ex)
         {
-            Log.Warning(ex, "Feature flag initialization failed — using defaults");
-        }
-
-        // 3b. Initialize localization (reads persisted language override and
-        //     constructs the ResourceLoader). Must be awaited BEFORE any UI
-        //     renders — otherwise GetString/FormatPlural can race against a
-        //     null loader and return fallback keys instead of localized text.
-        try
-        {
-            var localization = GetService<ILocalizationService>();
-            await localization.InitializeAsync();
-            Log.Information("Localization initialized: {Language}", localization.CurrentLanguage);
-        }
-        catch (Exception ex)
-        {
-            Log.Warning(ex, "Localization initialization failed — UI will use resource keys as fallback");
+            Log.Warning(ex, "Feature flag initialization failed - using defaults");
         }
 
         // 4. Initialize theme from user preferences
@@ -281,14 +329,73 @@ public partial class App : Application
         {
             Log.Warning(ex, "Failed to initialize theme");
         }
+
+        // 4b. Activate the plugins the operator enabled. After the migration gate, because plugin
+        //     state lives in the database, and before indexing, so document processors that
+        //     plugins contribute are available to imports. A plugin that fails to activate is
+        //     marked disabled and logged by the plugin service.
+        try
+        {
+            var plugins = await GetService<IPluginService>().ActivateEnabledPluginsAsync();
+            Log.Information(
+                "Plugins activated: {Activated}; failed: {Failed}",
+                plugins.Activated.Count,
+                plugins.Failed.Count);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Plugin activation failed; enabled plugins stay inactive this session");
+        }
+
+        // 4c. Scheduled backups: runs only when a backup schedule is enabled in settings.json; an
+        //     overdue backup starts a few minutes after launch.
+        try
+        {
+            await GetService<IBackupService>().StartScheduledBackupsAsync();
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Scheduled backups could not be started");
+        }
+
+        // 5. Start the indexing pipeline: initialize the vector store, re-queue documents left
+        //    pending or interrupted, and start the background loop that chunks, embeds and
+        //    FTS-indexes every import. Nothing else starts it, so without this call no document
+        //    ever becomes searchable. Late, because embedding needs the AI service from step 2,
+        //    and on the thread pool, because rebuilding the vector index is CPU-heavy.
+        try
+        {
+            var indexing = GetService<IIndexingService>();
+            await Task.Run(() => indexing.InitializeAsync());
+            Log.Information("Indexing pipeline started");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Indexing pipeline failed to start; imported documents will not be indexed");
+        }
+
+        // 6. Watch folders: when AutoIndexWatchFolders is on, start monitoring and run a
+        //    catch-up scan for files added or changed while the app was closed. After step 5,
+        //    so the files it imports are picked up by the running indexing pipeline.
+        try
+        {
+            var watcher = GetService<IFileWatcherService>();
+            await Task.Run(() => watcher.InitializeAsync());
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Watch folder monitoring failed to start");
+        }
+
+        Log.Information("Agent-X core services started");
     }
 
     private void ConfigureServices(HostBuilderContext context, IServiceCollection services)
     {
-        // ── Logging (Serilog ILogger for DI) ─────────────────────
+        // -- Logging (Serilog ILogger for DI) ---------------------
         services.AddSingleton<Serilog.ILogger>(_ => Log.Logger);
 
-        // ── Data Layer ─────────────────────────────────────────
+        // -- Data Layer -----------------------------------------
         services.AddSingleton<AgentXDbContext>(sp =>
         {
             var options = new Microsoft.EntityFrameworkCore.DbContextOptionsBuilder<AgentXDbContext>().Options;
@@ -301,11 +408,11 @@ public partial class App : Application
         // orchestrator opens it the instant migration succeeds (or fails it on error). Singleton so
         // the orchestrator and every consumer (e.g. DashboardViewModel) share one instance.
         services.AddSingleton<IStartupGate, StartupGate>();
-        // AX-QA-003: the critical, ordered startup sequence (migration gate → API → connectors).
+        // AX-QA-003: the critical, ordered startup sequence (migration gate -> API -> connectors).
         // Awaited in OnLaunched; fails closed when migration throws so nothing runs on a broken schema.
         services.AddSingleton<IStartupOrchestrator, StartupOrchestrator>();
 
-        // ── Security ──────────────────────────────────────────
+        // -- Security ------------------------------------------
         services.AddSingleton<IDpapiEncryptionService, DpapiEncryptionService>();
         services.AddSingleton<AgentX.Core.Services.Security.IDatabaseKeyProvider,
                              AgentX.Core.Services.Security.DatabaseKeyProvider>();
@@ -314,11 +421,13 @@ public partial class App : Application
         services.AddSingleton<AgentX.Core.Services.Security.IDatabaseKeyService,
                              AgentX.Core.Services.Security.DatabaseKeyService>();
         services.AddSingleton<IDatabaseEncryptionMigrator, DatabaseEncryptionMigrator>();
+        // Turns database encryption on from Settings (without it the toggle is refused).
+        services.AddSingleton<IDatabaseEncryptionManager, DatabaseEncryptionManager>();
         services.AddSingleton<AgentX.Core.Services.Security.IEncryptionStateFile,
                              AgentX.Core.Services.Security.EncryptionStateFile>();
         services.AddSingleton<ISecurityStatusService, SecurityStatusService>();
 
-        // ── OAuth ──────────────────────────────────────────────
+        // -- OAuth ----------------------------------------------
         services.AddSingleton<IOAuthService>(sp =>
         {
             var oauthService = new OAuthService(
@@ -328,29 +437,17 @@ public partial class App : Application
 
             var settings = sp.GetRequiredService<ISettingsService>().GetSettingsAsync().GetAwaiter().GetResult();
 
-            // Only register Google if credentials are configured
-            if (!string.IsNullOrWhiteSpace(settings.OAuth.Google.ClientId))
-            {
-                oauthService.RegisterProvider(OAuthProviderRegistry.Google(
-                    settings.OAuth.Google.ClientId,
-                    settings.OAuth.Google.ClientSecret,
-                    settings.OAuth.Google.RedirectUri));
-            }
+            // Token refresh buffer and consent timeout come from settings.json.
+            oauthService.ApplySettings(settings.OAuth);
 
-            // Only register Microsoft if credentials are configured
-            if (!string.IsNullOrWhiteSpace(settings.OAuth.Microsoft.ClientId))
-            {
-                oauthService.RegisterProvider(OAuthProviderRegistry.Microsoft(
-                    settings.OAuth.Microsoft.ClientId,
-                    settings.OAuth.Microsoft.ClientSecret,
-                    settings.OAuth.Microsoft.TenantId,
-                    settings.OAuth.Microsoft.RedirectUri));
-            }
+            // Google and Microsoft come from the client credentials saved under OAuth App
+            // Credentials (Calendar and Email connector pages); saving there re-applies them.
+            oauthService.ApplyProviderSettings(settings.OAuth);
 
             return oauthService;
         });
 
-        // ── Core Services ──────────────────────────────────────
+        // -- Core Services --------------------------------------
         services.AddSingleton<ISettingsService, SettingsService>();
         services.AddSingleton<IFeatureFlagService, FeatureFlagService>();
         // AX-QA-008: derives the dashboard's state-aware privacy disclosure from current settings.
@@ -360,18 +457,18 @@ public partial class App : Application
         // tests can redirect artifact writes away from the real user profile.
         services.AddSingleton<AgentX.Core.Helpers.IAppPathService, AgentX.Core.Helpers.AppPathService>();
 
-        // ── RAG Configuration (Phase 1) ─────────────────────────
+        // -- RAG Configuration (Phase 1) -------------------------
         services.Configure<RagConfigurationOptions>(context.Configuration.GetSection("Rag"));
         services.AddSingleton<IRagConfiguration, RagConfiguration>();
 
         // P2-4: bind RagPrompts.json (loaded above in ConfigureAppConfiguration)
-        // and register the catalog. IOptionsMonitor gives us hot-reload — every
+        // and register the catalog. IOptionsMonitor gives us hot-reload - every
         // prompt-site read resolves the current value, so editing the JSON at
         // runtime takes effect on the next call.
         services.Configure<RagPromptOptions>(context.Configuration.GetSection("RagPrompts"));
         services.AddSingleton<IRagPromptCatalog, RagPromptCatalog>();
 
-        // ── App Services (UI layer) ──────────────────────────────
+        // -- App Services (UI layer) ------------------------------
         services.AddSingleton<IShortcutRegistry, ShortcutRegistry>();
         services.AddSingleton(_ => new ChordStateMachine(1000, () => DateTime.UtcNow));
         services.AddSingleton<ShortcutCatalog>();
@@ -381,11 +478,11 @@ public partial class App : Application
         // abstraction layer over callbacks that belong to the view.
         services.AddSingleton<IThemeService, ThemeService>();
 
-        // ── AI Services ────────────────────────────────────────
+        // -- AI Services ----------------------------------------
         services.AddSingleton<IAiService, AiService>();
         services.AddSingleton<ICostTracker, CostTracker>();
         services.AddSingleton<IModelManager, ModelManager>();
-        // Built-in model bootstrap — the SLIM installer ships without the ~1.9 GB GGUF, so the
+        // Built-in model bootstrap - the SLIM installer ships without the ~1.9 GB GGUF, so the
         // app fetches it on first run. Resolves to the same Models dir / file name the local
         // provider reads from. Cloud providers never need this; OFFLINE installs find it present.
         services.AddSingleton<IBuiltInModelBootstrap>(sp =>
@@ -419,13 +516,12 @@ public partial class App : Application
         services.AddSingleton<ISemanticContextSelector, SemanticContextSelector>();
         services.AddSingleton<IConversationCompressionService, ConversationCompressionService>();
         services.AddSingleton<IContextAssemblyService, ContextAssemblyService>();
-        services.AddSingleton<IRetryPolicy, ExponentialBackoffRetryPolicy>();
 
-        // ── AI Routing ────────────────────────────────────────
+        // -- AI Routing ----------------------------------------
         services.AddSingleton<ITaskTypeDetector, TaskTypeDetector>();
         services.AddSingleton<IModelRouterService, ModelRouterService>();
 
-        // ── Vector Store ─────────────────────────────────────────
+        // -- Vector Store -----------------------------------------
         services.AddSingleton<IVectorStore>(sp =>
         {
             var settingsService = sp.GetRequiredService<ISettingsService>();
@@ -438,7 +534,7 @@ public partial class App : Application
             return VectorStoreFactory.Create(settingsService, embeddingService, logger, connectionFactory);
         });
 
-        // ── Chat Services ──────────────────────────────────────
+        // -- Chat Services --------------------------------------
         services.AddSingleton<IConversationService, ConversationService>();
         services.AddSingleton<IConversationRecallService, ConversationRecallService>();
         services.AddSingleton<IConversationSummaryService, ConversationSummaryService>();
@@ -447,14 +543,10 @@ public partial class App : Application
         services.AddSingleton<ISemanticMemoryService, SemanticMemoryService>();
         services.AddSingleton<IChatService, ChatService>();
 
-        // ── Agent Orchestration (Phase 3) ───────────────────────
-        services.AddSingleton<IToolRegistry, ToolRegistry>();
-        services.AddSingleton<IReActAgent, ReActAgent>();
-        services.AddSingleton<IReflectionService, ReflectionService>();
-        services.AddSingleton<IReasoningService, ReasoningService>();
+        // -- Agent Orchestration (Phase 3) -----------------------
         services.AddSingleton<IMultiAgentOrchestrator, MultiAgentOrchestrator>();
 
-        // ── Chat Coordinators (orchestrate chat operations for ChatViewModel) ──
+        // -- Chat Coordinators (orchestrate chat operations for ChatViewModel) --
         services.AddSingleton<ViewModels.Coordinators.IConversationCoordinator,
                              ViewModels.Coordinators.ConversationCoordinator>();
         services.AddSingleton<ViewModels.Coordinators.IMessagingCoordinator,
@@ -464,10 +556,10 @@ public partial class App : Application
         services.AddSingleton<ViewModels.Coordinators.IBranchingCoordinator,
                              ViewModels.Coordinators.BranchingCoordinator>();
 
-        // ── Screen Awareness ─────────────────────────────────────
+        // -- Screen Awareness -------------------------------------
         services.AddSingleton<IScreenCaptureService, ScreenCaptureService>();
 
-        // ── Document Processors ──────────────────────────────────
+        // -- Document Processors ----------------------------------
         services.AddSingleton<IDocumentProcessor, PdfProcessor>();
         services.AddSingleton<IDocumentProcessor, DocxProcessor>();
         services.AddSingleton<IDocumentProcessor, TextProcessor>();
@@ -480,26 +572,25 @@ public partial class App : Application
         services.AddSingleton<IDocumentProcessor, AudioProcessor>();
         services.AddSingleton<IDocumentProcessor, WebProcessor>();
 
-        // ── Document Services ────────────────────────────────────
+        // -- Document Services ------------------------------------
         services.AddSingleton<IDocumentService, DocumentService>();
         services.AddSingleton<IChunkingService>(sp =>
         {
             var tokenCounter = sp.GetRequiredService<ITokenCounter>();
-            var adaptive = sp.GetService<IAdaptiveChunkingService>(); // optional — may be null
+            var adaptive = sp.GetService<IAdaptiveChunkingService>(); // optional - may be null
             var logger = sp.GetRequiredService<Serilog.ILogger>();
             return new ChunkingService(tokenCounter, adaptive, logger.ForContext<ChunkingService>());
         });
 
-        // ── Indexing Pipeline ────────────────────────────────────
-        services.AddSingleton<IIndexingQueueService, IndexingQueueService>();
+        // -- Indexing Pipeline ------------------------------------
         services.AddSingleton<IIndexingService, IndexingService>();
         services.AddSingleton<IFileWatcherService, FileWatcherService>();
 
-        // ── Collections & Tagging ────────────────────────────────
+        // -- Collections & Tagging --------------------------------
         services.AddSingleton<ICollectionService, CollectionService>();
         services.AddSingleton<IAutoTagService, AutoTagService>();
 
-        // ── Search & RAG ──────────────────────────────────────────
+        // -- Search & RAG ------------------------------------------
         services.AddSingleton<ISemanticSearchService, SemanticSearchService>();
         services.AddSingleton<IKeywordSearchService, KeywordSearchService>();
         services.AddSingleton<ISearchCacheService, SearchCacheService>();
@@ -507,7 +598,7 @@ public partial class App : Application
         services.AddSingleton<ICitationService, CitationService>();
         services.AddSingleton<IRagReranker, RagReranker>();
 
-        // ── RAG Enhancements (optional pipeline stages) ─────────
+        // -- RAG Enhancements (optional pipeline stages) ---------
         services.AddSingleton<IMultiQueryGenerator, MultiQueryGenerator>();
         services.AddSingleton<IHydeService, HydeService>();
         services.AddSingleton<ILlmReranker, LlmReranker>();
@@ -515,7 +606,7 @@ public partial class App : Application
         services.AddSingleton<IContextualCompressor, ContextualCompressor>();
         services.AddSingleton<IRagEvaluator, RagEvaluator>();
 
-        // ── Phase 3: Advanced Observability & Enhancements ────────
+        // -- Phase 3: Advanced Observability & Enhancements --------
         services.AddSingleton<IAdaptiveChunkingService>(sp =>
         {
             var config = sp.GetRequiredService<IRagConfiguration>();
@@ -557,26 +648,21 @@ public partial class App : Application
 
         services.AddSingleton<IRagPipeline, RagPipeline>();
 
-        // ── Deep Research (Web Search) ────────────────────────────
+        // -- Deep Research (Web Search) ----------------------------
+        // Reads the provider, key or SearXNG URL, and cache duration from settings on every
+        // search, so a changed key applies without a restart.
         services.AddSingleton<WebSearchCache>();
-        services.AddSingleton<WebSearchServiceFactory>(sp =>
-        {
-            var settings = sp.GetRequiredService<ISettingsService>().GetSettingsAsync().GetAwaiter().GetResult();
-            return new WebSearchServiceFactory(settings.WebSearchApiKey, settings.WebSearchApiKey, null);
-        });
-        services.AddSingleton<IWebSearchService>(sp =>
-        {
-            var factory = sp.GetRequiredService<WebSearchServiceFactory>();
-            var settings = sp.GetRequiredService<ISettingsService>().GetSettingsAsync().GetAwaiter().GetResult();
-            return factory.GetConfiguredService(settings);
-        });
+        services.AddSingleton<IWebSearchService>(sp => new SettingsAwareWebSearchService(
+            sp.GetRequiredService<ISettingsService>(),
+            sp.GetRequiredService<WebSearchCache>(),
+            sp.GetRequiredService<Serilog.ILogger>()));
 
-        // ── Validation ──────────────────────────────────────────
+        // -- Validation ------------------------------------------
         services.AddSingleton<IValidator<AppSettings>, AppSettingsValidator>();
         services.AddSingleton<IValidator<SyncConfiguration>, SyncConfigurationValidator>();
         services.AddSingleton<IValidator<PluginManifest>, PluginManifestValidator>();
 
-        // ── Intelligence Services ──────────────────────────────
+        // -- Intelligence Services ------------------------------
         services.AddSingleton<IHierarchicalSummaryService, HierarchicalSummaryService>();
         services.AddSingleton<IDuplicateEvidenceService, DuplicateEvidenceService>();
         services.AddSingleton<IDocumentSynthesisService, DocumentSynthesisService>();
@@ -589,7 +675,7 @@ public partial class App : Application
         services.AddSingleton<IConversationThemeTrendService, ConversationThemeTrendService>();
         services.AddSingleton<IConversationThemeClusterService, ConversationThemeClusterService>();
 
-        // ── Export Services ──────────────────────────────────
+        // -- Export Services ----------------------------------
         // Formatters registered first so ExportService can resolve them via IEnumerable<IExportFormatter>
         services.AddSingleton<AgentX.Core.Services.Export.Formatters.IExportFormatter,
                              AgentX.Core.Services.Export.Formatters.MarkdownFormatter>();
@@ -610,11 +696,11 @@ public partial class App : Application
         services.AddSingleton<IExportService, ExportService>();
         services.AddSingleton<IExportTemplateService, ExportTemplateService>();
 
-        // ── Workflow Services ────────────────────────────────
+        // -- Workflow Services --------------------------------
         services.AddSingleton<IWorkflowService, WorkflowService>();
         services.AddSingleton<IWorkflowEngine, WorkflowEngine>();
 
-        // ── Web Services ─────────────────────────────────────
+        // -- Web Services -------------------------------------
         services.AddSingleton<IWebContentFetcher, WebContentFetcher>();
         services.AddSingleton<IHtmlParser, HtmlParser>();
         services.AddSingleton<IStructuredDataExtractor, StructuredDataExtractor>();
@@ -624,31 +710,34 @@ public partial class App : Application
         services.AddSingleton<ISitemapParser, SitemapParser>();
         services.AddSingleton<IJsRenderingService, JsRenderingService>();
 
-        // ── Conversation Branching ───────────────────────────
+        // -- Conversation Branching ---------------------------
         services.AddSingleton<IConversationBranchService, ConversationBranchService>();
 
-        // ── Backup & Restore ────────────────────────────────
+        // -- Backup & Restore --------------------------------
         services.AddSingleton<IBackupService, BackupService>();
 
-        // ── Annotations ─────────────────────────────────────
+        // -- Annotations -------------------------------------
         services.AddSingleton<IAnnotationService, AnnotationService>();
 
-        // ── Localization ────────────────────────────────────
+        // -- Localization ------------------------------------
         services.AddSingleton<IPluralRuleProvider, CldrPluralRuleProvider>();
         services.AddSingleton<IResourceLoaderAdapter, WinUIResourceLoaderAdapter>();
         services.AddSingleton<ILocalizationService, LocalizationService>();
 
-        // ── Inbox (Smart Triage) ──────────────────────────────
+        // -- Inbox (Smart Triage) ------------------------------
         services.AddSingleton<IInboxService, InboxService>();
 
-        // ── Comparison (Comparative Analysis) ─────────────────
+        // -- Comparison (Comparative Analysis) -----------------
         services.AddSingleton<IComparisonService, ComparisonService>();
 
-        // ── Workspace Profiles ────────────────────────────────
+        // -- Workspace Profiles --------------------------------
         services.AddSingleton<IWorkspaceProfileService, WorkspaceProfileService>();
 
-        // ── Plugin API ──────────────────────────────────────────
+        // -- Plugin API ------------------------------------------
         services.AddSingleton<IPluginService, PluginService>();
+        // The same instance offers active plugins' document processors to DocumentService.
+        services.AddSingleton<IPluginDocumentProcessorSource>(sp =>
+            (PluginService)sp.GetRequiredService<IPluginService>());
         services.AddSingleton<CalendarPlugin>();
         services.AddSingleton<ICalendarService>(sp =>
             new CalendarService(
@@ -661,10 +750,10 @@ public partial class App : Application
                 sp.GetRequiredService<Serilog.ILogger>()));
         services.AddSingleton<IBuiltinConnectorLifecycleService, BuiltinConnectorLifecycleService>();
 
-        // ── Voice / Audio ──────────────────────────────────────
+        // -- Voice / Audio --------------------------------------
         services.AddSingleton<ITranscriptionService, TranscriptionService>();
 
-        // ── Collaborative Sync (sub-services registered before orchestrator) ──
+        // -- Collaborative Sync (sub-services registered before orchestrator) --
         services.AddSingleton<ISyncTransport, SyncTransport>();
         services.AddSingleton<ISyncPackageCodec, SyncPackageCodec>();
         services.AddSingleton<ISyncConflictResolver, SyncConflictResolver>();
@@ -676,40 +765,38 @@ public partial class App : Application
                 sp.GetRequiredService<ISyncPackageCodec>(),
                 sp.GetRequiredService<ISyncConflictResolver>()));
 
-        // ── Analytics ────────────────────────────────────────────
+        // -- Analytics --------------------------------------------
         services.AddSingleton<IAnalyticsService, AnalyticsService>();
 
-        // ── User Feedback ────────────────────────────────────────
+        // -- User Feedback ----------------------------------------
         services.AddSingleton<IFeedbackService, FeedbackService>();
 
-        // ── Collaboration ────────────────────────────────────────
-        services.AddSingleton<ICollaborationService, CollaborationService>();
-
-        // ── REST API ─────────────────────────────────────────────
+        // -- REST API ---------------------------------------------
         services.AddSingleton<IApiHostService, ApiHostService>();
         services.AddSingleton<IApiHostLifecycleService, ApiHostLifecycleService>();
 
-        // ── Temporal Identity ─────────────────────────────────────
+        // -- Temporal Identity -------------------------------------
         services.AddSingleton<ITemporalIdentityService, TemporalIdentityService>();
+        services.AddSingleton<IVoiceDraftService, VoiceDraftService>();
 
-        // ── Notifications ────────────────────────────────────────
+        // -- Notifications ----------------------------------------
         services.AddSingleton<INotificationService, NotificationService>();
         services.AddSingleton<IWorkflowLaunchService, WorkflowLaunchService>();
         services.AddSingleton<IOperationsDrillInService, OperationsDrillInService>();
         services.AddSingleton<IOperationsActionService, OperationsActionService>();
         services.AddSingleton<IOperationsOverviewService, OperationsOverviewService>();
 
-        // ── System Tray ───────────────────────────────────────
+        // -- System Tray ---------------------------------------
         services.AddSingleton<SystemTrayService>();
 
-        // ── Window Services (extracted from MainWindow) ──────────
+        // -- Window Services (extracted from MainWindow) ----------
         services.AddSingleton<IAppNavigationService, AppNavigationService>();
         services.AddSingleton<IStatusBarService, StatusBarService>();
         services.AddSingleton<IAnnunciatorService, AnnunciatorService>();
         services.AddSingleton<IOnboardingService, OnboardingService>();
         services.AddSingleton<IChromeService, ChromeService>();
 
-        // ── ViewModels (Transient) ─────────────────────────────
+        // -- ViewModels (Transient) -----------------------------
         services.AddTransient<ViewModels.DashboardViewModel>();
         services.AddTransient<ViewModels.OperationsViewModel>();
         services.AddTransient<ViewModels.SettingsViewModel>();
@@ -739,11 +826,11 @@ public partial class App : Application
         services.AddTransient<ViewModels.AnalyticsViewModel>();
         services.AddTransient<ViewModels.QuickChatViewModel>();
         services.AddTransient<ViewModels.PastSelfViewModel>();
-        // Keyboard Power Mode ViewModels — registered for testability.
+        // Keyboard Power Mode ViewModels - registered for testability.
         // MainWindow constructs them directly with runtime scope/callback values;
         // these factory registrations allow DI resolution with global-scope defaults.
         // Note: CommandPalette (UserControl), JumpToDialog, and CheatsheetDialog (ContentDialogs)
-        // are NOT registered here — WinUI dialogs/controls are constructed on demand by the view,
+        // are NOT registered here - WinUI dialogs/controls are constructed on demand by the view,
         // not resolved from DI. Adding them would create an unused registration path.
         services.AddTransient<ViewModels.CommandPaletteViewModel>(sp =>
             new ViewModels.CommandPaletteViewModel(
@@ -751,7 +838,7 @@ public partial class App : Application
                 activeScopeName: null));
         services.AddTransient<ViewModels.JumpToViewModel>(_ =>
             new ViewModels.JumpToViewModel(
-                // CAUTION: factory returns empty candidates — for DI testability only.
+                // CAUTION: factory returns empty candidates - for DI testability only.
                 // MainWindow constructs JumpToViewModel with real document/conversation/page loaders.
                 // Do NOT resolve from DI at runtime expecting populated results.
                 loadCandidates: _ => System.Threading.Tasks.Task.FromResult<
@@ -760,9 +847,10 @@ public partial class App : Application
         services.AddTransient<ViewModels.CheatsheetViewModel>(sp =>
             new ViewModels.CheatsheetViewModel(
                 sp.GetRequiredService<IShortcutRegistry>(),
-                activeScopeName: null));
+                activeScopeName: null,
+                sp.GetRequiredService<ILocalizationService>()));
 
-        // ── Views (Transient) ──────────────────────────────────
+        // -- Views (Transient) ----------------------------------
         services.AddTransient<Views.DashboardPage>();
         services.AddTransient<Views.OperationsPage>();
         services.AddTransient<Views.SettingsPage>();
@@ -817,10 +905,7 @@ public partial class App : Application
 
     private static async System.Threading.Tasks.Task<bool> TryProbeKeyAsync(AgentX.Core.Services.Security.DatabaseKeyMaterial candidate)
     {
-        var dbPath = System.IO.Path.Combine(
-            System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData),
-            "AgentX",
-            "agentx.db");
+        var dbPath = AgentX.Core.Helpers.PathHelper.GetDatabasePath();
         try
         {
             await using var conn = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={dbPath}");
@@ -841,16 +926,17 @@ public partial class App : Application
 
     private static async System.Threading.Tasks.Task<string?> PromptForPassphraseAsync()
     {
+        var localization = GetService<ILocalizationService>();
         var box = new Microsoft.UI.Xaml.Controls.PasswordBox
         {
-            PlaceholderText = "Enter your database passphrase"
+            PlaceholderText = localization.GetString("Startup_PassphrasePlaceholder")
         };
         var dialog = new Microsoft.UI.Xaml.Controls.ContentDialog
         {
-            Title = "Unlock your Agent-X database",
+            Title = localization.GetString("Startup_UnlockTitle"),
             Content = box,
-            PrimaryButtonText = "Unlock",
-            CloseButtonText = "Exit app",
+            PrimaryButtonText = localization.GetString("Startup_UnlockButton"),
+            CloseButtonText = localization.GetString("Startup_ExitAppButton"),
             DefaultButton = Microsoft.UI.Xaml.Controls.ContentDialogButton.Primary,
             XamlRoot = MainWindow.Content.XamlRoot,
         };
@@ -860,18 +946,19 @@ public partial class App : Application
 
     private static async System.Threading.Tasks.Task ShowInvalidPassphraseDialogAsync()
     {
+        var localization = GetService<ILocalizationService>();
         var dialog = new Microsoft.UI.Xaml.Controls.ContentDialog
         {
-            Title = "Incorrect passphrase",
-            Content = "That passphrase did not unlock the database. Please try again, or exit to restore from a backup.",
-            CloseButtonText = "OK",
+            Title = localization.GetString("Startup_WrongPassphraseTitle"),
+            Content = localization.GetString("Startup_WrongPassphraseMessage"),
+            CloseButtonText = localization.GetString("Startup_OkButton"),
             XamlRoot = MainWindow.Content.XamlRoot,
         };
         await dialog.ShowAsync();
     }
 
     /// <summary>
-    /// AX-QA-003 recovery state: the database migration failed, so the app is fail-closed — the REST
+    /// AX-QA-003 recovery state: the database migration failed, so the app is fail-closed - the REST
     /// API, connectors, FTS, and every data-backed feature were NOT started. Surface a blocking
     /// error explaining the situation and exit, so the user can restore from a backup rather than
     /// operate against a broken or partially-migrated schema. Runs on the UI thread via the window's
@@ -879,20 +966,25 @@ public partial class App : Application
     /// </summary>
     private static async System.Threading.Tasks.Task EnterMigrationRecoveryStateAsync(Exception? failure)
     {
-        var details = failure is AgentX.Core.Data.MigrationRunner.BaselineSchemaIncompleteException baselineEx
-            ? $"The database schema is incomplete and could not be repaired automatically. "
-              + $"Missing tables: {string.Join(", ", baselineEx.MissingTables)}."
-            : "The database could not be upgraded to the latest version.";
+        var missingTables = failure is AgentX.Core.Data.MigrationRunner.BaselineSchemaIncompleteException baselineEx
+            ? string.Join(", ", baselineEx.MissingTables)
+            : null;
 
         Log.Fatal(
             failure,
-            "Startup halted in migration recovery state — data-backed features were not started. {Details}",
-            details);
+            "Startup halted in migration recovery state; data-backed features were not started. Missing tables: {MissingTables}",
+            missingTables ?? "(none reported)");
+
+        // The dialog text is localized; the log above stays in English for bug reports.
+        var localization = GetService<ILocalizationService>();
+        var details = missingTables is not null
+            ? localization.GetString("Startup_SchemaIncomplete", missingTables)
+            : localization.GetString("Startup_UpgradeFailed");
 
         var window = _mainWindow;
         if (window?.Content?.XamlRoot is null)
         {
-            // No UI surface to host a dialog (should not happen — the shell is created first). Exit
+            // No UI surface to host a dialog (should not happen - the shell is created first). Exit
             // immediately rather than continue running against an unmigrated database.
             Microsoft.UI.Xaml.Application.Current.Exit();
             return;
@@ -905,13 +997,12 @@ public partial class App : Application
             {
                 var dialog = new Microsoft.UI.Xaml.Controls.ContentDialog
                 {
-                    Title = "Agent-X could not start",
+                    Title = localization.GetString("Startup_FailedTitle"),
                     Content =
                         details
-                        + "\n\nTo protect your data, Agent-X has stopped before loading any features. "
-                        + "Please restore your database from a recent backup, then reopen Agent-X. "
-                        + "Your log files contain the full technical details.",
-                    CloseButtonText = "Exit",
+                        + "\n\n" + localization.GetString("Startup_FailedHelp")
+                        + "\n\n" + localization.GetString("Startup_FailedManualRestore"),
+                    CloseButtonText = localization.GetString("Startup_ExitButton"),
                     XamlRoot = window.Content.XamlRoot,
                 };
                 await dialog.ShowAsync();
@@ -984,7 +1075,8 @@ public partial class App : Application
 
     private static void OnProcessExit(object? sender, EventArgs e)
     {
-        ShutdownCoreServicesAsync().GetAwaiter().GetResult();
+        // Bounded, so a shutdown step that never completes cannot hang process exit.
+        ShutdownCoreServicesAsync().Wait(TimeSpan.FromSeconds(20));
     }
 
     private static async System.Threading.Tasks.Task ShutdownCoreServicesAsync()
@@ -996,9 +1088,11 @@ public partial class App : Application
         {
             if (_host is not null)
             {
+                // Bounded: a connector stuck mid-sync must not hold the app open.
+                using var stopTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(15));
                 await _host.Services
                     .GetRequiredService<IBuiltinConnectorLifecycleService>()
-                    .StopAsync()
+                    .StopAsync(stopTimeout.Token)
                     .ConfigureAwait(false);
             }
         }
@@ -1020,6 +1114,31 @@ public partial class App : Application
         catch (Exception ex)
         {
             Log.Warning(ex, "Failed to stop REST API during shutdown");
+        }
+
+        try
+        {
+            _host?.Services.GetRequiredService<IBackupService>().StopScheduledBackups();
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to stop scheduled backups during shutdown");
+        }
+
+        try
+        {
+            if (_host is not null)
+            {
+                // Each plugin's OnDeactivateAsync is capped by the plugin service.
+                await _host.Services
+                    .GetRequiredService<IPluginService>()
+                    .DeactivateAllPluginsAsync()
+                    .ConfigureAwait(false);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to deactivate plugins during shutdown");
         }
 
         try

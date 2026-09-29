@@ -3,9 +3,11 @@ using AgentX.Core.Data.Entities;
 using AgentX.Core.Documents;
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Inbox;
+using AgentX.Core.Services.Localization;
 using AgentX.Core.Services.Plugins;
 using AgentX.Core.Services.Sync;
 using AgentX.Core.Services.Sync.Models;
+using AgentX.Tests.Helpers;
 using FluentAssertions;
 using Moq;
 using Serilog;
@@ -153,11 +155,11 @@ public sealed class OperationsActionServiceTests
 
         result.IsSuccess.Should().BeFalse();
         result.Message.Should().Contain("Save a sync configuration");
-        _syncService.Verify(service => service.ExportChangesAsync(It.IsAny<DateTime?>(), It.IsAny<CancellationToken>()), Times.Never);
+        _syncService.Verify(service => service.SyncNowAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
-    public async Task RunManualSyncAsync_exports_changes_and_starts_auto_sync()
+    public async Task RunManualSyncAsync_runs_a_real_export_and_import_pass()
     {
         _syncService
             .Setup(service => service.GetConfigurationAsync())
@@ -167,42 +169,98 @@ public sealed class OperationsActionServiceTests
                 EncryptionKey = "secret"
             });
         _syncService
-            .Setup(service => service.ExportChangesAsync(It.IsAny<DateTime?>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new SyncChangeSet
+            .Setup(service => service.SyncNowAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new SyncRunResult
             {
-                Changes =
-                [
-                    new SyncChange
-                    {
-                        EntityType = "ConversationEntity",
-                        EntityId = 42,
-                        ChangeType = SyncChangeType.Updated,
-                        Timestamp = DateTime.UtcNow,
-                        SerializedData = "{}"
-                    }
-                ]
+                ExportedChanges = 1,
+                PeerFilesFound = 2,
+                PeerFilesImported = 2,
+                ChangesApplied = 5,
             });
-        _syncService
-            .Setup(service => service.StartAutoSyncAsync(It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
 
         var sut = CreateService();
 
         var result = await sut.RunManualSyncAsync();
 
         result.IsSuccess.Should().BeTrue();
-        result.Message.Should().Contain("1 change(s) exported");
-        _syncService.Verify(service => service.ExportChangesAsync(It.IsAny<DateTime?>(), It.IsAny<CancellationToken>()), Times.Once);
-        _syncService.Verify(service => service.StartAutoSyncAsync(It.IsAny<CancellationToken>()), Times.Once);
+        result.Message.Should().Be("Sync complete. Exported 1 change(s); imported 2 of 2 peer file(s), 5 change(s) applied.");
+        _syncService.Verify(service => service.SyncNowAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _syncService.Verify(service => service.StartAutoSyncAsync(It.IsAny<CancellationToken>()), Times.Never,
+            "starting the loop is not an import: its first tick is a whole interval away");
     }
 
-    private OperationsActionService CreateService() =>
+    [Fact]
+    public async Task RunManualSyncAsync_reports_files_left_for_retry_as_a_problem()
+    {
+        _syncService
+            .Setup(service => service.GetConfigurationAsync())
+            .ReturnsAsync(new SyncConfiguration
+            {
+                SyncFolderPath = @"C:\Sync",
+                EncryptionKey = "secret"
+            });
+        _syncService
+            .Setup(service => service.SyncNowAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new SyncRunResult
+            {
+                PeerFilesFound = 1,
+                PeerFilesPendingRetry = 1,
+                ChangesFailed = 2,
+            });
+
+        var sut = CreateService();
+
+        var result = await sut.RunManualSyncAsync();
+
+        result.IsSuccess.Should().BeFalse();
+        result.Message.Should().StartWith("Sync finished with problems: 1 file(s) will be retried.");
+    }
+
+    [Fact]
+    public async Task RefreshConversationSummariesAsync_counts_a_single_summary()
+    {
+        _conversationSummaryService
+            .Setup(service => service.RefreshStaleSummariesAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(1);
+
+        var result = await CreateService().RefreshConversationSummariesAsync();
+
+        result.Message.Should().Be("Refreshed 1 conversation summary.");
+    }
+
+    [Fact]
+    public async Task Messages_come_from_the_resources()
+    {
+        // The Operations page shows these messages as they are, so each is read by key.
+        var localization = new Mock<ILocalizationService>();
+        localization.Setup(l => l.GetString(It.IsAny<string>())).Returns((string key) => $"<{key}>");
+        localization.Setup(l => l.GetString(It.IsAny<string>(), It.IsAny<object[]>()))
+            .Returns((string key, object[] args) => $"<{key}:{string.Join("|", args)}>");
+        _pluginService
+            .Setup(service => service.GetInstalledPluginsAsync())
+            .ReturnsAsync([CreatePlugin(41, "Email Connector", "DataConnector", enabled: true)]);
+        _syncService
+            .Setup(service => service.GetConfigurationAsync())
+            .ReturnsAsync(new SyncConfiguration { SyncFolderPath = "/sync", EncryptionKey = "secret" });
+        _syncService
+            .Setup(service => service.SyncNowAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new SyncRunResult { PeerFilesFound = 2, PeerFilesUnreadable = 1 });
+        var sut = CreateService(localization.Object);
+
+        (await sut.EnableConnectorAsync(41)).Message.Should().Be("<Ops_ActionAlreadyEnabled:Email Connector>");
+        (await sut.EnableConnectorAsync(0)).Message.Should().Be("<Ops_ActionSelectConnector>");
+        (await sut.RunManualSyncAsync()).Message.Should().Be(
+            "<Ops_ActionSyncProblems:<Ops_ActionSyncUnreadable:1>|<Ops_ActionSyncSummary:0|0|2|0>>");
+    }
+
+    private OperationsActionService CreateService(ILocalizationService? localization = null) =>
         new(
             _conversationSummaryService.Object,
             _documentService.Object,
             _inboxService.Object,
             _pluginService.Object,
             _syncService.Object,
+            localization ?? EnglishResources.Create(),
             Log.ForContext<OperationsActionServiceTests>());
 
     private static PluginEntity CreatePlugin(long id, string name, string pluginType, bool enabled) =>

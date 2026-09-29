@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Services.Export.Models;
@@ -35,7 +36,7 @@ public sealed class CsvFormatter : IExportFormatter
 
         var sb = new StringBuilder();
 
-        // CSV header row — includes ConversationTitle for batch exports
+        // CSV header row - includes ConversationTitle for batch exports
         sb.AppendLine("ConversationTitle,Role,Content,Timestamp,Model,Tokens");
 
         foreach (var conv in conversations)
@@ -53,24 +54,24 @@ public sealed class CsvFormatter : IExportFormatter
                 sb.Append(CsvEscape(conv.Title)).Append(',');
                 sb.Append(CsvEscape(message.Role)).Append(',');
                 sb.Append(CsvEscape(message.Content)).Append(',');
-                sb.Append(CsvEscape(message.Timestamp.ToString("O"))).Append(',');
+                sb.Append(CsvEscape(message.Timestamp.ToString("O", CultureInfo.InvariantCulture))).Append(',');
                 sb.Append(CsvEscape(message.ModelId ?? "")).Append(',');
-                sb.AppendLine(message.TokenCount.ToString());
+                sb.AppendLine(message.TokenCount.ToString(CultureInfo.InvariantCulture));
             }
         }
 
         return Task.FromResult(sb.ToString());
     }
 
-    // ────────────────────────────────────────────────────────────────
+    // ----------------------------------------------------------------
     //  Core formatting (extracted from ExportService.BuildConversationCsv)
-    // ────────────────────────────────────────────────────────────────
+    // ----------------------------------------------------------------
 
     private static string BuildConversationCsv(ConversationEntity conversation)
     {
         var sb = new StringBuilder();
 
-        // CSV header row — single conversation has no ConversationTitle column
+        // CSV header row - single conversation has no ConversationTitle column
         // to match the original ExportService.BuildConversationCsv output
         sb.AppendLine("Role,Content,Timestamp,Model,Tokens");
 
@@ -80,32 +81,28 @@ public sealed class CsvFormatter : IExportFormatter
 
         foreach (var message in messages)
         {
-            // Skip system messages — they are internal directives, not user-facing content
+            // Skip system messages - they are internal directives, not user-facing content
             if (message.Role.Equals("system", StringComparison.OrdinalIgnoreCase))
                 continue;
 
             sb.Append(CsvEscape(message.Role)).Append(',');
             sb.Append(CsvEscape(message.Content)).Append(',');
-            sb.Append(CsvEscape(message.Timestamp.ToString("O"))).Append(',');
+            sb.Append(CsvEscape(message.Timestamp.ToString("O", CultureInfo.InvariantCulture))).Append(',');
             sb.Append(CsvEscape(message.ModelId ?? "")).Append(',');
-            sb.AppendLine(message.TokenCount.ToString());
+            sb.AppendLine(message.TokenCount.ToString(CultureInfo.InvariantCulture));
         }
 
         return sb.ToString();
     }
 
-    // ────────────────────────────────────────────────────────────────
+    // ----------------------------------------------------------------
     //  Helpers
-    // ────────────────────────────────────────────────────────────────
+    // ----------------------------------------------------------------
 
-    private static string CsvEscape(string? value)
-    {
-        if (string.IsNullOrEmpty(value))
-            return "\"\"";
+    /// <summary>
+    /// The shared CSV cell escaping, which also neutralizes spreadsheet formulas in message
+    /// text (see <see cref="ExportContentBuilder.CsvEscape"/>).
+    /// </summary>
+    private static string CsvEscape(string? value) => ExportContentBuilder.CsvEscape(value);
 
-        if (value.Contains('"') || value.Contains(',') || value.Contains('\n') || value.Contains('\r'))
-            return $"\"{value.Replace("\"", "\"\"")}\"";
-
-        return value;
-    }
 }

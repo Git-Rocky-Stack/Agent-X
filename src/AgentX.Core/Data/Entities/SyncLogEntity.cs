@@ -16,8 +16,8 @@ public class SyncLogEntity
     /// <summary>
     /// Direction of the sync pass.
     /// <list type="bullet">
-    ///   <item><description><c>"export"</c> — local changes were written to the sync folder.</description></item>
-    ///   <item><description><c>"import"</c> — a remote change set was read from the sync folder and applied locally.</description></item>
+    ///   <item><description><c>"export"</c> - local changes were written to the sync folder.</description></item>
+    ///   <item><description><c>"import"</c> - a remote change set was read from the sync folder and applied locally.</description></item>
     /// </list>
     /// </summary>
     public string Direction { get; set; } = string.Empty;

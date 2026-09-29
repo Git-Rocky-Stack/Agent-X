@@ -3,6 +3,7 @@ using AgentX.Core.AI;
 using AgentX.Core.AI.Context;
 using AgentX.Core.AI.Models;
 using AgentX.Core.Data.Entities;
+using AgentX.Core.Search.Models;
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Chat.Models;
 using AgentX.Core.Services.Settings;
@@ -64,7 +65,9 @@ public sealed class ChatServiceContextAssemblyTests
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<int?>(),
-                It.IsAny<double?>()))
+                It.IsAny<double?>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>()))
             .Returns(Task.CompletedTask);
         _conversationService
             .Setup(service => service.GetConversationAsync(42))
@@ -173,7 +176,9 @@ public sealed class ChatServiceContextAssemblyTests
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<int?>(),
-                It.IsAny<double?>()))
+                It.IsAny<double?>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>()))
             .Returns(Task.CompletedTask);
         _conversationService
             .Setup(service => service.GetConversationAsync(42))
@@ -264,116 +269,6 @@ public sealed class ChatServiceContextAssemblyTests
     }
 
     [Fact]
-    public async Task RegenerateLastResponseAsync_PassesConversationIdIntoContextAssembly()
-    {
-        _settingsService
-            .Setup(service => service.GetSettingsAsync())
-            .ReturnsAsync(new AppSettings());
-
-        _memoryService
-            .Setup(service => service.GetMemoryContextAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(string.Empty);
-        _conversationSummaryService
-            .Setup(service => service.GetConversationSummaryContextAsync(42, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(string.Empty);
-        _conversationSummaryService
-            .Setup(service => service.GetConversationSummaryInspectionAsync(42, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((ConversationSummaryInspection?)null);
-
-        var existingMessages = new List<MessageEntity>
-        {
-            new()
-            {
-                Id = 10,
-                ConversationId = 42,
-                Role = "user",
-                Content = "Retry the last answer",
-                SortOrder = 0,
-                Timestamp = DateTime.UtcNow.AddMinutes(-2)
-            },
-            new()
-            {
-                Id = 11,
-                ConversationId = 42,
-                Role = "assistant",
-                Content = "Previous answer",
-                SortOrder = 1,
-                Timestamp = DateTime.UtcNow.AddMinutes(-1)
-            }
-        };
-
-        var updatedMessages = new List<MessageEntity>
-        {
-            existingMessages[0]
-        };
-
-        _conversationService
-            .Setup(service => service.GetMessagesAsync(42))
-            .ReturnsAsync(updatedMessages);
-        _conversationService
-            .Setup(service => service.DeleteLastAssistantMessageAsync(42))
-            .Returns(Task.CompletedTask);
-        _conversationService
-            .Setup(service => service.GetConversationAsync(42))
-            .ReturnsAsync(new ConversationEntity
-            {
-                Id = 42,
-                SystemPrompt = "Original prompt"
-            });
-        _conversationService
-            .Setup(service => service.AddMessageAsync(
-                42,
-                "assistant",
-                It.IsAny<string>(),
-                It.IsAny<int?>(),
-                It.IsAny<double?>()))
-            .Returns(Task.CompletedTask);
-
-        _contextAssemblyService
-            .Setup(service => service.AssembleAsync(
-                It.Is<ContextAssemblyRequest>(request =>
-                    request.ConversationId == 42 &&
-                    request.CurrentQuery == "Retry the last answer"),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ContextAssemblyResult
-            {
-                Messages = [ChatMessage.User("Retry the last answer")],
-                SystemPrompt = "Assembled prompt",
-                Diagnostics = new ContextAssemblyDiagnostics
-                {
-                    SelectedMessageCount = 1,
-                    EstimatedMessageTokens = 24,
-                    EstimatedPromptTokens = 84
-                }
-            });
-
-        _aiService
-            .Setup(service => service.StreamChatAsync(
-                It.IsAny<IReadOnlyList<ChatMessage>>(),
-                It.IsAny<string?>(),
-                It.IsAny<ChatOptions?>(),
-                It.IsAny<CancellationToken>()))
-            .Returns(StreamTokens("redo"));
-
-        var sut = new AgentX.Core.Services.Chat.ChatService(
-            _aiService.Object,
-            _conversationService.Object,
-            _settingsService.Object,
-            _contextAssemblyService.Object,
-            _memoryService.Object,
-            _logger,
-            conversationSummaryService: _conversationSummaryService.Object);
-
-        await sut.RegenerateLastResponseAsync(42);
-
-        _contextAssemblyService.Verify(service => service.AssembleAsync(
-            It.Is<ContextAssemblyRequest>(request => request.ConversationId == 42),
-            It.IsAny<CancellationToken>()), Times.Once);
-        sut.GetLatestContextInspection(42).Should().NotBeNull();
-        sut.GetLatestContextInspection(42)!.CurrentQuery.Should().Be("Retry the last answer");
-    }
-
-    [Fact]
     public async Task RefreshConversationSummaryInspectionAsync_UpdatesCachedSummaryInspection()
     {
         _settingsService
@@ -444,7 +339,9 @@ public sealed class ChatServiceContextAssemblyTests
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<int?>(),
-                It.IsAny<double?>()))
+                It.IsAny<double?>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>()))
             .Returns(Task.CompletedTask);
         _conversationService
             .Setup(service => service.GetConversationAsync(42))
@@ -553,7 +450,9 @@ public sealed class ChatServiceContextAssemblyTests
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<int?>(),
-                It.IsAny<double?>()))
+                It.IsAny<double?>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>()))
             .Returns(Task.CompletedTask);
         _conversationService
             .Setup(service => service.GetConversationAsync(42))
@@ -602,6 +501,217 @@ public sealed class ChatServiceContextAssemblyTests
         result.Snapshot.Should().BeSameAs(originalSnapshot);
         sut.GetLatestContextInspection(42).Should().BeSameAs(originalSnapshot);
         sut.GetLatestContextInspection(42)!.Summary.Should().BeEquivalentTo(initialInspection);
+    }
+
+    // --- In-place regeneration ---
+    // Regenerate used to delete the old answer and resend the prompt: the prompt was saved a
+    // second time on every regenerate, and a stop or an error lost the old answer.
+
+    [Fact]
+    public async Task RegenerateResponseAsync_AnswersTheSavedPromptAgainAndReplacesTheOldAnswerAfterSaving()
+    {
+        var writes = SetupRegenerationThread(
+            Message(10, "user", "Why is startup failing?", 0),
+            Message(11, "assistant", "Previous answer", 1));
+        _aiService
+            .Setup(service => service.StreamChatAsync(
+                It.IsAny<IReadOnlyList<ChatMessage>>(), It.IsAny<string?>(), It.IsAny<ChatOptions?>(), It.IsAny<CancellationToken>()))
+            .Returns(StreamTokens("New", " answer"));
+
+        var tokens = await DrainAsync(CreateSut().RegenerateResponseAsync(42, 10));
+
+        tokens.Should().Equal("New", " answer");
+        writes.Should().Equal("add assistant: New answer", "delete 11");
+        _contextAssemblyService.Verify(service => service.AssembleAsync(
+            It.Is<ContextAssemblyRequest>(request =>
+                request.CurrentQuery == "Why is startup failing?" &&
+                request.ConversationMessages.Count == 1 &&
+                request.ConversationMessages[0].Content == "Why is startup failing?"),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task RegenerateResponseAsync_WhenStopped_KeepsTheOldAnswer()
+    {
+        var writes = SetupRegenerationThread(
+            Message(10, "user", "Why is startup failing?", 0),
+            Message(11, "assistant", "Previous answer", 1));
+        _aiService
+            .Setup(service => service.StreamChatAsync(
+                It.IsAny<IReadOnlyList<ChatMessage>>(), It.IsAny<string?>(), It.IsAny<ChatOptions?>(), It.IsAny<CancellationToken>()))
+            .Returns(CancelledStream());
+
+        var act = () => DrainAsync(CreateSut().RegenerateResponseAsync(42, 10));
+
+        await act.Should().ThrowAsync<OperationCanceledException>();
+        writes.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task RegenerateResponseAsync_WhenLaterMessagesFollowTheAnswer_RefusesAndChangesNothing()
+    {
+        var writes = SetupRegenerationThread(
+            Message(10, "user", "First question", 0),
+            Message(11, "assistant", "First answer", 1),
+            Message(12, "user", "Second question", 2));
+
+        var act = () => DrainAsync(CreateSut().RegenerateResponseAsync(42, 10));
+
+        await act.Should().ThrowAsync<InvalidOperationException>();
+        writes.Should().BeEmpty();
+        _aiService.Verify(service => service.StreamChatAsync(
+            It.IsAny<IReadOnlyList<ChatMessage>>(), It.IsAny<string?>(), It.IsAny<ChatOptions?>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task RegenerateResponseAsync_ForAnUnansweredPrompt_AnswersItWithoutDeletingAnything()
+    {
+        var writes = SetupRegenerationThread(
+            Message(10, "user", "First question", 0),
+            Message(11, "assistant", "First answer", 1),
+            Message(12, "user", "Unanswered question", 2));
+        _aiService
+            .Setup(service => service.StreamChatAsync(
+                It.IsAny<IReadOnlyList<ChatMessage>>(), It.IsAny<string?>(), It.IsAny<ChatOptions?>(), It.IsAny<CancellationToken>()))
+            .Returns(StreamTokens("Answer"));
+
+        await DrainAsync(CreateSut().RegenerateResponseAsync(42, 12));
+
+        writes.Should().Equal("add assistant: Answer");
+    }
+
+    [Fact]
+    public async Task SendMessageAsync_WithSupplementalContext_AddsItToThisReplysContextOnly()
+    {
+        SetupRegenerationThread(Message(10, "user", "What changed?", 0));
+        _aiService
+            .Setup(service => service.StreamChatAsync(
+                It.IsAny<IReadOnlyList<ChatMessage>>(), It.IsAny<string?>(), It.IsAny<ChatOptions?>(), It.IsAny<CancellationToken>()))
+            .Returns(StreamTokens("Answer"));
+
+        await DrainAsync(CreateSut().SendMessageAsync(
+            42, "What changed?", new SupplementalContext("[Web Search Results]\n[1] Notes", []), CancellationToken.None));
+
+        _contextAssemblyService.Verify(service => service.AssembleAsync(
+            It.Is<ContextAssemblyRequest>(request =>
+                request.MemoryContext != null &&
+                request.MemoryContext.Contains("[1] Notes", StringComparison.Ordinal)),
+            It.IsAny<CancellationToken>()), Times.Once);
+        _conversationService.Verify(service => service.AddMessageAsync(
+            42, "user", "What changed?", It.IsAny<int?>(), It.IsAny<double?>(), It.IsAny<string?>(), It.IsAny<string?>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task SendMessageAsync_SavesTheAnswerWithItsModelAndTheWebSourcesItWasGiven()
+    {
+        // Chat saved neither, so exports could not name the model and a reopened Research
+        // Mode answer had lost its sources.
+        SetupRegenerationThread(Message(10, "user", "What changed?", 0));
+        _aiService.SetupGet(service => service.ActiveModelId).Returns("llama3.2:3b");
+        _aiService
+            .Setup(service => service.StreamChatAsync(
+                It.IsAny<IReadOnlyList<ChatMessage>>(), It.IsAny<string?>(), It.IsAny<ChatOptions?>(), It.IsAny<CancellationToken>()))
+            .Returns(StreamTokens("Version 2 shipped [1]."));
+        var research = new SupplementalContext(
+            "[Web Search Results]\n[1] Release notes",
+            [new WebCitation { Title = "Release notes", Url = "https://example.org/notes", Source = WebCitationSource.Web }]);
+
+        await DrainAsync(CreateSut().SendMessageAsync(42, "What changed?", research, CancellationToken.None));
+
+        _conversationService.Verify(service => service.AddMessageAsync(
+            42, "user", "What changed?", It.IsAny<int?>(), It.IsAny<double?>(), null, null), Times.Once);
+        _conversationService.Verify(service => service.AddMessageAsync(
+            42,
+            "assistant",
+            "Version 2 shipped [1].",
+            It.IsAny<int?>(),
+            It.IsAny<double?>(),
+            "llama3.2:3b",
+            It.Is<string?>(json => MessageCitations.ParseWebCitations(json).Single().Url == "https://example.org/notes")),
+            Times.Once);
+    }
+
+    /// <summary>
+    /// Serves conversation 42 with <paramref name="messages"/> and records every add and
+    /// delete it receives, in order.
+    /// </summary>
+    private List<string> SetupRegenerationThread(params MessageEntity[] messages)
+    {
+        var writes = new List<string>();
+        _settingsService.Setup(service => service.GetSettingsAsync()).ReturnsAsync(new AppSettings());
+        _memoryService
+            .Setup(service => service.GetMemoryContextAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(string.Empty);
+        _memoryService
+            .Setup(service => service.ExtractMemoriesAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+        _conversationSummaryService
+            .Setup(service => service.GetConversationSummaryContextAsync(42, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(string.Empty);
+        _conversationService
+            .Setup(service => service.GetConversationAsync(42))
+            .ReturnsAsync(new ConversationEntity { Id = 42, SystemPrompt = "Original prompt", Messages = messages.ToList() });
+        _conversationService
+            .Setup(service => service.AddMessageAsync(
+                42, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int?>(), It.IsAny<double?>(), It.IsAny<string?>(), It.IsAny<string?>()))
+            .Callback<long, string, string, int?, double?, string?, string?>((_, role, content, _, _, _, _) =>
+            {
+                if (role == "assistant")
+                {
+                    writes.Add($"add assistant: {content}");
+                }
+            })
+            .Returns(Task.CompletedTask);
+        _conversationService
+            .Setup(service => service.DeleteMessageAsync(It.IsAny<long>()))
+            .Callback<long>(id => writes.Add($"delete {id}"))
+            .Returns(Task.CompletedTask);
+        _contextAssemblyService
+            .Setup(service => service.AssembleAsync(It.IsAny<ContextAssemblyRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((ContextAssemblyRequest request, CancellationToken _) => new ContextAssemblyResult
+            {
+                Messages = request.ConversationMessages,
+                SystemPrompt = request.SystemPrompt
+            });
+        return writes;
+    }
+
+    private AgentX.Core.Services.Chat.ChatService CreateSut() => new(
+        _aiService.Object,
+        _conversationService.Object,
+        _settingsService.Object,
+        _contextAssemblyService.Object,
+        _memoryService.Object,
+        _logger,
+        conversationSummaryService: _conversationSummaryService.Object);
+
+    private static MessageEntity Message(long id, string role, string content, int sortOrder) => new()
+    {
+        Id = id,
+        ConversationId = 42,
+        Role = role,
+        Content = content,
+        SortOrder = sortOrder,
+        Timestamp = DateTime.UtcNow
+    };
+
+    private static async Task<List<string>> DrainAsync(IAsyncEnumerable<string> stream)
+    {
+        var tokens = new List<string>();
+        await foreach (var token in stream)
+        {
+            tokens.Add(token);
+        }
+
+        return tokens;
+    }
+
+    private static async IAsyncEnumerable<string> CancelledStream()
+    {
+        await Task.Yield();
+        yield return "partial";
+        throw new OperationCanceledException();
     }
 
     private static async IAsyncEnumerable<string> StreamTokens(

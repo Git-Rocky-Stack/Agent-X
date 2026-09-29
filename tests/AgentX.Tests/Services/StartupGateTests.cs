@@ -10,7 +10,7 @@ namespace AgentX.Tests.Services;
 /// <summary>
 /// AX-QA-003 follow-up (dashboard race): the data-ready gate that data-backed UI awaits before its
 /// first database read. It must stay closed until startup explicitly opens it, release immediately
-/// once open, and — when startup fails — release waiters via cancellation rather than hang forever.
+/// once open, and - when startup fails - release waiters via cancellation rather than hang forever.
 /// </summary>
 public class StartupGateTests
 {

@@ -21,7 +21,7 @@ on:
       - 'global.json'
       - '.github/workflows/dependency-audit.yml'
   schedule:
-    # Weekly Monday 07:00 UTC — catch advisories published against already-pinned versions.
+    # Weekly Monday 07:00 UTC - catch advisories published against already-pinned versions.
     - cron: '0 7 * * 1'
 
 jobs:
@@ -41,8 +41,13 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
+      # The sample plugin is a standalone project outside AgentX.sln (it has its own .csproj and
+      # manifest), so it is restored and scanned explicitly. AgentX.Mobile needs the MAUI Android
+      # workload and is scanned by the nuget-audit-mobile job below.
       - name: Restore
-        run: dotnet restore AgentX.sln
+        run: |
+          dotnet restore AgentX.sln
+          dotnet restore plugins/sample-plugin/SamplePlugin.csproj
 
       - name: Scan for vulnerable packages
         shell: pwsh
@@ -51,12 +56,22 @@ jobs:
           # AX-QA-010 RESOLVED: the dormant, vulnerable SQLitePCLRaw.lib.e_sqlite3
           # (GHSA-2m69-gcr7-jv3q / CVE-2025-6965) was removed by switching AgentX.Core and
           # AgentX.Tests to the .Core SQLite packages, so only the SQLCipher provider
-          # (e_sqlcipher.dll) remains in the graph. The allowlist is intentionally empty —
+          # (e_sqlcipher.dll) remains in the graph. The allowlist is intentionally empty -
           # any High/Critical advisory now fails the build with no exceptions.
           $accepted = @()
 
-          dotnet list AgentX.sln package --vulnerable --include-transitive 2>&1 |
-            Tee-Object -FilePath nuget-vulnerable.txt | Out-Host
+          $targets = @('AgentX.sln', 'plugins/sample-plugin/SamplePlugin.csproj')
+          New-Item -Path nuget-vulnerable.txt -ItemType File -Force | Out-Null
+          foreach ($target in $targets) {
+            "=== $target" | Tee-Object -FilePath nuget-vulnerable.txt -Append | Out-Host
+            dotnet list $target package --vulnerable --include-transitive 2>&1 |
+              Tee-Object -FilePath nuget-vulnerable.txt -Append | Out-Host
+            # A scan that could not run must not read as a clean one.
+            if ($LASTEXITCODE -ne 0) {
+              Write-Host "::error::dotnet list package failed for $target (exit $LASTEXITCODE)."
+              exit 1
+            }
+          }
 
           $offending = Get-Content nuget-vulnerable.txt |
             Where-Object { $_ -match '^\s*>' -and $_ -match '\b(High|Critical)\b' } |
@@ -79,3 +94,65 @@ jobs:
         with:
           name: nuget-vulnerable-report
           path: nuget-vulnerable.txt
+
+  # AgentX.Mobile is not in AgentX.sln (its MAUI workloads would break the Windows desktop build),
+  # so the job above never saw its package graph. Restoring it needs the MAUI Android workload,
+  # installed the same way android-build.yml does; on Linux the project targets net8.0-android only.
+  nuget-audit-mobile:
+    name: NuGet vulnerable packages (AgentX.Mobile)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Install MAUI Android workload
+        run: dotnet workload install maui-android
+
+      - name: Restore
+        run: dotnet restore src/AgentX.Mobile/AgentX.Mobile.csproj
+
+      - name: Scan for vulnerable packages
+        shell: pwsh
+        run: |
+          # Same policy as the desktop job: any High/Critical advisory fails, no allowlist.
+          $accepted = @()
+
+          dotnet list src/AgentX.Mobile/AgentX.Mobile.csproj package --vulnerable --include-transitive 2>&1 |
+            Tee-Object -FilePath nuget-vulnerable-mobile.txt | Out-Host
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "::error::dotnet list package failed for AgentX.Mobile (exit $LASTEXITCODE)."
+            exit 1
+          }
+
+          $offending = Get-Content nuget-vulnerable-mobile.txt |
+            Where-Object { $_ -match '^\s*>' -and $_ -match '\b(High|Critical)\b' } |
+            Where-Object {
+              $line = $_
+              -not ($accepted | Where-Object { $line -match $_ })
+            }
+
+          if ($offending) {
+            Write-Host '::error::High/Critical NuGet advisory found in AgentX.Mobile that is not on the accepted list:'
+            $offending | ForEach-Object { Write-Host $_ }
+            exit 1
+          }
+
+          Write-Host 'PASS: no unaccepted High/Critical NuGet advisories in AgentX.Mobile.'
+
+      - name: Upload audit report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: nuget-vulnerable-report-mobile
+          path: nuget-vulnerable-mobile.txt

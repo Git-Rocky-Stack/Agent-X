@@ -1,8 +1,10 @@
 using System.Collections.ObjectModel;
+using System.Globalization;
 using AgentX.Core.Documents;
 using AgentX.Core.Search;
 using AgentX.Core.Search.Models;
 using AgentX.Core.Services.Collections;
+using AgentX.Core.Services.Localization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Serilog;
@@ -23,24 +25,25 @@ public partial class AskFilesViewModel : ObservableObject
     private readonly IDocumentService _documentService;
     private readonly ICollectionService _collectionService;
     private readonly ILogger _logger;
+    private readonly ILocalizationService _localization;
 
     private CancellationTokenSource? _generationCts;
 
-    // ── Question Input & State ───────────────────────────────────
+    // -- Question Input & State -----------------------------------
     [ObservableProperty] private string _questionText = string.Empty;
     [ObservableProperty] private bool _isGenerating;
     [ObservableProperty] private bool _hasCitations;
     [ObservableProperty] private bool _showEmptyState = true;
 
-    // ── Collection Scope ─────────────────────────────────────────
+    // -- Collection Scope -----------------------------------------
     [ObservableProperty] private long? _selectedCollectionId;
     [ObservableProperty] private string? _selectedCollectionName;
 
-    // ── Index Status ─────────────────────────────────────────────
+    // -- Index Status ---------------------------------------------
     [ObservableProperty] private long _indexedChunkCount;
-    [ObservableProperty] private string _indexStatusMessage = "Loading...";
+    [ObservableProperty] private string _indexStatusMessage = string.Empty;
 
-    // ── Collections ──────────────────────────────────────────────
+    // -- Collections ----------------------------------------------
     public ObservableCollection<AskFilesMessage> Messages { get; } = new();
     public ObservableCollection<CitationItem> ActiveCitations { get; } = new();
     public ObservableCollection<CollectionOption> AvailableCollections { get; } = new();
@@ -49,12 +52,15 @@ public partial class AskFilesViewModel : ObservableObject
         IRagPipeline ragPipeline,
         IDocumentService documentService,
         ICollectionService collectionService,
-        ILogger logger)
+        ILogger logger,
+        ILocalizationService localization)
     {
         _ragPipeline = ragPipeline;
         _documentService = documentService;
         _collectionService = collectionService;
         _logger = logger;
+        _localization = localization;
+        IndexStatusMessage = _localization.GetString("AskFiles_IndexStatusLoading");
         _logger.Debug("AskFilesViewModel created with services");
     }
 
@@ -77,7 +83,7 @@ public partial class AskFilesViewModel : ObservableObject
         catch (Exception ex)
         {
             _logger.Warning(ex, "Failed to initialize AskFilesViewModel");
-            IndexStatusMessage = "Knowledge base status unavailable";
+            IndexStatusMessage = _localization.GetString("AskFiles_KnowledgeBaseStatusUnavailable");
         }
     }
 
@@ -125,6 +131,11 @@ public partial class AskFilesViewModel : ObservableObject
         _generationCts?.Cancel();
         _generationCts = new CancellationTokenSource();
 
+        // The pipeline streams tokens from a thread-pool thread (its loop awaits with
+        // ConfigureAwait(false)), but Content is bound to the view and must only change on
+        // the UI thread. Tokens are marshalled back to the context the question was asked on.
+        var uiContext = SynchronizationContext.Current;
+
         try
         {
             // Clear previous citations
@@ -136,10 +147,7 @@ public partial class AskFilesViewModel : ObservableObject
             var ragResponse = await _ragPipeline.AskAsync(
                 questionCopy,
                 collectionId: SelectedCollectionId,
-                onToken: token =>
-                {
-                    assistantMessage.Content += token;
-                },
+                onToken: token => AppendToken(assistantMessage, token, uiContext),
                 ct: _generationCts.Token);
 
             // Streaming complete
@@ -160,7 +168,10 @@ public partial class AskFilesViewModel : ObservableObject
                         : await GetFilePathForDocumentAsync(citation.DocumentId),
                     PageNumber = citation.PageNumber,
                     Excerpt = TruncateExcerpt(citation.Excerpt, 200),
-                    RelevancePercent = (int)Math.Round(citation.RelevanceScore * 100)
+                    RelevancePercent = (int)Math.Round(citation.RelevanceScore * 100),
+                    Label = citation.PageNumber.HasValue
+                        ? _localization.GetString("AskFiles_CitationLabelWithPage", citation.Number, citation.FileName, citation.PageNumber.Value)
+                        : $"[{citation.Number}] {citation.FileName}"
                 };
                 citationItems.Add(item);
             }
@@ -179,14 +190,14 @@ public partial class AskFilesViewModel : ObservableObject
         {
             _logger.Information("RAG generation was cancelled by user");
             assistantMessage.Content = assistantMessage.Content.Length > 0
-                ? assistantMessage.Content + "\n\n[Generation stopped]"
-                : "Generation was stopped.";
+                ? assistantMessage.Content + "\n\n" + _localization.GetString("AskFiles_GenerationStoppedMarker")
+                : _localization.GetString("AskFiles_GenerationStopped");
             assistantMessage.IsStreaming = false;
         }
         catch (Exception ex)
         {
             _logger.Error(ex, "RAG pipeline failed for question: {Question}", questionCopy);
-            assistantMessage.Content = "I encountered an error while searching your documents. Please try again, or check that your documents have been indexed.";
+            assistantMessage.Content = _localization.GetString("AskFiles_AnswerFailed");
             assistantMessage.IsStreaming = false;
         }
         finally
@@ -266,6 +277,22 @@ public partial class AskFilesViewModel : ObservableObject
     // PRIVATE HELPERS
     // =================================================================
 
+    /// <summary>
+    /// Appends a streamed token on the UI thread. Posts to <paramref name="uiContext"/> when
+    /// called from another thread; posts run in order, and before the continuation that
+    /// replaces the content with the final answer, which is posted after the last token.
+    /// </summary>
+    private static void AppendToken(AskFilesMessage message, string token, SynchronizationContext? uiContext)
+    {
+        if (uiContext is null || ReferenceEquals(SynchronizationContext.Current, uiContext))
+        {
+            message.Content += token;
+            return;
+        }
+
+        uiContext.Post(_ => message.Content += token, null);
+    }
+
     private async Task LoadCollectionsAsync()
     {
         try
@@ -278,7 +305,7 @@ public partial class AskFilesViewModel : ObservableObject
             AvailableCollections.Add(new CollectionOption
             {
                 Id = null,
-                Name = "All Collections"
+                Name = _localization.GetString("AskFiles_AllCollections")
             });
 
             foreach (var c in collections)
@@ -311,21 +338,23 @@ public partial class AskFilesViewModel : ObservableObject
 
             if (totalChunks > 0)
             {
-                IndexStatusMessage = $"{totalChunks:N0} knowledge chunks available";
+                IndexStatusMessage = totalChunks == 1
+                    ? _localization.GetString("AskFiles_ChunksAvailableOne", totalChunks.ToString("N0"))
+                    : _localization.GetString("AskFiles_ChunksAvailableMany", totalChunks.ToString("N0"));
             }
             else if (totalDocs > 0)
             {
-                IndexStatusMessage = "Documents are being indexed...";
+                IndexStatusMessage = _localization.GetString("AskFiles_DocumentsBeingIndexed");
             }
             else
             {
-                IndexStatusMessage = "Import documents to get started";
+                IndexStatusMessage = _localization.GetString("AskFiles_ImportToGetStarted");
             }
         }
         catch (Exception ex)
         {
             _logger.Warning(ex, "Failed to load index status");
-            IndexStatusMessage = "Status unavailable";
+            IndexStatusMessage = _localization.GetString("AskFiles_StatusUnavailable");
         }
     }
 
@@ -375,7 +404,7 @@ public partial class AskFilesViewModel : ObservableObject
 }
 
 // =============================================================================
-// ASK FILES MESSAGE — Display model for a chat message in the RAG conversation
+// ASK FILES MESSAGE - Display model for a chat message in the RAG conversation
 // =============================================================================
 
 public partial class AskFilesMessage : ObservableObject
@@ -386,7 +415,11 @@ public partial class AskFilesMessage : ObservableObject
 
     [ObservableProperty] private bool _isStreaming;
 
-    public List<CitationItem> Citations { get; set; } = new();
+    /// <summary>
+    /// Sources of the answer. Assigned when the answer completes, after the message is
+    /// already on screen, so it notifies the inline citation badges bound to it.
+    /// </summary>
+    [ObservableProperty] private List<CitationItem> _citations = new();
 
     /// <summary>
     /// Returns true if this is an AI response (not a user question).
@@ -394,14 +427,12 @@ public partial class AskFilesMessage : ObservableObject
     /// </summary>
     public bool IsAssistant => !IsUser;
 
-    /// <summary>
-    /// Formatted timestamp for display.
-    /// </summary>
-    public string FormattedTime => Timestamp.ToLocalTime().ToString("h:mm tt");
+    /// <summary>The time of day the message was sent, in the user's short time format.</summary>
+    public string FormattedTime => Timestamp.ToLocalTime().ToString("t", CultureInfo.CurrentCulture);
 }
 
 // =============================================================================
-// CITATION ITEM — Display model for a source citation
+// CITATION ITEM - Display model for a source citation
 // =============================================================================
 
 public class CitationItem
@@ -415,15 +446,14 @@ public class CitationItem
     public int RelevancePercent { get; init; }
 
     /// <summary>
-    /// Short display label for inline citation badges, e.g. "[1] report.pdf, p.12"
+    /// Short display label for inline citation badges, e.g. "[1] report.pdf, p.12", set by the
+    /// view model in the UI language.
     /// </summary>
-    public string Label => PageNumber.HasValue
-        ? $"[{Number}] {FileName}, p.{PageNumber}"
-        : $"[{Number}] {FileName}";
+    public string Label { get; init; } = string.Empty;
 }
 
 // =============================================================================
-// COLLECTION OPTION — Dropdown item for collection scope selector
+// COLLECTION OPTION - Dropdown item for collection scope selector
 // =============================================================================
 
 public class CollectionOption

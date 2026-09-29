@@ -2,17 +2,17 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!--
-    ╔══════════════════════════════════════════════════════════════════╗
-    ║         USER GUIDE EXTENDED SECTIONS                              ║
-    ║                                                                  ║
-    ║  Annotations, AudioTranscription, WorkspaceProfiles,             ║
-    ║  Plugins, Integrations, BackupRestore                            ║
-    ╚══════════════════════════════════════════════════════════════════╝
+    +==================================================================+
+    |         USER GUIDE EXTENDED SECTIONS                              |
+    |                                                                  |
+    |  Annotations, AudioTranscription, WorkspaceProfiles,             |
+    |  Plugins, Integrations, BackupRestore                            |
+    +==================================================================+
     -->
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          ANNOTATIONS & HIGHLIGHTS
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
     <DataTemplate x:Key="AnnotationsTemplate">
         <Border Style="{StaticResource CardStyle}">
             <StackPanel Spacing="16">
@@ -121,9 +121,9 @@
         </Border>
     </DataTemplate>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          AUDIO TRANSCRIPTION
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
     <DataTemplate x:Key="AudioTranscriptionTemplate">
         <Border Style="{StaticResource CardStyle}">
             <StackPanel Spacing="16">
@@ -249,9 +249,9 @@
         </Border>
     </DataTemplate>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          WORKSPACE PROFILES
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
     <DataTemplate x:Key="WorkspaceProfilesTemplate">
         <Border Style="{StaticResource CardStyle}">
             <StackPanel Spacing="16">
@@ -350,9 +350,9 @@
         </Border>
     </DataTemplate>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          PLUGINS & EXTENSIBILITY
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
     <DataTemplate x:Key="PluginsTemplate">
         <Border Style="{StaticResource CardStyle}">
             <StackPanel Spacing="16">
@@ -461,9 +461,9 @@
         </Border>
     </DataTemplate>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          CALENDAR & EMAIL INTEGRATIONS
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
     <DataTemplate x:Key="IntegrationsTemplate">
         <Border Style="{StaticResource CardStyle}">
             <StackPanel Spacing="16">
@@ -562,9 +562,9 @@
         </Border>
     </DataTemplate>
 
-    <!-- ═══════════════════════════════════════════════════════════════
+    <!-- ===============================================================
          BACKUP & RESTORE
-         ═══════════════════════════════════════════════════════════════ -->
+         =============================================================== -->
     <DataTemplate x:Key="BackupRestoreTemplate">
         <Border Style="{StaticResource CardStyle}">
             <StackPanel Spacing="16">

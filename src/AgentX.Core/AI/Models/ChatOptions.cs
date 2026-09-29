@@ -11,7 +11,7 @@ namespace AgentX.Core.AI.Models;
 /// When true and the active provider supports prompt caching, this block is
 /// marked with <c>cache_control: {"type":"ephemeral"}</c>. Note that providers
 /// usually impose a minimum cacheable-block length (Anthropic: 1024 tokens
-/// for Sonnet/Opus, 2048 for Haiku) — sub-threshold blocks pass the marker
+/// for Sonnet/Opus, 2048 for Haiku) - sub-threshold blocks pass the marker
 /// through but never produce a cache hit.
 /// </param>
 public sealed record SystemPromptBlock(string Text, bool Cacheable);
@@ -91,8 +91,9 @@ public class ChatOptions
     public ResponseFormat ResponseFormat { get; set; } = ResponseFormat.Text;
 
     /// <summary>
-    /// Tools/functions that the model can call during inference.
-    /// When provided, the model may request tool calls instead of generating text directly.
+    /// Tools/functions that the model could call during inference. Tool calling is not
+    /// implemented: no provider sends these to the model yet, so this and the two tool
+    /// options below currently have no effect.
     /// </summary>
     public IReadOnlyList<ToolDefinition>? Tools { get; set; }
 
@@ -128,7 +129,7 @@ public class ChatOptions
     /// (Cacheable=true) from per-request content like retrieved RAG context
     /// (Cacheable=false) so the prefix is reused from cache across turns.
     /// Providers that don't support multi-block system prompts ignore this
-    /// property — callers must still pass a concatenated <c>systemPrompt</c>
+    /// property - callers must still pass a concatenated <c>systemPrompt</c>
     /// string for graceful degradation on those providers.
     /// </summary>
     public IReadOnlyList<SystemPromptBlock>? SystemPromptBlocks { get; set; }
@@ -137,7 +138,7 @@ public class ChatOptions
     /// FU-5: structured-output schema enforcement. When non-null, providers that
     /// support JSON Schema response formatting (currently OpenAI's
     /// <c>response_format: json_schema</c> with <c>strict: true</c>) constrain
-    /// the model's output to match this schema at decode time — rejecting
+    /// the model's output to match this schema at decode time - rejecting
     /// truncations and missing required fields server-side rather than
     /// surfacing them as parse errors on the client. The string value MUST be
     /// a valid JSON-Schema document. Providers that don't support
@@ -154,4 +155,11 @@ public class ChatOptions
     /// <see cref="JsonSchema"/> is set on OpenAI; ignored elsewhere.
     /// </summary>
     public string? JsonSchemaName { get; set; }
+
+    /// <summary>
+    /// Returns a shallow copy. Used when defaults (such as the active model) are filled in, so a
+    /// caller's options object is never modified and cannot carry a stale model id into a later
+    /// request on another provider.
+    /// </summary>
+    internal ChatOptions ShallowCopy() => (ChatOptions)MemberwiseClone();
 }

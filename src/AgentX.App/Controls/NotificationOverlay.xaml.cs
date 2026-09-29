@@ -27,7 +27,7 @@ public sealed partial class NotificationOverlay : UserControl
         }
         catch
         {
-            // Service not yet available — will be bound later
+            // Service not yet available - will be bound later
         }
     }
 

@@ -1,3 +1,5 @@
+using AgentX.App.Helpers;
+using AgentX.Core.Services.Localization;
 using Microsoft.UI;
 using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Windowing;
@@ -6,6 +8,7 @@ using Microsoft.UI.Xaml.Media;
 using Serilog;
 using Windows.Graphics;
 using Windows.UI;
+using Windows.UI.ViewManagement;
 using WinRT.Interop;
 
 namespace AgentX.App.Services;
@@ -16,6 +19,25 @@ namespace AgentX.App.Services;
 /// </summary>
 public sealed class ChromeService : IChromeService
 {
+    // Preferred first-launch size in physical pixels, clamped to the display's work area.
+    private const int PreferredWidth = 1440;
+    private const int PreferredHeight = 900;
+
+    private readonly ILocalizationService _localization;
+
+    // Held for the life of the (singleton) service: a collected AccessibilitySettings
+    // stops raising HighContrastChanged.
+    private AccessibilitySettings? _accessibilitySettings;
+
+    /// <summary>
+    /// The localization service is initialized before the shell is built, so the window title
+    /// is read in the user's language.
+    /// </summary>
+    public ChromeService(ILocalizationService localization)
+    {
+        _localization = localization ?? throw new ArgumentNullException(nameof(localization));
+    }
+
     /// <inheritdoc />
     public void ConfigureWindow(Window window)
     {
@@ -25,8 +47,6 @@ public sealed class ChromeService : IChromeService
         var windowId = Win32Interop.GetWindowIdFromWindow(hwnd);
         var appWindow = AppWindow.GetFromWindowId(windowId);
 
-        appWindow.Resize(new SizeInt32(1440, 900));
-
         // Enable standard window chrome controls
         if (appWindow.Presenter is OverlappedPresenter presenter)
         {
@@ -35,17 +55,32 @@ public sealed class ChromeService : IChromeService
             presenter.IsMinimizable = true;
         }
 
-        // Center the window on the primary display
+        // Size and center inside the work area of the display the window opens on. The
+        // work area excludes the taskbar and carries its own origin, so a small screen, a
+        // secondary monitor, or a top-docked taskbar never pushes the title bar off screen.
         var displayArea = DisplayArea.GetFromWindowId(windowId, DisplayAreaFallback.Primary);
         if (displayArea != null)
         {
-            var centerX = (displayArea.WorkArea.Width - 1440) / 2;
-            var centerY = (displayArea.WorkArea.Height - 900) / 2;
-            appWindow.Move(new PointInt32(centerX, centerY));
+            var workArea = displayArea.WorkArea;
+            var bounds = WindowPlacement.CenterWithin(
+                new PixelRect(workArea.X, workArea.Y, workArea.Width, workArea.Height),
+                PreferredWidth,
+                PreferredHeight);
+
+            appWindow.MoveAndResize(new RectInt32(bounds.X, bounds.Y, bounds.Width, bounds.Height));
+            Log.Information(
+                "Window configured: {Width}x{Height} at {X},{Y} (work area {WorkWidth}x{WorkHeight})",
+                bounds.Width, bounds.Height, bounds.X, bounds.Y, workArea.Width, workArea.Height);
+        }
+        else
+        {
+            appWindow.Resize(new SizeInt32(PreferredWidth, PreferredHeight));
+            Log.Information("Window configured: {Width}x{Height} (no display area reported)",
+                PreferredWidth, PreferredHeight);
         }
 
-        window.Title = "Agent-X \u2014 Intelligence Hub";
-        Log.Information("Window configured: 1440x900");
+        // The taskbar and Alt+Tab show this title.
+        window.Title = _localization.GetString("Main_WindowTitle");
     }
 
     /// <inheritdoc />
@@ -55,28 +90,29 @@ public sealed class ChromeService : IChromeService
 
         window.ExtendsContentIntoTitleBar = true;
 
-        if (AppWindowTitleBar.IsCustomizationSupported())
+        if (!AppWindowTitleBar.IsCustomizationSupported())
         {
-            var titleBar = window.AppWindow.TitleBar;
-            titleBar.ExtendsContentIntoTitleBar = true;
-
-            // Make title bar buttons blend with dark theme
-            titleBar.ButtonBackgroundColor = Colors.Transparent;
-            titleBar.ButtonInactiveBackgroundColor = Colors.Transparent;
-            titleBar.ButtonHoverBackgroundColor = Color.FromArgb(30, 255, 255, 255);
-            titleBar.ButtonPressedBackgroundColor = Color.FromArgb(20, 255, 255, 255);
-
-            // Button foreground
-            titleBar.ButtonForegroundColor = Color.FromArgb(200, 255, 255, 255);
-            titleBar.ButtonInactiveForegroundColor = Color.FromArgb(100, 255, 255, 255);
-            titleBar.ButtonHoverForegroundColor = Colors.White;
-            titleBar.ButtonPressedForegroundColor = Color.FromArgb(160, 255, 255, 255);
-
-            // Close button with subtle red on hover (overrides the generic hover above)
-            titleBar.ButtonHoverBackgroundColor = Color.FromArgb(25, 255, 255, 255);
+            Log.Debug("Title bar customization unsupported; caption buttons keep system colors");
+            return;
         }
 
-        Log.Debug("Title bar configured with custom dark theme colors");
+        var titleBar = window.AppWindow.TitleBar;
+        titleBar.ExtendsContentIntoTitleBar = true;
+
+        var root = window.Content as FrameworkElement;
+        ApplyCaptionColors(titleBar, root);
+
+        if (root is not null)
+        {
+            // ThemeService switches shifts by setting RequestedTheme on this root, and a
+            // root that follows Windows changes ActualTheme with the OS. Either way the
+            // caption buttons, which ThemeResource bindings never reach, are repainted.
+            root.ActualThemeChanged += (sender, _) => ApplyCaptionColors(titleBar, sender);
+        }
+
+        WatchHighContrast(window, titleBar, root);
+
+        Log.Debug("Title bar configured with theme-resolved caption colors");
     }
 
     /// <inheritdoc />
@@ -101,6 +137,70 @@ public sealed class ChromeService : IChromeService
         else
         {
             Log.Debug("Backdrop: Solid fallback (no system backdrop support)");
+        }
+    }
+
+    /// <summary>
+    /// Paints the caption buttons from the theme tokens of the root's current shift.
+    /// Under HighContrast every color is reset to null so the system draws them.
+    /// </summary>
+    private static void ApplyCaptionColors(AppWindowTitleBar titleBar, FrameworkElement? root)
+    {
+        try
+        {
+            var tokens = CaptionButtonPalette.For(ThemeResources.IsHighContrast());
+            if (tokens is null)
+            {
+                titleBar.ButtonBackgroundColor = null;
+                titleBar.ButtonInactiveBackgroundColor = null;
+                titleBar.ButtonHoverBackgroundColor = null;
+                titleBar.ButtonPressedBackgroundColor = null;
+                titleBar.ButtonForegroundColor = null;
+                titleBar.ButtonInactiveForegroundColor = null;
+                titleBar.ButtonHoverForegroundColor = null;
+                titleBar.ButtonPressedForegroundColor = null;
+                return;
+            }
+
+            var theme = root?.ActualTheme ?? ElementTheme.Dark;
+
+            // Resting backgrounds stay clear so the chassis shows through the caption strip.
+            titleBar.ButtonBackgroundColor = Colors.Transparent;
+            titleBar.ButtonInactiveBackgroundColor = Colors.Transparent;
+            titleBar.ButtonHoverBackgroundColor = ResolveColor(tokens.HoverBackground, theme);
+            titleBar.ButtonPressedBackgroundColor = ResolveColor(tokens.PressedBackground, theme);
+
+            titleBar.ButtonForegroundColor = ResolveColor(tokens.Foreground, theme);
+            titleBar.ButtonInactiveForegroundColor = ResolveColor(tokens.InactiveForeground, theme);
+            titleBar.ButtonHoverForegroundColor = ResolveColor(tokens.HoverForeground, theme);
+            titleBar.ButtonPressedForegroundColor = ResolveColor(tokens.PressedForeground, theme);
+        }
+        catch (Exception ex)
+        {
+            // Chrome paint is cosmetic; a failure must never take down a theme switch.
+            Log.Warning(ex, "Failed to apply caption button colors");
+        }
+    }
+
+    /// <summary>A theme token's color, or null (the system default) when it cannot be resolved.</summary>
+    private static Color? ResolveColor(string key, ElementTheme theme) =>
+        (ThemeResources.Get(key, theme) as SolidColorBrush)?.Color;
+
+    /// <summary>
+    /// HighContrast is a system setting rather than an element theme, so turning it on or
+    /// off does not necessarily raise ActualThemeChanged. Listen for it directly.
+    /// </summary>
+    private void WatchHighContrast(Window window, AppWindowTitleBar titleBar, FrameworkElement? root)
+    {
+        try
+        {
+            _accessibilitySettings ??= new AccessibilitySettings();
+            _accessibilitySettings.HighContrastChanged += (_, _) =>
+                window.DispatcherQueue.TryEnqueue(() => ApplyCaptionColors(titleBar, root));
+        }
+        catch (Exception ex)
+        {
+            Log.Debug(ex, "High contrast notifications unavailable; caption colors follow theme changes only");
         }
     }
 }

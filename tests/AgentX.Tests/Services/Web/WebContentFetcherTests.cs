@@ -30,7 +30,7 @@ public class WebContentFetcherTests : IDisposable
         _fetcher.Dispose();
     }
 
-    // ─── Helper: Mock HTTP Handler ───────────────────────────────────────────
+    // --- Helper: Mock HTTP Handler -------------------------------------------
 
     /// <summary>
     /// Creates a mock HttpMessageHandler that returns the specified status code and content.
@@ -59,7 +59,7 @@ public class WebContentFetcherTests : IDisposable
         return new WebContentFetcher(_logger, jsRenderingService, httpClient);
     }
 
-    // ─── Constructor Tests ───────────────────────────────────────────────────
+    // --- Constructor Tests ---------------------------------------------------
 
     [Fact]
     public void Constructor_WithNullLogger_ThrowsArgumentNullException()
@@ -75,7 +75,7 @@ public class WebContentFetcherTests : IDisposable
         act.Should().Throw<ArgumentNullException>().WithParameterName("httpClient");
     }
 
-    // ─── FetchAsync: Success Cases ───────────────────────────────────────────
+    // --- FetchAsync: Success Cases -------------------------------------------
 
     [Fact]
     public async Task FetchAsync_ValidUrl_ReturnsHtml()
@@ -147,7 +147,7 @@ public class WebContentFetcherTests : IDisposable
         acceptHeader.Should().Contain("text/html");
     }
 
-    // ─── FetchAsync: Redirect Handling ───────────────────────────────────────
+    // --- FetchAsync: Redirect Handling ---------------------------------------
 
     [Fact]
     public async Task FetchAsync_FollowsRedirectsCorrectly()
@@ -168,7 +168,7 @@ public class WebContentFetcherTests : IDisposable
         result.Html.Should().Be(finalHtml);
     }
 
-    // ─── FetchAsync: HTTP Error Handling ─────────────────────────────────────
+    // --- FetchAsync: HTTP Error Handling -------------------------------------
 
     [Fact]
     public async Task FetchAsync_Http404_ThrowsHttpRequestException()
@@ -215,7 +215,7 @@ public class WebContentFetcherTests : IDisposable
         await act.Should().ThrowAsync<HttpRequestException>();
     }
 
-    // ─── FetchAsync: URL Validation ──────────────────────────────────────────
+    // --- FetchAsync: URL Validation ------------------------------------------
 
     [Fact]
     public async Task FetchAsync_NullUrl_ThrowsArgumentException()
@@ -273,7 +273,7 @@ public class WebContentFetcherTests : IDisposable
             .WithParameterName("url");
     }
 
-    // ─── FetchAsync: Cancellation ────────────────────────────────────────────
+    // --- FetchAsync: Cancellation --------------------------------------------
 
     [Fact]
     public async Task FetchAsync_CancelledToken_ThrowsOperationCanceledException()
@@ -292,7 +292,7 @@ public class WebContentFetcherTests : IDisposable
         await act.Should().ThrowAsync<OperationCanceledException>();
     }
 
-    // ─── FetchAsync: Timeout Handling ────────────────────────────────────────
+    // --- FetchAsync: Timeout Handling ----------------------------------------
 
     [Fact]
     public async Task FetchAsync_RequestTimeout_ThrowsTimeoutException()
@@ -314,7 +314,7 @@ public class WebContentFetcherTests : IDisposable
             .WithMessage("*timed out*");
     }
 
-    // ─── FetchAsync: Content Size Limit ──────────────────────────────────────
+    // --- FetchAsync: Content Size Limit --------------------------------------
 
     [Fact]
     public async Task FetchAsync_ContentExceedsMaxSize_ThrowsInvalidOperationException()
@@ -332,7 +332,7 @@ public class WebContentFetcherTests : IDisposable
             .WithMessage("*too large*");
     }
 
-    // ─── FetchAsync: JS Rendering Fallback ───────────────────────────────────
+    // --- FetchAsync: JS Rendering Fallback -----------------------------------
 
     [Fact]
     public async Task FetchAsync_EmptyResponse_WithJsRendering_FallsBackToJsRendering()
@@ -414,7 +414,7 @@ public class WebContentFetcherTests : IDisposable
         result.UsedJsRendering.Should().BeFalse();
     }
 
-    // ─── FetchAsync: Elapsed Time ────────────────────────────────────────────
+    // --- FetchAsync: Elapsed Time --------------------------------------------
 
     [Fact]
     public async Task FetchAsync_ElapsedTime_IsRecorded()
@@ -432,7 +432,7 @@ public class WebContentFetcherTests : IDisposable
         result.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(30));
     }
 
-    // ─── FetchAsync: Various Valid URLs ──────────────────────────────────────
+    // --- FetchAsync: Various Valid URLs --------------------------------------
 
     [Theory]
     [InlineData("https://example.com")]
@@ -454,7 +454,7 @@ public class WebContentFetcherTests : IDisposable
         result.FinalUrl.Should().Be(url);
     }
 
-    // ─── Mock Handlers ───────────────────────────────────────────────────────
+    // --- Mock Handlers -------------------------------------------------------
 
     /// <summary>
     /// A mock HttpMessageHandler that returns a predefined status code and content.

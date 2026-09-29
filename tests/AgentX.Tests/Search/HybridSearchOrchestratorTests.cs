@@ -194,12 +194,12 @@ public sealed class HybridSearchOrchestratorTests
         // start signal before returning. If launches are parallel, both signals fire and both
         // mocks complete. If launches are sequential (e.g. someone changes the production code
         // to `await semantic; await keyword;`), the second mock never starts and the first
-        // mock's await deadlocks — surfaced as a 5-second test timeout.
+        // mock's await deadlocks - surfaced as a 5-second test timeout.
         //
         // The original test version used `ReturnsAsync(Func<T>)` to defer lambda execution,
         // but Moq invokes that Func eagerly (synchronously when the mocked method is called),
         // so on a single thread the assertions inside the Func ran before the second backend
-        // had a chance to set its flag — the test failed deterministically rather than flakily.
+        // had a chance to set its flag - the test failed deterministically rather than flakily.
 
         // Arrange
         var query = new SearchQuery
@@ -235,7 +235,7 @@ public sealed class HybridSearchOrchestratorTests
                 return (IReadOnlyList<SearchResult>)keywordResults;
             });
 
-        // Act — race against a 5-second timeout to catch a regression to sequential launch.
+        // Act - race against a 5-second timeout to catch a regression to sequential launch.
         var searchTask = _orchestrator.SearchAsync(query);
         var winner = await Task.WhenAny(searchTask, Task.Delay(TimeSpan.FromSeconds(5)));
 
@@ -546,7 +546,33 @@ public sealed class HybridSearchOrchestratorTests
         // Hybrid mode requests TopK * 3 for better RRF results
         semanticQuery!.TopK.Should().Be(15); // 5 * 3
         keywordQuery!.TopK.Should().Be(15);
-        semanticQuery.MinScore.Should().Be(0.0f); // No pre-filtering for RRF
-        keywordQuery.MinScore.Should().Be(0.0f);
+
+        // Relevance is filtered per backend before fusion; fused RRF scores are rank based
+        // and cannot be thresholded meaningfully afterwards.
+        semanticQuery.MinScore.Should().Be(query.MinScore);
+        keywordQuery.MinScore.Should().Be(query.MinScore);
+    }
+
+    [Fact]
+    public async Task SearchAsync_HybridMode_WhenNeitherBackendFindsAnythingRelevant_ReturnsNoResults()
+    {
+        // With MinScore applied per backend, an irrelevant question yields nothing to fuse,
+        // so the RAG pipeline's "no relevant information" answer can trigger again.
+        _semanticSearch
+            .Setup(s => s.SearchAsync(It.Is<SearchQuery>(q => q.MinScore == 0.25f), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<SearchResult>());
+        _keywordSearch
+            .Setup(s => s.SearchAsync(It.Is<SearchQuery>(q => q.MinScore == 0.25f), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<SearchResult>());
+
+        var results = await _orchestrator.SearchAsync(new SearchQuery
+        {
+            Mode = SearchMode.Hybrid,
+            QueryText = "unrelated question",
+            TopK = 8,
+            MinScore = 0.25f
+        });
+
+        results.Should().BeEmpty();
     }
 }

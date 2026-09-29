@@ -1,4 +1,3 @@
-using System.Net;
 using System.Xml.Linq;
 using AgentX.Core.Services.Web.Models;
 using Serilog;
@@ -21,11 +20,12 @@ namespace AgentX.Core.Services.Web;
 public class FeedService : IFeedService
 {
     private readonly ILogger _log;
+    private readonly HttpClient _httpClient;
 
     /// <summary>
     /// A long-lived, shared HttpClient instance configured with appropriate defaults
     /// for fetching feed XML: a realistic User-Agent header, 30-second timeout, and
-    /// automatic decompression.
+    /// automatic decompression. Redirects are followed by <see cref="WebHttp"/>.
     /// </summary>
     private static readonly HttpClient SharedHttpClient;
 
@@ -34,7 +34,13 @@ public class FeedService : IFeedService
     /// </summary>
     private static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(30);
 
-    // ─── XML Namespace Constants ─────────────────────────────────────────────
+    /// <summary>
+    /// Largest feed document accepted (10 MB, counted after decompression), so an endless or
+    /// oversized response cannot exhaust memory.
+    /// </summary>
+    internal const int MaxFeedBytes = 10 * 1024 * 1024;
+
+    // --- XML Namespace Constants ---------------------------------------------
 
     private static readonly XNamespace ContentNamespace = "http://purl.org/rss/1.0/modules/content/";
     private static readonly XNamespace DublinCoreNamespace = "http://purl.org/dc/elements/1.1/";
@@ -44,14 +50,8 @@ public class FeedService : IFeedService
 
     static FeedService()
     {
-        var handler = new HttpClientHandler
-        {
-            AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate | DecompressionMethods.Brotli,
-            AllowAutoRedirect = true,
-            MaxAutomaticRedirections = 5,
-        };
-
-        SharedHttpClient = new HttpClient(handler)
+        // Decompresses, leaves redirects to WebHttp, and checks every connection where it is opened.
+        SharedHttpClient = new HttpClient(GuardedWebHandler.Create())
         {
             Timeout = DefaultTimeout,
         };
@@ -73,12 +73,21 @@ public class FeedService : IFeedService
     /// <param name="logger">The Serilog logger instance for structured logging.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="logger"/> is null.</exception>
     public FeedService(ILogger logger)
+        : this(logger, SharedHttpClient)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance with a caller-provided client (tests use a stub handler).
+    /// </summary>
+    internal FeedService(ILogger logger, HttpClient httpClient)
     {
         _log = logger?.ForContext<FeedService>()
                ?? throw new ArgumentNullException(nameof(logger));
+        _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
     }
 
-    // ─── IFeedService Implementation ────────────────────────────────────────
+    // --- IFeedService Implementation ----------------------------------------
 
     /// <inheritdoc />
     public async Task<FeedInfo> ParseFeedAsync(string feedUrl, CancellationToken ct = default)
@@ -121,7 +130,7 @@ public class FeedService : IFeedService
         return newItems;
     }
 
-    // ─── Internal Parsing Methods (testable without network) ───────────────
+    // --- Internal Parsing Methods (testable without network) ---------------
 
     /// <summary>
     /// Parses a feed from an <see cref="XDocument"/>, detecting the format from the root element.
@@ -363,24 +372,41 @@ public class FeedService : IFeedService
         };
     }
 
-    // ─── HTTP Fetching ──────────────────────────────────────────────────────
+    // --- HTTP Fetching ------------------------------------------------------
 
     /// <summary>
-    /// Fetches the raw XML content from the specified feed URL using the shared HttpClient.
+    /// Fetches the raw XML content from the specified feed URL, reading at most
+    /// <see cref="MaxFeedBytes"/> and honoring the charset the response or the XML declaration names.
     /// </summary>
     private async Task<string> FetchFeedXmlAsync(string feedUrl, CancellationToken ct)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, feedUrl);
-        using var response = await SharedHttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct);
-        response.EnsureSuccessStatusCode();
+        if (!Uri.TryCreate(feedUrl, UriKind.Absolute, out var feedUri)
+            || (feedUri.Scheme != Uri.UriSchemeHttp && feedUri.Scheme != Uri.UriSchemeHttps))
+        {
+            throw new ArgumentException($"Invalid feed URL: '{feedUrl}'. Only HTTP and HTTPS URLs are supported.", nameof(feedUrl));
+        }
 
-        // Some feeds return text/html; accept it as well for compatibility
-        var content = await response.Content.ReadAsStringAsync(ct);
+        var (response, _) = await WebHttp.GetFollowingRedirectsAsync(
+            _httpClient,
+            feedUri,
+            configureRequest: null,
+            (from, to, token) => PrivateNetworkGuard.EnsureRedirectAllowedAsync(feedUri, from, to, token),
+            ct);
+
+        string content;
+        using (response)
+        {
+            response.EnsureSuccessStatusCode();
+
+            // Some feeds return text/html; accept it as well for compatibility
+            var bytes = await WebHttp.ReadBoundedAsync(response.Content, MaxFeedBytes, ct);
+            content = WebHttp.DecodeText(bytes, response.Content.Headers.ContentType?.CharSet);
+        }
 
         // Strip any BOM or leading whitespace that might break XML parsing
         content = content.TrimStart('\uFEFF', '\u200B', ' ', '\r', '\n');
 
-        // Some feeds are wrapped in HTML — try to extract the XML portion
+        // Some feeds are wrapped in HTML - try to extract the XML portion
         if (content.StartsWith("<!", StringComparison.OrdinalIgnoreCase) || content.StartsWith("<?xml", StringComparison.OrdinalIgnoreCase) || content.StartsWith("<rss", StringComparison.OrdinalIgnoreCase) || content.StartsWith("<feed", StringComparison.OrdinalIgnoreCase) || content.StartsWith("<RDF", StringComparison.OrdinalIgnoreCase))
         {
             return content;
@@ -415,7 +441,7 @@ public class FeedService : IFeedService
         return content;
     }
 
-    // ─── XML Helper Methods ─────────────────────────────────────────────────
+    // --- XML Helper Methods -------------------------------------------------
 
     /// <summary>
     /// Gets the text value of a direct child element by local name, ignoring namespace.
@@ -493,11 +519,11 @@ public class FeedService : IFeedService
         if (alternate is not null)
             return alternate.Attribute("href")?.Value?.Trim();
 
-        // No suitable alternate link found — return null so caller can use fallback
+        // No suitable alternate link found - return null so caller can use fallback
         return null;
     }
 
-    // ─── Date Parsing ───────────────────────────────────────────────────────
+    // --- Date Parsing -------------------------------------------------------
 
     /// <summary>
     /// Parses an RFC 822 date string commonly used in RSS feeds.

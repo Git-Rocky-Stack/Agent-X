@@ -1,5 +1,6 @@
 using AgentX.Core.Services.Intelligence;
 using AgentX.Core.Services.Intelligence.Models;
+using AgentX.Core.Services.Localization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Serilog;
@@ -15,8 +16,9 @@ namespace AgentX.App.ViewModels;
 public partial class KnowledgeGraphViewModel : ObservableObject
 {
     private readonly IKnowledgeGraphService _graphService;
+    private readonly ILocalizationService _localization;
 
-    // ── Observable Properties ─────────────────────────────────────────
+    // -- Observable Properties -----------------------------------------
 
     [ObservableProperty]
     private bool _isLoading;
@@ -40,7 +42,7 @@ public partial class KnowledgeGraphViewModel : ObservableObject
     private int _edgeCount;
 
     [ObservableProperty]
-    private string _statusMessage = "Loading graph...";
+    private string _statusMessage = string.Empty;
 
     [ObservableProperty]
     private bool _showDocuments = true;
@@ -51,7 +53,7 @@ public partial class KnowledgeGraphViewModel : ObservableObject
     [ObservableProperty]
     private bool _showTags = true;
 
-    // ── Search / Highlight ─────────────────────────────────────────
+    // -- Search / Highlight -----------------------------------------
 
     [ObservableProperty]
     private string _searchText = string.Empty;
@@ -62,12 +64,12 @@ public partial class KnowledgeGraphViewModel : ObservableObject
     [ObservableProperty]
     private bool _hasSearchResults;
 
-    // ── Zoom ───────────────────────────────────────────────────────
+    // -- Zoom -------------------------------------------------------
 
     [ObservableProperty]
     private double _zoomLevel = 1.0;
 
-    // ── Cluster Highlight ──────────────────────────────────────────
+    // -- Cluster Highlight ------------------------------------------
 
     [ObservableProperty]
     private string? _highlightedClusterId;
@@ -78,43 +80,80 @@ public partial class KnowledgeGraphViewModel : ObservableObject
     /// <summary>IDs of nodes that match the search or belong to the highlighted cluster.</summary>
     public HashSet<string> HighlightedNodeIds { get; } = new();
 
-    public KnowledgeGraphViewModel(IKnowledgeGraphService graphService)
+    public KnowledgeGraphViewModel(IKnowledgeGraphService graphService, ILocalizationService localization)
     {
         _graphService = graphService ?? throw new ArgumentNullException(nameof(graphService));
+        _localization = localization ?? throw new ArgumentNullException(nameof(localization));
+        StatusMessage = _localization.GetString("Graph_LoadingGraph");
     }
+
+    /// <summary>The build in progress, if any; a new build or leaving the page cancels it.</summary>
+    private CancellationTokenSource? _buildCts;
 
     /// <summary>
     /// Loads the knowledge graph data from the service and updates all
-    /// summary statistics. Called by the page on Loaded.
+    /// summary statistics. Called by the page on Loaded. The awaits stay on the UI
+    /// context because every property set afterwards is bound.
     /// </summary>
     public async Task InitializeAsync()
     {
+        // A refresh supersedes a build that is still laying out the previous graph
+        _buildCts?.Cancel();
+        var cts = new CancellationTokenSource();
+        _buildCts = cts;
+
         IsLoading = true;
-        StatusMessage = "Building knowledge graph...";
+        StatusMessage = _localization.GetString("Graph_BuildingGraph");
 
         try
         {
-            GraphData = await _graphService.BuildGraphAsync().ConfigureAwait(false);
+            GraphData = await _graphService.BuildGraphAsync(cts.Token);
 
             DocumentCount = GraphData.DocumentCount;
             CollectionCount = GraphData.CollectionCount;
             TagCount = GraphData.TagCount;
             EdgeCount = GraphData.Edges.Count;
-            StatusMessage = $"{GraphData.Nodes.Count} nodes, {GraphData.Edges.Count} connections";
+            var nodes = GraphData.Nodes.Count == 1
+                ? _localization.GetString("Graph_NodeCountOne", GraphData.Nodes.Count)
+                : _localization.GetString("Graph_NodeCountMany", GraphData.Nodes.Count);
+            var connections = GraphData.Edges.Count == 1
+                ? _localization.GetString("Graph_ConnectionCountOne", GraphData.Edges.Count)
+                : _localization.GetString("Graph_ConnectionCountMany", GraphData.Edges.Count);
+            StatusMessage = _localization.GetString("Graph_GraphSummary", nodes, connections);
 
             Log.Information(
                 "Knowledge graph loaded: {Nodes} nodes, {Edges} edges",
                 GraphData.Nodes.Count, GraphData.Edges.Count);
         }
+        catch (OperationCanceledException) when (cts.IsCancellationRequested)
+        {
+            Log.Debug("Knowledge graph build cancelled");
+        }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to build knowledge graph");
-            StatusMessage = "Failed to build graph";
+            StatusMessage = _localization.GetString("Graph_BuildFailed");
         }
         finally
         {
-            IsLoading = false;
+            // A newer build owns the loading state once it has started
+            if (ReferenceEquals(_buildCts, cts))
+            {
+                _buildCts = null;
+                IsLoading = false;
+            }
+
+            cts.Dispose();
         }
+    }
+
+    /// <summary>
+    /// Stops a graph build in progress, for example when the page is closed, so the layout
+    /// does not keep a CPU core busy for a graph nobody will see.
+    /// </summary>
+    public void CancelBuild()
+    {
+        _buildCts?.Cancel();
     }
 
     /// <summary>
@@ -123,7 +162,7 @@ public partial class KnowledgeGraphViewModel : ObservableObject
     [RelayCommand]
     private async Task RefreshGraphAsync()
     {
-        await InitializeAsync().ConfigureAwait(false);
+        await InitializeAsync();
     }
 
     /// <summary>

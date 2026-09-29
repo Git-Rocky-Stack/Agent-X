@@ -74,18 +74,18 @@ public interface IConversationService
     /// <param name="content">The message content.</param>
     /// <param name="tokenCount">Optional estimated token count for the message.</param>
     /// <param name="generationTimeMs">Optional generation time in milliseconds (for assistant messages).</param>
+    /// <param name="modelId">The model that wrote an assistant message.</param>
+    /// <param name="citationsJson">
+    /// The sources an assistant message cites, in the <see cref="MessageCitations"/> format.
+    /// </param>
     Task AddMessageAsync(
         long conversationId,
         string role,
         string content,
         int? tokenCount = null,
-        double? generationTimeMs = null);
-
-    /// <summary>
-    /// Removes the most recent assistant message from a conversation.
-    /// Used by regeneration to replace the last response.
-    /// </summary>
-    Task DeleteLastAssistantMessageAsync(long conversationId);
+        double? generationTimeMs = null,
+        string? modelId = null,
+        string? citationsJson = null);
 
     /// <summary>
     /// Deletes a specific message by ID and updates conversation metadata.
@@ -98,10 +98,12 @@ public interface IConversationService
     Task UpdateMessageContentAsync(long messageId, string newContent);
 
     /// <summary>
-    /// Deletes all messages in a conversation after a given SortOrder.
-    /// Used to truncate the conversation when editing and re-generating.
+    /// Deletes a message and every message after it in the same conversation, updating the
+    /// conversation metadata in one save. Used when an edited prompt is resent: the edited row
+    /// goes too, because sending persists the new text as a fresh message.
     /// </summary>
-    Task DeleteMessagesAfterAsync(long conversationId, int sortOrder);
+    /// <returns>The number of messages deleted; 0 when the message is not in the conversation.</returns>
+    Task<int> DeleteMessageAndFollowingAsync(long conversationId, long messageId);
 
     /// <summary>
     /// Returns the count of non-archived conversations.
@@ -113,7 +115,7 @@ public interface IConversationService
     /// </summary>
     Task<long> GetTotalTokensUsedAsync();
 
-    // ── Folder / Tag Organization ───────────────────────────────
+    // -- Folder / Tag Organization -------------------------------
 
     /// <summary>
     /// Sets or clears the folder name for a conversation.

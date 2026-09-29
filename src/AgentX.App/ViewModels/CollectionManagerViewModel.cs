@@ -1,14 +1,17 @@
 using System.Collections.ObjectModel;
+using System.Globalization;
+using AgentX.App.Services;
 using AgentX.Core.Documents;
 using AgentX.Core.Helpers;
 using AgentX.Core.Services.Collections;
+using AgentX.Core.Services.Localization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Serilog;
 
 namespace AgentX.App.ViewModels;
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 // COLLECTION MANAGER VIEW MODEL
 //
 // Comprehensive ViewModel for the Collection Manager experience.
@@ -16,28 +19,30 @@ namespace AgentX.App.ViewModels;
 //
 // Accepts ICollectionService and IDocumentService via DI and calls real
 // services with graceful error handling.
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 public partial class CollectionManagerViewModel : ObservableObject, IDisposable
 {
-    // ── Services ──────────────────────────────────────────────
+    // -- Services ----------------------------------------------
     private readonly ICollectionService _collectionService;
     private readonly IDocumentService _documentService;
+    private readonly ILocalizationService _localization;
+    private readonly INotificationService? _notifications;
 
-    // ── Page State ─────────────────────────────────────────────
+    // -- Page State ---------------------------------------------
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private string _errorMessage = string.Empty;
     [ObservableProperty] private bool _hasError;
 
-    // ── Selected Collection ──────────────────────────────────
+    // -- Selected Collection ----------------------------------
     [ObservableProperty] private CollectionDisplayItem? _selectedCollection;
 
-    // ── New Collection Input ─────────────────────────────────
+    // -- New Collection Input ---------------------------------
     [ObservableProperty] private string _newCollectionName = string.Empty;
     [ObservableProperty] private string _newCollectionDescription = string.Empty;
 
-    // ── Multi-Select State ───────────────────────────────────
-    // ── Rename Editor ────────────────────────────────────────────
+    // -- Multi-Select State -----------------------------------
+    // -- Rename Editor --------------------------------------------
     [ObservableProperty] private bool _isRenaming;
     [ObservableProperty] private CollectionDisplayItem? _renameTarget;
     [ObservableProperty] private string _renameName = string.Empty;
@@ -47,29 +52,66 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
 
     public ObservableCollection<long> SelectedCollectionIds { get; } = new();
 
-    // ── Stats ────────────────────────────────────────────────
+    // -- Move Editor ("Move into...") --
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(MoveCollectionCommand))]
+    private bool _isMoving;
+
+    [ObservableProperty] private CollectionDisplayItem? _moveTarget;
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(MoveCollectionCommand))]
+    private CollectionMoveDestination? _selectedMoveDestination;
+
+    [ObservableProperty] private bool _hasMoveDestinations;
+
+    /// <summary>Where the collection in the move editor can go.</summary>
+    public ObservableCollection<CollectionMoveDestination> MoveDestinations { get; } = new();
+
+    // -- Stats ------------------------------------------------
     [ObservableProperty] private int _totalCollections;
 
-    // ── Collections ──────────────────────────────────────────
+    // -- Collections ------------------------------------------
     public ObservableCollection<CollectionDisplayItem> Collections { get; } = new();
     public ObservableCollection<DocumentDisplayItem> SelectedCollectionDocuments { get; } = new();
 
-    // ── Computed Properties ──────────────────────────────────
+    // -- Computed Properties ----------------------------------
     public bool HasCollections => Collections.Count > 0;
     public bool HasSelectedCollection => SelectedCollection is not null;
     public bool HasSelectedCollectionDocuments => SelectedCollectionDocuments.Count > 0;
     public bool CanCreateCollection => !string.IsNullOrWhiteSpace(NewCollectionName);
 
-    public CollectionManagerViewModel(ICollectionService collectionService, IDocumentService documentService)
+    /// <summary>
+    /// What the last "Add Documents" did, or null when it did not get as far as a result.
+    /// </summary>
+    public CollectionAddOutcome? LastAddOutcome { get; private set; }
+
+    /// <summary>
+    /// Asks the user to confirm a delete and answers true when they do. The page supplies it (a
+    /// ContentDialog). While it is unset, Delete and Delete Selected delete nothing.
+    /// </summary>
+    public Func<ConfirmationRequest, Task<bool>>? ConfirmDestructiveActionAsync { get; set; }
+
+    /// <param name="collectionService">Collection reads and writes.</param>
+    /// <param name="documentService">Imports the files picked for "Add Documents".</param>
+    /// <param name="localization">Every text the page shows: errors, dates, the delete confirmations and the "Add Documents" summary.</param>
+    /// <param name="notifications">Shows the "Add Documents" summary; no summary without it.</param>
+    public CollectionManagerViewModel(
+        ICollectionService collectionService,
+        IDocumentService documentService,
+        ILocalizationService localization,
+        INotificationService? notifications = null)
     {
         _collectionService = collectionService;
         _documentService = documentService;
+        _localization = localization;
+        _notifications = notifications;
         Log.Debug("CollectionManagerViewModel created with services");
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // INITIALIZATION
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     public async Task InitializeAsync()
     {
@@ -85,7 +127,7 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to initialize CollectionManagerViewModel");
-            SetError("Failed to load collections. Please try refreshing.");
+            SetError(_localization.GetString("CollMgr_LoadFailed"));
         }
         finally
         {
@@ -121,7 +163,7 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(HasSelectedCollection));
     }
 
-    private static CollectionDisplayItem MapCollectionToDisplay(AgentX.Core.Data.Entities.CollectionEntity entity)
+    private CollectionDisplayItem MapCollectionToDisplay(AgentX.Core.Data.Entities.CollectionEntity entity)
     {
         var item = new CollectionDisplayItem
         {
@@ -131,8 +173,11 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
             IconGlyph = entity.IconGlyph ?? "\uF168",
             ColorHex = entity.ColorHex ?? "#AA2024",
             ParentCollectionId = entity.ParentCollectionId,
-            DocumentCount = entity.DocumentCollections?.Count ?? 0,
-            CreatedAtFormatted = entity.CreatedAt.ToString("MMM d, yyyy"),
+            // The stored count, which the collection service keeps correct on every read.
+            // The document links are not loaded with the tree, so counting them showed 0
+            // (or whatever links happened to be tracked already).
+            DocumentCount = entity.DocumentCount,
+            CreatedAtFormatted = FormatDate(entity.CreatedAt),
             UpdatedAtFormatted = FormatHelper.TimeAgoWithMonths(entity.UpdatedAt)
         };
 
@@ -148,9 +193,9 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
         return item;
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // PROPERTY CHANGE HOOKS
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     partial void OnSelectedCollectionChanged(CollectionDisplayItem? value)
     {
@@ -164,9 +209,9 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(CanCreateCollection));
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // COMMANDS
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     [RelayCommand(CanExecute = nameof(CanCreateCollection))]
     private async Task CreateCollectionAsync()
@@ -185,17 +230,9 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
                 name,
                 string.IsNullOrEmpty(description) ? null : description);
 
-            var newCollection = new CollectionDisplayItem
-            {
-                Id = entity.Id,
-                Name = entity.Name,
-                Description = entity.Description,
-                IconGlyph = "\uF168",
-                ColorHex = "#AA2024",
-                DocumentCount = 0,
-                CreatedAtFormatted = "Just now",
-                UpdatedAtFormatted = "Just now"
-            };
+            // Shown the way the list shows every collection: its creation date, and "just now"
+            // in the user's language as the last update.
+            var newCollection = MapCollectionToDisplay(entity);
 
             Collections.Add(newCollection);
             TotalCollections = await _collectionService.GetCollectionCountAsync();
@@ -210,7 +247,7 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to create collection: {Name}", name);
-            SetError($"Failed to create collection: {ex.Message}");
+            SetError(_localization.GetString("CollMgr_CreateFailed", ex.Message));
         }
     }
 
@@ -255,7 +292,7 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to rename collection {CollectionId}", target.Id);
-            SetError($"Failed to rename collection: {ex.Message}");
+            SetError(_localization.GetString("CollMgr_RenameFailed", ex.Message));
             return;
         }
         finally
@@ -276,10 +313,136 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
         RenameName = string.Empty;
     }
 
+    /// <summary>
+    /// Opens the move editor ("Move into...") on a collection with the places it can go. The
+    /// list shows two levels, top-level collections and their sub-collections, so a collection
+    /// can move to the top level or into another top-level collection, and only one without
+    /// sub-collections of its own can become a sub-collection (its children would otherwise
+    /// sink to a third level the list does not show).
+    /// </summary>
+    [RelayCommand]
+    private void BeginMoveCollection(CollectionDisplayItem? item)
+    {
+        if (item is null)
+        {
+            return;
+        }
+
+        MoveDestinations.Clear();
+
+        if (item.ParentCollectionId is not null)
+        {
+            MoveDestinations.Add(new CollectionMoveDestination(null, _localization.GetString("CollMgr_MoveToTopLevel")));
+        }
+
+        if (item.Children.Count == 0)
+        {
+            foreach (var candidate in Collections)
+            {
+                if (candidate.Id != item.Id && candidate.Id != item.ParentCollectionId)
+                {
+                    MoveDestinations.Add(new CollectionMoveDestination(candidate.Id, candidate.Name));
+                }
+            }
+        }
+
+        MoveTarget = item;
+        HasMoveDestinations = MoveDestinations.Count > 0;
+        SelectedMoveDestination = MoveDestinations.FirstOrDefault();
+        IsMoving = true;
+    }
+
+    private bool CanMoveCollection() => IsMoving && MoveTarget is not null && SelectedMoveDestination is not null;
+
+    /// <summary>
+    /// Moves the collection in the move editor to the chosen place and shows it there, at the
+    /// end of its new siblings, where the collection service puts it too.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanMoveCollection))]
+    private async Task MoveCollectionAsync()
+    {
+        var target = MoveTarget;
+        var destination = SelectedMoveDestination;
+        if (target is null || destination is null)
+        {
+            return;
+        }
+
+        ClearError();
+
+        try
+        {
+            await _collectionService.MoveCollectionAsync(target.Id, destination.ParentId);
+
+            var oldSiblings = FindParentCollection(target.Id)?.Children ?? Collections;
+            oldSiblings.Remove(target);
+            target.ParentCollectionId = destination.ParentId;
+
+            if (destination.ParentId is null)
+            {
+                Collections.Add(target);
+            }
+            else if (FindCollectionById(destination.ParentId.Value) is { } parent)
+            {
+                parent.Children.Add(target);
+            }
+            else
+            {
+                // The destination left the list in the meantime; show the stored tree.
+                await LoadCollectionsAsync();
+            }
+
+            OnPropertyChanged(nameof(HasCollections));
+            Log.Information("Moved collection {CollectionId} under {ParentId}",
+                target.Id, destination.ParentId?.ToString() ?? "the top level");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to move collection {CollectionId}", target.Id);
+            SetError(_localization.GetString("CollMgr_MoveFailed", ex.Message));
+        }
+        finally
+        {
+            CloseMoveEditor();
+        }
+    }
+
+    /// <summary>
+    /// Closes the move editor without moving anything.
+    /// </summary>
+    [RelayCommand]
+    private void CancelMove() => CloseMoveEditor();
+
+    private void CloseMoveEditor()
+    {
+        IsMoving = false;
+        MoveTarget = null;
+        SelectedMoveDestination = null;
+        MoveDestinations.Clear();
+        HasMoveDestinations = false;
+    }
+
+    /// <summary>
+    /// Deletes a collection once the user confirms. Its documents stay in the vault and its
+    /// sub-collections move up to its parent (or to the top level).
+    /// </summary>
     [RelayCommand]
     private async Task DeleteCollectionAsync(long id)
     {
         Log.Information("Delete collection requested: {CollectionId}", id);
+
+        var name = FindCollectionById(id)?.Name ?? string.Empty;
+        var confirmed = await IsConfirmedAsync(new ConfirmationRequest(
+            _localization.GetString("CollMgr_DeleteConfirmTitle"),
+            _localization.GetString("CollMgr_DeleteConfirmMessage", name),
+            _localization.GetString("CollMgr_DeleteConfirmButton"),
+            _localization.GetString("CollMgr_ConfirmCancelButton")));
+        if (!confirmed)
+        {
+            Log.Information("Delete of collection {CollectionId} was not confirmed", id);
+            return;
+        }
+
         ClearError();
 
         try
@@ -291,14 +454,27 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
             {
                 // Check if it's a root collection or child
                 var parentCollection = FindParentCollection(id);
-                if (parentCollection is not null)
+                var siblings = parentCollection?.Children ?? Collections;
+                var insertAt = siblings.IndexOf(item);
+                siblings.Remove(item);
+
+                // The service moves the deleted collection's children up to its parent (or to
+                // the root). Mirror that here, in the deleted row's place, so the children stay
+                // visible instead of disappearing with their parent's row until a refresh.
+                foreach (var child in item.Children.ToList())
                 {
-                    parentCollection.Children.Remove(item);
+                    child.ParentCollectionId = item.ParentCollectionId;
+                    if (insertAt >= 0 && insertAt <= siblings.Count)
+                    {
+                        siblings.Insert(insertAt++, child);
+                    }
+                    else
+                    {
+                        siblings.Add(child);
+                    }
                 }
-                else
-                {
-                    Collections.Remove(item);
-                }
+
+                item.Children.Clear();
 
                 TotalCollections = await _collectionService.GetCollectionCountAsync();
                 OnPropertyChanged(nameof(HasCollections));
@@ -317,7 +493,7 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to delete collection: {CollectionId}", id);
-            SetError($"Failed to delete collection: {ex.Message}");
+            SetError(_localization.GetString("CollMgr_DeleteFailed", ex.Message));
         }
     }
 
@@ -333,36 +509,107 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
-    /// Adds documents to the currently selected collection.
-    /// The actual file picker is handled by the code-behind.
-    /// This command is invoked with the selected document IDs.
+    /// Adds files to the selected collection. The file picker lives in the code-behind, which
+    /// passes the picked paths here. Files new to the vault are imported and added; a file
+    /// whose content is already in the vault adds that existing document, where it used to be
+    /// skipped without a word. <see cref="LastAddOutcome"/> records how many files were added,
+    /// were already in the collection, or failed, and the same counts are shown to the user.
     /// </summary>
     [RelayCommand]
-    private async Task AddDocumentsToCollectionAsync(IReadOnlyList<long>? documentIds)
+    private async Task AddFilesToCollectionAsync(IReadOnlyList<string>? filePaths)
     {
-        if (SelectedCollection is null || documentIds is null || documentIds.Count == 0) return;
+        LastAddOutcome = null;
+        var collection = SelectedCollection;
+        if (collection is null || filePaths is null || filePaths.Count == 0) return;
 
-        Log.Information("Adding {Count} document(s) to collection: {CollectionId}",
-            documentIds.Count, SelectedCollection.Id);
+        Log.Information("Adding {Count} file(s) to collection: {CollectionId}", filePaths.Count, collection.Id);
         ClearError();
+
+        var added = 0;
+        var alreadyInCollection = 0;
+        var failures = new List<CollectionAddFailure>();
 
         try
         {
-            foreach (var docId in documentIds)
+            var report = await _documentService.ImportFilesWithReportAsync(filePaths);
+            failures.AddRange(report.Failed.Select(failure => new CollectionAddFailure(failure.FilePath, failure.Reason)));
+
+            // New documents and the existing documents duplicates matched both go into the
+            // collection; the service says which of them were members already.
+            var documents = report.Imported
+                .Select(document => (FilePath: document.FilePath, DocumentId: document.Id))
+                .Concat(report.Duplicates.Select(duplicate => (duplicate.FilePath, DocumentId: duplicate.ExistingDocumentId)));
+
+            foreach (var (filePath, documentId) in documents)
             {
-                await _collectionService.AddDocumentToCollectionAsync(docId, SelectedCollection.Id);
+                try
+                {
+                    if (await _collectionService.AddDocumentToCollectionAsync(documentId, collection.Id))
+                    {
+                        added++;
+                    }
+                    else
+                    {
+                        alreadyInCollection++;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, "Failed to add document {DocumentId} to collection {CollectionId}", documentId, collection.Id);
+                    failures.Add(new CollectionAddFailure(filePath, ex.Message));
+                }
             }
-
-            await LoadCollectionDocumentsAsync(SelectedCollection.Id);
-            SelectedCollection.DocumentCount = SelectedCollectionDocuments.Count;
-
-            Log.Information("Documents added to collection: {CollectionId}", SelectedCollection.Id);
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to add documents to collection");
-            SetError($"Failed to add documents: {ex.Message}");
+            SetError(_localization.GetString("CollMgr_AddDocumentsFailed", ex.Message));
+            return;
         }
+
+        if (SelectedCollection?.Id == collection.Id)
+        {
+            await LoadCollectionDocumentsAsync(collection.Id);
+            collection.DocumentCount = SelectedCollectionDocuments.Count;
+        }
+        else
+        {
+            collection.DocumentCount += added;
+        }
+
+        LastAddOutcome = new CollectionAddOutcome(added, alreadyInCollection, failures);
+        Log.Information(
+            "Add to collection {CollectionId}: {Added} added, {AlreadyInCollection} already in it, {Failed} failed",
+            collection.Id, added, alreadyInCollection, failures.Count);
+
+        ReportAddOutcome(LastAddOutcome);
+    }
+
+    /// <summary>
+    /// Shows what "Add Documents" did. A failure names the first file that failed and why.
+    /// </summary>
+    private void ReportAddOutcome(CollectionAddOutcome outcome)
+    {
+        if (_notifications is null)
+        {
+            return;
+        }
+
+        var counts = _localization.GetString(
+            "CollMgr_AddDocumentsCounts", outcome.Added, outcome.AlreadyInCollection, outcome.Failures.Count);
+
+        if (outcome.Failures.Count == 0)
+        {
+            _notifications.ShowSuccess(_localization.GetString("CollMgr_AddDocumentsDone"), counts, durationMs: 6000);
+            return;
+        }
+
+        var first = outcome.Failures[0];
+        var fileName = Path.GetFileName(first.FilePath);
+        _notifications.ShowError(
+            _localization.GetString("CollMgr_AddDocumentsIncomplete"),
+            _localization.GetString("CollMgr_AddDocumentsFirstFailure", counts, fileName, first.Reason),
+            durationMs: 10000);
     }
 
     [RelayCommand]
@@ -391,7 +638,7 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to remove document from collection");
-            SetError($"Failed to remove document: {ex.Message}");
+            SetError(_localization.GetString("CollMgr_RemoveDocumentFailed", ex.Message));
         }
     }
 
@@ -402,9 +649,9 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
         await InitializeAsync();
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // MULTI-SELECT / BATCH COMMANDS
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     /// <summary>
     /// Toggles multi-select mode on or off. When toggled off, all selections are cleared.
@@ -489,9 +736,9 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
-    /// Deletes all currently selected collections in bulk.
+    /// Deletes all currently selected collections in bulk, once the user confirms.
     /// After completion, the selection is cleared, multi-select mode is exited,
-    /// and the collection list is refreshed.
+    /// and the collection list is refreshed. Without confirmation the selection is kept.
     /// </summary>
     [RelayCommand]
     private async Task BulkDeleteCollectionsAsync()
@@ -499,6 +746,17 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
         if (SelectedCollectionIds.Count == 0) return;
 
         var count = SelectedCollectionIds.Count;
+        var confirmed = await IsConfirmedAsync(new ConfirmationRequest(
+            _localization.GetString("CollMgr_BulkDeleteConfirmTitle"),
+            _localization.GetString("CollMgr_BulkDeleteConfirmMessage", count),
+            _localization.GetString("CollMgr_DeleteConfirmButton"),
+            _localization.GetString("CollMgr_ConfirmCancelButton")));
+        if (!confirmed)
+        {
+            Log.Information("Bulk delete of {Count} collections was not confirmed", count);
+            return;
+        }
+
         Log.Information("Bulk deleting {Count} collections", count);
         ClearError();
         IsLoading = true;
@@ -519,7 +777,7 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Error(ex, "Bulk delete collections failed");
-            SetError($"Failed to delete collections: {ex.Message}");
+            SetError(_localization.GetString("CollMgr_BulkDeleteFailed", ex.Message));
         }
         finally
         {
@@ -531,9 +789,9 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // PRIVATE HELPERS
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     private async Task LoadCollectionDocumentsAsync(long collectionId)
     {
@@ -568,6 +826,29 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
         }
 
         OnPropertyChanged(nameof(HasSelectedCollectionDocuments));
+    }
+
+    /// <summary>
+    /// A date in the order the user's language writes one ("Sep 27, 2026" in English), from the
+    /// pattern relative times use once they show the date itself.
+    /// </summary>
+    private string FormatDate(DateTime date)
+    {
+        const string EnglishPattern = "MMM d, yyyy";
+        var pattern = _localization.GetString("TimeAgo_DateFormat");
+        if (string.IsNullOrWhiteSpace(pattern) || pattern == "TimeAgo_DateFormat")
+        {
+            pattern = EnglishPattern;
+        }
+
+        try
+        {
+            return date.ToString(pattern, CultureInfo.CurrentCulture);
+        }
+        catch (FormatException)
+        {
+            return date.ToString(EnglishPattern, CultureInfo.CurrentCulture);
+        }
     }
 
     private static string GetFileTypeIcon(string fileType) => fileType.ToLowerInvariant() switch
@@ -646,6 +927,29 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
         return null;
     }
 
+    /// <summary>
+    /// Asks <see cref="ConfirmDestructiveActionAsync"/>. No handler, or a dialog that fails to
+    /// open, counts as "not confirmed": nothing is deleted without an answer.
+    /// </summary>
+    private async Task<bool> IsConfirmedAsync(ConfirmationRequest request)
+    {
+        if (ConfirmDestructiveActionAsync is not { } confirm)
+        {
+            Log.Warning("No confirmation handler is attached; '{Title}' was not carried out", request.Title);
+            return false;
+        }
+
+        try
+        {
+            return await confirm(request);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "The confirmation '{Title}' could not be shown", request.Title);
+            return false;
+        }
+    }
+
     private void SetError(string message)
     {
         ErrorMessage = message;
@@ -658,9 +962,9 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
         HasError = false;
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // DISPOSAL
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     public void Dispose()
     {
@@ -668,9 +972,24 @@ public partial class CollectionManagerViewModel : ObservableObject, IDisposable
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+/// <summary>
+/// Outcome of "Add Documents": files whose document was added to the collection, files whose
+/// document was a member already, and files that did not end up in it.
+/// </summary>
+public sealed record CollectionAddOutcome(int Added, int AlreadyInCollection, IReadOnlyList<CollectionAddFailure> Failures);
+
+/// <summary>A file "Add Documents" could not put in the collection, and why.</summary>
+public sealed record CollectionAddFailure(string FilePath, string Reason);
+
+/// <summary>
+/// A place "Move into..." offers: a top-level collection (its id), or the top level itself
+/// (<paramref name="ParentId"/> null).
+/// </summary>
+public sealed record CollectionMoveDestination(long? ParentId, string Name);
+
+// ===========================================================================
 // COLLECTION DISPLAY ITEM
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 /// <summary>
 /// Represents a collection displayed in the Collection Manager UI.

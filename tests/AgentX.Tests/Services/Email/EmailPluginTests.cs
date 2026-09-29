@@ -49,7 +49,7 @@ public sealed class EmailPluginTests : IDisposable
         catch { /* best effort */ }
     }
 
-    // ── Plugin properties ────────────────────────────────────────────────────
+    // -- Plugin properties ----------------------------------------------------
 
     [Fact]
     public void Id_ReturnsCorrectValue()
@@ -81,7 +81,7 @@ public sealed class EmailPluginTests : IDisposable
         _plugin.Author.Should().NotBeNullOrEmpty();
     }
 
-    // ── Lifecycle ────────────────────────────────────────────────────────────
+    // -- Lifecycle ------------------------------------------------------------
 
     [Fact]
     public async Task InitializeAsync_SetsUpContext()
@@ -145,6 +145,40 @@ public sealed class EmailPluginTests : IDisposable
     }
 
     [Fact]
+    public async Task GetProvidersForFolderListingAsync_CoversConnectedAccountsWhileSyncIsOff()
+    {
+        // The settings page lists folders before sync is turned on; only activation registers
+        // providers, so listing builds them from the connected accounts.
+        _oauthService.Setup(o => o.GetCredentialAsync("google"))
+            .ReturnsAsync(new OAuthCredential { AccessToken = "g-token", RefreshToken = "r" });
+        _oauthService.Setup(o => o.GetCredentialAsync("microsoft"))
+            .ReturnsAsync(new OAuthCredential { AccessToken = "m-token", RefreshToken = "r" });
+
+        await _plugin.InitializeAsync(_mockContext.Object);
+        var providers = await _plugin.GetProvidersForFolderListingAsync();
+
+        providers.Select(p => p.ProviderId).Should().Equal("google", "microsoft");
+        _plugin.Providers.Should().BeEmpty("listing folders does not start syncing");
+    }
+
+    [Fact]
+    public async Task GetProvidersForFolderListingAsync_FollowsTheCurrentAccounts()
+    {
+        _oauthService.Setup(o => o.GetCredentialAsync("google"))
+            .ReturnsAsync(new OAuthCredential { AccessToken = "g-token", RefreshToken = "r" });
+        _oauthService.Setup(o => o.GetCredentialAsync("microsoft")).ReturnsAsync((OAuthCredential?)null);
+        await _plugin.InitializeAsync(_mockContext.Object);
+        await _plugin.ActivateAsync();
+
+        // Outlook is connected after sync started; its folders can be chosen right away.
+        _oauthService.Setup(o => o.GetCredentialAsync("microsoft"))
+            .ReturnsAsync(new OAuthCredential { AccessToken = "m-token", RefreshToken = "r" });
+        var providers = await _plugin.GetProvidersForFolderListingAsync();
+
+        providers.Select(p => p.ProviderId).Should().Equal("google", "microsoft");
+    }
+
+    [Fact]
     public async Task DeactivateAsync_StopsSync()
     {
         _oauthService.Setup(o => o.GetCredentialAsync("google")).ReturnsAsync((OAuthCredential?)null);
@@ -164,7 +198,7 @@ public sealed class EmailPluginTests : IDisposable
         _plugin.Dispose(); // second call should not throw
     }
 
-    // ── Settings ──────────────────────────────────────────────────────────────
+    // -- Settings --------------------------------------------------------------
 
     [Fact]
     public void GetSettings_ReturnsDefaultWhenNotInitialized()
@@ -199,7 +233,7 @@ public sealed class EmailPluginTests : IDisposable
         Assert.Throws<ArgumentNullException>(() => _plugin.UpdateSettings(null!));
     }
 
-    // ── Provider construction ──────────────────────────────────────────────────
+    // -- Provider construction --------------------------------------------------
 
     [Fact]
     public void GmailProvider_Constructs_WithValidArgs()

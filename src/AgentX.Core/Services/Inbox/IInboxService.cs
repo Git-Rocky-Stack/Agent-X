@@ -9,7 +9,7 @@ namespace AgentX.Core.Services.Inbox;
 /// </summary>
 public interface IInboxService
 {
-    // ── Ingestion ────────────────────────────────────────────────────────────
+    // -- Ingestion ------------------------------------------------------------
 
     /// <summary>
     /// Adds a file to the inbox with <c>Status = "pending"</c>.
@@ -27,7 +27,7 @@ public interface IInboxService
         string? sourceType = null,
         string? sourceUrl = null);
 
-    // ── Queries ──────────────────────────────────────────────────────────────
+    // -- Queries --------------------------------------------------------------
 
     /// <summary>
     /// Returns all items whose <c>Status</c> is "pending", ordered by
@@ -56,26 +56,34 @@ public interface IInboxService
     /// </summary>
     Task<int> GetPendingCountAsync();
 
-    // ── Single-item triage ───────────────────────────────────────────────────
+    // -- Single-item triage ---------------------------------------------------
 
     /// <summary>
-    /// Accepts a single pending item, setting its status to "accepted" and
-    /// <c>ProcessedAt</c> to the current UTC time. The indexing pipeline will
-    /// subsequently pick up the item based on the accepted status.
+    /// Accepts a single item into the knowledge vault. The file is copied into app storage
+    /// (so a temp-folder clip cannot vanish under the vault), imported through
+    /// <c>IDocumentService.ImportFileAsync</c> (which queues it for indexing), and the inbox
+    /// row is linked to the resulting document and marked "accepted". When identical content
+    /// is already in the vault the row is linked to that document instead of importing a
+    /// second copy.
     /// </summary>
+    /// <remarks>
+    /// Failure is never reported as success: if the file is gone, its type cannot be
+    /// processed, or document import is unavailable, the method throws and the row keeps
+    /// its previous status.
+    /// </remarks>
     /// <param name="itemId">Primary key of the inbox item to accept.</param>
     /// <param name="collectionId">
-    /// If provided, overrides the AI-suggested collection so the indexing
-    /// pipeline places the document in the correct collection.
+    /// If provided, overrides the AI-suggested collection for the imported document.
     /// </param>
-    Task AcceptItemAsync(long itemId, long? collectionId = null);
+    /// <returns>What the accept did and the linked document.</returns>
+    Task<InboxAcceptResult> AcceptItemAsync(long itemId, long? collectionId = null);
 
     /// <summary>
-    /// Accepts all items currently in "pending" status using the collection
-    /// suggested by the AI triage (if any), then stamps each with the current
-    /// UTC time as <c>ProcessedAt</c>.
+    /// Accepts every item currently in "pending" status, each exactly as
+    /// <see cref="AcceptItemAsync"/> does, using the item's own suggested collection.
+    /// Items that fail stay pending and are reported in the result.
     /// </summary>
-    Task AcceptAllPendingAsync();
+    Task<InboxBatchAcceptResult> AcceptAllPendingAsync();
 
     /// <summary>
     /// Rejects a single pending item, setting its status to "rejected" and
@@ -93,19 +101,19 @@ public interface IInboxService
     /// <param name="itemId">Primary key of the inbox item to defer.</param>
     Task DeferItemAsync(long itemId);
 
-    // ── Batch triage ─────────────────────────────────────────────────────────
+    // -- Batch triage ---------------------------------------------------------
 
     /// <summary>
-    /// Accepts a set of items by their primary keys. Each item is stamped
-    /// "accepted" with <c>ProcessedAt = UtcNow</c>. Items not found or already
-    /// processed are silently skipped.
+    /// Accepts a set of items by their primary keys, each exactly as
+    /// <see cref="AcceptItemAsync"/> does. Unknown IDs are skipped; items that fail keep
+    /// their previous status and are reported in the result.
     /// </summary>
     /// <param name="itemIds">IDs of the items to accept.</param>
     /// <param name="collectionId">
     /// Optional collection override applied to every item in the batch.
     /// When null each item retains its own <c>SuggestedCollectionId</c>.
     /// </param>
-    Task AcceptSelectedAsync(IEnumerable<long> itemIds, long? collectionId = null);
+    Task<InboxBatchAcceptResult> AcceptSelectedAsync(IEnumerable<long> itemIds, long? collectionId = null);
 
     /// <summary>
     /// Rejects a set of items by their primary keys. Items not found or already
@@ -114,11 +122,11 @@ public interface IInboxService
     /// <param name="itemIds">IDs of the items to reject.</param>
     Task RejectSelectedAsync(IEnumerable<long> itemIds);
 
-    // ── AI preview generation ────────────────────────────────────────────────
+    // -- AI preview generation ------------------------------------------------
 
     /// <summary>
     /// Reads the first 2 000 characters of the file at <c>InboxItemEntity.FilePath</c>,
-    /// sends them to the AI for a 2–3 sentence preview, and also requests a collection
+    /// sends them to the AI for a 2-3 sentence preview, and also requests a collection
     /// suggestion and comma-separated tags. Updates the entity in the database.
     /// </summary>
     /// <param name="itemId">Primary key of the inbox item to preview.</param>
@@ -133,21 +141,20 @@ public interface IInboxService
     /// <param name="ct">Cancellation token.</param>
     Task GenerateAllPreviewsAsync(CancellationToken ct = default);
 
-    // ── Maintenance ──────────────────────────────────────────────────────────
+    // -- Maintenance ----------------------------------------------------------
 
     /// <summary>
-    /// Permanently deletes all inbox rows whose status is "accepted", "rejected",
-    /// or "deferred". Pending items are not touched. Does not affect files on disk.
+    /// Permanently deletes all inbox rows whose status is "accepted" or "rejected".
+    /// Pending and deferred items are not touched. Does not affect files on disk.
     /// </summary>
     Task DeleteProcessedItemsAsync();
 
-    // ── External (plugin-sourced) items ────────────────────────────────────────
+    // -- External (plugin-sourced) items ----------------------------------------
 
     /// <summary>
-    /// Adds an external item to the inbox from a DataConnector plugin (calendar, email, etc.).
-    /// Unlike <see cref="AddToInboxAsync"/>, this does not require a physical file on disk.
-    /// The item is auto-accepted and immediately available for indexing since external
-    /// items are already processed by the plugin before submission.
+    /// Adds or refreshes an external item from a DataConnector plugin (calendar, email, etc.)
+    /// and returns the row. Equivalent to <see cref="UpsertExternalAsync"/> without the
+    /// outcome; callers that report added / updated / skipped counts should use that method.
     /// </summary>
     /// <param name="fileName">Display name for the item (e.g. "Meeting: Sprint Planning").</param>
     /// <param name="fileType">Category label (e.g. "CalendarEvent", "EmailMessage").</param>
@@ -157,8 +164,8 @@ public interface IInboxService
     /// <param name="sourceCategory">Category within the plugin (e.g. "calendar_event", "ActionRequired").</param>
     /// <param name="externalId">Provider-specific ID for deduplication.</param>
     /// <param name="contentPreview">AI-generated or extracted content preview.</param>
-    /// <param name="contentText">Full text content for indexing (will be stored as a temp file).</param>
-    /// <returns>The created inbox item, already in "accepted" status.</returns>
+    /// <param name="contentText">Full text content for indexing (stored under the app data folder).</param>
+    /// <returns>The created or refreshed inbox item.</returns>
     Task<InboxItemEntity> TriageExternalAsync(
         string fileName,
         string fileType,
@@ -169,4 +176,72 @@ public interface IInboxService
         string externalId,
         string? contentPreview,
         string contentText);
+
+    /// <summary>
+    /// Creates or refreshes the inbox row for an external provider item, keyed by
+    /// (<paramref name="sourcePluginId"/>, <paramref name="externalId"/>).
+    /// </summary>
+    /// <remarks>
+    /// <list type="bullet">
+    ///   <item>No row yet: the content is written under the app data folder (the file name is
+    ///   a hash of the plugin and external IDs, so provider IDs such as
+    ///   <c>google:primary:abc</c> never reach the file system), an "accepted" row is created,
+    ///   and the content is imported into the vault. Outcome <see cref="ExternalTriageOutcome.Created"/>.</item>
+    ///   <item>Row exists and the content or metadata changed (a rescheduled meeting, an
+    ///   edited description): the content file and row are rewritten and, for an accepted row,
+    ///   the linked vault document is re-indexed. Outcome <see cref="ExternalTriageOutcome.Updated"/>.</item>
+    ///   <item>Row exists and nothing changed: nothing is written. Outcome
+    ///   <see cref="ExternalTriageOutcome.Unchanged"/>.</item>
+    /// </list>
+    /// Vault import is best effort; a failure is logged and the inbox row is still returned.
+    /// </remarks>
+    Task<ExternalTriageResult> UpsertExternalAsync(
+        string fileName,
+        string fileType,
+        string sourceType,
+        string? sourceUrl,
+        string sourcePluginId,
+        string? sourceCategory,
+        string externalId,
+        string? contentPreview,
+        string contentText);
+
+    /// <summary>
+    /// Returns, untracked, the rows a connector created whose external ID starts with
+    /// <paramref name="externalIdPrefix"/> (for a calendar, every stored event of one calendar),
+    /// so the connector can compare them with what the provider still lists.
+    /// </summary>
+    /// <param name="sourcePluginId">Plugin ID that created the rows.</param>
+    /// <param name="externalIdPrefix">Leading part of the external IDs, compared ordinally.</param>
+    Task<IReadOnlyList<InboxItemEntity>> GetExternalItemsAsync(string sourcePluginId, string externalIdPrefix);
+
+    /// <summary>
+    /// Retires the row of an external item that is gone at its source (a deleted calendar event).
+    /// </summary>
+    /// <remarks>
+    /// A vault document is never deleted by a connector, because the user may have filed,
+    /// annotated or cited it:
+    /// <list type="bullet">
+    ///   <item>No row: nothing happens. Outcome <see cref="ExternalRemovalOutcome.NotFound"/>.</item>
+    ///   <item>The row has no document in the vault (it was never imported, or the user deleted
+    ///   the document): the row and its content file are deleted, so the inbox stops showing the
+    ///   item. Outcome <see cref="ExternalRemovalOutcome.Deleted"/>.</item>
+    ///   <item>The row has a vault document: <paramref name="markRemoved"/> rewrites the stored
+    ///   name, preview and text, and the change is applied the way a provider update is (the
+    ///   content file and row are rewritten; for an accepted row the document is renamed and
+    ///   re-indexed). When the stored text cannot be read, only the name and preview change, so
+    ///   the text the vault indexed is not replaced by the notice. The document stays in the
+    ///   vault and in its collections. Outcome <see cref="ExternalRemovalOutcome.Marked"/>, or
+    ///   <see cref="ExternalRemovalOutcome.AlreadyMarked"/> when nothing changed.</item>
+    /// </list>
+    /// If the provider lists the item again later, <see cref="UpsertExternalAsync"/> replaces the
+    /// marked copy with the current one.
+    /// </remarks>
+    /// <param name="sourcePluginId">Plugin ID that created the row.</param>
+    /// <param name="externalId">Provider-specific ID of the item.</param>
+    /// <param name="markRemoved">Returns the stored copy with the connector's removal notice.</param>
+    Task<ExternalRemovalResult> RemoveExternalAsync(
+        string sourcePluginId,
+        string externalId,
+        Func<ExternalItemContent, ExternalItemContent> markRemoved);
 }

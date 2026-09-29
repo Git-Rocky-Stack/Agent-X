@@ -36,7 +36,7 @@ public sealed class BraveSearchService : IWebSearchService
     {
         _apiKey = apiKey?.Trim();
         _cache = cache ?? new WebSearchCache(logger);
-        _httpClient = httpClient ?? new HttpClient();
+        _httpClient = httpClient ?? WebSearchHttp.CreateClient();
         _logger = logger?.ForContext<BraveSearchService>() ?? Serilog.Log.Logger.ForContext<BraveSearchService>();
     }
 
@@ -65,7 +65,9 @@ public sealed class BraveSearchService : IWebSearchService
             var url = $"{BraveApiBaseUrl}?q={Uri.EscapeDataString(query)}&count={maxResults}";
             using var request = new HttpRequestMessage(HttpMethod.Get, url);
             request.Headers.Add("Accept", "application/json");
-            request.Headers.Add("Accept-Encoding", "gzip");
+            // No hand-written Accept-Encoding: the decompressing handler negotiates compression
+            // and decodes the body. A manual "gzip" header came back as undecoded bytes that
+            // failed to parse, so every search returned (and cached) zero results.
             request.Headers.Add("X-Subscription-Token", _apiKey!);
 
             using var response = await _httpClient.SendAsync(request, ct).ConfigureAwait(false);
@@ -84,7 +86,11 @@ public sealed class BraveSearchService : IWebSearchService
                 FromCache = false
             };
 
-            _cache.Set(query, WebSearchProvider.Brave, webResponse);
+            // Only real results are cached; an empty answer is retried on the next search
+            if (results.Count > 0)
+            {
+                _cache.Set(query, WebSearchProvider.Brave, webResponse);
+            }
 
             _logger.Information(
                 "Brave search completed: {ResultCount} results for '{Query}' in {ElapsedMs:F0}ms",
@@ -118,16 +124,22 @@ public sealed class BraveSearchService : IWebSearchService
         FromCache = false
     };
 
+    /// <summary>
+    /// Parses a Brave response. A body that is not JSON throws, so the search is reported as
+    /// failed (and not cached) instead of as a search that found nothing; a response without a
+    /// "web" section simply has no web results.
+    /// </summary>
     private static List<WebSearchResult> ParseBraveResults(string json)
     {
         var results = new List<WebSearchResult>();
 
-        try
-        {
-            using var doc = JsonDocument.Parse(json);
-            var web = doc.RootElement.GetProperty("web");
+        using var doc = JsonDocument.Parse(json);
 
-            if (web.TryGetProperty("results", out var resultsArray))
+        if (doc.RootElement.ValueKind == JsonValueKind.Object
+            && doc.RootElement.TryGetProperty("web", out var web)
+            && web.ValueKind == JsonValueKind.Object)
+        {
+            if (web.TryGetProperty("results", out var resultsArray) && resultsArray.ValueKind == JsonValueKind.Array)
             {
                 foreach (var item in resultsArray.EnumerateArray())
                 {
@@ -144,7 +156,7 @@ public sealed class BraveSearchService : IWebSearchService
                     DateTime? publishedDate = null;
                     if (item.TryGetProperty("age", out var ageEl) && ageEl.ValueKind == JsonValueKind.String)
                     {
-                        // Brave returns age as a relative string like "2 days ago" — not parseable as DateTime
+                        // Brave returns age as a relative string like "2 days ago" - not parseable as DateTime
                         // Leave publishedDate null; could be enhanced later
                     }
 
@@ -158,10 +170,6 @@ public sealed class BraveSearchService : IWebSearchService
                     });
                 }
             }
-        }
-        catch (JsonException)
-        {
-            // Return whatever we have; malformed JSON shouldn't crash the pipeline
         }
 
         return results;

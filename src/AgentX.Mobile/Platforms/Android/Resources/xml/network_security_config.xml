@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Android 9+ blocks cleartext HTTP unless a network security config allows it. The desktop API
+    serves plain HTTP on http://localhost:9846 only, reached either through the emulator's alias
+    for the host loopback (10.0.2.2) or through `adb reverse tcp:9846 tcp:9846` (localhost on the
+    device). Cleartext is allowed for exactly those loopback hosts; every other host keeps the
+    platform default (HTTPS only), matching AgentXApiClient's own rule. See docs/MOBILE-TRANSPORT.md.
+    Picked up as an AndroidResource by the MAUI default glob (Platforms/Android/Resources/*/*.xml)
+    and referenced from AndroidManifest.xml.
+-->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">localhost</domain>
+        <domain includeSubdomains="false">127.0.0.1</domain>
+        <domain includeSubdomains="false">10.0.2.2</domain>
+    </domain-config>
+</network-security-config>

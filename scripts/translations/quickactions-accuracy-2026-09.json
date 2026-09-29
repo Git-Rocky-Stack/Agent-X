@@ -1,0 +1,95 @@
+{
+  "_comment": "Quick Actions guide accuracy pass 2026-09. The guide listed six actions (Summarize, Extract Key Points, Translate, Rewrite, Explain, Q&A Generation) with length presets, audiences, 30+ languages, bilingual view, difficulty levels, multi-document and Collection selection, a Vault context-menu entry, streaming progress and export, annotation and Continue in Chat outputs. QuickActionsPage has five tabs (Summarize, Key Points, Translate, Duplicates, Organize) plus the Recommended For This Context panel: one document at a time for the summary and key points, pasted text (up to 4,000 characters) into ten languages for Translate, vault-wide exact and semantic duplicate scans, and Collection and tag suggestions for up to 20 documents outside any Collection. Rows 4 to 6 of the guide template now describe Duplicates, Organize and the recommendations panel. Apply with python scripts/apply-guide-accuracy.py scripts/translations/quickactions-accuracy-2026-09.json",
+  "removePrefixes": [],
+  "update": {
+    "UserGuide_QuickActions_Description.Text": {
+      "en-US": "Quick Actions runs AI and maintenance tasks on your vault from one page. Pick a document from the list (one at a time) to summarize it or extract its key points, translate text you paste in, scan the whole vault for duplicates, or get Collection and tag suggestions for documents that are not in a Collection yet. Results appear on the page; nothing is saved to the document or applied automatically.",
+      "de": "Quick Actions führt KI- und Pflegeaufgaben für Ihren Tresor auf einer Seite aus. Wählen Sie ein Dokument aus der Liste (jeweils eines), um es zusammenzufassen oder seine Kernpunkte zu extrahieren, übersetzen Sie eingefügten Text, durchsuchen Sie den gesamten Tresor nach Duplikaten, oder lassen Sie sich Sammlungen und Tags für Dokumente vorschlagen, die noch in keiner Sammlung sind. Die Ergebnisse erscheinen auf der Seite; nichts wird am Dokument gespeichert oder automatisch angewendet.",
+      "es": "Quick Actions ejecuta tareas de IA y de mantenimiento sobre su bóveda desde una sola página. Elija un documento de la lista (uno cada vez) para resumirlo o extraer sus puntos clave, traduzca texto que pegue, busque duplicados en toda la bóveda u obtenga sugerencias de colecciones y etiquetas para documentos que aún no están en ninguna colección. Los resultados aparecen en la página; nada se guarda en el documento ni se aplica automáticamente.",
+      "fr": "Quick Actions exécute des tâches d'IA et de maintenance sur votre coffre-fort depuis une seule page. Choisissez un document dans la liste (un à la fois) pour le résumer ou en extraire les points clés, traduisez du texte collé, recherchez les doublons dans tout le coffre-fort ou obtenez des suggestions de collections et de tags pour les documents qui ne sont encore dans aucune collection. Les résultats s'affichent sur la page ; rien n'est enregistré dans le document ni appliqué automatiquement.",
+      "ja": "Quick Actions では、Vault に対する AI 処理やメンテナンス作業を 1 つのページで実行できます。一覧からドキュメントを 1 つずつ選んで要約したり要点を抽出したりできるほか、貼り付けたテキストの翻訳、Vault 全体の重複のスキャン、まだどのコレクションにも入っていないドキュメントに対するコレクションとタグの提案を行えます。結果はページに表示されるだけで、ドキュメントに保存されたり自動的に適用されたりはしません。",
+      "zh-CN": "Quick Actions 在一个页面上对您的 Vault 执行 AI 和维护任务。从列表中选择一个文档（每次一个）进行总结或提取要点，翻译您粘贴的文本，扫描整个 Vault 中的重复项，或为尚未加入任何合集的文档获取合集和标签建议。结果显示在页面上；不会保存到文档中，也不会自动应用。"
+    },
+    "UserGuide_QuickActions_Action1_Description.Text": {
+      "en-US": "Generate Layered Summary summarizes the selected document from its indexed chunks: the sections are summarized first, then combined into a final overview, so long documents are covered without one oversized prompt. The document must be indexed.",
+      "de": "„Mehrstufige Zusammenfassung erstellen“ fasst das ausgewählte Dokument anhand seiner indexierten Chunks zusammen: Zuerst werden die Abschnitte zusammengefasst, dann zu einem Gesamtüberblick verbunden, sodass auch lange Dokumente ohne übergroßen Prompt abgedeckt werden. Das Dokument muss indexiert sein.",
+      "es": "Generar resumen por capas resume el documento seleccionado a partir de sus fragmentos indexados: primero se resumen las secciones y luego se combinan en una visión general, de modo que los documentos largos se cubren sin un prompt desmesurado. El documento debe estar indexado.",
+      "fr": "Générer un résumé en couches résume le document sélectionné à partir de ses fragments indexés : les sections sont d'abord résumées, puis combinées en une vue d'ensemble, de sorte que les longs documents sont couverts sans prompt démesuré. Le document doit être indexé.",
+      "ja": "[階層要約を生成] は、選択したドキュメントをインデックス済みのチャンクから要約します。まずセクションごとに要約し、それらを最終的な概要にまとめるため、長いドキュメントでも巨大なプロンプトを使わずに全体をカバーできます。ドキュメントはインデックス済みである必要があります。",
+      "zh-CN": "“生成分层摘要”根据所选文档已编入索引的块生成摘要：先分别总结各部分，再合并为最终概述，因此长文档也能被完整覆盖，而无需超大的提示。文档必须已编入索引。"
+    },
+    "UserGuide_QuickActions_Action2_Description.Text": {
+      "en-US": "Pulls the main facts, figures and takeaways of the selected document into a bullet list, from the same layered pass over its indexed chunks. The points are plain text you can select and copy.",
+      "de": "Fasst die wichtigsten Fakten, Zahlen und Erkenntnisse des ausgewählten Dokuments als Aufzählung zusammen, aus demselben mehrstufigen Durchgang über seine indexierten Chunks. Die Punkte sind normaler Text, den Sie markieren und kopieren können.",
+      "es": "Reúne en una lista de viñetas los hechos, cifras y conclusiones principales del documento seleccionado, a partir de la misma pasada por capas sobre sus fragmentos indexados. Los puntos son texto normal que puede seleccionar y copiar.",
+      "fr": "Rassemble en liste à puces les principaux faits, chiffres et enseignements du document sélectionné, à partir de la même passe en couches sur ses fragments indexés. Les points sont du texte simple que vous pouvez sélectionner et copier.",
+      "ja": "選択したドキュメントの主な事実、数値、要点を、インデックス済みのチャンクに対する同じ階層処理から箇条書きにまとめます。各項目は選択してコピーできる通常のテキストです。",
+      "zh-CN": "基于对已编入索引的块进行的同一分层处理，将所选文档的主要事实、数字和要点整理成项目符号列表。这些要点是可以选择和复制的普通文本。"
+    },
+    "UserGuide_QuickActions_Action3_Description.Text": {
+      "en-US": "Translates text you paste into the Input Text box (up to 4,000 characters; anything longer is cut off) into one of ten languages: Spanish, French, German, Chinese, Japanese, Korean, Portuguese, Italian, Russian or Arabic. It uses the active chat model and does not translate documents from the vault.",
+      "de": "Übersetzt Text, den Sie in das Feld „Eingabetext“ einfügen (bis zu 4.000 Zeichen; der Rest wird abgeschnitten), in eine von zehn Sprachen: Spanisch, Französisch, Deutsch, Chinesisch, Japanisch, Koreanisch, Portugiesisch, Italienisch, Russisch oder Arabisch. Dafür wird das aktive Chatmodell verwendet; Dokumente aus dem Tresor werden nicht übersetzt.",
+      "es": "Traduce el texto que pegue en el cuadro Texto de entrada (hasta 4.000 caracteres; el resto se descarta) a uno de diez idiomas: español, francés, alemán, chino, japonés, coreano, portugués, italiano, ruso o árabe. Usa el modelo de chat activo y no traduce documentos de la bóveda.",
+      "fr": "Traduit le texte que vous collez dans la zone Texte d'entrée (jusqu'à 4 000 caractères ; le reste est ignoré) vers l'une de dix langues : espagnol, français, allemand, chinois, japonais, coréen, portugais, italien, russe ou arabe. La traduction utilise le modèle de chat actif et ne porte pas sur les documents du coffre-fort.",
+      "ja": "[入力テキスト] ボックスに貼り付けたテキスト (最大 4,000 文字。超えた部分は切り捨てられます) を、スペイン語、フランス語、ドイツ語、中国語、日本語、韓国語、ポルトガル語、イタリア語、ロシア語、アラビア語の 10 言語のいずれかに翻訳します。アクティブなチャット モデルを使い、Vault のドキュメントは翻訳しません。",
+      "zh-CN": "将您粘贴到“输入文本”框中的文本（最多 4,000 个字符，超出部分会被截断）翻译为十种语言之一：西班牙语、法语、德语、中文、日语、韩语、葡萄牙语、意大利语、俄语或阿拉伯语。翻译使用当前的聊天模型，不会翻译 Vault 中的文档。"
+    },
+    "UserGuide_QuickActions_Action4_Title.Text": {
+      "en-US": "Find Duplicates",
+      "de": "Duplikate finden",
+      "es": "Buscar duplicados",
+      "fr": "Trouver les doublons",
+      "ja": "重複の検出",
+      "zh-CN": "查找重复项"
+    },
+    "UserGuide_QuickActions_Action4_Description.Text": {
+      "en-US": "Scan Exact Duplicates groups documents whose files have identical content (the same SHA-256 hash) and shows how much space the copies take. Scan Semantic Near-Duplicates compares stored embeddings to group documents that say nearly the same thing, with a confidence score. Both scans only report; nothing is deleted or merged.",
+      "de": "„Exakte Duplikate scannen“ gruppiert Dokumente, deren Dateien identischen Inhalt haben (gleicher SHA-256-Hash), und zeigt, wie viel Speicherplatz die Kopien belegen. „Semantische Beinahe-Duplikate scannen“ vergleicht gespeicherte Embeddings und gruppiert Dokumente, die fast dasselbe aussagen, mit einem Konfidenzwert. Beide Scans berichten nur; nichts wird gelöscht oder zusammengeführt.",
+      "es": "Buscar duplicados exactos agrupa los documentos cuyos archivos tienen contenido idéntico (el mismo hash SHA-256) y muestra cuánto espacio ocupan las copias. Buscar casi duplicados semánticos compara los embeddings guardados para agrupar documentos que dicen casi lo mismo, con una puntuación de confianza. Ambas búsquedas solo informan; no se elimina ni se combina nada.",
+      "fr": "Rechercher les doublons exacts regroupe les documents dont les fichiers ont un contenu identique (même hachage SHA-256) et indique l'espace occupé par les copies. Rechercher les quasi-doublons sémantiques compare les embeddings enregistrés pour regrouper les documents qui disent presque la même chose, avec un score de confiance. Les deux analyses se contentent de signaler : rien n'est supprimé ni fusionné.",
+      "ja": "[完全一致の重複をスキャン] は、ファイルの内容が同一 (SHA-256 ハッシュが同じ) のドキュメントをグループにまとめ、コピーが占める容量を表示します。[セマンティックな類似重複をスキャン] は、保存済みの埋め込みを比較して、ほぼ同じ内容のドキュメントを信頼度付きでグループにまとめます。どちらのスキャンも報告するだけで、削除や統合は行いません。",
+      "zh-CN": "“扫描完全重复项”会把文件内容完全相同（SHA-256 哈希相同）的文档归为一组，并显示副本占用的空间。“扫描语义近似重复项”会比较已存储的嵌入，把内容几乎相同的文档归为一组，并给出置信度。两种扫描都只报告结果，不会删除或合并任何内容。"
+    },
+    "UserGuide_QuickActions_Action5_Title.Text": {
+      "en-US": "Organize",
+      "de": "Organisieren",
+      "es": "Organizar",
+      "fr": "Organiser",
+      "ja": "整理",
+      "zh-CN": "整理"
+    },
+    "UserGuide_QuickActions_Action5_Description.Text": {
+      "en-US": "Analyze & Suggest looks at up to 20 documents that are not in any Collection and suggests a Collection name and tags for each, with a confidence level and the reasoning. Suggestions are only shown; if you agree, create the Collection and add the tags yourself.",
+      "de": "„Analysieren & vorschlagen“ prüft bis zu 20 Dokumente, die in keiner Sammlung sind, und schlägt für jedes einen Sammlungsnamen und Tags vor, mit Konfidenzstufe und Begründung. Die Vorschläge werden nur angezeigt; wenn Sie zustimmen, legen Sie die Sammlung an und vergeben die Tags selbst.",
+      "es": "Analizar y sugerir revisa hasta 20 documentos que no están en ninguna colección y sugiere para cada uno un nombre de colección y etiquetas, con un nivel de confianza y el razonamiento. Las sugerencias solo se muestran; si está de acuerdo, cree la colección y añada las etiquetas usted mismo.",
+      "fr": "Analyser et suggérer examine jusqu'à 20 documents qui ne sont dans aucune collection et propose pour chacun un nom de collection et des tags, avec un niveau de confiance et le raisonnement. Les suggestions sont seulement affichées ; si vous êtes d'accord, créez la collection et ajoutez les tags vous-même.",
+      "ja": "[分析して提案] は、どのコレクションにも入っていないドキュメントを最大 20 件調べ、それぞれにコレクション名とタグを、信頼度と理由とともに提案します。提案は表示されるだけなので、同意する場合はコレクションの作成とタグの追加をご自身で行ってください。",
+      "zh-CN": "“分析并推荐”会检查最多 20 个未加入任何合集的文档，并为每个文档推荐一个合集名称和标签，同时给出置信度和理由。建议仅作显示；如果您认可，请自行创建合集并添加标签。"
+    },
+    "UserGuide_QuickActions_Action6_Title.Text": {
+      "en-US": "Recommended Actions",
+      "de": "Empfohlene Aktionen",
+      "es": "Acciones recomendadas",
+      "fr": "Actions recommandées",
+      "ja": "おすすめのアクション",
+      "zh-CN": "推荐操作"
+    },
+    "UserGuide_QuickActions_Action6_Description.Text": {
+      "en-US": "The Recommended For This Context panel at the top suggests up to four next steps from the selected document and the state of the app, such as finishing indexing, summarizing, triaging new Smart Inbox items, connecting a live source or scanning for near-duplicates. Each button runs the action or opens the page that handles it.",
+      "de": "Der Bereich „Für diesen Kontext empfohlen“ oben schlägt anhand des ausgewählten Dokuments und des Zustands der App bis zu vier nächste Schritte vor, etwa die Indexierung abzuschließen, zusammenzufassen, neue Einträge der Smart Inbox zu sichten, eine Live-Quelle anzubinden oder nach Beinahe-Duplikaten zu suchen. Jede Schaltfläche führt die Aktion aus oder öffnet die zuständige Seite.",
+      "es": "El panel Recomendado para este contexto, en la parte superior, sugiere hasta cuatro pasos siguientes a partir del documento seleccionado y del estado de la aplicación, como terminar la indexación, resumir, revisar los elementos nuevos de la Smart Inbox, conectar una fuente en vivo o buscar casi duplicados. Cada botón ejecuta la acción o abre la página que se encarga de ella.",
+      "fr": "Le panneau Recommandé pour ce contexte, en haut, propose jusqu'à quatre prochaines étapes selon le document sélectionné et l'état de l'application, comme terminer l'indexation, résumer, trier les nouveaux éléments de la Smart Inbox, connecter une source en direct ou rechercher des quasi-doublons. Chaque bouton lance l'action ou ouvre la page qui s'en charge.",
+      "ja": "上部の「このコンテキストへのおすすめ」パネルには、選択したドキュメントとアプリの状態に基づいて、インデックスの完了、要約、Smart Inbox の新しいアイテムの確認、ライブ ソースの接続、類似重複のスキャンなど、次の手順が最大 4 つ提案されます。各ボタンはそのアクションを実行するか、対応するページを開きます。",
+      "zh-CN": "顶部的“针对当前上下文的推荐”面板会根据所选文档和应用状态，推荐最多四个后续步骤，例如完成索引、生成摘要、处理 Smart Inbox 中的新条目、连接实时来源或扫描近似重复项。每个按钮都会执行相应操作或打开负责该操作的页面。"
+    },
+    "UserGuide_QuickActions_Usage.Text": {
+      "en-US": "Open Quick Actions from the navigation rail or the Dashboard, pick a document in the list, choose a tab and click its button. Summarize and Key Points need an indexed document, Translate works on pasted text, and Duplicates and Organize look at the whole vault. Results appear on the page; there is no export, save-as-annotation or Continue in Chat.",
+      "de": "Öffnen Sie Quick Actions über die Navigationsleiste oder das Dashboard, wählen Sie ein Dokument in der Liste, dann eine Registerkarte, und klicken Sie auf deren Schaltfläche. Zusammenfassen und Kernpunkte benötigen ein indexiertes Dokument, Übersetzen arbeitet mit eingefügtem Text, und Duplikate sowie Organisieren betrachten den ganzen Tresor. Die Ergebnisse erscheinen auf der Seite; Export, Speichern als Annotation oder „Im Chat fortsetzen“ gibt es nicht.",
+      "es": "Abra Quick Actions desde la barra de navegación o el Panel, elija un documento en la lista, seleccione una pestaña y haga clic en su botón. Resumir y Puntos clave necesitan un documento indexado, Traducir trabaja con texto pegado, y Duplicados y Organizar examinan toda la bóveda. Los resultados aparecen en la página; no hay exportación, guardado como anotación ni opción de continuar en el chat.",
+      "fr": "Ouvrez Quick Actions depuis la barre de navigation ou le tableau de bord, choisissez un document dans la liste, sélectionnez un onglet et cliquez sur son bouton. Résumer et Points clés exigent un document indexé, Traduire travaille sur du texte collé, et Doublons et Organiser examinent tout le coffre-fort. Les résultats s'affichent sur la page ; il n'y a ni export, ni enregistrement en annotation, ni poursuite dans le chat.",
+      "ja": "ナビゲーション レールまたはダッシュボードから Quick Actions を開き、一覧でドキュメントを選び、タブを選んでそのボタンをクリックします。[要約] と [要点] にはインデックス済みのドキュメントが必要で、[翻訳] は貼り付けたテキストを対象とし、[重複] と [整理] は Vault 全体を調べます。結果はページに表示されます。エクスポート、注釈としての保存、チャットでの続行はできません。",
+      "zh-CN": "从导航栏或仪表板打开 Quick Actions，在列表中选择一个文档，选择一个选项卡并单击其按钮。“总结”和“要点”需要已编入索引的文档，“翻译”处理粘贴的文本，“重复项”和“整理”则检查整个 Vault。结果显示在页面上；不支持导出、另存为注释或在聊天中继续。"
+    }
+  },
+  "add": {}
+}

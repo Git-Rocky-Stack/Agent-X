@@ -5,17 +5,19 @@ namespace AgentX.Core.Services.Sync.ConflictResolution;
 
 /// <summary>
 /// Production implementation of <see cref="ISyncConflictResolver"/>.
-/// Detects conflicts by comparing local modification timestamps against
-/// the last sync baseline, and resolves them using KeepLocal, KeepRemote,
-/// or Merged strategies.
+/// Settles conflicts by last writer wins: the incoming change is applied only when its
+/// modification timestamp is newer than the local copy's; on an exact tie the change from the
+/// device with the ordinally greater device id wins, so two installations that edited the same
+/// entity at the same instant still converge on one version. Explicit KeepLocal, KeepRemote and
+/// Merged resolutions remain available through <see cref="ResolveConflict"/>.
 /// </summary>
 public sealed class SyncConflictResolver : ISyncConflictResolver
 {
-    // ── Fields ────────────────────────────────────────────────────────────────
+    // ---- Fields ----
 
     private readonly ILogger _log;
 
-    // ── Constructor ───────────────────────────────────────────────────────────
+    // ---- Constructor ----
 
     /// <summary>
     /// Initialises a new <see cref="SyncConflictResolver"/>.
@@ -29,34 +31,64 @@ public sealed class SyncConflictResolver : ISyncConflictResolver
         _log.Debug("SyncConflictResolver initialised");
     }
 
-    // ── ISyncConflictResolver: DetectConflictsAsync ───────────────────────────
+    // ---- ISyncConflictResolver: Decide ----
+
+    /// <inheritdoc />
+    public SyncDecision Decide(
+        SyncChange remoteChange,
+        string remoteDeviceId,
+        DateTime? localModifiedAt,
+        string localDeviceId)
+    {
+        ArgumentNullException.ThrowIfNull(remoteChange);
+
+        // Loop-back guard: a change this installation produced is already reflected locally.
+        if (string.Equals(remoteDeviceId, localDeviceId, StringComparison.OrdinalIgnoreCase))
+            return SyncDecision.AlreadyCurrent;
+
+        if (localModifiedAt is null)
+        {
+            // Nothing local to compare against: a new entity is inserted, and a deletion of
+            // something that is not here has nothing left to do.
+            return remoteChange.ChangeType == SyncChangeType.Deleted
+                ? SyncDecision.AlreadyCurrent
+                : SyncDecision.ApplyRemote;
+        }
+
+        var remoteTicks = UtcTicks(remoteChange.Timestamp);
+        var localTicks = UtcTicks(localModifiedAt.Value);
+
+        if (remoteTicks > localTicks)
+            return SyncDecision.ApplyRemote;
+
+        if (remoteTicks < localTicks)
+            return SyncDecision.KeepLocal;
+
+        // Exact tie: usually the same version echoed back. Pick deterministically so that a
+        // genuine simultaneous edit still converges: the greater device id wins on both sides.
+        return string.CompareOrdinal(remoteDeviceId ?? string.Empty, localDeviceId ?? string.Empty) > 0
+            ? SyncDecision.ApplyRemote
+            : SyncDecision.AlreadyCurrent;
+    }
+
+    // ---- ISyncConflictResolver: DetectConflictsAsync ----
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<SyncConflict>> DetectConflictsAsync(
         SyncChangeSet incoming,
-        DateTime? lastSyncAt,
         string localDeviceId,
-        Func<string, long, Task<DateTime?>> getLocalModifiedAt)
+        Func<SyncChange, Task<SyncLocalVersion?>> getLocalVersion)
     {
         ArgumentNullException.ThrowIfNull(incoming);
-        ArgumentNullException.ThrowIfNull(getLocalModifiedAt);
+        ArgumentNullException.ThrowIfNull(getLocalVersion);
 
         var conflicts = new List<SyncConflict>();
-
-        // Without a prior sync baseline we have no way to distinguish "new to us"
-        // from "independently modified on both sides" — treat all changes as new.
-        if (lastSyncAt is null)
-        {
-            _log.Debug(
-                "SyncConflictResolver.DetectConflictsAsync: no prior sync baseline — skipping conflict detection");
-            return conflicts;
-        }
 
         // Loop-back guard: never conflict with our own exported files.
         if (string.Equals(incoming.DeviceId, localDeviceId, StringComparison.OrdinalIgnoreCase))
         {
             _log.Debug(
-                "SyncConflictResolver.DetectConflictsAsync: change set originates from this device — skipping");
+                "SyncConflictResolver.DetectConflictsAsync: change set originates from this device, skipping");
             return conflicts;
         }
 
@@ -66,41 +98,38 @@ public sealed class SyncConflictResolver : ISyncConflictResolver
 
         foreach (var remoteChange in incoming.Changes)
         {
-            // Query the local modification timestamp for this entity.
-            var localTs = await getLocalModifiedAt(
-                remoteChange.EntityType, remoteChange.EntityId).ConfigureAwait(false);
+            var local = await getLocalVersion(remoteChange).ConfigureAwait(false);
 
-            if (localTs is null)
-                continue; // entity does not exist locally — nothing to conflict with
+            // Entity absent locally, or an entity type without a modification time (merged,
+            // never overwritten): nothing to conflict with.
+            if (local?.ModifiedAt is null)
+                continue;
 
-            if (localTs.Value <= lastSyncAt.Value)
-                continue; // local version not touched since last sync — clean apply
-
-            // Both the local install and the remote device modified the same entity
-            // after the most recent sync timestamp — genuine conflict.
-            var localChange = new SyncChange
-            {
-                EntityType = remoteChange.EntityType,
-                EntityId = remoteChange.EntityId,
-                ChangeType = SyncChangeType.Updated,
-                Timestamp = localTs.Value,
-                SerializedData = null, // serialised lazily only if the user selects KeepLocal
-            };
+            if (Decide(remoteChange, incoming.DeviceId, local.ModifiedAt, localDeviceId) != SyncDecision.KeepLocal)
+                continue;
 
             conflicts.Add(new SyncConflict
             {
                 EntityType = remoteChange.EntityType,
-                EntityId = remoteChange.EntityId,
-                LocalChange = localChange,
+                EntityId = local.EntityId,
+                LocalChange = new SyncChange
+                {
+                    EntityType = remoteChange.EntityType,
+                    EntityId = local.EntityId,
+                    ChangeType = SyncChangeType.Updated,
+                    Timestamp = local.ModifiedAt.Value,
+                    NaturalKey = remoteChange.NaturalKey,
+                    SerializedData = null, // the local row is authoritative; nothing to transfer
+                },
                 RemoteChange = remoteChange,
-                Resolution = SyncResolution.Pending,
+                Resolution = SyncResolution.KeepLocal,
             });
 
             _log.Debug(
-                "SyncConflictResolver.DetectConflictsAsync: conflict on {EntityType} Id={EntityId} " +
-                "— local={LocalTs} remote={RemoteTs}",
-                remoteChange.EntityType, remoteChange.EntityId,
-                localTs.Value.ToString("O"), remoteChange.Timestamp.ToString("O"));
+                "SyncConflictResolver.DetectConflictsAsync: local copy of {EntityType} (local Id={EntityId}) is newer, " +
+                "keeping it. local={LocalTs} remote={RemoteTs}",
+                remoteChange.EntityType, local.EntityId,
+                local.ModifiedAt.Value.ToString("O"), remoteChange.Timestamp.ToString("O"));
         }
 
         _log.Information(
@@ -110,7 +139,7 @@ public sealed class SyncConflictResolver : ISyncConflictResolver
         return conflicts;
     }
 
-    // ── ISyncConflictResolver: ResolveConflict ────────────────────────────────
+    // ---- ISyncConflictResolver: ResolveConflict ----
 
     /// <inheritdoc />
     public SyncChange? ResolveConflict(SyncConflict conflict, SyncResolution resolution)
@@ -129,7 +158,7 @@ public sealed class SyncConflictResolver : ISyncConflictResolver
         return resolution switch
         {
             SyncResolution.KeepLocal =>
-                // The local database already contains the desired state — nothing to apply.
+                // The local database already contains the desired state; nothing to apply.
                 null,
 
             SyncResolution.KeepRemote =>
@@ -146,4 +175,13 @@ public sealed class SyncConflictResolver : ISyncConflictResolver
             _ => null,
         };
     }
+
+    // ---- Helpers ----
+
+    /// <summary>
+    /// Timestamps are UTC by convention (the database stores them without a kind); a value that
+    /// deserialized as local time is converted so both sides compare on the same clock.
+    /// </summary>
+    private static long UtcTicks(DateTime value) =>
+        value.Kind == DateTimeKind.Local ? value.ToUniversalTime().Ticks : value.Ticks;
 }

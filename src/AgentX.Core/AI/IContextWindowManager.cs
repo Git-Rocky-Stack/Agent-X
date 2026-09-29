@@ -47,6 +47,9 @@ public interface IContextWindowManager
     /// and caps unreasonable values to prevent resource exhaustion.
     /// </summary>
     /// <param name="reportedContextLength">The context length reported by the model (0 if unknown).</param>
-    /// <returns>A validated context window size between 4096 and 131072 tokens.</returns>
+    /// <returns>
+    /// The reported length, capped at 131072 tokens, or the 4096-token default when the model
+    /// reports none. A reported length below the default is kept.
+    /// </returns>
     int GetEffectiveContextWindow(int reportedContextLength);
 }

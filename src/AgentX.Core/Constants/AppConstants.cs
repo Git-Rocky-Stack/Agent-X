@@ -6,32 +6,38 @@ namespace AgentX.Core.Constants;
 /// </summary>
 public static class AppConstants
 {
-    // ── Dashboard & UI ──────────────────────────────────────────────
+    // -- Dashboard & UI ----------------------------------------------
     public const int RecentItemsLimit = 5;
     public const int MaxSearchHistoryItems = 20;
     public const int MaxSyncHistoryItems = 50;
 
-    // ── Indexing ────────────────────────────────────────────────────
+    // -- Indexing ----------------------------------------------------
     public const int EmbeddingBatchSize = 16;
 
-    // ── Document Processing ─────────────────────────────────────────
+    // -- Document Processing -----------------------------------------
     public const int MaxDocumentCharsForSummary = 8000;
     public const int MaxTranslationChars = 4000;
     public const int MaxContentPreviewChars = 100;
     public const int MaxAutoTagContentChars = 2000;
 
-    // ── Security ────────────────────────────────────────────────────
+    // -- Security ----------------------------------------------------
+    // Legacy PBKDF2 count: V1/V2 backup archives and sync packages do not record it in their
+    // format, so it can never change for them.
     public const int Pbkdf2Iterations = 100_000;
 
-    // ── Search ──────────────────────────────────────────────────────
-    // P2-1: DefaultSearchTopK / DefaultSearchMinScore removed — superseded by
+    // PBKDF2-HMAC-SHA256 count for new (V3) backup archives, which store it in their header.
+    // Matches the database passphrase key (OWASP 2023 guidance).
+    public const int BackupPbkdf2Iterations = 600_000;
+
+    // -- Search ------------------------------------------------------
+    // P2-1: DefaultSearchTopK / DefaultSearchMinScore removed - superseded by
     // IRagConfiguration.DefaultTopK / DefaultMinScore (config-driven, single
     // source of truth). The cache constants below remain because the search
     // cache layer is not (yet) fronted by IRagConfiguration.
     public const int DefaultSearchCacheMaxEntries = 100;
     public static readonly TimeSpan DefaultSearchCacheTtl = TimeSpan.FromMinutes(5);
 
-    // ── Knowledge Graph ─────────────────────────────────────────────
+    // -- Knowledge Graph ---------------------------------------------
     public const double GraphRepulsionStrength = 5000.0;
     public const double GraphAttractionStrength = 0.01;
     public const double GraphIdealEdgeLength = 100.0;
@@ -40,17 +46,17 @@ public static class AppConstants
     public const int GraphLayoutIterations = 100;
     public const double GraphCanvasExtent = 1000.0;
 
-    // ── Network ─────────────────────────────────────────────────────
+    // -- Network -----------------------------------------------------
     public static readonly TimeSpan DefaultHttpTimeout = TimeSpan.FromSeconds(15);
 
-    // ── Plugin ──────────────────────────────────────────────────────
+    // -- Plugin ------------------------------------------------------
     public const int MaxPluginReadmeBytes = 10_240; // 10 KB
     public const int MaxPluginNameLength = 100;
 
-    // ── Duplicate Detection ─────────────────────────────────────────
+    // -- Duplicate Detection -----------------------------------------
     public const int MaxNearDuplicateScanDocuments = 500;
 
-    // ── Conversation ────────────────────────────────────────────────
+    // -- Conversation ------------------------------------------------
     public const int MaxBranchDepth = 100;
     public const int MaxBranchIterations = 100;
     public const int ContextWindowTokenReserve = 1024;
@@ -60,7 +66,7 @@ public static class AppConstants
     public const int MaxConversationSummaryKeyPoints = 5;
     public const int MaxConversationSummaryRecentItems = 6;
 
-    // ── Timeouts ──────────────────────────────────────────────────
+    // -- Timeouts --------------------------------------------------
     public static readonly TimeSpan StatusBarPollInterval = TimeSpan.FromSeconds(30);
     public static readonly TimeSpan InitialStatusCheckDelay = TimeSpan.FromMilliseconds(5000);
     public static readonly TimeSpan WebScraperTimeout = TimeSpan.FromSeconds(15);
@@ -71,17 +77,17 @@ public static class AppConstants
     public static readonly TimeSpan ModelDownloadTimeout = TimeSpan.FromHours(2);
     public const int ModelCacheDurationSeconds = 30;
 
-    // ── Retry ─────────────────────────────────────────────────────
+    // -- Retry -----------------------------------------------------
     public const int RetryBaseDelayMs = 500;
     public const double RetryJitterFactor = 0.25;
 
-    // ── Batch & Buffer ────────────────────────────────────────────
+    // -- Batch & Buffer --------------------------------------------
     public const int WebScraperBatchDelayMs = 500;
     public const int FileStreamBufferSize = 81920;
     public const int ResponseBuilderCapacity = 1024;
     public const int TextInputDebounceMs = 530;
 
-    // ── AI & Inference ────────────────────────────────────────────
+    // -- AI & Inference --------------------------------------------
     public const int DefaultLocalContextSize = 8192;
     public const int DefaultMaxTokens = 4096;
     public const int DefaultContextWindow = 8192;
@@ -96,9 +102,11 @@ public static class AppConstants
     public const int RerankerMaxTokens = 256;
     public const int MultiQueryMaxTokens = 256;
     public const int DefaultModelParamCountMillions = 3000;
-    public const int EmbeddingContextSize = 512;
+    // Token window of the built-in embedder (context, batch and micro-batch alike). Covers the
+    // default 768-token chunks with room for denser scripts; longer inputs are truncated.
+    public const int EmbeddingContextSize = 1024;
 
-    // ── Cryptography ──────────────────────────────────────────────
+    // -- Cryptography ----------------------------------------------
     public const int AesKeyBytes = 32;
     public const int GcmNonceBytes = 12;
     public const int GcmTagBytes = 16;
@@ -107,7 +115,7 @@ public static class AppConstants
     public const int AesBlockSizeBits = 128;
     public const int IvSizeBytes = 16;
 
-    // ── Validation ────────────────────────────────────────────────
+    // -- Validation ------------------------------------------------
     public const int MinEncryptionKeyLength = 8;
     public const int MinSyncIntervalMinutes = 1;
     public const int MaxSyncIntervalMinutes = 1440;
@@ -115,18 +123,18 @@ public static class AppConstants
     public const int MaxContextWindowLimit = 1_048_576;
     public const int MaxChunkSize = 8192;
 
-    // ── Backup ────────────────────────────────────────────────────
+    // -- Backup ----------------------------------------------------
     public const int DefaultBackupIntervalHours = 168;
     public const int DefaultMaxBackupsToKeep = 5;
     public const int DefaultSyncIntervalMinutes = 30;
 
-    // ── Search Retrieval ──────────────────────────────────────────
-    // P2-2: SearchTopKMultiplier / SearchTopKCap removed — superseded by
+    // -- Search Retrieval ------------------------------------------
+    // P2-2: SearchTopKMultiplier / SearchTopKCap removed - superseded by
     // IRagConfiguration.RetrievalMultiplier / RetrievalCap. Both call sites
     // (SemanticSearchService, HybridSearchOrchestrator) now read from config.
     public const int RelevanceScoreBarMaxWidth = 150;
 
-    // ── Visualization ─────────────────────────────────────────────
+    // -- Visualization ---------------------------------------------
     public const int MinCanvasDimension = 50;
     public const int CanvasPadding = 40;
     public const int MaxLabelLength = 15;

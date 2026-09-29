@@ -1,5 +1,6 @@
 using AgentX.Core.Services.Export;
 using AgentX.Core.Services.Export.Models;
+using AgentX.Core.Services.Localization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Serilog;
@@ -9,11 +10,12 @@ namespace AgentX.App.ViewModels;
 /// <summary>
 /// Shared ViewModel for export operations. Can be used from any page
 /// that needs to export conversations, search results, or collections.
-/// Not a standalone page — used as a helper in ChatViewModel, SearchViewModel, etc.
+/// Not a standalone page - used as a helper in ChatViewModel, SearchViewModel, etc.
 /// </summary>
 public partial class ExportViewModel : ObservableObject
 {
     private readonly IExportService _exportService;
+    private readonly ILocalizationService _localization;
 
     [ObservableProperty] private bool _isExporting;
     [ObservableProperty] private string _statusMessage = string.Empty;
@@ -23,6 +25,12 @@ public partial class ExportViewModel : ObservableObject
     [ObservableProperty] private bool _includeTimestamps = true;
     [ObservableProperty] private bool _includeModelInfo;
     [ObservableProperty] private string? _lastExportPath;
+
+    /// <summary>
+    /// Whether the most recent export or copy succeeded, so a page can show the outcome
+    /// (and <see cref="LastExportPath"/>) without parsing <see cref="StatusMessage"/>.
+    /// </summary>
+    [ObservableProperty] private bool _lastExportSucceeded;
 
     public List<ExportFormat> AvailableFormats { get; } = new()
     {
@@ -34,9 +42,10 @@ public partial class ExportViewModel : ObservableObject
         ExportFormat.Csv
     };
 
-    public ExportViewModel(IExportService exportService)
+    public ExportViewModel(IExportService exportService, ILocalizationService localization)
     {
         _exportService = exportService;
+        _localization = localization;
     }
 
     [RelayCommand]
@@ -45,7 +54,8 @@ public partial class ExportViewModel : ObservableObject
         if (request is null) return;
 
         IsExporting = true;
-        StatusMessage = "Exporting conversation...";
+        LastExportSucceeded = false;
+        StatusMessage = _localization.GetString("Export_ExportingConversation");
 
         try
         {
@@ -56,17 +66,18 @@ public partial class ExportViewModel : ObservableObject
             if (result.Success)
             {
                 LastExportPath = result.FilePath;
-                StatusMessage = $"Exported to {Path.GetFileName(result.FilePath)}";
+                LastExportSucceeded = true;
+                StatusMessage = _localization.GetString("Export_ExportedTo", Path.GetFileName(result.FilePath) ?? string.Empty);
             }
             else
             {
-                StatusMessage = $"Export failed: {result.ErrorMessage}";
+                StatusMessage = _localization.GetString("Export_Failed", result.ErrorMessage ?? string.Empty);
             }
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to export conversation {Id}", request.ConversationId);
-            StatusMessage = $"Export failed: {ex.Message}";
+            StatusMessage = _localization.GetString("Export_Failed", ex.Message);
         }
         finally
         {
@@ -79,8 +90,12 @@ public partial class ExportViewModel : ObservableObject
     {
         if (request is null || request.ConversationIds.Count == 0) return;
 
+        var count = request.ConversationIds.Count;
         IsExporting = true;
-        StatusMessage = $"Exporting {request.ConversationIds.Count} conversations...";
+        LastExportSucceeded = false;
+        StatusMessage = count == 1
+            ? _localization.GetString("Export_ExportingConversationsOne", count)
+            : _localization.GetString("Export_ExportingConversationsMany", count);
 
         try
         {
@@ -91,17 +106,20 @@ public partial class ExportViewModel : ObservableObject
             if (result.Success)
             {
                 LastExportPath = result.FilePath;
-                StatusMessage = $"Exported {request.ConversationIds.Count} conversations";
+                LastExportSucceeded = true;
+                StatusMessage = count == 1
+                    ? _localization.GetString("Export_ExportedConversationsOne", count)
+                    : _localization.GetString("Export_ExportedConversationsMany", count);
             }
             else
             {
-                StatusMessage = $"Export failed: {result.ErrorMessage}";
+                StatusMessage = _localization.GetString("Export_Failed", result.ErrorMessage ?? string.Empty);
             }
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Batch conversation export failed");
-            StatusMessage = $"Export failed: {ex.Message}";
+            StatusMessage = _localization.GetString("Export_Failed", ex.Message);
         }
         finally
         {
@@ -115,7 +133,8 @@ public partial class ExportViewModel : ObservableObject
         if (request is null) return;
 
         IsExporting = true;
-        StatusMessage = "Exporting collection...";
+        LastExportSucceeded = false;
+        StatusMessage = _localization.GetString("Export_ExportingCollection");
 
         try
         {
@@ -126,17 +145,18 @@ public partial class ExportViewModel : ObservableObject
             if (result.Success)
             {
                 LastExportPath = result.FilePath;
-                StatusMessage = $"Collection exported to {Path.GetFileName(result.FilePath)}";
+                LastExportSucceeded = true;
+                StatusMessage = _localization.GetString("Export_CollectionExportedTo", Path.GetFileName(result.FilePath) ?? string.Empty);
             }
             else
             {
-                StatusMessage = $"Export failed: {result.ErrorMessage}";
+                StatusMessage = _localization.GetString("Export_Failed", result.ErrorMessage ?? string.Empty);
             }
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to export collection {Id}", request.CollectionId);
-            StatusMessage = $"Export failed: {ex.Message}";
+            StatusMessage = _localization.GetString("Export_Failed", ex.Message);
         }
         finally
         {
@@ -150,20 +170,32 @@ public partial class ExportViewModel : ObservableObject
     [RelayCommand]
     private async Task CopyConversationAsMarkdownAsync(long conversationId)
     {
+        LastExportSucceeded = false;
+
         try
         {
             var markdown = await _exportService.FormatConversationAsMarkdownAsync(conversationId, IncludeMetadata);
+            if (string.IsNullOrEmpty(markdown))
+            {
+                // Nothing was formatted (the conversation no longer exists): say so rather
+                // than report a copy and leave the clipboard as it was.
+                StatusMessage = _localization.GetString("Export_CopyFailedNotFound");
+                return;
+            }
+
             var dataPackage = new Windows.ApplicationModel.DataTransfer.DataPackage();
             dataPackage.SetText(markdown);
             Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
-            StatusMessage = "Conversation copied to clipboard as Markdown";
+            LastExportSucceeded = true;
+            StatusMessage = _localization.GetString("Export_CopiedAsMarkdown");
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to copy conversation as Markdown");
-            StatusMessage = "Copy failed";
+            StatusMessage = _localization.GetString("Export_CopyFailed", ex.Message);
         }
     }
+
 
     private ExportOptions BuildOptions(string? outputPath, string? title) => new()
     {
@@ -177,7 +209,7 @@ public partial class ExportViewModel : ObservableObject
     };
 }
 
-// ── Request Models ──────────────────────────────────────────────
+// -- Request Models ----------------------------------------------
 
 public record ExportConversationRequest(long ConversationId, ExportOptions? Options = null, string? OutputPath = null, string? Title = null);
 public record ExportBatchRequest(IReadOnlyList<long> ConversationIds, string? OutputPath = null, string? Title = null);

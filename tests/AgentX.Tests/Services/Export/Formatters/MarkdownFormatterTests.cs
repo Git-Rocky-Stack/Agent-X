@@ -72,9 +72,9 @@ public sealed class MarkdownFormatterTests
         };
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Properties
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Format_ShouldBeMarkdown()
@@ -94,9 +94,9 @@ public sealed class MarkdownFormatterTests
         _sut.MimeType.Should().Be("text/markdown");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  ExportConversationAsync
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task ExportConversationAsync_WithMetadata_IncludesHeaderAndMeta()
@@ -184,7 +184,7 @@ public sealed class MarkdownFormatterTests
         // Act
         var result = await _sut.ExportConversationAsync(conversation, options);
 
-        // Assert — system messages should be shown in the System Prompt section,
+        // Assert - system messages should be shown in the System Prompt section,
         // but "### System" should NOT appear in the conversation body
         var lines = result.Split('\n');
         var systemHeaders = lines.Count(l => l.Trim().StartsWith("### System"));
@@ -205,7 +205,7 @@ public sealed class MarkdownFormatterTests
         // Act
         var result = await _sut.ExportConversationAsync(conversation, options);
 
-        // Assert — assistant message should include model info
+        // Assert - assistant message should include model info
         result.Should().Contain("*Model: gpt-4o*");
     }
 
@@ -226,7 +226,7 @@ public sealed class MarkdownFormatterTests
     }
 
     [Fact]
-    public async Task ExportConversationAsync_WithCitations_IncludesCitationsFootnotes()
+    public async Task ExportConversationAsync_WithCitations_ListsTheDocumentSourcesUnderTheAnswer()
     {
         // Arrange
         var conversation = CreateConversation(messageCount: 2, includeCitations: true);
@@ -236,9 +236,53 @@ public sealed class MarkdownFormatterTests
         var result = await _sut.ExportConversationAsync(conversation, options);
 
         // Assert
-        result.Should().Contain("## Citations");
+        result.Should().Contain("**Citations**");
         result.Should().Contain("1. doc.pdf, page 3");
         result.Should().Contain("A relevant passage from the document that provides supporting evidence");
+    }
+
+    [Fact]
+    public async Task ExportConversationAsync_ListsEachAnswersWebSourcesUnderIt_NumberedAsItsMarkers()
+    {
+        // One list for the whole export numbered the second answer's [1] as source 3.
+        var result = await _sut.ExportConversationAsync(
+            ResearchConversation.Create(), new ExportOptions { IncludeCitations = true });
+
+        var second = result.IndexOf(ResearchConversation.SecondAnswer, StringComparison.Ordinal);
+        result[..second].Should().Contain("1. Release notes - https://example.org/notes")
+            .And.Contain("2. Migration <guide> - https://example.org/migrate?a=1&b=2");
+        result[second..].Should().Contain("1. Blog - https://blog.example.org/v2")
+            .And.NotContain("Release notes");
+    }
+
+    [Fact]
+    public async Task ExportConversationAsync_WithoutCitations_LeavesTheSourcesOut()
+    {
+        var result = await _sut.ExportConversationAsync(
+            ResearchConversation.Create(), new ExportOptions { IncludeCitations = false });
+
+        result.Should().NotContain("Citations").And.NotContain("https://example.org/notes");
+    }
+
+    [Fact]
+    public async Task ExportConversationAsync_WithModelInfo_NamesTheModelThatWroteEachAnswer()
+    {
+        var result = await _sut.ExportConversationAsync(
+            ResearchConversation.Create(), new ExportOptions { IncludeModelInfo = true, IncludeMetadata = false });
+
+        result.Should().Contain("*Model: llama3.2:3b*").And.Contain("*Model: claude-sonnet-5*");
+    }
+
+    [Fact]
+    public async Task ExportConversationAsync_WithCitationEntriesOfUnexpectedTypes_StillExports()
+    {
+        // A number where the file name belongs, or a fractional page, threw out of the export.
+        var conversation = CreateConversation(messageCount: 2);
+        conversation.Messages.Last().CitationsJson = "[{\"fileName\":42,\"pageNumber\":3.5}]";
+
+        var result = await _sut.ExportConversationAsync(conversation, new ExportOptions { IncludeCitations = true });
+
+        result.Should().Contain("1. Unknown");
     }
 
     [Fact]
@@ -286,9 +330,9 @@ public sealed class MarkdownFormatterTests
         await act.Should().ThrowAsync<OperationCanceledException>();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  ExportConversationsAsync (batch)
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task ExportConversationsAsync_WithMultipleConversations_IncludesBatchHeader()
@@ -342,7 +386,7 @@ public sealed class MarkdownFormatterTests
         // Act
         var result = await _sut.ExportConversationsAsync(conversations, options);
 
-        // Assert — should have at least one "---" separator between conversations
+        // Assert - should have at least one "---" separator between conversations
         result.Should().Contain("---");
     }
 }

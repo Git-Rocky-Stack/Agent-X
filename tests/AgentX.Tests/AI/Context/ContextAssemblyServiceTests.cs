@@ -212,4 +212,89 @@ public sealed class ContextAssemblyServiceTests
         result.Diagnostics.DurableRecallSkipReason.Should().Be("recall_error");
         result.SystemPrompt.Should().NotContain("Durable Cross-Conversation Recall");
     }
+
+    private ContextAssemblyService CreateWithFailingSelector()
+    {
+        _selector
+            .Setup(selector => selector.SelectRelevantContextAsync(
+                It.IsAny<ContextSelectionRequest>(),
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("selector failed"));
+
+        return new ContextAssemblyService(_contextWindowManager, _selector.Object, _compressionService.Object, _logger);
+    }
+
+    // 36 characters: 9 content tokens + 4 overhead = 13 estimated tokens per message.
+    private static List<ChatMessage> ShortMessages(int count) => Enumerable.Range(0, count)
+        .Select(i => i % 2 == 0
+            ? ChatMessage.User($"user message number {i:D3} padded xx.")
+            : ChatMessage.Assistant($"assistant msg number {i:D3} padded x."))
+        .ToList();
+
+    [Fact]
+    public async Task Legacy_fallback_counts_the_system_prompt_against_the_window()
+    {
+        var sut = CreateWithFailingSelector();
+        var messages = ShortMessages(20);
+        var systemPrompt = new string('s', 400); // ~100 tokens
+
+        var result = await sut.AssembleAsync(new ContextAssemblyRequest
+        {
+            CurrentQuery = "q",
+            SystemPrompt = systemPrompt,
+            ConversationMessages = messages,
+            ContextWindow = 300,
+            ReserveForResponse = 50
+        });
+
+        result.Diagnostics.UsedLegacyFallback.Should().BeTrue();
+        result.Diagnostics.EstimatedPromptTokens.Should().BeLessThanOrEqualTo(250,
+            "system prompt and messages together must leave the response reserve free");
+        result.Messages.Should().NotBeEmpty();
+        result.Messages[^1].Should().BeSameAs(messages[^1]);
+        result.SystemPrompt.Should().Be(systemPrompt);
+    }
+
+    [Fact]
+    public async Task Legacy_fallback_drops_memory_context_rather_than_overflowing()
+    {
+        var sut = CreateWithFailingSelector();
+        var messages = ShortMessages(3);
+
+        var result = await sut.AssembleAsync(new ContextAssemblyRequest
+        {
+            CurrentQuery = "q",
+            SystemPrompt = "Base prompt",
+            MemoryContext = "[Memory] " + new string('m', 800), // ~200 tokens, more than the window allows
+            ConversationMessages = messages,
+            ContextWindow = 200,
+            ReserveForResponse = 50
+        });
+
+        result.Diagnostics.UsedLegacyFallback.Should().BeTrue();
+        result.Diagnostics.CompressionSkipReason.Should().Be("no_message_budget");
+        result.SystemPrompt.Should().Be("Base prompt");
+        result.Messages.Should().Equal(messages);
+        result.Diagnostics.EstimatedPromptTokens.Should().BeLessThanOrEqualTo(150);
+    }
+
+    [Fact]
+    public async Task Legacy_fallback_keeps_the_latest_message_when_the_system_prompt_fills_the_window()
+    {
+        var sut = CreateWithFailingSelector();
+        var messages = ShortMessages(6);
+
+        var act = () => sut.AssembleAsync(new ContextAssemblyRequest
+        {
+            CurrentQuery = "q",
+            SystemPrompt = new string('s', 400), // ~100 tokens in an 80-token prompt budget
+            ConversationMessages = messages,
+            ContextWindow = 100,
+            ReserveForResponse = 20
+        });
+
+        var result = await act.Should().NotThrowAsync();
+        result.Subject.Messages.Should().Equal(messages[^1]);
+        result.Subject.Diagnostics.UsedLegacyFallback.Should().BeTrue();
+    }
 }

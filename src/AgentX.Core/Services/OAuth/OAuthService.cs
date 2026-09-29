@@ -10,6 +10,7 @@ using System.Text.Json.Serialization;
 using AgentX.Core.Data;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Services.Security;
+using AgentX.Core.Services.Settings;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -19,39 +20,48 @@ namespace AgentX.Core.Services.OAuth;
 /// Production implementation of <see cref="IOAuthService"/>.
 /// Manages the full OAuth2 authorization code flow for desktop applications,
 /// including browser-based consent, token exchange, DPAPI-encrypted persistence,
-/// automatic token refresh (5-minute buffer), and server-side revocation.
+/// automatic token refresh (a configurable buffer before expiry, 5 minutes by default),
+/// and server-side revocation.
 /// </summary>
 /// <remarks>
 /// <para>Thread safety: <see cref="_refreshLocks"/> provides per-provider
 /// <see cref="SemaphoreSlim"/> guards to prevent concurrent token refresh operations
-/// from racing against each other.</para>
+/// from racing against each other. Provider configurations can be registered, replaced or
+/// removed at any time (see <see cref="ApplyProviderSettings"/>); each operation reads the
+/// configuration once.</para>
 ///
 /// <para>DPAPI encryption: All tokens are encrypted via <see cref="IDpapiEncryptionService"/>
 /// before being persisted to SQLite. Decryption happens only at runtime, in memory.</para>
 ///
 /// <para>Auto-refresh: <see cref="GetAccessTokenAsync"/> checks whether the stored
-/// access token is expired or within 5 minutes of expiry. If so, it calls
-/// <see cref="RefreshTokenAsync"/> automatically before returning the token.</para>
+/// access token is expired or within the refresh buffer of expiry. If so, it refreshes
+/// the token before returning it. <see cref="ApplySettings"/> sets the buffer and the
+/// browser consent timeout from <see cref="OAuthSettings"/>.</para>
 /// </remarks>
 public sealed class OAuthService : IOAuthService, IDisposable
 {
-    // ── Constants ──────────────────────────────────────────────────────────────
+    // -- Constants --------------------------------------------------------------
 
     private const string ProviderIdGoogle = "google";
     private const string ProviderIdMicrosoft = "microsoft";
 
     /// <summary>
-    /// Buffer duration before token expiry at which a refresh is triggered.
-    /// Prevents API calls from failing due to a token that expires mid-request.
+    /// Default buffer before token expiry at which a refresh is triggered, used until
+    /// <see cref="ApplySettings"/> supplies the configured value.
     /// </summary>
-    private static readonly TimeSpan RefreshBuffer = TimeSpan.FromMinutes(5);
+    private static readonly TimeSpan DefaultRefreshBuffer = TimeSpan.FromMinutes(5);
+
+    /// <summary>
+    /// Default time allowed for the user to finish consent in the browser.
+    /// </summary>
+    private static readonly TimeSpan DefaultAuthTimeout = TimeSpan.FromMinutes(5);
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNameCaseInsensitive = true,
     };
 
-    // ── Fields ─────────────────────────────────────────────────────────────────
+    // -- Fields -----------------------------------------------------------------
 
     private readonly AgentXDbContext _db;
     private readonly IDpapiEncryptionService _encryption;
@@ -70,6 +80,12 @@ public sealed class OAuthService : IOAuthService, IDisposable
     private readonly ConcurrentDictionary<string, OAuthProviderConfig> _providerConfigs = new(StringComparer.Ordinal);
 
     /// <summary>
+    /// Serializes <see cref="ApplyProviderSettings"/>, so two saves racing each other cannot
+    /// leave Google configured from one and Microsoft from the other. Readers never take it.
+    /// </summary>
+    private readonly object _providerSettingsGate = new();
+
+    /// <summary>
     /// Pending CSRF state values for in-progress authorization flows, keyed by provider ID.
     /// Used to validate that callback requests originate from the same authorization request.
     /// One-time use: removed immediately after validation.
@@ -84,7 +100,19 @@ public sealed class OAuthService : IOAuthService, IDisposable
     private readonly ConcurrentDictionary<string, string> _pendingCodeVerifiers = new(StringComparer.Ordinal);
     private bool _isDisposed;
 
-    // ── Constructor ────────────────────────────────────────────────────────────
+    /// <summary>
+    /// Refresh a token this long before it expires, so a request never starts with a token
+    /// that dies mid-flight. Set by <see cref="ApplySettings"/>.
+    /// </summary>
+    private TimeSpan _refreshBuffer = DefaultRefreshBuffer;
+
+    /// <summary>
+    /// How long <see cref="AuthorizeAsync"/> waits for the browser callback. Set by
+    /// <see cref="ApplySettings"/>.
+    /// </summary>
+    private TimeSpan _authTimeout = DefaultAuthTimeout;
+
+    // -- Constructor ------------------------------------------------------------
 
     /// <summary>
     /// Initializes <see cref="OAuthService"/> with the required dependencies.
@@ -105,12 +133,39 @@ public sealed class OAuthService : IOAuthService, IDisposable
         Log.Information("OAuthService initialized");
     }
 
-    // ── Public: Provider Configuration ─────────────────────────────────────────
+    // -- Public: Configuration --------------------------------------------------
 
     /// <summary>
-    /// Registers an OAuth provider configuration. Must be called before
-    /// <see cref="AuthorizeAsync"/> or <see cref="RefreshTokenAsync"/> can
-    /// work with the provider.
+    /// Applies <see cref="OAuthSettings.TokenRefreshBufferMinutes"/> and
+    /// <see cref="OAuthSettings.AuthTimeoutSeconds"/>. Out-of-range values are clamped
+    /// (buffer 0 to 60 minutes, consent timeout 30 seconds to 1 hour).
+    /// </summary>
+    /// <param name="settings">The OAuth section of the application settings.</param>
+    public void ApplySettings(OAuthSettings settings)
+    {
+        ArgumentNullException.ThrowIfNull(settings);
+
+        _refreshBuffer = TimeSpan.FromMinutes(Math.Clamp(settings.TokenRefreshBufferMinutes, 0, 60));
+        _authTimeout = TimeSpan.FromSeconds(Math.Clamp(settings.AuthTimeoutSeconds, 30, 3600));
+
+        _log.Information(
+            "OAuth settings applied. RefreshBuffer={RefreshBuffer} AuthTimeout={AuthTimeout}",
+            _refreshBuffer, _authTimeout);
+    }
+
+    /// <summary>The current refresh buffer (see <see cref="ApplySettings"/>).</summary>
+    internal TimeSpan RefreshBuffer => _refreshBuffer;
+
+    /// <summary>The current browser consent timeout (see <see cref="ApplySettings"/>).</summary>
+    internal TimeSpan AuthTimeout => _authTimeout;
+
+    // -- Public: Provider Configuration -----------------------------------------
+
+    /// <summary>
+    /// Registers an OAuth provider configuration, replacing any configuration registered for
+    /// the same provider. Must be called before <see cref="AuthorizeAsync"/> or
+    /// <see cref="RefreshTokenAsync"/> can work with the provider. An authorization or refresh
+    /// already running finishes with the configuration it started with.
     /// </summary>
     /// <param name="config">The provider configuration to register.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="config"/> is null.</exception>
@@ -127,12 +182,74 @@ public sealed class OAuthService : IOAuthService, IDisposable
     }
 
     /// <summary>
+    /// Removes the configuration registered for <paramref name="provider"/>. Connecting it then
+    /// fails with <see cref="OAuthProviderNotConfiguredException"/> until a configuration is
+    /// registered again. Stored credentials are kept.
+    /// </summary>
+    /// <param name="provider">The provider identifier (e.g. <c>"google"</c>).</param>
+    /// <returns><see langword="true"/> when a configuration was registered.</returns>
+    /// <exception cref="ArgumentException">
+    /// Thrown when <paramref name="provider"/> is null or whitespace.
+    /// </exception>
+    public bool UnregisterProvider(string provider)
+    {
+        ValidateProviderId(provider);
+
+        if (!_providerConfigs.TryRemove(provider, out _))
+            return false;
+
+        _log.Information("OAuth provider unregistered: {ProviderId}", provider);
+        return true;
+    }
+
+    /// <inheritdoc />
+    public void ApplyProviderSettings(OAuthSettings settings)
+    {
+        ArgumentNullException.ThrowIfNull(settings);
+
+        lock (_providerSettingsGate)
+        {
+            var google = settings.Google ?? new GoogleOAuthSettings();
+            if (string.IsNullOrWhiteSpace(google.ClientId))
+            {
+                UnregisterProvider(ProviderIdGoogle);
+            }
+            else
+            {
+                RegisterProvider(OAuthProviderRegistry.Google(
+                    google.ClientId.Trim(),
+                    google.ClientSecret?.Trim() ?? string.Empty,
+                    OrDefault(google.RedirectUri, new GoogleOAuthSettings().RedirectUri)));
+            }
+
+            var microsoft = settings.Microsoft ?? new MicrosoftOAuthSettings();
+            if (string.IsNullOrWhiteSpace(microsoft.ClientId))
+            {
+                UnregisterProvider(ProviderIdMicrosoft);
+            }
+            else
+            {
+                RegisterProvider(OAuthProviderRegistry.Microsoft(
+                    microsoft.ClientId.Trim(),
+                    microsoft.ClientSecret?.Trim() ?? string.Empty,
+                    OrDefault(microsoft.TenantId, new MicrosoftOAuthSettings().TenantId),
+                    OrDefault(microsoft.RedirectUri, new MicrosoftOAuthSettings().RedirectUri)));
+            }
+        }
+    }
+
+    // A tenant or redirect URI left blank in settings.json built endpoints such as
+    // "https://login.microsoftonline.com//oauth2/..." that no sign-in can use; blank means default.
+    private static string OrDefault(string? value, string fallback) =>
+        string.IsNullOrWhiteSpace(value) ? fallback : value.Trim();
+
+    /// <summary>
     /// Returns all registered provider configurations.
     /// </summary>
     public IReadOnlyDictionary<string, OAuthProviderConfig> GetRegisteredProviders() =>
         _providerConfigs;
 
-    // ── IOAuthService Implementation ────────────────────────────────────────────
+    // -- IOAuthService Implementation --------------------------------------------
 
     /// <inheritdoc />
     public async Task<OAuthCredential> AuthorizeAsync(string provider, string? scopes = null, string? redirectUri = null, CancellationToken cancellationToken = default)
@@ -168,9 +285,9 @@ public sealed class OAuthService : IOAuthService, IDisposable
         // Build the authorization URL with state and PKCE
         var authUrl = BuildAuthorizationUrl(config, effectiveScopes, effectiveRedirectUri, state, codeChallenge);
 
-        // Create a linked cancellation token with a 5-minute timeout
+        // Create a linked cancellation token with the configured consent timeout
         using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        timeoutCts.CancelAfter(TimeSpan.FromMinutes(5));
+        timeoutCts.CancelAfter(_authTimeout);
 
         // Start the local HTTP listener to receive the callback
         var callbackUri = new Uri(effectiveRedirectUri);
@@ -195,10 +312,11 @@ public sealed class OAuthService : IOAuthService, IDisposable
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
-                _log.Warning("OAuth authorization timed out for {Provider} after 5 minutes", provider);
+                var waited = (int)_authTimeout.TotalSeconds;
+                _log.Warning("OAuth authorization timed out for {Provider} after {Seconds} seconds", provider, waited);
                 throw new OperationCanceledException(
                     $"OAuth authorization timed out for provider '{provider}'. " +
-                    "The operation was cancelled after 5 minutes of waiting for the browser callback.");
+                    $"The operation was cancelled after {waited} seconds of waiting for the browser callback.");
             }
 
             // Extract state, code, and error from the callback
@@ -302,11 +420,21 @@ public sealed class OAuthService : IOAuthService, IDisposable
                     "Call AuthorizeAsync first to establish a credential.");
             }
 
-            // Re-check expiry inside the lock — another caller may have already refreshed
-            if (credential.TokenExpiry <= DateTime.UtcNow.Add(RefreshBuffer))
+            // Re-check expiry inside the lock - another caller may have already refreshed
+            if (credential.TokenExpiry <= DateTime.UtcNow.Add(_refreshBuffer))
             {
+                if (credential.RequiresReauthorization)
+                {
+                    // No refresh token was issued (for Microsoft: offline_access was not
+                    // granted), so nothing can renew the access token.
+                    _log.Warning("Access token for {Provider} expired and there is no refresh token; the account must be reconnected", provider);
+                    throw new InvalidOperationException(
+                        $"The access token for provider '{provider}' has expired and no refresh token was issued for it. " +
+                        "Reconnect the account in the connector settings.");
+                }
+
                 _log.Information("Access token for {Provider} expires at {Expiry} (within {Buffer} min buffer), refreshing",
-                    provider, credential.TokenExpiry, RefreshBuffer.TotalMinutes);
+                    provider, credential.TokenExpiry, _refreshBuffer.TotalMinutes);
 
                 // We already hold the provider refresh lock here. Calling the
                 // public RefreshTokenAsync path would try to re-enter the same
@@ -365,7 +493,7 @@ public sealed class OAuthService : IOAuthService, IDisposable
 
         if (entity is null)
         {
-            _log.Debug("No credential found for {Provider} — nothing to revoke", provider);
+            _log.Debug("No credential found for {Provider} - nothing to revoke", provider);
             return;
         }
 
@@ -375,14 +503,20 @@ public sealed class OAuthService : IOAuthService, IDisposable
         {
             try
             {
-                var accessToken = _encryption.Decrypt(entity.AccessToken);
-                await RevokeTokenWithProviderAsync(config.RevocationEndpoint, accessToken);
+                // Revoke the refresh token when there is one: Google then revokes the whole
+                // grant, and it still works after the access token has expired (revoking an
+                // expired access token fails and would leave the grant alive).
+                var token = TryDecrypt(entity.RefreshToken);
+                if (string.IsNullOrEmpty(token))
+                    token = _encryption.Decrypt(entity.AccessToken);
+
+                await RevokeTokenWithProviderAsync(config.RevocationEndpoint, token);
                 _log.Debug("Server-side token revocation succeeded for {Provider}", provider);
             }
             catch (Exception ex)
             {
                 // Server-side revocation is best-effort; log but don't block local deletion
-                _log.Warning(ex, "Server-side token revocation failed for {Provider} — proceeding with local deletion",
+                _log.Warning(ex, "Server-side token revocation failed for {Provider} - proceeding with local deletion",
                     provider);
             }
         }
@@ -412,7 +546,7 @@ public sealed class OAuthService : IOAuthService, IDisposable
         return DecryptEntity(entity);
     }
 
-    // ── Private: Authorization Flow ─────────────────────────────────────────────
+    // -- Private: Authorization Flow ---------------------------------------------
 
     /// <summary>
     /// Builds the full authorization URL with query parameters for the OAuth2 consent screen,
@@ -454,6 +588,11 @@ public sealed class OAuthService : IOAuthService, IDisposable
     /// <summary>
     /// Combines default provider scopes with additional scopes requested for this authorization.
     /// </summary>
+    /// <remarks>
+    /// Scope lists are space-separated in OAuth (and throughout this codebase); commas are
+    /// accepted too. Both inputs are split on either, so "Mail.Read User.Read" merged with
+    /// defaults that already hold User.Read yields each scope once.
+    /// </remarks>
     private static string BuildScopes(string defaultScopes, string? additionalScopes)
     {
         if (string.IsNullOrWhiteSpace(additionalScopes))
@@ -462,18 +601,21 @@ public sealed class OAuthService : IOAuthService, IDisposable
         if (string.IsNullOrWhiteSpace(defaultScopes))
             return additionalScopes;
 
-        // Merge and deduplicate scopes
-        var scopeSet = new HashSet<string>(
-            defaultScopes.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
-            StringComparer.OrdinalIgnoreCase);
+        // Merge and deduplicate scopes, keeping first-seen order.
+        var merged = new List<string>();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        foreach (var scope in additionalScopes.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        foreach (var scope in SplitScopes(defaultScopes).Concat(SplitScopes(additionalScopes)))
         {
-            scopeSet.Add(scope);
+            if (seen.Add(scope))
+                merged.Add(scope);
         }
 
-        return string.Join(' ', scopeSet);
+        return string.Join(' ', merged);
     }
+
+    private static IEnumerable<string> SplitScopes(string scopes) =>
+        scopes.Split([' ', ',', '\t', '\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
     /// <summary>
     /// Exchanges an authorization code for access and refresh tokens via the token endpoint,
@@ -486,11 +628,11 @@ public sealed class OAuthService : IOAuthService, IDisposable
         {
             ["code"] = code,
             ["client_id"] = config.ClientId,
-            ["client_secret"] = config.ClientSecret,
             ["redirect_uri"] = redirectUri,
             ["grant_type"] = "authorization_code",
             ["code_verifier"] = codeVerifier
         };
+        AddClientSecret(tokenRequest, config);
 
         var response = await _httpClient.PostAsync(config.TokenEndpoint, new FormUrlEncodedContent(tokenRequest));
         var responseBody = await response.Content.ReadAsStringAsync();
@@ -514,6 +656,18 @@ public sealed class OAuthService : IOAuthService, IDisposable
     }
 
     /// <summary>
+    /// Adds the client secret to a token request when the client has one. A public client (a
+    /// Microsoft app registered for mobile and desktop applications) has none and must not
+    /// send the parameter: Microsoft rejects a public client that presents a client_secret
+    /// (AADSTS700025). Google's Desktop app clients have a secret and need it.
+    /// </summary>
+    private static void AddClientSecret(Dictionary<string, string> tokenRequest, OAuthProviderConfig config)
+    {
+        if (!string.IsNullOrEmpty(config.ClientSecret))
+            tokenRequest["client_secret"] = config.ClientSecret;
+    }
+
+    /// <summary>
     /// Refreshes an expired access token using the stored refresh token.
     /// </summary>
     private async Task<bool> RefreshTokenInternalAsync(string provider)
@@ -532,7 +686,7 @@ public sealed class OAuthService : IOAuthService, IDisposable
         var config = GetProviderConfigOrNull(provider);
         if (config is null)
         {
-            _log.Error("No provider config registered for {Provider} — cannot refresh token", provider);
+            _log.Error("No provider config registered for {Provider} - cannot refresh token", provider);
             return false;
         }
 
@@ -549,7 +703,7 @@ public sealed class OAuthService : IOAuthService, IDisposable
 
         if (string.IsNullOrEmpty(refreshToken))
         {
-            _log.Warning("Refresh token is empty for {Provider} — cannot refresh", provider);
+            _log.Warning("Refresh token is empty for {Provider} - cannot refresh", provider);
             return false;
         }
 
@@ -558,9 +712,9 @@ public sealed class OAuthService : IOAuthService, IDisposable
         {
             ["refresh_token"] = refreshToken,
             ["client_id"] = config.ClientId,
-            ["client_secret"] = config.ClientSecret,
             ["grant_type"] = "refresh_token"
         };
+        AddClientSecret(tokenRequest, config);
 
         try
         {
@@ -618,8 +772,6 @@ public sealed class OAuthService : IOAuthService, IDisposable
         string provider, TokenResponse tokenResponse, string scopes)
     {
         var encryptedAccessToken = _encryption.Encrypt(tokenResponse.AccessToken);
-        var encryptedRefreshToken = _encryption.Encrypt(
-            tokenResponse.RefreshToken ?? string.Empty);
 
         var expiry = DateTime.UtcNow.AddSeconds(tokenResponse.ExpiresInSeconds > 0
             ? tokenResponse.ExpiresInSeconds
@@ -630,6 +782,31 @@ public sealed class OAuthService : IOAuthService, IDisposable
         // Upsert: replace any existing credential for this provider
         var existing = await _db.OAuthCredentials
             .FirstOrDefaultAsync(c => c.ProviderId == provider);
+
+        // A re-authorization that returns no refresh token (a provider that only issues one on
+        // first consent) keeps the one already stored: overwriting it with an empty value
+        // would end access at the next expiry although the earlier grant still works.
+        string encryptedRefreshToken;
+        string refreshTokenPlain;
+        if (string.IsNullOrEmpty(tokenResponse.RefreshToken)
+            && existing is not null
+            && !string.IsNullOrEmpty(existing.RefreshToken))
+        {
+            encryptedRefreshToken = existing.RefreshToken;
+            refreshTokenPlain = TryDecrypt(existing.RefreshToken) ?? string.Empty;
+        }
+        else
+        {
+            encryptedRefreshToken = _encryption.Encrypt(tokenResponse.RefreshToken ?? string.Empty);
+            refreshTokenPlain = tokenResponse.RefreshToken ?? string.Empty;
+        }
+
+        if (string.IsNullOrEmpty(refreshTokenPlain))
+        {
+            _log.Warning(
+                "{Provider} issued no refresh token; access ends when the current token expires and the account must then be reconnected",
+                provider);
+        }
 
         if (existing is not null)
         {
@@ -665,7 +842,7 @@ public sealed class OAuthService : IOAuthService, IDisposable
         {
             ProviderId = provider,
             AccessToken = tokenResponse.AccessToken,
-            RefreshToken = tokenResponse.RefreshToken ?? string.Empty,
+            RefreshToken = refreshTokenPlain,
             TokenExpiry = expiry,
             Scopes = scopes,
             UserId = tokenResponse.UserId ?? string.Empty,
@@ -696,7 +873,7 @@ public sealed class OAuthService : IOAuthService, IDisposable
         }
     }
 
-    // ── Private: Helpers ────────────────────────────────────────────────────────
+    // -- Private: Helpers --------------------------------------------------------
 
     /// <summary>
     /// Decrypts an <see cref="OAuthCredentialEntity"/> into a plain <see cref="OAuthCredential"/>.
@@ -744,14 +921,35 @@ public sealed class OAuthService : IOAuthService, IDisposable
     }
 
     /// <summary>
+    /// Decrypts a stored token, or returns null when it cannot be decrypted.
+    /// </summary>
+    private string? TryDecrypt(string cipherText)
+    {
+        if (string.IsNullOrEmpty(cipherText))
+            return null;
+
+        try
+        {
+            return _encryption.Decrypt(cipherText);
+        }
+        catch (Exception ex)
+        {
+            _log.Debug(ex, "Stored OAuth token could not be decrypted");
+            return null;
+        }
+    }
+
+    /// <summary>
     /// Gets the provider configuration, throwing if not found.
     /// </summary>
+
     private OAuthProviderConfig GetProviderConfig(string provider)
     {
         if (_providerConfigs.TryGetValue(provider, out var config))
             return config;
 
-        throw new InvalidOperationException(
+        throw new OAuthProviderNotConfiguredException(
+            provider,
             $"No OAuth provider configuration registered for '{provider}'. " +
             $"Call RegisterProvider() before attempting OAuth operations. " +
             $"Registered providers: {string.Join(", ", _providerConfigs.Keys)}");
@@ -774,7 +972,7 @@ public sealed class OAuthService : IOAuthService, IDisposable
             throw new ArgumentException("Provider identifier cannot be null or whitespace.", nameof(provider));
     }
 
-    // ── Private: CSRF & PKCE Helpers ────────────────────────────────────────────
+    // -- Private: CSRF & PKCE Helpers --------------------------------------------
 
     /// <summary>
     /// Generates a cryptographically random <c>state</c> parameter for CSRF protection
@@ -817,7 +1015,7 @@ public sealed class OAuthService : IOAuthService, IDisposable
             .Replace('/', '_');
     }
 
-    // ── IDisposable ──────────────────────────────────────────────────────────────
+    // -- IDisposable --------------------------------------------------------------
 
     /// <summary>
     /// Disposes owned resources: the <see cref="HttpClient"/> and all
@@ -838,7 +1036,7 @@ public sealed class OAuthService : IOAuthService, IDisposable
         _log.Debug("OAuthService disposed");
     }
 
-    // ── Inner: Token Response DTO ───────────────────────────────────────────────
+    // -- Inner: Token Response DTO -----------------------------------------------
 
     /// <summary>
     /// DTO for deserializing the OAuth2 token endpoint response.

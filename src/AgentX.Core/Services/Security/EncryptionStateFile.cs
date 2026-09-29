@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.IO;
 using System.Security.AccessControl;
 using System.Security.Principal;
@@ -25,7 +26,7 @@ public sealed class EncryptionStateFile : IEncryptionStateFile
     {
     }
 
-    // Exposed for tests — lets the tests point at a temp path.
+    // Exposed for tests - lets the tests point at a temp path.
     public EncryptionStateFile(string filePath)
     {
         _filePath = filePath;
@@ -48,24 +49,41 @@ public sealed class EncryptionStateFile : IEncryptionStateFile
         if (info is null) throw new ArgumentNullException(nameof(info));
         Directory.CreateDirectory(Path.GetDirectoryName(_filePath)!);
         var json = JsonSerializer.Serialize(info, JsonOpts);
-        await File.WriteAllTextAsync(_filePath, json);
 
-        // Restrict file ACL to current user only on Windows.
-        if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+        // Write a sibling temp file and move it into place so a crash mid-write can never leave a
+        // truncated marker: startup cannot unlock an encrypted database from a torn marker.
+        var tempPath = $"{_filePath}.{Guid.NewGuid():N}.tmp";
+        try
         {
-            var acl = new FileSecurity();
-            var identity = WindowsIdentity.GetCurrent();
-            var currentUser = identity.User ?? identity.Owner;
-            if (currentUser is null)
-                throw new InvalidOperationException("Unable to resolve the current Windows identity for encryption state ACL hardening.");
+            await File.WriteAllTextAsync(tempPath, json).ConfigureAwait(false);
 
-            acl.SetOwner(currentUser);
-            acl.AddAccessRule(new FileSystemAccessRule(
-                currentUser,
-                FileSystemRights.FullControl,
-                AccessControlType.Allow));
-            acl.SetAccessRuleProtection(isProtected: true, preserveInheritance: false);
-            new FileInfo(_filePath).SetAccessControl(acl);
+            // Restrict file ACL to current user only on Windows. Applied to the temp file so the
+            // marker is never readable by other accounts, even for an instant after the move.
+            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+            {
+                var acl = new FileSecurity();
+                var identity = WindowsIdentity.GetCurrent();
+                var currentUser = identity.User ?? identity.Owner;
+                if (currentUser is null)
+                    throw new InvalidOperationException("Unable to resolve the current Windows identity for encryption state ACL hardening.");
+
+                acl.SetOwner(currentUser);
+                acl.AddAccessRule(new FileSystemAccessRule(
+                    currentUser,
+                    FileSystemRights.FullControl,
+                    AccessControlType.Allow));
+                acl.SetAccessRuleProtection(isProtected: true, preserveInheritance: false);
+                new FileInfo(tempPath).SetAccessControl(acl);
+            }
+
+            File.Move(tempPath, _filePath, overwrite: true);
+        }
+        finally
+        {
+            if (File.Exists(tempPath))
+            {
+                try { File.Delete(tempPath); } catch (IOException) { } catch (UnauthorizedAccessException) { }
+            }
         }
     }
 
@@ -73,6 +91,16 @@ public sealed class EncryptionStateFile : IEncryptionStateFile
     {
         if (File.Exists(_filePath))
             File.Delete(_filePath);
+    }
+
+    public string? MoveAside()
+    {
+        if (!File.Exists(_filePath))
+            return null;
+
+        var target = $"{_filePath}.stale-{DateTime.UtcNow.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture)}";
+        File.Move(_filePath, target, overwrite: true);
+        return target;
     }
 
     private static string DefaultPath()

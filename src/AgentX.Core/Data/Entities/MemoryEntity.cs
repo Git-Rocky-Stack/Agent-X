@@ -44,20 +44,20 @@ public class MemoryEntity
     /// <summary>Soft delete - user can dismiss memories</summary>
     public bool IsActive { get; set; } = true;
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Semantic Memory 2.0 additions
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>
     /// Embedding vector for semantic similarity search.
     /// Stored as comma-separated float values (e.g., "0.1,-0.2,0.3,...").
-    /// 384 dimensions for all-MiniLM-L6-v2.
+    /// Its size depends on the embedding model (see <see cref="EmbeddingDimensions"/>).
     /// </summary>
     public string? Embedding { get; set; }
 
     /// <summary>
     /// Links this memory to a related memory for associative retrieval.
-    /// Enables transitive memory access (memory → linked memory → its links).
+    /// Enables transitive memory access (memory -> linked memory -> its links).
     /// Created when two memories have semantic similarity > 0.85.
     /// </summary>
     public long? LinkedMemoryId { get; set; }
@@ -78,13 +78,14 @@ public class MemoryEntity
     /// </summary>
     public string? Tags { get; set; }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Embedding Model Versioning (Added: Phase 1)
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>
     /// The embedding model version used to generate the embedding.
-    /// Format: "{ModelName}:{Version}" (e.g., "all-minilm:1.0").
+    /// Format: "{ProviderId}:{ModelName}:{Dimensions}" (e.g., "ollama:all-minilm:384"), as
+    /// written by <c>IEmbeddingService.ModelVersion</c>.
     /// Null indicates legacy embedding from before versioning was introduced.
     /// </summary>
     public string? EmbeddingModelVersion { get; set; }

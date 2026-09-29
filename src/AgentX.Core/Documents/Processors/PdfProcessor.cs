@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using AgentX.Core.Documents.Models;
 using AgentX.Core.Helpers;
@@ -61,6 +62,22 @@ public class PdfProcessor : IDocumentProcessor
             // PDFsharp requires synchronous file access; offload to thread pool
             var (text, pageCount, metadata) = await Task.Run(() => ExtractPdfContent(filePath), ct);
 
+            // An empty or undecodable result is a failed extraction, not an empty document:
+            // importing it as a "successful" zero-word file hides the problem from the user.
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                throw new DocumentExtractionException(
+                    $"'{document.FileName}' has no extractable text layer. Scanned PDFs need OCR, which is not supported for PDF files.");
+            }
+
+            if (LooksUndecodable(text))
+            {
+                throw new DocumentExtractionException(
+                    $"The text in '{document.FileName}' uses font encodings this PDF reader cannot decode, so it would be indexed as unreadable characters.");
+            }
+
+            text = RemoveControlCharacters(text);
+
             document.ContentHash = await hashTask;
             document.ExtractedText = text;
             document.PageCount = pageCount;
@@ -76,14 +93,67 @@ public class PdfProcessor : IDocumentProcessor
         {
             throw;
         }
+        catch (DocumentExtractionException ex)
+        {
+            Log.Warning("PDF produced no usable text: {FilePath}: {Reason}", filePath, ex.Message);
+            throw;
+        }
         catch (Exception ex)
         {
+            // Encrypted, corrupt or unsupported files land here.
             Log.Error(ex, "Failed to process PDF file: {FilePath}", filePath);
-            document.ExtractedText = string.Empty;
-            document.Metadata.Custom["error"] = ex.Message;
+            throw new DocumentExtractionException($"Could not read the PDF '{document.FileName}': {ex.Message}", ex);
         }
 
         return document;
+    }
+
+    /// <summary>
+    /// Heuristic for text-show strings that were never mapped to Unicode. This reader does
+    /// not apply ToUnicode CMaps, so content drawn with CID (Identity-H) or custom-encoded
+    /// fonts comes out as control, private-use or unassigned characters. Real text is almost
+    /// entirely letters, digits, punctuation and whitespace.
+    /// </summary>
+    internal static bool LooksUndecodable(string text)
+    {
+        var considered = 0;
+        var suspicious = 0;
+
+        foreach (var c in text)
+        {
+            if (char.IsWhiteSpace(c))
+            {
+                continue;
+            }
+
+            considered++;
+            if (char.IsControl(c)
+                || c == '\uFFFD'
+                || CharUnicodeInfo.GetUnicodeCategory(c) is UnicodeCategory.PrivateUse or UnicodeCategory.OtherNotAssigned)
+            {
+                suspicious++;
+            }
+        }
+
+        return considered > 0 && suspicious * 4 > considered;
+    }
+
+    /// <summary>
+    /// Drops stray control characters (keeping line, tab and page breaks) so they are not
+    /// embedded or indexed as part of otherwise readable text.
+    /// </summary>
+    private static string RemoveControlCharacters(string text)
+    {
+        var builder = new StringBuilder(text.Length);
+        foreach (var c in text)
+        {
+            if (!char.IsControl(c) || c is '\n' or '\r' or '\t' or '\f')
+            {
+                builder.Append(c);
+            }
+        }
+
+        return builder.ToString();
     }
 
     /// <summary>
@@ -105,17 +175,21 @@ public class PdfProcessor : IDocumentProcessor
             var page = pdfDocument.Pages[i];
             var pageText = ExtractTextFromPage(page, i + 1);
 
-            if (!string.IsNullOrWhiteSpace(pageText))
-            {
-                if (fullText.Length > 0)
-                    fullText.AppendLine();
+            // Pages are separated by a form feed, and empty pages keep theirs, so the chunker
+            // (which splits on '\f') can attach the right page number to every chunk.
+            if (i > 0)
+                fullText.Append(PageSeparator);
 
-                fullText.Append(pageText);
-            }
+            fullText.Append(pageText);
         }
 
         return (fullText.ToString(), pageCount, metadata);
     }
+
+    /// <summary>
+    /// Page break marker understood by <see cref="ChunkingService"/>.
+    /// </summary>
+    internal const char PageSeparator = '\f';
 
     /// <summary>
     /// Extracts text from a single PDF page by parsing its content stream operators.
@@ -197,7 +271,7 @@ public class PdfProcessor : IDocumentProcessor
                 AppendOperands(op.Operands, sb);
                 break;
 
-            // Td/TD/T*: Text positioning — insert a space to separate words
+            // Td/TD/T*: Text positioning - insert a space to separate words
             case OpCodeName.Td:
             case OpCodeName.TD:
             case OpCodeName.Tx:
@@ -356,7 +430,7 @@ public class PdfProcessor : IDocumentProcessor
                     }
                     else
                     {
-                        // End of string — emit if it contains printable text
+                        // End of string - emit if it contains printable text
                         var extracted = current.ToString();
                         if (extracted.Any(ch => char.IsLetterOrDigit(ch)))
                         {

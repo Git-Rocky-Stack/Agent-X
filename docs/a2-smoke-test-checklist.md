@@ -9,7 +9,7 @@ This checklist verifies all keyboard interactions for the Keyboard Power Mode fe
   - Verify palette appears with focus in query input
   - Press Escape to dismiss
 
-- [ ] **2. Type "doc" → results filter to document-related commands**
+- [ ] **2. Type "doc" -> results filter to document-related commands**
   - Open palette with Ctrl+Shift+P
   - Type "doc"
   - Verify only document-related commands appear
@@ -29,7 +29,7 @@ This checklist verifies all keyboard interactions for the Keyboard Power Mode fe
   - Verify items are properly categorized
   - Press Escape to dismiss
 
-- [ ] **5. Type a document name → candidates filter; Enter opens that document**
+- [ ] **5. Type a document name -> candidates filter; Enter opens that document**
   - Open Jump-To with Ctrl+P
   - Type name of a document
   - Verify candidates filter to matching documents
@@ -62,15 +62,15 @@ This checklist verifies all keyboard interactions for the Keyboard Power Mode fe
 
 ## Navigation shortcuts
 
-- [ ] **10. Ctrl+Shift+D1 → Navigate to Documents (KnowledgeVault)**
+- [ ] **10. Ctrl+Shift+D1 -> Navigate to Documents (KnowledgeVault)**
   - Press Ctrl+Shift+D1
   - Verify navigation to KnowledgeVault page
 
-- [ ] **11. Ctrl+Shift+D2 → Navigate to Chat**
+- [ ] **11. Ctrl+Shift+D2 -> Navigate to Chat**
   - Press Ctrl+Shift+D2
   - Verify navigation to Chat page
 
-- [ ] **12. Ctrl+Shift+D3 → Navigate to Settings**
+- [ ] **12. Ctrl+Shift+D3 -> Navigate to Settings**
   - Press Ctrl+Shift+D3
   - Verify navigation to Settings page
 
@@ -98,7 +98,7 @@ This checklist verifies all keyboard interactions for the Keyboard Power Mode fe
   - Press Ctrl+K
   - Verify original Command Palette opens
 
-- [ ] **17. No multi-step chord prefixes are seeded — single-key shortcuts work immediately**
+- [ ] **17. No multi-step chord prefixes are seeded - single-key shortcuts work immediately**
   - Press any single-key shortcut (F1, F5, etc.)
   - Verify it works without needing prefix keys
 

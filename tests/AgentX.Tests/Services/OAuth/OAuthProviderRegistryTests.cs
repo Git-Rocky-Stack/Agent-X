@@ -12,9 +12,9 @@ namespace AgentX.Tests.Services.OAuth;
 /// </summary>
 public sealed class OAuthProviderRegistryTests
 {
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Provider ID constants
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void ProviderIdGoogle_IsGoogle()
@@ -28,9 +28,9 @@ public sealed class OAuthProviderRegistryTests
         OAuthProviderRegistry.ProviderIdMicrosoft.Should().Be("microsoft");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Google provider configuration
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Google_SetsProviderIdToGoogle()
@@ -131,9 +131,9 @@ public sealed class OAuthProviderRegistryTests
         config.ExtraAuthParameters["prompt"].Should().Be("consent");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Microsoft provider configuration
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Microsoft_SetsProviderIdToMicrosoft()
@@ -181,7 +181,7 @@ public sealed class OAuthProviderRegistryTests
         // Act
         var config = OAuthProviderRegistry.Microsoft("client-id", "client-secret", "common", "http://localhost:8080/callback");
 
-        // Assert — Microsoft does not expose a standard revocation endpoint
+        // Assert - Microsoft does not expose a standard revocation endpoint
         config.RevocationEndpoint.Should().BeEmpty();
     }
 
@@ -219,6 +219,10 @@ public sealed class OAuthProviderRegistryTests
         config.Scopes.Should().Contain("Calendars.Read");
         config.Scopes.Should().Contain("Mail.Read");
         config.Scopes.Should().Contain("User.Read");
+
+        // Without offline_access Microsoft issues no refresh token and access ends after
+        // about an hour.
+        config.Scopes.Split(' ').Should().Contain("offline_access");
     }
 
     [Fact]

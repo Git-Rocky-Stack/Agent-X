@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using AgentX.App.Helpers;
@@ -14,7 +15,10 @@ using AgentX.Core.Services.Audio.Models;
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Chat.Models;
 using AgentX.Core.Services.Feedback;
+using AgentX.Core.Services.Localization;
+using AgentX.Core.Services.Privacy;
 using AgentX.Core.Services.TemporalIdentity;
+using AgentX.Core.Services.TemporalIdentity.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using NAudio.Wave;
@@ -22,42 +26,51 @@ using Serilog;
 
 namespace AgentX.App.ViewModels;
 
-// ═══════════════════════════════════════════════════════════════════════════
-// CHAT VIEW MODEL — Thin orchestrator that delegates to 4 coordinators.
+// ===========================================================================
+// CHAT VIEW MODEL - Thin orchestrator that delegates to 4 coordinators.
 //
-// ConversationCoordinator — CRUD, pinning, folders, search
-// MessagingCoordinator   — send, stream, stop, feedback, delete messages
-// VoiceCoordinator       — recording, transcription
-// BranchingCoordinator   — branch, merge, delete branches
+// ConversationCoordinator - CRUD, pinning, folders, search
+// MessagingCoordinator - send, stream, stop, feedback, delete messages
+// VoiceCoordinator - recording, transcription
+// BranchingCoordinator - branch, merge, delete branches
 //
 // The ViewModel retains UI state (ObservableProperties, Collections) and
 // subscribes to coordinator events for synchronization.
-// ═══════════════════════════════════════════════════════════════════════════
+// ===========================================================================
 
 public partial class ChatViewModel : ObservableObject, IDisposable
 {
-    // ── Page State ─────────────────────────────────────────────
+    // -- Page State ---------------------------------------------
     [ObservableProperty] private bool _isConnected;
     [ObservableProperty] private bool _isGenerating;
-    [ObservableProperty] private string _activeModelName = "No model selected";
-    [ObservableProperty] private string _connectionStatus = "Disconnected";
+    [ObservableProperty] private string _activeModelName = string.Empty;
+
+    /// <summary>The connection status in the user's language, shown beside the header dot.</summary>
+    [ObservableProperty] private string _connectionStatus = string.Empty;
+
+    /// <summary>
+    /// Where the connection check stands. The header dot takes its tone from this state (by name,
+    /// through StatusToColorConverter), never from <see cref="ConnectionStatus"/>, whose words
+    /// follow the user's language.
+    /// </summary>
+    [ObservableProperty] private ChatConnectionState _connectionState = ChatConnectionState.Disconnected;
     [ObservableProperty] private string _userInput = string.Empty;
     [ObservableProperty] private string _currentStreamingResponse = string.Empty;
 
-    // ── Active Conversation ────────────────────────────────────
+    // -- Active Conversation ------------------------------------
     [ObservableProperty] private long? _activeConversationId;
-    [ObservableProperty] private string _activeConversationTitle = "New Conversation";
+    [ObservableProperty] private string _activeConversationTitle = string.Empty;
     [ObservableProperty] private string? _activeSystemPrompt;
     [ObservableProperty] private string? _activeSystemPromptName;
     [ObservableProperty] private int _tokenCount;
     [ObservableProperty] private double _generationTimeMs;
 
-    // ── Panel State ────────────────────────────────────────────
+    // -- Panel State --------------------------------------------
     [ObservableProperty] private bool _isConversationPaneOpen = true;
     [ObservableProperty] private bool _showSystemPromptPicker;
     [ObservableProperty] private bool _isContextInspectorOpen;
 
-    // ── Research Mode ──────────────────────────────────────────
+    // -- Research Mode ------------------------------------------
     private bool _isResearchMode;
     public bool IsResearchMode
     {
@@ -65,15 +78,20 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         set
         {
             if (SetProperty(ref _isResearchMode, value))
+            {
                 OnPropertyChanged(nameof(ResearchModeTooltip));
+
+                // Research Mode decides whether the next message also goes to the web search provider.
+                _ = RefreshPrivacyClaimAsync();
+            }
         }
     }
 
     public string ResearchModeTooltip => IsResearchMode
-        ? "Research Mode ON — answers include web sources"
-        : "Research Mode OFF — local vault only";
+        ? _localization.GetString("Chat_ResearchModeOnTooltip")
+        : _localization.GetString("Chat_ResearchModeOffTooltip");
 
-    // ── Orchestration Mode ───────────────────────────────────────
+    // -- Orchestration Mode ---------------------------------------
     [ObservableProperty] private ChatOrchestrationMode _orchestrationMode = ChatOrchestrationMode.Standard;
 
     public int OrchestrationModeIndex
@@ -97,27 +115,50 @@ public partial class ChatViewModel : ObservableObject, IDisposable
 
     public string OrchestrationModeTooltip => OrchestrationMode switch
     {
-        ChatOrchestrationMode.MultiAgentParallel => "Multi-agent parallel mode — researcher, critic, and synthesizer respond together",
-        ChatOrchestrationMode.MultiAgentDebate => "Multi-agent debate mode — agents challenge positions before the final synthesis",
-        _ => "Solo mode — standard Agent-X chat response"
+        ChatOrchestrationMode.MultiAgentParallel => _localization.GetString("Chat_OrchestrationParallelTooltip"),
+        ChatOrchestrationMode.MultiAgentDebate => _localization.GetString("Chat_OrchestrationDebateTooltip"),
+        _ => _localization.GetString("Chat_OrchestrationSoloTooltip")
     };
 
-    // ── Search ─────────────────────────────────────────────────
+    // -- Search -------------------------------------------------
     [ObservableProperty] private string _conversationSearchQuery = string.Empty;
 
-    // ── Memory ────────────────────────────────────────────────
+    // -- Memory ------------------------------------------------
+    // Facts noted from chats (IConversationMemoryService). They are not tied to one conversation:
+    // chat adds the ones closest to each new message whichever conversation they came from, so
+    // the context inspector lists all of them, with delete and clear all.
     [ObservableProperty] private int _memoryCount;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasMemoriesStatus))]
+    private string _memoriesStatus = string.Empty;
+    public ObservableCollection<ChatMemoryItem> Memories { get; } = new();
+    public bool HasMemories => Memories.Count > 0;
+    public bool HasMemoriesStatus => !string.IsNullOrEmpty(MemoriesStatus);
 
-    // ── Voice Input ───────────────────────────────────────────
+    /// <summary>
+    /// Asks the operator to confirm deleting every memory. The page supplies it (a dialog); with
+    /// none set, nothing is deleted.
+    /// </summary>
+    public Func<Task<bool>>? ConfirmClearMemoriesAsync { get; set; }
+
+    // --- Privacy claim (empty chat) ---
+    // The empty chat claims "100% Private" only while nothing a message sends leaves this
+    // computer; otherwise its hint names where messages go instead.
+    [ObservableProperty] private bool _isChatPrivate;
+    [ObservableProperty] private string _privacyHint = string.Empty;
+    private int _privacyClaimVersion;
+
+    // -- Voice Input -------------------------------------------
     [ObservableProperty] private bool _isRecording;
     [ObservableProperty] private bool _isTranscribing;
     [ObservableProperty] private string _voiceStatusMessage = string.Empty;
 
-    // ── Context Inspector ─────────────────────────────────────
+    // -- Context Inspector -------------------------------------
+    // The texts start empty; the constructor fills them in the user's language (ResetContextInspection).
     [ObservableProperty] private bool _hasContextInspection;
     [ObservableProperty] private bool _hasLimitedContextInspection;
-    [ObservableProperty] private string _contextInspectionStatus = "No generation context captured yet.";
-    [ObservableProperty] private string _contextCapturedAt = "No context captured";
+    [ObservableProperty] private string _contextInspectionStatus = string.Empty;
+    [ObservableProperty] private string _contextCapturedAt = string.Empty;
     [ObservableProperty] private string _contextStoryText = string.Empty;
     [ObservableProperty] private ObservableCollection<ChatContextStorySourceDisplayItem> _contextStorySourceChips = new();
     [ObservableProperty] private string _contextSelectedMessages = "0";
@@ -125,11 +166,11 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _contextOverflowMessages = "0";
     [ObservableProperty] private string _contextEstimatedPromptTokens = "0";
     [ObservableProperty] private string _contextEstimatedMessageTokens = "0";
-    [ObservableProperty] private string _contextAssemblyMode = "No context available";
+    [ObservableProperty] private string _contextAssemblyMode = string.Empty;
     [ObservableProperty] private string _contextAssemblyExplanation = string.Empty;
     [ObservableProperty] private string _contextCompressionExplanation = string.Empty;
     [ObservableProperty] private string _contextRecallExplanation = string.Empty;
-    [ObservableProperty] private string _contextSummaryStatus = "No durable summary captured yet.";
+    [ObservableProperty] private string _contextSummaryStatus = string.Empty;
     [ObservableProperty] private string _contextSummaryPreview = string.Empty;
     [ObservableProperty] private string _contextSummaryFreshness = string.Empty;
     [ObservableProperty] private ObservableCollection<string> _contextSummaryKeyPoints = new();
@@ -137,14 +178,14 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _hasContextSummaryKeyPoints;
     [ObservableProperty] private bool _isRefreshingConversationSummary;
     [ObservableProperty] private string _conversationSummaryRefreshError = string.Empty;
-    [ObservableProperty] private string _contextRecallStatus = "No durable recall context captured yet.";
+    [ObservableProperty] private string _contextRecallStatus = string.Empty;
     [ObservableProperty] private ObservableCollection<ChatContextRecallDisplayItem> _contextRecallItems = new();
     [ObservableProperty] private bool _hasContextRecallItems;
 
-    // ── Branching ─────────────────────────────────────────────────
+    // -- Branching -------------------------------------------------
     [ObservableProperty] private string? _pendingBranchLabel;
 
-    // ── Collections ────────────────────────────────────────────
+    // -- Collections --------------------------------------------
     public ObservableCollection<ChatMessageItem> Messages { get; } = new();
     public ObservableCollection<ConversationListItem> Conversations { get; } = new();
     public ObservableCollection<AiModel> AvailableModels { get; } = new();
@@ -159,10 +200,10 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     public ObservableCollection<string> SuggestedQuestions { get; } = new();
     public ObservableCollection<string> FolderNames { get; } = new();
 
-    // ── Folder Filter ──────────────────────────────────────────
+    // -- Folder Filter ------------------------------------------
     [ObservableProperty] private string? _activeFolderFilter;
 
-    // ── Branching ───────────────────────────────────────────────
+    // -- Branching -----------------------------------------------
     private ConversationBranchTree? _branchTree;
     public ConversationBranchTree? BranchTree
     {
@@ -173,7 +214,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     public bool HasBranches => _branchTree?.TotalBranchCount > 0;
     public ObservableCollection<ConversationBranchTree> ActiveBranches { get; } = new();
 
-    // ── Computed Properties ────────────────────────────────────
+    // -- Computed Properties ------------------------------------
     public bool HasNoConversations => Conversations.Count == 0;
     public bool HasNoMessages => Messages.Count == 0;
     public bool HasActiveSystemPrompt => !string.IsNullOrEmpty(ActiveSystemPromptName);
@@ -184,7 +225,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         !ActiveConversationId.HasValue
             ? string.Empty
             : _latestContextInspection?.ContextStoryText
-                ?? "No context story is available until Agent-X assembles a response for this conversation.";
+                ?? _localization.GetString("Chat_ContextStoryUnavailable");
     public IReadOnlyList<ChatContextStorySourceDisplayItem> ConversationIntelligenceStorySourceChips =>
         _latestContextInspection?.ContextStorySourceChips
             .Select(chip => new ChatContextStorySourceDisplayItem { Label = chip.Label })
@@ -207,20 +248,20 @@ public partial class ChatViewModel : ObservableObject, IDisposable
 
             if (ConversationIntelligenceIsCurrent)
             {
-                return "Current";
+                return _localization.GetString("Chat_IntelBadgeCurrent");
             }
 
             if (ConversationIntelligenceIsStale)
             {
-                return "Stale";
+                return _localization.GetString("Chat_IntelBadgeStale");
             }
 
             if (ConversationIntelligenceIsPending)
             {
-                return "Pending";
+                return _localization.GetString("Chat_IntelBadgePending");
             }
 
-            return "Unavailable";
+            return _localization.GetString("Chat_IntelBadgeUnavailable");
         }
     }
     public string ConversationIntelligenceStatusText
@@ -234,7 +275,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
 
             if (IsRefreshingConversationSummary)
             {
-                return "Refreshing durable summary...";
+                return _localization.GetString("Chat_SummaryRefreshing");
             }
 
             if (HasConversationSummaryRefreshError)
@@ -245,27 +286,33 @@ public partial class ChatViewModel : ObservableObject, IDisposable
             if (ConversationIntelligenceIsCurrent)
             {
                 var keyPointCount = _latestContextInspection?.Summary?.KeyPoints.Count ?? 0;
-                return keyPointCount > 0
-                    ? $"Summary current • {keyPointCount} key point{(keyPointCount == 1 ? string.Empty : "s")} available"
-                    : "Summary current • Ready for deeper inspection";
+                return keyPointCount switch
+                {
+                    <= 0 => _localization.GetString("Chat_SummaryCurrentReady"),
+                    1 => _localization.GetString("Chat_SummaryCurrentKeyPointsOne"),
+                    _ => _localization.GetString("Chat_SummaryCurrentKeyPointsMany", keyPointCount)
+                };
             }
 
             if (ConversationIntelligenceIsStale)
             {
                 var pendingMessageCount = _latestContextInspection?.Summary?.PendingMessageCount ?? 0;
-                return pendingMessageCount > 0
-                    ? $"Summary stale • {pendingMessageCount} newer message{(pendingMessageCount == 1 ? string.Empty : "s")} not folded in"
-                    : "Summary stale • Waiting for the next refresh";
+                return pendingMessageCount switch
+                {
+                    <= 0 => _localization.GetString("Chat_SummaryStaleWaiting"),
+                    1 => _localization.GetString("Chat_SummaryStaleMessagesOne"),
+                    _ => _localization.GetString("Chat_SummaryStaleMessagesMany", pendingMessageCount)
+                };
             }
 
             if (ConversationIntelligenceIsPending)
             {
-                return "Summary refresh pending";
+                return _localization.GetString("Chat_SummaryRefreshPending");
             }
 
             return _latestContextInspection?.HasLimitedVisibility == true
-                ? "Summary unavailable for this response path"
-                : "No conversation context captured yet";
+                ? _localization.GetString("Chat_SummaryUnavailablePath")
+                : _localization.GetString("Chat_ConversationContextNone");
         }
     }
     public bool ConversationIntelligenceIsCurrent =>
@@ -297,24 +344,24 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         IsRefreshingConversationSummary || HasConversationSummaryRefreshError;
     public string ConversationSummaryRefreshStatusText =>
         IsRefreshingConversationSummary
-            ? "Refreshing durable summary..."
+            ? _localization.GetString("Chat_SummaryRefreshing")
             : ConversationSummaryRefreshError;
     public string ConversationSummaryRefreshActionText =>
         IsRefreshingConversationSummary
-            ? "Refreshing..."
+            ? _localization.GetString("Chat_SummaryRefreshingShort")
             : ConversationIntelligenceIsUnavailable || HasConversationSummaryRefreshError
-                ? "Retry Summary"
-                : "Refresh Summary";
+                ? _localization.GetString("Chat_SummaryRetry")
+                : _localization.GetString("Chat_SummaryRefresh");
     public bool CanRefreshConversationSummary =>
         ActiveConversationId.HasValue && !IsRefreshingConversationSummary;
 
-    // ── Coordinators ──────────────────────────────────────────
+    // -- Coordinators ------------------------------------------
     private readonly IConversationCoordinator _conversationCoordinator;
     private readonly IMessagingCoordinator _messagingCoordinator;
     private readonly IVoiceCoordinator _voiceCoordinator;
     private readonly IBranchingCoordinator _branchingCoordinator;
 
-    // ── Services (retained for model/prompt/connection operations) ──
+    // -- Services (retained for model/prompt/connection operations) --
     private readonly IAiService _aiService;
     private readonly IChatService _chatService;
     private readonly IModelManager _modelManager;
@@ -322,20 +369,43 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     private readonly IConversationMemoryService _memoryService;
     private readonly INotificationService _notificationService;
     private readonly ITemporalIdentityService _temporalIdentity;
+    private readonly IPrivacyStatusService _privacyStatusService;
+    private readonly ILocalizationService _localization;
 
-    // ── Streaming assistant message (for token-by-token updates) ──
-    private ChatMessageItem? _streamingAssistantMessage;
+    // -- Streaming assistant message (for token-by-token updates) --
+    // The generation streaming into the screen. Null when nothing this view model started is
+    // running on the thread on screen. Moving off a thread clears it, so tokens and completions
+    // that still arrive for the thread left behind are ignored instead of landing on the one
+    // now shown.
+    private ChatGeneration? _activeGeneration;
+
     private ChatContextInspectionSnapshot? _latestContextInspection;
 
-    // ── Which conversation the screen is on, as a generation sees it ──
-    // Cancellation is cooperative, so a stream told to stop can still have passed the token
-    // loop and reached the StreamingCompleted raise at MessagingCoordinator.cs:198. Cancelling
-    // therefore cannot decide whether a completion belongs on screen. This counter can: every
-    // move off a thread advances it, and a generation carries the value it started under, so a
-    // completion that arrives under a newer value is known to belong to a thread already left.
+    // The coordinator call of the most recent generation. A generation abandoned by a thread
+    // switch can take a moment to wind down; the next one waits for it (briefly) so its last
+    // tokens and rows cannot be mistaken for the new generation's.
+    private Task? _lastGenerationTask;
+    private static readonly TimeSpan PreviousGenerationGrace = TimeSpan.FromSeconds(5);
+
+    // -- Which conversation the screen is on, as a generation sees it --
+    // Every move off a thread advances this counter, and a generation carries the value it
+    // started under, so work that finishes under a newer value is known to belong to a thread
+    // already left (a completion, or messages loaded for a thread the operator moved past).
     private int _conversationEpoch;
-    private int? _inFlightGenerationEpoch;
     private readonly Dictionary<long, ChatContextInspectionSnapshot> _assistantMessageContextSnapshots = new();
+    private bool _disposed;
+
+    // Time the open conversation is on screen, reported to Temporal Identity as engagement when
+    // the operator moves off it. The page pauses it while Chat is not the page shown.
+    private readonly EngagementTracker _conversationEngagement;
+    private bool _isConversationViewShown = true;
+
+    /// <summary>The clock engagement is timed with (a test seam).</summary>
+    internal Func<DateTime> UtcNow { get; set; } = () => DateTime.UtcNow;
+
+    /// <summary>Opens a web page in the default browser (a test seam).</summary>
+    internal Action<Uri> OpenExternalLink { get; set; } = static link =>
+        Process.Start(new ProcessStartInfo { FileName = link.AbsoluteUri, UseShellExecute = true });
 
     public ChatViewModel(
         IConversationCoordinator conversationCoordinator,
@@ -348,7 +418,9 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         ISystemPromptService systemPromptService,
         IConversationMemoryService memoryService,
         INotificationService notificationService,
-        ITemporalIdentityService temporalIdentity)
+        ITemporalIdentityService temporalIdentity,
+        IPrivacyStatusService privacyStatusService,
+        ILocalizationService localization)
     {
         _conversationCoordinator = conversationCoordinator;
         _messagingCoordinator = messagingCoordinator;
@@ -361,153 +433,104 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         _memoryService = memoryService;
         _notificationService = notificationService;
         _temporalIdentity = temporalIdentity;
+        _privacyStatusService = privacyStatusService;
+        _localization = localization;
+        _conversationEngagement = new EngagementTracker(
+            temporalIdentity, EngagementTargetType.Conversation, () => UtcNow());
+
+        ActiveModelName = localization.GetString("Chat_NoModelSelected");
+        ActiveConversationTitle = localization.GetString("Chat_NewConversationTitle");
+        ShowConnectionState(ChatConnectionState.Disconnected);
+        ResetContextInspection();
 
         SubscribeToCoordinatorEvents();
         Log.Debug("ChatViewModel created with coordinators");
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // COORDINATOR EVENT SUBSCRIPTIONS
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     private void SubscribeToCoordinatorEvents()
     {
-        // ── MessagingCoordinator ─────────────────────────────────
+        // -- MessagingCoordinator ---------------------------------
         _messagingCoordinator.TokenReceived += OnTokenReceived;
         _messagingCoordinator.StreamingCompleted += OnStreamingCompleted;
         _messagingCoordinator.GenerationError += OnGenerationError;
         _messagingCoordinator.NotificationRequested += OnMessagingNotification;
 
-        // ── VoiceCoordinator ─────────────────────────────────────
-        _voiceCoordinator.RecordingStateChanged += (s, isRec) => IsRecording = isRec;
-        _voiceCoordinator.TranscribingStateChanged += (s, isTrans) => IsTranscribing = isTrans;
-        _voiceCoordinator.StatusChanged += (s, msg) => VoiceStatusMessage = msg;
+        // -- VoiceCoordinator -------------------------------------
+        _voiceCoordinator.RecordingStateChanged += OnRecordingStateChanged;
+        _voiceCoordinator.TranscribingStateChanged += OnTranscribingStateChanged;
+        _voiceCoordinator.StatusChanged += OnVoiceStatusChanged;
         _voiceCoordinator.NotificationRequested += OnVoiceNotification;
 
-        // ── BranchingCoordinator ─────────────────────────────────
+        // -- BranchingCoordinator ---------------------------------
         _branchingCoordinator.BranchTreeChanged += OnBranchTreeChanged;
         _branchingCoordinator.NotificationRequested += OnBranchingNotification;
     }
 
+    /// <summary>
+    /// The coordinators are app-wide singletons, so a subscription outlives the page that made
+    /// it. A view model left subscribed keeps reacting to every other chat's generations.
+    /// </summary>
+    private void UnsubscribeFromCoordinatorEvents()
+    {
+        _messagingCoordinator.TokenReceived -= OnTokenReceived;
+        _messagingCoordinator.StreamingCompleted -= OnStreamingCompleted;
+        _messagingCoordinator.GenerationError -= OnGenerationError;
+        _messagingCoordinator.NotificationRequested -= OnMessagingNotification;
+
+        _voiceCoordinator.RecordingStateChanged -= OnRecordingStateChanged;
+        _voiceCoordinator.TranscribingStateChanged -= OnTranscribingStateChanged;
+        _voiceCoordinator.StatusChanged -= OnVoiceStatusChanged;
+        _voiceCoordinator.NotificationRequested -= OnVoiceNotification;
+
+        _branchingCoordinator.BranchTreeChanged -= OnBranchTreeChanged;
+        _branchingCoordinator.NotificationRequested -= OnBranchingNotification;
+    }
+
+    private void OnRecordingStateChanged(object? sender, bool isRecording) => IsRecording = isRecording;
+
+    private void OnTranscribingStateChanged(object? sender, bool isTranscribing) => IsTranscribing = isTranscribing;
+
+    private void OnVoiceStatusChanged(object? sender, string message) => VoiceStatusMessage = message;
+
     private void OnTokenReceived(object? sender, string token)
     {
-        if (_streamingAssistantMessage is not null)
+        if (_activeGeneration is { IsLive: true } generation)
         {
-            _streamingAssistantMessage.Content += token;
-            CurrentStreamingResponse = _streamingAssistantMessage.Content;
+            generation.AssistantMessage.Content += token;
+            CurrentStreamingResponse = generation.AssistantMessage.Content;
             OnPropertyChanged(nameof(Messages));
         }
     }
 
     private void OnStreamingCompleted(object? sender, StreamingCompletedEventArgs e)
     {
-        if (!GenerationStillOwnsScreen(_inFlightGenerationEpoch))
+        // Only a generation this view model started, still live on the thread it began on, is
+        // applied. Anything else was raised for a thread the operator has left, or by another
+        // chat sharing the singleton coordinator; adopting it would drag the screen onto that
+        // thread and file a sidebar row for it. The stream's output is already persisted, so
+        // the thread shows it when it is next opened.
+        if (_activeGeneration is not { IsLive: true } generation || generation.Epoch != _conversationEpoch)
         {
-            // The operator left this thread while it was generating. Adopting the id below
-            // would drag the screen back onto it and file a sidebar row for it. Everything the
-            // stream produced was already persisted by the coordinator, so there is nothing to
-            // salvage here: the thread shows it when it is next opened.
-            Log.Debug("Discarding completion for a conversation the operator has left");
+            Log.Debug("Discarding a completion this chat is not waiting for");
             return;
         }
 
-        if (_streamingAssistantMessage is not null)
-        {
-            _streamingAssistantMessage.IsStreaming = false;
-            _streamingAssistantMessage.TokenCount = e.TokenCount;
-            _streamingAssistantMessage.GenerationTimeMs = e.GenerationTimeMs;
-            if (e.AssistantMessageId.HasValue)
-            {
-                _streamingAssistantMessage.MessageId = e.AssistantMessageId.Value;
-            }
-
-            ApplyInlineContextNote(_streamingAssistantMessage, e.ContextInspection);
-            if (e.AssistantMessageId.HasValue && e.ContextInspection is not null)
-            {
-                _assistantMessageContextSnapshots[e.AssistantMessageId.Value] = e.ContextInspection;
-            }
-        }
-
-        TokenCount += e.TokenCount;
-        GenerationTimeMs = e.GenerationTimeMs;
-        IsGenerating = false;
-        CurrentStreamingResponse = string.Empty;
-
-        // Update conversation ID if newly created
-        if (e.ConversationId.HasValue && ActiveConversationId != e.ConversationId)
-        {
-            ActiveConversationId = e.ConversationId;
-            ActiveConversationTitle = e.ConversationTitle ?? ActiveConversationTitle;
-
-            Conversations.Insert(0, new ConversationListItem
-            {
-                Id = e.ConversationId.Value,
-                Title = ActiveConversationTitle,
-                LastMessage = e.ResponseContent.Length > 80
-                    ? e.ResponseContent[..80] + "..."
-                    : e.ResponseContent,
-                UpdatedAt = DateTime.UtcNow,
-                IsPinned = false,
-                MessageCount = 0
-            });
-            OnPropertyChanged(nameof(HasNoConversations));
-        }
-
-        // Update sidebar last message
-        if (ActiveConversationId.HasValue)
-        {
-            var convItem = Conversations.FirstOrDefault(c => c.Id == ActiveConversationId);
-            if (convItem is not null && !string.IsNullOrEmpty(e.ResponseContent))
-            {
-                convItem.LastMessage = e.ResponseContent.Length > 80
-                    ? e.ResponseContent[..80] + "..."
-                    : e.ResponseContent;
-            }
-        }
-
-        // Temporal Identity: Learn from message and detect insights (non-blocking background)
-        if (e.UserMessageId.HasValue && e.ConversationId.HasValue)
-        {
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    await _temporalIdentity.LearnFromMessageAsync(e.UserMessageId.Value);
-                    await _temporalIdentity.DetectInsightsAsync(e.ConversationId.Value);
-                }
-                catch (Exception ex)
-                {
-                    Log.Warning(ex, "Failed to process temporal identity for message {MessageId}", e.UserMessageId.Value);
-                }
-            });
-        }
-
-        _streamingAssistantMessage = null;
-        ApplyContextInspection(e.ContextInspection);
-
-        // Load follow-ups and update memory (non-blocking)
-        _ = InitializePostSendAsync();
+        ApplyCompletion(generation, CompletionData.From(e));
     }
-
-    /// <summary>
-    /// Whether a generation that began under <paramref name="startedEpoch"/> still owns the
-    /// conversation on screen. A null epoch means no generation of this view model's is in
-    /// flight, which is the case for a completion raised by another surface sharing the
-    /// coordinator: those are still adopted, because there is no screen state to protect.
-    /// </summary>
-    private bool GenerationStillOwnsScreen(int? startedEpoch)
-        => startedEpoch is null || startedEpoch.Value == _conversationEpoch;
 
     private void OnGenerationError(object? sender, string errorMsg)
     {
-        if (_streamingAssistantMessage is not null)
+        // The send's own result finishes the generation (FinishGeneration); this only shows the
+        // error a moment sooner. A failed regeneration keeps the previous answer instead.
+        if (_activeGeneration is { IsLive: true, ReplacedAssistantMessage: null } generation)
         {
-            _streamingAssistantMessage.Content = errorMsg;
-            _streamingAssistantMessage.IsStreaming = false;
+            generation.AssistantMessage.Content = errorMsg;
+            generation.AssistantMessage.IsStreaming = false;
         }
-        IsGenerating = false;
-        CurrentStreamingResponse = string.Empty;
-        _streamingAssistantMessage = null;
     }
 
     private void OnMessagingNotification(object? sender, NotificationRequestEventArgs e)
@@ -541,15 +564,18 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // INITIALIZATION
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     public async Task InitializeAsync()
     {
         Log.Information("ChatViewModel initializing...");
         try
         {
+            // First, and on every visit: a provider changed in Settings must show up here, and
+            // this never throws, so a failure further down cannot leave the claim unevaluated.
+            await RefreshPrivacyClaimAsync();
             await LoadConversationsAsync();
             await CheckConnectionStatusAsync();
             await LoadAvailableModelsAsync();
@@ -579,18 +605,30 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         {
             var connected = await _aiService.ActiveProvider.CheckConnectionAsync();
             IsConnected = connected;
-            ConnectionStatus = connected ? "Connected" : "Disconnected";
+            ShowConnectionState(connected ? ChatConnectionState.Connected : ChatConnectionState.Disconnected);
             ActiveModelName = connected && !string.IsNullOrEmpty(_aiService.ActiveModelId)
                 ? _aiService.ActiveModelId
-                : "No model selected";
+                : _localization.GetString("Chat_NoModelSelected");
         }
         catch (Exception ex)
         {
             Log.Warning(ex, "Failed to check AI connection status");
             IsConnected = false;
-            ConnectionStatus = "Disconnected";
-            ActiveModelName = "No model selected";
+            ShowConnectionState(ChatConnectionState.Disconnected);
+            ActiveModelName = _localization.GetString("Chat_NoModelSelected");
         }
+    }
+
+    /// <summary>Sets the connection state and its text in the user's language.</summary>
+    private void ShowConnectionState(ChatConnectionState state)
+    {
+        ConnectionState = state;
+        ConnectionStatus = state switch
+        {
+            ChatConnectionState.Checking => _localization.GetString("Chat_ConnectionChecking"),
+            ChatConnectionState.Connected => _localization.GetString("Chat_ConnectionConnected"),
+            _ => _localization.GetString("Chat_ConnectionDisconnected")
+        };
     }
 
     private async Task LoadAvailableModelsAsync()
@@ -631,6 +669,160 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         catch (Exception ex) { Log.Warning(ex, "Failed to update memory count"); }
     }
 
+    /// <summary>Reads the stored memories for the context inspector.</summary>
+    private async Task LoadMemoriesAsync()
+    {
+        try
+        {
+            var memories = await _memoryService.GetAllMemoriesAsync();
+            Memories.Clear();
+            foreach (var memory in memories)
+            {
+                Memories.Add(new ChatMemoryItem { Id = memory.Id, Content = memory.Content });
+            }
+
+            MemoryCount = Memories.Count;
+            MemoriesStatus = Memories.Count == 0 ? _localization.GetString("Chat_MemoriesEmpty") : string.Empty;
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to load memories");
+            Memories.Clear();
+            MemoriesStatus = _localization.GetString("Chat_MemoriesLoadFailed");
+        }
+
+        OnPropertyChanged(nameof(HasMemories));
+    }
+
+    /// <summary>
+    /// Permanently deletes one memory. Chat can note the fact again if later messages state it.
+    /// </summary>
+    [RelayCommand]
+    private async Task DeleteMemoryAsync(ChatMemoryItem? memory)
+    {
+        if (memory is null) return;
+
+        try
+        {
+            // False means it was already gone; either way it is no longer stored.
+            await _memoryService.DeleteMemoryAsync(memory.Id);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to delete memory {MemoryId}", memory.Id);
+            _notificationService.ShowError(
+                _localization.GetString("Chat_DeleteMemoryFailedTitle"),
+                _localization.GetString("Chat_DeleteMemoryFailedBody"));
+            return;
+        }
+
+        Memories.Remove(memory);
+        MemoryCount = Memories.Count;
+        MemoriesStatus = Memories.Count == 0 ? _localization.GetString("Chat_MemoriesEmpty") : string.Empty;
+        OnPropertyChanged(nameof(HasMemories));
+    }
+
+    /// <summary>Permanently deletes every memory, once the operator confirms.</summary>
+    [RelayCommand]
+    private async Task ClearMemoriesAsync()
+    {
+        if (Memories.Count == 0 && MemoryCount == 0) return;
+        if (ConfirmClearMemoriesAsync is not { } confirm || !await confirm()) return;
+
+        try
+        {
+            await _memoryService.DeleteAllMemoriesAsync();
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to delete all memories");
+            _notificationService.ShowError(
+                _localization.GetString("Chat_ClearMemoriesFailedTitle"),
+                _localization.GetString("Chat_ClearMemoriesFailedBody"));
+            await LoadMemoriesAsync();
+            return;
+        }
+
+        Memories.Clear();
+        MemoryCount = 0;
+        MemoriesStatus = _localization.GetString("Chat_MemoriesEmpty");
+        OnPropertyChanged(nameof(HasMemories));
+    }
+
+    /// <summary>
+    /// Works out what the empty chat may say about where messages go, for the provider active now
+    /// and the Research Mode switch on screen. The page runs it on every visit, so a provider
+    /// changed in Settings is reflected; Refresh connection and the Research Mode switch run it too.
+    /// </summary>
+    private async Task RefreshPrivacyClaimAsync()
+    {
+        var version = ++_privacyClaimVersion;
+        var (providerId, providerName) = ActiveProviderIdentity();
+
+        IReadOnlyList<PromptRecipient>? recipients;
+        try
+        {
+            recipients = await _privacyStatusService.GetChatMessageRecipientsAsync(providerId, IsResearchMode);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to work out where chat messages are sent");
+            recipients = null;
+        }
+
+        if (version != _privacyClaimVersion)
+        {
+            // Research Mode was switched meanwhile; the newer evaluation owns the claim.
+            return;
+        }
+
+        if (recipients is null)
+        {
+            // A local claim that could not be confirmed is not made.
+            IsChatPrivate = false;
+            PrivacyHint = _localization.GetString("Chat_PrivacyUnknown");
+            return;
+        }
+
+        IsChatPrivate = recipients.Count == 0;
+        if (recipients.Count == 0)
+        {
+            PrivacyHint = providerName is null
+                ? _localization.GetString("Chat_PrivacyLocalUnnamed")
+                : _localization.GetString("Chat_PrivacyLocal", providerName);
+            return;
+        }
+
+        PrivacyHint = string.Join(" ", recipients.Select(DescribeRecipient));
+    }
+
+    private string DescribeRecipient(PromptRecipient recipient)
+    {
+        var name = recipient.Name ?? string.Empty;
+        return recipient.Kind switch
+        {
+            PromptRecipientKind.CloudAiProvider => _localization.GetString("Chat_PrivacyCloud", name),
+            PromptRecipientKind.RemoteOllama => _localization.GetString("Chat_PrivacyRemoteOllama", name),
+            PromptRecipientKind.ModelRouting => _localization.GetString("Chat_PrivacyRouting"),
+            PromptRecipientKind.SearXng => _localization.GetString("Chat_PrivacySearXng", name),
+            _ => _localization.GetString("Chat_PrivacyWebSearch", name),
+        };
+    }
+
+    /// <summary>The active provider's id and display name, or nulls before the AI service is ready.</summary>
+    private (string? ProviderId, string? DisplayName) ActiveProviderIdentity()
+    {
+        try
+        {
+            var provider = _aiService.ActiveProvider;
+            return (provider?.ProviderId, string.IsNullOrWhiteSpace(provider?.DisplayName) ? null : provider.DisplayName);
+        }
+        catch (InvalidOperationException)
+        {
+            return (null, null); // not initialized yet
+        }
+    }
+
     private async Task RefreshFolderNamesAsync()
     {
         var names = await _conversationCoordinator.LoadFolderNamesAsync();
@@ -656,9 +848,9 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         catch (Exception ex) { Log.Warning(ex, "Failed to load suggested questions"); }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // PROPERTY CHANGE HOOKS
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     partial void OnUserInputChanged(string value)
     {
@@ -690,10 +882,47 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         ConversationSummaryRefreshError = string.Empty;
         NotifyConversationIntelligenceStripChanged();
         NotifyConversationSummaryRefreshStateChanged();
+
+        // Moving off a conversation records the time it was read; the next one starts timing.
+        if (_isConversationViewShown)
+        {
+            _ = value is long conversationId
+                ? _conversationEngagement.OpenAsync(conversationId)
+                : _conversationEngagement.CloseAsync();
+        }
+    }
+
+    /// <summary>
+    /// The chat page left the screen: the open conversation stops counting as read, and the
+    /// time it was shown is recorded.
+    /// </summary>
+    public Task PauseConversationEngagementAsync()
+    {
+        _isConversationViewShown = false;
+        return _conversationEngagement.CloseAsync();
+    }
+
+    /// <summary>The chat page is on screen again: the open conversation counts as read from now.</summary>
+    public void ResumeConversationEngagement()
+    {
+        _isConversationViewShown = true;
+        if (ActiveConversationId is long conversationId)
+        {
+            _ = _conversationEngagement.OpenAsync(conversationId);
+        }
     }
 
     partial void OnIsRefreshingConversationSummaryChanged(bool value)
         => NotifyConversationSummaryRefreshStateChanged();
+
+    // The inspector lists the memories, read afresh each time it opens.
+    partial void OnIsContextInspectorOpenChanged(bool value)
+    {
+        if (value)
+        {
+            _ = LoadMemoriesAsync();
+        }
+    }
 
     partial void OnConversationSummaryRefreshErrorChanged(string value)
         => NotifyConversationSummaryRefreshStateChanged();
@@ -713,23 +942,33 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     partial void OnConversationSearchQueryChanged(string value)
         => _ = FilterConversationsAsync(value);
 
-    // ═══════════════════════════════════════════════════════════════
-    // COMMANDS — Messaging
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
+    // COMMANDS - Messaging
+    // ===============================================================
 
     [RelayCommand(CanExecute = nameof(CanSend))]
     private async Task SendMessageAsync()
     {
-        if (string.IsNullOrWhiteSpace(UserInput)) return;
+        if (string.IsNullOrWhiteSpace(UserInput) || IsGenerating) return;
 
         var userContent = UserInput.Trim();
         UserInput = string.Empty;
 
+        await SendContentAsync(userContent);
+    }
+
+    /// <summary>
+    /// Sends <paramref name="userContent"/> as a new prompt in the conversation on screen.
+    /// Edit and non-persisted regeneration resend through here rather than through
+    /// <see cref="UserInput"/>, so a draft the operator is typing is left alone.
+    /// </summary>
+    private async Task SendContentAsync(string userContent)
+    {
         Log.Debug("Sending message: {MessagePreview}", userContent.Length > 50
             ? userContent[..50] + "..." : userContent);
 
         // Add user message to UI
-        Messages.Add(new ChatMessageItem
+        var userMessage = new ChatMessageItem
         {
             Role = "user",
             Content = userContent,
@@ -737,98 +976,386 @@ public partial class ChatViewModel : ObservableObject, IDisposable
             IsUser = true,
             IsAssistant = false,
             IsSystem = false,
-            IsStreaming = false
-        });
+            IsStreaming = false,
+            Localization = _localization
+        };
+        Messages.Add(userMessage);
         OnPropertyChanged(nameof(HasNoMessages));
 
         // Create streaming placeholder
-        _streamingAssistantMessage = new ChatMessageItem
-        {
-            Role = "assistant",
-            Content = "",
-            Timestamp = DateTime.UtcNow,
-            IsUser = false,
-            IsAssistant = true,
-            IsSystem = false,
-            IsStreaming = true
-        };
-        Messages.Add(_streamingAssistantMessage);
+        var assistantMessage = CreateStreamingAssistantMessage();
+        Messages.Add(assistantMessage);
 
+        var conversationId = ActiveConversationId;
+        var systemPrompt = ActiveSystemPrompt;
+        var modelId = _aiService.ActiveModelId;
+        var isResearchMode = IsResearchMode;
+        var orchestrationMode = OrchestrationMode;
+
+        await RunGenerationAsync(
+            new ChatGeneration
+            {
+                Epoch = _conversationEpoch,
+                UserMessage = userMessage,
+                AssistantMessage = assistantMessage
+            },
+            () => orchestrationMode == ChatOrchestrationMode.Standard
+                ? _messagingCoordinator.SendMessageAsync(
+                    userContent, conversationId, systemPrompt, modelId, isResearchMode)
+                : _messagingCoordinator.SendMessageAsync(
+                    userContent, conversationId, systemPrompt, modelId, isResearchMode, orchestrationMode));
+    }
+
+    private ChatMessageItem CreateStreamingAssistantMessage() => new()
+    {
+        Role = "assistant",
+        Content = "",
+        Timestamp = DateTime.UtcNow,
+        IsUser = false,
+        IsAssistant = true,
+        IsSystem = false,
+        IsStreaming = true,
+        Localization = _localization
+    };
+
+    /// <summary>
+    /// Runs one generation and settles the screen afterwards, whatever the outcome: a
+    /// completion, a stop, or a failure all end with generation state cleared, so Send
+    /// returns and Stop is not left pointing at nothing. A generation the operator moved
+    /// away from is settled by the move itself and changes nothing here when it ends.
+    /// </summary>
+    private async Task RunGenerationAsync(ChatGeneration generation, Func<Task<SendMessageResult>> start)
+    {
+        _activeGeneration = generation;
         IsGenerating = true;
 
-        // Stamp the generation with the conversation it belongs to, so both the completion
-        // handler and the continuation below can tell their own results from those of a thread
-        // the operator has since left.
-        var startedEpoch = _conversationEpoch;
-        _inFlightGenerationEpoch = startedEpoch;
+        // A generation abandoned by a thread switch may still be winding down. Its remaining
+        // events are ignored while this one is not live yet, and waiting for it keeps the rows
+        // it may still write out of this generation's view of the conversation.
+        var previous = _lastGenerationTask;
+        if (previous is { IsCompleted: false })
+        {
+            await Task.WhenAny(previous, Task.Delay(PreviousGenerationGrace));
+        }
+
+        if (!ReferenceEquals(_activeGeneration, generation))
+        {
+            return;
+        }
+
+        generation.IsLive = true;
 
         SendMessageResult result;
         try
         {
-            // Delegate to messaging coordinator
-            result = OrchestrationMode == ChatOrchestrationMode.Standard
-                ? await _messagingCoordinator.SendMessageAsync(
-                    userContent, ActiveConversationId, ActiveSystemPrompt,
-                    _aiService.ActiveModelId, IsResearchMode)
-                : await _messagingCoordinator.SendMessageAsync(
-                    userContent, ActiveConversationId, ActiveSystemPrompt,
-                    _aiService.ActiveModelId, IsResearchMode, OrchestrationMode);
+            var coordinatorCall = start();
+            _lastGenerationTask = coordinatorCall;
+            result = await coordinatorCall;
         }
-        finally
+        catch (Exception ex)
         {
-            _inFlightGenerationEpoch = null;
+            Log.Error(ex, "Chat generation failed unexpectedly");
+            result = new SendMessageResult
+            {
+                ConversationId = ActiveConversationId,
+                HadError = true,
+                ResponseContent = _localization.GetString("Chat_GenerationError"),
+                ErrorMessage = ex.Message
+            };
         }
 
-        if (!GenerationStillOwnsScreen(startedEpoch))
+        FinishGeneration(generation, result);
+    }
+
+    private void FinishGeneration(ChatGeneration generation, SendMessageResult result)
+    {
+        if (!ReferenceEquals(_activeGeneration, generation))
         {
-            // The cancel arm back-fills ContextInspection from the conversation it was
-            // generating for (MessagingCoordinator.cs:217). Applying it here would re-stamp the
-            // thread the operator left over the one now on screen, with no lost race needed.
+            // The operator left this thread (or started over) while it ran. What it produced is
+            // persisted and shows when that thread is opened again; its result, including the
+            // context inspection the cancel path back-fills, belongs to that thread.
             return;
         }
 
-        if (result.ContextInspection is not null)
+        _activeGeneration = null;
+
+        if (result.WasCancelled || result.HadError)
         {
-            ApplyContextInspection(result.ContextInspection);
+            if (generation.ReplacedAssistantMessage is not null)
+            {
+                // The coordinator kept the previous answer, so the screen shows it again.
+                RestoreReplacedAnswer(generation);
+            }
+            else if (result.WasCancelled)
+            {
+                generation.AssistantMessage.Content = string.IsNullOrEmpty(result.ResponseContent)
+                    ? AppendStopMarker(generation.AssistantMessage.Content)
+                    : result.ResponseContent;
+            }
+            else
+            {
+                generation.AssistantMessage.Content = result.ResponseContent;
+            }
+
+            // The prompt is saved before the answer streams, so it usually outlives a stop or
+            // a failure; stamping it lets edit, branch and delete act on the saved row. A send
+            // that created its conversation keeps that conversation rather than orphaning it.
+            StampPersistedIdentity(generation.UserMessage, result.UserMessageId, result.UserMessageSortOrder, result.ConversationId);
+            AdoptConversation(result.ConversationId, result.ConversationTitle, lastMessage: null);
+
+            if (result.ContextInspection is not null)
+            {
+                ApplyContextInspection(result.ContextInspection);
+            }
+        }
+        else
+        {
+            ApplyCompletion(generation, CompletionData.From(result));
+
+            if (generation.ReplacedAssistantMessage is { } replaced)
+            {
+                if (result.AssistantMessageId is null)
+                {
+                    // Nothing new was saved (an empty reply), so the previous answer still stands.
+                    RestoreReplacedAnswer(generation);
+                    _notificationService.ShowInfo(
+                        _localization.GetString("Chat_ResponseKeptTitle"),
+                        _localization.GetString("Chat_ResponseKeptBody"));
+                }
+                else if (replaced.MessageId > 0)
+                {
+                    _assistantMessageContextSnapshots.Remove(replaced.MessageId);
+                }
+            }
         }
 
-        // Handle cancellation/error inline responses
-        if (result.WasCancelled && _streamingAssistantMessage is not null)
-            _streamingAssistantMessage.Content += "\n\n[Generation stopped]";
-
-        if (result.HadError && _streamingAssistantMessage is not null)
-            _streamingAssistantMessage.Content = result.ResponseContent;
+        generation.AssistantMessage.IsStreaming = false;
+        IsGenerating = false;
+        CurrentStreamingResponse = string.Empty;
     }
+
+    private void ApplyCompletion(ChatGeneration generation, CompletionData completion)
+    {
+        if (generation.IsCompleted)
+        {
+            return;
+        }
+
+        generation.IsCompleted = true;
+
+        var assistantMessage = generation.AssistantMessage;
+        assistantMessage.IsStreaming = false;
+
+        // The final text is authoritative: the offline fallback builds its help text without
+        // streaming it, and tokens that raced a stop are only in the final text.
+        if (!string.IsNullOrEmpty(completion.ResponseContent) &&
+            assistantMessage.Content != completion.ResponseContent)
+        {
+            assistantMessage.Content = completion.ResponseContent;
+        }
+
+        assistantMessage.TokenCount = completion.TokenCount;
+        assistantMessage.GenerationTimeMs = completion.GenerationTimeMs;
+        StampPersistedIdentity(
+            assistantMessage,
+            completion.AssistantMessageId,
+            completion.AssistantMessageSortOrder,
+            completion.ConversationId);
+        if (completion.WebCitations is { Count: > 0 } citations)
+        {
+            assistantMessage.WebCitations = citations;
+        }
+
+        ApplyInlineContextNote(assistantMessage, completion.ContextInspection);
+        if (completion.AssistantMessageId.HasValue && completion.ContextInspection is not null)
+        {
+            _assistantMessageContextSnapshots[completion.AssistantMessageId.Value] = completion.ContextInspection;
+        }
+
+        // Messages sent in this session carry their persisted identity like loaded ones, so
+        // delete, edit, branch and regenerate act on the rows they show.
+        StampPersistedIdentity(
+            generation.UserMessage,
+            completion.UserMessageId,
+            completion.UserMessageSortOrder,
+            completion.ConversationId);
+
+        TokenCount += completion.TokenCount;
+        GenerationTimeMs = completion.GenerationTimeMs;
+
+        AdoptConversation(completion.ConversationId, completion.ConversationTitle, completion.ResponseContent);
+
+        // Update sidebar last message
+        if (ActiveConversationId.HasValue && !string.IsNullOrEmpty(completion.ResponseContent))
+        {
+            var convItem = Conversations.FirstOrDefault(c => c.Id == ActiveConversationId);
+            if (convItem is not null)
+            {
+                convItem.LastMessage = PreviewOf(completion.ResponseContent);
+            }
+        }
+
+        // Temporal Identity learns from each prompt once. A regeneration answers a prompt it
+        // has already learned from; learning again would count the same message twice.
+        if (!generation.IsRegeneration &&
+            completion.UserMessageId.HasValue &&
+            completion.ConversationId.HasValue)
+        {
+            LearnFromPromptInBackground(completion.UserMessageId.Value, completion.ConversationId.Value);
+        }
+
+        ApplyContextInspection(completion.ContextInspection);
+
+        // Load follow-ups and update memory (non-blocking)
+        _ = InitializePostSendAsync();
+    }
+
+    /// <summary>
+    /// Takes over the conversation a send created when the screen had none yet, and lists it
+    /// in the sidebar unless it is already there.
+    /// </summary>
+    private void AdoptConversation(long? conversationId, string? conversationTitle, string? lastMessage)
+    {
+        if (conversationId is not long id || ActiveConversationId == id)
+        {
+            return;
+        }
+
+        ActiveConversationId = id;
+        ActiveConversationTitle = conversationTitle ?? ActiveConversationTitle;
+
+        if (Conversations.All(c => c.Id != id))
+        {
+            Conversations.Insert(0, new ConversationListItem
+            {
+                Id = id,
+                Title = ActiveConversationTitle,
+                LastMessage = PreviewOf(lastMessage),
+                UpdatedAt = DateTime.UtcNow,
+                IsPinned = false,
+                MessageCount = 0
+            });
+            OnPropertyChanged(nameof(HasNoConversations));
+        }
+    }
+
+    private static void StampPersistedIdentity(
+        ChatMessageItem message,
+        long? messageId,
+        int? sortOrder,
+        long? conversationId)
+    {
+        if (messageId is > 0)
+        {
+            message.MessageId = messageId.Value;
+        }
+
+        if (sortOrder.HasValue)
+        {
+            message.SortOrder = sortOrder.Value;
+        }
+
+        if (conversationId.HasValue)
+        {
+            message.ConversationId = conversationId.Value;
+        }
+    }
+
+    private void RestoreReplacedAnswer(ChatGeneration generation)
+    {
+        var index = Messages.IndexOf(generation.AssistantMessage);
+        if (index >= 0 && generation.ReplacedAssistantMessage is not null)
+        {
+            Messages[index] = generation.ReplacedAssistantMessage;
+        }
+    }
+
+    private string AppendStopMarker(string content)
+    {
+        var marker = _localization.GetString("Chat_GenerationStopped");
+        return string.IsNullOrEmpty(content) ? marker : content + "\n\n" + marker;
+    }
+
+    private static string PreviewOf(string? content) =>
+        string.IsNullOrEmpty(content)
+            ? string.Empty
+            : content.Length > 80 ? content[..80] + "..." : content;
+
+    /// <summary>
+    /// Temporal Identity learns from the prompt: the beliefs it states (Past Self and the
+    /// dashboard's belief-conflict panel read these), the operator's voice, and insight moments
+    /// in the thread. Each step runs even when an earlier one fails. The service keeps nothing in
+    /// the shared change tracker, so this can run off the UI thread.
+    /// </summary>
+    private void LearnFromPromptInBackground(long userMessageId, long conversationId)
+    {
+        _ = Task.Run(async () =>
+        {
+            await RunLearningStepAsync(() => _temporalIdentity.ProcessMessageAsync(userMessageId), "belief tracking", userMessageId);
+            await RunLearningStepAsync(() => _temporalIdentity.LearnFromMessageAsync(userMessageId), "voice learning", userMessageId);
+            await RunLearningStepAsync(() => _temporalIdentity.DetectInsightsAsync(conversationId), "insight detection", userMessageId);
+        });
+    }
+
+    private static async Task RunLearningStepAsync(Func<Task> step, string stepName, long userMessageId)
+    {
+        try
+        {
+            await step();
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Temporal identity {Step} failed for message {MessageId}", stepName, userMessageId);
+        }
+    }
+
+    /// <summary>
+    /// Moves the screen off whatever generation is running: it is stopped, and anything it
+    /// still reports is ignored. Leaves Send usable at once rather than after the stop lands.
+    /// </summary>
+    private async Task LeaveActiveGenerationAsync()
+    {
+        var generation = _activeGeneration;
+        _activeGeneration = null;
+        _conversationEpoch++;
+
+        if (generation is not null || IsGenerating)
+        {
+            if (generation is not null)
+            {
+                generation.AssistantMessage.IsStreaming = false;
+            }
+
+            await _messagingCoordinator.StopGenerationAsync();
+        }
+
+        IsGenerating = false;
+        CurrentStreamingResponse = string.Empty;
+    }
+
+    private void NotifyGenerationInProgress() =>
+        _notificationService.ShowInfo(
+            _localization.GetString("Chat_ResponseInProgressTitle"),
+            _localization.GetString("Chat_ResponseInProgressBody"));
 
     [RelayCommand]
     private async Task StopGenerationAsync()
         => await _messagingCoordinator.StopGenerationAsync();
 
-    // ═══════════════════════════════════════════════════════════════
-    // COMMANDS — Conversation
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
+    // COMMANDS - Conversation
+    // ===============================================================
 
     [RelayCommand]
     private async Task NewConversationAsync()
     {
         // A generation belonging to the thread being left must not follow the operator into
-        // the blank one. Left running, it finishes into OnStreamingCompleted, whose adopt
-        // branch sees the null id below, takes the finished stream's conversation id back and
-        // files a second sidebar row for it: the new conversation silently becomes the old
-        // one. The coordinator's cancel path returns without raising StreamingCompleted
-        // (MessagingCoordinator.cs OperationCanceledException arm), so stopping here ends it.
-        if (IsGenerating)
-        {
-            await _messagingCoordinator.StopGenerationAsync();
-        }
-
-        _streamingAssistantMessage = null;
-        IsGenerating = false;
-        CurrentStreamingResponse = string.Empty;
-        _conversationEpoch++;
+        // the blank one: left running, its completion would carry the old thread's id into the
+        // null one below and the new conversation would silently become the old one.
+        await LeaveActiveGenerationAsync();
 
         ActiveConversationId = null;
-        ActiveConversationTitle = "New Conversation";
+        ActiveConversationTitle = _localization.GetString("Chat_NewConversationTitle");
         ActiveSystemPrompt = null;
         ActiveSystemPromptName = null;
         TokenCount = 0;
@@ -843,34 +1370,81 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private async Task DeleteConversationAsync(long conversationId)
     {
-        await _conversationCoordinator.DeleteConversationAsync(conversationId);
+        var isOpen = ActiveConversationId == conversationId;
+        if (isOpen && IsGenerating)
+        {
+            // Nothing may still be writing into the thread being deleted.
+            await LeaveActiveGenerationAsync();
+        }
+
+        if (!await _conversationCoordinator.DeleteConversationAsync(conversationId))
+        {
+            _notificationService.ShowError(
+                _localization.GetString("Chat_DeleteFailedTitle"),
+                _localization.GetString("Chat_DeleteConversationFailedBody"));
+            return;
+        }
+
         var item = Conversations.FirstOrDefault(c => c.Id == conversationId);
         if (item is not null)
         {
             Conversations.Remove(item);
             OnPropertyChanged(nameof(HasNoConversations));
-            if (ActiveConversationId == conversationId)
-                await NewConversationAsync();
+        }
+
+        if (isOpen)
+        {
+            // Time spent in a conversation that no longer exists is not recorded against it.
+            _conversationEngagement.Discard();
+            await NewConversationAsync();
+        }
+        else if (ActiveConversationId.HasValue)
+        {
+            // The open thread may have been a branch of the deleted one, or its parent.
+            await RefreshBranchTreeAsync();
         }
     }
 
     [RelayCommand]
     private async Task SelectConversationAsync(long conversationId)
     {
-        var item = Conversations.FirstOrDefault(c => c.Id == conversationId);
-        if (item is null) return;
+        if (conversationId <= 0) return;
+
+        // The sidebar is only a cache of the conversation list: a caller arriving before it has
+        // loaded (Jump-To on a cold Chat page) or naming a thread it does not show (a filtered
+        // list) still opens the conversation it asked for.
+        var title = Conversations.FirstOrDefault(c => c.Id == conversationId)?.Title;
+        if (title is null)
+        {
+            var summary = await _conversationCoordinator.LoadConversationSummaryAsync(conversationId);
+            if (summary is null)
+            {
+                _notificationService.ShowInfo(
+                    _localization.GetString("Chat_ConversationNotFoundTitle"),
+                    _localization.GetString("Chat_ConversationNotFoundBody"));
+                return;
+            }
+
+            title = summary.Title;
+        }
 
         // Picking another thread moves the screen off any running generation just as Ctrl+N
-        // does, and this path never cancelled anything, so the epoch is the only thing
-        // stopping that generation from dragging the screen back when it finishes.
-        _conversationEpoch++;
+        // does, so it stops that generation and clears the generation state with it.
+        await LeaveActiveGenerationAsync();
+        var epoch = _conversationEpoch;
 
         ActiveConversationId = conversationId;
-        ActiveConversationTitle = item.Title;
+        ActiveConversationTitle = title;
         Messages.Clear();
         ConversationSummaryRefreshError = string.Empty;
 
         var messageSummaries = await _conversationCoordinator.LoadMessagesAsync(conversationId);
+        if (epoch != _conversationEpoch)
+        {
+            // Another thread was opened while this one loaded.
+            return;
+        }
+
         foreach (var ms in messageSummaries)
         {
             var messageItem = MapToChatMessageItem(ms);
@@ -886,9 +1460,26 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private async Task TogglePinAsync(long conversationId)
     {
-        await _conversationCoordinator.TogglePinAsync(conversationId);
+        if (!await _conversationCoordinator.TogglePinAsync(conversationId))
+        {
+            _notificationService.ShowError(
+                _localization.GetString("Chat_PinFailedTitle"),
+                _localization.GetString("Chat_PinFailedBody"));
+            return;
+        }
+
         var item = Conversations.FirstOrDefault(c => c.Id == conversationId);
-        if (item is not null) item.IsPinned = !item.IsPinned;
+        if (item is null) return;
+
+        item.IsPinned = !item.IsPinned;
+
+        // Keep pinned conversations first, the order the list is loaded in.
+        var from = Conversations.IndexOf(item);
+        var to = item.IsPinned ? 0 : Conversations.Count(c => c.IsPinned);
+        if (from != to)
+        {
+            Conversations.Move(from, to);
+        }
     }
 
     [RelayCommand]
@@ -923,9 +1514,9 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(HasNoConversations));
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // COMMANDS — Model & Prompt Selection
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
+    // COMMANDS - Model & Prompt Selection
+    // ===============================================================
 
     /// <summary>
     /// Opens the conversation handed over by whatever navigated here (Jump-To, the
@@ -973,52 +1564,69 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
-    private void SelectSystemPrompt(SystemPromptItem? prompt)
+    private async Task SelectSystemPromptAsync(SystemPromptItem? prompt)
     {
-        if (prompt is null) { ActiveSystemPrompt = null; ActiveSystemPromptName = null; }
-        else
-        {
-            ActiveSystemPrompt = prompt.Content;
-            ActiveSystemPromptName = prompt.Name;
-            _ = Task.Run(async () =>
-            {
-                try { await _systemPromptService.IncrementUsageAsync(prompt.Id); }
-                catch (Exception ex) { Log.Warning(ex, "Failed to increment system prompt usage"); }
-            });
-        }
         ShowSystemPromptPicker = false;
+
+        if (prompt is null)
+        {
+            ActiveSystemPrompt = null;
+            ActiveSystemPromptName = null;
+            return;
+        }
+
+        ActiveSystemPrompt = prompt.Content;
+        ActiveSystemPromptName = prompt.Name;
+
+        // A single counter update, awaited here rather than raced against the chat's own
+        // queries on the shared context from a background task.
+        try { await _systemPromptService.IncrementUsageAsync(prompt.Id); }
+        catch (Exception ex) { Log.Warning(ex, "Failed to increment system prompt usage"); }
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // COMMANDS — Per-Message Actions
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
+    // COMMANDS - Per-Message Actions
+    // ===============================================================
 
     [RelayCommand]
     private async Task DeleteMessageAsync(ChatMessageItem? message)
     {
         if (message is null) return;
-        await _messagingCoordinator.DeleteMessageAsync(message.MessageId);
-        if (message.MessageId > 0)
+
+        if (_activeGeneration is { } generation &&
+            (ReferenceEquals(message, generation.UserMessage) || ReferenceEquals(message, generation.AssistantMessage)))
         {
-            _assistantMessageContextSnapshots.Remove(message.MessageId);
+            // Its row is still being written; deleting now would race the save.
+            NotifyGenerationInProgress();
+            return;
         }
+
+        if (message.MessageId <= 0)
+        {
+            // Never saved (an offline answer, a stopped or failed response), so the screen is
+            // the only place it exists.
+            Messages.Remove(message);
+            OnPropertyChanged(nameof(HasNoMessages));
+            _notificationService.ShowInfo(
+                _localization.GetString("Chat_MessageRemovedTitle"),
+                _localization.GetString("Chat_MessageRemovedBody"));
+            return;
+        }
+
+        if (!await _messagingCoordinator.DeleteMessageAsync(message.MessageId))
+        {
+            _notificationService.ShowError(
+                _localization.GetString("Chat_DeleteFailedTitle"),
+                _localization.GetString("Chat_DeleteMessageFailedBody"));
+            return;
+        }
+
+        _assistantMessageContextSnapshots.Remove(message.MessageId);
         Messages.Remove(message);
         OnPropertyChanged(nameof(HasNoMessages));
-        _notificationService.ShowInfo("Message deleted", "The message has been removed.");
-    }
-
-    [RelayCommand]
-    private async Task SubmitFeedbackAsync(ChatMessageItem? message)
-    {
-        if (message is null || !message.IsAssistant || message.MessageId <= 0) return;
-        var newRating = message.FeedbackRating switch
-        {
-            "positive" => "negative",
-            "negative" => "none",
-            _ => "positive"
-        };
-        message.FeedbackRating = newRating;
-        await _messagingCoordinator.SubmitFeedbackAsync(message.MessageId, ActiveConversationId ?? 0, newRating);
+        _notificationService.ShowInfo(
+            _localization.GetString("Chat_MessageDeletedTitle"),
+            _localization.GetString("Chat_MessageDeletedBody"));
     }
 
     [RelayCommand]
@@ -1043,22 +1651,66 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     private async Task RegenerateMessageAsync(ChatMessageItem? message)
     {
         if (message is null || !message.IsAssistant) return;
+        if (IsGenerating)
+        {
+            NotifyGenerationInProgress();
+            return;
+        }
+
         var msgIndex = Messages.IndexOf(message);
         if (msgIndex < 1) return;
         var userMessage = Messages[msgIndex - 1];
         if (!userMessage.IsUser) return;
 
-        Messages.Remove(message);
-        if (message.MessageId > 0)
+        if (msgIndex != Messages.Count - 1)
         {
-            _assistantMessageContextSnapshots.Remove(message.MessageId);
-            await _messagingCoordinator.DeleteMessageAsync(message.MessageId);
+            // A new answer can only replace the one that closes the thread: anything after an
+            // earlier answer was a reply to it.
+            _notificationService.ShowInfo(
+                _localization.GetString("Chat_RegenerateLatestOnlyTitle"),
+                _localization.GetString("Chat_RegenerateLatestOnlyBody"));
+            return;
         }
 
-        UserInput = userMessage.Content;
+        if (ActiveConversationId is long conversationId && userMessage.MessageId > 0)
+        {
+            // The saved prompt is answered again in place: it is not persisted a second time,
+            // and the old answer stays (on screen and in the thread) until the new one is saved.
+            var replacement = CreateStreamingAssistantMessage();
+            Messages[msgIndex] = replacement;
+
+            var promptId = userMessage.MessageId;
+            var promptContent = userMessage.Content;
+            var systemPrompt = ActiveSystemPrompt;
+            var orchestrationMode = OrchestrationMode;
+
+            await RunGenerationAsync(
+                new ChatGeneration
+                {
+                    Epoch = _conversationEpoch,
+                    UserMessage = userMessage,
+                    AssistantMessage = replacement,
+                    ReplacedAssistantMessage = message
+                },
+                () => _messagingCoordinator.RegenerateResponseAsync(
+                    conversationId, promptId, promptContent, systemPrompt, orchestrationMode));
+            return;
+        }
+
+        // The prompt was never saved (an offline answer, or a send that failed before saving
+        // it), so there is no saved exchange to replace: the prompt is simply sent again.
+        if (message.MessageId > 0 && !await _messagingCoordinator.DeleteMessageAsync(message.MessageId))
+        {
+            _notificationService.ShowError(
+                _localization.GetString("Chat_RegenerateFailedTitle"),
+                _localization.GetString("Chat_RegenerateNotRemovedBody"));
+            return;
+        }
+
+        Messages.Remove(message);
         Messages.Remove(userMessage);
         OnPropertyChanged(nameof(HasNoMessages));
-        await SendMessageAsync();
+        await SendContentAsync(userMessage.Content);
     }
 
     [RelayCommand]
@@ -1082,33 +1734,49 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     private async Task SaveEditMessageAsync(ChatMessageItem? message)
     {
         if (message is null || !message.IsUser || string.IsNullOrWhiteSpace(message.EditContent)) return;
-        var newContent = message.EditContent.Trim();
-        message.IsEditing = false;
-        message.Content = newContent;
-
-        if (message.MessageId > 0)
+        if (IsGenerating)
         {
-            try { await _conversationCoordinator.UpdateMessageContentAsync(message.MessageId, newContent); }
-            catch (Exception ex) { Log.Warning(ex, "Failed to update message content in database"); }
+            NotifyGenerationInProgress();
+            return;
         }
 
         var msgIndex = Messages.IndexOf(message);
-        if (msgIndex >= 0 && ActiveConversationId is not null && message.SortOrder >= 0)
+        if (msgIndex < 0) return;
+        var newContent = message.EditContent.Trim();
+
+        // Resending persists the new text as a fresh message, so the edited row goes too, with
+        // everything after it. The cut starts at the first saved message from the edited one
+        // on and is keyed by its persisted id alone: a message never saved has no row to cut
+        // from. Nothing is resent unless the cut succeeded.
+        var firstSaved = Messages.Skip(msgIndex).FirstOrDefault(m => m.MessageId > 0);
+        if (firstSaved is not null && ActiveConversationId is long conversationId &&
+            !await _conversationCoordinator.DeleteMessageAndFollowingAsync(conversationId, firstSaved.MessageId))
         {
-            try { await _conversationCoordinator.DeleteMessagesAfterAsync(ActiveConversationId.Value, message.SortOrder); }
-            catch (Exception ex) { Log.Warning(ex, "Failed to delete subsequent messages"); }
-            while (Messages.Count > msgIndex + 1) Messages.RemoveAt(Messages.Count - 1);
+            _notificationService.ShowError(
+                _localization.GetString("Chat_EditNotSentTitle"),
+                _localization.GetString("Chat_EditNotSentBody"));
+            return;
         }
 
-        UserInput = newContent;
-        Messages.Remove(message);
+        message.IsEditing = false;
+        while (Messages.Count > msgIndex)
+        {
+            var removed = Messages[^1];
+            if (removed.MessageId > 0)
+            {
+                _assistantMessageContextSnapshots.Remove(removed.MessageId);
+            }
+
+            Messages.RemoveAt(Messages.Count - 1);
+        }
+
         OnPropertyChanged(nameof(HasNoMessages));
-        await SendMessageAsync();
+        await SendContentAsync(newContent);
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // COMMANDS — Voice
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
+    // COMMANDS - Voice
+    // ===============================================================
 
     [RelayCommand]
     private async Task ToggleVoiceRecordingAsync()
@@ -1136,9 +1804,9 @@ public partial class ChatViewModel : ObservableObject, IDisposable
             UserInput = transcription;
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // COMMANDS — Branching
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
+    // COMMANDS - Branching
+    // ===============================================================
 
     [RelayCommand]
     private async Task BranchFromMessageAsync(long messageId)
@@ -1146,17 +1814,23 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         if (ActiveConversationId is null) return;
         var label = PendingBranchLabel;
         PendingBranchLabel = null;
+        if (messageId <= 0)
+        {
+            _notificationService.ShowInfo(
+                _localization.GetString("Chat_CannotBranchTitle"),
+                _localization.GetString("Chat_CannotBranchBody"));
+            return;
+        }
+
         var result = await _branchingCoordinator.BranchFromMessageAsync(ActiveConversationId.Value, messageId, label);
         if (result is not null)
         {
             await RefreshBranchTreeAsync();
-            _notificationService.ShowInfo("Branch Created", $"Created branch: {result.Title}");
+            _notificationService.ShowInfo(
+                _localization.GetString("Chat_BranchCreatedTitle"),
+                _localization.GetString("Chat_BranchCreatedBody", result.Title));
         }
     }
-
-    [RelayCommand]
-    private async Task LoadBranchTreeAsync()
-        => await RefreshBranchTreeAsync();
 
     [RelayCommand]
     private async Task SwitchToBranchAsync(long branchConversationId)
@@ -1177,15 +1851,73 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         await RefreshBranchTreeAsync();
     }
 
+    /// <summary>
+    /// Compares the branch on screen with the thread it was branched from. On the main thread no
+    /// branch is on screen, so its only branch is compared, or, when there are several, the operator
+    /// is asked to open the one to compare. This used to compare the main thread with the first
+    /// branch whichever thread was open.
+    /// </summary>
     [RelayCommand]
     private void CompareBranches()
     {
-        if (BranchTree is null || BranchTree.Children.Count < 1) return;
-        var window = new Views.BranchCompareWindow(
-            BranchTree, BranchTree.Children[0], "Main Thread",
-            BranchTree.Children[0].BranchLabel ?? "Branch");
-        window.Activate();
+        if (BranchTree is not { } tree || tree.Children.Count < 1) return;
+
+        var (branch, thread) = ActiveConversationId is long activeId
+            ? FindBranchNode(tree, activeId, parent: null)
+            : (null, null);
+
+        if (branch is null || thread is null)
+        {
+            // The main thread is on screen.
+            if (tree.Children.Count > 1)
+            {
+                _notificationService.ShowInfo(
+                    _localization.GetString("Chat_CompareOpenBranchTitle"),
+                    _localization.GetString("Chat_CompareOpenBranchBody"));
+                return;
+            }
+
+            thread = tree;
+            branch = tree.Children[0];
+        }
+
+        ShowBranchComparison(
+            thread,
+            branch,
+            ReferenceEquals(thread, tree) ? _localization.GetString("Chat_MainThread") : BranchTitle(thread),
+            BranchTitle(branch));
     }
+
+    /// <summary>Opens the side-by-side comparison window (a test seam).</summary>
+    internal Action<ConversationBranchTree, ConversationBranchTree, string, string> ShowBranchComparison { get; set; } =
+        static (thread, branch, threadTitle, branchTitle) =>
+            new Views.BranchCompareWindow(thread, branch, threadTitle, branchTitle).Activate();
+
+    /// <summary>The node of <paramref name="conversationId"/> in the tree and the thread it branched from.</summary>
+    private static (ConversationBranchTree? Node, ConversationBranchTree? Parent) FindBranchNode(
+        ConversationBranchTree node, long conversationId, ConversationBranchTree? parent)
+    {
+        if (node.Conversation?.Id == conversationId)
+        {
+            return (node, parent);
+        }
+
+        foreach (var child in node.Children)
+        {
+            var found = FindBranchNode(child, conversationId, node);
+            if (found.Node is not null)
+            {
+                return found;
+            }
+        }
+
+        return (null, null);
+    }
+
+    private string BranchTitle(ConversationBranchTree branch) =>
+        !string.IsNullOrWhiteSpace(branch.BranchLabel) ? branch.BranchLabel
+        : !string.IsNullOrWhiteSpace(branch.Conversation?.Title) ? branch.Conversation.Title
+        : _localization.GetString("Chat_BranchFallbackTitle");
 
     private async Task RefreshBranchTreeAsync()
     {
@@ -1220,9 +1952,9 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         MarkFromNode(BranchTree);
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // COMMANDS — UI Helpers
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
+    // COMMANDS - UI Helpers
+    // ===============================================================
 
     [RelayCommand]
     private void ToggleConversationPane()
@@ -1287,9 +2019,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
                 return;
             }
 
-            ConversationSummaryRefreshError = string.IsNullOrWhiteSpace(result.ErrorMessage)
-                ? "Summary refresh failed. Keeping the previous summary state."
-                : result.ErrorMessage;
+            ConversationSummaryRefreshError = DescribeSummaryRefreshFailure(result.ErrorMessage);
         }
         catch (OperationCanceledException)
         {
@@ -1298,7 +2028,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Log.Warning(ex, "Failed to refresh conversation summary for conversation {ConversationId}", ActiveConversationId.Value);
-            ConversationSummaryRefreshError = "Summary refresh failed. Keeping the previous summary state.";
+            ConversationSummaryRefreshError = _localization.GetString("Chat_SummaryRefreshFailed");
         }
         finally
         {
@@ -1306,13 +2036,39 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         }
     }
 
-    [RelayCommand]
-    private async Task ClearConversationAsync()
+    /// <summary>
+    /// Why the summary refresh failed, in the user's language. The chat service words its three
+    /// reasons in English, so those are matched here; any other reason is shown as it came.
+    /// </summary>
+    private string DescribeSummaryRefreshFailure(string? reason) => reason switch
     {
-        Messages.Clear(); TokenCount = 0; GenerationTimeMs = 0;
-        CurrentStreamingResponse = string.Empty;
-        OnPropertyChanged(nameof(HasNoMessages));
-        await Task.CompletedTask;
+        _ when string.IsNullOrWhiteSpace(reason) => _localization.GetString("Chat_SummaryRefreshFailed"),
+        "Summary refresh failed. Keeping the previous summary state." => _localization.GetString("Chat_SummaryRefreshFailed"),
+        "Summary refresh is unavailable in this app configuration." => _localization.GetString("Chat_SummaryRefreshUnavailable"),
+        "Summary refresh completed, but no updated summary was available." => _localization.GetString("Chat_SummaryRefreshNoUpdate"),
+        _ => reason
+    };
+
+    /// <summary>
+    /// Opens a web source listed under an answer. Only http and https addresses are links
+    /// (<see cref="WebCitationChip.Link"/>), so nothing else a search result carries is launched.
+    /// </summary>
+    [RelayCommand]
+    private void OpenWebCitation(WebCitationChip? chip)
+    {
+        if (chip?.Link is not { } link)
+        {
+            return;
+        }
+
+        try
+        {
+            OpenExternalLink(link);
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Failed to open web source {Url}", link.AbsoluteUri);
+        }
     }
 
     [RelayCommand]
@@ -1331,8 +2087,9 @@ public partial class ChatViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private async Task RefreshConnectionAsync()
     {
-        ConnectionStatus = "Checking...";
+        ShowConnectionState(ChatConnectionState.Checking);
         await CheckConnectionStatusAsync();
+        await RefreshPrivacyClaimAsync();
         await LoadAvailableModelsAsync();
     }
 
@@ -1342,9 +2099,9 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         if (!string.IsNullOrWhiteSpace(question)) { UserInput = question; SuggestedQuestions.Clear(); }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // MAPPING HELPERS
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     private static ConversationListItem MapToConversationListItem(ConversationSummary s) => new()
     {
@@ -1357,7 +2114,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         FolderName = s.FolderName
     };
 
-    private static ChatMessageItem MapToChatMessageItem(MessageSummary ms) => new()
+    private ChatMessageItem MapToChatMessageItem(MessageSummary ms) => new()
     {
         MessageId = ms.MessageId,
         ConversationId = ms.ConversationId,
@@ -1370,7 +2127,9 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         IsSystem = ms.Role == "system",
         TokenCount = ms.TokenCount,
         GenerationTimeMs = ms.GenerationTimeMs,
-        FeedbackRating = ms.FeedbackRating
+        FeedbackRating = ms.FeedbackRating,
+        WebCitations = ms.WebCitations.Count > 0 ? ms.WebCitations : null,
+        Localization = _localization
     };
 
     private void ReapplyInlineContextNote(ChatMessageItem message)
@@ -1412,26 +2171,30 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         message.InlineContextStorySourceChips = Array.Empty<string>();
     }
 
-    private static string BuildRelativeTimeLabel(DateTime timestamp)
+    private string BuildRelativeTimeLabel(DateTime timestamp)
     {
         var elapsed = DateTime.UtcNow - timestamp;
         if (elapsed < TimeSpan.FromMinutes(1))
         {
-            return "just now";
+            return _localization.GetString("TimeAgo_JustNow");
         }
 
         if (elapsed < TimeSpan.FromHours(1))
         {
-            return $"{Math.Max(1, (int)elapsed.TotalMinutes)} min ago";
+            var minutes = Math.Max(1, (int)elapsed.TotalMinutes);
+            return _localization.GetString("Chat_MinutesAgo", minutes);
         }
 
         if (elapsed < TimeSpan.FromDays(1))
         {
-            return $"{Math.Max(1, (int)elapsed.TotalHours)} hr ago";
+            var hours = Math.Max(1, (int)elapsed.TotalHours);
+            return _localization.GetString("Chat_HoursAgo", hours);
         }
 
         var days = Math.Max(1, (int)elapsed.TotalDays);
-        return days == 1 ? "1 day ago" : $"{days} days ago";
+        return days == 1
+            ? _localization.GetString("Chat_DayAgo")
+            : _localization.GetString("Chat_DaysAgo", days);
     }
 
     private void LoadContextInspectionForConversation(long conversationId) =>
@@ -1469,12 +2232,12 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         ContextEstimatedPromptTokens = snapshot.Diagnostics.EstimatedPromptTokens.ToString();
         ContextEstimatedMessageTokens = snapshot.Diagnostics.EstimatedMessageTokens.ToString();
         ContextAssemblyMode = snapshot.HasLimitedVisibility
-            ? "Limited visibility"
+            ? _localization.GetString("Chat_AssemblyLimited")
             : snapshot.Diagnostics.UsedLegacyFallback
-                ? "Legacy fallback"
+                ? _localization.GetString("Chat_AssemblyLegacy")
                 : snapshot.Diagnostics.UsedLexicalFallback
-                    ? "Lexical fallback"
-                    : "Structured context assembly";
+                    ? _localization.GetString("Chat_AssemblyLexical")
+                    : _localization.GetString("Chat_AssemblyStructured");
         ContextAssemblyExplanation = snapshot.AssemblyExplanation;
         ContextCompressionExplanation = snapshot.CompressionExplanation;
         ContextRecallExplanation = snapshot.RecallExplanation;
@@ -1483,7 +2246,7 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         {
             HasContextSummary = false;
             HasContextSummaryKeyPoints = false;
-            ContextSummaryStatus = "No durable summary snapshot was available for this response.";
+            ContextSummaryStatus = _localization.GetString("Chat_ContextSummaryMissing");
             ContextSummaryPreview = string.Empty;
             ContextSummaryFreshness = string.Empty;
             ContextSummaryKeyPoints = new ObservableCollection<string>();
@@ -1492,31 +2255,48 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         {
             HasContextSummary = true;
             ContextSummaryStatus = snapshot.Summary.IsStale
-                ? "Durable summary exists but may lag behind the latest thread."
-                : "Durable summary was current when this response was assembled.";
+                ? _localization.GetString("Chat_ContextSummaryStale")
+                : _localization.GetString("Chat_ContextSummaryCurrent");
             ContextSummaryPreview = string.IsNullOrWhiteSpace(snapshot.Summary.PreviewText)
                 ? snapshot.Summary.SummaryText
                 : snapshot.Summary.PreviewText;
-            ContextSummaryFreshness = snapshot.Summary.IsStale && snapshot.Summary.PendingMessageCount > 0
-                ? $"{snapshot.Summary.PendingMessageCount} newer message{(snapshot.Summary.PendingMessageCount == 1 ? string.Empty : "s")} not yet folded in"
-                : $"Captured {BuildRelativeTimeLabel(snapshot.Summary.GeneratedAt)}";
+            ContextSummaryFreshness = BuildSummaryFreshness(snapshot.Summary);
             ContextSummaryKeyPoints = new ObservableCollection<string>(snapshot.Summary.KeyPoints);
             HasContextSummaryKeyPoints = ContextSummaryKeyPoints.Count > 0;
         }
 
+        var assistantRole = _localization.GetString("Chat_RecallRoleAssistant");
+        var userRole = _localization.GetString("Chat_RecallRoleUser");
         ContextRecallItems = new ObservableCollection<ChatContextRecallDisplayItem>(
             snapshot.RecallMatches.Select(match => new ChatContextRecallDisplayItem
             {
-                ConversationLabel = $"{match.ConversationTitle} · {(match.Role == "assistant" ? "Assistant" : "User")}",
+                ConversationLabel = $"{match.ConversationTitle} | {(match.Role == "assistant" ? assistantRole : userRole)}",
                 PreviewText = match.ContentPreview,
-                SimilarityLabel = $"{Math.Round(match.Similarity * 100)}% match",
+                SimilarityLabel = _localization.GetString("Chat_RecallSimilarity", Math.Round(match.Similarity * 100)),
                 TimestampLabel = BuildRelativeTimeLabel(match.Timestamp)
             }));
         HasContextRecallItems = ContextRecallItems.Count > 0;
-        ContextRecallStatus = HasContextRecallItems
-            ? $"{ContextRecallItems.Count} recalled message{(ContextRecallItems.Count == 1 ? string.Empty : "s")} used"
-            : snapshot.RecallExplanation;
+        ContextRecallStatus = ContextRecallItems.Count switch
+        {
+            0 => snapshot.RecallExplanation,
+            1 => _localization.GetString("Chat_RecallUsedOne"),
+            _ => _localization.GetString("Chat_RecallUsedMany", ContextRecallItems.Count)
+        };
         NotifyConversationIntelligenceStripChanged();
+    }
+
+    /// <summary>How current the durable summary behind a response was.</summary>
+    private string BuildSummaryFreshness(ConversationSummaryInspection summary)
+    {
+        if (summary.IsStale && summary.PendingMessageCount > 0)
+        {
+            return summary.PendingMessageCount == 1
+                ? _localization.GetString("Chat_SummaryPendingOne")
+                : _localization.GetString("Chat_SummaryPendingMany", summary.PendingMessageCount);
+        }
+
+        var capturedAt = BuildRelativeTimeLabel(summary.GeneratedAt);
+        return _localization.GetString("Chat_SummaryCapturedAt", capturedAt);
     }
 
     private void ResetContextInspection(bool updateLatestContextSnapshot = true)
@@ -1528,10 +2308,10 @@ public partial class ChatViewModel : ObservableObject, IDisposable
 
         HasContextInspection = false;
         HasLimitedContextInspection = false;
-        ContextInspectionStatus = "No generation context captured yet.";
-        ContextCapturedAt = "No context captured";
+        ContextInspectionStatus = _localization.GetString("Chat_ContextNoneCaptured");
+        ContextCapturedAt = _localization.GetString("Chat_ContextNotCaptured");
         ContextStoryText = ActiveConversationId.HasValue
-            ? "No context story is available until Agent-X assembles a response for this conversation."
+            ? _localization.GetString("Chat_ContextStoryUnavailable")
             : string.Empty;
         ContextStorySourceChips = new ObservableCollection<ChatContextStorySourceDisplayItem>();
         ContextSelectedMessages = "0";
@@ -1539,39 +2319,52 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         ContextOverflowMessages = "0";
         ContextEstimatedPromptTokens = "0";
         ContextEstimatedMessageTokens = "0";
-        ContextAssemblyMode = "No context available";
+        ContextAssemblyMode = _localization.GetString("Chat_ContextAssemblyNone");
         ContextAssemblyExplanation = string.Empty;
         ContextCompressionExplanation = string.Empty;
         ContextRecallExplanation = string.Empty;
-        ContextSummaryStatus = "No durable summary captured yet.";
+        ContextSummaryStatus = _localization.GetString("Chat_ContextSummaryNone");
         ContextSummaryPreview = string.Empty;
         ContextSummaryFreshness = string.Empty;
         ContextSummaryKeyPoints = new ObservableCollection<string>();
         HasContextSummary = false;
         HasContextSummaryKeyPoints = false;
-        ContextRecallStatus = "No durable recall context captured yet.";
+        ContextRecallStatus = _localization.GetString("Chat_ContextRecallNone");
         ContextRecallItems = new ObservableCollection<ChatContextRecallDisplayItem>();
         HasContextRecallItems = false;
         NotifyConversationIntelligenceStripChanged();
     }
 
-    private static string BuildContextInspectionStatus(
+    private string BuildContextInspectionStatus(
         ChatContextInspectionSnapshot snapshot,
         bool selectedAssistantResponse)
     {
         if (snapshot.HasLimitedVisibility)
         {
-            var limitedVisibilityLabel =
-                $"limited visibility: {snapshot.LimitedVisibilityReason?.Replace('_', ' ') ?? "reduced path"}";
+            var reason = DescribeLimitedVisibilityReason(snapshot.LimitedVisibilityReason);
             return selectedAssistantResponse
-                ? $"Context captured for the selected assistant response ({limitedVisibilityLabel})."
-                : $"Limited visibility: {snapshot.LimitedVisibilityReason?.Replace('_', ' ') ?? "reduced path"}";
+                ? _localization.GetString("Chat_ContextSelectedLimited", reason)
+                : _localization.GetString("Chat_ContextLimited", reason);
         }
 
         return selectedAssistantResponse
-            ? "Context captured for the selected assistant response."
-            : "Latest response context captured";
+            ? _localization.GetString("Chat_ContextSelected")
+            : _localization.GetString("Chat_ContextLatest");
     }
+
+    /// <summary>
+    /// Why only part of the context could be inspected. The reason arrives as a code; the known
+    /// ones are worded in the user's language, any other is shown with its underscores as spaces.
+    /// </summary>
+    private string DescribeLimitedVisibilityReason(string? reason) => reason switch
+    {
+        null => _localization.GetString("Chat_LimitedReasonDefault"),
+        "multi_agent_orchestration" => _localization.GetString("Chat_LimitedReasonMultiAgent"),
+        "no_active_provider" => _localization.GetString("Chat_LimitedReasonNoProvider"),
+        "provider_disconnected" => _localization.GetString("Chat_LimitedReasonDisconnected"),
+        "summary_only_refresh" => _localization.GetString("Chat_LimitedReasonSummaryOnly"),
+        _ => reason.Replace('_', ' ')
+    };
 
     private void NotifyConversationIntelligenceStripChanged()
     {
@@ -1603,14 +2396,95 @@ public partial class ChatViewModel : ObservableObject, IDisposable
         RefreshConversationSummaryCommand.NotifyCanExecuteChanged();
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // DISPOSAL
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
+    /// <summary>
+    /// Detaches this view model from the singleton coordinators. The coordinators themselves
+    /// belong to the DI container and serve the next chat page, so they are not disposed here:
+    /// disposing the voice coordinator from a view model left every later chat without voice.
+    /// </summary>
     public void Dispose()
     {
-        if (_voiceCoordinator is IDisposable voiceDisposable) voiceDisposable.Dispose();
+        if (_disposed) return;
+        _disposed = true;
+
+        UnsubscribeFromCoordinatorEvents();
+        _activeGeneration = null;
+
+        // The page records the open conversation when it leaves the screen; nothing is written
+        // while the view model is being torn down.
+        _conversationEngagement.Discard();
         Log.Debug("ChatViewModel disposed");
+    }
+
+    /// <summary>
+    /// One generation started from this view model: the bubbles it streams into and the
+    /// conversation epoch it belongs to.
+    /// </summary>
+    private sealed class ChatGeneration
+    {
+        public required int Epoch { get; init; }
+        public required ChatMessageItem UserMessage { get; init; }
+        public required ChatMessageItem AssistantMessage { get; init; }
+
+        /// <summary>
+        /// For a regeneration, the answer being replaced. It stays in the thread until the new
+        /// one is saved, and comes back on screen when the new one does not arrive.
+        /// </summary>
+        public ChatMessageItem? ReplacedAssistantMessage { get; init; }
+
+        public bool IsRegeneration => ReplacedAssistantMessage is not null;
+
+        /// <summary>False while an abandoned earlier generation is still winding down.</summary>
+        public bool IsLive { get; set; }
+
+        /// <summary>Whether the completion was applied, from the event or from the result.</summary>
+        public bool IsCompleted { get; set; }
+    }
+
+    /// <summary>
+    /// A completed generation as reported by the coordinator's event or by its result.
+    /// </summary>
+    private sealed record CompletionData(
+        long? ConversationId,
+        string? ConversationTitle,
+        string ResponseContent,
+        int TokenCount,
+        double GenerationTimeMs,
+        ChatContextInspectionSnapshot? ContextInspection,
+        long? AssistantMessageId,
+        int? AssistantMessageSortOrder,
+        long? UserMessageId,
+        int? UserMessageSortOrder,
+        IReadOnlyList<WebCitation>? WebCitations)
+    {
+        public static CompletionData From(StreamingCompletedEventArgs e) => new(
+            e.ConversationId,
+            e.ConversationTitle,
+            e.ResponseContent,
+            e.TokenCount,
+            e.GenerationTimeMs,
+            e.ContextInspection,
+            e.AssistantMessageId,
+            e.AssistantMessageSortOrder,
+            e.UserMessageId,
+            e.UserMessageSortOrder,
+            e.WebCitations);
+
+        public static CompletionData From(SendMessageResult result) => new(
+            result.ConversationId,
+            result.ConversationTitle,
+            result.ResponseContent,
+            result.TokenCount,
+            result.GenerationTimeMs,
+            result.ContextInspection,
+            result.AssistantMessageId,
+            result.AssistantMessageSortOrder,
+            result.UserMessageId,
+            result.UserMessageSortOrder,
+            result.WebCitations);
     }
 }
 
@@ -1625,4 +2499,23 @@ public sealed class ChatContextRecallDisplayItem
 public sealed class ChatContextStorySourceDisplayItem
 {
     public string Label { get; init; } = string.Empty;
+}
+
+/// <summary>A stored memory as the context inspector lists it.</summary>
+public sealed class ChatMemoryItem
+{
+    public long Id { get; init; }
+    public string Content { get; init; } = string.Empty;
+}
+
+/// <summary>
+/// Where the chat's connection check stands. The member names double as the status words
+/// StatusToColorConverter tones by (checking is neutral, connected is GO, disconnected is a fault),
+/// so the header dot follows the state, not the translated status text.
+/// </summary>
+public enum ChatConnectionState
+{
+    Checking,
+    Connected,
+    Disconnected
 }

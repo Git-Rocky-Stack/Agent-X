@@ -4,7 +4,6 @@ using AgentX.App.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Navigation;
 
 namespace AgentX.App.Views;
 
@@ -31,19 +30,10 @@ public sealed partial class PastSelfPage : Page, INotifyPropertyChanged
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasEvidence)));
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasInsights)));
             }
-            if (e.PropertyName == nameof(ViewModel.ActiveTopics))
-                UpdateActiveTopicsPanel();
         };
     }
 
-    protected override void OnNavigatedTo(NavigationEventArgs e)
-    {
-        base.OnNavigatedTo(e);
-        // Set default time range to "Past month" (index 2)
-        ViewModel.SelectedTimeRange = 2;
-    }
-
-    // ─── Search Handlers ───────────────────────────────────────────────────────
+    // --- Search Handlers -------------------------------------------------------
 
     private void SearchBox_KeyDown(object sender, KeyRoutedEventArgs e)
     {
@@ -61,14 +51,15 @@ public sealed partial class PastSelfPage : Page, INotifyPropertyChanged
         await ViewModel.SearchPastSelfAsync();
     }
 
-    // ─── Time Range Handlers ────────────────────────────────────────────────────
+    // --- Time Range Handlers ----------------------------------------------------
 
     private void TimeRange_Checked(object sender, RoutedEventArgs e)
     {
         // IsChecked="True" on the default RadioButton fires this handler DURING
-        // InitializeComponent(), before the constructor assigns ViewModel. The
-        // post-InitializeComponent OnNavigatedTo sets the default explicitly,
-        // so a null ViewModel here is the XAML-load pass and must be a no-op.
+        // InitializeComponent(), before the constructor assigns ViewModel. The view
+        // model starts on the same default (the past month), so a null ViewModel
+        // here is the XAML-load pass and must be a no-op. The page is cached, so the
+        // choice is not reset on later visits: the buttons keep showing what applies.
         // Without this guard, the NRE bubbles up as XamlParseException and the
         // page silently fails to realize (Frame.NavigationFailed logs it).
         if (ViewModel == null) return;
@@ -86,7 +77,7 @@ public sealed partial class PastSelfPage : Page, INotifyPropertyChanged
         }
     }
 
-    // ─── Quick Action Handlers ──────────────────────────────────────────────────
+    // --- Quick Action Handlers --------------------------------------------------
 
     private async void InsightsButton_Click(object sender, RoutedEventArgs e)
     {
@@ -109,7 +100,7 @@ public sealed partial class PastSelfPage : Page, INotifyPropertyChanged
         await ViewModel.GetActiveTopicsAsync();
     }
 
-    // ─── Helper Properties for XAML Binding ──────────────────────────────────────
+    // --- Helper Properties for XAML Binding --------------------------------------
 
     /// <summary>
     /// Visibility of custom date picker (only when "Custom date" is selected).
@@ -128,21 +119,7 @@ public sealed partial class PastSelfPage : Page, INotifyPropertyChanged
     public bool HasInsights => ViewModel.CurrentResult?.RelevantInsights != null
         && ViewModel.CurrentResult.RelevantInsights.Count > 0;
 
-    // ─── Active Topics Panel ────────────────────────────────────────────────────
-
-    private void UpdateActiveTopicsPanel()
-    {
-        if (ViewModel.ActiveTopics == null || !ViewModel.ActiveTopics.Any())
-        {
-            ActiveTopicsPanel.Visibility = Visibility.Collapsed;
-            return;
-        }
-
-        ActiveTopicsPanel.Visibility = Visibility.Visible;
-        ActiveTopicsList.ItemsSource = ViewModel.ActiveTopics;
-    }
-
-    // ─── Generative Identity: "Draft as Me" Panel ────────────────────────────────────
+    // --- Generative Identity: "Draft as Me" Panel ------------------------------------
 
     private async void LoadProfileButton_Click(object sender, RoutedEventArgs e)
     {
@@ -154,6 +131,11 @@ public sealed partial class PastSelfPage : Page, INotifyPropertyChanged
         await ViewModel.GenerateDraftAsMeAsync();
     }
 
+    private void CancelDraftButton_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.CancelDraft();
+    }
+
     private void CopyDraftButton_Click(object sender, RoutedEventArgs e)
     {
         if (!string.IsNullOrWhiteSpace(ViewModel.DraftContent))
@@ -162,11 +144,6 @@ public sealed partial class PastSelfPage : Page, INotifyPropertyChanged
             dataPackage.SetText(ViewModel.DraftContent);
             Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
         }
-    }
-
-    private void UseInChatButton_Click(object sender, RoutedEventArgs e)
-    {
-        CopyDraftButton_Click(sender, e);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

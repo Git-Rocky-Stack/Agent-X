@@ -44,6 +44,13 @@ public interface ICalendarProvider
     /// <returns>
     /// A tuple of the fetched events and an optional new delta token for the next sync.
     /// </returns>
+    /// <remarks>
+    /// The built-in providers return the events as a <see cref="CalendarEventBatch"/>, whose
+    /// <see cref="CalendarEventBatch.IsCompleteWindow"/> tells the sync whether an event missing
+    /// from the read is gone from the range; a plain list is taken as changes only. A deletion
+    /// reported by an incremental read is a <see cref="CalEvent"/> with
+    /// <see cref="CalEvent.IsDeleted"/> set.
+    /// </remarks>
     Task<(IReadOnlyList<CalEvent> Events, string? DeltaToken)> GetEventsAsync(
         string calendarId,
         DateTime start,

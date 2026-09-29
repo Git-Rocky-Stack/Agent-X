@@ -80,7 +80,7 @@ public sealed class ParentDocumentRetriever : IParentDocumentRetriever
                 }
                 else
                 {
-                    // No adjacent chunks found — keep original
+                    // No adjacent chunks found - keep original
                     expandedChunks.Add(child);
                 }
             }

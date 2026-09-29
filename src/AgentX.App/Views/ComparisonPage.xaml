@@ -16,7 +16,7 @@
 
     <Grid>
 
-        <!-- ═══════ ADAPTIVE LAYOUT (Tier 3) — see Colors.xaml breakpoints ═══════
+        <!-- ======= ADAPTIVE LAYOUT (Tier 3) - see Colors.xaml breakpoints =======
              Narrow (<960):  sidebar 240   |  Medium (>=960): sidebar 280
              Wide (>=1280):  sidebar 300 (markup default) -->
         <VisualStateManager.VisualStateGroups>
@@ -50,9 +50,9 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <!-- ══════════════════════════════════════════════════════════
+        <!-- ==========================================================
              LEFT PANEL: Document Selection
-             ══════════════════════════════════════════════════════════ -->
+             ========================================================== -->
         <Border Grid.Column="0"
                 Background="{ThemeResource CardGradientSubtleBrush}"
                 BorderBrush="{ThemeResource BorderSubtleBrush}"
@@ -130,9 +130,9 @@
             </Grid>
         </Border>
 
-        <!-- ══════════════════════════════════════════════════════════
+        <!-- ==========================================================
              RIGHT PANEL: Comparison Report
-             ══════════════════════════════════════════════════════════ -->
+             ========================================================== -->
         <Grid Grid.Column="1">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <Grid Padding="{StaticResource PaddingPage}" RowSpacing="20" MaxWidth="900" HorizontalAlignment="Center">

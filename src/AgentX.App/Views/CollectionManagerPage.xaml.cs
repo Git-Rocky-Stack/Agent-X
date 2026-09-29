@@ -1,4 +1,6 @@
+using AgentX.App.Helpers;
 using AgentX.App.ViewModels;
+using AgentX.Core.Services.Localization;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -18,14 +20,15 @@ public sealed partial class CollectionManagerPage : Page
 
     public CollectionManagerPage()
     {
-        ViewModel = App.GetService<CollectionManagerViewModel>();
+        ViewModel = PageViewModelFactory.Create<CollectionManagerViewModel>();
+        ViewModel.ConfirmDestructiveActionAsync = request => ConfirmationDialog.ShowAsync(XamlRoot, request);
         InitializeComponent();
         Loaded += async (_, _) => await ViewModel.InitializeAsync();
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // COLLECTION TREE EVENT HANDLERS
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     /// <summary>
     /// Handles click on a collection item in the tree.
@@ -40,7 +43,8 @@ public sealed partial class CollectionManagerPage : Page
     }
 
     /// <summary>
-    /// Handles the delete button click for a collection.
+    /// Handles the delete button click for a collection. The view model asks for confirmation
+    /// (through <see cref="CollectionManagerViewModel.ConfirmDestructiveActionAsync"/>) first.
     /// </summary>
     private void OnDeleteCollectionClick(object sender, RoutedEventArgs e)
     {
@@ -51,31 +55,12 @@ public sealed partial class CollectionManagerPage : Page
     }
 
     /// <summary>
-    /// Confirms before bulk-deleting collections. Deleting several at once is not
-    /// reversible, so it takes the same gate as any other destructive action.
+    /// Deletes the selected collections. The view model asks for confirmation first, the same
+    /// way as for a single collection.
     /// </summary>
     private async void OnBulkDeleteCollectionsClick(object sender, RoutedEventArgs e)
     {
-        if (ViewModel.SelectedCount == 0)
-        {
-            return;
-        }
-
-        var dialog = new ContentDialog
-        {
-            Title = "Delete Collections?",
-            Content = $"This permanently deletes {ViewModel.SelectedCount} collection(s). " +
-                      "Documents inside them are kept in your Knowledge Vault. This cannot be undone.",
-            PrimaryButtonText = "Delete",
-            CloseButtonText = "Cancel",
-            DefaultButton = ContentDialogButton.Close,
-            XamlRoot = this.XamlRoot
-        };
-
-        if (await dialog.ShowAsync() == ContentDialogResult.Primary)
-        {
-            await ViewModel.BulkDeleteCollectionsCommand.ExecuteAsync(null);
-        }
+        await ViewModel.BulkDeleteCollectionsCommand.ExecuteAsync(null);
     }
 
     /// <summary>
@@ -94,15 +79,34 @@ public sealed partial class CollectionManagerPage : Page
 
         Log.Information("Collection {CollectionId} export finished: {Status}",
             collectionId, exportViewModel.StatusMessage);
+
+        // The outcome used to reach only the log: tell the user where the file went, or why
+        // there is none. The success text is one sentence in the resources, so each language
+        // words the file name and the path together.
+        var notifications = App.GetService<AgentX.App.Services.INotificationService>();
+        var localization = App.GetService<ILocalizationService>();
+        if (exportViewModel.LastExportSucceeded)
+        {
+            var savedPath = exportViewModel.LastExportPath ?? string.Empty;
+            notifications.ShowSuccess(
+                localization.GetString("Export_CompleteTitle"),
+                localization.GetString("Export_CollectionSaved", Path.GetFileName(savedPath), savedPath),
+                durationMs: 8000);
+        }
+        else
+        {
+            notifications.ShowError(localization.GetString("Export_FailedTitle"), exportViewModel.StatusMessage);
+        }
     }
 
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
     // DOCUMENT MANAGEMENT HANDLERS
-    // ═══════════════════════════════════════════════════════════════
+    // ===============================================================
 
     /// <summary>
-    /// Opens a file picker to select files, imports them via IDocumentService,
-    /// then associates the resulting document IDs with the selected collection.
+    /// Opens a file picker and hands the picked files to the view model, which imports them,
+    /// adds them (or the documents they duplicate) to the selected collection and reports the
+    /// outcome.
     /// </summary>
     private async void OnAddDocumentsClick(object sender, RoutedEventArgs e)
     {
@@ -112,9 +116,9 @@ public sealed partial class CollectionManagerPage : Page
             picker.ViewMode = PickerViewMode.List;
             picker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
 
+            // No legacy binary Word files: the OpenXml reader behind DocxProcessor cannot open them.
             picker.FileTypeFilter.Add(".pdf");
             picker.FileTypeFilter.Add(".docx");
-            picker.FileTypeFilter.Add(".doc");
             picker.FileTypeFilter.Add(".txt");
             picker.FileTypeFilter.Add(".md");
             picker.FileTypeFilter.Add(".csv");
@@ -127,12 +131,8 @@ public sealed partial class CollectionManagerPage : Page
             var files = await picker.PickMultipleFilesAsync();
             if (files is not null && files.Count > 0)
             {
-                // Import files first, then associate with collection
-                var documentService = App.GetService<AgentX.Core.Documents.IDocumentService>();
                 var filePaths = files.Select(f => f.Path).ToList();
-                var importedDocs = await documentService.ImportFilesAsync(filePaths);
-                var docIds = importedDocs.Select(d => d.Id).ToList();
-                await ViewModel.AddDocumentsToCollectionCommand.ExecuteAsync(docIds);
+                await ViewModel.AddFilesToCollectionCommand.ExecuteAsync(filePaths);
             }
         }
         catch (Exception ex)

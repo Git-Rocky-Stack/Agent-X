@@ -225,9 +225,9 @@ public sealed class WorkflowServiceTests : IDisposable
         cloned.Name.Should().Be("Research Brief Copy 2");
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     //  CreateWorkflowAsync
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     [Fact]
     public async Task CreateWorkflowAsync_persists_trimmed_metadata()
@@ -266,9 +266,9 @@ public sealed class WorkflowServiceTests : IDisposable
         await act.Should().ThrowAsync<ArgumentException>();
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     //  GetWorkflowAsync / GetAllWorkflowsAsync
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     [Fact]
     public async Task GetWorkflowAsync_returns_workflow_with_steps_ordered()
@@ -324,9 +324,9 @@ public sealed class WorkflowServiceTests : IDisposable
         all.Should().ContainSingle().Which.Name.Should().Be("Custom");
     }
 
-    // ─────────────────────────────────────────────────────────────────────
-    //  GetRecentRunsAsync — argument guards, clamping, null step JSON
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
+    //  GetRecentRunsAsync - argument guards, clamping, null step JSON
+    // ---------------------------------------------------------------------
 
     [Theory]
     [InlineData(0)]
@@ -385,9 +385,9 @@ public sealed class WorkflowServiceTests : IDisposable
         runs[0].DurationMs.Should().BeNull(); // no CompletedAt
     }
 
-    // ─────────────────────────────────────────────────────────────────────
-    //  CreateWorkflowFromTemplateAsync — guards and name override
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
+    //  CreateWorkflowFromTemplateAsync - guards and name override
+    // ---------------------------------------------------------------------
 
     [Fact]
     public async Task CreateWorkflowFromTemplateAsync_rejects_non_positive_id()
@@ -418,9 +418,9 @@ public sealed class WorkflowServiceTests : IDisposable
         cloned.Name.Should().Be("Renamed");
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     //  UpdateWorkflowAsync
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     [Fact]
     public async Task UpdateWorkflowAsync_rejects_null()
@@ -453,7 +453,7 @@ public sealed class WorkflowServiceTests : IDisposable
             Name = "New Name",
             Description = "New Desc",
             Category = "Writing",
-            Icon = "",
+            Icon = "\uE700",
             IsEnabled = false,
         });
 
@@ -464,9 +464,9 @@ public sealed class WorkflowServiceTests : IDisposable
         reloaded.UpdatedAt.Should().BeAfter(new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc));
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     //  DeleteWorkflowAsync
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     [Fact]
     public async Task DeleteWorkflowAsync_missing_is_no_op()
@@ -513,9 +513,9 @@ public sealed class WorkflowServiceTests : IDisposable
         (await verify.WorkflowRuns.CountAsync()).Should().Be(0);
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     //  AddStepAsync / UpdateStepAsync / RemoveStepAsync
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     [Fact]
     public async Task AddStepAsync_rejects_null_step()
@@ -635,9 +635,9 @@ public sealed class WorkflowServiceTests : IDisposable
         (await _dbFactory.CreateContext().WorkflowSteps.CountAsync()).Should().Be(0);
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     //  ReorderStepsAsync
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     [Fact]
     public async Task ReorderStepsAsync_rejects_empty_list()
@@ -697,9 +697,9 @@ public sealed class WorkflowServiceTests : IDisposable
         steps.First(s => s.Id == s2.Id).StepOrder.Should().Be(2);
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     //  Export / Import
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     [Fact]
     public async Task ExportWorkflowAsJsonAsync_throws_when_missing()
@@ -715,7 +715,7 @@ public sealed class WorkflowServiceTests : IDisposable
         using var db = _dbFactory.CreateContext();
         var workflow = NewWorkflow("Roundtrip", "Research");
         workflow.Description = "desc";
-        workflow.Icon = "";
+        workflow.Icon = "\uE82D";
         workflow.Steps.Add(new WorkflowStepEntity { StepOrder = 0, Name = "Analyze", StepType = "AiPrompt", PromptTemplate = "{{input}}" });
         workflow.Steps.Add(new WorkflowStepEntity { StepOrder = 1, Name = "Draft", StepType = "AiPrompt", PromptTemplate = "{{previous_output}}", TemperatureOverride = 0.7 });
         db.Workflows.Add(workflow);
@@ -786,9 +786,9 @@ public sealed class WorkflowServiceTests : IDisposable
         ordered[1].Name.Should().Be("Named Step");
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
     //  SeedBuiltInWorkflowsAsync
-    // ─────────────────────────────────────────────────────────────────────
+    // ---------------------------------------------------------------------
 
     [Fact]
     public async Task SeedBuiltInWorkflowsAsync_seeds_four_templates_when_empty()
@@ -812,6 +812,85 @@ public sealed class WorkflowServiceTests : IDisposable
         await Sut(db).SeedBuiltInWorkflowsAsync();
 
         (await _dbFactory.CreateContext().Workflows.CountAsync(w => w.IsBuiltIn)).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task SeedBuiltInWorkflowsAsync_email_step_names_the_tweet_thread_it_actually_receives()
+    {
+        using var db = _dbFactory.CreateContext();
+
+        await Sut(db).SeedBuiltInWorkflowsAsync();
+
+        await using var verify = _dbFactory.CreateContext();
+        var steps = await verify.WorkflowSteps
+            .Where(step => step.Workflow.Name == "Content Repurpose")
+            .OrderBy(step => step.StepOrder)
+            .ToListAsync();
+
+        steps[1].Name.Should().Be("Tweet Thread");
+        steps[2].Name.Should().Be("Professional Email");
+        steps[2].PromptTemplate.Should().Contain("Tweet thread:\n{{previous_output}}");
+        steps[2].PromptTemplate.Should().NotContain("Core message");
+    }
+
+    [Fact]
+    public async Task SeedBuiltInWorkflowsAsync_repairs_the_shipped_email_prompt_but_keeps_user_edits()
+    {
+        using var db = _dbFactory.CreateContext();
+        var shipped = NewWorkflow("Content Repurpose", "Writing", isBuiltIn: true);
+        shipped.Steps.Add(new WorkflowStepEntity
+        {
+            StepOrder = 2,
+            Name = "Professional Email",
+            StepType = "AiPrompt",
+            PromptTemplate = WorkflowTemplate.LegacyContentRepurposeEmailTemplate,
+        });
+        var edited = NewWorkflow("Content Repurpose", "Writing", isBuiltIn: true);
+        edited.Steps.Add(new WorkflowStepEntity
+        {
+            StepOrder = 2,
+            Name = "Professional Email",
+            StepType = "AiPrompt",
+            PromptTemplate = "My own email prompt\n{{previous_output}}",
+        });
+        db.Workflows.AddRange(shipped, edited);
+        await db.SaveChangesAsync();
+
+        await Sut(db).SeedBuiltInWorkflowsAsync();
+
+        await using var verify = _dbFactory.CreateContext();
+        (await verify.WorkflowSteps.SingleAsync(step => step.WorkflowId == shipped.Id))
+            .PromptTemplate.Should().Be(WorkflowTemplate.ContentRepurposeEmailTemplate);
+        (await verify.WorkflowSteps.SingleAsync(step => step.WorkflowId == edited.Id))
+            .PromptTemplate.Should().Be("My own email prompt\n{{previous_output}}");
+    }
+
+    [Fact]
+    public async Task ReconcileInterruptedRunsAsync_marks_runs_left_running_as_interrupted()
+    {
+        using var db = _dbFactory.CreateContext();
+        var workflow = NewWorkflow("Wf", "Custom");
+        db.Workflows.Add(workflow);
+        await db.SaveChangesAsync();
+
+        var started = new DateTime(2026, 4, 23, 14, 0, 0, DateTimeKind.Utc);
+        db.WorkflowRuns.AddRange(
+            new WorkflowRunEntity { WorkflowId = workflow.Id, Status = "running", StartedAt = started, TotalSteps = 3 },
+            new WorkflowRunEntity { WorkflowId = workflow.Id, Status = "completed", StartedAt = started, CompletedAt = started.AddMinutes(1) },
+            new WorkflowRunEntity { WorkflowId = workflow.Id, Status = "cancelled", StartedAt = started, CompletedAt = started.AddMinutes(1) });
+        await db.SaveChangesAsync();
+
+        var reconciled = await Sut(db).ReconcileInterruptedRunsAsync();
+
+        reconciled.Should().Be(1);
+        await using var verify = _dbFactory.CreateContext();
+        var runs = await verify.WorkflowRuns.OrderBy(run => run.Id).ToListAsync();
+        runs[0].Status.Should().Be("failed");
+        runs[0].ErrorMessage.Should().StartWith("Interrupted");
+        runs[0].CompletedAt.Should().NotBeNull();
+        runs[1].Status.Should().Be("completed");
+        runs[2].Status.Should().Be("cancelled");
+        (await verify.WorkflowRuns.CountAsync(run => run.Status == "running")).Should().Be(0);
     }
 
     private WorkflowService Sut(AgentXDbContext db) => new(db, Log.ForContext<WorkflowServiceTests>());

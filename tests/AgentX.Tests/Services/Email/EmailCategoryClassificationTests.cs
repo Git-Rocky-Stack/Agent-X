@@ -22,7 +22,7 @@ public sealed class EmailCategoryClassificationTests
 {
     private readonly EmailTriageProcessor _processor = new(new LoggerConfiguration().CreateLogger());
 
-    // ── Rule coverage: one test per category ─────────────────────────────────
+    // -- Rule coverage: one test per category ---------------------------------
 
     [Fact]
     public void Classify_SubjectAsksForAction_ReturnsActionRequired()
@@ -114,7 +114,7 @@ public sealed class EmailCategoryClassificationTests
         EmailTriageProcessor.Classify(msg).Should().Be(EmailCategory.Other);
     }
 
-    // ── Precedence: the order the rules are applied in is part of the contract ─
+    // -- Precedence: the order the rules are applied in is part of the contract -
 
     [Fact]
     public void Classify_ActionRequiredWinsOverPromotion()
@@ -142,7 +142,7 @@ public sealed class EmailCategoryClassificationTests
         EmailTriageProcessor.Classify(msg).Should().Be(EmailCategory.Promotion);
     }
 
-    // ── Precision: keyword matching must respect word boundaries ─────────────
+    // -- Precision: keyword matching must respect word boundaries -------------
 
     [Fact]
     public void Classify_SaleInsideLongerWord_DoesNotMatchPromotion()
@@ -256,7 +256,7 @@ public sealed class EmailCategoryClassificationTests
         EmailTriageProcessor.Classify(msg).Should().Be(EmailCategory.Other);
     }
 
-    // ── Wiring: the category reaches the inbox row ───────────────────────────
+    // -- Wiring: the category reaches the inbox row ---------------------------
 
     [Fact]
     public void ConvertToInboxParameters_SourceCategory_IsTheClassifiedCategoryName()
@@ -300,7 +300,7 @@ public sealed class EmailCategoryClassificationTests
         default(EmailCategory).Should().Be(EmailCategory.Other);
     }
 
-    // ── Wiring: the Operations page renders the category ─────────────────────
+    // -- Wiring: the Operations page renders the category ---------------------
 
     [Theory]
     [InlineData(EmailCategory.ActionRequired, "Action Required")]
@@ -332,7 +332,7 @@ public sealed class EmailCategoryClassificationTests
         return (string)method!.Invoke(null, [item])!;
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
+    // -- Helpers --------------------------------------------------------------
 
     private static EmailMessage Message(
         string subject,

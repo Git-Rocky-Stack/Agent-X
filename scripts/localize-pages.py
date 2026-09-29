@@ -6,7 +6,7 @@ localize-pages.py
 Applies an x:Uid localization changeset directory
 (scripts/translations/<changeset>/*.json) onto hardcoded-English XAML.
 Originally written for the six-page 2026-07 pass (pages-l10n-2026-07);
-now generalized — pass the changeset directory name as the first argument:
+now generalized - pass the changeset directory name as the first argument:
 
   python scripts/localize-pages.py app-l10n-2026-07
 
@@ -17,11 +17,11 @@ For every changeset entry the script:
   1. INSTRUMENTS the XAML: finds the next occurrence of `attr="en"` (ordered,
      cursor-based, so duplicate literals within a page resolve deterministically)
      and inserts `x:Uid="<uid>" ` immediately before it. The English literal
-     stays in the markup as the design-time fallback — the house convention
-     established by SettingsPage (x:Uid + inline Text) — and the resw value
+     stays in the markup as the design-time fallback - the house convention
+     established by SettingsPage (x:Uid + inline Text) - and the resw value
      overrides it at runtime.
   2. ADDS the resw entry `<uid>.<property>` to all six locale Resources.resw
-     files (idempotent — existing names are skipped).
+     files (idempotent - existing names are skipped).
   3. EXTENDS the legacy per-locale translation JSONs
      (scripts/translations/<locale>.json) so inject-translations.py stays a
      complete record and cannot drift.

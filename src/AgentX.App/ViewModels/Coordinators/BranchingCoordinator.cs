@@ -1,5 +1,6 @@
 using AgentX.Core.Services.Chat;
 using AgentX.Core.Services.Chat.Models;
+using AgentX.Core.Services.Localization;
 using Serilog;
 
 namespace AgentX.App.ViewModels.Coordinators;
@@ -13,16 +14,19 @@ public sealed class BranchingCoordinator : IBranchingCoordinator
 {
     private readonly IConversationBranchService _branchService;
     private readonly IConversationService _conversationService;
+    private readonly ILocalizationService _localization;
 
     public event EventHandler<long>? BranchTreeChanged;
     public event EventHandler<NotificationRequestEventArgs>? NotificationRequested;
 
     public BranchingCoordinator(
         IConversationBranchService branchService,
-        IConversationService conversationService)
+        IConversationService conversationService,
+        ILocalizationService localization)
     {
         _branchService = branchService;
         _conversationService = conversationService;
+        _localization = localization;
     }
 
     /// <inheritdoc />
@@ -50,7 +54,7 @@ public sealed class BranchingCoordinator : IBranchingCoordinator
             NotificationRequested?.Invoke(this, new NotificationRequestEventArgs
             {
                 Level = "error",
-                Title = "Branch Failed",
+                Title = _localization.GetString("Chat_BranchFailedTitle"),
                 Message = ex.Message
             });
             return null;
@@ -71,8 +75,8 @@ public sealed class BranchingCoordinator : IBranchingCoordinator
             NotificationRequested?.Invoke(this, new NotificationRequestEventArgs
             {
                 Level = "error",
-                Title = "Branch Load Failed",
-                Message = $"Could not load branches: {ex.Message}"
+                Title = _localization.GetString("Chat_BranchLoadFailedTitle"),
+                Message = _localization.GetString("Chat_BranchLoadFailedBody", ex.Message)
             });
             return null;
         }
@@ -99,8 +103,8 @@ public sealed class BranchingCoordinator : IBranchingCoordinator
             NotificationRequested?.Invoke(this, new NotificationRequestEventArgs
             {
                 Level = "info",
-                Title = "Merge Complete",
-                Message = "Merged insights to main thread"
+                Title = _localization.GetString("Chat_MergeCompleteTitle"),
+                Message = _localization.GetString("Chat_MergeCompleteBody")
             });
 
             BranchTreeChanged?.Invoke(this, request.TargetConversationId);
@@ -112,7 +116,7 @@ public sealed class BranchingCoordinator : IBranchingCoordinator
             NotificationRequested?.Invoke(this, new NotificationRequestEventArgs
             {
                 Level = "error",
-                Title = "Merge Failed",
+                Title = _localization.GetString("Chat_MergeFailedTitle"),
                 Message = ex.Message
             });
         }
@@ -128,8 +132,8 @@ public sealed class BranchingCoordinator : IBranchingCoordinator
             NotificationRequested?.Invoke(this, new NotificationRequestEventArgs
             {
                 Level = "info",
-                Title = "Branch Deleted",
-                Message = "The branch has been removed."
+                Title = _localization.GetString("Chat_BranchDeletedTitle"),
+                Message = _localization.GetString("Chat_BranchDeletedBody")
             });
 
             // Note: we don't know the root conversation ID here, so the ViewModel
@@ -142,7 +146,7 @@ public sealed class BranchingCoordinator : IBranchingCoordinator
             NotificationRequested?.Invoke(this, new NotificationRequestEventArgs
             {
                 Level = "error",
-                Title = "Delete Failed",
+                Title = _localization.GetString("Chat_BranchDeleteFailedTitle"),
                 Message = ex.Message
             });
         }

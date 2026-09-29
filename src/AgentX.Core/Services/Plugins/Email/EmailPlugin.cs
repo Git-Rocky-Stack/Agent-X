@@ -21,7 +21,17 @@ public sealed class EmailPlugin : IPlugin
     private Timer? _syncTimer;
     private readonly SemaphoreSlim _syncLock = new(1, 1);
 
-    // ── IPlugin ─────────────────────────────────────────────────────────────────
+    // Cancelled by DeactivateAsync and Dispose so a running sync stops at its next request
+    // or message instead of holding deactivation (a settings save, app shutdown) until it ends.
+    private CancellationTokenSource _lifetimeCts = new();
+    private bool _isActivated;
+
+    /// <summary>
+    /// How long <see cref="DeactivateAsync"/> waits for a cancelled sync to stop.
+    /// </summary>
+    internal TimeSpan DeactivationWaitTimeout { get; set; } = TimeSpan.FromSeconds(10);
+
+    // -- IPlugin -----------------------------------------------------------------
 
     public string Id => "com.agentx.email";
     public string Name => "Email Connector";
@@ -30,7 +40,7 @@ public sealed class EmailPlugin : IPlugin
     public PluginType Type => PluginType.DataConnector;
     public string Version => "1.0.0";
 
-    // ── Internal state ─────────────────────────────────────────────────────────
+    // -- Internal state ---------------------------------------------------------
 
     private readonly List<IEmailProvider> _providers = [];
     private EmailSyncSettings _settings = new();
@@ -39,13 +49,13 @@ public sealed class EmailPlugin : IPlugin
     private bool _isInitialized;
     private bool _isDisposed;
 
-    // ── Public surface ──────────────────────────────────────────────────────────
+    // -- Public surface ----------------------------------------------------------
 
     public IReadOnlyList<IEmailProvider> Providers => _providers.AsReadOnly();
     public event EventHandler<SyncResult>? SyncCompleted;
     public SyncResult? LastSyncResult { get; private set; }
 
-    // ── IPlugin lifecycle ───────────────────────────────────────────────────────
+    // -- IPlugin lifecycle -------------------------------------------------------
 
     public Task InitializeAsync(IPluginContext context)
     {
@@ -86,7 +96,7 @@ public sealed class EmailPlugin : IPlugin
         }
 
         // Start periodic sync timer.
-        // FU-2: fire-and-forget through a wrapper that catches exceptions —
+        // FU-2: fire-and-forget through a wrapper that catches exceptions -
         // async-void in a Timer callback crashes the process on faults.
         _syncTimer = new Timer(
             callback: _ => _ = SafeOnSyncTimerTickAsync(),
@@ -94,37 +104,55 @@ public sealed class EmailPlugin : IPlugin
             dueTime: TimeSpan.FromMinutes(1),
             period: TimeSpan.FromMinutes(_settings.SyncIntervalMinutes));
 
+        _isActivated = true;
+
         _log.Information(
             "EmailPlugin activated. Providers={Count} SyncInterval={Min}m",
             _providers.Count, _settings.SyncIntervalMinutes);
     }
 
+    /// <summary>
+    /// Stops the sync timer, cancels a sync that is running and waits (at most
+    /// <see cref="DeactivationWaitTimeout"/>) for it to stop.
+    /// </summary>
+    /// <remarks>
+    /// Deactivation runs when sync is turned off, on every connector settings save (the
+    /// connectors are restarted) and at app shutdown. It used to "flush" by running a full
+    /// mail sync without cancellation and outside the sync lock, which made each of those
+    /// start a sync and could hang shutdown. Nothing is pending between syncs, so there is
+    /// nothing to flush.
+    /// </remarks>
     public async Task DeactivateAsync()
     {
+        _isActivated = false;
+
         // Wave 4a: DisposeAsync awaits any in-flight Timer callback before tearing
-        // down the timer — prevents a race with the SafeOnSyncTimerTickAsync wrapper.
+        // down the timer - prevents a race with the SafeOnSyncTimerTickAsync wrapper.
         if (_syncTimer is not null)
             await _syncTimer.DisposeAsync().ConfigureAwait(false);
         _syncTimer = null;
 
-        // Flush pending sync if possible.
-        if (_syncService is not null && _providers.Count > 0)
+        var lifetime = _lifetimeCts;
+        await lifetime.CancelAsync().ConfigureAwait(false);
+
+        if (!await _syncLock.WaitAsync(DeactivationWaitTimeout).ConfigureAwait(false))
         {
-            try
-            {
-                await _syncService.SyncAsync(
-                    _providers, _settings, CancellationToken.None).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                _log.Error(ex, "Failed to flush email sync on deactivation");
-            }
+            // The old source is left undisposed: the sync still running may hold a link to it.
+            _log.Warning("Timed out waiting for the cancelled email sync to stop during deactivation");
+            _lifetimeCts = new CancellationTokenSource();
+        }
+        else
+        {
+            // A fresh source for the next activation or manual sync.
+            _lifetimeCts = new CancellationTokenSource();
+            _syncLock.Release();
+            lifetime.Dispose();
         }
 
         _log.Information("EmailPlugin deactivated");
     }
 
-    // ── Public: settings access ────────────────────────────────────────────────
+    // -- Public: settings access ------------------------------------------------
 
     /// <summary>
     /// Returns the current email sync settings (thread-safe snapshot).
@@ -164,43 +192,67 @@ public sealed class EmailPlugin : IPlugin
         _isDisposed = true;
         _syncTimer?.Dispose();
         _syncTimer = null;
+        _lifetimeCts.Cancel();
+        _lifetimeCts.Dispose();
         _syncLock.Dispose();
         _providers.Clear();
         _log.Information("EmailPlugin disposed");
     }
 
-    // ── Internal: provider registration ────────────────────────────────────────
+    /// <summary>
+    /// Providers for the accounts connected now, to list their folders. They are built from the
+    /// current credentials rather than taken from the registered providers, which exist only
+    /// while sync is on and only for the accounts connected when it was turned on; the settings
+    /// page offers folders as soon as an account is connected.
+    /// </summary>
+    public async Task<IReadOnlyList<IEmailProvider>> GetProvidersForFolderListingAsync()
+    {
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
+        return await CreateProvidersAsync().ConfigureAwait(false);
+    }
+
+    // -- Internal: provider registration ----------------------------------------
 
     private async Task RegisterProvidersAsync()
     {
         _providers.Clear();
+        _providers.AddRange(await CreateProvidersAsync().ConfigureAwait(false));
+
+        foreach (var provider in _providers)
+            _log.Information("Email provider {ProviderId} registered", provider.ProviderId);
+    }
+
+    /// <summary>A provider for each account that has a stored OAuth credential.</summary>
+    private async Task<List<IEmailProvider>> CreateProvidersAsync()
+    {
+        var providers = new List<IEmailProvider>();
 
         if (_oauthService is null)
         {
-            _log.Warning("IOAuthService not available — no email providers can be registered");
-            return;
+            _log.Warning("IOAuthService not available - no email providers can be registered");
+            return providers;
         }
 
-        // Register Google provider if credential exists.
+        // Google provider if a credential exists.
         var googleCred = await _oauthService.GetCredentialAsync("google").ConfigureAwait(false);
         if (googleCred is not null)
         {
             var googleScopes = "https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/userinfo.profile";
-            _providers.Add(new GmailProvider(_oauthService, _log, googleScopes));
-            _log.Information("GmailProvider registered");
+            providers.Add(new GmailProvider(_oauthService, _log, googleScopes));
         }
 
-        // Register Microsoft provider if credential exists.
+        // Microsoft provider if a credential exists.
         var msCred = await _oauthService.GetCredentialAsync("microsoft").ConfigureAwait(false);
         if (msCred is not null)
         {
             var msScopes = "Mail.Read User.Read";
-            _providers.Add(new OutlookEmailProvider(_oauthService, _log, msScopes));
-            _log.Information("OutlookEmailProvider registered");
+            providers.Add(new OutlookEmailProvider(_oauthService, _log, msScopes));
         }
+
+        return providers;
     }
 
-    // ── Internal: sync cycle ───────────────────────────────────────────────────
+    // -- Internal: sync cycle ---------------------------------------------------
 
     private async Task SafeOnSyncTimerTickAsync()
     {
@@ -216,24 +268,30 @@ public sealed class EmailPlugin : IPlugin
 
     private async Task OnSyncTimerTickAsync()
     {
-        // Timer callbacks have no CancellationToken — use a default 5-minute timeout.
-        using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
-
-        if (!await _syncLock.WaitAsync(0, cts.Token).ConfigureAwait(false))
+        if (!await _syncLock.WaitAsync(0).ConfigureAwait(false))
         {
-            _log.Debug("Email sync timer tick skipped — sync already in progress");
+            _log.Debug("Email sync timer tick skipped - sync already in progress");
             return;
         }
 
         try
         {
+            // A tick that fired while the plugin was being deactivated has nothing to do.
+            if (!_isActivated)
+                return;
+
+            // Timer callbacks have no CancellationToken: bound the cycle at 5 minutes, and let
+            // deactivation cancel it sooner.
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(_lifetimeCts.Token);
+            cts.CancelAfter(TimeSpan.FromMinutes(5));
+
             var result = await ExecuteSyncCycleAsync(cts.Token).ConfigureAwait(false);
             LastSyncResult = result;
             SyncCompleted?.Invoke(this, result);
         }
         catch (OperationCanceledException)
         {
-            _log.Debug("Email sync cycle cancelled (5-minute timeout)");
+            _log.Debug("Email sync cycle cancelled (timeout or deactivation)");
         }
         catch (Exception ex)
         {
@@ -249,13 +307,15 @@ public sealed class EmailPlugin : IPlugin
     {
         if (!await _syncLock.WaitAsync(0, cancellationToken).ConfigureAwait(false))
         {
-            _log.Debug("Email sync already in progress — TriggerSyncAsync is a no-op");
+            _log.Debug("Email sync already in progress - TriggerSyncAsync is a no-op");
             return LastSyncResult ?? CreateEmptyResult();
         }
 
         try
         {
-            var result = await ExecuteSyncCycleAsync(cancellationToken).ConfigureAwait(false);
+            // Deactivation cancels a manual sync too.
+            using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _lifetimeCts.Token);
+            var result = await ExecuteSyncCycleAsync(linked.Token).ConfigureAwait(false);
             LastSyncResult = result;
             SyncCompleted?.Invoke(this, result);
             return result;
@@ -288,8 +348,9 @@ public sealed class EmailPlugin : IPlugin
             // Fetch-only fallback when InboxService is not available.
             return await FetchOnlySyncCycleAsync(cancellationToken).ConfigureAwait(false);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
+
             _log.Error(ex, "Email sync cycle failed");
             return new SyncResult
             {

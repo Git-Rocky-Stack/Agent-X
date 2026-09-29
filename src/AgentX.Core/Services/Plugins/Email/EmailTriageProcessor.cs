@@ -1,6 +1,8 @@
+using System.Globalization;
 using System.Text.RegularExpressions;
 using AgentX.Core.Services.Inbox;
 using AgentX.Core.Services.Plugins.Email.Models;
+using AgentX.Core.Services.Web;
 using Serilog;
 
 namespace AgentX.Core.Services.Plugins.Email;
@@ -24,26 +26,58 @@ public sealed class EmailTriageProcessor
     }
 
     /// <summary>
-    /// Converts an <see cref="EmailMessage"/> into the 10-parameter tuple
-    /// expected by <see cref="IInboxService.TriageExternalAsync"/>.
+    /// Converts an <see cref="EmailMessage"/> into the parameters expected by
+    /// <see cref="IInboxService.UpsertExternalAsync"/>.
     /// </summary>
+    /// <param name="message">The message to convert.</param>
+    /// <param name="settings">
+    /// The connector's sync settings; <see cref="EmailSyncSettings.IncludeAttachmentNames"/>
+    /// decides whether attachment names are indexed, and <see cref="EmailSyncSettings.IncludeHtmlBody"/>
+    /// whether a message without a plain-text part keeps its HTML body as text. Null includes both.
+    /// </param>
     public (string FileName, string FileType, string SourceType, string? SourceUrl,
             string SourcePluginId, string? SourceCategory, string ExternalId,
             string? ContentPreview, string ContentText)
-        ConvertToInboxParameters(EmailMessage message)
+        ConvertToInboxParameters(EmailMessage message, EmailSyncSettings? settings = null)
     {
         ArgumentNullException.ThrowIfNull(message);
 
         var fileName = $"Email: {message.Subject}";
         var fileType = "EmailMessage";
         var externalId = $"{message.SourceProvider}:{message.FolderId}:{message.Id}";
-        var contentPreview = message.BodyPreview;
-        var contentText = ExtractSearchableContent(message);
+        var body = ReadableBody(message, settings);
+        var contentPreview = string.IsNullOrWhiteSpace(message.BodyPreview) && body is not null
+            ? Truncate(body, PreviewLength)
+            : message.BodyPreview;
+        var contentText = BuildSearchableContent(message, settings, body);
         var category = Classify(message).ToString();
 
         return (fileName, fileType, SourceType, message.WebLink,
                 PluginId, category, externalId, contentPreview, contentText);
     }
+
+    /// <summary>The preview length the providers use for a plain-text body.</summary>
+    private const int PreviewLength = 300;
+
+    /// <summary>
+    /// The body stored with the message: its plain-text part when it has one; otherwise, while
+    /// <see cref="EmailSyncSettings.IncludeHtmlBody"/> is on (or no settings are given), its HTML
+    /// part converted to readable text. Null when there is no body to store.
+    /// </summary>
+    private static string? ReadableBody(EmailMessage message, EmailSyncSettings? settings)
+    {
+        if (!string.IsNullOrWhiteSpace(message.BodyText))
+            return message.BodyText;
+
+        if (!(settings?.IncludeHtmlBody ?? true) || string.IsNullOrWhiteSpace(message.BodyHtml))
+            return null;
+
+        var text = HtmlParser.ConvertToPlainText(message.BodyHtml);
+        return text.Length > 0 ? text : null;
+    }
+
+    private static string Truncate(string text, int length) =>
+        text.Length > length ? text[..length] : text;
 
     /// <summary>
     /// Assigns a triage category to <paramref name="message"/>.
@@ -196,10 +230,20 @@ public sealed class EmailTriageProcessor
     /// <summary>
     /// Builds a rich text representation of the email for full-text search.
     /// </summary>
-    public string ExtractSearchableContent(EmailMessage message)
+    /// <param name="message">The message to describe.</param>
+    /// <param name="settings">
+    /// Sync settings deciding whether attachment names are indexed and whether a message without
+    /// a plain-text part keeps its HTML body as text. Null includes both.
+    /// </param>
+    public string ExtractSearchableContent(EmailMessage message, EmailSyncSettings? settings = null)
     {
         ArgumentNullException.ThrowIfNull(message);
 
+        return BuildSearchableContent(message, settings, ReadableBody(message, settings));
+    }
+
+    private static string BuildSearchableContent(EmailMessage message, EmailSyncSettings? settings, string? body)
+    {
         var parts = new List<string>();
 
         // Subject
@@ -216,8 +260,9 @@ public sealed class EmailTriageProcessor
         if (message.Cc.Count > 0)
             parts.Add($"Cc: {string.Join(", ", message.Cc.Select(FormatContact))}");
 
-        // Date
-        parts.Add($"Date: {message.ReceivedAt:yyyy-MM-dd HH:mm}");
+        // Date: ISO digits and the Gregorian calendar whatever the user's culture (a Thai or
+        // Arabic culture would otherwise index years such as 2569 or 1448).
+        parts.Add(string.Create(CultureInfo.InvariantCulture, $"Date: {message.ReceivedAt:yyyy-MM-dd HH:mm} UTC"));
 
         // Folder
         parts.Add($"Folder: {message.FolderName}");
@@ -231,17 +276,16 @@ public sealed class EmailTriageProcessor
             parts.Add($"Flags: {string.Join(", ", flags)}");
 
         // Attachments
-        if (message.AttachmentNames.Count > 0)
+        if ((settings?.IncludeAttachmentNames ?? true) && message.AttachmentNames.Count > 0)
             parts.Add($"Attachments: {string.Join(", ", message.AttachmentNames)}");
+
 
         // Source provider
         parts.Add($"Source: {message.SourceProvider}");
 
-        // Body text (preferred over HTML for search)
-        if (!string.IsNullOrWhiteSpace(message.BodyText))
-            parts.Add(message.BodyText);
-        else if (!string.IsNullOrWhiteSpace(message.BodyHtml))
-            parts.Add(StripHtmlTags(message.BodyHtml));
+        // Body: the plain-text part, or the HTML part as readable text (see ReadableBody)
+        if (body is not null)
+            parts.Add(body);
 
         return string.Join("\n\n", parts);
     }
@@ -251,33 +295,5 @@ public sealed class EmailTriageProcessor
         if (string.IsNullOrWhiteSpace(contact.DisplayName))
             return contact.EmailAddress;
         return $"{contact.DisplayName} <{contact.EmailAddress}>";
-    }
-
-    /// <summary>
-    /// Strips HTML tags for plain-text search indexing.
-    /// </summary>
-    private static string StripHtmlTags(string html)
-    {
-        if (string.IsNullOrEmpty(html)) return html;
-
-        // Remove HTML tags
-        var result = new System.Text.StringBuilder(html.Length);
-        var inTag = false;
-
-        foreach (var c in html)
-        {
-            if (c == '<') { inTag = true; continue; }
-            if (c == '>') { inTag = false; continue; }
-            if (!inTag) result.Append(c);
-        }
-
-        // Decode common HTML entities
-        return result.ToString()
-            .Replace("&amp;", "&")
-            .Replace("&lt;", "<")
-            .Replace("&gt;", ">")
-            .Replace("&quot;", "\"")
-            .Replace("&#39;", "'")
-            .Replace("&nbsp;", " ");
     }
 }

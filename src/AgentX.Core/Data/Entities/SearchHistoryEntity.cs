@@ -10,7 +10,7 @@ public class SearchHistoryEntity
     public bool IsSaved { get; set; }
     public string? CollectionFilter { get; set; } // comma-separated collection IDs
 
-    // ── Advanced filter settings ─────────────────────────────────
+    // -- Advanced filter settings ---------------------------------
     public double? MinScore { get; set; }
     public int? MaxResults { get; set; }
     public DateTime? DateAfter { get; set; }

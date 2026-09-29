@@ -1,5 +1,6 @@
-using System.Text;
+using System.Globalization;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using AgentX.Core.Data;
 using AgentX.Core.Data.Entities;
 using AgentX.Core.Services.TemporalIdentity.Models;
@@ -8,13 +9,29 @@ using Microsoft.EntityFrameworkCore;
 namespace AgentX.Core.Services.TemporalIdentity;
 
 /// <summary>
-/// Temporal Identity Service — implementation.
+/// Temporal Identity Service - implementation.
 ///
 /// Mines the user's conversational and document interaction history to build
 /// a temporal model of their evolving beliefs, insights, and voice.
 /// </summary>
+/// <remarks>
+/// The context is the app-wide one, and the chat calls this service from background work after
+/// every reply. EF operations on it are serialized, but its change tracker is not safe to mutate
+/// from two threads at once. So reads here do not track, updates run as <c>ExecuteUpdate</c>
+/// statements, and each new row is saved in a short gated section and detached again: nothing
+/// this service writes stays in the shared tracker for another flow to trip over.
+/// </remarks>
 public class TemporalIdentityService : ITemporalIdentityService
 {
+    /// <summary>
+    /// Messages over which the voice profile's sentence length is a plain mean: from then on
+    /// each new message counts for 1/10 of the moving average.
+    /// </summary>
+    private const int SentenceLengthWindow = 10;
+
+    /// <summary>The same for the formality score, where each new message counts for 1/20.</summary>
+    private const int FormalityWindow = 20;
+
     private readonly AgentXDbContext _db;
 
     public TemporalIdentityService(AgentXDbContext db)
@@ -22,13 +39,15 @@ public class TemporalIdentityService : ITemporalIdentityService
         _db = db;
     }
 
-    // ─── Belief Tracking ────────────────────────────────────────────────────────
+    // --- Belief Tracking --------------------------------------------------------
 
     public async Task ProcessMessageAsync(long messageId, CancellationToken ct = default)
     {
         var message = await _db.Messages
-            .Include(m => m.Conversation)
-            .FirstOrDefaultAsync(m => m.Id == messageId, ct);
+            .AsNoTracking()
+            .Where(m => m.Id == messageId)
+            .Select(m => new { m.Role, m.Content })
+            .FirstOrDefaultAsync(ct);
 
         if (message == null || message.Role != "user") return;
 
@@ -37,46 +56,95 @@ public class TemporalIdentityService : ITemporalIdentityService
 
         foreach (var topic in topicAnalysis.Topics)
         {
-            var existing = await _db.Set<TemporalBeliefEntity>()
-                .FirstOrDefaultAsync(b => b.Topic == topic, ct);
-
-            if (existing == null)
+            // A topic is unique, so a concurrent pass may insert it first; the second attempt
+            // then finds the row and updates it instead.
+            for (var attempt = 0; ; attempt++)
             {
-                existing = new TemporalBeliefEntity
+                try
                 {
-                    Topic = topic,
-                    FirstDetectedAt = DateTime.UtcNow,
-                    SentimentScore = topicAnalysis.Sentiment,
-                    ConfidenceLevel = topicAnalysis.Confidence,
-                    CurrentStance = SummarizeStance(message.Content, topic),
-                    EvidenceJson = JsonSerializer.Serialize(new[]
-                    {
-                        new { type = "message", id = messageId, excerpt = GetExcerpt(message.Content, topic) }
-                    }),
-                };
-                _db.Set<TemporalBeliefEntity>().Add(existing);
-            }
-            else
-            {
-                // Check for belief evolution
-                var sentimentDelta = Math.Abs(existing.SentimentScore - topicAnalysis.Sentiment);
-                if (sentimentDelta > 0.5) // Significant shift
-                {
-                    existing.HasEvolved = true;
-                    existing.PreviousStance = $"{existing.SentimentScore:F2}: {existing.CurrentStance}";
-                    existing.StanceChangedAt = DateTime.UtcNow;
+                    await ObserveBeliefAsync(messageId, message.Content, topic, topicAnalysis, ct);
+                    break;
                 }
-
-                existing.LastObservedAt = DateTime.UtcNow;
-                existing.SentimentScore = (existing.SentimentScore * 0.7) + (topicAnalysis.Sentiment * 0.3); // EMA
-                existing.ConfidenceLevel = Math.Min(1.0, existing.ConfidenceLevel + 0.05);
-                existing.CurrentStance = SummarizeStance(message.Content, topic);
+                catch (DbUpdateException) when (attempt == 0)
+                {
+                }
             }
+        }
+    }
 
-            existing.UpdatedAt = DateTime.UtcNow;
+    private async Task ObserveBeliefAsync(
+        long messageId, string content, string topic, BeliefAnalysis analysis, CancellationToken ct)
+    {
+        var now = DateTime.UtcNow;
+        var existing = await _db.Set<TemporalBeliefEntity>()
+            .AsNoTracking()
+            .FirstOrDefaultAsync(b => b.Topic == topic, ct);
+
+        if (existing == null)
+        {
+            await InsertAsync(new TemporalBeliefEntity
+            {
+                Topic = topic,
+                FirstDetectedAt = now,
+                // Left at DateTime.MinValue before, so GetActiveTopicsAsync (which filters on
+                // LastObservedAt) never listed a belief seen only once.
+                LastObservedAt = now,
+                UpdatedAt = now,
+                SentimentScore = analysis.Sentiment,
+                ConfidenceLevel = analysis.Confidence,
+                CurrentStance = SummarizeStance(content, topic),
+                EvidenceJson = JsonSerializer.Serialize(new[]
+                {
+                    new { type = "message", id = messageId, excerpt = GetExcerpt(content, topic) }
+                }),
+            }, ct);
+            return;
         }
 
-        await _db.SaveChangesAsync(ct);
+        var newStance = SummarizeStance(content, topic);
+        var hasEvolved = existing.HasEvolved;
+        var previousStance = existing.PreviousStance;
+        var stanceChangedAt = existing.StanceChangedAt;
+
+        // Check for belief evolution
+        var sentimentDelta = Math.Abs(existing.SentimentScore - analysis.Sentiment);
+        if (sentimentDelta > 0.5) // Significant shift
+        {
+            // Record the change so the dashboard can show "you believed X, now Y" and
+            // GetPastSelfAsync can answer with the stance held before it. Nothing
+            // created conflict rows before, so both always came back empty.
+            await InsertAsync(new BeliefConflictEntity
+            {
+                BeliefId = existing.Id,
+                Topic = topic,
+                DetectedAt = now,
+                PreviousStance = existing.CurrentStance,
+                CurrentStance = newStance,
+                PreviousStancePeriod = existing.StanceChangedAt ?? existing.FirstDetectedAt,
+                StanceChangedAt = now,
+                ConflictMagnitude = sentimentDelta,
+            }, ct);
+
+            hasEvolved = true;
+            previousStance = string.Create(
+                CultureInfo.InvariantCulture, $"{existing.SentimentScore:F2}: {existing.CurrentStance}");
+            stanceChangedAt = now;
+        }
+
+        var sentiment = (existing.SentimentScore * 0.7) + (analysis.Sentiment * 0.3); // EMA
+        var confidence = Math.Min(1.0, existing.ConfidenceLevel + 0.05);
+
+        await _db.Set<TemporalBeliefEntity>()
+            .Where(b => b.Id == existing.Id)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(b => b.HasEvolved, hasEvolved)
+                .SetProperty(b => b.PreviousStance, previousStance)
+                .SetProperty(b => b.StanceChangedAt, stanceChangedAt)
+                .SetProperty(b => b.LastObservedAt, now)
+                .SetProperty(b => b.SentimentScore, sentiment)
+                .SetProperty(b => b.ConfidenceLevel, confidence)
+                .SetProperty(b => b.CurrentStance, newStance)
+                .SetProperty(b => b.UpdatedAt, now), ct);
     }
 
     public async Task<PastSelfResponse?> GetPastSelfAsync(
@@ -84,31 +152,44 @@ public class TemporalIdentityService : ITemporalIdentityService
         DateTime? at = null,
         CancellationToken ct = default)
     {
-        var belief = await _db.Set<TemporalBeliefEntity>()
-            .FirstOrDefaultAsync(b => b.Topic == topic, ct);
+        var belief = await FindBeliefAsync(topic, ct);
 
         if (belief == null) return null;
 
+        // Nothing was recorded on the topic by then. The stance recorded later used to come back
+        // as what the user had thought at that time.
+        if (at < belief.FirstDetectedAt) return null;
+
         // If no time specified, return earliest recorded stance
         var targetTime = at ?? belief.FirstDetectedAt;
+
+        // The belief records its latest change. Only a change after that time makes today's
+        // stance differ from the one held then; a belief that last changed earlier already held
+        // today's stance at that time, and used to be reported as evolved all the same.
+        var changedSince = belief.HasEvolved && belief.StanceChangedAt > targetTime;
 
         return new PastSelfResponse
         {
             Topic = belief.Topic,
             TimePeriod = targetTime,
-            Stance = belief.CurrentStance,
+            // Was always the current stance, so "Past Self" repeated today's view.
+            Stance = await GetStanceAtAsync(belief, targetTime, ct),
             Confidence = belief.ConfidenceLevel,
             EvidenceExcerpts = GetEvidenceExcerpts(belief.EvidenceJson),
-            RelatedConversations = await GetRelatedConversationsAsync(topic, targetTime, ct),
-            RelatedDocuments = await GetRelatedDocumentsAsync(topic, targetTime, ct),
-            HasEvolved = belief.HasEvolved,
-            CurrentStance = belief.HasEvolved ? belief.CurrentStance : null,
+            RelatedConversations = await GetRelatedConversationsAsync(belief.Topic, targetTime, ct),
+            RelatedDocuments = await GetRelatedDocumentsAsync(belief.Topic, targetTime, ct),
+            HasEvolved = changedSince,
+            CurrentStance = changedSince ? belief.CurrentStance : null,
+            StanceChangedAt = changedSince ? belief.StanceChangedAt : null,
         };
     }
 
     public async Task<List<BeliefConflictEntity>> GetBeliefConflictsAsync(CancellationToken ct = default)
     {
+        // Include the belief: the dashboard shows Belief.Topic and fell back to "Unknown Topic".
         return await _db.Set<BeliefConflictEntity>()
+            .AsNoTracking()
+            .Include(c => c.Belief)
             .Where(c => !c.HasBeenAcknowledged)
             .OrderByDescending(c => c.ConflictMagnitude)
             .ToListAsync(ct);
@@ -116,23 +197,25 @@ public class TemporalIdentityService : ITemporalIdentityService
 
     public async Task<bool> AcknowledgeConflictAsync(long conflictId, CancellationToken ct = default)
     {
-        var conflict = await _db.Set<BeliefConflictEntity>()
-            .FirstOrDefaultAsync(c => c.Id == conflictId, ct);
+        var exists = await _db.Set<BeliefConflictEntity>()
+            .AsNoTracking()
+            .AnyAsync(c => c.Id == conflictId, ct);
 
-        if (conflict is null) return false;
+        if (!exists) return false;
 
         // Idempotent: only write on the first acknowledgement so the original timestamp stands.
-        if (!conflict.HasBeenAcknowledged)
-        {
-            conflict.HasBeenAcknowledged = true;
-            conflict.AcknowledgedAt = DateTime.UtcNow;
-            await _db.SaveChangesAsync(ct);
-        }
+        var now = DateTime.UtcNow;
+        await _db.Set<BeliefConflictEntity>()
+            .Where(c => c.Id == conflictId && !c.HasBeenAcknowledged)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(c => c.HasBeenAcknowledged, true)
+                .SetProperty(c => c.AcknowledgedAt, now)
+                .SetProperty(c => c.UpdatedAt, now), ct);
 
         return true;
     }
 
-    // ─── Insight Harvesting ─────────────────────────────────────────────────────
+    // --- Insight Harvesting -----------------------------------------------------
 
     public async Task CaptureInsightAsync(
         string topic,
@@ -154,8 +237,7 @@ public class TemporalIdentityService : ITemporalIdentityService
             RelatedTopicsJson = JsonSerializer.Serialize(new[] { topic }),
         };
 
-        _db.Set<InsightMomentEntity>().Add(insightMoment);
-        await _db.SaveChangesAsync(ct);
+        await InsertAsync(insightMoment, ct);
     }
 
     public async Task<List<ResurfacedInsight>> GetRelevantInsightsAsync(
@@ -163,6 +245,7 @@ public class TemporalIdentityService : ITemporalIdentityService
         CancellationToken ct = default)
     {
         var allInsights = await _db.Set<InsightMomentEntity>()
+            .AsNoTracking()
             .Where(i => i.SignificanceScore > 0.5)
             .OrderByDescending(i => i.SignificanceScore)
             .ToListAsync(ct);
@@ -181,9 +264,8 @@ public class TemporalIdentityService : ITemporalIdentityService
                     Id = insight.Id,
                     Insight = insight.InsightText,
                     OriginalDate = insight.CapturedAt,
-                    RelevanceReason = $"Related to {string.Join(", ", insightTopics.Take(2))}",
+                    RelatedTopics = insightTopics,
                     Significance = insight.SignificanceScore,
-                    Context = $"From {insight.SourceType} on {insight.CapturedAt:yyyy-MM-dd}",
                 });
             }
         }
@@ -191,7 +273,7 @@ public class TemporalIdentityService : ITemporalIdentityService
         return relevant.OrderByDescending(i => i.Significance).Take(5).ToList();
     }
 
-    // ─── Engagement Tracking ───────────────────────────────────────────────────
+    // --- Engagement Tracking ---------------------------------------------------
 
     public async Task RecordEngagementAsync(
         EngagementTargetType targetType,
@@ -199,37 +281,57 @@ public class TemporalIdentityService : ITemporalIdentityService
         int secondsSpent,
         CancellationToken ct = default)
     {
-        var existing = await _db.Set<EngagementMetricsEntity>()
-            .FirstOrDefaultAsync(e => e.TargetType == targetType && e.TargetId == targetId, ct);
+        // One row per target (a unique index): add to it when it exists, otherwise create it. A
+        // concurrent first engagement can win the insert, in which case this one is added to it.
+        if (await AddToEngagementAsync(targetType, targetId, secondsSpent, ct) > 0)
+            return;
 
-        if (existing == null)
+        var now = DateTime.UtcNow;
+        try
         {
-            existing = new EngagementMetricsEntity
+            await InsertAsync(new EngagementMetricsEntity
             {
-                FirstEngagedAt = DateTime.UtcNow,
+                FirstEngagedAt = now,
+                // Left at DateTime.MinValue before, so GetMostEngagedContentAsync (which filters
+                // on LastEngagedAt) skipped content engaged with only once.
+                LastEngagedAt = now,
+                UpdatedAt = now,
                 TargetType = targetType,
                 TargetId = targetId,
                 TotalSecondsSpent = secondsSpent,
                 RevisitCount = 0,
                 Depth = EngagementDepth.Read,
-            };
-            _db.Set<EngagementMetricsEntity>().Add(existing);
+            }, ct);
         }
-        else
+        catch (DbUpdateException)
         {
-            existing.LastEngagedAt = DateTime.UtcNow;
-            existing.TotalSecondsSpent += secondsSpent;
-            existing.RevisitCount++;
-
-            // Auto-upgrade depth based on patterns
-            if (existing.TotalSecondsSpent > 300 && existing.RevisitCount > 2)
-                existing.Depth = EngagementDepth.Deep;
-            else if (existing.TotalSecondsSpent > 60)
-                existing.Depth = EngagementDepth.Engaged;
+            if (await AddToEngagementAsync(targetType, targetId, secondsSpent, ct) == 0)
+                throw;
         }
+    }
 
-        existing.UpdatedAt = DateTime.UtcNow;
-        await _db.SaveChangesAsync(ct);
+    /// <summary>
+    /// Adds a revisit to an existing engagement row in one statement, so concurrent visits are
+    /// all counted, and upgrades its depth from the new totals. Returns the rows updated.
+    /// </summary>
+    private Task<int> AddToEngagementAsync(
+        EngagementTargetType targetType, long targetId, int secondsSpent, CancellationToken ct)
+    {
+        var now = DateTime.UtcNow;
+        return _db.Set<EngagementMetricsEntity>()
+            .Where(e => e.TargetType == targetType && e.TargetId == targetId)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(e => e.LastEngagedAt, now)
+                .SetProperty(e => e.UpdatedAt, now)
+                .SetProperty(e => e.TotalSecondsSpent, e => e.TotalSecondsSpent + secondsSpent)
+                .SetProperty(e => e.RevisitCount, e => e.RevisitCount + 1)
+                // Auto-upgrade depth based on patterns
+                .SetProperty(e => e.Depth, e =>
+                    e.TotalSecondsSpent + secondsSpent > 300 && e.RevisitCount + 1 > 2
+                        ? EngagementDepth.Deep
+                        : e.TotalSecondsSpent + secondsSpent > 60
+                            ? EngagementDepth.Engaged
+                            : e.Depth), ct);
     }
 
     public async Task<List<EngagementMetricsEntity>> GetMostEngagedContentAsync(
@@ -239,135 +341,76 @@ public class TemporalIdentityService : ITemporalIdentityService
         CancellationToken ct = default)
     {
         return await _db.Set<EngagementMetricsEntity>()
+            .AsNoTracking()
             .Where(e => e.LastEngagedAt >= start && e.LastEngagedAt <= end)
             .OrderByDescending(e => e.TotalSecondsSpent * (int)e.Depth)
             .Take(count)
             .ToListAsync(ct);
     }
 
-    // ─── Voice Learning ─────────────────────────────────────────────────────────
+    // --- Voice Learning ---------------------------------------------------------
 
     public async Task LearnFromMessageAsync(long messageId, CancellationToken ct = default)
     {
-        var message = await _db.Messages.FindAsync(new object[] { messageId }, ct);
+        var message = await _db.Messages
+            .AsNoTracking()
+            .Where(m => m.Id == messageId)
+            .Select(m => new { m.Role, m.Content })
+            .FirstOrDefaultAsync(ct);
         if (message == null || message.Role != "user") return;
 
-        var profile = await _db.Set<VoiceProfileEntity>().FirstOrDefaultAsync(ct);
-        if (profile == null)
+        if (AnalyzeVoicePattern(message.Content) is not { } analysis) return; // no words to learn from
+        var now = DateTime.UtcNow;
+
+        // A plain mean over the first messages, then a moving average in which each new message
+        // counts for 10% (sentence length) or 5% (formality), computed in the statement so
+        // concurrent samples all count. The profile used to start from an invented baseline (15
+        // words, 0.5 formality) that each message moved by only those 10% or 5%, so after ten
+        // messages the formality shown, and described to Draft as Me, was still 60% made up.
+        var profileId = await _db.Set<VoiceProfileEntity>()
+            .AsNoTracking()
+            .OrderBy(p => p.Id)
+            .Select(p => (long?)p.Id)
+            .FirstOrDefaultAsync(ct);
+
+        if (profileId is long id)
         {
-            profile = new VoiceProfileEntity
-            {
-                FirstSampleAt = DateTime.UtcNow,
-                SampleCount = 0,
-                AvgSentenceLength = 15,
-                FormalityScore = 0.5,
-                CharacteristicPhrasesJson = "[]",
-                SentencePatternsJson = "[]",
-                BookendsJson = "{}",
-                StylisticTraitsJson = "{}",
-            };
-            _db.Set<VoiceProfileEntity>().Add(profile);
+            await _db.Set<VoiceProfileEntity>()
+                .Where(p => p.Id == id)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(p => p.SampleCount, p => p.SampleCount + 1)
+                    .SetProperty(p => p.LastSampleAt, now)
+                    .SetProperty(p => p.UpdatedAt, now)
+                    .SetProperty(p => p.AvgSentenceLength, p => p.SampleCount + 1 < SentenceLengthWindow
+                        ? p.AvgSentenceLength + ((analysis.AvgSentenceLength - p.AvgSentenceLength) / (p.SampleCount + 1))
+                        : (p.AvgSentenceLength * 0.9) + (analysis.AvgSentenceLength * 0.1))
+                    .SetProperty(p => p.FormalityScore, p => p.SampleCount + 1 < FormalityWindow
+                        ? p.FormalityScore + ((analysis.Formality - p.FormalityScore) / (p.SampleCount + 1))
+                        : (p.FormalityScore * 0.95) + (analysis.Formality * 0.05)), ct);
+            return;
         }
 
-        var analysis = AnalyzeVoicePattern(message.Content);
-
-        // Update with exponential moving average
-        profile.SampleCount++;
-        profile.LastSampleAt = DateTime.UtcNow;
-        profile.AvgSentenceLength = (profile.AvgSentenceLength * 0.9) + (analysis.AvgSentenceLength * 0.1);
-        profile.FormalityScore = (profile.FormalityScore * 0.95) + (analysis.Formality * 0.05);
-
-        await _db.SaveChangesAsync(ct);
-    }
-
-    public async Task<string> GenerateAsUserAsync(
-        string context,
-        string goal,
-        CancellationToken ct = default)
-    {
-        if (string.IsNullOrWhiteSpace(context))
-            return "Please provide context so I can draft something useful.";
-
-        var profile = await GetVoiceProfileAsync(ct);
-        var cleanContext = NormalizeDraftInput(context);
-        var cleanGoal = NormalizeDraftInput(goal);
-
-        if (profile == null || profile.SampleCount == 0)
+        // The first sample is the profile.
+        await InsertAsync(new VoiceProfileEntity
         {
-            return BuildBaselineDraft(cleanContext, cleanGoal);
-        }
-
-        var opening = profile.FormalityScore >= 0.65
-            ? "I recommend we approach this deliberately."
-            : profile.FormalityScore <= 0.35
-                ? "Here is how I would frame it."
-                : "I would keep this clear and grounded.";
-
-        var targetSentenceCount = profile.AvgSentenceLength <= 10 ? 3 : 4;
-        var lines = new List<string>
-        {
-            opening,
-            $"The core point is this: {ToSentence(cleanContext)}",
-        };
-
-        if (!string.IsNullOrWhiteSpace(cleanGoal))
-        {
-            lines.Add($"The goal is to {LowercaseFirst(cleanGoal)}.");
-        }
-
-        lines.Add(profile.FormalityScore >= 0.65
-            ? "I would rather be precise now than create avoidable churn later."
-            : "That keeps the message honest, useful, and easy to act on.");
-
-        return string.Join(" ", lines.Take(targetSentenceCount));
+            FirstSampleAt = now,
+            LastSampleAt = now,
+            UpdatedAt = now,
+            SampleCount = 1,
+            AvgSentenceLength = analysis.AvgSentenceLength,
+            FormalityScore = analysis.Formality,
+            CharacteristicPhrasesJson = "[]",
+            SentencePatternsJson = "[]",
+            BookendsJson = "{}",
+            StylisticTraitsJson = "{}",
+        }, ct);
     }
 
-    private static string BuildBaselineDraft(string context, string goal)
-    {
-        var sb = new StringBuilder();
-        sb.Append("I want to be clear about this: ");
-        sb.Append(ToSentence(context));
+    // Drafting in the user's voice is VoiceDraftService: it composes the queries here with the
+    // active AI provider. A template generator used to live here and returned canned sentences
+    // around the user's context as if they had been written in their voice.
 
-        if (!string.IsNullOrWhiteSpace(goal))
-        {
-            sb.Append(' ');
-            sb.Append("The intent is to ");
-            sb.Append(LowercaseFirst(goal));
-            sb.Append('.');
-        }
-
-        sb.Append(" I recommend we keep the next step concrete and accountable.");
-        return sb.ToString();
-    }
-
-    private static string NormalizeDraftInput(string value)
-    {
-        return string.Join(' ', (value ?? string.Empty).Split(
-            [' ', '\r', '\n', '\t'],
-            StringSplitOptions.RemoveEmptyEntries));
-    }
-
-    private static string ToSentence(string value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-            return string.Empty;
-
-        var trimmed = value.Trim();
-        return trimmed.EndsWith('.') || trimmed.EndsWith('!') || trimmed.EndsWith('?')
-            ? trimmed
-            : trimmed + ".";
-    }
-
-    private static string LowercaseFirst(string value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-            return string.Empty;
-
-        var trimmed = value.Trim();
-        return char.ToLowerInvariant(trimmed[0]) + trimmed[1..].TrimEnd('.', '!', '?');
-    }
-
-    // ─── Pattern Recognition ─────────────────────────────────────────────────────
+    // --- Pattern Recognition -----------------------------------------------------
 
     public async Task<List<ProblemSolvingPattern>> FindSimilarProblemsAsync(
         string currentProblem,
@@ -377,6 +420,7 @@ public class TemporalIdentityService : ITemporalIdentityService
         var keywords = ExtractKeywords(currentProblem);
 
         var similarConversations = await _db.Conversations
+            .AsNoTracking()
             .Where(c => c.Title != null && keywords.Any(k => c.Title.Contains(k)))
             .OrderByDescending(c => c.CreatedAt)
             .Take(5)
@@ -415,22 +459,29 @@ public class TemporalIdentityService : ITemporalIdentityService
         int days = 30,
         CancellationToken ct = default)
     {
+        var topics = await GetActiveTopicDetailsAsync(days, ct);
+        return topics.Select(t => t.Topic).ToList();
+    }
+
+    public Task<List<ActiveTopic>> GetActiveTopicDetailsAsync(
+        int days = 30,
+        CancellationToken ct = default)
+    {
         var since = DateTime.UtcNow.AddDays(-days);
-        var beliefs = await _db.Set<TemporalBeliefEntity>()
+        return _db.Set<TemporalBeliefEntity>()
+            .AsNoTracking()
             .Where(b => b.LastObservedAt >= since)
             .OrderByDescending(b => b.ConfidenceLevel * b.LastObservedAt.Ticks)
             .Take(15)
-            .Select(b => b.Topic)
+            .Select(b => new ActiveTopic(b.Topic, b.FirstDetectedAt, b.LastObservedAt))
             .ToListAsync(ct);
-
-        return beliefs;
     }
 
-    // ─── Helpers ─────────────────────────────────────────────────────────────────
+    // --- Helpers -----------------------------------------------------------------
 
     private BeliefAnalysis AnalyzeBeliefContent(string content)
     {
-        // Simplified NLP — in production, use AI model
+        // Simplified NLP - in production, use AI model
         var words = content.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         var topics = ExtractTopics(content);
         var sentiment = AnalyzeSentiment(content);
@@ -476,7 +527,7 @@ public class TemporalIdentityService : ITemporalIdentityService
 
     private double AnalyzeSentiment(string content)
     {
-        // Very basic sentiment — should use AI in production
+        // Very basic sentiment - should use AI in production
         var positiveWords = new[] { "good", "great", "love", "excellent", "agree", "support", "believe" };
         var negativeWords = new[] { "bad", "hate", "terrible", "disagree", "oppose", "wrong", "problem" };
 
@@ -534,12 +585,49 @@ public class TemporalIdentityService : ITemporalIdentityService
         return evidence?.Select(e => e.excerpt).ToArray() ?? [];
     }
 
+    /// <summary>
+    /// The stance the user held at <paramref name="targetTime"/>: the stance recorded just before
+    /// the first change after that time, or the current stance when nothing changed since.
+    /// </summary>
+    private async Task<string> GetStanceAtAsync(TemporalBeliefEntity belief, DateTime targetTime, CancellationToken ct)
+    {
+        if (!belief.HasEvolved)
+            return belief.CurrentStance;
+
+        var stanceBeforeNextChange = await _db.Set<BeliefConflictEntity>()
+            .AsNoTracking()
+            .Where(c => c.BeliefId == belief.Id && c.StanceChangedAt > targetTime)
+            .OrderBy(c => c.StanceChangedAt)
+            .Select(c => c.PreviousStance)
+            .FirstOrDefaultAsync(ct);
+
+        if (stanceBeforeNextChange is not null)
+            return stanceBeforeNextChange;
+
+        // Beliefs that changed before conflict rows were recorded only keep the latest previous
+        // stance, stored as "<sentiment>: <stance>".
+        if (belief.PreviousStance is not null &&
+            belief.StanceChangedAt is { } changedAt &&
+            targetTime < changedAt)
+        {
+            return SentimentPrefix.Replace(belief.PreviousStance, string.Empty, 1);
+        }
+
+        return belief.CurrentStance;
+    }
+
+    /// <summary>Matches the "0.40: " sentiment prefix of <see cref="TemporalBeliefEntity.PreviousStance"/>.</summary>
+    private static readonly Regex SentimentPrefix = new(@"^-?\d+[.,]\d+: ", RegexOptions.CultureInvariant);
+
     private async Task<string[]> GetRelatedConversationsAsync(string topic, DateTime around, CancellationToken ct)
     {
         // DateTime subtraction is not translatable by the SQLite provider; materialise the
-        // title matches, then apply the ±30-day window + proximity ordering in memory.
+        // title matches, then apply the +/-30-day window + proximity ordering in memory. LIKE
+        // matches regardless of case, where Contains (instr) missed "AI safety notes" for the
+        // stored topic "Ai safety".
+        var pattern = ContainsPattern(topic);
         var candidates = await _db.Conversations
-            .Where(c => c.Title != null && c.Title.Contains(topic))
+            .Where(c => c.Title != null && EF.Functions.Like(c.Title, pattern, LikeEscape))
             .Select(c => new { c.Title, c.CreatedAt })
             .ToListAsync(ct);
 
@@ -554,8 +642,9 @@ public class TemporalIdentityService : ITemporalIdentityService
     private async Task<string[]> GetRelatedDocumentsAsync(string topic, DateTime around, CancellationToken ct)
     {
         // Same untranslatable DateTime arithmetic as above; window in memory.
+        var pattern = ContainsPattern(topic);
         var candidates = await _db.Documents
-            .Where(d => d.FileName != null && d.FileName.Contains(topic))
+            .Where(d => d.FileName != null && EF.Functions.Like(d.FileName, pattern, LikeEscape))
             .Select(d => new { d.FileName, d.ImportedAt })
             .ToListAsync(ct);
 
@@ -566,18 +655,26 @@ public class TemporalIdentityService : ITemporalIdentityService
             .ToArray();
     }
 
-    private VoiceAnalysis AnalyzeVoicePattern(string content)
+    /// <summary>Words per sentence and a formality score for one message; null when it has no words.</summary>
+    private VoiceAnalysis? AnalyzeVoicePattern(string content)
     {
-        var sentences = content.Split(new[] { '.', '!', '?' }, StringSplitOptions.RemoveEmptyEntries);
-        var avgLength = sentences.Any() ? sentences.Average(s => s.Split(' ').Length) : 15;
+        // Count words, not the empty strings around spaces: " Next sentence" counted three, and
+        // the space after a final full stop counted as a two-word sentence. A message without
+        // words used to be recorded as 15 words per sentence.
+        var wordsPerSentence = content.Split(new[] { '.', '!', '?' }, StringSplitOptions.RemoveEmptyEntries)
+            .Select(sentence => sentence.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).Length)
+            .Where(words => words > 0)
+            .ToList();
+        if (wordsPerSentence.Count == 0) return null;
 
-        // Formality based on contractions, slang, etc.
-        var contractions = content.Count(c => c == '\'' || c == '\'');
+        // Formality based on contractions, slang, etc. A contraction's apostrophe may be straight
+        // or typographic; the check used to compare with the straight one twice.
+        var contractions = content.Count(c => c == '\'' || c == '\u2019');
         var formalWords = content.Contains("therefore", StringComparison.OrdinalIgnoreCase) ||
                          content.Contains("however", StringComparison.OrdinalIgnoreCase);
         var formality = formalWords ? 0.8 : Math.Max(0, 0.5 - (contractions * 0.05));
 
-        return new VoiceAnalysis(avgLength, formality);
+        return new VoiceAnalysis(wordsPerSentence.Average(), formality);
     }
 
     private string[] ExtractKeywords(string text)
@@ -600,14 +697,21 @@ public class TemporalIdentityService : ITemporalIdentityService
         return "General Problem";
     }
 
-    // ─── Full Implementation of Placeholder Methods ───────────────────────────────
+    // --- Full Implementation of Placeholder Methods -------------------------------
 
     public async Task ProcessAnnotationAsync(long annotationId, CancellationToken ct = default)
     {
-        // Annotations are strong belief indicators — user chose to highlight
+        // Annotations are strong belief indicators - user chose to highlight
         var annotation = await _db.Annotations
-            .Include(a => a.Document)
-            .FirstOrDefaultAsync(a => a.Id == annotationId, ct);
+            .AsNoTracking()
+            .Where(a => a.Id == annotationId)
+            .Select(a => new
+            {
+                a.NoteText,
+                a.HighlightedText,
+                DocumentFileName = a.Document == null ? null : a.Document.FileName,
+            })
+            .FirstOrDefaultAsync(ct);
 
         if (annotation == null) return;
 
@@ -625,9 +729,9 @@ public class TemporalIdentityService : ITemporalIdentityService
             ? annotation.NoteText
             : annotation.HighlightedText;
 
-        if (annotation.Document != null && string.IsNullOrWhiteSpace(content))
+        if (annotation.DocumentFileName != null && string.IsNullOrWhiteSpace(content))
         {
-            content = $"Annotation on document: {annotation.Document.FileName}";
+            content = $"Annotation on document: {annotation.DocumentFileName}";
         }
 
         await CaptureInsightAsync(
@@ -638,22 +742,63 @@ public class TemporalIdentityService : ITemporalIdentityService
             ct: ct);
     }
 
-    public async Task<TemporalBeliefEntity?> GetBeliefEvolutionAsync(string topic, CancellationToken ct = default)
+    public Task<TemporalBeliefEntity?> GetBeliefEvolutionAsync(string topic, CancellationToken ct = default)
+        => FindBeliefAsync(topic, ct);
+
+    /// <summary>
+    /// The belief recorded under <paramref name="topic"/>, ignoring surrounding spaces and the
+    /// case of its letters. Topics are stored as extracted and sentence-cased ("Ai safety
+    /// matters"), so the exact, case-sensitive lookup this replaces missed nearly every topic as
+    /// typed. An exact match wins; otherwise SQLite's NOCASE comparison is used, which folds
+    /// ASCII letters only.
+    /// </summary>
+    private async Task<TemporalBeliefEntity?> FindBeliefAsync(string topic, CancellationToken ct)
     {
-        return await _db.Set<TemporalBeliefEntity>()
-            .FirstOrDefaultAsync(b => b.Topic == topic, ct);
+        var key = topic?.Trim();
+        if (string.IsNullOrEmpty(key)) return null;
+
+        var beliefs = _db.Set<TemporalBeliefEntity>().AsNoTracking();
+        return await beliefs.FirstOrDefaultAsync(b => b.Topic == key, ct)
+            ?? await beliefs
+                .Where(b => EF.Functions.Collate(b.Topic, "NOCASE") == key)
+                .OrderBy(b => b.Id)
+                .FirstOrDefaultAsync(ct);
     }
+
+    /// <summary>The escape character of <see cref="ContainsPattern"/>.</summary>
+    private const string LikeEscape = "\\";
+
+    /// <summary>A LIKE pattern matching text that contains <paramref name="value"/> literally.</summary>
+    private static string ContainsPattern(string value) =>
+        "%" + value.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_") + "%";
 
     public async Task DetectInsightsAsync(long conversationId, CancellationToken ct = default)
     {
         // Auto-detect insight moments from conversation spikes
         var messages = await _db.Messages
+            .AsNoTracking()
             .Where(m => m.ConversationId == conversationId && m.Role == "assistant")
             .OrderBy(m => m.Timestamp)
             .ToListAsync(ct);
 
+        if (messages.Count == 0) return;
+
+        // The chat flow calls this after every turn for the whole conversation. Skip messages
+        // already captured: previously each call captured every qualifying message again, so the
+        // insight table grew quadratically with the length of a conversation.
+        var messageIds = messages.Select(m => m.Id).ToList();
+        var alreadyCaptured = (await _db.Set<InsightMomentEntity>()
+            .Where(i => i.SourceType == InsightSource.ConversationMessage
+                        && i.SourceId != null
+                        && messageIds.Contains(i.SourceId.Value))
+            .Select(i => i.SourceId!.Value)
+            .ToListAsync(ct))
+            .ToHashSet();
+
         foreach (var message in messages)
         {
+            if (alreadyCaptured.Contains(message.Id)) continue;
+
             // Look for breakthrough language patterns
             var content = message.Content.ToLowerInvariant();
             var breakthroughMarkers = new[] { "breakthrough", "key insight", "important", "realize", "discover", "aha", "eureka" };
@@ -691,6 +836,7 @@ public class TemporalIdentityService : ITemporalIdentityService
     public async Task<List<InsightMomentEntity>> GetTopInsightsAsync(int count = 10, CancellationToken ct = default)
     {
         return await _db.Set<InsightMomentEntity>()
+            .AsNoTracking()
             .OrderByDescending(i => i.SignificanceScore)
             .ThenByDescending(i => i.CapturedAt)
             .Take(count)
@@ -701,6 +847,7 @@ public class TemporalIdentityService : ITemporalIdentityService
     {
         // Get content with engagement metrics related to the topic
         var allMetrics = await _db.Set<EngagementMetricsEntity>()
+            .AsNoTracking()
             .Where(e => e.TopicsJson != null)
             .OrderByDescending(e => e.TotalSecondsSpent)
             .ThenByDescending(e => e.Depth)
@@ -716,9 +863,30 @@ public class TemporalIdentityService : ITemporalIdentityService
     }
 
     public Task<VoiceProfileEntity?> GetVoiceProfileAsync(CancellationToken ct = default)
-        => _db.Set<VoiceProfileEntity>().FirstOrDefaultAsync(ct);
+        => _db.Set<VoiceProfileEntity>().AsNoTracking().OrderBy(p => p.Id).FirstOrDefaultAsync(ct);
 
-    // ─── Internal Types ───────────────────────────────────────────────────────────
+    /// <summary>
+    /// Saves one new row in a short section of the shared change tracker and detaches it again.
+    /// The database gate is held throughout, so no other flow's query or save walks the tracker
+    /// while the row is in it; ConfigureAwait(false) keeps a UI caller from deadlocking against
+    /// a flow waiting on that gate.
+    /// </summary>
+    private async Task InsertAsync<TEntity>(TEntity entity, CancellationToken ct)
+        where TEntity : class
+    {
+        using var gate = _db.EnterDatabaseGate();
+        var entry = _db.Set<TEntity>().Add(entity);
+        try
+        {
+            await _db.SaveChangesAsync(ct).ConfigureAwait(false);
+        }
+        finally
+        {
+            entry.State = EntityState.Detached;
+        }
+    }
+
+    // --- Internal Types -----------------------------------------------------------
 
     private record BeliefAnalysis(List<string> Topics, double Sentiment, double Confidence);
     private record VoiceAnalysis(double AvgSentenceLength, double Formality);

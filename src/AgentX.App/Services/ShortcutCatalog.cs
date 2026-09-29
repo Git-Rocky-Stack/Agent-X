@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AgentX.Core.Services.Localization;
 using AgentX.Core.Services.Shortcuts;
 
 namespace AgentX.App.Services;
@@ -18,11 +19,13 @@ public sealed record ShortcutCatalogActions(
     Func<CancellationToken, Task> ShowCheatsheetAsync);
 
 /// <summary>
-/// Seeds global keyboard shortcuts into the shared A2 registry.
+/// Seeds global keyboard shortcuts into the shared A2 registry. Their labels and categories are
+/// what the Keyboard Shortcuts dialog lists, in the user's language.
 /// </summary>
 public sealed class ShortcutCatalog
 {
     private readonly IShortcutRegistry _registry;
+    private readonly ILocalizationService _localization;
     private bool _seeded;
 
     /// <summary>
@@ -56,9 +59,10 @@ public sealed class ShortcutCatalog
             ["NewConversation"] = "nav.chat",
         };
 
-    public ShortcutCatalog(IShortcutRegistry registry)
+    public ShortcutCatalog(IShortcutRegistry registry, ILocalizationService localization)
     {
         _registry = registry ?? throw new ArgumentNullException(nameof(registry));
+        _localization = localization ?? throw new ArgumentNullException(nameof(localization));
     }
 
     public void SeedDefaults(ShortcutCatalogActions actions)
@@ -68,18 +72,22 @@ public sealed class ShortcutCatalog
 
         _seeded = true;
 
-        Global("cmd.palette", "Command Palette", KeyModifiers.Ctrl, VirtualKeyCode.K, actions.ShowCommandPaletteAsync, "Navigation");
-        Global("cmd.palette.alt", "Command Palette", KeyModifiers.Ctrl | KeyModifiers.Shift, VirtualKeyCode.P, actions.ShowCommandPaletteAsync, "Navigation");
+        var navigation = _localization.GetString("Shortcut_CategoryNavigation");
+        var commandPalette = _localization.GetString("Shortcut_CommandPalette");
+        var semanticSearch = _localization.GetString("Shortcut_SemanticSearch");
+
+        Global("cmd.palette", commandPalette, KeyModifiers.Ctrl, VirtualKeyCode.K, actions.ShowCommandPaletteAsync, navigation);
+        Global("cmd.palette.alt", commandPalette, KeyModifiers.Ctrl | KeyModifiers.Shift, VirtualKeyCode.P, actions.ShowCommandPaletteAsync, navigation);
 
         // Labelled "New Conversation", so it starts one rather than landing on whatever
         // thread was last open.
-        Global("nav.chat", "New Conversation", KeyModifiers.Ctrl, VirtualKeyCode.N, Navigate(actions, "Chat", NavigationIntents.NewConversation), "Navigation");
-        Global("nav.vault", "Knowledge Vault", KeyModifiers.Ctrl, VirtualKeyCode.I, Navigate(actions, "KnowledgeVault"), "Navigation");
-        Global("nav.search", "Semantic Search", KeyModifiers.Ctrl, VirtualKeyCode.F, Navigate(actions, "Search"), "Navigation");
-        Global("nav.search.alt", "Semantic Search", KeyModifiers.Ctrl | KeyModifiers.Shift, VirtualKeyCode.F, Navigate(actions, "Search"), "Navigation");
-        Global("nav.settings", "Settings", KeyModifiers.Ctrl, VirtualKeyCode.OemComma, Navigate(actions, "Settings"), "Navigation");
-        Global("nav.analytics", "Analytics", KeyModifiers.Ctrl | KeyModifiers.Shift, VirtualKeyCode.A, Navigate(actions, "Analytics"), "Navigation");
-        Global("nav.operations", "Operations", KeyModifiers.Ctrl | KeyModifiers.Shift, VirtualKeyCode.O, Navigate(actions, "Operations"), "Navigation");
+        Global("nav.chat", _localization.GetString("Shortcut_NewConversation"), KeyModifiers.Ctrl, VirtualKeyCode.N, Navigate(actions, "Chat", NavigationIntents.NewConversation), navigation);
+        Global("nav.vault", _localization.GetString("Shortcut_KnowledgeVault"), KeyModifiers.Ctrl, VirtualKeyCode.I, Navigate(actions, "KnowledgeVault"), navigation);
+        Global("nav.search", semanticSearch, KeyModifiers.Ctrl, VirtualKeyCode.F, Navigate(actions, "Search"), navigation);
+        Global("nav.search.alt", semanticSearch, KeyModifiers.Ctrl | KeyModifiers.Shift, VirtualKeyCode.F, Navigate(actions, "Search"), navigation);
+        Global("nav.settings", _localization.GetString("Shortcut_Settings"), KeyModifiers.Ctrl, VirtualKeyCode.OemComma, Navigate(actions, "Settings"), navigation);
+        Global("nav.analytics", _localization.GetString("Shortcut_Analytics"), KeyModifiers.Ctrl | KeyModifiers.Shift, VirtualKeyCode.A, Navigate(actions, "Analytics"), navigation);
+        Global("nav.operations", _localization.GetString("Shortcut_Operations"), KeyModifiers.Ctrl | KeyModifiers.Shift, VirtualKeyCode.O, Navigate(actions, "Operations"), navigation);
 
         var pageOrder = new[]
         {
@@ -93,28 +101,49 @@ public sealed class ShortcutCatalog
             "ModelManager",
             "Settings"
         };
+        var quickAccess = _localization.GetString("Shortcut_CategoryQuickAccess");
         for (var i = 0; i < pageOrder.Length; i++)
         {
             var pageTag = pageOrder[i];
             var key = VirtualKeyCode.D1 + i;
             Global(
                 $"nav.page{i + 1}",
-                $"{pageTag} (Ctrl+{i + 1})",
+                _localization.GetString("Shortcut_QuickAccessPage", PageName(pageTag), i + 1),
                 KeyModifiers.Ctrl,
                 key,
                 Navigate(actions, pageTag),
-                "Quick Access");
+                quickAccess);
         }
 
-        Global("nav.workflows", "Workflows", KeyModifiers.Ctrl | KeyModifiers.Shift, VirtualKeyCode.W, Navigate(actions, "Workflows"), "Actions");
-        Global("nav.webimport", "Web Import", KeyModifiers.Ctrl | KeyModifiers.Shift, VirtualKeyCode.E, Navigate(actions, "WebImport"), "Actions");
-        Global("nav.dashboard", "Dashboard", KeyModifiers.Ctrl, VirtualKeyCode.D, Navigate(actions, "Dashboard"), "Actions");
-        Global("nav.graph", "Knowledge Graph", KeyModifiers.Ctrl, VirtualKeyCode.G, Navigate(actions, "KnowledgeGraph"), "Actions");
+        var pageActions = _localization.GetString("Shortcut_CategoryActions");
+        Global("nav.workflows", _localization.GetString("Shortcut_Workflows"), KeyModifiers.Ctrl | KeyModifiers.Shift, VirtualKeyCode.W, Navigate(actions, "Workflows"), pageActions);
+        Global("nav.webimport", _localization.GetString("Shortcut_WebImport"), KeyModifiers.Ctrl | KeyModifiers.Shift, VirtualKeyCode.E, Navigate(actions, "WebImport"), pageActions);
+        Global("nav.dashboard", _localization.GetString("Shortcut_Dashboard"), KeyModifiers.Ctrl, VirtualKeyCode.D, Navigate(actions, "Dashboard"), pageActions);
+        Global("nav.graph", _localization.GetString("Shortcut_KnowledgeGraph"), KeyModifiers.Ctrl, VirtualKeyCode.G, Navigate(actions, "KnowledgeGraph"), pageActions);
 
-        Global("help.shortcuts", "Show Keyboard Shortcuts", KeyModifiers.Ctrl | KeyModifiers.Shift, VirtualKeyCode.Oem2, actions.ShowCheatsheetAsync, "Help");
-        Global("help.cheatsheet", "Keyboard Shortcuts", KeyModifiers.None, VirtualKeyCode.F1, actions.ShowCheatsheetAsync, "Help");
-        Global("help.jump", "Jump To", KeyModifiers.Ctrl, VirtualKeyCode.P, actions.ShowJumpToAsync, "Help");
+        var help = _localization.GetString("Shortcut_CategoryHelp");
+        Global("help.shortcuts", _localization.GetString("Shortcut_ShowKeyboardShortcuts"), KeyModifiers.Ctrl | KeyModifiers.Shift, VirtualKeyCode.Oem2, actions.ShowCheatsheetAsync, help);
+        Global("help.cheatsheet", _localization.GetString("Shortcut_KeyboardShortcuts"), KeyModifiers.None, VirtualKeyCode.F1, actions.ShowCheatsheetAsync, help);
+        Global("help.jump", _localization.GetString("Shortcut_JumpTo"), KeyModifiers.Ctrl, VirtualKeyCode.P, actions.ShowJumpToAsync, help);
     }
+
+    /// <summary>
+    /// The name the rail gives a page, for the Ctrl+number shortcuts. Their labels used to show
+    /// the page's internal tag ("AskFiles", "ModelManager").
+    /// </summary>
+    private string PageName(string pageTag) => pageTag switch
+    {
+        "Dashboard" => _localization.GetString("Shortcut_Dashboard"),
+        "Chat" => _localization.GetString("Shortcut_PageChat"),
+        "AskFiles" => _localization.GetString("Shortcut_PageAskFiles"),
+        "Search" => _localization.GetString("Shortcut_SemanticSearch"),
+        "KnowledgeVault" => _localization.GetString("Shortcut_KnowledgeVault"),
+        "Collections" => _localization.GetString("Shortcut_PageCollections"),
+        "Workflows" => _localization.GetString("Shortcut_Workflows"),
+        "ModelManager" => _localization.GetString("Shortcut_PageModelManager"),
+        "Settings" => _localization.GetString("Shortcut_Settings"),
+        _ => pageTag
+    };
 
     /// <summary>
     /// Display chord for the canonical shortcut that opens <paramref name="pageTag"/>,

@@ -1,3 +1,4 @@
+using AgentX.App.Helpers;
 using AgentX.App.ViewModels;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -11,7 +12,7 @@ public sealed partial class DashboardPage : Page
 
     public DashboardPage()
     {
-        ViewModel = App.GetService<DashboardViewModel>();
+        ViewModel = PageViewModelFactory.Create<DashboardViewModel>();
         ViewModel.NavigateRequested = NavigateToPage;
         InitializeComponent();
         Loaded += async (_, _) => await ViewModel.InitializeAsync();

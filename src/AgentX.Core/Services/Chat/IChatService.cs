@@ -22,6 +22,34 @@ public interface IChatService
         CancellationToken ct = default);
 
     /// <summary>
+    /// Sends a user message like <see cref="SendMessageAsync(long, string, CancellationToken)"/>,
+    /// adding <paramref name="supplementalContext"/> (for example cited web search results) to the
+    /// context assembled for this reply only. Its prompt text is not persisted; the sources it
+    /// cites are saved with the answer.
+    /// </summary>
+    IAsyncEnumerable<string> SendMessageAsync(
+        long conversationId,
+        string userMessage,
+        SupplementalContext? supplementalContext,
+        CancellationToken ct);
+
+    /// <summary>
+    /// Streams a new answer to an existing user message without persisting that message again.
+    /// The message must close the conversation, optionally followed by its current answer; that
+    /// answer is replaced only once the new one has been saved, so stopping or failing keeps it.
+    /// </summary>
+    /// <param name="conversationId">The conversation to regenerate in.</param>
+    /// <param name="userMessageId">The persisted user message to answer again.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <exception cref="InvalidOperationException">
+    /// The message is not a user message of the conversation, or later messages follow its answer.
+    /// </exception>
+    IAsyncEnumerable<string> RegenerateResponseAsync(
+        long conversationId,
+        long userMessageId,
+        CancellationToken ct = default);
+
+    /// <summary>
     /// Sends a user message and waits for the complete assistant response.
     /// The user message and assistant response are persisted automatically.
     /// </summary>
@@ -32,16 +60,6 @@ public interface IChatService
     Task<string> SendMessageAndWaitAsync(
         long conversationId,
         string userMessage,
-        CancellationToken ct = default);
-
-    /// <summary>
-    /// Deletes the last assistant message and re-sends the last user message
-    /// to generate a new response.
-    /// </summary>
-    /// <param name="conversationId">The conversation to regenerate in.</param>
-    /// <param name="ct">Cancellation token.</param>
-    Task RegenerateLastResponseAsync(
-        long conversationId,
         CancellationToken ct = default);
 
     /// <summary>

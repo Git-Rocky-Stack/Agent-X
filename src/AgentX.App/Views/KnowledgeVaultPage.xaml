@@ -10,9 +10,9 @@
 
     <Page.Resources>
 
-        <!-- ═══════════════════════════════════════════════════════════
+        <!-- ===========================================================
              CONVERTERS
-             ═══════════════════════════════════════════════════════════ -->
+             =========================================================== -->
 
         <converters:BoolToVisibilityConverter x:Key="BoolToVis" />
         <converters:BoolToVisibilityConverter x:Key="InverseBoolToVis" IsInverted="True" />
@@ -30,9 +30,9 @@
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
 
-        <!-- ═══════════════════════════════════════════════════════════
+        <!-- ===========================================================
              COLUMN 0: MAIN CONTENT (existing ScrollViewer)
-             ═══════════════════════════════════════════════════════════ -->
+             =========================================================== -->
         <ScrollViewer x:Name="PageScroller"
                       Grid.Column="0"
                       VerticalScrollBarVisibility="Auto"
@@ -54,9 +54,9 @@
                 <RowDefinition Height="Auto" /> <!-- Row 8: Indexing status -->
             </Grid.RowDefinitions>
 
-            <!-- ═══════════════════════════════════════════════════════
+            <!-- =======================================================
                  ROW 0: PAGE HEADER
-                 ═══════════════════════════════════════════════════════ -->
+                 ======================================================= -->
             <Grid Grid.Row="0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -119,10 +119,10 @@
                 </StackPanel>
             </Grid>
 
-            <!-- ═══════════════════════════════════════════════════════
+            <!-- =======================================================
                  ROW 1: DUPLICATE WARNING BANNER (Feature 14)
                  Visible when duplicate documents are detected during import.
-                 ═══════════════════════════════════════════════════════ -->
+                 ======================================================= -->
             <Border Grid.Row="1"
                     Visibility="{x:Bind ViewModel.ShowDuplicateWarning, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                     Background="{ThemeResource WarningSubtleBrush}" CornerRadius="8" Padding="16,12"
@@ -156,10 +156,10 @@
                 </Grid>
             </Border>
 
-            <!-- ═══════════════════════════════════════════════════════
+            <!-- =======================================================
                  ROW 2: STATS BAR
                  3 inline stat badges + import progress bar
-                 ═══════════════════════════════════════════════════════ -->
+                 ======================================================= -->
             <StackPanel Grid.Row="2" Spacing="12">
                 <StackPanel Orientation="Horizontal" Spacing="12">
 
@@ -251,9 +251,9 @@
                 </Border>
             </StackPanel>
 
-            <!-- ═══════════════════════════════════════════════════════
+            <!-- =======================================================
                  ROW 3: TOOLBAR / FILTER BAR
-                 ═══════════════════════════════════════════════════════ -->
+                 ======================================================= -->
             <Border Grid.Row="3" Style="{StaticResource CardInsetStyle}">
                 <StackPanel Spacing="12">
 
@@ -453,7 +453,7 @@
 
                         <TextBox Grid.Column="1"
                                  Style="{StaticResource SearchInputStyle}"
-                                 x:Uid="Vault_SearchDocumentsByNamePh" PlaceholderText="Search documents by name, content, or tags..."
+                                 x:Uid="Vault_SearchDocumentsByNamePh" PlaceholderText="Filter by file name or tag..."
                                  Text="{x:Bind ViewModel.SearchQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                  BorderThickness="0"
                                  Background="Transparent" />
@@ -473,13 +473,20 @@
                             </StackPanel>
                         </Button>
                     </Grid>
+
+                    <!-- What the box matches while a query is typed: names and tags, not text -->
+                    <TextBlock x:Uid="Vault_SearchScopeHint"
+                               Text="Matches file names and tags. To search inside documents, use Semantic Search or Ask Your Files."
+                               Style="{StaticResource CaptionStyle}"
+                               TextWrapping="Wrap"
+                               Visibility="{x:Bind ViewModel.SearchQuery, Mode=OneWay, Converter={StaticResource StringToVis}}" />
                 </StackPanel>
             </Border>
 
-            <!-- ═══════════════════════════════════════════════════════
+            <!-- =======================================================
                  ROW 4: BATCH ACTION BAR (Feature 8)
                  Visible only in multi-select mode.
-                 ═══════════════════════════════════════════════════════ -->
+                 ======================================================= -->
             <Border Grid.Row="4"
                     Visibility="{x:Bind ViewModel.IsMultiSelectMode, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                     Background="{ThemeResource ErrorSubtleBrush}"
@@ -523,9 +530,9 @@
                 </Grid>
             </Border>
 
-            <!-- ═══════════════════════════════════════════════════════
+            <!-- =======================================================
                  ROW 5: ERROR MESSAGE (conditional)
-                 ═══════════════════════════════════════════════════════ -->
+                 ======================================================= -->
             <Border Grid.Row="5"
                     Visibility="{x:Bind ViewModel.HasError, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                     Background="{ThemeResource ErrorSubtleBrush}"
@@ -544,11 +551,11 @@
                 </StackPanel>
             </Border>
 
-            <!-- ═══════════════════════════════════════════════════════
+            <!-- =======================================================
                  ROW 5: DROP ZONE
                  Visible when no documents exist or always as
                  an inviting import area.
-                 ═══════════════════════════════════════════════════════ -->
+                 ======================================================= -->
             <Border Grid.Row="6"
                     x:Name="DropZoneBorder"
                     Style="{StaticResource DropZoneStyle}"
@@ -608,9 +615,9 @@
                 </StackPanel>
             </Border>
 
-            <!-- ═══════════════════════════════════════════════════════
+            <!-- =======================================================
                  ROW 7: DOCUMENTS GRID
-                 ═══════════════════════════════════════════════════════ -->
+                 ======================================================= -->
             <StackPanel Grid.Row="7" Spacing="16">
 
                 <!-- Loading indicator -->
@@ -695,7 +702,7 @@
                                                                CharacterSpacing="40" />
                                                 </Border>
 
-                                                <!-- Status badge — color bound to real indexing status
+                                                <!-- Status badge - color bound to real indexing status
                                                      (completed/processing/pending/failed) via the shared
                                                      status->color converter instead of hardcoded green. -->
                                                 <Grid>
@@ -719,14 +726,25 @@
                                                                Foreground="{ThemeResource TextAccentBrush}" />
                                                 </Border>
                                             </StackPanel>
+
+                                            <!-- Why indexing failed, as the pipeline stored it: one
+                                                 line here, the whole reason in the tooltip and the
+                                                 preview. Updates live with the status. -->
+                                            <TextBlock Text="{x:Bind IndexingFailureReason, Mode=OneWay}"
+                                                       Visibility="{x:Bind HasIndexingFailureReason, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                                                       ToolTipService.ToolTip="{x:Bind IndexingFailureReason, Mode=OneWay}"
+                                                       Style="{StaticResource CaptionStyle}"
+                                                       Foreground="{ThemeResource ErrorBrush}"
+                                                       MaxLines="1"
+                                                       TextTrimming="CharacterEllipsis" />
                                         </StackPanel>
                                     </Grid>
 
                                     <!-- Row 1: Extracted title (if available) -->
                                     <TextBlock Grid.Row="1"
-                                               Text="{x:Bind ExtractedTitle}"
+                                               Text="{x:Bind ExtractedTitle, Mode=OneWay}"
                                                Style="{StaticResource BodySecondaryStyle}"
-                                               Visibility="{x:Bind ExtractedTitle, Converter={StaticResource StringToVis}}"
+                                               Visibility="{x:Bind ExtractedTitle, Mode=OneWay, Converter={StaticResource StringToVis}}"
                                                MaxLines="2"
                                                TextTrimming="CharacterEllipsis" />
 
@@ -736,7 +754,7 @@
                                             <FontIcon Glyph="&#xE8A1;" FontSize="10"
                                                       Foreground="{ThemeResource TextTertiaryBrush}" />
                                             <TextBlock Style="{StaticResource CaptionStyle}">
-                                                <Run Text="{x:Bind PageCount}" />
+                                                <Run Text="{x:Bind PageCount, Mode=OneWay}" />
                                                 <Run x:Uid="Vault_Pages" Text="pages" />
                                             </TextBlock>
                                         </StackPanel>
@@ -745,7 +763,7 @@
                                             <FontIcon Glyph="&#xE8C1;" FontSize="10"
                                                       Foreground="{ThemeResource TextTertiaryBrush}" />
                                             <TextBlock Style="{StaticResource CaptionStyle}">
-                                                <Run Text="{x:Bind WordCountFormatted}" />
+                                                <Run Text="{x:Bind WordCountFormatted, Mode=OneWay}" />
                                                 <Run x:Uid="Vault_Words" Text="words" />
                                             </TextBlock>
                                         </StackPanel>
@@ -754,7 +772,7 @@
                                             <FontIcon Glyph="&#xE943;" FontSize="10"
                                                       Foreground="{ThemeResource TextTertiaryBrush}" />
                                             <TextBlock Style="{StaticResource CaptionStyle}">
-                                                <Run Text="{x:Bind ChunkCount}" />
+                                                <Run Text="{x:Bind ChunkCount, Mode=OneWay}" />
                                                 <Run x:Uid="Vault_Chunks" Text="chunks" />
                                             </TextBlock>
                                         </StackPanel>
@@ -932,10 +950,10 @@
                 </Border>
             </StackPanel>
 
-            <!-- ═══════════════════════════════════════════════════════
+            <!-- =======================================================
                  ROW 8: INDEXING STATUS BAR
                  Visible when indexing is active.
-                 ═══════════════════════════════════════════════════════ -->
+                 ======================================================= -->
             <Border Grid.Row="8"
                     Style="{StaticResource IndexingStatusBarStyle}"
                     Visibility="{x:Bind ViewModel.IsIndexing, Mode=OneWay, Converter={StaticResource BoolToVis}}">
@@ -976,11 +994,11 @@
         </Grid>
         </ScrollViewer>
 
-        <!-- ═══════════════════════════════════════════════════════════
+        <!-- ===========================================================
              COLUMN 1: DOCUMENT PREVIEW PANEL
              Slides in from the right when a document is selected.
              Width: 360px, visible only when IsPreviewOpen is true.
-             ═══════════════════════════════════════════════════════════ -->
+             =========================================================== -->
         <Border Grid.Column="1"
                 Width="360"
                 Background="{ThemeResource SidebarGradientBrush}"
@@ -992,7 +1010,7 @@
                           HorizontalScrollBarVisibility="Disabled">
                 <StackPanel Spacing="0" Padding="24,20,24,24">
 
-                    <!-- ── HEADER: Title + Close Button ── -->
+                    <!-- == HEADER: Title + Close Button == -->
                     <Grid Margin="0,0,0,20">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -1050,7 +1068,7 @@
                         </Grid>
                     </Border>
 
-                    <!-- ── FILE IDENTITY: Icon + Filename ── -->
+                    <!-- == FILE IDENTITY: Icon + Filename == -->
                     <Grid Margin="0,0,0,16" ColumnSpacing="12"
                           Visibility="{x:Bind ViewModel.SelectedDocument, Mode=OneWay, Converter={StaticResource NullToVis}}">
                         <Grid.ColumnDefinitions>
@@ -1086,25 +1104,38 @@
                                                Foreground="{ThemeResource TextAccentBrush}"
                                                CharacterSpacing="40" />
                                 </Border>
-                                <Border CornerRadius="{StaticResource RControl}"
-                                        Padding="8,3,8,3">
-                                    <Border.Background>
-                                        <SolidColorBrush Color="{StaticResource StatusSuccess}" Opacity="0.1" />
-                                    </Border.Background>
-                                    <TextBlock Text="{x:Bind ViewModel.SelectedDocument.IndexingStatusLabel, Mode=OneWay}"
-                                               FontSize="10"
-                                               FontWeight="Bold"
-                                               CharacterSpacing="40">
-                                        <TextBlock.Foreground>
-                                            <SolidColorBrush Color="{StaticResource StatusSuccess}" />
-                                        </TextBlock.Foreground>
-                                    </TextBlock>
-                                </Border>
+                                <!-- Status badge: the same status tones as the rows. It was
+                                     hardcoded green, so a failed document read "Failed" in GO. -->
+                                <Grid>
+                                    <Border CornerRadius="{StaticResource RControl}"
+                                            Opacity="0.1"
+                                            Background="{x:Bind ViewModel.SelectedDocument.IndexingStatus, Mode=OneWay, Converter={StaticResource StatusToColor}}" />
+                                    <Border CornerRadius="{StaticResource RControl}"
+                                            Padding="8,3,8,3">
+                                        <TextBlock Text="{x:Bind ViewModel.SelectedDocument.IndexingStatusLabel, Mode=OneWay}"
+                                                   FontSize="10"
+                                                   FontWeight="Bold"
+                                                   CharacterSpacing="40"
+                                                   Foreground="{x:Bind ViewModel.SelectedDocument.IndexingStatus, Mode=OneWay, Converter={StaticResource StatusToColor}}" />
+                                    </Border>
+                                </Grid>
                             </StackPanel>
                         </StackPanel>
                     </Grid>
 
-                    <!-- ── EXTRACTED TITLE (if available) ── -->
+                    <!-- WHY INDEXING FAILED (failed documents with a stored reason) -->
+                    <StackPanel Spacing="4" Margin="0,0,0,16"
+                                Visibility="{x:Bind ViewModel.SelectedDocument.HasIndexingFailureReason, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                        <TextBlock x:Uid="Vault_IndexingFailedReason" Text="WHY INDEXING FAILED"
+                                   Style="{StaticResource OverlineStyle}" />
+                        <TextBlock Text="{x:Bind ViewModel.SelectedDocument.IndexingFailureReason, Mode=OneWay}"
+                                   Style="{StaticResource BodySmallStyle}"
+                                   Foreground="{ThemeResource ErrorBrush}"
+                                   TextWrapping="Wrap"
+                                   IsTextSelectionEnabled="True" />
+                    </StackPanel>
+
+                    <!-- == EXTRACTED TITLE (if available) == -->
                     <StackPanel Spacing="4" Margin="0,0,0,16"
                                 Visibility="{x:Bind ViewModel.SelectedDocument.ExtractedTitle, Mode=OneWay, Converter={StaticResource StringToVis}}">
                         <TextBlock x:Uid="Vault_ExtractedTitle" Text="EXTRACTED TITLE"
@@ -1116,7 +1147,7 @@
                                    TextTrimming="CharacterEllipsis" />
                     </StackPanel>
 
-                    <!-- ── AI SUMMARY (if available) ── -->
+                    <!-- == AI SUMMARY (if available) == -->
                     <StackPanel Spacing="4" Margin="0,0,0,16"
                                 Visibility="{x:Bind ViewModel.SelectedDocument.Summary, Mode=OneWay, Converter={StaticResource StringToVis}}">
                         <TextBlock x:Uid="Vault_AiSummary" Text="AI SUMMARY"
@@ -1129,7 +1160,7 @@
                         </Border>
                     </StackPanel>
 
-                    <!-- ── STATS GRID ── -->
+                    <!-- == STATS GRID == -->
                     <StackPanel Spacing="4" Margin="0,0,0,16">
                         <TextBlock x:Uid="Vault_Details" Text="DETAILS"
                                    Style="{StaticResource OverlineStyle}"
@@ -1217,7 +1248,7 @@
                         </Grid>
                     </StackPanel>
 
-                    <!-- ── TAGS ── -->
+                    <!-- == TAGS == -->
                     <StackPanel Spacing="4" Margin="0,0,0,20"
                                 Visibility="{x:Bind ViewModel.SelectedDocument, Mode=OneWay, Converter={StaticResource NullToVis}}">
                         <TextBlock x:Uid="Vault_Tags2" Text="TAGS"
@@ -1245,7 +1276,7 @@
 
                     <Border Style="{StaticResource SeparatorStyle}" Margin="0,0,0,20" />
 
-                    <!-- ── ACTION BUTTONS ── -->
+                    <!-- == ACTION BUTTONS == -->
                     <StackPanel Spacing="8"
                                 Visibility="{x:Bind ViewModel.SelectedDocument, Mode=OneWay, Converter={StaticResource NullToVis}}">
 
@@ -1292,6 +1323,175 @@
                                            Foreground="{ThemeResource TextSecondaryBrush}" />
                             </StackPanel>
                         </Button>
+                    </StackPanel>
+
+                    <!-- DOCUMENT TEXT AND ANNOTATIONS
+                         The indexed text one passage (chunk) at a time. Selecting text in the
+                         passage starts an annotation; the document's annotations are listed
+                         below with delete and also appear on the Annotations page. -->
+                    <StackPanel Spacing="8" Margin="0,20,0,0"
+                                Visibility="{x:Bind ViewModel.Notes.IsAvailable, Converter={StaticResource BoolToVis}}">
+
+                        <Border Style="{StaticResource SeparatorStyle}" Margin="0,0,0,12" />
+
+                        <!-- Header: label, passage position, previous / next -->
+                        <Grid ColumnSpacing="4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Spacing="2" VerticalAlignment="Center">
+                                <TextBlock x:Uid="Vault_DocumentText" Text="DOCUMENT TEXT"
+                                           Style="{StaticResource OverlineStyle}" />
+                                <TextBlock Style="{StaticResource CaptionStyle}"
+                                           Visibility="{x:Bind ViewModel.Notes.HasPassage, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                                    <Run x:Uid="Vault_Passage" Text="Passage" />
+                                    <Run Text="{x:Bind ViewModel.Notes.PassageNumber, Mode=OneWay}" />
+                                    <Run Text="/" />
+                                    <Run Text="{x:Bind ViewModel.Notes.PassageCount, Mode=OneWay}" />
+                                </TextBlock>
+                            </StackPanel>
+
+                            <Button Grid.Column="1"
+                                    Style="{StaticResource IconButtonStyle}"
+                                    Command="{x:Bind ViewModel.Notes.PreviousPassageCommand}"
+                                    Visibility="{x:Bind ViewModel.Notes.HasPassage, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                                    x:Uid="Vault_PreviousPassageTip" ToolTipService.ToolTip="Previous passage"
+                                    AutomationProperties.Name="Previous passage">
+                                <FontIcon Glyph="&#xE76B;" FontSize="12"
+                                          Foreground="{ThemeResource TextSecondaryBrush}" />
+                            </Button>
+
+                            <Button Grid.Column="2"
+                                    Style="{StaticResource IconButtonStyle}"
+                                    Command="{x:Bind ViewModel.Notes.NextPassageCommand}"
+                                    Visibility="{x:Bind ViewModel.Notes.HasPassage, Mode=OneWay, Converter={StaticResource BoolToVis}}"
+                                    x:Uid="Vault_NextPassageTip" ToolTipService.ToolTip="Next passage"
+                                    AutomationProperties.Name="Next passage">
+                                <FontIcon Glyph="&#xE76C;" FontSize="12"
+                                          Foreground="{ThemeResource TextSecondaryBrush}" />
+                            </Button>
+                        </Grid>
+
+                        <!-- The passage. Its selection is handed to the view model, which places
+                             it in the passage text for the annotation's offsets. -->
+                        <Border Style="{StaticResource CardInsetStyle}" Padding="12"
+                                Visibility="{x:Bind ViewModel.Notes.HasPassage, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                            <ScrollViewer MaxHeight="320"
+                                          VerticalScrollBarVisibility="Auto"
+                                          HorizontalScrollBarVisibility="Disabled">
+                                <TextBlock Text="{x:Bind ViewModel.Notes.PassageText, Mode=OneWay}"
+                                           Style="{StaticResource BodySmallStyle}"
+                                           TextWrapping="Wrap"
+                                           IsTextSelectionEnabled="True"
+                                           SelectionChanged="OnPassageSelectionChanged" />
+                            </ScrollViewer>
+                        </Border>
+
+                        <TextBlock x:Uid="Vault_SelectTextToAnnotate" Text="Select text in the passage to annotate it."
+                                   Style="{StaticResource CaptionStyle}"
+                                   TextWrapping="Wrap"
+                                   Visibility="{x:Bind ViewModel.Notes.ShowSelectionHint, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+
+                        <TextBlock x:Uid="Vault_NoTextToAnnotate" Text="This document has no indexed text to annotate. Its text appears here once the document is indexed."
+                                   Style="{StaticResource CaptionStyle}"
+                                   TextWrapping="Wrap"
+                                   Visibility="{x:Bind ViewModel.Notes.ShowNoTextHint, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+
+                        <!-- New annotation: the selected text, an optional note, save or cancel -->
+                        <StackPanel Spacing="8"
+                                    Visibility="{x:Bind ViewModel.Notes.HasDraft, Mode=OneWay, Converter={StaticResource BoolToVis}}">
+                            <TextBlock x:Uid="Vault_NewAnnotation" Text="NEW ANNOTATION"
+                                       Style="{StaticResource OverlineStyle}" />
+                            <TextBlock Text="{x:Bind ViewModel.Notes.DraftHighlight, Mode=OneWay}"
+                                       Style="{StaticResource BodySmallStyle}"
+                                       FontStyle="Italic"
+                                       TextWrapping="Wrap"
+                                       MaxLines="4"
+                                       TextTrimming="CharacterEllipsis" />
+                            <TextBox Text="{x:Bind ViewModel.Notes.DraftNote, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     x:Uid="Vault_AnnotationNote" PlaceholderText="Add a note (optional)"
+                                     AutomationProperties.Name="Annotation note"
+                                     Style="{StaticResource InputTextBoxStyle}"
+                                     AcceptsReturn="True"
+                                     TextWrapping="Wrap"
+                                     MaxHeight="120" />
+                            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                                <Button x:Uid="Vault_CancelAnnotation" Content="Cancel"
+                                        Command="{x:Bind ViewModel.Notes.CancelAnnotationCommand}"
+                                        Style="{StaticResource GhostButtonStyle}" />
+                                <Button x:Uid="Vault_SaveAnnotation" Content="Save Annotation"
+                                        Command="{x:Bind ViewModel.Notes.SaveAnnotationCommand}"
+                                        Style="{StaticResource SecondaryButtonStyle}" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- Load, save and delete problems -->
+                        <TextBlock Text="{x:Bind ViewModel.Notes.StatusMessage, Mode=OneWay}"
+                                   Style="{StaticResource CaptionStyle}"
+                                   Foreground="{ThemeResource ErrorBrush}"
+                                   TextWrapping="Wrap"
+                                   Visibility="{x:Bind ViewModel.Notes.HasStatusMessage, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+
+                        <!-- This document's annotations, newest first -->
+                        <TextBlock x:Uid="Vault_DocumentAnnotations" Text="ANNOTATIONS"
+                                   Style="{StaticResource OverlineStyle}"
+                                   Margin="0,12,0,0" />
+                        <TextBlock x:Uid="Vault_NoAnnotationsYet" Text="No annotations on this document yet."
+                                   Style="{StaticResource CaptionStyle}"
+                                   TextWrapping="Wrap"
+                                   Visibility="{x:Bind ViewModel.Notes.HasAnnotations, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}" />
+                        <ItemsRepeater ItemsSource="{x:Bind ViewModel.Notes.Annotations}">
+                            <ItemsRepeater.Layout>
+                                <StackLayout Spacing="8" />
+                            </ItemsRepeater.Layout>
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate x:DataType="vm:AnnotationDisplayItem">
+                                    <Border Style="{StaticResource CardInsetStyle}" Padding="12,8">
+                                        <Grid ColumnSpacing="8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <!-- Annotation ink is user content (Helpers/AnnotationInk.cs) -->
+                                            <Ellipse Width="8" Height="8"
+                                                     Margin="0,4,0,0"
+                                                     VerticalAlignment="Top"
+                                                     Fill="{x:Bind helpers:AnnotationInk.BrushFor(Color)}" />
+
+                                            <StackPanel Grid.Column="1" Spacing="4">
+                                                <TextBlock Text="{x:Bind HighlightedText}"
+                                                           Style="{StaticResource BodySmallStyle}"
+                                                           FontStyle="Italic"
+                                                           TextWrapping="Wrap"
+                                                           MaxLines="4"
+                                                           TextTrimming="CharacterEllipsis" />
+                                                <TextBlock Text="{x:Bind NoteText}"
+                                                           Style="{StaticResource CaptionStyle}"
+                                                           TextWrapping="Wrap"
+                                                           Visibility="{x:Bind NoteText, Converter={StaticResource StringToVis}}" />
+                                            </StackPanel>
+
+                                            <Button Grid.Column="2"
+                                                    Style="{StaticResource GhostButtonStyle}"
+                                                    Padding="4" MinWidth="0" MinHeight="0"
+                                                    VerticalAlignment="Top"
+                                                    Tag="{x:Bind Id}"
+                                                    Click="OnDeleteAnnotationClick"
+                                                    x:Uid="Vault_DeleteAnnotationTip" ToolTipService.ToolTip="Delete annotation"
+                                                    AutomationProperties.Name="Delete annotation">
+                                                <FontIcon Glyph="&#xE74D;" FontSize="12"
+                                                          Foreground="{ThemeResource ErrorBrush}" />
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
                     </StackPanel>
 
                 </StackPanel>

@@ -21,9 +21,9 @@ public sealed class HtmlExportTests
         _export = new HtmlExport();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Basic Properties
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Format_ShouldReturnHtml()
@@ -45,9 +45,9 @@ public sealed class HtmlExportTests
         extension.Should().Be(".html");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Supports<T> Method
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Supports_WithConversationEntity_ShouldReturnTrue()
@@ -89,9 +89,9 @@ public sealed class HtmlExportTests
         result.Should().BeFalse();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  RenderAsync - Single Conversation
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task RenderAsync_WithSingleConversation_ReturnsValidHtml()
@@ -146,6 +146,19 @@ public sealed class HtmlExportTests
         html.Should().Contain("Test Conversation");
         html.Should().Contain("<div class=\"conversation\">");
         html.Should().Contain("</html>");
+    }
+
+    [Fact]
+    public async Task RenderAsync_ListsEachAnswersWebSourcesInsideIt_Encoded()
+    {
+        var html = (string)await _export.RenderAsync(
+            ResearchConversation.Create(), new ExportOptions { IncludeCitations = true });
+
+        var second = html.IndexOf(ResearchConversation.SecondAnswer, StringComparison.Ordinal);
+        html[..second].Should().Contain("<li>Migration &lt;guide&gt; - https://example.org/migrate?a=1&amp;b=2</li>");
+        html[second..].Should().Contain("<li>Blog - https://blog.example.org/v2</li>")
+            .And.NotContain("Release notes");
+        html.Should().NotContain("<h2>Citations</h2>");
     }
 
     [Fact]
@@ -348,9 +361,9 @@ public sealed class HtmlExportTests
         html.Should().Contain("&lt;script&gt;");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  RenderAsync - Multiple Conversations
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task RenderAsync_WithMultipleConversations_ReturnsValidHtml()
@@ -393,9 +406,9 @@ public sealed class HtmlExportTests
         html.Should().Contain("class=\"section-divider\"");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  RenderAsync - Search Results
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task RenderAsync_WithSearchResults_ReturnsValidHtml()
@@ -427,9 +440,9 @@ public sealed class HtmlExportTests
         html.Should().Contain("Page 1");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Cancellation Support
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task RenderAsync_WithCancelledToken_ThrowsOperationCanceledException()
@@ -449,5 +462,133 @@ public sealed class HtmlExportTests
         // Act & Assert
         await Assert.ThrowsAsync<OperationCanceledException>(
             async () => await _export.RenderAsync(conversation, new ExportOptions(), cts.Token));
+    }
+
+    // Untrusted content (model output, document excerpts) must never become script
+
+    /// <summary>Payloads that ran script in an exported page before the renderer was locked down.</summary>
+    public static IEnumerable<object[]> ScriptPayloads() => new[]
+    {
+        new object[] { "<img src=x onerror=alert(1)>" },
+        new object[] { "<script>alert(1)</script>" },
+        new object[] { "[click me](javascript:alert(1))" },
+        new object[] { "[click me](JaVaScRiPt:alert(1))" },
+        new object[] { "[click me](<java\tscript:alert(1)>)" },
+        new object[] { "[click me][ref]\n\n[ref]: javascript:alert(1)" },
+        new object[] { "<javascript:alert(1)>" },
+        new object[] { "![logo](javascript:alert(1))" },
+        new object[] { "[data](data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==)" },
+        new object[] { "# Title {onclick=alert(1)}\n\n[x](https://example.com){onmouseover=alert(1)}" },
+    };
+
+    [Theory]
+    [MemberData(nameof(ScriptPayloads))]
+    public async Task RenderAsync_AssistantMessageWithScriptPayload_RendersNothingExecutable(string payload)
+    {
+        var conversation = new ConversationEntity
+        {
+            Id = 1,
+            Title = "Injected",
+            CreatedAt = DateTime.UtcNow,
+            Messages = new List<MessageEntity>
+            {
+                new() { Id = 1, Role = "assistant", Content = payload, Timestamp = DateTime.UtcNow, SortOrder = 0 },
+            },
+        };
+
+        var html = (string)await _export.RenderAsync(conversation, new ExportOptions());
+
+        AssertNoExecutableMarkup(html);
+    }
+
+    [Theory]
+    [MemberData(nameof(ScriptPayloads))]
+    public async Task RenderAsync_SearchResultWithScriptPayload_RendersNothingExecutable(string payload)
+    {
+        var results = new List<SearchResultExportItem>
+        {
+            new() { Query = "q", DocumentName = "doc.md", Content = payload, RelevanceScore = 0.5f },
+        };
+
+        var html = (string)await _export.RenderAsync(results, new ExportOptions());
+
+        AssertNoExecutableMarkup(html);
+    }
+
+    [Fact]
+    public async Task RenderAsync_AssistantMarkdown_KeepsFormattingAndSafeLinks()
+    {
+        var conversation = new ConversationEntity
+        {
+            Id = 1,
+            Title = "Formatting",
+            CreatedAt = DateTime.UtcNow,
+            Messages = new List<MessageEntity>
+            {
+                new()
+                {
+                    Id = 1,
+                    Role = "assistant",
+                    Content = "**bold** and `code`\n\n[site](https://example.com/a?b=1) [mail](mailto:me@example.com) [local](notes/today.md)\n\n| a | b |\n|---|---|\n| 1 | 2 |",
+                    Timestamp = DateTime.UtcNow,
+                    SortOrder = 0,
+                },
+            },
+        };
+
+        var html = (string)await _export.RenderAsync(conversation, new ExportOptions());
+
+        html.Should().Contain("<strong>bold</strong>");
+        html.Should().Contain("<code>code</code>");
+        html.Should().Contain("href=\"https://example.com/a?b=1\"");
+        html.Should().Contain("href=\"mailto:me@example.com\"");
+        html.Should().Contain("href=\"notes/today.md\"");
+        html.Should().Contain("<table>");
+    }
+
+    [Fact]
+    public async Task RenderAsync_EveryDocument_DeclaresARestrictiveContentSecurityPolicy()
+    {
+        var conversation = new ConversationEntity { Id = 1, Title = "CSP", CreatedAt = DateTime.UtcNow };
+
+        var html = (string)await _export.RenderAsync(conversation, new ExportOptions());
+
+        html.Should().Contain("<meta http-equiv=\"Content-Security-Policy\"");
+        html.Should().Contain("default-src 'none'");
+        html.Should().NotContain("script-src");
+    }
+
+    [Theory]
+    [InlineData("https://example.com", true)]
+    [InlineData("HTTP://example.com", true)]
+    [InlineData("mailto:a@b.c", true)]
+    [InlineData("docs/readme.md", true)]
+    [InlineData("#section", true)]
+    [InlineData("/path/with:colon", true)]
+    [InlineData("javascript:alert(1)", false)]
+    [InlineData(" javascript:alert(1)", false)]
+    [InlineData("java\nscript:alert(1)", false)]
+    [InlineData("vbscript:msgbox(1)", false)]
+    [InlineData("data:text/html,<script>", false)]
+    [InlineData("file:///C:/Windows/win.ini", false)]
+    public void IsSafeUrl_AllowsOnlyWebMailAndRelativeTargets(string url, bool expected)
+    {
+        HtmlExport.IsSafeUrl(url).Should().Be(expected);
+    }
+
+    /// <summary>
+    /// Escaped payload text ("&amp;lt;img onerror=...") is inert and allowed; what must never
+    /// appear is a real tag carrying script, an event-handler attribute, or a script URL.
+    /// </summary>
+    private static void AssertNoExecutableMarkup(string html)
+    {
+        var lower = html.ToLowerInvariant();
+        lower.Should().NotContain("<script");
+        lower.Should().NotContain("<img src=x");
+        lower.Should().NotMatchRegex("<[a-z][^>]*\\son[a-z]+\\s*=", "no real tag may carry an event handler");
+        lower.Should().NotContain("href=\"javascript:");
+        lower.Should().NotContain("src=\"javascript:");
+        lower.Should().NotContain("href=\"data:");
+        lower.Should().NotMatchRegex("href=\"java\\s*script:");
     }
 }

@@ -1,3 +1,4 @@
+using AgentX.Core.Documents;
 using AgentX.Core.Services.Settings;
 using AgentX.Core.Validation;
 using FluentAssertions;
@@ -19,9 +20,9 @@ public sealed class AppSettingsValidatorTests
     /// </summary>
     private static AppSettings CreateValidSettings() => new();
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Valid settings
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Validate_WithDefaultSettings_Passes()
@@ -61,9 +62,9 @@ public sealed class AppSettingsValidatorTests
         result.IsValid.Should().BeTrue();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Temperature
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Theory]
     [InlineData(-0.1)]
@@ -103,9 +104,9 @@ public sealed class AppSettingsValidatorTests
         result.Errors.Should().NotContain(e => e.FieldName == nameof(AppSettings.Temperature));
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  MaxTokens
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Theory]
     [InlineData(0)]
@@ -143,9 +144,9 @@ public sealed class AppSettingsValidatorTests
         result.Errors.Should().NotContain(e => e.FieldName == nameof(AppSettings.MaxTokens));
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  ChunkOverlap exceeding ChunkSize
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Validate_ChunkOverlapExceedingChunkSize_Fails()
@@ -166,7 +167,8 @@ public sealed class AppSettingsValidatorTests
     [Fact]
     public void Validate_ChunkOverlapEqualToChunkSize_Fails()
     {
-        // Arrange: the validator uses > (not >=), but let's check the boundary
+        // Arrange: the chunker rejects an overlap equal to the chunk size (no room for new text),
+        // so a save that allowed it made every document fail to index.
         var settings = CreateValidSettings();
         settings.ChunkSize = 256;
         settings.ChunkOverlap = 256; // overlap == size
@@ -174,13 +176,58 @@ public sealed class AppSettingsValidatorTests
         // Act
         var result = _sut.Validate(settings);
 
-        // Assert: per the implementation, ChunkOverlap > ChunkSize fails;
-        // overlap == size should also fail since condition is ChunkOverlap > ChunkSize
-        // Actually checking the source: "ChunkOverlap < 0 || ChunkOverlap > ChunkSize"
-        // overlap == size passes this check (256 > 256 is false), so it should be valid.
-        // Let's verify the source logic is honored correctly.
-        result.Errors.Should().NotContain(e => e.FieldName == nameof(AppSettings.ChunkOverlap),
-            "overlap equal to ChunkSize is within the valid range per implementation");
+        // Assert
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.FieldName == nameof(AppSettings.ChunkOverlap));
+    }
+
+    [Fact]
+    public void Validate_ChunkOverlapOneBelowChunkSize_Passes()
+    {
+        var settings = CreateValidSettings();
+        settings.ChunkSize = 256;
+        settings.ChunkOverlap = 255;
+
+        _sut.Validate(settings).Errors.Should().NotContain(e => e.FieldName == nameof(AppSettings.ChunkOverlap));
+    }
+
+    /// <summary>
+    /// The indexing pipeline hands the saved chunk size and overlap to ChunkingService, so the
+    /// validator must accept exactly the values the chunker accepts.
+    /// </summary>
+    [Theory]
+    [InlineData(64, 0)]
+    [InlineData(64, 63)]
+    [InlineData(64, 64)]
+    [InlineData(512, 50)]
+    [InlineData(512, 511)]
+    [InlineData(512, 512)]
+    [InlineData(512, 600)]
+    [InlineData(8192, 8191)]
+    [InlineData(8192, 8192)]
+    public void Validate_AcceptsExactlyTheChunkSettingsTheChunkerAccepts(int chunkSize, int chunkOverlap)
+    {
+        var settings = CreateValidSettings();
+        settings.ChunkSize = chunkSize;
+        settings.ChunkOverlap = chunkOverlap;
+
+        var validatorAccepts = !_sut.Validate(settings).Errors.Any(e =>
+            e.FieldName is nameof(AppSettings.ChunkSize) or nameof(AppSettings.ChunkOverlap));
+
+        var chunker = new ChunkingService(Serilog.Core.Logger.None);
+        var chunk = () => chunker.ChunkText("one two three four five six seven eight nine ten", chunkSize, chunkOverlap);
+        var chunkerAccepts = true;
+        try
+        {
+            chunk();
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            chunkerAccepts = false;
+        }
+
+        validatorAccepts.Should().Be(chunkerAccepts,
+            $"a saved chunk size of {chunkSize} with an overlap of {chunkOverlap} must not break indexing");
     }
 
     [Fact]
@@ -198,9 +245,9 @@ public sealed class AppSettingsValidatorTests
         result.Errors.Should().Contain(e => e.FieldName == nameof(AppSettings.ChunkOverlap));
     }
 
-    // ══════════════════════════════════════════════════════════════════════
-    //  ActiveProviderId — invalid provider
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
+    //  ActiveProviderId - invalid provider
+    // ======================================================================
 
     [Theory]
     [InlineData("invalid")]
@@ -269,9 +316,9 @@ public sealed class AppSettingsValidatorTests
         result.Errors.Should().Contain(e => e.FieldName == nameof(AppSettings.ActiveProviderId));
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Missing API keys
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Validate_MissingOpenAiApiKeyWhenProviderIsOpenai_Fails()
@@ -354,9 +401,9 @@ public sealed class AppSettingsValidatorTests
         result.Errors.Should().NotContain(e => e.FieldName == nameof(AppSettings.AnthropicApiKey));
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Invalid URI format
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Validate_InvalidOllamaEndpointUri_Fails()
@@ -408,9 +455,9 @@ public sealed class AppSettingsValidatorTests
         result.Errors.Should().Contain(e => e.FieldName == nameof(AppSettings.AnthropicEndpoint));
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Empty StoragePath
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Theory]
     [InlineData("")]
@@ -444,9 +491,9 @@ public sealed class AppSettingsValidatorTests
         result.Errors.Should().Contain(e => e.FieldName == nameof(AppSettings.StoragePath));
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Multiple errors
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Validate_MultipleInvalidFields_ReportsAllErrors()
@@ -470,9 +517,9 @@ public sealed class AppSettingsValidatorTests
             "multiple fields are invalid and all should be reported");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  ContextWindow boundaries
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Theory]
     [InlineData(511)]
@@ -492,9 +539,9 @@ public sealed class AppSettingsValidatorTests
         result.Errors.Should().Contain(e => e.FieldName == nameof(AppSettings.ContextWindow));
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  TopKResults boundaries
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Theory]
     [InlineData(0)]
@@ -513,9 +560,9 @@ public sealed class AppSettingsValidatorTests
         result.Errors.Should().Contain(e => e.FieldName == nameof(AppSettings.TopKResults));
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  ChunkSize boundaries
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Theory]
     [InlineData(63)]
@@ -536,9 +583,54 @@ public sealed class AppSettingsValidatorTests
         result.Errors.Should().Contain(e => e.FieldName == nameof(AppSettings.ChunkSize));
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // Scheduled backups
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(721)]
+    public void Validate_EnabledBackupScheduleWithIntervalOutOfRange_Fails(int intervalHours)
+    {
+        var settings = CreateValidSettings();
+        settings.BackupSchedule = new AgentX.Core.Services.Backup.Models.BackupScheduleConfig
+        {
+            Enabled = true,
+            IntervalHours = intervalHours,
+        };
+
+        var result = _sut.Validate(settings);
+
+        result.Errors.Should().ContainSingle(e => e.FieldName == "BackupSchedule.IntervalHours");
+    }
+
+    [Fact]
+    public void Validate_EnabledBackupScheduleWithNegativeRetention_Fails()
+    {
+        var settings = CreateValidSettings();
+        settings.BackupSchedule = new AgentX.Core.Services.Backup.Models.BackupScheduleConfig
+        {
+            Enabled = true,
+            MaxBackupsToKeep = -1,
+        };
+
+        _sut.Validate(settings).Errors.Should().ContainSingle(e => e.FieldName == "BackupSchedule.MaxBackupsToKeep");
+    }
+
+    [Fact]
+    public void Validate_DisabledBackupScheduleIsNotChecked()
+    {
+        var settings = CreateValidSettings();
+        settings.BackupSchedule = new AgentX.Core.Services.Backup.Models.BackupScheduleConfig
+        {
+            Enabled = false,
+            IntervalHours = 0,
+        };
+
+        _sut.Validate(settings).IsValid.Should().BeTrue();
+    }
+
+    // ======================================================================
     //  Null instance
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Validate_NullInstance_ThrowsArgumentNullException()

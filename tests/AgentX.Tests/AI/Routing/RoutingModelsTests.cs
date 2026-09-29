@@ -6,7 +6,7 @@ namespace AgentX.Tests.AI.Routing;
 
 public class RoutingModelsTests
 {
-    // ── TaskType Tests ──────────────────────────────────────────────
+    // -- TaskType Tests ----------------------------------------------
 
     [Fact]
     public void TaskType_Extraction_PreferLocalAndSpeed()
@@ -136,7 +136,7 @@ public class RoutingModelsTests
         TaskType.Analysis.Equals(TaskType.Chat).Should().BeFalse();
     }
 
-    // ── RoutingProfile Tests ───────────────────────────────────────
+    // -- RoutingProfile Tests ---------------------------------------
 
     [Fact]
     public void RoutingProfile_CostOptimized_PreferLocalFirst()
@@ -171,7 +171,7 @@ public class RoutingModelsTests
     [InlineData("cost-optimized", "cost-optimized")]
     [InlineData("quality-optimized", "quality-optimized")]
     [InlineData("balanced", "balanced")]
-    [InlineData("COST-OOPTIMIZED", "balanced")] // typo → fallback
+    [InlineData("COST-OOPTIMIZED", "balanced")] // typo -> fallback
     [InlineData("", "balanced")]
     [InlineData(null, "balanced")]
     public void RoutingProfile_FromId_ReturnsCorrectProfile(string? input, string expectedId)
@@ -196,7 +196,7 @@ public class RoutingModelsTests
         result.Should().Contain("balanced");
     }
 
-    // ── RoutingDecision Tests ──────────────────────────────────────
+    // -- RoutingDecision Tests --------------------------------------
 
     [Fact]
     public void RoutingDecision_DefaultValues_AreSet()

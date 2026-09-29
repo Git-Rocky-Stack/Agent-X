@@ -29,15 +29,18 @@ public sealed class SqliteVecStore : IVectorStore
     private readonly ISettingsService _settingsService;
     private readonly IEncryptedConnectionFactory _connectionFactory;
     private readonly ILogger _logger;
+    private readonly VectorStoreSuspension _suspension = new();
 
     private SqliteConnection? _connection;
+    private string? _databasePath;
+    private bool _reopenOnResume;
     private bool _disposed;
 
     /// <summary>
     /// Creates a new SqliteVecStore.
     /// </summary>
     /// <param name="settingsService">Settings service providing the database storage path.</param>
-    /// <param name="connectionFactory">Encrypted connection factory — required so PRAGMA key is applied when opening SQLite.</param>
+    /// <param name="connectionFactory">Encrypted connection factory - required so PRAGMA key is applied when opening SQLite.</param>
     public SqliteVecStore(ISettingsService settingsService, IEncryptedConnectionFactory connectionFactory)
         : this(settingsService, logger: null, connectionFactory)
     {
@@ -48,7 +51,7 @@ public sealed class SqliteVecStore : IVectorStore
     /// </summary>
     /// <param name="settingsService">Settings service providing the database storage path.</param>
     /// <param name="logger">Serilog logger instance (may be null to use the default context logger).</param>
-    /// <param name="connectionFactory">Encrypted connection factory — required so PRAGMA key is applied when opening SQLite.</param>
+    /// <param name="connectionFactory">Encrypted connection factory - required so PRAGMA key is applied when opening SQLite.</param>
     public SqliteVecStore(ISettingsService settingsService, ILogger? logger, IEncryptedConnectionFactory connectionFactory)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
@@ -60,6 +63,8 @@ public sealed class SqliteVecStore : IVectorStore
     /// <inheritdoc />
     public async Task InitializeAsync(CancellationToken ct = default)
     {
+        ThrowIfDisposed();
+        using var operation = await _suspension.EnterAsync(ct).ConfigureAwait(false);
         ThrowIfDisposed();
 
         _logger.Information("Initializing SqliteVecStore...");
@@ -76,37 +81,10 @@ public sealed class SqliteVecStore : IVectorStore
                 _logger.Debug("Created storage directory: {Path}", storagePath);
             }
 
-            var dbPath = Path.Combine(storagePath, "agentx.db");
-            // Route through IEncryptedConnectionFactory so PRAGMA key is applied when
-            // encryption is enabled. When no key is loaded, the factory performs a
-            // plaintext open.
-            _connection = _connectionFactory.OpenKeyed(dbPath);
+            _databasePath = Path.Combine(storagePath, "agentx.db");
+            await OpenAndPrepareAsync(ct).ConfigureAwait(false);
 
-            _logger.Debug("SQLite connection opened: {Path}", dbPath);
-
-            // Enable WAL mode for better concurrent read/write performance.
-            await ExecuteNonQueryAsync("PRAGMA journal_mode=WAL;", ct).ConfigureAwait(false);
-
-            // Create the embeddings table if it does not exist.
-            const string createTableSql = """
-                CREATE TABLE IF NOT EXISTS vec_embeddings (
-                    chunk_id  INTEGER PRIMARY KEY,
-                    embedding BLOB NOT NULL,
-                    magnitude REAL NOT NULL
-                );
-                """;
-
-            await ExecuteNonQueryAsync(createTableSql, ct).ConfigureAwait(false);
-
-            // Create index for chunk_id lookups (the PRIMARY KEY already provides this,
-            // but we create an explicit index name for clarity in EXPLAIN plans).
-            const string createIndexSql = """
-                CREATE INDEX IF NOT EXISTS idx_vec_chunk ON vec_embeddings(chunk_id);
-                """;
-
-            await ExecuteNonQueryAsync(createIndexSql, ct).ConfigureAwait(false);
-
-            var count = await GetEmbeddingCountAsync(ct).ConfigureAwait(false);
+            var count = await CountEmbeddingsAsync(ct).ConfigureAwait(false);
             _logger.Information("SqliteVecStore initialized with {Count} existing embeddings", count);
         }
         catch (Exception ex)
@@ -119,6 +97,8 @@ public sealed class SqliteVecStore : IVectorStore
     /// <inheritdoc />
     public async Task<long> InsertEmbeddingAsync(long chunkId, float[] embedding, CancellationToken ct = default)
     {
+        ThrowIfDisposed();
+        using var operation = await _suspension.EnterAsync(ct).ConfigureAwait(false);
         ThrowIfDisposed();
         EnsureConnection();
         ArgumentNullException.ThrowIfNull(embedding);
@@ -156,6 +136,8 @@ public sealed class SqliteVecStore : IVectorStore
         CancellationToken ct = default)
     {
         ThrowIfDisposed();
+        using var operation = await _suspension.EnterAsync(ct).ConfigureAwait(false);
+        ThrowIfDisposed();
         EnsureConnection();
         ArgumentNullException.ThrowIfNull(queryEmbedding);
 
@@ -178,6 +160,7 @@ public sealed class SqliteVecStore : IVectorStore
 
         // Load all embeddings from the database and compute cosine similarity in C#.
         var candidates = new List<VectorSearchResult>();
+        var mismatchedRows = 0;
 
         const string sql = "SELECT chunk_id, embedding, magnitude FROM vec_embeddings;";
 
@@ -198,12 +181,11 @@ public sealed class SqliteVecStore : IVectorStore
 
             var storedEmbedding = DeserializeEmbedding(blob);
 
-            // Ensure dimension compatibility.
+            // Ensure dimension compatibility. Rows from another embedding model are counted and
+            // reported once per search instead of one warning per row.
             if (storedEmbedding.Length != queryEmbedding.Length)
             {
-                _logger.Warning(
-                    "Dimension mismatch for chunk {ChunkId}: stored={StoredDims}, query={QueryDims}. Skipping.",
-                    chunkId, storedEmbedding.Length, queryEmbedding.Length);
+                mismatchedRows++;
                 continue;
             }
 
@@ -228,6 +210,13 @@ public sealed class SqliteVecStore : IVectorStore
             .ToList()
             .AsReadOnly();
 
+        if (mismatchedRows > 0)
+        {
+            _logger.Warning(
+                "Skipped {Count} stored embeddings whose size differs from the {QueryDims}-dimension query (another embedding model); re-index those documents",
+                mismatchedRows, queryEmbedding.Length);
+        }
+
         _logger.Debug("Search returned {Count} results (from {Total} candidates above threshold)",
             results.Count, candidates.Count);
 
@@ -237,6 +226,8 @@ public sealed class SqliteVecStore : IVectorStore
     /// <inheritdoc />
     public async Task DeleteEmbeddingAsync(long chunkId, CancellationToken ct = default)
     {
+        ThrowIfDisposed();
+        using var operation = await _suspension.EnterAsync(ct).ConfigureAwait(false);
         ThrowIfDisposed();
         EnsureConnection();
 
@@ -257,6 +248,8 @@ public sealed class SqliteVecStore : IVectorStore
         IReadOnlyList<long> chunkIds,
         CancellationToken ct = default)
     {
+        ThrowIfDisposed();
+        using var operation = await _suspension.EnterAsync(ct).ConfigureAwait(false);
         ThrowIfDisposed();
         EnsureConnection();
         ArgumentNullException.ThrowIfNull(chunkIds);
@@ -297,20 +290,18 @@ public sealed class SqliteVecStore : IVectorStore
     public async Task<long> GetEmbeddingCountAsync(CancellationToken ct = default)
     {
         ThrowIfDisposed();
+        using var operation = await _suspension.EnterAsync(ct).ConfigureAwait(false);
+        ThrowIfDisposed();
         EnsureConnection();
 
-        const string sql = "SELECT COUNT(*) FROM vec_embeddings;";
-
-        await using var cmd = _connection!.CreateCommand();
-        cmd.CommandText = sql;
-
-        var result = await cmd.ExecuteScalarAsync(ct).ConfigureAwait(false);
-        return Convert.ToInt64(result);
+        return await CountEmbeddingsAsync(ct).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
     public async Task OptimizeAsync(CancellationToken ct = default)
     {
+        ThrowIfDisposed();
+        using var operation = await _suspension.EnterAsync(ct).ConfigureAwait(false);
         ThrowIfDisposed();
         EnsureConnection();
 
@@ -322,12 +313,46 @@ public sealed class SqliteVecStore : IVectorStore
     }
 
     /// <inheritdoc />
+    public Task SuspendAsync(CancellationToken ct = default)
+    {
+        ThrowIfDisposed();
+
+        // The close runs once no operation is running; new ones wait for the last resume.
+        return _suspension.SuspendAsync(
+            () =>
+            {
+                _reopenOnResume = _connection is not null;
+                CloseConnection();
+                _logger.Information("SqliteVecStore suspended: database connection closed");
+            },
+            ct);
+    }
+
+    /// <inheritdoc />
+    public Task ResumeAsync(bool reloadFromDatabase, CancellationToken ct = default)
+        => _suspension.ResumeAsync(reloadFromDatabase, async reload =>
+        {
+            if (!_reopenOnResume || _disposed)
+                return;
+
+            _reopenOnResume = false;
+
+            // Nothing is cached from the previous file: every search reads the database, so a
+            // reload is the same as reopening.
+            await OpenAndPrepareAsync(ct).ConfigureAwait(false);
+            _logger.Information("SqliteVecStore resumed (reload: {Reload})", reload);
+        });
+
+    /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
         if (_disposed)
             return;
 
         _disposed = true;
+
+        // Operations waiting on a suspension wake up and report the disposal.
+        _suspension.Abandon();
 
         if (_connection is not null)
         {
@@ -349,7 +374,7 @@ public sealed class SqliteVecStore : IVectorStore
         _logger.Information("SqliteVecStore disposed");
     }
 
-    // ── Embedding serialization ─────────────────────────────────────────
+    // -- Embedding serialization -----------------------------------------
 
     /// <summary>
     /// Serializes a float array to a byte array using direct memory copy.
@@ -378,7 +403,7 @@ public sealed class SqliteVecStore : IVectorStore
         return floats;
     }
 
-    // ── Vector math ─────────────────────────────────────────────────────
+    // -- Vector math -----------------------------------------------------
 
     /// <summary>
     /// Computes the L2 (Euclidean) magnitude of a vector: sqrt(sum of squares).
@@ -426,7 +451,7 @@ public sealed class SqliteVecStore : IVectorStore
         return dotProduct / (magnitudeA * magnitudeB);
     }
 
-    // ── Private helpers ─────────────────────────────────────────────────
+    // -- Private helpers -------------------------------------------------
 
     /// <summary>
     /// Executes a non-query SQL command on the current connection.
@@ -436,6 +461,79 @@ public sealed class SqliteVecStore : IVectorStore
         await using var cmd = _connection!.CreateCommand();
         cmd.CommandText = sql;
         await cmd.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Opens the connection to <see cref="_databasePath"/> and makes sure the embeddings table
+    /// exists (a restored database may predate it). Used by initialization and by resume.
+    /// </summary>
+    private async Task OpenAndPrepareAsync(CancellationToken ct)
+    {
+        // A connection left from an earlier attempt would keep the file open.
+        CloseConnection();
+
+        // Route through IEncryptedConnectionFactory so PRAGMA key is applied when
+        // encryption is enabled. When no key is loaded, the factory performs a
+        // plaintext open.
+        _connection = _connectionFactory.OpenKeyed(_databasePath!);
+
+        _logger.Debug("SQLite connection opened: {Path}", _databasePath);
+
+        // Enable WAL mode for better concurrent read/write performance.
+        await ExecuteNonQueryAsync("PRAGMA journal_mode=WAL;", ct).ConfigureAwait(false);
+
+        // Create the embeddings table if it does not exist.
+        const string createTableSql = """
+            CREATE TABLE IF NOT EXISTS vec_embeddings (
+                chunk_id  INTEGER PRIMARY KEY,
+                embedding BLOB NOT NULL,
+                magnitude REAL NOT NULL
+            );
+            """;
+
+        await ExecuteNonQueryAsync(createTableSql, ct).ConfigureAwait(false);
+
+        // Create index for chunk_id lookups (the PRIMARY KEY already provides this,
+        // but we create an explicit index name for clarity in EXPLAIN plans).
+        const string createIndexSql = """
+            CREATE INDEX IF NOT EXISTS idx_vec_chunk ON vec_embeddings(chunk_id);
+            """;
+
+        await ExecuteNonQueryAsync(createIndexSql, ct).ConfigureAwait(false);
+    }
+
+    /// <summary>Counts the stored embeddings on the open connection (no suspension check).</summary>
+    private async Task<long> CountEmbeddingsAsync(CancellationToken ct)
+    {
+        const string sql = "SELECT COUNT(*) FROM vec_embeddings;";
+
+        await using var cmd = _connection!.CreateCommand();
+        cmd.CommandText = sql;
+
+        var result = await cmd.ExecuteScalarAsync(ct).ConfigureAwait(false);
+        return Convert.ToInt64(result);
+    }
+
+    /// <summary>
+    /// Closes the connection and clears its pool, so no handle on the database file remains
+    /// (a pooled connection keeps the file open after it is disposed).
+    /// </summary>
+    private void CloseConnection()
+    {
+        var connection = _connection;
+        _connection = null;
+        if (connection is null)
+            return;
+
+        try
+        {
+            SqliteConnection.ClearPool(connection);
+            connection.Dispose();
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning(ex, "Error closing the SqliteVecStore connection");
+        }
     }
 
     /// <summary>

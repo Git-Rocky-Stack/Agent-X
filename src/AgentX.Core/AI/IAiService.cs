@@ -32,18 +32,45 @@ public interface IAiService : IDisposable
 
     /// <summary>
     /// Switches the active provider to the one identified by <paramref name="providerId"/>.
+    /// The switch only happens when the provider is registered and reachable; the active model
+    /// becomes that provider's configured default so provider and model always match.
     /// </summary>
     /// <param name="providerId">The provider identifier (e.g. "ollama").</param>
     /// <param name="ct">Cancellation token.</param>
-    /// <returns>True if the switch succeeded and the new provider is connected.</returns>
+    /// <returns>True if the switch succeeded; false leaves the previous provider active.</returns>
     Task<bool> SwitchProviderAsync(string providerId, CancellationToken ct = default);
 
     /// <summary>
-    /// Sets the active model for subsequent inference operations and persists the choice.
+    /// Sets the active model for subsequent inference operations and persists the choice in
+    /// the active provider's own model setting.
     /// </summary>
     /// <param name="modelId">The model identifier to activate.</param>
     /// <param name="ct">Cancellation token.</param>
     Task SetActiveModelAsync(string modelId, CancellationToken ct = default);
+
+    /// <summary>The ids of the currently registered providers.</summary>
+    IReadOnlyCollection<string> RegisteredProviderIds { get; }
+
+    /// <summary>
+    /// Returns the registered provider with the given id, or null when it is not registered
+    /// (for example a cloud provider without an API key).
+    /// </summary>
+    IAiProvider? GetProvider(string providerId);
+
+    /// <summary>
+    /// Checks whether a registered provider is reachable. Recent results are reused for a short
+    /// time, so routing does not re-probe (or bill) a provider on every message.
+    /// </summary>
+    Task<bool> IsProviderAvailableAsync(string providerId, CancellationToken ct = default);
+
+    /// <summary>The model a provider uses when it is selected: its configured default.</summary>
+    string GetDefaultModelId(string providerId);
+
+    /// <summary>
+    /// Resolves which provider and model produce embeddings. This is independent of the chat
+    /// provider; see <see cref="EmbeddingTargetResolver"/>.
+    /// </summary>
+    EmbeddingTarget ResolveEmbeddingTarget();
 
     /// <summary>
     /// Streams a chat completion token-by-token. Optionally prepends a system prompt

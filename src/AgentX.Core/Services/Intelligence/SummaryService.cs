@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.RegularExpressions;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
 using AgentX.Core.Data;
@@ -27,9 +28,9 @@ public class SummaryService : ISummaryService
     private const int MaxDocumentChars = 8000;
 
     /// <summary>
-    /// Maximum number of characters accepted for translation input.
+    /// Most characters sent in one translation request. Longer text is translated in parts.
     /// </summary>
-    private const int MaxTranslationChars = 4000;
+    internal const int MaxTranslationChars = 4000;
 
     /// <summary>
     /// Chat options configured for factual, deterministic AI output.
@@ -68,6 +69,8 @@ public class SummaryService : ISummaryService
             documentId, document.FileName, summaryResult.DocumentSummary.Length,
             summaryResult.SectionsIncluded, summaryResult.TotalSections);
 
+        await SaveSummaryAsync(document, summaryResult.DocumentSummary, ct).ConfigureAwait(false);
+
         return summaryResult.DocumentSummary;
     }
 
@@ -101,36 +104,154 @@ public class SummaryService : ISummaryService
             throw new ArgumentException("Target language must not be null or empty.", nameof(targetLanguage));
         }
 
-        // Cap input text to prevent exceeding context limits
-        var inputText = text.Length > MaxTranslationChars
-            ? text[..MaxTranslationChars]
-            : text;
-
-        if (text.Length > MaxTranslationChars)
-        {
-            _log.Warning(
-                "Translation input truncated from {OriginalLength} to {MaxLength} characters",
-                text.Length, MaxTranslationChars);
-        }
-
         _log.Information(
             "Starting translation to {TargetLanguage} ({InputLength} chars)",
-            targetLanguage, inputText.Length);
+            targetLanguage, text.Length);
 
-        var prompt = $"Translate the following text to {targetLanguage}. Provide only the translation, no explanations.\n\nTEXT:\n{inputText}";
-
-        var messages = new List<ChatMessage>
+        string translation;
+        if (text.Length <= MaxTranslationChars)
         {
-            new() { Role = "user", Content = prompt }
-        };
+            translation = await TranslatePartAsync(text, targetLanguage, ct).ConfigureAwait(false);
+        }
+        else
+        {
+            // Everything past the limit used to be cut off without a word to the user. Longer text
+            // is translated in parts that end at a paragraph, line or sentence break where there
+            // is one, and the parts are joined in order with the breaks between them.
+            var parts = SplitForTranslation(text, MaxTranslationChars);
+            _log.Information(
+                "Translating {InputLength} chars in {PartCount} parts of at most {MaxLength}",
+                text.Length, parts.Count, MaxTranslationChars);
 
-        var translation = await StreamToStringAsync(messages, ct).ConfigureAwait(false);
+            var joined = new StringBuilder(text.Length);
+            foreach (var part in parts)
+            {
+                ct.ThrowIfCancellationRequested();
+                joined.Append(string.IsNullOrWhiteSpace(part.Text)
+                    ? part.Text
+                    : await TranslatePartAsync(part.Text, targetLanguage, ct).ConfigureAwait(false));
+                joined.Append(part.Separator);
+            }
+
+            translation = joined.ToString().Trim();
+        }
 
         _log.Information(
             "Completed translation to {TargetLanguage} ({OutputLength} chars)",
             targetLanguage, translation.Length);
 
         return translation;
+    }
+
+    /// <summary>Translates text that fits in one request.</summary>
+    private Task<string> TranslatePartAsync(string text, string targetLanguage, CancellationToken ct)
+    {
+        var prompt = $"Translate the following text to {targetLanguage}. Provide only the translation, no explanations.\n\nTEXT:\n{text}";
+
+        var messages = new List<ChatMessage>
+        {
+            new() { Role = "user", Content = prompt }
+        };
+
+        return StreamToStringAsync(messages, ct);
+    }
+
+    /// <summary>
+    /// One piece of a text too long to translate in one request: <see cref="Text"/> to translate
+    /// and the <see cref="Separator"/> (whitespace) that followed it in the original.
+    /// </summary>
+    internal sealed record TranslationPart(string Text, string Separator);
+
+    /// <summary>
+    /// Breaks, from the most to the least natural place to split a text: blank lines between
+    /// paragraphs, line breaks, sentence ends (Latin punctuation followed by whitespace, or CJK
+    /// full stops), and whitespace between words.
+    /// </summary>
+    private static readonly Regex[] TranslationBreaks =
+    [
+        new(@"(?:\r?\n[ \t]*){2,}", RegexOptions.Compiled),
+        new(@"\r?\n", RegexOptions.Compiled),
+        new(@"(?<=[.!?])\s+|(?<=[\u3002\uFF01\uFF1F])\s*", RegexOptions.Compiled),
+        new(@"\s+", RegexOptions.Compiled),
+    ];
+
+    /// <summary>
+    /// Splits <paramref name="text"/> into parts of at most <paramref name="maxChars"/> characters,
+    /// each ending at the most natural break available, and packs neighbouring pieces together so
+    /// as few requests as possible are made. Joining every part's text and separator in order gives
+    /// back <paramref name="text"/> exactly; a run with no break at all is cut at the limit.
+    /// </summary>
+    internal static IReadOnlyList<TranslationPart> SplitForTranslation(string text, int maxChars)
+    {
+        ArgumentNullException.ThrowIfNull(text);
+        ArgumentOutOfRangeException.ThrowIfLessThan(maxChars, 1);
+
+        var pieces = new List<TranslationPart>();
+        SplitAtBreaks(text, string.Empty, 0, maxChars, pieces);
+
+        var parts = new List<TranslationPart>();
+        var current = new StringBuilder();
+        var separator = string.Empty;
+        var started = false;
+        foreach (var piece in pieces)
+        {
+            if (started && current.Length + separator.Length + piece.Text.Length > maxChars)
+            {
+                parts.Add(new TranslationPart(current.ToString(), separator));
+                current.Clear();
+                started = false;
+            }
+            else if (started)
+            {
+                current.Append(separator);
+            }
+
+            current.Append(piece.Text);
+            separator = piece.Separator;
+            started = true;
+        }
+
+        if (started)
+        {
+            parts.Add(new TranslationPart(current.ToString(), separator));
+        }
+
+        return parts;
+    }
+
+    private static void SplitAtBreaks(string text, string separator, int level, int maxChars, List<TranslationPart> pieces)
+    {
+        if (text.Length <= maxChars)
+        {
+            pieces.Add(new TranslationPart(text, separator));
+            return;
+        }
+
+        if (level == TranslationBreaks.Length)
+        {
+            // No break left to split at: cut at the limit.
+            for (var start = 0; start < text.Length; start += maxChars)
+            {
+                var end = Math.Min(start + maxChars, text.Length);
+                pieces.Add(new TranslationPart(text[start..end], end == text.Length ? separator : string.Empty));
+            }
+
+            return;
+        }
+
+        var position = 0;
+        foreach (Match match in TranslationBreaks[level].Matches(text))
+        {
+            if (match.Length == 0 && match.Index == position)
+            {
+                continue;
+            }
+
+            SplitAtBreaks(text[position..match.Index], match.Value, level + 1, maxChars, pieces);
+            position = match.Index + match.Length;
+        }
+
+        SplitAtBreaks(text[position..], separator, level + 1, maxChars, pieces);
     }
 
     // -- Private helpers --------------------------------------------------
@@ -167,6 +288,28 @@ public class SummaryService : ISummaryService
         }
 
         return document;
+    }
+
+    /// <summary>
+    /// Keeps the summary on the document, where the Knowledge Vault preview shows it and the
+    /// vault's Workflow action sends it instead of the first chunk. Nothing else writes
+    /// <c>DocumentEntity.Summary</c> on this device. A failed save is logged, and the summary is
+    /// still returned to the caller.
+    /// </summary>
+    private async Task SaveSummaryAsync(Data.Entities.DocumentEntity document, string summary, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(summary))
+            return;
+
+        try
+        {
+            document.Summary = summary.Trim();
+            await _db.SaveChangesAsync(ct).ConfigureAwait(false);
+        }
+        catch (DbUpdateException ex)
+        {
+            _log.Warning(ex, "Could not save the summary of document {DocumentId}", document.Id);
+        }
     }
 
     private static IReadOnlyList<string> GetDocumentSections(Data.Entities.DocumentEntity document)
@@ -208,82 +351,5 @@ public class SummaryService : ISummaryService
         }
 
         return sb.ToString().Trim();
-    }
-
-    /// <summary>
-    /// Parses an AI-generated numbered/bulleted list into individual key point strings.
-    /// Handles various formats: "1.", "2.", "-", "*", and plain lines.
-    /// Strips numbering prefixes and returns only non-empty entries.
-    /// </summary>
-    private static List<string> ParseKeyPoints(string response)
-    {
-        var keyPoints = new List<string>();
-
-        var lines = response.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-
-        foreach (var rawLine in lines)
-        {
-            var line = rawLine.Trim();
-
-            if (string.IsNullOrWhiteSpace(line))
-                continue;
-
-            // Strip common numbering prefixes: "1.", "2.", "10.", etc.
-            line = StripNumberingPrefix(line);
-
-            // Strip bullet prefixes: "- ", "* ", "-- "
-            line = StripBulletPrefix(line);
-
-            line = line.Trim();
-
-            if (!string.IsNullOrWhiteSpace(line))
-            {
-                keyPoints.Add(line);
-            }
-        }
-
-        return keyPoints;
-    }
-
-    /// <summary>
-    /// Removes leading numbering patterns like "1.", "2)", "10. ", etc.
-    /// </summary>
-    private static string StripNumberingPrefix(string line)
-    {
-        var i = 0;
-
-        // Skip leading digits
-        while (i < line.Length && char.IsDigit(line[i]))
-        {
-            i++;
-        }
-
-        // If we found digits followed by '.' or ')' then strip the prefix
-        if (i > 0 && i < line.Length && (line[i] == '.' || line[i] == ')'))
-        {
-            return line[(i + 1)..];
-        }
-
-        return line;
-    }
-
-    /// <summary>
-    /// Removes leading bullet characters: "-", "*", "--".
-    /// </summary>
-    private static string StripBulletPrefix(string line)
-    {
-        if (line.StartsWith("-- ", StringComparison.Ordinal))
-            return line[3..];
-        if (line.StartsWith("- ", StringComparison.Ordinal))
-            return line[2..];
-        if (line.StartsWith("* ", StringComparison.Ordinal))
-            return line[2..];
-        // Handle cases where bullet is not followed by space
-        if (line.StartsWith('-') && line.Length > 1 && line[1] != '-')
-            return line[1..];
-        if (line.StartsWith('*') && line.Length > 1)
-            return line[1..];
-
-        return line;
     }
 }

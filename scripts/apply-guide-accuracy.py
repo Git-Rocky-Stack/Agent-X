@@ -10,7 +10,7 @@ Resources.resw files:
   1. REMOVE every <data> entry whose name starts with a removePrefixes entry
      (guide sections for features that were never implemented).
   2. UPDATE the <value> of each key in "update" with the locale's new text.
-  3. ADD each key in "add" (skipped if already present — idempotent).
+  3. ADD each key in "add" (skipped if already present - idempotent).
 
 Also prunes the removed keys from the legacy per-locale translation JSONs
 (scripts/translations/<locale>.json) so a re-run of inject-translations.py

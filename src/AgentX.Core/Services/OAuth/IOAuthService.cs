@@ -1,3 +1,5 @@
+using AgentX.Core.Services.Settings;
+
 namespace AgentX.Core.Services.OAuth;
 
 /// <summary>
@@ -106,4 +108,37 @@ public interface IOAuthService
     /// The decrypted credential, or <see langword="null"/> if none exists.
     /// </returns>
     Task<OAuthCredential?> GetCredentialAsync(string provider);
+
+    /// <summary>
+    /// Registers the Google and Microsoft providers from the client credentials in
+    /// <paramref name="settings"/>. A provider with a client ID is registered, replacing the
+    /// configuration it had; a provider whose client ID is empty is removed, so connecting it
+    /// fails with <see cref="OAuthProviderNotConfiguredException"/>. Stored credentials are kept,
+    /// so an account connected through an unchanged client ID keeps working. Saved credentials
+    /// therefore take effect without a restart.
+    /// </summary>
+    /// <param name="settings">The OAuth section of the application settings.</param>
+    /// <exception cref="ArgumentNullException">
+    /// Thrown when <paramref name="settings"/> is null.
+    /// </exception>
+    void ApplyProviderSettings(OAuthSettings settings);
+}
+
+/// <summary>
+/// Thrown when an OAuth flow is started for a provider that has no client configuration.
+/// Agent-X ships no OAuth client credentials: a provider is registered only once its client ID
+/// has been saved (OAuth App Credentials on the Calendar and Email connector pages), which a
+/// default install has not. The connector pages catch it to explain that setup instead of
+/// showing the developer-facing message.
+/// </summary>
+public sealed class OAuthProviderNotConfiguredException : InvalidOperationException
+{
+    public OAuthProviderNotConfiguredException(string provider, string message)
+        : base(message)
+    {
+        Provider = provider;
+    }
+
+    /// <summary>The provider identifier that has no configuration (e.g. "google").</summary>
+    public string Provider { get; }
 }

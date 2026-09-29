@@ -72,9 +72,9 @@ public sealed class PlainTextFormatterTests
         };
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  Properties
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public void Format_ShouldBePlainText()
@@ -94,9 +94,9 @@ public sealed class PlainTextFormatterTests
         _sut.MimeType.Should().Be("text/plain");
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  ExportConversationAsync
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task ExportConversationAsync_IncludesTitleWithEqualsUnderline()
@@ -159,7 +159,7 @@ public sealed class PlainTextFormatterTests
         // Act
         var result = await _sut.ExportConversationAsync(conversation, options);
 
-        // Assert — timestamps are indented
+        // Assert - timestamps are indented
         result.Should().Contain("  ");
         result.Should().Contain("UTC");
     }
@@ -207,7 +207,7 @@ public sealed class PlainTextFormatterTests
         // Act
         var result = await _sut.ExportConversationAsync(conversation, options);
 
-        // Assert — "[System]" should not appear as a role label in the body
+        // Assert - "[System]" should not appear as a role label in the body
         var lines = result.Split('\n');
         var systemLabels = lines.Count(l => l.Trim() == "[System]");
         systemLabels.Should().Be(0);
@@ -238,7 +238,7 @@ public sealed class PlainTextFormatterTests
         // Act
         var result = await _sut.ExportConversationAsync(conversation, options);
 
-        // Assert — metadata is indented in parentheses
+        // Assert - metadata is indented in parentheses
         result.Should().Contain("(Tokens:");
         result.Should().Contain("Generation:");
         result.Should().Contain("ms)");
@@ -257,6 +257,19 @@ public sealed class PlainTextFormatterTests
         // Assert
         result.Should().Contain("Citations:");
         result.Should().Contain("1. report.docx, page 7");
+    }
+
+    [Fact]
+    public async Task ExportConversationAsync_ListsEachAnswersWebSourcesUnderIt_NumberedAsItsMarkers()
+    {
+        var result = await _sut.ExportConversationAsync(
+            ResearchConversation.Create(), new ExportOptions { IncludeCitations = true, IncludeModelInfo = true });
+
+        var second = result.IndexOf(ResearchConversation.SecondAnswer, StringComparison.Ordinal);
+        result[..second].Should().Contain("1. Release notes - https://example.org/notes");
+        result[second..].Should().Contain("1. Blog - https://blog.example.org/v2")
+            .And.NotContain("Release notes");
+        result.Should().Contain("Model: claude-sonnet-5");
     }
 
     [Fact]
@@ -304,9 +317,9 @@ public sealed class PlainTextFormatterTests
         await act.Should().ThrowAsync<OperationCanceledException>();
     }
 
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
     //  ExportConversationsAsync (batch)
-    // ══════════════════════════════════════════════════════════════════════
+    // ======================================================================
 
     [Fact]
     public async Task ExportConversationsAsync_WithMultipleConversations_IncludesBatchHeader()
@@ -341,7 +354,7 @@ public sealed class PlainTextFormatterTests
         // Act
         var result = await _sut.ExportConversationsAsync(conversations, options);
 
-        // Assert — 60-char dash separator between conversations
+        // Assert - 60-char dash separator between conversations
         result.Should().Contain(new string('-', 60));
     }
 

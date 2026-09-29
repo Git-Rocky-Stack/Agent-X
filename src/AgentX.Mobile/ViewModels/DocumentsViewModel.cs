@@ -19,7 +19,7 @@ public sealed partial class DocumentsViewModel : ObservableObject
         _api = api;
     }
 
-    // ── Observable state ──────────────────────────────────────────────────────
+    // -- Observable state ------------------------------------------------------
 
     [ObservableProperty]
     private ObservableCollection<DocumentDto> _documents = [];
@@ -36,7 +36,7 @@ public sealed partial class DocumentsViewModel : ObservableObject
     [ObservableProperty]
     private bool _isEmpty;
 
-    // ── Commands ──────────────────────────────────────────────────────────────
+    // -- Commands --------------------------------------------------------------
 
     /// <summary>Loads (or refreshes) the document list from the API.</summary>
     [RelayCommand]
@@ -48,17 +48,26 @@ public sealed partial class DocumentsViewModel : ObservableObject
 
         try
         {
-            var docs = await _api.GetDocumentsAsync(ct).ConfigureAwait(true);
+            var result = await _api.GetDocumentsAsync(ct).ConfigureAwait(true);
+            if (!result.IsSuccess)
+            {
+                // Say why (not paired, unreachable, server error) instead of showing the
+                // "No documents found" empty state for what is really a failure.
+                HasError = true;
+                ErrorMessage = result.ErrorMessage ?? "Could not load documents.";
+                IsEmpty = false;
+                return;
+            }
 
             Documents.Clear();
-            foreach (var doc in docs)
+            foreach (var doc in result.Data!)
                 Documents.Add(doc);
 
             IsEmpty = Documents.Count == 0;
         }
         catch (OperationCanceledException)
         {
-            // Navigation away — ignore
+            // Navigation away - ignore
         }
         catch (Exception ex)
         {

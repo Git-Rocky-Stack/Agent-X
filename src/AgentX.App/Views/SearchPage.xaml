@@ -27,7 +27,7 @@
 
     <Grid Background="{ThemeResource PageBackgroundBrush}">
 
-        <!-- ═══════ ADAPTIVE LAYOUT (Tier 3) — see Colors.xaml breakpoints ═══════
+        <!-- ======= ADAPTIVE LAYOUT (Tier 3) - see Colors.xaml breakpoints =======
              Narrow (<960):  history pane 240   |  Medium (>=960): 260
              Wide (>=1280):  280 (markup default) -->
         <VisualStateManager.VisualStateGroups>
@@ -59,7 +59,7 @@
         <Grid.ColumnDefinitions>
             <!-- Main search area -->
             <ColumnDefinition Width="*" />
-            <!-- History sidebar (adaptive width — 240/260/280) -->
+            <!-- History sidebar (adaptive width - 240/260/280) -->
             <ColumnDefinition x:Name="SidebarColumn" Width="280" />
         </Grid.ColumnDefinitions>
 

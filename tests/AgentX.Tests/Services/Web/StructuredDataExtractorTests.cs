@@ -17,7 +17,7 @@ public class StructuredDataExtractorTests
         _extractor = new StructuredDataExtractor(loggerMock.Object);
     }
 
-    // ─── Constructor ────────────────────────────────────────────────────────
+    // --- Constructor --------------------------------------------------------
 
     [Fact]
     public void Constructor_Throws_WhenLoggerIsNull()
@@ -26,7 +26,7 @@ public class StructuredDataExtractorTests
         act.Should().Throw<ArgumentNullException>().WithParameterName("logger");
     }
 
-    // ─── ExtractJsonLd ─────────────────────────────────────────────────────
+    // --- ExtractJsonLd -----------------------------------------------------
 
     [Fact]
     public void ExtractJsonLd_ParsesArticleSchema()
@@ -270,7 +270,7 @@ public class StructuredDataExtractorTests
         result.DatePublished!.Value.Day.Should().Be(25);
     }
 
-    // ─── ExtractOpenGraph ──────────────────────────────────────────────────
+    // --- ExtractOpenGraph --------------------------------------------------
 
     [Fact]
     public void ExtractOpenGraph_PullsAllOgProperties()
@@ -350,7 +350,7 @@ public class StructuredDataExtractorTests
         result.Should().BeNull();
     }
 
-    // ─── ExtractMetaTags ───────────────────────────────────────────────────
+    // --- ExtractMetaTags ---------------------------------------------------
 
     [Fact]
     public void ExtractMetaTags_ExtractsAllMetaTags()
@@ -429,7 +429,7 @@ public class StructuredDataExtractorTests
         result[0].Content.Should().Be("Valid Author");
     }
 
-    // ─── ExtractAuthor ────────────────────────────────────────────────────
+    // --- ExtractAuthor ----------------------------------------------------
 
     [Fact]
     public void ExtractAuthor_PrefersJsonLdAuthor_OverMetaAuthor()
@@ -598,7 +598,7 @@ public class StructuredDataExtractorTests
         result.Should().Be("Graph Author");
     }
 
-    // ─── Handles Missing Structured Data Gracefully ────────────────────────
+    // --- Handles Missing Structured Data Gracefully ------------------------
 
     [Fact]
     public void ExtractJsonLd_SkipsJsonLdBlockWithoutType()
@@ -647,5 +647,55 @@ public class StructuredDataExtractorTests
         result.Should().HaveCount(2);
         result.Should().Contain(t => t.Name == "robots" && t.Property == "name");
         result.Should().Contain(t => t.Name == "og:title" && t.Property == "property");
+    }
+
+    // ---- Values of unexpected JSON kinds ----
+
+    [Fact]
+    public void ExtractJsonLd_accepts_an_array_valued_type()
+    {
+        var html = """
+                   <html><head><script type="application/ld+json">
+                   { "@type": ["Article", "NewsArticle"], "headline": "Array Type Article", "author": { "name": "Ann" } }
+                   </script></head><body></body></html>
+                   """;
+
+        var result = _extractor.ExtractJsonLd(html);
+
+        result.Should().NotBeNull();
+        result!.Type.Should().Be("Article");
+        result.Name.Should().Be("Array Type Article");
+        result.Author.Should().Be("Ann");
+    }
+
+    [Theory]
+    [InlineData("null")]
+    [InlineData("[]")]
+    [InlineData("42")]
+    [InlineData("{ \"name\": { \"@value\": \"Nested\" } }")]
+    [InlineData("[null, 7, []]")]
+    public void ExtractAuthor_falls_back_to_meta_tags_when_the_json_ld_author_has_an_unexpected_kind(string authorJson)
+    {
+        var html = $$"""
+                     <html><head>
+                     <meta name="author" content="Meta Author" />
+                     <script type="application/ld+json">{ "@type": "Article", "author": {{authorJson}} }</script>
+                     </head><body></body></html>
+                     """;
+
+        _extractor.ExtractAuthor(html).Should().Be("Meta Author");
+        _extractor.ExtractJsonLd(html).Should().NotBeNull("an odd author value must not abort JSON-LD extraction");
+    }
+
+    [Fact]
+    public void ExtractJsonLd_skips_non_object_entries_of_a_top_level_array()
+    {
+        var html = """
+                   <html><head><script type="application/ld+json">
+                   [ 1, "text", { "@type": "Article", "name": "Found" } ]
+                   </script></head><body></body></html>
+                   """;
+
+        _extractor.ExtractJsonLd(html)!.Name.Should().Be("Found");
     }
 }

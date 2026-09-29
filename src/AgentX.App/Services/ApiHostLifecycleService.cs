@@ -7,7 +7,8 @@ namespace AgentX.App.Services;
 /// <summary>
 /// Starts and stops the local REST API on the stable browser-extension port. Honors the
 /// <see cref="AppSettings.LocalApiEnabled"/> toggle and provisions the per-install bearer token
-/// (<see cref="AppSettings.LocalApiToken"/>) on first start.
+/// (<see cref="AppSettings.LocalApiToken"/>) on first start. <see cref="ApplySettingsAsync"/>
+/// re-applies both at runtime when the user saves settings or regenerates the token.
 /// </summary>
 public sealed class ApiHostLifecycleService : IApiHostLifecycleService
 {
@@ -40,25 +41,73 @@ public sealed class ApiHostLifecycleService : IApiHostLifecycleService
 
             if (!settings.LocalApiEnabled)
             {
-                _log.Information("Local REST API is disabled in settings — listener not started");
+                _log.Information("Local REST API is disabled in settings - listener not started");
                 return;
             }
 
-            // Provision a per-install token on first start so the extension has something to pair with.
-            if (string.IsNullOrEmpty(settings.LocalApiToken))
-            {
-                settings.LocalApiToken = LocalApiSecurity.GenerateToken();
-                await _settingsService.SaveSettingsAsync(settings).ConfigureAwait(false);
-                _log.Information("Generated a new local REST API token (first run)");
-            }
+            var token = await EnsureTokenAsync(settings).ConfigureAwait(false);
 
-            await _apiHost.StartAsync(DefaultPort, settings.LocalApiToken, ct).ConfigureAwait(false);
+            await _apiHost.StartAsync(DefaultPort, token, ct).ConfigureAwait(false);
             _log.Information("REST API lifecycle started on {BaseUrl}", _apiHost.BaseUrl);
         }
         finally
         {
             _gate.Release();
         }
+    }
+
+    public async Task ApplySettingsAsync(CancellationToken ct = default)
+    {
+        await _gate.WaitAsync(ct).ConfigureAwait(false);
+        try
+        {
+            var settings = await _settingsService.GetSettingsAsync().ConfigureAwait(false);
+
+            if (!settings.LocalApiEnabled)
+            {
+                if (_apiHost.IsRunning)
+                {
+                    await _apiHost.StopAsync(ct).ConfigureAwait(false);
+                    _log.Information("Local REST API disabled in settings; listener stopped");
+                }
+
+                return;
+            }
+
+            var token = await EnsureTokenAsync(settings).ConfigureAwait(false);
+
+            if (_apiHost.IsRunning)
+            {
+                // Swap the token on the live listener: the new token is accepted from the next
+                // request on and the previous one is rejected, so regenerating really revokes.
+                _apiHost.SetAuthToken(token);
+                _log.Information("Applied the current local REST API token to the running listener");
+                return;
+            }
+
+            await _apiHost.StartAsync(DefaultPort, token, ct).ConfigureAwait(false);
+            _log.Information("Local REST API enabled in settings; listening on {BaseUrl}", _apiHost.BaseUrl);
+        }
+        finally
+        {
+            _gate.Release();
+        }
+    }
+
+    /// <summary>
+    /// Returns the persisted token, provisioning and saving a new one when none exists yet (first
+    /// start, or a settings file whose token was cleared) so clients always have something to pair with.
+    /// </summary>
+    private async Task<string> EnsureTokenAsync(AppSettings settings)
+    {
+        if (string.IsNullOrEmpty(settings.LocalApiToken))
+        {
+            settings.LocalApiToken = LocalApiSecurity.GenerateToken();
+            await _settingsService.SaveSettingsAsync(settings).ConfigureAwait(false);
+            _log.Information("Generated a new local REST API token");
+        }
+
+        return settings.LocalApiToken;
     }
 
     public async Task StopAsync(CancellationToken ct = default)

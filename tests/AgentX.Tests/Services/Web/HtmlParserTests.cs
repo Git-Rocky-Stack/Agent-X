@@ -17,7 +17,7 @@ public class HtmlParserTests
         _parser = new HtmlParser(loggerMock.Object);
     }
 
-    // ─── Parse ──────────────────────────────────────────────────────────────
+    // --- Parse --------------------------------------------------------------
 
     [Fact]
     public void Parse_ExtractsTitleAndText_FromArticleHtml()
@@ -122,7 +122,7 @@ public class HtmlParserTests
         result.Text.Should().BeEmpty();
     }
 
-    // ─── ExtractReadabilityText ─────────────────────────────────────────────
+    // --- ExtractReadabilityText ---------------------------------------------
 
     [Fact]
     public void ExtractReadabilityText_RemovesNavFooterScriptStyleTags()
@@ -208,7 +208,7 @@ public class HtmlParserTests
         result.Should().NotBeNull();
     }
 
-    // ─── ExtractMetadata ────────────────────────────────────────────────────
+    // --- ExtractMetadata ----------------------------------------------------
 
     [Fact]
     public void ExtractMetadata_PullsOpenGraphTags()
@@ -393,16 +393,20 @@ public class HtmlParserTests
         result.Description.Should().NotBeNullOrEmpty();
     }
 
-    // ─── Unicode Support ────────────────────────────────────────────────────
+    // --- Unicode Support ----------------------------------------------------
 
     [Fact]
     public void ExtractReadabilityText_HandlesUnicodeContent()
     {
-        var html = """
+        // Emoji and symbols come from escapes so the source stays plain ASCII.
+        const string Emoji = "\U0001F389\U0001F680";
+        const string MathSymbols = "\u2211 \u220F \u222B \u221A \u221E";
+        const string SpecialSymbols = "\u00A9 \u00AE \u2122 \u20AC \u00A3 \u00A5";
+        var html = $$"""
                    <html><body><article>
                    <h1>Unicode Article Title</h1>
-                   <p>This article contains Unicode characters: Arabic مرحبا, Chinese 你好, Japanese こんにちは, Korean 안녕하세요, Russian Привет, Greek Γειά σου, and emoji 🎉🚀.</p>
-                   <p>Another paragraph with mathematical symbols: ∑ ∏ ∫ √ ∞ and special characters: © ® ™ € £ ¥.</p>
+                   <p>This article contains Unicode characters: Arabic مرحبا, Chinese 你好, Japanese こんにちは, Korean 안녕하세요, Russian Привет, Greek Γειά σου, and emoji {{Emoji}}.</p>
+                   <p>Another paragraph with mathematical symbols: {{MathSymbols}} and special characters: {{SpecialSymbols}}.</p>
                    </article></body></html>
                    """;
 
@@ -430,7 +434,7 @@ public class HtmlParserTests
         result.Title.Should().Contain("日本語");
     }
 
-    // ─── Edge Cases ─────────────────────────────────────────────────────────
+    // --- Edge Cases ---------------------------------------------------------
 
     [Fact]
     public void ExtractReadabilityText_SkipsHiddenElements()
@@ -559,5 +563,145 @@ public class HtmlParserTests
         var result = _parser.Parse(html, "https://example.com/page");
 
         result.Title.Should().Be("Trimmed Title");
+    }
+
+    // ---- Forms, inline whitespace and tables ----
+
+    [Fact]
+    public void ExtractReadabilityText_keeps_content_of_a_form_that_wraps_the_whole_page()
+    {
+        // ASP.NET WebForms and SharePoint wrap the entire body in a single form element.
+        var html = """
+                   <html><body>
+                   <form id="aspnetForm" method="post">
+                   <input type="hidden" name="__VIEWSTATE" value="dDwtMTA4MTc2" />
+                   <div id="content"><p>Quarterly results for the team show steady growth across every region, with the new product line leading adoption and support tickets falling for the third quarter in a row.</p></div>
+                   <button type="submit">Search</button>
+                   </form>
+                   </body></html>
+                   """;
+
+        var text = _parser.ExtractReadabilityText(html);
+
+        text.Should().Contain("Quarterly results for the team show steady growth");
+        text.Should().NotContain("dDwtMTA4MTc2");
+        text.Should().NotContain("Search", "form controls are still removed");
+    }
+
+    [Fact]
+    public void ExtractReadabilityText_keeps_the_space_between_inline_elements()
+    {
+        var text = _parser.ExtractReadabilityText("<html><body><p><u>big</u> <mark>world</mark></p></body></html>");
+
+        text.Should().Be("big world");
+    }
+
+    [Fact]
+    public void ExtractReadabilityText_does_not_split_a_word_after_an_inline_element()
+    {
+        var text = _parser.ExtractReadabilityText("<html><body><p><b>W</b>ord and <a href=\"/x\">link</a>s</p></body></html>");
+
+        text.Should().Be("Word and links");
+    }
+
+    [Fact]
+    public void Parse_renders_an_article_table_once_as_markdown_and_ignores_tables_outside_the_article()
+    {
+        var html = """
+                   <html><body>
+                   <table class="site-links"><tr><td><a href="/">Home</a></td><td><a href="/about">About us</a></td></tr></table>
+                   <article>
+                   <h1>Annual report</h1>
+                   <p>The company grew in every market this year, and the table below lists revenue growth by year for the last two reporting periods in detail.</p>
+                   <table>
+                   <tr><th>Year</th><th>Revenue growth</th></tr>
+                   <tr><td>2023</td><td>9%</td></tr>
+                   <tr><td>2024</td><td>15%</td></tr>
+                   </table>
+                   </article>
+                   </body></html>
+                   """;
+
+        var text = _parser.Parse(html, "https://example.com/report").Text;
+
+        text.Should().Contain("| Year | Revenue growth |\n| --- | --- |\n| 2023 | 9% |\n| 2024 | 15% |");
+        System.Text.RegularExpressions.Regex.Matches(text, "Revenue growth").Count.Should().Be(1,
+            "the table must appear once, not as cell lines plus an appended copy");
+        text.Should().NotContain("About us", "navigation tables outside the article are not content");
+    }
+
+    [Fact]
+    public void Parse_extracts_a_layout_table_block_by_block_instead_of_flattening_it()
+    {
+        var html = """
+                   <html><body><article>
+                   <table><tr><td>
+                   <p>First paragraph of an old table-based layout page that still carries plenty of words for extraction to accept it.</p>
+                   <p>Second paragraph that must stay a separate paragraph.</p>
+                   </td></tr></table>
+                   </article></body></html>
+                   """;
+
+        var text = _parser.Parse(html, "https://example.com/old").Text;
+
+        text.Should().NotContain("|");
+        text.Should().Contain("First paragraph of an old table-based layout page");
+        text.Should().Contain("\n\nSecond paragraph that must stay a separate paragraph.");
+    }
+
+    [Fact]
+    public void ExtractMetadata_skips_a_null_entry_in_a_json_ld_author_array()
+    {
+        var html = """
+                   <html><head>
+                   <meta name="author" content="Meta Author" />
+                   <script type="application/ld+json">{ "@type": "Article", "author": [null, { "name": "Array Author" }] }</script>
+                   </head><body><p>Body</p></body></html>
+                   """;
+
+        var result = _parser.ExtractMetadata(html, "https://example.com/a");
+
+        result.Author.Should().Be("Array Author");
+    }
+
+    // --- ConvertToPlainText (the HTML part of an email) ---
+
+    [Fact]
+    public void ConvertToPlainText_keeps_every_visible_block_on_its_own_line()
+    {
+        var html = """
+                   <html><head><title>Newsletter</title>
+                   <style>body { font-family: Arial; } .footer { color: #999; }</style></head>
+                   <body>
+                   <h1>September update</h1>
+                   <p>First <b>news</b> item.</p>
+                   <ul><li>One</li><li>Two</li></ul>
+                   <div class="footer">You can unsubscribe at any time.</div>
+                   <script>window.dataLayer = [];</script>
+                   </body></html>
+                   """;
+
+        var text = HtmlParser.ConvertToPlainText(html);
+
+        text.Should().Be("September update\n\nFirst news item.\n\n- One\n- Two\nYou can unsubscribe at any time.");
+    }
+
+    [Fact]
+    public void ConvertToPlainText_handles_a_fragment_breaks_entities_and_hidden_elements()
+    {
+        var html = "<span style=\"display: none\">preheader</span>Hello&nbsp;Dana,<br>Your order &amp; receipt &lt;#7&gt; shipped.";
+
+        var text = HtmlParser.ConvertToPlainText(html);
+
+        text.Should().Be("Hello Dana,\nYour order & receipt <#7> shipped.");
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData("<style>p { margin: 0; }</style>")]
+    public void ConvertToPlainText_without_visible_text_is_empty(string html)
+    {
+        HtmlParser.ConvertToPlainText(html).Should().BeEmpty();
     }
 }

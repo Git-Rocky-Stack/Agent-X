@@ -15,7 +15,7 @@ public sealed class CldrPluralRuleProvider : IPluralRuleProvider
 
         return lang switch
         {
-            // English, German, Spanish — "one" for n == 1, else "other".
+            // English, German, Spanish - "one" for n == 1, else "other".
             "en" => n == 1 ? "one" : "other",
             "de" => n == 1 ? "one" : "other",
             "es" => n == 1 ? "one" : "other",

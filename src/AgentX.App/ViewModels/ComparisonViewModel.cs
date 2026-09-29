@@ -4,6 +4,7 @@ using AgentX.Core.Data.Entities;
 using AgentX.Core.Documents;
 using AgentX.Core.Services.Intelligence;
 using AgentX.Core.Services.Intelligence.Models;
+using AgentX.Core.Services.Localization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Serilog;
@@ -14,21 +15,28 @@ public partial class ComparisonViewModel : ObservableObject
 {
     private readonly IComparisonService _comparisonService;
     private readonly IDocumentService _documentService;
+    private readonly ILocalizationService _localization;
 
-    // ── Page State ───────────────────────────────────────────
+    // -- Page State -------------------------------------------
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private bool _isComparing;
     [ObservableProperty] private string _statusMessage = string.Empty;
     [ObservableProperty] private string _progressMessage = string.Empty;
 
-    // ── Document Selection ───────────────────────────────────
+    // -- Document Selection -----------------------------------
     public ObservableCollection<DocumentSelectItem> AvailableDocuments { get; } = new();
     public ObservableCollection<DocumentSelectItem> SelectedDocuments { get; } = new();
     [ObservableProperty] private string _focusQuery = string.Empty;
-    [ObservableProperty] private string _detailLevel = "detailed";
-    public List<string> DetailLevels { get; } = new() { "summary", "detailed" };
 
-    // ── Report Results ───────────────────────────────────────
+    /// <summary>
+    /// The detail level choices. The combo shows each one's translated name and the comparison
+    /// is sent its value ("summary" or "detailed").
+    /// </summary>
+    public IReadOnlyList<ComparisonDetailLevelOption> DetailLevels { get; }
+
+    [ObservableProperty] private ComparisonDetailLevelOption? _detailLevel;
+
+    // -- Report Results ---------------------------------------
     [ObservableProperty] private bool _hasReport;
     [ObservableProperty] private string _reportSummary = string.Empty;
     public ObservableCollection<string> Similarities { get; } = new();
@@ -42,12 +50,27 @@ public partial class ComparisonViewModel : ObservableObject
     private ComparisonReport? _currentReport;
     private CancellationTokenSource? _compareCts;
 
+    /// <summary>
+    /// Saves an exported report (the page shows a file save picker) and returns where it was
+    /// saved. Without it, Export Report says saving is unavailable rather than claiming success.
+    /// </summary>
+    public Func<ComparisonReportExportRequest, Task<ComparisonReportExportResult>>? SaveReportExportAsync { get; set; }
+
     public ComparisonViewModel(
         IComparisonService comparisonService,
-        IDocumentService documentService)
+        IDocumentService documentService,
+        ILocalizationService localization)
     {
         _comparisonService = comparisonService;
         _documentService = documentService;
+        _localization = localization;
+
+        DetailLevels =
+        [
+            new ComparisonDetailLevelOption("summary", _localization.GetString("Comp_DetailLevelSummary")),
+            new ComparisonDetailLevelOption("detailed", _localization.GetString("Comp_DetailLevelDetailed"))
+        ];
+        DetailLevel = DetailLevels[1];
     }
 
     public async Task InitializeAsync()
@@ -73,27 +96,18 @@ public partial class ComparisonViewModel : ObservableObject
                 AvailableDocuments.Add(item);
             }
 
-            StatusMessage = $"{AvailableDocuments.Count} documents available";
+            StatusMessage = AvailableDocuments.Count == 1
+                ? _localization.GetString("Comp_DocumentsAvailableOne", AvailableDocuments.Count)
+                : _localization.GetString("Comp_DocumentsAvailableMany", AvailableDocuments.Count);
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to load documents for comparison");
-            StatusMessage = "Failed to load documents";
+            StatusMessage = _localization.GetString("Comp_LoadDocumentsFailed");
         }
         finally
         {
             IsLoading = false;
-        }
-    }
-
-    [RelayCommand]
-    private void ToggleDocumentSelection(DocumentSelectItem doc)
-    {
-        doc.IsSelected = !doc.IsSelected;
-        SelectedDocuments.Clear();
-        foreach (var d in AvailableDocuments.Where(d => d.IsSelected))
-        {
-            SelectedDocuments.Add(d);
         }
     }
 
@@ -104,13 +118,13 @@ public partial class ComparisonViewModel : ObservableObject
 
         if (SelectedDocuments.Count < 2)
         {
-            StatusMessage = "Select at least 2 documents to compare";
+            StatusMessage = _localization.GetString("Comp_SelectAtLeastTwo");
             return;
         }
 
         IsComparing = true;
         HasReport = false;
-        ProgressMessage = "Analyzing documents...";
+        ProgressMessage = _localization.GetString("Comp_AnalyzingDocuments");
         _compareCts = new CancellationTokenSource();
 
         try
@@ -119,7 +133,7 @@ public partial class ComparisonViewModel : ObservableObject
             var options = new ComparisonOptions
             {
                 FocusQuery = string.IsNullOrWhiteSpace(FocusQuery) ? null : FocusQuery,
-                DetailLevel = DetailLevel
+                DetailLevel = DetailLevel?.Value ?? "detailed"
             };
 
             var progress = new Progress<string>(msg =>
@@ -156,16 +170,16 @@ public partial class ComparisonViewModel : ObservableObject
             OnPropertyChanged(nameof(HasUniquePoints));
 
             HasReport = true;
-            StatusMessage = $"Comparison complete in {report.DurationMs:F0}ms";
+            StatusMessage = _localization.GetString("Comp_ComparisonComplete", report.DurationMs.ToString("F0"));
         }
         catch (OperationCanceledException)
         {
-            StatusMessage = "Comparison cancelled";
+            StatusMessage = _localization.GetString("Comp_ComparisonCancelled");
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Document comparison failed");
-            StatusMessage = $"Comparison failed: {ex.Message}";
+            StatusMessage = _localization.GetString("Comp_ComparisonFailed", ex.Message);
         }
         finally
         {
@@ -182,13 +196,32 @@ public partial class ComparisonViewModel : ObservableObject
 
         try
         {
+            if (SaveReportExportAsync is null)
+            {
+                StatusMessage = _localization.GetString("Comp_ExportUnavailable");
+                return;
+            }
+
             var markdown = await _comparisonService.ExportComparisonAsMarkdownAsync(_currentReport);
-            StatusMessage = "Comparison report exported as Markdown";
+            var result = await SaveReportExportAsync(new ComparisonReportExportRequest(
+                $"agent-x-comparison-{DateTime.Now:yyyyMMdd-HHmmss}.md",
+                markdown));
+
+            if (!result.IsSaved)
+            {
+                StatusMessage = _localization.GetString("Comp_ExportCancelled");
+                return;
+            }
+
+            var fileName = string.IsNullOrWhiteSpace(result.FilePath)
+                ? _localization.GetString("Comp_MarkdownFile")
+                : Path.GetFileName(result.FilePath);
+            StatusMessage = _localization.GetString("Comp_ReportSavedTo", fileName);
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to export comparison report");
-            StatusMessage = "Export failed";
+            StatusMessage = _localization.GetString("Comp_ExportFailed");
         }
     }
 
@@ -222,6 +255,22 @@ public partial class ComparisonViewModel : ObservableObject
             item.PropertyChanged -= OnDocumentSelectionChanged;
         }
     }
+}
+
+/// <summary>A comparison report to save: the suggested file name and the Markdown text.</summary>
+public sealed record ComparisonReportExportRequest(string SuggestedFileName, string Markdown);
+
+/// <summary>A detail level choice: the value the comparison is sent and the name shown for it.</summary>
+public sealed record ComparisonDetailLevelOption(string Value, string Label)
+{
+    public override string ToString() => Label;
+}
+
+/// <summary>Where an exported comparison report was saved, or that the save was cancelled.</summary>
+public sealed record ComparisonReportExportResult(bool IsSaved, string? FilePath)
+{
+    public static ComparisonReportExportResult Saved(string filePath) => new(true, filePath);
+    public static ComparisonReportExportResult Cancelled() => new(false, null);
 }
 
 public partial class DocumentSelectItem : ObservableObject

@@ -8,9 +8,9 @@ namespace AgentX.Core.Configuration;
 /// </summary>
 public sealed class RagConfigurationOptions
 {
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Search Configuration
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>Default number of results to retrieve from vector search.</summary>
     public int DefaultTopK { get; set; } = 8;
@@ -27,9 +27,9 @@ public sealed class RagConfigurationOptions
     /// <summary>Hard ceiling on expanded retrieval candidate pool.</summary>
     public int RetrievalCap { get; set; } = 500;
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Chunking Configuration
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>Default target chunk size in tokens.</summary>
     public int DefaultChunkSize { get; set; } = 512;
@@ -43,9 +43,9 @@ public sealed class RagConfigurationOptions
     /// <summary>Minimum allowed chunk size.</summary>
     public int MinChunkSize { get; set; } = 128;
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Embedding Configuration
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>Default embedding model name.</summary>
     public string DefaultEmbeddingModel { get; set; } = "all-minilm";
@@ -59,9 +59,9 @@ public sealed class RagConfigurationOptions
     /// <summary>Maximum batch size for embedding generation.</summary>
     public int EmbeddingBatchSize { get; set; } = 32;
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Context Assembly Configuration
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>Weight for semantic similarity (0.0-1.0).</summary>
     public double SemanticWeight { get; set; } = 0.68;
@@ -75,9 +75,9 @@ public sealed class RagConfigurationOptions
     /// <summary>Minimum tokens for recall augmentation.</summary>
     public int MinRecallBudgetTokens { get; set; } = 48;
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Semantic Memory Configuration
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>Default temporal decay rate.</summary>
     public double MemoryDecayRate { get; set; } = 0.01;
@@ -91,9 +91,9 @@ public sealed class RagConfigurationOptions
     /// <summary>Maximum memories per query.</summary>
     public int MaxMemoriesPerQuery { get; set; } = 10;
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Vector Store Configuration
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>Count threshold for linear scan fallback.</summary>
     public int VectorStoreFallbackThreshold { get; set; } = 10000;
@@ -107,9 +107,9 @@ public sealed class RagConfigurationOptions
     /// <summary>HNSW EfConstruction parameter.</summary>
     public int HnswEfConstruction { get; set; } = 200;
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Reranking Configuration
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>Enable LLM reranking.</summary>
     public bool EnableLlmReranking { get; set; } = true;
@@ -123,9 +123,9 @@ public sealed class RagConfigurationOptions
     /// <summary>Max parallel ContextualCompressor LLM calls per RAG turn.</summary>
     public int CompressionConcurrency { get; set; } = 4;
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Evaluation
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>Probability (0..1) that a RAG turn fires the LLM-judge eval.</summary>
     public double EvalSampleRate { get; set; } = 1.0;
@@ -133,9 +133,9 @@ public sealed class RagConfigurationOptions
     /// <summary>Per-chunk character budget the eval judge can see.</summary>
     public int EvalContextCharLimit { get; set; } = 800;
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  HyDE Configuration
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>Whether HyDE is enabled in the RAG pipeline.</summary>
     public bool EnableHyde { get; set; } = true;
@@ -143,16 +143,16 @@ public sealed class RagConfigurationOptions
     /// <summary>Minimum question length (chars) before HyDE is invoked.</summary>
     public int HydeMinQueryLength { get; set; } = 80;
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Search Routing
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>Default search mode: "Semantic", "Keyword", or "Hybrid".</summary>
     public string DefaultSearchMode { get; set; } = "Hybrid";
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Privacy / PII
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>Whether to redact PII from RAG context before sending to LLM.</summary>
     public bool EnablePiiRedaction { get; set; } = true;
@@ -160,9 +160,9 @@ public sealed class RagConfigurationOptions
     /// <summary>Mask string used when redacting PII.</summary>
     public string PiiRedactionMask { get; set; } = "***";
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Research Mode Configuration
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     /// <summary>Enable web search research mode.</summary>
     public bool EnableResearchMode { get; set; } = false;
@@ -173,7 +173,8 @@ public sealed class RagConfigurationOptions
 
 /// <summary>
 /// Thread-safe implementation of IRagConfiguration backed by IOptionsMonitor.
-/// Supports runtime configuration updates without application restart.
+/// The options are read once, when the service is created: an edit to the "Rag" section of
+/// appsettings.json applies after a restart.
 /// </summary>
 public sealed class RagConfiguration : IRagConfiguration
 {
@@ -188,9 +189,9 @@ public sealed class RagConfiguration : IRagConfiguration
         _options = optionsMonitor.CurrentValue;
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  IRagConfiguration Implementation
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     public int DefaultTopK => _options.DefaultTopK;
     public float DefaultMinScore => _options.DefaultMinScore;
@@ -242,9 +243,9 @@ public sealed class RagConfiguration : IRagConfiguration
     public bool EnableResearchMode => _options.EnableResearchMode;
     public int ResearchMaxWebResults => _options.ResearchMaxWebResults;
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Validation
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     public void Validate()
     {

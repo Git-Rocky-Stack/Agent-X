@@ -124,13 +124,11 @@ public sealed partial class SearchPage : Page
         // Deactivate the previously active chip
         if (_filterChips.TryGetValue(_activeFilterTag, out var previousChip))
         {
-            previousChip.Style = (Style)Resources["FilterChipStyle"]
-                ?? (Style)Application.Current.Resources["FilterChipStyle"];
+            SetChipStyle(previousChip, "FilterChipStyle");
         }
 
         // Activate the new chip
-        button.Style = (Style)Resources["FilterChipActiveStyle"]
-            ?? (Style)Application.Current.Resources["FilterChipActiveStyle"];
+        SetChipStyle(button, "FilterChipActiveStyle");
 
         _activeFilterTag = tag;
 
@@ -139,6 +137,24 @@ public sealed partial class SearchPage : Page
         if (ViewModel.FilterByFileTypeCommand.CanExecute(filterValue))
         {
             ViewModel.FilterByFileTypeCommand.Execute(filterValue);
+        }
+    }
+
+    /// <summary>
+    /// Applies a chip style found in the page's resources, then the application's. The chip
+    /// styles live in the application dictionary, and the ResourceDictionary indexer throws
+    /// for a key it does not hold, so an indexer lookup with a null fallback never reached
+    /// the application dictionary and the click handler failed before applying the filter.
+    /// </summary>
+    private void SetChipStyle(Button chip, string key)
+    {
+        if (Resources.TryGetValue(key, out var pageValue) && pageValue is Style pageStyle)
+        {
+            chip.Style = pageStyle;
+        }
+        else if (Application.Current.Resources.TryGetValue(key, out var appValue) && appValue is Style appStyle)
+        {
+            chip.Style = appStyle;
         }
     }
 
@@ -220,13 +236,11 @@ public sealed partial class SearchPage : Page
         // Reset active filter to "All"
         if (_filterChips.TryGetValue(_activeFilterTag, out var previousChip))
         {
-            previousChip.Style = (Style)Resources["FilterChipStyle"]
-                ?? (Style)Application.Current.Resources["FilterChipStyle"];
+            SetChipStyle(previousChip, "FilterChipStyle");
         }
 
         _activeFilterTag = "";
-        FilterAll.Style = (Style)Resources["FilterChipActiveStyle"]
-            ?? (Style)Application.Current.Resources["FilterChipActiveStyle"];
+        SetChipStyle(FilterAll, "FilterChipActiveStyle");
 
         if (ViewModel.FilterByFileTypeCommand.CanExecute(null))
         {

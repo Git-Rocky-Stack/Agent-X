@@ -28,7 +28,7 @@
 
     <Grid Background="{ThemeResource PageBackgroundBrush}">
 
-        <!-- ═══════ ADAPTIVE LAYOUT (Tier 3) — see Colors.xaml breakpoints ═══════
+        <!-- ======= ADAPTIVE LAYOUT (Tier 3) - see Colors.xaml breakpoints =======
              Narrow (<960):  citations 260   |  Medium (>=960): citations 300
              Wide (>=1280):  citations 320 (markup default) -->
         <VisualStateManager.VisualStateGroups>
@@ -60,7 +60,7 @@
         <Grid.ColumnDefinitions>
             <!-- Chat area -->
             <ColumnDefinition Width="*" />
-            <!-- Citations sidebar (adaptive width — 260/300/320) -->
+            <!-- Citations sidebar (adaptive width - 260/300/320) -->
             <ColumnDefinition x:Name="CitationsSidebarColumn" Width="320" />
         </Grid.ColumnDefinitions>
 
@@ -322,9 +322,10 @@
                                                             Visibility="{x:Bind IsStreaming, Mode=OneWay, Converter={StaticResource BoolToVis}}"
                                                             HorizontalAlignment="Left" />
 
-                                                    <!-- Inline citation badges (visible after generation) -->
-                                                    <ItemsRepeater ItemsSource="{x:Bind Citations}"
-                                                                   Visibility="{x:Bind local:AskFilesPage.HasCitationsVisibility(Citations)}">
+                                                    <!-- Inline citation badges (visible after generation).
+                                                         OneWay: citations arrive after the message is shown. -->
+                                                    <ItemsRepeater ItemsSource="{x:Bind Citations, Mode=OneWay}"
+                                                                   Visibility="{x:Bind local:AskFilesPage.HasCitationsVisibility(Citations), Mode=OneWay}">
                                                         <ItemsRepeater.Layout>
                                                             <StackLayout Orientation="Horizontal" Spacing="4" />
                                                         </ItemsRepeater.Layout>

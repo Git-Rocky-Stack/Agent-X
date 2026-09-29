@@ -9,7 +9,7 @@ namespace AgentX.Core.Data.Migrations
 {
     /// <summary>
     /// Drops the <c>licenses</c> table. Agent-X is now 100% free and open-source
-    /// (MIT) with every capability unconditionally available — there are no license
+    /// (MIT) with every capability unconditionally available - there are no license
     /// tiers, activation, or feature gates, so the backing table is no longer used.
     /// </summary>
     /// <remarks>
@@ -18,10 +18,10 @@ namespace AgentX.Core.Data.Migrations
     /// <c>net8.0-windows10.0.22621.0</c> Windows SDK runtime pack), so this migration
     /// and the model-snapshot edit were written by hand to mirror exactly what
     /// <c>dotnet ef migrations add DropLicensesTable</c> would have produced. It is
-    /// committed but NOT applied — run <c>dotnet ef database update</c> only after review.
+    /// committed but NOT applied - run <c>dotnet ef database update</c> only after review.
     ///
     /// Data-loss note: dropping <c>licenses</c> discards any locally-stored activation
-    /// rows. This is intentional and non-destructive to user content — the table only
+    /// rows. This is intentional and non-destructive to user content - the table only
     /// ever held offline license-key metadata (key, tier, customer name/email,
     /// activation timestamps), none of which has meaning now that all features are free.
     /// No other table referenced <c>licenses</c> (no foreign keys), so the drop is safe

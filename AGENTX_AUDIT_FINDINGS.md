@@ -12,19 +12,19 @@ Two file-boundary issues are also material: backup restore can write outside the
 
 Extension TypeScript linting and type checking passed after installing dependencies. .NET tests could not be run because the repository pins .NET SDK `8.0.421` in `global.json`, while the local machine only reported SDK `10.0.300`.
 
-## Remediation Status — RESOLVED (2026-06-02)
+## Remediation Status - RESOLVED (2026-06-02)
 
 All five findings, the npm audit vulnerabilities, and the backup authenticated-encryption hardening from "Additional Notes" have been remediated and verified. The .NET 8 SDK (`8.0.421`) is present at `C:\Users\Rock\.dotnet`, so the full test suite now runs.
 
 | # | Finding | Status | Key changes | Tests |
 |---|---------|--------|-------------|-------|
-| 1 | Critical — unauthenticated API + wildcard CORS | ✅ Resolved | Per-install DPAPI-encrypted bearer token (`LocalApiSecurity`, `AppSettings.LocalApiToken`); all routes except `/api/extension/health` require `Authorization: Bearer` (constant-time compare, fail-closed); CORS now echoes the origin only for `chrome-extension://`/`moz-extension://` (web origins get no ACAO); `LocalApiEnabled` toggle gates startup; extension pairs via paste-to-token (popup) and sends Bearer; desktop Settings → Connections shows/copies/regenerates the token | `LocalApiSecurityTests`, `ApiHostLifecycleServiceTests` |
-| 2 | High — backup ZIP path traversal | ✅ Resolved | `PathHelper.ResolveContainedPath`/`IsSafeRelativeEntry` containment guard; restore loop + `ValidateBackupAsync` reject traversal/rooted entries; per-entry + total expansion caps (zip-bomb) | `BackupServiceSecurityTests`, `PathHelperContainmentTests` |
-| 3 | High — weak plugin manifest/path validation | ✅ Resolved | `PluginManifestValidator` wired into `InstallPluginAsync` + strict reverse-DNS ID (rejects `..`/separators/reserved names) and bare-`.dll` entry assembly; containment guards on install path, activation load, and uninstall delete | `PluginManifestValidatorSecurityTests`, existing `PluginManifestValidatorTests` (unchanged green) |
-| 4 | Medium — WebSearchApiKey stored in plaintext | ✅ Resolved | Routed through `EncryptIfNotEmpty` + decrypt/auto-migrate like other secrets | `SettingsServiceEncryptionTests` |
-| 5 | Med/Low — web-fetch size cap bypass | ✅ Resolved | Bounded streaming read enforces the 10 MB cap even when `Content-Length` is absent/dishonest | `WebContentFetcherSizeLimitTests` |
-| — | Additional Notes — backup tamper detection | ✅ Resolved | Backups now use AES-256-GCM authenticated encryption (V2); legacy AES-256-CBC archives still restore | `BackupServiceSecurityTests` (round-trip / tamper / legacy) |
-| — | Extension npm audit (4 vulns) | ✅ Resolved | `npm audit fix` + `copy-webpack-plugin@^14`; `npm audit` reports 0 vulnerabilities; lint/typecheck/build green | n/a |
+| 1 | Critical - unauthenticated API + wildcard CORS | Resolved | Per-install DPAPI-encrypted bearer token (`LocalApiSecurity`, `AppSettings.LocalApiToken`); all routes except `/api/extension/health` require `Authorization: Bearer` (constant-time compare, fail-closed); CORS now echoes the origin only for `chrome-extension://`/`moz-extension://` (web origins get no ACAO); `LocalApiEnabled` toggle gates startup; extension pairs via paste-to-token (popup) and sends Bearer; desktop Settings -> Connections shows/copies/regenerates the token | `LocalApiSecurityTests`, `ApiHostLifecycleServiceTests` |
+| 2 | High - backup ZIP path traversal | Resolved | `PathHelper.ResolveContainedPath`/`IsSafeRelativeEntry` containment guard; restore loop + `ValidateBackupAsync` reject traversal/rooted entries; per-entry + total expansion caps (zip-bomb) | `BackupServiceSecurityTests`, `PathHelperContainmentTests` |
+| 3 | High - weak plugin manifest/path validation | Resolved | `PluginManifestValidator` wired into `InstallPluginAsync` + strict reverse-DNS ID (rejects `..`/separators/reserved names) and bare-`.dll` entry assembly; containment guards on install path, activation load, and uninstall delete | `PluginManifestValidatorSecurityTests`, existing `PluginManifestValidatorTests` (unchanged green) |
+| 4 | Medium - WebSearchApiKey stored in plaintext | Resolved | Routed through `EncryptIfNotEmpty` + decrypt/auto-migrate like other secrets | `SettingsServiceEncryptionTests` |
+| 5 | Med/Low - web-fetch size cap bypass | Resolved | Bounded streaming read enforces the 10 MB cap even when `Content-Length` is absent/dishonest | `WebContentFetcherSizeLimitTests` |
+| - | Additional Notes - backup tamper detection | Resolved | Backups now use AES-256-GCM authenticated encryption (V2); legacy AES-256-CBC archives still restore | `BackupServiceSecurityTests` (round-trip / tamper / legacy) |
+| - | Extension npm audit (4 vulns) | Resolved | `npm audit fix` + `copy-webpack-plugin@^14`; `npm audit` reports 0 vulnerabilities; lint/typecheck/build green | n/a |
 
 **Verification:** `AgentX.Tests` 1875 passed / 2 skipped / 0 failed; `LocaleAudit.Tests` 32 passed; `AgentX.App` builds Release|x64 with 0 warnings / 0 errors; extension typecheck + lint + production build pass; `npm audit` clean.
 

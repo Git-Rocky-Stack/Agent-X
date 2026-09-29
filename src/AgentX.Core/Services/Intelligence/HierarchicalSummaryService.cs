@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.RegularExpressions;
 using AgentX.Core.AI;
 using AgentX.Core.AI.Models;
 using AgentX.Core.Constants;
@@ -196,6 +197,15 @@ public sealed class HierarchicalSummaryService : IHierarchicalSummaryService
         return normalized;
     }
 
+    /// <summary>
+    /// One list marker at the start of a line: "1." or "2)" or a bullet, followed by whitespace.
+    /// Only that marker is removed, so content that begins with a number ("2024 revenue grew
+    /// 15%", "3.5% inflation") is kept intact.
+    /// </summary>
+    private static readonly Regex ListMarker = new(
+        @"^\s*(?:\d+[.)]|[-*\u2022])\s+",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
     private static IReadOnlyList<string> ParseKeyPoints(string response)
     {
         var keyPoints = new List<string>();
@@ -207,11 +217,7 @@ public sealed class HierarchicalSummaryService : IHierarchicalSummaryService
                 continue;
             }
 
-            line = line.TrimStart('-', '*', ' ');
-            while (line.Length > 0 && (char.IsDigit(line[0]) || line[0] is '.' or ')' or ':'))
-            {
-                line = line[1..].TrimStart();
-            }
+            line = ListMarker.Replace(line, string.Empty).Trim();
 
             if (!string.IsNullOrWhiteSpace(line))
             {

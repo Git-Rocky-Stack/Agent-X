@@ -20,13 +20,13 @@ namespace AgentX.Core.Services.Screen;
 /// If <c>EnableScreenAwareness</c> is <c>false</c> in
 /// <see cref="ISettingsService"/>, both capture methods return an empty
 /// <see cref="ScreenContextResult"/> immediately without invoking native code.
-/// All P/Invoke calls are wrapped in try/catch — capture failures are logged and
+/// All P/Invoke calls are wrapped in try/catch - capture failures are logged and
 /// result in an empty <see cref="ScreenContextResult"/> rather than a thrown exception.
 /// </para>
 /// </summary>
 public sealed class ScreenCaptureService : IScreenCaptureService
 {
-    // ── P/Invoke Declarations ────────────────────────────────────────────────
+    // -- P/Invoke Declarations ------------------------------------------------
 
     [DllImport("user32.dll")]
     private static extern IntPtr GetForegroundWindow();
@@ -72,7 +72,7 @@ public sealed class ScreenCaptureService : IScreenCaptureService
     [DllImport("user32.dll")]
     private static extern int GetSystemMetrics(int nIndex);
 
-    // ── Constants ─────────────────────────────────────────────────────────────
+    // -- Constants -------------------------------------------------------------
 
     private const int SRCCOPY = 0x00CC0020;
     private const int PW_RENDERFULLCONTENT = 2;
@@ -80,7 +80,7 @@ public sealed class ScreenCaptureService : IScreenCaptureService
     private const int SM_CYSCREEN = 1;
     private const int MaxWindowTitleLength = 512;
 
-    // ── RECT struct ───────────────────────────────────────────────────────────
+    // -- RECT struct -----------------------------------------------------------
 
     [StructLayout(LayoutKind.Sequential)]
     private struct RECT
@@ -94,12 +94,12 @@ public sealed class ScreenCaptureService : IScreenCaptureService
         public readonly int Height => Bottom - Top;
     }
 
-    // ── Fields ────────────────────────────────────────────────────────────────
+    // -- Fields ----------------------------------------------------------------
 
     private readonly ISettingsService _settingsService;
     private readonly ILogger _log;
 
-    // ── Constructor ───────────────────────────────────────────────────────────
+    // -- Constructor -----------------------------------------------------------
 
     /// <summary>
     /// Initialises a new <see cref="ScreenCaptureService"/> instance.
@@ -112,7 +112,7 @@ public sealed class ScreenCaptureService : IScreenCaptureService
         _log = logger.ForContext<ScreenCaptureService>();
     }
 
-    // ── IScreenCaptureService ─────────────────────────────────────────────────
+    // -- IScreenCaptureService -------------------------------------------------
 
     /// <inheritdoc />
     public async Task<ScreenContextResult> CaptureAndOcrAsync(CancellationToken ct = default)
@@ -121,7 +121,7 @@ public sealed class ScreenCaptureService : IScreenCaptureService
 
         if (!await IsScreenAwarenessEnabledAsync())
         {
-            _log.Debug("Screen awareness is disabled — skipping full-screen capture");
+            _log.Debug("Screen awareness is disabled - skipping full-screen capture");
             return CreateEmptyResult();
         }
 
@@ -134,7 +134,7 @@ public sealed class ScreenCaptureService : IScreenCaptureService
 
         if (screenWidth <= 0 || screenHeight <= 0)
         {
-            _log.Warning("Invalid screen dimensions {Width}x{Height} — aborting capture", screenWidth, screenHeight);
+            _log.Warning("Invalid screen dimensions {Width}x{Height} - aborting capture", screenWidth, screenHeight);
             return CreateEmptyResult(activeTitle);
         }
 
@@ -148,7 +148,7 @@ public sealed class ScreenCaptureService : IScreenCaptureService
             hdcScreen = GetDC(IntPtr.Zero);
             if (hdcScreen == IntPtr.Zero)
             {
-                _log.Warning("GetDC for screen returned null — aborting capture");
+                _log.Warning("GetDC for screen returned null - aborting capture");
                 return CreateEmptyResult(activeTitle);
             }
 
@@ -162,7 +162,7 @@ public sealed class ScreenCaptureService : IScreenCaptureService
 
             if (!success)
             {
-                _log.Warning("BitBlt failed for full-screen capture — aborting");
+                _log.Warning("BitBlt failed for full-screen capture - aborting");
                 return CreateEmptyResult(activeTitle);
             }
 
@@ -214,7 +214,7 @@ public sealed class ScreenCaptureService : IScreenCaptureService
 
         if (!await IsScreenAwarenessEnabledAsync())
         {
-            _log.Debug("Screen awareness is disabled — skipping active-window capture");
+            _log.Debug("Screen awareness is disabled - skipping active-window capture");
             return CreateEmptyResult();
         }
 
@@ -223,16 +223,45 @@ public sealed class ScreenCaptureService : IScreenCaptureService
         var hwnd = GetForegroundWindow();
         if (hwnd == IntPtr.Zero)
         {
-            _log.Warning("GetForegroundWindow returned null — no active window");
+            _log.Warning("GetForegroundWindow returned null - no active window");
             return CreateEmptyResult();
         }
 
-        var activeTitle = GetActiveWindowTitle();
+        return await CaptureWindowCoreAsync(hwnd, ct);
+    }
+
+    /// <inheritdoc />
+    public async Task<ScreenContextResult> CaptureWindowAndOcrAsync(IntPtr windowHandle, CancellationToken ct = default)
+    {
+        ct.ThrowIfCancellationRequested();
+
+        if (windowHandle == IntPtr.Zero)
+        {
+            _log.Debug("No target window to capture");
+            return CreateEmptyResult();
+        }
+
+        if (!await IsScreenAwarenessEnabledAsync())
+        {
+            _log.Debug("Screen awareness is disabled; skipping window capture");
+            return CreateEmptyResult();
+        }
+
+        _log.Debug("Starting capture and OCR of window {Hwnd}", windowHandle);
+        return await CaptureWindowCoreAsync(windowHandle, ct);
+    }
+
+    /// <summary>
+    /// Captures <paramref name="hwnd"/> with PrintWindow and runs OCR on the image.
+    /// </summary>
+    private async Task<ScreenContextResult> CaptureWindowCoreAsync(IntPtr hwnd, CancellationToken ct)
+    {
+        var activeTitle = GetWindowTitle(hwnd);
         var ideContext = IdeWindowDetector.Detect(activeTitle);
 
         if (!GetWindowRect(hwnd, out var rect))
         {
-            _log.Warning("GetWindowRect failed for HWND {Hwnd} — aborting capture", hwnd);
+            _log.Warning("GetWindowRect failed for HWND {Hwnd} - aborting capture", hwnd);
             return CreateEmptyResult(activeTitle);
         }
 
@@ -241,7 +270,7 @@ public sealed class ScreenCaptureService : IScreenCaptureService
 
         if (windowWidth <= 0 || windowHeight <= 0)
         {
-            _log.Warning("Invalid window dimensions {Width}x{Height} — aborting capture", windowWidth, windowHeight);
+            _log.Warning("Invalid window dimensions {Width}x{Height} - aborting capture", windowWidth, windowHeight);
             return CreateEmptyResult(activeTitle);
         }
 
@@ -255,7 +284,7 @@ public sealed class ScreenCaptureService : IScreenCaptureService
             hdcScreen = GetDC(IntPtr.Zero);
             if (hdcScreen == IntPtr.Zero)
             {
-                _log.Warning("GetDC for screen returned null — aborting window capture");
+                _log.Warning("GetDC for screen returned null - aborting window capture");
                 return CreateEmptyResult(activeTitle);
             }
 
@@ -268,7 +297,7 @@ public sealed class ScreenCaptureService : IScreenCaptureService
 
             if (!success)
             {
-                _log.Warning("PrintWindow failed for HWND {Hwnd} — aborting capture", hwnd);
+                _log.Warning("PrintWindow failed for HWND {Hwnd} - aborting capture", hwnd);
                 return CreateEmptyResult(activeTitle);
             }
 
@@ -313,7 +342,7 @@ public sealed class ScreenCaptureService : IScreenCaptureService
         }
     }
 
-    // ── Private Helpers ───────────────────────────────────────────────────────
+    // -- Private Helpers -------------------------------------------------------
 
     /// <summary>
     /// Checks whether screen awareness is enabled in application settings.
@@ -327,7 +356,7 @@ public sealed class ScreenCaptureService : IScreenCaptureService
         }
         catch (Exception ex)
         {
-            _log.Warning(ex, "Failed to read screen awareness setting — defaulting to disabled");
+            _log.Warning(ex, "Failed to read screen awareness setting - defaulting to disabled");
             return false;
         }
     }
@@ -335,9 +364,13 @@ public sealed class ScreenCaptureService : IScreenCaptureService
     /// <summary>
     /// Gets the title of the currently active (foreground) window.
     /// </summary>
-    private static string GetActiveWindowTitle()
+    private static string GetActiveWindowTitle() => GetWindowTitle(GetForegroundWindow());
+
+    /// <summary>
+    /// Gets the title of <paramref name="hwnd"/>, or an empty string when it has none.
+    /// </summary>
+    private static string GetWindowTitle(IntPtr hwnd)
     {
-        var hwnd = GetForegroundWindow();
         if (hwnd == IntPtr.Zero)
             return string.Empty;
 
@@ -385,7 +418,7 @@ public sealed class ScreenCaptureService : IScreenCaptureService
     private static async Task<SoftwareBitmap> HBitmapToSoftwareBitmapAsync(
         IntPtr hBitmap, int width, int height, CancellationToken ct)
     {
-        // Convert HBITMAP → System.Drawing.Bitmap → PNG byte stream → SoftwareBitmap
+        // Convert HBITMAP -> System.Drawing.Bitmap -> PNG byte stream -> SoftwareBitmap
         // This is the most reliable path for unpackaged WinUI 3 apps.
         using var sysDrawingBmp = System.Drawing.Bitmap.FromHbitmap(hBitmap);
 
@@ -396,7 +429,7 @@ public sealed class ScreenCaptureService : IScreenCaptureService
 
         // Copy the PNG bytes into a WinRT InMemoryRandomAccessStream
         // (DataWriter is the most reliable way to populate an InMemoryRandomAccessStream
-        // without relying on Stream↔IRandomAccessStream interop extensions.)
+        // without relying on Stream<->IRandomAccessStream interop extensions.)
         using var winrtStream = new InMemoryRandomAccessStream();
         using var dataWriter = new DataWriter(winrtStream);
         dataWriter.WriteBytes(ms.ToArray());

@@ -14,10 +14,9 @@ public sealed class TokenCounter : ITokenCounter
     private readonly ILogger _log;
     private readonly Dictionary<string, ModelInfo> _modelContextWindows;
 
-    // Character-to-token approximation ratios based on TikToken analysis
-    // These are conservative estimates that work well for most English text
-    private const double DefaultCharsPerToken = 4.0; // ~4 characters per token for English
-    private const double ChineseCharsPerToken = 0.6; // ~0.6 Chinese characters per token
+    // Character-to-token approximation for Latin-script text; CJK text is counted separately
+    // by TokenEstimator.
+    private const double DefaultCharsPerToken = TokenEstimator.DefaultCharsPerToken;
 
     public TokenCounter(IRagConfiguration configuration, ILogger log)
     {
@@ -83,25 +82,13 @@ public sealed class TokenCounter : ITokenCounter
 
         // Get model-specific info or use defaults
         var modelInfo = GetModelInfo(modelId);
-        var charsPerToken = modelInfo.CharsPerToken;
 
-        // Detect if text contains CJK characters (Chinese, Japanese, Korean)
-        var hasCJK = ContainsCJKCharacters(text);
-
-        // Adjust ratio for mixed content
-        if (hasCJK)
-        {
-            // For CJK text, tokens are more dense
-            // Estimate based on character distribution
-            var cjkRatio = EstimateCJKRatio(text);
-            charsPerToken = BlendRatios(DefaultCharsPerToken, ChineseCharsPerToken, cjkRatio);
-        }
-
-        // Calculate token count with ceiling to ensure we don't underestimate
-        var estimatedTokens = (int)Math.Ceiling(text.Length / charsPerToken);
+        // CJK characters and the rest of the text are counted at their own rates and added.
+        // (Blending the two ratios into one average undercounted mixed text by about half.)
+        var estimatedTokens = TokenEstimator.Estimate(text, modelInfo.CharsPerToken);
 
         _log.Verbose("Token count: {Tokens} tokens for {Length} chars using {Ratio:F2} chars/token for model {Model}",
-            estimatedTokens, text.Length, charsPerToken, modelId);
+            estimatedTokens, text.Length, modelInfo.CharsPerToken, modelId);
 
         return estimatedTokens;
     }
@@ -131,9 +118,9 @@ public sealed class TokenCounter : ITokenCounter
         return Math.Max(0, remaining);
     }
 
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
     //  Private helpers
-    // ═══════════════════════════════════════════════════════════════════
+    // ===================================================================
 
     private ModelInfo GetModelInfo(string modelId)
     {
@@ -141,12 +128,15 @@ public sealed class TokenCounter : ITokenCounter
         if (_modelContextWindows.TryGetValue(modelId, out var info))
             return info;
 
-        // Try prefix match (e.g., "llama-3.1-8b-q4" matches "llama-3.1-8b")
-        foreach (var kvp in _modelContextWindows)
-        {
-            if (modelId.StartsWith(kvp.Key, StringComparison.OrdinalIgnoreCase))
-                return kvp.Value;
-        }
+        // Try the longest prefix match (e.g., "llama-3.1-8b-q4" matches "llama-3.1-8b", and
+        // "gpt-4o-mini" matches "gpt-4o" rather than the shorter "gpt-4")
+        var prefixMatch = _modelContextWindows
+            .Where(kvp => modelId.StartsWith(kvp.Key, StringComparison.OrdinalIgnoreCase))
+            .OrderByDescending(kvp => kvp.Key.Length)
+            .Select(kvp => kvp.Value)
+            .FirstOrDefault();
+        if (prefixMatch is not null)
+            return prefixMatch;
 
         // Extract base model name (before any version/quant suffixes)
         var baseName = ExtractBaseModelName(modelId);
@@ -174,48 +164,6 @@ public sealed class TokenCounter : ITokenCounter
         }
 
         return name;
-    }
-
-    private static bool ContainsCJKCharacters(string text)
-    {
-        foreach (var c in text)
-        {
-            if (c >= 0x4E00 && c <= 0x9FFF) // CJK Unified Ideographs
-                return true;
-            if (c >= 0x3040 && c <= 0x309F) // Hiragana
-                return true;
-            if (c >= 0x30A0 && c <= 0x30FF) // Katakana
-                return true;
-            if (c >= 0xAC00 && c <= 0xD7AF) // Hangul Syllables
-                return true;
-        }
-        return false;
-    }
-
-    private static double EstimateCJKRatio(string text)
-    {
-        if (string.IsNullOrEmpty(text))
-            return 0.0;
-
-        int cjkCount = 0;
-        foreach (var c in text)
-        {
-            if (c >= 0x4E00 && c <= 0x9FFF || // CJK Unified Ideographs
-                c >= 0x3040 && c <= 0x309F || // Hiragana
-                c >= 0x30A0 && c <= 0x30FF || // Katakana
-                c >= 0xAC00 && c <= 0xD7AF)   // Hangul Syllables
-            {
-                cjkCount++;
-            }
-        }
-
-        return (double)cjkCount / text.Length;
-    }
-
-    private static double BlendRatios(double englishRatio, double cjkRatio, double cjkProportion)
-    {
-        // Linear interpolation based on CJK character proportion
-        return englishRatio * (1.0 - cjkProportion) + cjkRatio * cjkProportion;
     }
 
     private sealed record ModelInfo(int ContextWindowSize, double CharsPerToken);

@@ -212,7 +212,7 @@ public class CSharpGetStringExtractorTests
     public void Extract_handles_url_literals_on_separate_line_from_GetString()
     {
         // Documents the known limitation: URL-in-string and GetString on SEPARATE lines are safe.
-        // Same-line `var url = "https://..."; _l.GetString("K")` would drop the K — see LIMITATION
+        // Same-line `var url = "https://..."; _l.GetString("K")` would drop the K - see LIMITATION
         // comment in CSharpGetStringExtractor.SingleLineCommentRegex.
         var cs = """
             public class Foo

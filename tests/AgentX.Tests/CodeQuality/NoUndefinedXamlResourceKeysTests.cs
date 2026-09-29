@@ -79,7 +79,7 @@ public sealed class NoUndefinedXamlResourceKeysTests
             "the references below have no definition:\n  " + string.Join("\n  ", offenders));
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
+    // -- Helpers --------------------------------------------------------------
 
     /// <summary>
     /// Collects every <c>x:Key</c> and <c>x:Name</c> declared across the app's XAML.

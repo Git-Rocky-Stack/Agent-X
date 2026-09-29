@@ -1,3 +1,4 @@
+using AgentX.Core.Search.Models;
 using AgentX.Core.Services.Chat.Models;
 
 namespace AgentX.App.ViewModels.Coordinators;
@@ -74,6 +75,24 @@ public interface IMessagingCoordinator
         ChatOrchestrationMode orchestrationMode);
 
     /// <summary>
+    /// Streams a new answer to a persisted user message that closes the conversation,
+    /// optionally followed by its current answer. The prompt is not persisted again, and the
+    /// current answer is replaced only once the new one has been saved: a stop or a failure
+    /// keeps it. Tokens and completion are reported through the same events as a send.
+    /// </summary>
+    /// <param name="conversationId">The conversation the prompt belongs to.</param>
+    /// <param name="userMessageId">The persisted user message to answer again.</param>
+    /// <param name="userContent">The prompt text (used by multi-agent orchestration).</param>
+    /// <param name="systemPrompt">The active system prompt (used by multi-agent orchestration).</param>
+    /// <param name="orchestrationMode">The generation mode to answer with.</param>
+    Task<SendMessageResult> RegenerateResponseAsync(
+        long conversationId,
+        long userMessageId,
+        string userContent,
+        string? systemPrompt,
+        ChatOrchestrationMode orchestrationMode);
+
+    /// <summary>
     /// Stops the current generation.
     /// </summary>
     Task StopGenerationAsync();
@@ -84,9 +103,13 @@ public interface IMessagingCoordinator
     Task SubmitFeedbackAsync(long messageId, long conversationId, string rating);
 
     /// <summary>
-    /// Deletes a message from the conversation and database.
+    /// Deletes a persisted message from the conversation and database.
     /// </summary>
-    Task DeleteMessageAsync(long messageId);
+    /// <returns>
+    /// True when the message is no longer stored; false when the id is not a persisted
+    /// message id or the delete failed, in which case the message is still stored.
+    /// </returns>
+    Task<bool> DeleteMessageAsync(long messageId);
 }
 
 /// <summary>
@@ -124,8 +147,17 @@ public sealed class SendMessageResult
     /// <summary>The persisted assistant message ID when one was created.</summary>
     public long? AssistantMessageId { get; init; }
 
+    /// <summary>The persisted assistant message's sort order when one was created.</summary>
+    public int? AssistantMessageSortOrder { get; init; }
+
     /// <summary>The persisted user message ID when one was created.</summary>
     public long? UserMessageId { get; init; }
+
+    /// <summary>The persisted user message's sort order when one was created by this call.</summary>
+    public int? UserMessageSortOrder { get; init; }
+
+    /// <summary>The web sources Research Mode added to the context, when it added any.</summary>
+    public IReadOnlyList<WebCitation>? WebCitations { get; init; }
 }
 
 /// <summary>
@@ -140,7 +172,10 @@ public sealed class StreamingCompletedEventArgs : EventArgs
     public string? ConversationTitle { get; init; }
     public ChatContextInspectionSnapshot? ContextInspection { get; init; }
     public long? AssistantMessageId { get; init; }
+    public int? AssistantMessageSortOrder { get; init; }
     public long? UserMessageId { get; init; }
+    public int? UserMessageSortOrder { get; init; }
+    public IReadOnlyList<WebCitation>? WebCitations { get; init; }
 }
 
 /// <summary>

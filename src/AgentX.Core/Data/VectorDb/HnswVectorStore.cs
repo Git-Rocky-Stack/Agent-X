@@ -7,7 +7,7 @@ using Hsnw;
 using Microsoft.Data.Sqlite;
 using Serilog;
 
-// Task 8b: IEncryptedConnectionFactory integration — connection opens go through the factory
+// Task 8b: IEncryptedConnectionFactory integration - connection opens go through the factory
 // so PRAGMA key is applied whenever encryption is enabled.
 
 namespace AgentX.Core.Data.VectorDb;
@@ -35,7 +35,7 @@ namespace AgentX.Core.Data.VectorDb;
 /// </summary>
 public sealed class HnswVectorStore : IVectorStore
 {
-    // ── Constants ────────────────────────────────────────────────────────
+    // -- Constants --------------------------------------------------------
 
     private const int DefaultM = 16;
     private const int DefaultEfConstruction = 200;
@@ -45,15 +45,23 @@ public sealed class HnswVectorStore : IVectorStore
     private const string IndexFileName = "hnsw-index.bin";
     private const string MetadataFileName = "hnsw-index.json";
     private const string StaleIdsFileName = "hnsw-stale-ids.json";
+    private const string DatabaseFileName = "agentx.db";
 
-    // ── Fields ──────────────────────────────────────────────────────────
+    // HnswLite accepts vectors of at most 4096 dimensions; larger embeddings are served by the
+    // linear scan only.
+    private const int MaxHnswDimensions = 4096;
+
+    // Largest search breadth (ef) HnswLite accepts.
+    private const int MaxHnswEf = 10_000;
+
+    // -- Fields ----------------------------------------------------------
 
     private readonly ISettingsService _settingsService;
     private readonly IEncryptedConnectionFactory _connectionFactory;
     private readonly ILogger _logger;
     private readonly int _m;
     private readonly int _efConstruction;
-    private readonly int _dimensions;
+    private readonly Func<int> _dimensionsProvider;
     private readonly long _fallbackThreshold;
 
     private SqliteConnection? _connection;
@@ -62,6 +70,17 @@ public sealed class HnswVectorStore : IVectorStore
     private bool _disposed;
     private bool _initialized;
     private bool _indexDirty;
+    private bool _reopenOnResume;
+
+    /// <summary>Closes the connection while the database file is replaced or re-encrypted.</summary>
+    private readonly VectorStoreSuspension _suspension = new();
+
+    /// <summary>
+    /// Vector size of the current embedding space: the HNSW index holds only vectors of this
+    /// size. Rows of other sizes (from a previous embedding model) stay in SQLite, reachable by
+    /// the linear scan, but never enter the index, where they would fail the insert.
+    /// </summary>
+    private int _activeDimensions;
 
     /// <summary>
     /// Tracks chunk IDs that have been deleted from SQLite but may still exist in the
@@ -87,13 +106,13 @@ public sealed class HnswVectorStore : IVectorStore
     /// </summary>
     private readonly SemaphoreSlim _mutationLock = new(1, 1);
 
-    // ── Constructors ────────────────────────────────────────────────────
+    // -- Constructors ----------------------------------------------------
 
     /// <summary>
     /// Creates a new HnswVectorStore with default HNSW parameters.
     /// </summary>
     /// <param name="settingsService">Settings service providing the database storage path.</param>
-    /// <param name="connectionFactory">Encrypted connection factory — required so PRAGMA key is applied when opening SQLite.</param>
+    /// <param name="connectionFactory">Encrypted connection factory - required so PRAGMA key is applied when opening SQLite.</param>
     public HnswVectorStore(ISettingsService settingsService, IEncryptedConnectionFactory connectionFactory)
         : this(settingsService, logger: null, DefaultM, DefaultEfConstruction, DefaultDimensions, FallbackThreshold, connectionFactory)
     {
@@ -104,14 +123,14 @@ public sealed class HnswVectorStore : IVectorStore
     /// </summary>
     /// <param name="settingsService">Settings service providing the database storage path.</param>
     /// <param name="logger">Serilog logger instance.</param>
-    /// <param name="connectionFactory">Encrypted connection factory — required so PRAGMA key is applied when opening SQLite.</param>
+    /// <param name="connectionFactory">Encrypted connection factory - required so PRAGMA key is applied when opening SQLite.</param>
     public HnswVectorStore(ISettingsService settingsService, ILogger logger, IEncryptedConnectionFactory connectionFactory)
         : this(settingsService, logger, DefaultM, DefaultEfConstruction, DefaultDimensions, FallbackThreshold, connectionFactory)
     {
     }
 
     /// <summary>
-    /// Full-featured constructor — all HNSW parameters configurable.
+    /// Full-featured constructor - all HNSW parameters configurable.
     /// </summary>
     /// <param name="settingsService">Settings service providing the database storage path.</param>
     /// <param name="logger">Serilog logger instance (may be null to use the default context logger).</param>
@@ -119,7 +138,7 @@ public sealed class HnswVectorStore : IVectorStore
     /// <param name="efConstruction">HNSW EfConstruction: candidate list size during build.</param>
     /// <param name="dimensions">Embedding vector dimensionality.</param>
     /// <param name="fallbackThreshold">Embedding count below which linear scan is used.</param>
-    /// <param name="connectionFactory">Encrypted connection factory — required so PRAGMA key is applied when opening SQLite.</param>
+    /// <param name="connectionFactory">Encrypted connection factory - required so PRAGMA key is applied when opening SQLite.</param>
     public HnswVectorStore(
         ISettingsService settingsService,
         ILogger? logger,
@@ -128,23 +147,57 @@ public sealed class HnswVectorStore : IVectorStore
         int dimensions,
         long fallbackThreshold,
         IEncryptedConnectionFactory connectionFactory)
+        : this(settingsService, logger, m, efConstruction, () => dimensions, fallbackThreshold, connectionFactory)
+    {
+    }
+
+    /// <summary>
+    /// Full-featured constructor with a lazily evaluated dimension: the embedding service only
+    /// knows the vector size of the current embedding model once the AI service is initialized,
+    /// which is after this store is constructed.
+    /// </summary>
+    /// <param name="settingsService">Settings service providing the database storage path.</param>
+    /// <param name="logger">Serilog logger instance (may be null to use the default context logger).</param>
+    /// <param name="m">HNSW M parameter: max connections per layer.</param>
+    /// <param name="efConstruction">HNSW EfConstruction: candidate list size during build.</param>
+    /// <param name="dimensionsProvider">Returns the vector size of the current embedding model.</param>
+    /// <param name="fallbackThreshold">Embedding count below which linear scan is used.</param>
+    /// <param name="connectionFactory">Encrypted connection factory; applies PRAGMA key when opening SQLite.</param>
+    public HnswVectorStore(
+        ISettingsService settingsService,
+        ILogger? logger,
+        int m,
+        int efConstruction,
+        Func<int> dimensionsProvider,
+        long fallbackThreshold,
+        IEncryptedConnectionFactory connectionFactory)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
+        _dimensionsProvider = dimensionsProvider ?? throw new ArgumentNullException(nameof(dimensionsProvider));
         _logger = logger ?? Log.ForContext<HnswVectorStore>();
         _m = m;
         _efConstruction = efConstruction;
-        _dimensions = dimensions;
         _fallbackThreshold = fallbackThreshold;
-        _logger.Information("HnswVectorStore created (M={M}, EfConstruction={EfConstruction}, Dims={Dimensions}, Threshold={Threshold})",
-            _m, _efConstruction, _dimensions, _fallbackThreshold);
+        _logger.Information("HnswVectorStore created (M={M}, EfConstruction={EfConstruction}, Threshold={Threshold})",
+            _m, _efConstruction, _fallbackThreshold);
     }
 
-    // ── IVectorStore implementation ─────────────────────────────────────
+    /// <summary>
+    /// Smallest HNSW search breadth (ef) a query uses, from <c>AppSettings.HnswEfSearch</c>.
+    /// A query never searches narrower than HnswLite's own default, max(EfConstruction,
+    /// 2 x candidates), so this setting can only widen the search: raise it above that default
+    /// for better recall on a very large vault, at the cost of slower queries.
+    /// </summary>
+    public int EfSearch { get; init; }
+
+    // -- IVectorStore implementation -------------------------------------
 
     /// <inheritdoc />
     public async Task InitializeAsync(CancellationToken ct = default)
     {
+        ThrowIfDisposed();
+        using var operation = await _suspension.EnterAsync(ct).ConfigureAwait(false);
         ThrowIfDisposed();
 
         if (_initialized)
@@ -166,41 +219,21 @@ public sealed class HnswVectorStore : IVectorStore
                 _logger.Debug("Created storage directory: {Path}", _storagePath);
             }
 
-            // Open SQLite connection (same schema as SqliteVecStore) via the encrypted
-            // connection factory — PRAGMA key is applied automatically when encryption
-            // is enabled, and the call is a plaintext open when no key is loaded.
-            var dbPath = Path.Combine(_storagePath, "agentx.db");
-            _connection = _connectionFactory.OpenKeyed(dbPath);
+            await OpenAndPrepareAsync(ct).ConfigureAwait(false);
 
-            _logger.Debug("SQLite connection opened: {Path}", dbPath);
+            var embeddingCount = await CountEmbeddingsAsync(ct).ConfigureAwait(false);
 
-            await ExecuteNonQueryAsync("PRAGMA journal_mode=WAL;", ct).ConfigureAwait(false);
-
-            const string createTableSql = """
-                CREATE TABLE IF NOT EXISTS vec_embeddings (
-                    chunk_id  INTEGER PRIMARY KEY,
-                    embedding BLOB NOT NULL,
-                    magnitude REAL NOT NULL
-                );
-                """;
-
-            await ExecuteNonQueryAsync(createTableSql, ct).ConfigureAwait(false);
-
-            const string createIndexSql = """
-                CREATE INDEX IF NOT EXISTS idx_vec_chunk ON vec_embeddings(chunk_id);
-                """;
-
-            await ExecuteNonQueryAsync(createIndexSql, ct).ConfigureAwait(false);
-
-            var embeddingCount = await GetEmbeddingCountAsync(ct).ConfigureAwait(false);
+            // The index serves the current embedding space: its dimension comes from the
+            // embedding model, not from whatever happens to be stored.
+            var dimensions = ResolveCurrentDimensions();
 
             // Attempt to load existing HNSW index from disk.
-            var indexLoaded = await TryLoadIndexAsync(embeddingCount, ct).ConfigureAwait(false);
+            var indexLoaded = await TryLoadIndexAsync(embeddingCount, dimensions, ct).ConfigureAwait(false);
 
             if (!indexLoaded && embeddingCount > 0)
             {
                 _logger.Information("Building HNSW index from {Count} SQLite embeddings...", embeddingCount);
-                await RebuildIndexAsync(ct).ConfigureAwait(false);
+                await RebuildIndexAsync(dimensions, ct).ConfigureAwait(false);
                 _logger.Information("HNSW index built from SQLite ({Count} vectors)", embeddingCount);
             }
             else if (indexLoaded)
@@ -209,8 +242,8 @@ public sealed class HnswVectorStore : IVectorStore
             }
             else
             {
-                // Empty store — create a fresh index ready for inserts.
-                CreateEmptyIndex();
+                // Empty store - create a fresh index ready for inserts.
+                CreateEmptyIndex(dimensions);
                 _logger.Information("HnswVectorStore initialized with empty index");
             }
 
@@ -228,60 +261,79 @@ public sealed class HnswVectorStore : IVectorStore
     public async Task<long> InsertEmbeddingAsync(long chunkId, float[] embedding, CancellationToken ct = default)
     {
         ThrowIfDisposed();
+        using var operation = await _suspension.EnterAsync(ct).ConfigureAwait(false);
+        ThrowIfDisposed();
         EnsureInitialized();
         ArgumentNullException.ThrowIfNull(embedding);
 
         if (embedding.Length == 0)
             throw new ArgumentException("Embedding vector cannot be empty.", nameof(embedding));
 
-        if (embedding.Length != _dimensions)
-        {
-            _logger.Warning(
-                "Embedding dimension mismatch for chunk {ChunkId}: got {Got}, expected {Expected}. Using actual dimension.",
-                chunkId, embedding.Length, _dimensions);
-        }
-
         var blob = SqliteVecStore.SerializeEmbedding(embedding);
         var magnitude = SqliteVecStore.ComputeMagnitude(embedding);
 
-        // Persist to SQLite first (source of truth).
-        const string sql = """
-            INSERT OR REPLACE INTO vec_embeddings (chunk_id, embedding, magnitude)
-            VALUES (@chunkId, @embedding, @magnitude);
-            """;
-
-        await using var cmd = _connection!.CreateCommand();
-        cmd.CommandText = sql;
-        cmd.Parameters.AddWithValue("@chunkId", chunkId);
-        cmd.Parameters.AddWithValue("@embedding", blob);
-        cmd.Parameters.AddWithValue("@magnitude", magnitude);
-
-        await cmd.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
-
-        // Add to HNSW index if it exists and we're above fallback threshold.
-        if (_hnswIndex is not null)
+        await _mutationLock.WaitAsync(ct).ConfigureAwait(false);
+        try
         {
-            await _mutationLock.WaitAsync(ct).ConfigureAwait(false);
-            try
+            // A vector of another size means the embedding model changed: the index is rebuilt
+            // for the new embedding space before anything is written, so the row can never be
+            // stored while the index insert is bound to fail on a dimension mismatch.
+            if (embedding.Length != _activeDimensions)
+            {
+                _logger.Warning(
+                    "Embedding size changed from {Previous} to {Current} dimensions (chunk {ChunkId}); rebuilding the HNSW index for the new embedding space",
+                    _activeDimensions, embedding.Length, chunkId);
+                await RebuildIndexAsync(embedding.Length, ct).ConfigureAwait(false);
+            }
+
+            // Persist to SQLite first (source of truth).
+            const string sql = """
+                INSERT OR REPLACE INTO vec_embeddings (chunk_id, embedding, magnitude)
+                VALUES (@chunkId, @embedding, @magnitude);
+                """;
+
+            await using (var cmd = _connection!.CreateCommand())
+            {
+                cmd.CommandText = sql;
+                cmd.Parameters.AddWithValue("@chunkId", chunkId);
+                cmd.Parameters.AddWithValue("@embedding", blob);
+                cmd.Parameters.AddWithValue("@magnitude", magnitude);
+
+                await cmd.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
+            }
+
+            // Add to HNSW index if it exists and we're above fallback threshold.
+            if (_hnswIndex is not null)
             {
                 // If this chunk was previously deleted, clean up stale tracking.
                 _staleChunkIds.Remove(chunkId);
 
                 var guid = ChunkIdToGuid(chunkId);
+                try
+                {
+                    var vector = new List<float>(embedding);
+                    await _hnswIndex.AddAsync(guid, vector, CancellationToken.None).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    // Keep SQLite and the index consistent: a row the index could not take is
+                    // removed again and the insert reported as failed, instead of leaving a row
+                    // that breaks the next rebuild.
+                    _logger.Error(ex, "HNSW insert failed for chunk {ChunkId}; removing its row", chunkId);
+                    await DeleteRowAsync(chunkId).ConfigureAwait(false);
+                    throw;
+                }
+
                 _chunkIdToGuid[chunkId] = guid;
                 _guidToChunkId[guid] = chunkId;
-
-                var vector = new List<float>(embedding);
-                await _hnswIndex.AddAsync(guid, vector, ct).ConfigureAwait(false);
-
                 _indexDirty = true;
 
                 _logger.Debug("Inserted chunk {ChunkId} into HNSW index (guid={Guid})", chunkId, guid);
             }
-            finally
-            {
-                _mutationLock.Release();
-            }
+        }
+        finally
+        {
+            _mutationLock.Release();
         }
 
         _logger.Debug("Inserted embedding for chunk {ChunkId} ({Dimensions} dims, magnitude={Magnitude:F4})",
@@ -298,6 +350,8 @@ public sealed class HnswVectorStore : IVectorStore
         CancellationToken ct = default)
     {
         ThrowIfDisposed();
+        using var operation = await _suspension.EnterAsync(ct).ConfigureAwait(false);
+        ThrowIfDisposed();
         EnsureInitialized();
         ArgumentNullException.ThrowIfNull(queryEmbedding);
 
@@ -307,15 +361,18 @@ public sealed class HnswVectorStore : IVectorStore
         if (topK <= 0)
             throw new ArgumentOutOfRangeException(nameof(topK), topK, "topK must be a positive integer.");
 
-        var embeddingCount = await GetEmbeddingCountAsync(ct).ConfigureAwait(false);
+        var embeddingCount = await CountEmbeddingsAsync(ct).ConfigureAwait(false);
 
-        // Check if stale entries exceed threshold — trigger rebuild if so.
+        // Check if stale entries exceed threshold - trigger rebuild if so.
         await CheckStaleRebuildAsync(embeddingCount, ct).ConfigureAwait(false);
 
         // Hybrid search: use HNSW for large collections, linear scan fallback for small.
         // Acquire mutation lock during search to prevent concurrent modifications to
         // stale set and GUID mappings, which could cause race conditions.
-        if (embeddingCount > _fallbackThreshold && _hnswIndex is not null)
+        // A query from another embedding space than the index (different size) can only be
+        // compared by the linear scan, which skips rows of other sizes.
+        if (embeddingCount > _fallbackThreshold && _hnswIndex is not null &&
+            queryEmbedding.Length == _activeDimensions)
         {
             await _mutationLock.WaitAsync(ct).ConfigureAwait(false);
             try
@@ -334,6 +391,8 @@ public sealed class HnswVectorStore : IVectorStore
     /// <inheritdoc />
     public async Task DeleteEmbeddingAsync(long chunkId, CancellationToken ct = default)
     {
+        ThrowIfDisposed();
+        using var operation = await _suspension.EnterAsync(ct).ConfigureAwait(false);
         ThrowIfDisposed();
         EnsureInitialized();
 
@@ -388,6 +447,8 @@ public sealed class HnswVectorStore : IVectorStore
         IReadOnlyList<long> chunkIds,
         CancellationToken ct = default)
     {
+        ThrowIfDisposed();
+        using var operation = await _suspension.EnterAsync(ct).ConfigureAwait(false);
         ThrowIfDisposed();
         EnsureInitialized();
         ArgumentNullException.ThrowIfNull(chunkIds);
@@ -465,25 +526,17 @@ public sealed class HnswVectorStore : IVectorStore
     public async Task<long> GetEmbeddingCountAsync(CancellationToken ct = default)
     {
         ThrowIfDisposed();
+        using var operation = await _suspension.EnterAsync(ct).ConfigureAwait(false);
+        ThrowIfDisposed();
 
-        if (_connection is null || _connection.State != System.Data.ConnectionState.Open)
-        {
-            throw new InvalidOperationException(
-                "Vector store is not initialized. Call InitializeAsync before performing operations.");
-        }
-
-        const string sql = "SELECT COUNT(*) FROM vec_embeddings;";
-
-        await using var cmd = _connection.CreateCommand();
-        cmd.CommandText = sql;
-
-        var result = await cmd.ExecuteScalarAsync(ct).ConfigureAwait(false);
-        return Convert.ToInt64(result);
+        return await CountEmbeddingsAsync(ct).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
     public async Task OptimizeAsync(CancellationToken ct = default)
     {
+        ThrowIfDisposed();
+        using var operation = await _suspension.EnterAsync(ct).ConfigureAwait(false);
         ThrowIfDisposed();
         EnsureInitialized();
 
@@ -503,12 +556,81 @@ public sealed class HnswVectorStore : IVectorStore
     }
 
     /// <inheritdoc />
+    /// <remarks>
+    /// The in-memory index is kept but not persisted: after a restore it no longer matches the
+    /// database, and next to a database that is being encrypted it must not be written in plain
+    /// text. <see cref="ResumeAsync"/> decides what happens to it.
+    /// </remarks>
+    public Task SuspendAsync(CancellationToken ct = default)
+    {
+        ThrowIfDisposed();
+
+        // The close runs once no operation is running; new ones wait for the last resume.
+        return _suspension.SuspendAsync(
+            () =>
+            {
+                _reopenOnResume = _initialized && _connection is not null;
+                CloseConnection();
+                _logger.Information("HnswVectorStore suspended: database connection closed");
+            },
+            ct);
+    }
+
+    /// <inheritdoc />
+    public Task ResumeAsync(bool reloadFromDatabase, CancellationToken ct = default)
+        => _suspension.ResumeAsync(reloadFromDatabase, reload => ReopenAsync(reload, ct));
+
+    /// <summary>
+    /// Reopens the connection after a suspension. On a reload the index and the index files are
+    /// rebuilt from the database, because both describe the file that was replaced (a loaded
+    /// index file is only checked by its count, which a restored database can match by chance).
+    /// Otherwise the index is kept, and index files are removed when the database is now
+    /// encrypted.
+    /// </summary>
+    private async Task ReopenAsync(bool reload, CancellationToken ct)
+    {
+        if (!_reopenOnResume || _disposed)
+            return;
+
+        _reopenOnResume = false;
+        await OpenAndPrepareAsync(ct).ConfigureAwait(false);
+
+        if (reload)
+        {
+            DeleteIndexFiles("the database was replaced");
+            await _mutationLock.WaitAsync(ct).ConfigureAwait(false);
+            try
+            {
+                await RebuildIndexAsync(ResolveCurrentDimensions(), ct).ConfigureAwait(false);
+            }
+            finally
+            {
+                _mutationLock.Release();
+            }
+
+            _logger.Information(
+                "HnswVectorStore resumed and rebuilt its index from the database ({Count} embeddings)",
+                _chunkIdToGuid.Count);
+        }
+        else
+        {
+            if (IsDatabaseEncrypted())
+                DeleteIndexFiles("the database is encrypted");
+
+            _logger.Information("HnswVectorStore resumed");
+        }
+    }
+
+    /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
         if (_disposed)
             return;
 
         _disposed = true;
+
+        // Operations waiting on a suspension wake up and report the disposal.
+        _suspension.Abandon();
 
         // Persist dirty index before disposal.
         if (_indexDirty && _hnswIndex is not null && _storagePath is not null)
@@ -551,7 +673,17 @@ public sealed class HnswVectorStore : IVectorStore
         _logger.Information("HnswVectorStore disposed");
     }
 
-    // ── HNSW search ─────────────────────────────────────────────────────
+    // -- HNSW search -----------------------------------------------------
+
+    /// <summary>
+    /// The search breadth to pass to HnswLite: null (its default, max(EfConstruction,
+    /// 2 x candidates)) unless the configured <paramref name="efSearch"/> is wider.
+    /// </summary>
+    internal static int? ResolveSearchEf(int efSearch, int efConstruction, int candidates)
+    {
+        var libraryDefault = Math.Max(efConstruction, candidates * 2);
+        return efSearch > libraryDefault ? Math.Min(efSearch, MaxHnswEf) : null;
+    }
 
     /// <summary>
     /// Performs approximate nearest neighbor search using the HNSW index.
@@ -571,7 +703,8 @@ public sealed class HnswVectorStore : IVectorStore
         IEnumerable<VectorResult> hnswResults;
         try
         {
-            hnswResults = await _hnswIndex!.GetTopKAsync(queryList, searchK, ef: null, ct).ConfigureAwait(false);
+            hnswResults = await _hnswIndex!.GetTopKAsync(
+                queryList, searchK, ResolveSearchEf(EfSearch, _efConstruction, searchK), ct).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -622,7 +755,7 @@ public sealed class HnswVectorStore : IVectorStore
 
     /// <summary>
     /// Performs linear scan search by loading all embeddings from SQLite.
-    /// Identical algorithm to SqliteVecStore — used as fallback for small collections.
+    /// Identical algorithm to SqliteVecStore - used as fallback for small collections.
     /// </summary>
     private async Task<IReadOnlyList<VectorSearchResult>> SearchLinearAsync(
         float[] queryEmbedding,
@@ -641,6 +774,7 @@ public sealed class HnswVectorStore : IVectorStore
         }
 
         var candidates = new List<VectorSearchResult>();
+        var mismatchedRows = 0;
 
         const string sql = "SELECT chunk_id, embedding, magnitude FROM vec_embeddings;";
 
@@ -662,9 +796,9 @@ public sealed class HnswVectorStore : IVectorStore
 
             if (storedEmbedding.Length != queryEmbedding.Length)
             {
-                _logger.Warning(
-                    "Dimension mismatch for chunk {ChunkId}: stored={StoredDims}, query={QueryDims}. Skipping.",
-                    chunkId, storedEmbedding.Length, queryEmbedding.Length);
+                // Rows from another embedding model; counted and reported once per search
+                // instead of one warning per row.
+                mismatchedRows++;
                 continue;
             }
 
@@ -686,31 +820,61 @@ public sealed class HnswVectorStore : IVectorStore
             .ToList()
             .AsReadOnly();
 
+        if (mismatchedRows > 0)
+        {
+            _logger.Warning(
+                "Skipped {Count} stored embeddings whose size differs from the {QueryDims}-dimension query (another embedding model); re-index those documents",
+                mismatchedRows, queryEmbedding.Length);
+        }
+
         _logger.Debug("Linear search returned {Count} results (from {Total} candidates above threshold)",
             results.Count, candidates.Count);
 
         return results;
     }
 
-    // ── Index lifecycle ─────────────────────────────────────────────────
+    // -- Index lifecycle -------------------------------------------------
 
     /// <summary>
-    /// Creates an empty HNSW index with the configured parameters.
+    /// Creates an empty HNSW index for vectors of <paramref name="dimensions"/> and makes that the
+    /// active embedding space. Sizes HnswLite cannot index leave the store on the linear scan.
     /// </summary>
-    private void CreateEmptyIndex()
+    private void CreateEmptyIndex(int dimensions)
     {
-        _hnswIndex = new HnswIndex(_dimensions, new RamHnswStorage(), new RamHnswLayerStorage());
+        _activeDimensions = dimensions;
+
+        if (dimensions < 1 || dimensions > MaxHnswDimensions)
+        {
+            _hnswIndex = null;
+            _logger.Warning(
+                "Embeddings have {Dimensions} dimensions; the HNSW index supports 1 to {Max}, so searches use the linear scan",
+                dimensions, MaxHnswDimensions);
+            return;
+        }
+
+        _hnswIndex = new HnswIndex(dimensions, new RamHnswStorage(), new RamHnswLayerStorage());
         _hnswIndex.M = _m;
         _hnswIndex.EfConstruction = _efConstruction;
         _hnswIndex.DistanceFunction = new CosineDistance();
     }
 
     /// <summary>
-    /// Rebuilds the HNSW index from all embeddings in SQLite.
+    /// Rebuilds the HNSW index from the SQLite embeddings of the given size. Rows of any other
+    /// size belong to a previous embedding model: they are skipped (they would make the whole
+    /// rebuild fail) and stay in SQLite for the linear scan until they are re-embedded.
     /// </summary>
-    private async Task RebuildIndexAsync(CancellationToken ct)
+    private async Task RebuildIndexAsync(int dimensions, CancellationToken ct)
     {
-        CreateEmptyIndex();
+        CreateEmptyIndex(dimensions);
+        _chunkIdToGuid.Clear();
+        _guidToChunkId.Clear();
+        _staleChunkIds.Clear();
+
+        if (_hnswIndex is null)
+        {
+            _indexDirty = false;
+            return;
+        }
 
         const string sql = "SELECT chunk_id, embedding FROM vec_embeddings;";
 
@@ -721,6 +885,7 @@ public sealed class HnswVectorStore : IVectorStore
 
         var batch = new Dictionary<Guid, List<float>>();
         var batchSize = 0;
+        var skipped = 0;
         const int BatchLimit = 1000;
 
         while (await reader.ReadAsync(ct).ConfigureAwait(false))
@@ -731,6 +896,12 @@ public sealed class HnswVectorStore : IVectorStore
             var blob = (byte[])reader.GetValue(1);
             var embedding = SqliteVecStore.DeserializeEmbedding(blob);
 
+            if (embedding.Length != dimensions)
+            {
+                skipped++;
+                continue;
+            }
+
             var guid = ChunkIdToGuid(chunkId);
             _chunkIdToGuid[chunkId] = guid;
             _guidToChunkId[guid] = chunkId;
@@ -740,7 +911,7 @@ public sealed class HnswVectorStore : IVectorStore
 
             if (batchSize >= BatchLimit)
             {
-                await _hnswIndex!.AddNodesAsync(batch, ct).ConfigureAwait(false);
+                await _hnswIndex.AddNodesAsync(batch, ct).ConfigureAwait(false);
                 batch.Clear();
                 batchSize = 0;
             }
@@ -749,10 +920,16 @@ public sealed class HnswVectorStore : IVectorStore
         // Flush remaining batch.
         if (batch.Count > 0)
         {
-            await _hnswIndex!.AddNodesAsync(batch, ct).ConfigureAwait(false);
+            await _hnswIndex.AddNodesAsync(batch, ct).ConfigureAwait(false);
         }
 
-        _staleChunkIds.Clear();
+        if (skipped > 0)
+        {
+            _logger.Warning(
+                "HNSW index rebuilt for {Dimensions}-dimension embeddings; {Skipped} stored embeddings of another size were left out (re-index those documents)",
+                dimensions, skipped);
+        }
+
         _indexDirty = true;
     }
 
@@ -760,13 +937,21 @@ public sealed class HnswVectorStore : IVectorStore
     /// Attempts to load an existing HNSW index from disk.
     /// Returns true if the index was successfully loaded and matches the current embedding count.
     /// </summary>
-    private async Task<bool> TryLoadIndexAsync(long embeddingCount, CancellationToken ct)
+    private async Task<bool> TryLoadIndexAsync(long embeddingCount, int dimensions, CancellationToken ct)
     {
         if (_storagePath is null)
             return false;
 
         var metadataPath = Path.Combine(_storagePath, MetadataFileName);
         var indexPath = Path.Combine(_storagePath, IndexFileName);
+
+        // An encrypted database must not be paired with a plaintext copy of its vectors: never
+        // trust (or keep) index files next to it, rebuild from the database instead.
+        if (IsDatabaseEncrypted())
+        {
+            DeleteIndexFiles("the database is encrypted");
+            return false;
+        }
 
         if (!File.Exists(metadataPath) || !File.Exists(indexPath))
         {
@@ -812,8 +997,16 @@ public sealed class HnswVectorStore : IVectorStore
                 return false;
             }
 
+            if (metadata.Dimensions != dimensions || dimensions > MaxHnswDimensions)
+            {
+                _logger.Information(
+                    "HNSW index on disk holds {FileDims}-dimension vectors but the embedding model produces {Dims}; will rebuild",
+                    metadata.Dimensions, dimensions);
+                return false;
+            }
+
             // Load the index binary.
-            CreateEmptyIndex();
+            CreateEmptyIndex(dimensions);
 
             var indexBytes = await File.ReadAllBytesAsync(indexPath, ct).ConfigureAwait(false);
 
@@ -833,14 +1026,16 @@ public sealed class HnswVectorStore : IVectorStore
 
             await _hnswIndex!.ImportStateAsync(state, ct).ConfigureAwait(false);
 
-            // Rebuild the chunkId-to-Guid mapping from SQLite.
+            // Rebuild the chunkId-to-Guid mapping from SQLite, for the rows the index holds
+            // (those of the index dimension; a float is 4 bytes).
             _chunkIdToGuid.Clear();
             _guidToChunkId.Clear();
 
-            const string sql = "SELECT chunk_id FROM vec_embeddings;";
+            const string sql = "SELECT chunk_id FROM vec_embeddings WHERE length(embedding) = @bytes;";
 
             await using var cmd = _connection!.CreateCommand();
             cmd.CommandText = sql;
+            cmd.Parameters.AddWithValue("@bytes", (long)dimensions * sizeof(float));
 
             await using var reader = await cmd.ExecuteReaderAsync(ct).ConfigureAwait(false);
 
@@ -892,10 +1087,24 @@ public sealed class HnswVectorStore : IVectorStore
     /// Uses a custom binary format for the index state to avoid System.Text.Json
     /// roundtrip issues with HnswLite's internal types.
     /// </summary>
+    /// <remarks>
+    /// The index file holds every vector and chunk id in plain JSON. When the database is
+    /// encrypted with SQLCipher that would expose the embeddings next to the protected
+    /// database, so nothing is written (and earlier plaintext files are removed); the index is
+    /// rebuilt from the encrypted database on the next start instead.
+    /// </remarks>
     private async Task PersistIndexAsync(CancellationToken ct)
     {
         if (_storagePath is null || _hnswIndex is null)
             return;
+
+        if (IsDatabaseEncrypted())
+        {
+            DeleteIndexFiles("the database is encrypted");
+            _indexDirty = false;
+            _logger.Debug("Database is encrypted; the HNSW index stays in memory and is rebuilt from the database on start");
+            return;
+        }
 
         var metadataPath = Path.Combine(_storagePath, MetadataFileName);
         var indexPath = Path.Combine(_storagePath, IndexFileName);
@@ -904,7 +1113,7 @@ public sealed class HnswVectorStore : IVectorStore
         try
         {
             // Export the HNSW index state and serialize with System.Text.Json
-            // using a宽松 configuration that handles float precision and nullable types.
+            // using a lenient configuration that handles float precision and nullable types.
             var state = await _hnswIndex.ExportStateAsync(ct).ConfigureAwait(false);
 
             var jsonOptions = new JsonSerializerOptions
@@ -929,13 +1138,13 @@ public sealed class HnswVectorStore : IVectorStore
             }
 
             // Serialize and write metadata.
-            var embeddingCount = await GetEmbeddingCountAsync(ct).ConfigureAwait(false);
+            var embeddingCount = await CountEmbeddingsAsync(ct).ConfigureAwait(false);
             var metadata = new HnswIndexMetadata
             {
                 Count = embeddingCount,
                 M = _m,
                 EfConstruction = _efConstruction,
-                Dimensions = _dimensions,
+                Dimensions = _activeDimensions,
                 StaleCount = _staleChunkIds.Count,
                 CreatedAtUtc = DateTime.UtcNow
             };
@@ -978,7 +1187,7 @@ public sealed class HnswVectorStore : IVectorStore
             await _mutationLock.WaitAsync(ct).ConfigureAwait(false);
             try
             {
-                await RebuildIndexAsync(ct).ConfigureAwait(false);
+                await RebuildIndexAsync(_activeDimensions, ct).ConfigureAwait(false);
             }
             finally
             {
@@ -987,7 +1196,94 @@ public sealed class HnswVectorStore : IVectorStore
         }
     }
 
-    // ── ID mapping ──────────────────────────────────────────────────────
+    /// <summary>
+    /// Vector size of the current embedding model, falling back to the size in effect when the
+    /// provider cannot answer (for example before the AI service is initialized).
+    /// </summary>
+    private int ResolveCurrentDimensions()
+    {
+        try
+        {
+            var dimensions = _dimensionsProvider();
+            if (dimensions > 0)
+                return dimensions;
+        }
+        catch (Exception ex)
+        {
+            _logger.Debug(ex, "Could not read the embedding size from the embedding service");
+        }
+
+        return _activeDimensions > 0 ? _activeDimensions : DefaultDimensions;
+    }
+
+    /// <summary>True when the SQLite database file is encrypted (SQLCipher).</summary>
+    private bool IsDatabaseEncrypted() =>
+        _storagePath is not null && IsDatabaseFileEncrypted(Path.Combine(_storagePath, DatabaseFileName));
+
+    /// <summary>
+    /// A plaintext SQLite file starts with the 16-byte magic "SQLite format 3\0"; SQLCipher
+    /// replaces it with a random salt. A file that cannot be read is treated as encrypted, so
+    /// uncertainty never leads to writing plaintext vectors.
+    /// </summary>
+    internal static bool IsDatabaseFileEncrypted(string dbPath)
+    {
+        try
+        {
+            using var stream = new FileStream(dbPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+            Span<byte> header = stackalloc byte[16];
+            var read = stream.ReadAtLeast(header, header.Length, throwOnEndOfStream: false);
+            if (read < header.Length)
+                return false; // nothing written yet, so nothing to protect
+
+            return !header.SequenceEqual("SQLite format 3\0"u8);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return true;
+        }
+    }
+
+    /// <summary>Removes persisted index files (best effort); <paramref name="reason"/> is logged.</summary>
+    private void DeleteIndexFiles(string reason)
+    {
+        if (_storagePath is null)
+            return;
+
+        foreach (var name in new[] { IndexFileName, MetadataFileName, StaleIdsFileName })
+        {
+            var path = Path.Combine(_storagePath, name);
+            try
+            {
+                if (File.Exists(path))
+                {
+                    File.Delete(path);
+                    _logger.Information("Removed HNSW index file {File} because {Reason}", name, reason);
+                }
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                _logger.Warning(ex, "Could not remove HNSW index file {File}", name);
+            }
+        }
+    }
+
+    /// <summary>Deletes one embedding row (compensation for a failed index insert).</summary>
+    private async Task DeleteRowAsync(long chunkId)
+    {
+        try
+        {
+            await using var cmd = _connection!.CreateCommand();
+            cmd.CommandText = "DELETE FROM vec_embeddings WHERE chunk_id = @chunkId;";
+            cmd.Parameters.AddWithValue("@chunkId", chunkId);
+            await cmd.ExecuteNonQueryAsync(CancellationToken.None).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning(ex, "Could not remove the embedding row of chunk {ChunkId}", chunkId);
+        }
+    }
+
+    // -- ID mapping ------------------------------------------------------
 
     /// <summary>
     /// Creates a deterministic Guid from a chunk ID (long) by padding to 16 bytes.
@@ -1004,7 +1300,7 @@ public sealed class HnswVectorStore : IVectorStore
         return new Guid(bytes);
     }
 
-    // ── Private helpers ─────────────────────────────────────────────────
+    // -- Private helpers -------------------------------------------------
 
     /// <summary>
     /// Executes a non-query SQL command on the current connection.
@@ -1014,6 +1310,86 @@ public sealed class HnswVectorStore : IVectorStore
         await using var cmd = _connection!.CreateCommand();
         cmd.CommandText = sql;
         await cmd.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Opens the connection to the database in <see cref="_storagePath"/> and makes sure the
+    /// embeddings table exists (a restored database may predate it). Used by initialization and
+    /// by resume.
+    /// </summary>
+    private async Task OpenAndPrepareAsync(CancellationToken ct)
+    {
+        // A connection left from an earlier attempt would keep the file open.
+        CloseConnection();
+
+        // Open SQLite connection (same schema as SqliteVecStore) via the encrypted
+        // connection factory: PRAGMA key is applied automatically when encryption
+        // is enabled, and the call is a plaintext open when no key is loaded.
+        var dbPath = Path.Combine(_storagePath!, DatabaseFileName);
+        _connection = _connectionFactory.OpenKeyed(dbPath);
+
+        _logger.Debug("SQLite connection opened: {Path}", dbPath);
+
+        await ExecuteNonQueryAsync("PRAGMA journal_mode=WAL;", ct).ConfigureAwait(false);
+
+        const string createTableSql = """
+            CREATE TABLE IF NOT EXISTS vec_embeddings (
+                chunk_id  INTEGER PRIMARY KEY,
+                embedding BLOB NOT NULL,
+                magnitude REAL NOT NULL
+            );
+            """;
+
+        await ExecuteNonQueryAsync(createTableSql, ct).ConfigureAwait(false);
+
+        const string createIndexSql = """
+            CREATE INDEX IF NOT EXISTS idx_vec_chunk ON vec_embeddings(chunk_id);
+            """;
+
+        await ExecuteNonQueryAsync(createIndexSql, ct).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Counts the stored embeddings on the open connection. For use inside an operation that
+    /// already entered the suspension gate, and while suspended by resume itself.
+    /// </summary>
+    private async Task<long> CountEmbeddingsAsync(CancellationToken ct)
+    {
+        if (_connection is null || _connection.State != System.Data.ConnectionState.Open)
+        {
+            throw new InvalidOperationException(
+                "Vector store is not initialized. Call InitializeAsync before performing operations.");
+        }
+
+        const string sql = "SELECT COUNT(*) FROM vec_embeddings;";
+
+        await using var cmd = _connection.CreateCommand();
+        cmd.CommandText = sql;
+
+        var result = await cmd.ExecuteScalarAsync(ct).ConfigureAwait(false);
+        return Convert.ToInt64(result);
+    }
+
+    /// <summary>
+    /// Closes the connection and clears its pool, so no handle on the database file remains
+    /// (a pooled connection keeps the file open after it is disposed).
+    /// </summary>
+    private void CloseConnection()
+    {
+        var connection = _connection;
+        _connection = null;
+        if (connection is null)
+            return;
+
+        try
+        {
+            SqliteConnection.ClearPool(connection);
+            connection.Dispose();
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning(ex, "Error closing the HnswVectorStore connection");
+        }
     }
 
     /// <summary>

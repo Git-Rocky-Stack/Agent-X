@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AgentX.App.Services;
 using AgentX.App.ViewModels;
 using AgentX.Core.Services.Shortcuts;
+using AgentX.Tests.Helpers;
 using FluentAssertions;
 using Xunit;
 
@@ -72,7 +73,7 @@ public class CommandPaletteViewModelTests
     public void Seeded_global_navigation_entries_include_analytics_in_command_palette_results()
     {
         var registry = new ShortcutRegistry();
-        var catalog = new ShortcutCatalog(registry);
+        var catalog = new ShortcutCatalog(registry, EnglishResources.Create());
         catalog.SeedDefaults(new ShortcutCatalogActions(
             (_, _, _) => Task.CompletedTask,
             _ => Task.CompletedTask,
